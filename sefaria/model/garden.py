@@ -519,7 +519,7 @@ class GardenStopRelationSet(abst.AbstractMongoSet):
 
 
 
-"""
+r"""
 def process_index_title_change_in_gardens(indx, **kwargs):
     if indx.is_commentary():
         pattern = r'^{} on '.format(re.escape(kwargs["old"]))

@@ -1,9 +1,19 @@
+import json
+import logging
+
+from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+
+from sefaria.client.util import jsonResponse
 from sefaria.model import *
 from sefaria.model.text_request_adapter import TextRequestAdapter
-from sefaria.client.util import jsonResponse
-from sefaria.system.exceptions import InputError, ComplexBookLevelRefError
-from django.views import View
+from sefaria.system.exceptions import InputError, ComplexBookLevelRefError, DictionaryEntryNotFoundError
 from .api_warnings import *
+
+
+logger = logging.getLogger(__name__)
 
 
 class Text(View):
@@ -67,3 +77,359 @@ class Text(View):
             return jsonResponse({'error': str(e)}, status=400)
 
         return jsonResponse(data)
+
+
+class RefView(View):
+
+    def dispatch(self, request, *args, **kwargs):
+        try:
+            self.oref = Ref.instantiate_ref_with_legacy_parse_fallback(kwargs['tref'])
+        except (InputError, DictionaryEntryNotFoundError):
+            return jsonResponse({'is_ref': False})
+        except Exception as e:
+            return jsonResponse({'error': getattr(e, 'message', str(e))}, status=404)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        oref = self.oref
+        index = oref.index
+        index_node = oref.index_node
+        # Load vstate for non-virtual nodes (JaggedArrayNode, SchemaNode, DictionaryNode).
+        vstate = VersionState(index.title) if not index_node.is_virtual else None
+        return_object = {
+            'is_ref': True,
+            'normalized': oref.normal(),
+            'hebrew': oref.he_normal(),
+            'url_ref': oref.url(),
+            'index_title': index.title,
+            'node_type': type(index_node).__name__,
+            'navigation_refs': {
+                'shortest_path_to_root': [r.normal() for r in oref.all_context_refs(False, True)][::-1]
+            }
+        }
+
+        if return_object['node_type'] != 'SheetNode':
+            norm = lambda r: r.normal() if r else None
+            return_object['navigation_refs']['first_available_section_ref'] = norm(oref.first_available_section_ref(vstate=vstate))
+            if oref.is_segment_level():
+                return_object['navigation_refs']['prev_segment_ref'] = norm(oref.prev_segment_ref(vstate=vstate))
+                return_object['navigation_refs']['next_segment_ref'] = norm(oref.next_segment_ref(vstate=vstate))
+            elif oref.is_section_level():
+                return_object['navigation_refs']['prev_section_ref'] = norm(oref.prev_section_ref(vstate=vstate))
+                return_object['navigation_refs']['next_section_ref'] = norm(oref.next_section_ref(vstate=vstate))
+
+        if return_object['node_type'] == 'SchemaNode':
+            return_object['children'] = [child.get_primary_title() for child in index_node.children]
+
+        elif return_object['node_type'] in ['JaggedArrayNode', 'DictionaryEntryNode']:
+            return_object.update({
+                'depth': index_node.depth,
+                'address_types': index_node.addressTypes,
+                'section_names': index_node.sectionNames,
+                'start_indexes': oref.sections,
+                'start_labels': oref.normal_sections(),
+                'end_indexes': oref.toSections,
+                'end_labels': oref.normal_toSections(),
+            })
+
+            if return_object['node_type'] == 'DictionaryEntryNode':
+                lexicon_entry = index_node.lexicon_entry
+                return_object['lexicon_name'] = lexicon_entry.parent_lexicon
+                return_object['headword'] = lexicon_entry.headword
+
+        elif return_object['node_type'] == 'SheetNode':
+            return_object['sheet_id'] = index_node.sheetId
+
+        elif return_object['node_type'] == 'DictionaryNode':
+            return_object['lexicon_name'] = index_node.lexiconName
+
+        if index_node.has_default_child():
+            default_ref = oref.default_child_ref()
+            default_node = default_ref.index_node
+            return_object['default_child_node'] = {
+                'node_type': type(default_node).__name__,
+                'node_index': index_node.children.index(default_node)
+            }
+            if return_object['default_child_node']['node_type'] == 'JaggedArrayNode':
+                return_object['default_child_node']['depth'] = default_node.depth
+                return_object['default_child_node']['address_types'] = default_node.addressTypes
+                return_object['default_child_node']['sectionNames'] = default_node.sectionNames
+
+            if return_object['node_type'] == 'DictionaryNode':
+                return_object['default_child_node']['lexicon_name'] = index_node.lexiconName
+
+        if getattr(index_node, "depth", None) and not oref.is_range() and not oref.is_segment_level():
+            state_ja = oref.get_state_ja(vstate=vstate) if vstate else None
+            subrefs = oref.all_subrefs(state_ja=state_ja)
+            return_object['navigation_refs']['first_subref'] = subrefs[0].normal()
+            return_object['navigation_refs']['last_subref'] = subrefs[-1].normal()
+
+        return jsonResponse(return_object)
+
+
+class KnnSearch(View):
+    SEARCH_RESULT_FIELDS = (
+        'ref', 'url', 'index_title', 'language', 'version_title',
+        'primary_category', 'all_categories',
+    )
+
+    # Public response controls. Clients may request fewer or more items, but values
+    # are clamped by the max constants to keep response size and query cost bounded.
+    DEFAULT_RESULT_LIMIT = 10
+    DEFAULT_LINKED_REF_LIMIT = 10
+    MAX_RESULT_LIMIT = 100
+    MAX_LINKED_REF_LIMIT = 100
+
+    # Hidden linked-ref enhancement tuning. We intentionally do not expose these as
+    # API params while the ranking rule is still experimental:
+    # - LIMIT: number of semantic hits used internally to build the link graph.
+    # - DEPTH: graph hops to traverse from each semantic hit.
+    # - STD_THRESHOLD/MIN_COUNT: outlier rule count >= max(min_count, mean + k*std).
+    # - FULL_TEXT_CHAR_LIMIT: linked refs larger than this are replaced with
+    #   semantic chunks to avoid oversized tool responses. Patot caps chunks at
+    #   500 BEREL tokens; recent output sampling put that near 1,300 chars, so
+    #   this threshold approximates one maximal chunk and keeps linked-ref
+    #   augmentation away from Claude Code's 50K-char tool persistence limit.
+    # - SEMANTIC_CHUNK_LIMIT: number of top filtered chunks returned for each
+    #   oversized linked ref.
+    LINKED_REF_ENHANCEMENT_LIMIT = 50
+    LINKED_REF_ENHANCEMENT_DEPTH = 1
+    LINKED_REF_ENHANCEMENT_STD_THRESHOLD = 2
+    LINKED_REF_ENHANCEMENT_MIN_COUNT = 3
+    LINKED_REF_FULL_TEXT_CHAR_LIMIT = 1300
+    LINKED_REF_SEMANTIC_CHUNK_LIMIT = 2
+
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    @staticmethod
+    def _bool_param(body, name, default):
+        value = body.get(name, default)
+        if not isinstance(value, bool):
+            raise ValueError(f"'{name}' must be a boolean")
+        return value
+
+    @staticmethod
+    def _limit_param(body, name, default, max_value):
+        value = body.get(name, default)
+        if not isinstance(value, int) or isinstance(value, bool):
+            raise ValueError(f"'{name}' must be an integer")
+        return max(1, min(value, max_value))
+
+    @classmethod
+    def _serialize_search_result(cls, result, include_text):
+        serialized = {f: getattr(result, f) for f in cls.SEARCH_RESULT_FIELDS}
+        if include_text:
+            serialized["text"] = result.text
+        return serialized
+
+    @staticmethod
+    def _ref_text(ref):
+        try:
+            text = Ref(ref).text(lang="en").as_string()
+            if text:
+                return text
+            return Ref(ref).text(lang="he").as_string()
+        except Exception:
+            return ""
+
+    @staticmethod
+    def _semantic_chunk_filters(base_filters, ref_filter):
+        filters = dict(base_filters or {})
+        filters.update(ref_filter)
+        return filters
+
+    @staticmethod
+    def _segment_ref_filter_for_linked_ref(ref):
+        oref = Ref(ref)
+        if not (oref.is_segment_level() or (oref.is_section_level() and not oref.is_range())):
+            return None, []
+
+        segment_refs = [segment_ref.normal() for segment_ref in oref.all_segment_refs()]
+        if not segment_refs:
+            return None, []
+        if len(segment_refs) == 1:
+            return {"ref": segment_refs[0]}, segment_refs
+        return {"ref__in": segment_refs}, segment_refs
+
+    @staticmethod
+    def _is_supported_linked_ref(ref):
+        try:
+            oref = Ref(ref)
+        except Exception:
+            return False
+        return oref.is_segment_level() or (oref.is_section_level() and not oref.is_range())
+
+    @classmethod
+    def _semantic_chunks_for_linked_ref(cls, ref, query_embedding, base_filters):
+        from semantic_search.search import semantic_search_by_embedding
+
+        ref_filter, segment_refs = cls._segment_ref_filter_for_linked_ref(ref)
+        if ref_filter is None:
+            return [], None
+
+        vector_filters = cls._semantic_chunk_filters(base_filters, ref_filter)
+        chunks = semantic_search_by_embedding(
+            query_embedding,
+            filters=vector_filters,
+            limit=cls.LINKED_REF_SEMANTIC_CHUNK_LIMIT,
+        )
+        if chunks:
+            return chunks, next(iter(ref_filter.keys()))
+        return [], None
+
+    @classmethod
+    def _serialize_linked_ref(cls, ref, include_text, query_embedding=None, filters=None):
+        serialized = {"ref": ref}
+        if include_text:
+            if not cls._is_supported_linked_ref(ref):
+                serialized.update({
+                    "text": "",
+                    "text_source": "omitted_unsupported_linked_ref",
+                })
+                return serialized
+            text = cls._ref_text(ref)
+            if len(text) > cls.LINKED_REF_FULL_TEXT_CHAR_LIMIT and query_embedding is not None:
+                chunks, ref_field = cls._semantic_chunks_for_linked_ref(ref, query_embedding, filters)
+                if chunks:
+                    logger.info(
+                        "Replaced oversized linked ref text with semantic chunks",
+                        extra={
+                            "ref": ref,
+                            "original_text_char_count": len(text),
+                            "semantic_chunk_count": len(chunks),
+                            "semantic_chunk_filter_field": ref_field,
+                        },
+                    )
+                    return [
+                        {
+                            **cls._serialize_search_result(chunk, include_text=True),
+                            "text_source": "linked_ref_semantic_chunk",
+                            "linked_ref_parent": ref,
+                            "linked_ref_chunk_number": chunk_number,
+                            "linked_ref_chunk_count": len(chunks),
+                            "original_text_char_count": len(text),
+                            "semantic_chunk_limit": cls.LINKED_REF_SEMANTIC_CHUNK_LIMIT,
+                            "semantic_chunk_filter_field": ref_field,
+                        }
+                        for chunk_number, chunk in enumerate(chunks, start=1)
+                    ]
+                else:
+                    logger.warning(
+                        "Omitted oversized linked ref text because no semantic chunks were found",
+                        extra={
+                            "ref": ref,
+                            "original_text_char_count": len(text),
+                        },
+                    )
+                    serialized.update({
+                        "text": "",
+                        "text_source": "omitted_oversized_linked_ref",
+                        "original_text_char_count": len(text),
+                        "semantic_chunk_limit": cls.LINKED_REF_SEMANTIC_CHUNK_LIMIT,
+                    })
+                    return serialized
+            serialized["text"] = text
+        return serialized
+
+    @classmethod
+    def _serialize_linked_refs(cls, refs, include_text, query_embedding=None, filters=None):
+        serialized_refs = []
+        for ref in refs:
+            serialized = cls._serialize_linked_ref(ref, include_text, query_embedding, filters)
+            if isinstance(serialized, list):
+                serialized_refs.extend(serialized)
+            else:
+                serialized_refs.append(serialized)
+        return serialized_refs
+
+    @staticmethod
+    def _top_linked_refs(enhancement, limit):
+        return [
+            ref
+            for ref, _ in sorted(
+                enhancement.ref_counts.items(),
+                key=lambda item: (-item[1], item[0]),
+            )[:limit]
+        ]
+
+    def post(self, request):
+        auth = request.headers.get("Authorization", "")
+        if not auth.startswith("Bearer "):
+            return jsonResponse({"error": "Unauthorized"}, status=401)
+        token = auth[len("Bearer "):]
+        expected = getattr(settings, "SEMANTIC_SEARCH_API_TOKEN", "")
+        if not expected or token != expected:
+            return jsonResponse({"error": "Unauthorized"}, status=401)
+
+        try:
+            body = json.loads(request.body)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return jsonResponse({"error": "Invalid JSON body"}, status=400)
+
+        if not isinstance(body, dict):
+            return jsonResponse({"error": "JSON body must be an object"}, status=400)
+        query = body.get("query", "").strip()
+        if not query:
+            return jsonResponse({"error": "Missing or empty 'query'"}, status=400)
+
+        filters = body.get("filters") or None
+        if filters is not None and not isinstance(filters, dict):
+            return jsonResponse({"error": "'filters' must be an object"}, status=400)
+
+        try:
+            result_limit = self._limit_param(
+                body,
+                "result_limit",
+                body.get("limit", self.DEFAULT_RESULT_LIMIT),
+                self.MAX_RESULT_LIMIT,
+            )
+            linked_ref_limit = self._limit_param(
+                body,
+                "linked_ref_limit",
+                self.DEFAULT_LINKED_REF_LIMIT,
+                self.MAX_LINKED_REF_LIMIT,
+            )
+            include_linked_refs = self._bool_param(body, "include_linked_refs", False)
+            include_text = self._bool_param(body, "include_text", True)
+        except ValueError as e:
+            return jsonResponse({"error": str(e)}, status=400)
+
+        from semantic_search.embedder import EmbeddingError
+
+        if not getattr(settings, "GEMINI_API_KEY", ""):
+            return jsonResponse({"error": "Semantic search is not configured"}, status=503)
+
+        try:
+            from semantic_search.search import get_query_embedding, semantic_search_by_embedding
+
+            search_limit = max(result_limit, self.LINKED_REF_ENHANCEMENT_LIMIT) if include_linked_refs else result_limit
+            query_embedding = get_query_embedding(query)
+            search_results = semantic_search_by_embedding(query_embedding, filters=filters, limit=search_limit)
+        except EmbeddingError as e:
+            return jsonResponse({"error": str(e)}, status=502)
+        results = search_results[:result_limit]
+
+        response = {
+            "results": [
+                self._serialize_search_result(r, include_text)
+                for r in results
+            ]
+        }
+
+        if include_linked_refs:
+            from semantic_search.linked_refs import get_mean_std_linked_ref_enhancements
+
+            enhancement = get_mean_std_linked_ref_enhancements(
+                search_results[:self.LINKED_REF_ENHANCEMENT_LIMIT],
+                link_depth=self.LINKED_REF_ENHANCEMENT_DEPTH,
+                std_threshold=self.LINKED_REF_ENHANCEMENT_STD_THRESHOLD,
+                min_count=self.LINKED_REF_ENHANCEMENT_MIN_COUNT,
+            )
+            top_linked_refs = self._top_linked_refs(enhancement, linked_ref_limit)
+            response.update({
+                "linked_refs": self._serialize_linked_refs(top_linked_refs, include_text, query_embedding, filters),
+            })
+
+        return jsonResponse(response)

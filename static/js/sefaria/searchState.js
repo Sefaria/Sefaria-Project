@@ -171,6 +171,7 @@ SearchState.metadataByType = {
       {
         type: 'relevance',
         name: 'Relevance',
+        nameId: 'search_page.relevance',
         heName: 'רלוונטיות',
         fieldArray: ['pagesheetrank'],
         sort_method: 'score',  // if sort_method == 'score', it will combine the standard elasticsearch score with `field`
@@ -179,6 +180,7 @@ SearchState.metadataByType = {
       {
         type: 'chronological',
         name: 'Chronological',
+        nameId: 'search_page.chronological',
         heName: 'כרונולוגי',
         fieldArray: ['comp_date', 'order'],  // if sort_method == 'sort', then we need to define fieldArray, which is a list of fields we want to sort on
         sort_method: 'sort',
@@ -198,6 +200,7 @@ SearchState.metadataByType = {
       {
         type: 'relevance',
         name: 'Relevance',
+        nameId: 'search_page.relevance',
         heName: 'רלוונטיות',
         fieldArray: [],
         sort_method: 'score',
@@ -205,6 +208,7 @@ SearchState.metadataByType = {
       {
         type: 'dateCreated',
         name: 'Date Created',
+        nameId: 'search_page.date_created',
         heName: 'תאריך',
         fieldArray: ['dateCreated'],
         sort_method: 'sort',
@@ -213,6 +217,7 @@ SearchState.metadataByType = {
       {
         type: 'views',
         name: 'Views',
+        nameId: 'search_page.views',
         heName: 'צפיות',
         fieldArray: ['views'],
         sort_method: 'sort',

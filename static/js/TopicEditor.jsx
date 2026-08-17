@@ -4,7 +4,7 @@ import $ from "./sefaria/sefariaJquery";
 import {AdminEditor} from "./AdminEditor";
 import {Reorder} from "./CategoryEditor";
 import {ImageCropper} from "./ImageCropper";
-import Cookies from "js-cookie";
+import { getCsrfToken } from "./sefaria/csrf";
 import React, {useState, useRef} from "react";
 import Button from "./common/Button";
 
@@ -17,7 +17,7 @@ const uploadTopicImage = function(imageBlob, old_filename, topic_image_api) {
     }
     const request = new Request(
         `${Sefaria.apiHost}/${topic_image_api}`,
-        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+        {headers: {'X-CSRFToken': getCsrfToken()}}
     );
     return fetch(request, {
         method: 'POST',
@@ -194,7 +194,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     const handleCatChange = function(e) {
       data.catSlug = e.target.value;
       //logic is: if it starts out originally a category, isCategory should always be true, otherwise, it should depend solely on 'Main Menu'
-      const newIsCategory = origWasCat || e.target.value === Sefaria._("Main Menu");
+      const newIsCategory = origWasCat || e.target.value === Sefaria._("topic_editor.main_menu");
       setIsCategory(newIsCategory);
       setIsChanged(true);
       setIsAuthor(data.catSlug === 'authors');
@@ -204,7 +204,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     let slugsToTitles = Sefaria.slugsToTitles();
     let specialCases = {
         "": {"en": "Choose a Parent Topic", "he": Sefaria.translation('he', "Choose a Parent Topic")},
-        "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "Main Menu")}
+        "Main Menu": {"en": "Main Menu", "he": Sefaria.translation('he', "topic_editor.main_menu")}
     };
     slugsToTitles = Object.assign(specialCases, slugsToTitles);
     const catMenu =   <div className="section">
@@ -229,7 +229,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
             return false;
         }
         if (data.catSlug === "") {
-          alert(Sefaria._("Please choose a category."));
+          alert(Sefaria._("topic_editor.please_choose_a_category"));
           return false;
         }
         if (data.enTitle.length === 0) {
@@ -378,7 +378,7 @@ const TopicEditor = ({origData, onCreateSuccess, close, origWasCat}) => {
     items.push("English Caption");
     items.push("Hebrew Caption");
     items.push("Secondary Picture Cropper")
-    return <AdminEditor title="Topic Editor" close={closeTopicEditor} catMenu={catMenu} data={data} savingStatus={savingStatus}
+    return <AdminEditor title="admin_editor.topic_editor" close={closeTopicEditor} catMenu={catMenu} data={data} savingStatus={savingStatus}
                         validate={validate} deleteObj={deleteObj} updateData={updateData} isNew={isNew} items={items}
                         pictureUploader={<TopicPictureUploader slug={data.origSlug} callback={handlePictureChange} old_filename={data.image_uri}
                                                                caption={{en: data.enImgCaption, he: data.heImgCaption}}/>}

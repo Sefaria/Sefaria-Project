@@ -10,6 +10,9 @@ import PropTypes from 'prop-types';
 import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
 import {AdContext, StrapiDataContext} from './context';
+import {matchesCountryTarget} from './sefaria/strapiTargeting';
+import {INTERFACE_LANG_TO_LOCALE} from './sefaria/strapiLocalization';
+import {getViewerCountryCandidates} from './sefaria/countryCandidates';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {ContentText} from "./ContentText";
@@ -96,14 +99,13 @@ const __filterChildrenByLanguage = (children, language) => {
 };
 
 
-const InterfaceText = ({text, html, markdown, children, context, disallowedMarkdownElements=['p']}) => {
+const InterfaceText = ({text, html, markdown, children, disallowedMarkdownElements=['p']}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
    * If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
    * Otherwise:
    * `children` can be the English string, which will be translated with Sefaria._ if needed.
    * `children` can also take the form of <LangText> components above, so they can be used for longer paragraphs or paragraphs containing html, if needed.
-   * `context` is passed to Sefaria._ for additional translation context
    * `disallowedMarkdownElements` is an array of HTML element names to disallow when rendering markdown.
    *   - Defaults to ['p'] to prevent paragraph tags (preserves inline-only behavior)
    *   - Pass [] to allow all elements including paragraphs
@@ -121,7 +123,7 @@ const InterfaceText = ({text, html, markdown, children, context, disallowedMarkd
   } else { // Also handle composition with children
     const chlCount = React.Children.count(children);
     if (chlCount === 1) { // Same as passing in a `en` key but with children syntax
-      textResponse = Sefaria._(children, context);
+      textResponse = Sefaria._(children);
     } else if (chlCount <= Object.keys(AvailableLanguages()).length){ // When multiple languages are passed in via children
       let newChildren = __filterChildrenByLanguage(children, Sefaria.interfaceLang);
       textResponse = newChildren[0]; //assumes one language element per InterfaceText, may be too naive
@@ -162,7 +164,6 @@ InterfaceText.propTypes = {
   ]),
   content: PropTypes.object,
   html: PropTypes.object,
-  context: PropTypes.string,
   className: PropTypes.string,
   disallowedMarkdownElements: PropTypes.array
 };
@@ -224,6 +225,14 @@ const DonateLink = ({children, classes, source, link}) => {
  * @returns {JSX.Element}
  * @constructor
  */
+const FILTERABLE_SORT_IDS = {
+  "Alphabetical": "filterable_list.alphabetical",
+  "Recent": "filterable_list.recent",
+  "Views": "filterable_list.views",
+  "Relevance": "filterable_list.relevance",
+  "Chronological": "filterable_list.chronological",
+  "Newest": "filterable_list.newest",
+};
 const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
   renderHeader, renderFooter, showFilterHeader, refreshData, initialFilter,
@@ -300,7 +309,7 @@ const FilterableList = ({
           <SearchButton />
           <input
             type="text"
-            placeholder={Sefaria._("Search")}
+            placeholder={Sefaria._("common.search")}
             name="filterableListInput"
             value={filter}
             onChange={e => setFilter(e.target.value)}
@@ -317,7 +326,7 @@ const FilterableList = ({
               />
               <DropdownOptionList
                 isOpen={displaySort}
-                options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option, "FilterableList")}))}
+                options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(FILTERABLE_SORT_IDS[option] || option)}))}
                 currOptionSelected={sortOption}
                 handleClick={setSort}
               />
@@ -332,7 +341,7 @@ const FilterableList = ({
             <SearchButton />
             <input
               type="text"
-              placeholder={Sefaria._("Search")}
+              placeholder={Sefaria._("common.search")}
               name="filterableListInput"
               value={filter}
               onChange={e => setFilter(e.target.value)}
@@ -341,7 +350,7 @@ const FilterableList = ({
           </div>
           <div className="filter-sort-wrapper">
             <span className="systemText">
-              <InterfaceText>Sort by</InterfaceText>
+              <InterfaceText>common.sort_by</InterfaceText>
             </span>
             { sortOptions.map(option =>(
               <span
@@ -355,7 +364,7 @@ const FilterableList = ({
                   text: option, from: sortOption, to: option,
                 })}
               >
-                <InterfaceText context="FilterableList">{option}</InterfaceText>
+                <InterfaceText>{FILTERABLE_SORT_IDS[option] || option}</InterfaceText>
               </span>
             ))}
           </div>
@@ -540,7 +549,7 @@ const DropdownButton = ({isOpen, toggle, enText, heText, buttonStyle}) => {
   return (
     <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyDown={(e) => Util.handleKeyboardClick(e, toggle)}>
       <InterfaceText text={{en: enText, he: heText}} />
-      {isOpen ? <img src="/static/img/arrow-up.png" alt={Sefaria._("Collapse")} aria-hidden="true"/> : <img src="/static/img/arrow-down.png" alt={Sefaria._("Expand")} aria-hidden="true"/>}
+      {isOpen ? <img src="/static/img/arrow-up.png" alt={Sefaria._("misc.collapse")} aria-hidden="true"/> : <img src="/static/img/arrow-down.png" alt={Sefaria._("misc.expand")} aria-hidden="true"/>}
     </div>
   );
 };
@@ -724,15 +733,17 @@ class LanguageToggleButton extends Component {
   }
   render() {
     var url = this.props.url || "";
-    return (            <a
-              href={url}
-              className="languageToggle"
-              onClick={this.toggle}
-              onKeyDown={(e) => Util.handleKeyboardClick(e, this.toggle)}
-            >
-              <img className="en" src="/static/img/aleph.svg" alt={Sefaria._("Hebrew Language Toggle Icon")} />
-              <img className="he" src="/static/img/aye.svg" alt={Sefaria._("English Language Toggle Icon")} />
-            </a>);
+    return (
+      <a
+                href={url}
+                className="languageToggle"
+                onClick={this.toggle}
+                onKeyDown={(e) => Util.handleKeyboardClick(e, this.toggle)}
+              >
+        <img className="en" src="/static/img/aleph.svg" alt={Sefaria._("misc.hebrew_language_toggle_icon")} />
+        <img className="he" src="/static/img/aye.svg" alt={Sefaria._("misc.english_language_toggle_icon")} />
+      </a>
+    );
   }
 }
 LanguageToggleButton.propTypes = {
@@ -959,6 +970,12 @@ function useHiddenButtons() {
     return [hideButtons, handleMouseOverAdminButtons];
 }
 
+const ADMIN_BUTTON_IDS = {
+  "Add sub-category": "misc.add_sub_category",
+  "Reorder sources": "misc.reorder_sources",
+  "Edit": "collection_page.edit",
+  "Publish": "sheet_options.publish",
+};
 const AllAdminButtons = ({ buttonOptions, buttonIDs, adminClasses }) => {
   return (
     <span className={adminClasses}>
@@ -969,7 +986,7 @@ const AllAdminButtons = ({ buttonOptions, buttonIDs, adminClasses }) => {
         return (
           <AdminEditorButton
             key={`${buttonText}|${i}`}
-            text={buttonText}
+            text={ADMIN_BUTTON_IDS[buttonText] || buttonText}
             top={top}
             bottom={bottom}
             toggleAddingTopics={toggleAddingTopics}
@@ -1041,7 +1058,7 @@ const PencilSourceEditor = ({topic, text, classes}) => {
           id={"editTopic"}
           onClick={toggleAddSource}
           src={"/static/icons/editing-pencil.svg"}
-          alt={Sefaria._("Edit topic")}
+          alt={Sefaria._("misc.edit_topic")}
           role="button"
           tabIndex="0"
           onKeyDown={(e) => Util.handleKeyboardClick(e, toggleAddSource)}
@@ -1191,9 +1208,11 @@ const CategoryAdderWrapper = ({toggle, data, type}) => {
 
 class SearchButton extends Component {
   render() {
-    return (<span className="readerNavMenuSearchButton" onClick={this.props.onClick}>
-      <img src="/static/icons/search_mdl.svg" alt={Sefaria._("Search")} />
-    </span>);
+    return (
+      <span className="readerNavMenuSearchButton" onClick={this.props.onClick}>
+        <img src="/static/icons/search_mdl.svg" alt={Sefaria._("common.search")} />
+      </span>
+    );
   }
 }
 
@@ -1219,10 +1238,10 @@ class CloseButton extends Component {
     this.props.onClick();
   }
   render() {
-    const { altText = Sefaria._("Close"), icon, url = "" } = this.props;
+    const { altText = Sefaria._("common.close"), icon, url = "" } = this.props;
     
     if (icon == "circledX"){
-      var iconElement = <img src="/static/icons/circled-x.svg" alt={Sefaria._("Close")} aria-hidden="true"/>;
+      var iconElement = <img src="/static/icons/circled-x.svg" alt={Sefaria._("common.close")} aria-hidden="true"/>;
     } else if (icon == "chevron") {
       var iconElement = <i className="fa fa-chevron-left"></i>
     } else {
@@ -1250,14 +1269,14 @@ class DisplaySettingsButton extends Component {
   render() {
     let style = this.props.placeholder ? {visibility: "hidden"} : {};
     let icon;
-    const altText = Sefaria._('Text display options')
+    const altText = Sefaria._("common.text_display_options")
     const classes = "readerOptionsTooltip tooltip-toggle";
 
     if (Sefaria._siteSettings.TORAH_SPECIFIC) {
       icon =
         <InterfaceText>
-        <EnglishText> <img src="/static/img/lang_icon_english.svg" alt={Sefaria._("Toggle Reader Menu Display Settings")}/></EnglishText>
-        <HebrewText><img src="/static/img/lang_icon_hebrew.svg" alt={Sefaria._("Toggle Reader Menu Display Settings")}/></HebrewText>
+        <EnglishText> <img src="/static/img/lang_icon_english.svg" alt={Sefaria._("misc.toggle_reader_menu_display_settings")}/></EnglishText>
+        <HebrewText><img src="/static/img/lang_icon_hebrew.svg" alt={Sefaria._("misc.toggle_reader_menu_display_settings")}/></HebrewText>
         </InterfaceText>;
     } else {
       icon = <span className="textIcon">Aa</span>;
@@ -1292,7 +1311,7 @@ function InterfaceLanguageMenu({translationLanguagePreference, setTranslationLan
       <Button
         variant="icon-only"
         icon="globallanguageswitcher_mdl"
-        ariaLabel={Sefaria._('Toggle Interface Language Menu')}
+        ariaLabel={Sefaria._("misc.toggle_interface_language_menu")}
       />
     }>
       <div className="dropdownLinks-options globeLanguageToggle">
@@ -1301,14 +1320,14 @@ function InterfaceLanguageMenu({translationLanguagePreference, setTranslationLan
       { !!translationLanguagePreference ? (
             <>
               <div className="interfaceLinks-header">
-                <InterfaceText>Preferred Translation</InterfaceText>
+                <InterfaceText>misc.preferred_translation</InterfaceText>
               </div>
               <div className="interfaceLinks-options trans-pref-header-container">
                 <InterfaceText>{Sefaria.translateISOLanguageCode(translationLanguagePreference, true)}</InterfaceText>
                 <a className="trans-pref-reset" onClick={handleTransPrefResetClick}>
-                  <img src="/static/img/circled-x.svg" className="reset-btn" alt={Sefaria._("Reset")} />
+                  <img src="/static/img/circled-x.svg" className="reset-btn" alt={Sefaria._("common.reset")} />
                   <span className="smallText">
-                    <InterfaceText>Reset</InterfaceText>
+                    <InterfaceText>common.reset</InterfaceText>
                   </span>
                 </a>
               </div>
@@ -1329,7 +1348,7 @@ const getSaveButtonImage = (selected) => {
 }
 const SaveButtonWithText = ({historyObject}) => {
   const selected = isSaveButtonSelected(historyObject);
-  return <DropdownMenuItemWithIcon textEn={getSaveButtonMessage(selected)} icon={getSaveButtonImage(selected)}/>;
+  return <DropdownMenuItemWithIcon textEn={selected ? "collection_page.remove" : "common.save"} icon={getSaveButtonImage(selected)}/>;
 }
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
@@ -1385,7 +1404,7 @@ SaveButton.propTypes = {
  */
 function GuideButton({onShowGuide}) {
   const classes = classNames({guideButton: 1, "tooltip-toggle": true});
-  const altText = Sefaria._("Show guide", "Guide");
+  const altText = Sefaria._("guide.show_guide");
 
   function onClick(event) {
     event.preventDefault();
@@ -1452,9 +1471,9 @@ const ToolTipped = ({ altText, classes, style, onClick, children }) => {
 
 const AiLearnMoreLink = () => {
   return (
-      <a href={"/ai"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
-        <InterfaceText context="AiInfoTooltip">Learn More</InterfaceText>
-      </a>
+    <a href={"/ai"} data-anl-event="learn_more_click:click" data-anl-text="learn_more">
+      <InterfaceText>ai_info_tooltip.learn_more</InterfaceText>
+    </a>
   );
 };
 
@@ -1484,7 +1503,7 @@ const AiInfoTooltip = ({ displayText, variant, size }) => {
   const aiMessage = (
       <div className="ai-info-messages-box" onMouseEnter={() => setShowMessage(true)} onMouseLeave={() => setShowMessage(false)}>
           <div className="ai-info-first-message">
-            <InterfaceText context="AiInfoTooltip">
+            <InterfaceText>
                 {displayText}
             </InterfaceText>
             &nbsp;
@@ -1524,6 +1543,12 @@ AiInfoTooltip.defaultProps = {
   size: 24,
 };
 
+const FOLLOW_BUTTON_IDS = {
+  "Follow": "follow_button.follow",
+  "Unfollow": "follow_button.unfollow",
+  "Following": "follow_button.following",
+  "Follow Back": "follow_button.follow_back",
+};
 class FollowButton extends Component {
   constructor(props) {
     super(props);
@@ -1578,7 +1603,7 @@ class FollowButton extends Component {
     return (
       <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
         {this.props.icon ? <img src={`/static/icons/${this.state.following ? this.state.hovering ?  "checkmark" : "checkmark" : "follow"}.svg`} aria-hidden="true"/> : null}
-        <InterfaceText context={"FollowButton"}>{buttonText}</InterfaceText>
+        <InterfaceText>{FOLLOW_BUTTON_IDS[buttonText] || buttonText}</InterfaceText>
       </div>
     );
   }
@@ -1704,7 +1729,7 @@ const SheetListing = ({
   };
 
   const handleSheetDeleteClick = () => {
-    if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
+    if (confirm(Sefaria._("common.are_you_sure_you_want_to_delete_this_sheet_there"))) {
       Sefaria.sheets.deleteSheetById(sheet.id).then(handleSheetDelete);
     }
   };
@@ -1725,7 +1750,7 @@ const SheetListing = ({
 
   const views = (
     <>
-      {sheet.views}&nbsp;<InterfaceText>Views</InterfaceText>
+      {sheet.views}&nbsp;<InterfaceText>misc.views</InterfaceText>
     </>
   );
 
@@ -1783,7 +1808,7 @@ const SheetListing = ({
   });
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
-      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg" alt={Sefaria._("Not published")}/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
+      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg" alt={Sefaria._("misc.not_published")}/><span>{Sefaria._("misc.not_published_2")}</span></span>) : undefined,
       showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} data-target-module={Sefaria.VOICES_MODULE} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       views,
       created,
@@ -1792,8 +1817,8 @@ const SheetListing = ({
 
 
   const pinButtonClasses = classNames({sheetListingPinButton: 1, pinned: pinned, active: pinnable});
-  const pinMessage = pinned && pinnable ? Sefaria._("Pinned Sheet - click to unpin") :
-                    pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
+  const pinMessage = pinned && pinnable ? Sefaria._("misc.pinned_sheet_click_to_unpin") :
+                    pinned ? Sefaria._("misc.pinned_sheet") : Sefaria._("misc.pin_sheet");
   const pinButton = <img src="/static/img/pin.svg" className={pinButtonClasses} title={pinMessage} onClick={pinnable ? pinSheet : null} alt={pinMessage} />
 
   return (
@@ -1818,12 +1843,12 @@ const SheetListing = ({
       <div className="sheetRight">
         {
           collectable ?
-            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} alt={Sefaria._("Add to Collection")} />
+            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("misc.add_to_collection")} alt={Sefaria._("misc.add_to_collection")} />
             : null
         }
         {
           deletable ?
-            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} alt={Sefaria._("Delete")} />
+            <img src="/static/icons/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("common.delete")} alt={Sefaria._("common.delete")} />
             : null
         }
         {
@@ -1844,7 +1869,8 @@ const SheetListing = ({
           handleCollectionsChange={handleCollectionsChange} />
         : null
       }
-    </div>);
+    </div>
+  );
 };
 
 
@@ -1863,8 +1889,8 @@ const CollectionListing = ({data}) => {
           <div className="collectionListingDetails">
             {data.listed ? null :
               (<span className="unlisted">
-                <img src="/static/img/eye-slash.svg" alt={Sefaria._("Unlisted")}/>
-                <InterfaceText>Unlisted</InterfaceText>
+                <img src="/static/img/eye-slash.svg" alt={Sefaria._("misc.unlisted")}/>
+                <InterfaceText>misc.unlisted</InterfaceText>
               </span>) }
 
             {data.listed ? null :
@@ -1872,7 +1898,7 @@ const CollectionListing = ({data}) => {
 
             <span className="collectionListingDetail collectionListingSheetCount">
               <InterfaceText>{`${data.sheetCount} `}</InterfaceText>
-              <InterfaceText>Sheets</InterfaceText>
+              <InterfaceText>common.sheets</InterfaceText>
             </span>
 
             {data.memberCount > 1 ?
@@ -1881,7 +1907,7 @@ const CollectionListing = ({data}) => {
             {data.memberCount > 1 ?
             <span className="collectionListingDetail collectionListingMemberCount">
               <InterfaceText>{`${data.memberCount} `}</InterfaceText>
-              <InterfaceText>Editors</InterfaceText>
+              <InterfaceText>misc.editors</InterfaceText>
             </span> : null }
           </div>
         </div>
@@ -1897,7 +1923,7 @@ class Note extends Component {
     var authorInfo = this.props.ownerName && !this.props.isMyNote ?
         (<div className="noteAuthorInfo">
           <a href={this.props.ownerProfileUrl} data-target-module={Sefaria.VOICES_MODULE}>
-            <img className="noteAuthorImg" src={this.props.ownerImageUrl} alt={Sefaria._("Note author profile picture")} />
+            <img className="noteAuthorImg" src={this.props.ownerImageUrl} alt={Sefaria._("misc.note_author_profile_picture")} />
           </a>
           <a href={this.props.ownerProfileUrl} className="noteAuthor" data-target-module={Sefaria.VOICES_MODULE}>{this.props.ownerName}</a>
         </div>) : null;
@@ -1950,7 +1976,7 @@ class LoginPrompt extends Component {
           <span className="int-en">Log In</span>
           <span className="int-he">התחברות</span>
         </a>
-        <a className="button" href={"/register" + nextParam}>
+        <a className="button" href={"/register" + nextParam} data-signup-source="login_prompt">
           <span className="int-en">Sign Up</span>
           <span className="int-he">הרשמה</span>
         </a>
@@ -1960,6 +1986,22 @@ class LoginPrompt extends Component {
 LoginPrompt.propTypes = {
   fullPanel: PropTypes.bool,
 };
+
+const MODAL_KIND_TRACKING_NAME = {
+  [SignUpModalKind.AddConnection]: 'add_connection',
+  [SignUpModalKind.ViewHistory]: 'view_history',
+  [SignUpModalKind.AddToSheet]: 'add_to_sheet',
+  [SignUpModalKind.AddTranslation]: 'add_translation',
+  [SignUpModalKind.Follow]: 'follow',
+  [SignUpModalKind.Notes]: 'notes',
+  [SignUpModalKind.Save]: 'save',
+  [SignUpModalKind.Default]: 'default',
+};
+
+// Sign-up funnel analytics `source` value for the SignUpModal CTA, e.g. "signup_modal_add_to_sheet".
+function sourceForModalKind(signUpModalKind) {
+  return `signup_modal_${MODAL_KIND_TRACKING_NAME[signUpModalKind] || MODAL_KIND_TRACKING_NAME[SignUpModalKind.Default]}`;
+}
 
 class SignUpModal extends Component {
   render() {
@@ -1973,40 +2015,39 @@ class SignUpModal extends Component {
     ));
     const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
 
-    return (
-      this.props.show ? <div id="interruptingMessageBox" className="sefariaModalBox">
-        <div id="interruptingMessageOverlay" onClick={this.props.onClose}></div>
-        <div id="interruptingMessage" className="sefariaModalContentBox">
-          <div 
-            id="interruptingMessageClose"
-            className="sefariaModalClose"
-            role="button"
-            tabIndex="0"
-            aria-label={Sefaria._("Close")}
-            onClick={this.props.onClose}
-            onKeyDown={(e) => Util.handleKeyboardClick(e, this.props.onClose)}
-          >×</div>
-          <div className="sefariaModalContent">
-            <h2 className="serif sans-serif-in-hebrew">
-              <InterfaceText text={modalContent.h2} />
-            </h2>
-            {modalContent.h3 && <h3>
-              <InterfaceText text={modalContent.h3} />
-            </h3>}
-            <div className="sefariaModalInnerContent">
-              { innerContent }
-            </div>
-            <a className="button white control-elem" href={"/register" + nextParam}>
-              <InterfaceText>Sign Up</InterfaceText>
-            </a>
-            <div className="sefariaModalBottomContent">
-              <InterfaceText>Already have an account?</InterfaceText>&nbsp;
-              <a href={"/login" + nextParam}><InterfaceText>Sign in</InterfaceText></a>
-            </div>
+    return (this.props.show ? <div id="interruptingMessageBox" className="sefariaModalBox">
+      <div id="interruptingMessageOverlay" onClick={this.props.onClose}></div>
+      <div id="interruptingMessage" className="sefariaModalContentBox">
+        <div 
+          id="interruptingMessageClose"
+          className="sefariaModalClose"
+          role="button"
+          tabIndex="0"
+          aria-label={Sefaria._("common.close")}
+          onClick={this.props.onClose}
+          onKeyDown={(e) => Util.handleKeyboardClick(e, this.props.onClose)}
+        >×</div>
+        <div className="sefariaModalContent">
+          <h2 className="serif sans-serif-in-hebrew">
+            <InterfaceText text={modalContent.h2} />
+          </h2>
+          {modalContent.h3 && <h3>
+            <InterfaceText text={modalContent.h3} />
+          </h3>}
+          <div className="sefariaModalInnerContent">
+            { innerContent }
+          </div>
+          <a className="button white control-elem" href={"/register" + nextParam}
+             data-signup-source={sourceForModalKind(this.props.modalContentKind)}>
+            <InterfaceText>common.sign_up</InterfaceText>
+          </a>
+          <div className="sefariaModalBottomContent">
+            <InterfaceText>misc.already_have_an_account</InterfaceText>&nbsp;
+            <a href={"/login" + nextParam}><InterfaceText>misc.sign_in</InterfaceText></a>
           </div>
         </div>
-      </div> : null
-    );
+      </div>
+    </div> : null);
   }
 }
 SignUpModal.propTypes = {
@@ -2120,13 +2161,14 @@ const InterruptingMessage = ({
 
   const shouldShow = () => {
     if (!strapi.modal) return false;
-    if (Sefaria.interfaceLang === 'hebrew' && !strapi.modal.locales.includes('he')) return false;
+    if (!strapi.modal.locales.includes(INTERFACE_LANG_TO_LOCALE[Sefaria.interfaceLang])) return false;
     if (
       hasModalBeenInteractedWith(
         strapi.modal.internalModalName
       )
     )
       return false;
+    if (!matchesCountryTarget(strapi.modal.countriesToTarget, getViewerCountryCandidates())) return false;
 
     let shouldShowModal = false;
 
@@ -2205,7 +2247,7 @@ const InterruptingMessage = ({
                 id="interruptingMessageClose"
                 role="button"
                 tabIndex="0"
-                aria-label={Sefaria._("Close")}
+                aria-label={Sefaria._("common.close")}
                 onClick={() => {
                   closeModal("close_clicked");
                 }}
@@ -2301,14 +2343,11 @@ const Banner = ({ onClose }) => {
 
   const shouldShow = () => {
     if (!strapi.banner) return false;
-    if (
-      Sefaria.interfaceLang === "hebrew" &&
-      !strapi.banner.locales.includes("he")
-    )
-      return false;
+    if (!strapi.banner.locales.includes(INTERFACE_LANG_TO_LOCALE[Sefaria.interfaceLang])) return false;
     if (Sefaria.experiments) return false;
     if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
       return false;
+    if (!matchesCountryTarget(strapi.banner.countriesToTarget, getViewerCountryCandidates())) return false;
 
     let shouldShowBanner = false;
 
@@ -2558,61 +2597,62 @@ class Dropdown extends Component {
   }
   render() {
     return (
-        <div className="dropdown sans-serif">
-          <div
-            className={`dropdownMain noselect${this.state.selected ? " selected":""}`}
-            onClick={this.toggle}
-            role="button"
-            tabIndex="0"
-            aria-haspopup="listbox"
-            aria-expanded={this.state.optionsOpen}
-            aria-controls={`${this.props.name}-listbox`}
-            ref={(el) => { this.triggerRef = el; }}
-            onKeyDown={(e) => Util.handleDropdownTriggerKeyDown(e, {
-              onToggle: this.toggle,
-              isOpen: this.state.optionsOpen
-            })}
-          >
-            <span>{this.state.selected ? this.state.selected.label : this.props.placeholder}</span>
-            <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down" alt={Sefaria._("Open dropdown")}/>
+      <div className="dropdown sans-serif">
+        <div
+          className={`dropdownMain noselect${this.state.selected ? " selected":""}`}
+          onClick={this.toggle}
+          role="button"
+          tabIndex="0"
+          aria-haspopup="listbox"
+          aria-expanded={this.state.optionsOpen}
+          aria-controls={`${this.props.name}-listbox`}
+          ref={(el) => { this.triggerRef = el; }}
+          onKeyDown={(e) => Util.handleDropdownTriggerKeyDown(e, {
+            onToggle: this.toggle,
+            isOpen: this.state.optionsOpen
+          })}
+        >
+          <span>{this.state.selected ? this.state.selected.label : this.props.placeholder}</span>
+          <img src="/static/icons/chevron-down.svg" className="dropdownOpenButton noselect fa fa-caret-down" alt={Sefaria._("misc.open_dropdown")}/>
 
-          </div>
-          {this.state.optionsOpen ?
-            <div className="dropdownListBox noselect">
-              <div
-                className="dropdownList noselect"
-                tabIndex="0"
-                role="listbox"
-                aria-label={this.props.placeholder}
-                id={`${this.props.name}-listbox`}
-                ref={(el) => { this.listboxRef = el; }}
-                onKeyDown={(e) => Util.handleListboxKeyDown(e, {
-                  currentIndex: this.state.focusedIndex,
-                  maxIndex: this.props.options.length - 1,
-                  onNavigate: this.onNavigate,
-                  onSelect: this.onSelect,
-                  onClose: this.onClose,
-                  triggerRef: this.triggerRef
-                })}
-              >
-                {this.props.options.map(function(option, index) {
-                  const onClick = this.select.bind(null, option);
-                  const isSelected = this.state.selected && this.state.selected.value == option.value;
-                  const isFocused = this.state.focusedIndex === index;
-                  const classes = classNames({dropdownOption: 1, selected: isSelected, focused: isFocused});
-                  return <div 
-                    className={classes} 
-                    onClick={onClick} 
-                    key={option.value} 
-                    role="option" 
-                    aria-selected={!!isSelected}
-                    data-index={index}
-                  >{option.label}</div>
-                }.bind(this))}
-              </div>
+        </div>
+        {this.state.optionsOpen ?
+          <div className="dropdownListBox noselect">
+            <div
+              className="dropdownList noselect"
+              tabIndex="0"
+              role="listbox"
+              aria-label={this.props.placeholder}
+              id={`${this.props.name}-listbox`}
+              ref={(el) => { this.listboxRef = el; }}
+              onKeyDown={(e) => Util.handleListboxKeyDown(e, {
+                currentIndex: this.state.focusedIndex,
+                maxIndex: this.props.options.length - 1,
+                onNavigate: this.onNavigate,
+                onSelect: this.onSelect,
+                onClose: this.onClose,
+                triggerRef: this.triggerRef
+              })}
+            >
+              {this.props.options.map(function(option, index) {
+                const onClick = this.select.bind(null, option);
+                const isSelected = this.state.selected && this.state.selected.value == option.value;
+                const isFocused = this.state.focusedIndex === index;
+                const classes = classNames({dropdownOption: 1, selected: isSelected, focused: isFocused});
+                return <div 
+                  className={classes} 
+                  onClick={onClick} 
+                  key={option.value} 
+                  role="option" 
+                  aria-selected={!!isSelected}
+                  data-index={index}
+                >{option.label}</div>
+              }.bind(this))}
             </div>
-          : null}
-        </div>);
+          </div>
+        : null}
+      </div>
+    );
   }
 }
 Dropdown.propTypes = {
@@ -2629,12 +2669,14 @@ class LoadingMessage extends Component {
     var message = this.props.message || "Loading...";
     var heMessage = this.props.heMessage || "טוען מידע...";
     var classes = "loadingMessage sans-serif " + (this.props.className || "");
-    return (<div className={classes} aria-live="polite" aria-label={Sefaria._("Loading status")}>
-              <InterfaceText>
-                <EnglishText>{message}</EnglishText>
-                <HebrewText>{heMessage}</HebrewText>
-              </InterfaceText>
-            </div>);
+    return (
+      <div className={classes} aria-live="polite" aria-label={Sefaria._("misc.loading_status")}>
+        <InterfaceText>
+          <EnglishText>{message}</EnglishText>
+          <HebrewText>{heMessage}</HebrewText>
+        </InterfaceText>
+      </div>
+    );
   }
 }
 LoadingMessage.propTypes = {
@@ -2707,7 +2749,7 @@ class FeedbackBox extends Component {
   }
   sendFeedback() {
     if (!this.state.type) {
-      this.setState({alertmsg: Sefaria._("Please select a feedback type")});
+      this.setState({alertmsg: Sefaria._("misc.please_select_a_feedback_type")});
       return
     }
 
@@ -2738,7 +2780,7 @@ class FeedbackBox extends Component {
             Sefaria.track.event("Tools", "Send Feedback", this.props.url);
         }
     }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
-        alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
+        alert(Sefaria._("common.unfortunately_there_was_an_error_sending_this_feedback"));
         this.setState({feedbackSent: true});
     });
   }
@@ -2759,51 +2801,46 @@ class FeedbackBox extends Component {
         )
     }
     return (
-        <div className="feedbackBox sans-serif">
-            <p className="int-en">Have some feedback? We would love to hear it.</p>
-            <p className="int-he">אנחנו מעוניינים במשוב ממך</p>
-
-            {this.state.alertmsg ?
-                <div role="alert" aria-live="assertive">
-                    <p className="int-en">{this.state.alertmsg}</p>
-                    <p className="int-he">{this.state.alertmsg}</p>
-                </div>
-                : null
-            }
-
-            <Dropdown
-              name="feedbackType"
-              options={[
-                        {value: "content_issue",   label: Sefaria._("Report an issue with the text")},
-                        {value: "translation_request",   label: Sefaria._("Request translation")},
-                        {value: "bug_report",      label: Sefaria._("Report a bug")},
-                        {value: "help_request",    label: Sefaria._("Get help")},
-                        {value: "feature_request", label: Sefaria._("Request a feature")},
-                        {value: "good_vibes",      label: Sefaria._("Give thanks")},
-                        {value: "other",           label: Sefaria._("Other")},
-                      ]}
-              placeholder={Sefaria._("Select Type")}
-              onChange={this.setType}
-            />
-
-            <textarea className="feedbackText" placeholder={Sefaria._("Describe the issue...")} id="feedbackText"></textarea>
-
-            {!Sefaria._uid ?
-                <div><input className="sidebarInput noselect" placeholder={Sefaria._("Email Address")} id="feedbackEmail" /></div>
-                : null }
-
-            <div
-              className="button"
-              aria-label={Sefaria._("Send Feedback")}
-              onClick={() => this.sendFeedback()}
-              onKeyDown={(e) => Util.handleKeyboardClick(e, () => this.sendFeedback())}
-              role="button"
-              tabIndex="0"
-            >
-                 <span className="int-en">Submit</span>
-                 <span className="int-he">שליחה</span>
+      <div className="feedbackBox sans-serif">
+        <p className="int-en">Have some feedback? We would love to hear it.</p>
+        <p className="int-he">אנחנו מעוניינים במשוב ממך</p>
+        {this.state.alertmsg ?
+            <div role="alert" aria-live="assertive">
+                <p className="int-en">{this.state.alertmsg}</p>
+                <p className="int-he">{this.state.alertmsg}</p>
             </div>
+            : null
+        }
+        <Dropdown
+          name="feedbackType"
+          options={[
+                    {value: "content_issue",   label: Sefaria._("misc.report_an_issue_with_the_text")},
+                    {value: "translation_request",   label: Sefaria._("misc.request_translation")},
+                    {value: "bug_report",      label: Sefaria._("misc.report_a_bug")},
+                    {value: "help_request",    label: Sefaria._("misc.get_help")},
+                    {value: "feature_request", label: Sefaria._("misc.request_a_feature")},
+                    {value: "good_vibes",      label: Sefaria._("misc.give_thanks")},
+                    {value: "other",           label: Sefaria._("misc.other")},
+                  ]}
+          placeholder={Sefaria._("misc.select_type")}
+          onChange={this.setType}
+        />
+        <textarea className="feedbackText" placeholder={Sefaria._("misc.describe_the_issue")} id="feedbackText"></textarea>
+        {!Sefaria._uid ?
+            <div><input className="sidebarInput noselect" placeholder={Sefaria._("common.email_address")} id="feedbackEmail" /></div>
+            : null }
+        <div
+          className="button"
+          aria-label={Sefaria._("Send Feedback")}
+          onClick={() => this.sendFeedback()}
+          onKeyDown={(e) => Util.handleKeyboardClick(e, () => this.sendFeedback())}
+          role="button"
+          tabIndex="0"
+        >
+             <span className="int-en">Submit</span>
+             <span className="int-he">שליחה</span>
         </div>
+      </div>
     );
   }
 }
@@ -2954,7 +2991,7 @@ const CollectionStatement = ({name, slug, image, children}) => (
     <div className="collectionStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
         <a href={"/collections/" + slug} data-target-module={Sefaria.VOICES_MODULE}>
-          <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt={Sefaria._("Collection Logo")}/>
+          <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt={Sefaria._("common.collection_logo")}/>
         </a>
       </div>
       <a href={"/collections/" + slug} data-target-module={Sefaria.VOICES_MODULE}>{children ? children : name}</a>
@@ -2969,19 +3006,21 @@ const AdminToolHeader = function({title, validate, close}) {
   /*
   Save and Cancel buttons with a header using the `title` text.  Save button calls 'validate' and cancel button calls 'close'.
    */
-  return    <div className="headerWithButtons">
-              <h1 className="pageTitle">
-                <InterfaceText>{title}</InterfaceText>
-              </h1>
-              <div className="end">
-                <div onClick={close} onKeyDown={(e) => Util.handleKeyboardClick(e, close)} className="button small transparent control-elem" id="cancel" role="button" tabIndex="0">
-                  <InterfaceText>Cancel</InterfaceText>
+  return (
+    <div className="headerWithButtons">
+                <h1 className="pageTitle">
+                  <InterfaceText>{title}</InterfaceText>
+                </h1>
+                <div className="end">
+                  <div onClick={close} onKeyDown={(e) => Util.handleKeyboardClick(e, close)} className="button small transparent control-elem" id="cancel" role="button" tabIndex="0">
+                    <InterfaceText>common.cancel</InterfaceText>
+                  </div>
+                  <Button onClick={validate}>
+                    <InterfaceText>common.save</InterfaceText>
+                  </Button>
                 </div>
-                <Button onClick={validate}>
-                  <InterfaceText>Save</InterfaceText>
-                </Button>
               </div>
-            </div>
+  );
 }
 
 
@@ -3119,91 +3158,6 @@ const SheetMetaDataBox = ({title, summary, sheetOptions, editable, titleCallback
   </div>
 }
 
-const DivineNameDepricationNotification = () => {
-
-  // Constants for the deprecation notification
-  const DEPRECATION_DATE = "October 15, 2025";
-  const DEPRECATION_DATE_HEBREW = "15 באוקטובר 2025";
-
-  const DEPRECATION_LINKS = {
-      en: {
-      exportSheet: "https://help.sefaria.org/hc/en-us/articles/20532656851228-How-to-Export-Print-or-Share-a-Sheet",
-      extension: "https://help.sefaria.org/hc/en-us/sections/20235182393244-Sefaria-for-Google-Docs"
-      },
-      he: {
-      exportSheet: "https://help.sefaria.org/hc/he/articles/20532656851228-ייצוא-הדפסה-ושיתוף-דף-מקורות-בספריא",
-      extension: "https://help.sefaria.org/hc/he/sections/20235182393244-התוסף-של-ספריא-ל-Google-Docs"
-      }
-  };
-
-  const DEPRECATION_MESSAGES = {
-      en: {
-      notice: "Please note:",
-      mainMessage: `The divine name substitution tool will no longer be available in the Sefaria Sheet Editor after ${DEPRECATION_DATE}.`,
-      continuationMessage: "If you would like to continue making changes to how the divine name appears in your sheets prior to printing, ",
-      exportText: "export your sheet to Google Docs ",
-      andText: "and use the 'Transform Divine Names' feature in the ",
-      extensionText: "Sefaria for Google Docs extension",
-      period: "."
-      },
-      he: {
-      notice: "שימו לב:",
-      mainMessage: `החל מה-${DEPRECATION_DATE_HEBREW}, לא יהיה ניתן לשנות שמות קודש בדפי מקורות באמצעות העורך של ספריא.`,
-      continuationMessage: "מתאריך זה והלאה, על מנת לשנות את אופן הכתיבה של שמות הקודש בדף המקורות שלכם לפני הדפסת הדף, ",
-      exportText: "יש לייצא את הדף ל-Google Docs ",
-      andText: "ולבצע את השינוי באמצעות הכלי המיועד לכך ב",
-      extensionText: "תוסף של ספריא ל-Google Docs",
-      period: "."
-      }
-  };
-
-  const lang = Sefaria.interfaceLang === "hebrew" ? "he" : "en";
-  const messages = DEPRECATION_MESSAGES[lang];
-  const links = DEPRECATION_LINKS[lang];
-
-  return (
-    <div className="divineNameDepricationNotification sans-serif">
-      <p>
-        <strong>{messages.notice}</strong> {messages.mainMessage}
-      </p>
-      <p>
-        {messages.continuationMessage}
-        <a href={links.exportSheet}>
-          {messages.exportText}
-        </a>
-        {messages.andText}
-        <a href={links.extension}>
-          {messages.extensionText}
-        </a>
-        {messages.period}
-      </p>
-    </div>
-  );
-};
-
-const DivineNameReplacer = ({setDivineNameReplacement, divineNameReplacement}) => {
-  return (
-      <div className="divineNameReplacer">
-        <p className="sans-serif"><InterfaceText>Select how you would like to display the divine name in this sheet:</InterfaceText></p>
-
-            <Dropdown
-              name="divinename"
-              options={[
-                        {value: "noSub",   label: Sefaria._("No Substitution")},
-                        {value: "yy",   label: 'יי'},
-                        {value: "h",      label:'ה׳'},
-                        {value: "ykvk",    label: 'יקוק'},
-                      ]}
-              placeholder={Sefaria._("Select Type")}
-              onChange={(e) => setDivineNameReplacement((e.target.value))}
-              preselected={divineNameReplacement}
-            />
-            <DivineNameDepricationNotification />
-
-      </div>
-  )
-
-}
 const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholder, inputValue, changeInputValue, selectedCallback,
                          buttonTitle, autocompleteClassNames }) => {
   /*
@@ -3457,7 +3411,7 @@ const Autocompleter = ({getSuggestions, showSuggestionsOnSelect, inputPlaceholde
 }
 
 const getImgAltText = (caption) => {
-  return (caption && Sefaria._v(caption)) || Sefaria._('Illustrative image');
+  return (caption && Sefaria._v(caption)) || Sefaria._("misc.illustrative_image");
 }
 const ImageWithCaption = ({photoLink, caption }) => {
   return (
@@ -3546,9 +3500,9 @@ const LangRadioButton = ({buttonTitle, lang, buttonId, handleLangChange}) => {
 const LangSelectInterface = ({callback, defaultVal, closeInterface}) => {
   const [lang, setLang] = useState(defaultVal);
   const buttonData = [
-  { buttonTitle: "Source", buttonId: "source" },
-  { buttonTitle: "Translation", buttonId: "translation" },
-  { buttonTitle: "Source with Translation", buttonId: "sourcewtrans" }
+  { buttonTitle: "common.source", buttonId: "source" },
+  { buttonTitle: "source_translations_buttons.translation", buttonId: "translation" },
+  { buttonTitle: "source_translations_buttons.source_with_translation", buttonId: "sourcewtrans" }
 ];
 
   const handleLangChange = (event) => {
@@ -3659,7 +3613,6 @@ export {
   InterfaceLanguageMenu,
   Autocompleter,
   DonateLink,
-  DivineNameReplacer,
   AdminToolHeader,
   CategoryChooser,
   TitleVariants,

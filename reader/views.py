@@ -21,11 +21,12 @@ import uuid
 from dataclasses import asdict
 from functools import lru_cache
 
+from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_KEY
 from remote_config import remoteConfigCache
-from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, SHOW_JOIN_CHATBOT_BANNER
-from sefaria.system.context_processors import _is_user_in_experiment
+from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
+from sefaria.helper import library_assistant
 from sefaria.utils.util import get_redirect_to_help_center
-from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
@@ -34,6 +35,7 @@ from django.http import Http404, QueryDict, FileResponse
 from django.urls import Resolver404, resolve
 from django_hosts.resolvers import get_host
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
 from django.utils.translation import gettext as _
@@ -71,7 +73,7 @@ from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
-    CHATBOT_API_BASE_URL, CELERY_ENABLED, DISABLE_AUTOCOMPLETER
+    CHATBOT_API_BASE_URL, CELERY_ENABLED, DISABLE_AUTOCOMPLETER, APP_VERSION
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -222,21 +224,21 @@ def render_template(request, template_name='base.html', app_props=None, template
     propsJSON = json.dumps(props, ensure_ascii=False)
     template_context["propsJSON"] = propsJSON
     if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
-        html = render_react_component("ReaderApp", propsJSON)
+        html = render_react_component("ReaderApp", propsJSON, request=request)
         template_context["html"] = html
     else:
         template_context["renderStatic"] = True
     return render(request, template_name=template_name, context=template_context, content_type=content_type, status=status, using=using)
 
 
-def render_react_component(component, props):
+def render_react_component(component, props, request):
     """
     Asks the Node Server to render `component` with `props`.
     `props` may either be JSON (to save reencoding) or a dictionary.
     Returns HTML.
     """
     if not USE_NODE:
-        return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
+        return render_to_string("elements/loading.html", request=request)
 
     propsJSON = json.dumps(props, ensure_ascii=False) if isinstance(props, dict) else props
     cache_key = "todo" # zlib.compress(propsJSON)
@@ -274,11 +276,11 @@ def render_react_component(component, props):
                     "Logged In" if props.get("loggedIn", False) else "Logged Out",
                     props.get("interfaceLang")
             ))
-            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
+            return render_to_string("elements/loading.html", request=request)
         else:
             # If anything else goes wrong with Node, just fall back to client-side rendering
             logger.warning("Node error: Fell back to client-side rendering.")
-            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
+            return render_to_string("elements/loading.html", request=request)
 
 
 def base_props(request):
@@ -343,6 +345,7 @@ def base_props(request):
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
+        "countryCode": request.country_code,
         "domainModules": settings.DOMAIN_MODULES,
         "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
         "initialSettings": {
@@ -361,6 +364,7 @@ def base_props(request):
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
         "_debug_mode": request.GET.get("debug_mode", None),
+        "appVersion": APP_VERSION,
     })
     chatbot_version = request.session.get("chatbot_version")
     chatbot_version = chatbot_version if is_int(chatbot_version) else None
@@ -374,15 +378,27 @@ def base_props(request):
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=10000),
         'chatbot_max_prompts': remoteConfigCache.get(CHATBOT_MAX_PROMPTS, default=100),
         'chatbot_promo_learn_more_urls': remoteConfigCache.get(CHATBOT_PROMO_LEARN_MORE_URLS, default=None),
+        'chatbot_promo_maybe_later_json': remoteConfigCache.get(CHATBOT_PROMO_MAYBE_LATER_JSON, default=None),
         "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
+        "chatbot_promo_session_length_seconds": remoteConfigCache.get(CHATBOT_PROMO_SESSION_LENGTH_SECONDS, default=30*60),
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
-    if user_has_experiments(request.user):
-        chatbot_data["in_chatbot_experiment"] = True
-        if _is_user_in_experiment(request):
+    if request.user.is_authenticated:
+        if library_assistant.is_enabled(profile):
             chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
             chatbot_data["chatbot_enabled"] = True
+        # TEMPORARY (goes with the experiments framework): `in_chatbot_experiment`
+        # suppresses the "try the Library Assistant" promo banner for users who have
+        # already made a choice about the assistant — whether they are using it or
+        # deliberately turned it off.
+        if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
+            chatbot_data["in_chatbot_experiment"] = True
     user_data.update(chatbot_data)
+    user_data.update({
+        "googleClientId": getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
+        "appleClientId": getattr(settings, "APPLE_SSO_CLIENT_ID", ""),
+        "recaptchaSiteKey": getattr(settings, "RECAPTCHA_PUBLIC_KEY", TEST_RECAPTCHA_PUBLIC_KEY if settings.DEBUG else None),
+    })
     return user_data
 
 
@@ -402,20 +418,68 @@ def user_credentials(request):
         return {"user_type": "API", "user_id": apikey["uid"]}
 
 
-def _reader_redirect_add_languages(request, tref):
-    versions = Ref(tref).version_list()
+def _reader_redirect_versions(request, tref, current_versions, normalized_versions):
+    """
+    Redirect to a URL with normalized version query params.
+    Replaces version params that have a normalized form and removes those that don't match any known version.
+    """
     query_params = QueryDict(request.GET.urlencode(), mutable=True)
-    for vlang, direction in [('ven', 'ltr'), ('vhe', 'rtl')]:
-        version_title = request.GET.get(vlang)
-        if version_title:
-            version_title = version_title.replace('_', ' ')
-            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title), None)
-            if version is not None:
-                query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
-            else:
-                query_params.pop(vlang)
-    return redirect(f'/{tref}/?{urllib.parse.urlencode(query_params)}')
+    for version in current_versions:
+        if version in normalized_versions:
+            query_params[version] = normalized_versions[version]
+        else:
+            query_params.pop(version, None)
+    return redirect(f'/{tref}/?{query_params.urlencode()}')
 
+
+def _get_normalized_versions(tref, ven, vhe):
+    """
+    Normalize version params for a single ref into the canonical 'language|version_title' format.
+    Matches each param against known versions by title and/or language, falling back to partial matches
+    (language-only or title-only) when an exact match isn't found. Returns None for unmatched params.
+    """
+    if not ven and not vhe:
+        return [None, None] # saves `version_list()` db query
+    versions = Ref(tref).version_list()
+    normalized = []
+    for version_param, direction in [(ven, 'ltr'), (vhe, 'rtl')]:
+        if not version_param:
+            normalized.append(None)
+            continue
+        if '|' in version_param:
+            lang, vtitle = version_param.split('|', 1)
+        else:
+            lang, vtitle = None, version_param  # Legacy url with only version title
+        vtitle = vtitle.replace('_', ' ')
+        candidates = [v for v in versions if v['direction'] == direction]
+        version = (next((v for v in candidates if v['versionTitle'] == vtitle and v['languageFamilyName'] == lang), None)
+                   or next((v for v in candidates if v['languageFamilyName'] == lang), None)
+                   or next((v for v in candidates if v['versionTitle'] == vtitle), None))
+        if version:
+            normalized.append(f'{version["languageFamilyName"]}|{version["versionTitle"].replace(" ", "_")}')
+        else:
+            normalized.append(None)
+    return normalized
+
+
+def _get_current_and_normalized_versions(request, tref):
+    """
+    Extract current version query params (ven/vhe) from the request for each panel and normalize them.
+    Normalization resolves legacy or partial version params (e.g. title-only without language) to the
+    canonical 'language|version_title' format by matching against known versions in the database.
+    Returns two dicts mapping param names to their current and normalized values respectively.
+    """
+    current_versions, normalized_versions = {}, {}
+    tref_mappings = {k[1:]: v for k, v in request.GET.items() if re.match(r'^p\d+$', k)}
+    tref_mappings[''] = tref
+    tref_mappings = dict(sorted(tref_mappings.items()))
+    for panel_num, tref in tref_mappings.items():
+        ven = request.GET.get(f'ven{panel_num}')
+        vhe = request.GET.get(f'vhe{panel_num}')
+        norm_ven, norm_vhe = _get_normalized_versions(tref, ven, vhe)
+        current_versions.update({k: v for k, v in [(f'ven{panel_num}', ven), (f'vhe{panel_num}', vhe)] if v})
+        normalized_versions.update({k: v for k, v in [(f'ven{panel_num}', norm_ven), (f'vhe{panel_num}', norm_vhe)] if v})
+    return current_versions, normalized_versions
 
 
 @ensure_csrf_cookie
@@ -426,9 +490,9 @@ def catchall(request, tref, sheet=None):
     """
     active_module = getattr(request, "active_module", LIBRARY_MODULE)
 
-    for version in ['ven', 'vhe']:
-        if request.GET.get(version) and '|' not in request.GET.get(version):
-            return _reader_redirect_add_languages(request, tref)
+    current_versions, normalized_versions = _get_current_and_normalized_versions(request, tref)
+    if current_versions != normalized_versions:
+        return _reader_redirect_versions(request, tref, current_versions, normalized_versions)
 
     if sheet is None:
         # Validate ref first
@@ -715,7 +779,7 @@ def _classify_social_image_path(tref: str, module: str) -> SocialImagePageType:
         # represented by a custom image.
         return SocialImagePageType.MODULE_FALLBACK
 
-    if match.func in {serve_static, serve_static_by_lang}:
+    if match.func is serve_static:
         # Static pages are shared between modules and should use the simple
         # Sefaria fallback image, not Library or Voices module branding.
         return SocialImagePageType.STATIC
@@ -907,7 +971,7 @@ def _reduce_ranged_ref_text_to_first_section(text_list):
 
 
 @sanitize_get_params
-def texts_category_list(request, cats):
+def texts_category_list(request, cats=None):
     """
     List of texts in a category.
     """
@@ -943,7 +1007,7 @@ def texts_category_list(request, cats):
 
 
 @sanitize_get_params
-def topics_category_page(request, topicCategory):
+def topics_category_page(request, topicCategory=None):
     """
     List of topics in a category.
     """
@@ -998,7 +1062,7 @@ def get_search_params(get_dict, i=None):
     if get_dict.get('tab') == 'text':
         filters = get_filters("t", "path")
         sort = get_dict.get(get_param("tsort", i), None)
-        agg_types = [None for _ in filters] # currently unused. just needs to be equal len as filters
+        agg_types = ["path" for _ in filters]  # text search always filters on the "path" field
         field = ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else ""
     else:
         for filter_type in sheet_filters_types:
@@ -1166,7 +1230,7 @@ def edit_collection_page(request, slug=None):
         "noindex": True
     })
     
-def groups_redirect(request, group):
+def groups_redirect(request, group=None):
     """
     Redirect legacy groups URLs to collections.
     """
@@ -3456,6 +3520,7 @@ def topic_page(request, slug, test_version=None):
     return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
+        "noindex":        not topic_obj.should_display(min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY),
     })
 
 @catch_error_as_json
@@ -3465,7 +3530,7 @@ def topics_list_api(request):
     """
     limit = int(request.GET.get("limit", 1000))
     minify = bool(int(request.GET.get("minify", 1)))
-    all_topics = get_all_topics(limit, active_module=request.active_module)
+    all_topics = get_all_topics(limit, active_module=request.active_module, min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY)
     all_topics_json = []
     for topic in all_topics:
         topic_json = topic.contents(minify=minify, with_html=True)
@@ -4023,8 +4088,15 @@ def profile_api(request, slug=None):
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
+        # TEMPORARY (goes with the experiments framework): legacy handling of the
+        # `experiments` field.
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
+
+        la_key = library_assistant.SETTING_KEY
+        if la_key in profileUpdate.get("settings", {}):
+            # Public endpoint — coerce so a posted "false" can't read as truthy.
+            profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
 
         profile = UserProfile(id=request.user.id)
         profile.update(profileUpdate)
@@ -4035,6 +4107,8 @@ def profile_api(request, slug=None):
             return jsonResponse({"error": error})
         else:
             profile.save()
+            # TEMPORARY (goes with the experiments framework): keep the Postgres
+            # whitelist row in sync for the still-whitelisted `experiments` field.
             if "experiments" in profileUpdate:
                 _set_user_experiments(request.user, profile.experiments)
             return jsonResponse(profile.to_mongo_dict())
@@ -4047,6 +4121,8 @@ def experiments_opt_in_api(request):
     """
     API endpoint for users to self-enroll in the experiments whitelist.
     This enables the experiments toggle in their settings menu.
+
+    TEMPORARY (goes with the experiments framework): no first-party caller.
     """
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -4054,6 +4130,42 @@ def experiments_opt_in_api(request):
         return jsonResponse({"error": _("You must be logged in to join experiments.")})
     _set_user_experiments(request.user, True)
     return jsonResponse({"status": "ok"})
+
+
+def enable_library_assistant(request):
+    """
+    Turns the Library Assistant on after a promo-driven login or registration.
+    The promo CTA points login/register's ?next= here, so once authentication
+    completes the user lands here; we write settings.library_assistant = True for them
+    and bounce them back to where they were. On that reload the Library Assistant
+    appears with no extra "Join" click. Normal logins (which don't route through here)
+    are unaffected.
+    """
+    next_url = request.GET.get("next") or "/"
+    if not url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = "/"
+
+    if not request.user.is_authenticated:
+        return redirect_to_login(request.get_full_path())
+
+    # Prevent a cross-site request from turning the setting on via GET.
+    if request.headers.get("Sec-Fetch-Site") != "cross-site":
+        library_assistant.set_enabled(request.user, True)
+
+    # The register flow appends ?welcome=to-sefaria to its redirect target; forward
+    # it onto the final destination so the new-user welcome still shows after the hop.
+    welcome = request.GET.get("welcome")
+    if welcome:
+        parsed = urllib.parse.urlparse(next_url)
+        next_url = urllib.parse.urlunparse(parsed._replace(
+            query=urllib.parse.urlencode(urllib.parse.parse_qsl(parsed.query) + [("welcome", welcome)])
+        ))
+
+    return redirect(next_url)
 
 
 @login_required
@@ -4201,6 +4313,9 @@ def profile_sync_api(request):
                 except ValueError as e:
                     logger.warning(f'profile_sync_api: {e}')
                     continue
+                if library_assistant.SETTING_KEY in field_data:
+                    # Public endpoint — coerce so a posted "false" can't read as truthy.
+                    field_data[library_assistant.SETTING_KEY] = library_assistant.normalize(field_data[library_assistant.SETTING_KEY])
                 if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
                     profile.attr_time_stamps.update({field: settings_time_stamp})
@@ -4375,11 +4490,17 @@ def account_settings(request):
     Page for managing a user's account settings.
     """
     profile = UserProfile(id=request.user.id)
+    # TEMPORARY (goes with the experiments framework): only gates the parked
+    # Experiments toggle in the template, not the Library Assistant one.
     experiments_available = user_has_experiments(request.user)
     return render_template(request,'account_settings.html', {"headerMode": True}, {
         'user': request.user,
         'profile': profile,
         'experiments_available': experiments_available,
+        'social_providers': list(request.user.socialaccount_set.values_list('provider', flat=True)),
+        # The toggle must render the *effective* value: a user who is on through the
+        # legacy rule has no setting key yet, and must still see "On".
+        'library_assistant_enabled': library_assistant.is_enabled(profile),
         'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
         'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),
         'diaspora': request.diaspora,
@@ -4586,7 +4707,7 @@ def translations_api(request, lang=None):
         aggregation_query.append({"$match": {"vstate.flags.enComplete": True}})
 
     aggregation_query.extend([{"$project": {"index.dependence": 1, "index.order": 1, "index.collective_title": 1,
-                                            "index.title": 1, "index.order": 1,
+                                            "index.title": 1, "index.order": 1, "languageFamilyName": 1,
                                             "versionTitle": 1, "language": 1, "title": 1, "index.categories": 1,
                                             "priority": 1, "vstate.first_section_ref": 1}},
                               {"$sort": {"index.order.0": 1, "index.order.1": 1, "priority": -1}}])
@@ -4634,7 +4755,10 @@ def translations_api(request, lang=None):
                             continue
                 else:
                     to_add["title"] = my_index_info["title"]
-                    to_add["url"] = f'/{my_index["vstate"][0]["first_section_ref"].replace(":", ".")}?{"ven=" + my_index["versionTitle"] if my_index["language"] == "en" else "vhe=" + my_index["versionTitle"]}&lang=bi'
+                    ref = Ref(my_index["vstate"][0]["first_section_ref"]).url()
+                    version_param = f'{my_index["languageFamilyName"]}|{my_index["versionTitle"]}'
+                    params = urllib.parse.urlencode({'ven': version_param, "lang": "bi"})
+                    to_add["url"] = f'/{ref}?{params}'
 
                 if "order" in my_index["index"][0]:
                     to_add["order"] = my_index["index"][0]["order"]
@@ -4767,19 +4891,15 @@ def search_path_filter(request, book_title):
 
 
 
-@ensure_csrf_cookie
-def serve_static(request, page):
-    """
-    Serve a static page whose template matches the URL
-    """
-    return render_template(request,'static/%s.html' % page, {"headerMode": True}, {"renderStatic": True})
+_ABOUT_SIDEBAR_PATHS = {p["path"] for p in SITE_SETTINGS.get("ABOUT_SIDEBAR_PAGES", [])}
 
 @ensure_csrf_cookie
-def serve_static_by_lang(request, page):
-    """
-    Serve a static page whose template matches the URL
-    """
-    return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), {"headerMode": True}, {"renderStatic": True})
+def serve_static(request, page, by_lang=False):
+    if request.active_module == VOICES_MODULE and page in _ABOUT_SIDEBAR_PATHS:
+        return redirect_to_module(request, f"/{page}", LIBRARY_MODULE)
+    lang_prefix = f'{request.LANGUAGE_CODE}/' if by_lang else ''
+    template = f'static/{lang_prefix}{page}.html'
+    return render_template(request, template, {"headerMode": True}, {"renderStatic": True})
 
 
 # TODO: This really should be handled by a CMS :)
@@ -4802,7 +4922,7 @@ def annual_report(request, report_year=None):
 
 
 @ensure_csrf_cookie
-def explore(request, topCat, bottomCat, book1, book2, lang=None):
+def explore(request, topCat=None, bottomCat=None, book1=None, book2=None, lang=None):
     """
     Serve the explorer, with the provided deep linked books
     """
@@ -5113,16 +5233,50 @@ def custom_server_error(request, template_name='500.html'):
     #return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
 
 
+# Paths iOS must NOT hand to the app as universal links. Everything else on the domain
+# still opens the app (see AASA_PATHS below).
+#
+# Auth flows have to stay in the browser: they depend on the session/CSRF cookies held by
+# the browser, which the app can't see. When the SSO round-trip returns from
+# appleid.apple.com or accounts.google.com, that final hop is a cross-domain navigation
+# into sefaria.org -- exactly the trigger for a universal link -- so without these
+# exclusions iOS yanks the user into the app mid-login. Sefaria-Mobile's DeepLinkRouter
+# has no route for these paths either; they fall through to its catchAll, which bounces
+# straight back out to a browser (Sefaria-Mobile/DeepLinkRouter.js).
+AASA_EXCLUDED_PATHS = [
+    "/accounts/*",          # allauth OAuth endpoints, incl. the Apple/Google callbacks
+    "/_allauth/*",          # allauth headless API
+    "/login",
+    "/login/",
+    "/register",
+    "/register/",
+    "/logout",
+    "/logout/",
+    "/password/reset*",     # reset request, emailed confirm link, done/complete pages
+]
+
+AASA_PATHS = ["NOT " + path for path in AASA_EXCLUDED_PATHS] + ["*"]
+
+
 def apple_app_site_association(request):
     teamID = "2626EW4BML"
     bundleID = "org.sefaria.sefariaApp"
+    appID = "{}.{}".format(teamID, bundleID)
     return jsonResponse({
         "applinks": {
             "apps": [],
             "details": [
                 {
-                    "appID": "{}.{}".format(teamID, bundleID),
-                    "paths": ["*"]
+                    "appID": appID,
+                    "appIDs": [appID],
+                    # `paths` is the pre-iOS 13 format, `components` the current one.
+                    # Both are ordered, first match wins, so the exclusions must come
+                    # before the catch-all.
+                    "paths": AASA_PATHS,
+                    "components": (
+                        [{"/": path, "exclude": True} for path in AASA_EXCLUDED_PATHS]
+                        + [{"/": "*"}]
+                    ),
                 }
             ]
         }

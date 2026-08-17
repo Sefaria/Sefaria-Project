@@ -33,7 +33,7 @@ import Hebrew from './sefaria/hebrew.js';
 import ReactTags from 'react-tag-autocomplete';
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {DropdownMenu} from "./common/DropdownMenu";
-import Cookies from "js-cookie";
+import { getCsrfToken } from "./sefaria/csrf";
 
 
 
@@ -175,7 +175,7 @@ class BookPage extends Component {
           href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}
           onKeyDown={(e) => Util.handleLinkSpaceKey(e)}
         >
-          <InterfaceText>Continue Reading</InterfaceText>
+          <InterfaceText>book_page.continue_reading</InterfaceText>
         </a>
         :
         <a 
@@ -183,12 +183,12 @@ class BookPage extends Component {
           href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}
           onKeyDown={(e) => Util.handleLinkSpaceKey(e)}
         >
-          <InterfaceText>Start Reading</InterfaceText>
+          <InterfaceText>book_page.start_reading</InterfaceText>
         </a>
 
-    const tabs = [{id: "contents", title: {en: "Contents", he: Sefaria._("Contents")}}];
+    const tabs = [{id: "contents", title: {en: "Contents", he: Sefaria._("common.contents")}}];
     if (this.isBookToc()){
-      tabs.push({id: "versions", title: {en: "Versions", he: Sefaria._("Versions")}});
+      tabs.push({id: "versions", title: {en: "Versions", he: Sefaria._("book_page.versions")}});
     }
     const renderTab = t => (
       <div className={classNames({tab: 1, noselect: 1})}>
@@ -403,7 +403,7 @@ class TextTableOfContents extends Component {
     if(!excludedStructs.includes("schema")){
       structTabOptions.push({
         name: "schema",
-        text: "sectionNames" in this.state.indexDetails?.schema ? this.state.indexDetails.schema.sectionNames[0] : "Contents",
+        text: "sectionNames" in this.state.indexDetails?.schema ? this.state.indexDetails.schema.sectionNames[0] : Sefaria._("common.contents"),
         onPress: this.setTab.bind(null, "schema")
       })
     }
@@ -1157,7 +1157,7 @@ const EditTextInfo = function({initTitle, close}) {
         return false;
       }
     }
-    if (collectiveTitle.length > 0 && !await validateCollectiveTitle()) {
+    if (collectiveTitle.length > 0 && !(await validateCollectiveTitle())) {
       return false;
     }
     return true;
@@ -1295,7 +1295,7 @@ const EditTextInfo = function({initTitle, close}) {
     try {
       const request = new Request(
         `/api/terms/${collectiveTitle}`,
-        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+        {headers: {'X-CSRFToken': getCsrfToken()}}
       );
       const response = await fetch(request, {
         method: 'POST',
@@ -1395,24 +1395,24 @@ const EditTextInfo = function({initTitle, close}) {
     setDependence(e.target.value);
   }
   return (
-      <div className="editTextInfo">
+    <div className="editTextInfo">
       <div className="static">
         <div className="inner">
           {savingStatus ? <div className="collectionsWidget">{savingMessage || "Saving text information..."}</div> : null}
           <div id="newIndex">
             <AdminToolHeader title={"Index Editor"} close={close} validate={validateThenSave}/>
             <div className="section">
-                <label><InterfaceText>Text Title</InterfaceText></label>
+                <label><InterfaceText>book_page.text_title</InterfaceText></label>
               <input type="text" id="textTitle" onChange={(e) => setEnTitle(e.target.value)} defaultValue={enTitle}/>
             </div>
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
                 <div className="section">
-                <label><InterfaceText>Hebrew Title</InterfaceText></label>
+                <label><InterfaceText>book_page.hebrew_title</InterfaceText></label>
                 <input id="textTitle" type="text" onChange={(e) => setHeTitle(e.target.value)} defaultValue={heTitle}/>
                 </div> : null}
 
             <div className="section">
-                <label><InterfaceText>English Description</InterfaceText></label>
+                <label><InterfaceText>book_page.english_description</InterfaceText></label>
               <textarea className="default" onChange={(e) => setEnDesc(e.target.value)} defaultValue={enDesc}/>
             </div>
             <div className="section">
@@ -1421,7 +1421,7 @@ const EditTextInfo = function({initTitle, close}) {
             </div>
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
               <div className="section">
-                  <label><InterfaceText>Hebrew Description</InterfaceText></label>
+                  <label><InterfaceText>book_page.hebrew_description</InterfaceText></label>
                 <textarea className="default" onChange={(e) => setHeDesc(e.target.value)} defaultValue={heDesc}/>
               </div> : null}
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
@@ -1431,23 +1431,23 @@ const EditTextInfo = function({initTitle, close}) {
               </div> : null}
 
             <div className="section">
-              <label><InterfaceText>Category</InterfaceText></label>
+              <label><InterfaceText>book_page.category</InterfaceText></label>
               <CategoryChooser update={setCategories} categories={categories}/>
             </div>
 
             <div className="section">
-              <div><InterfaceText>Authors</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+              <div><InterfaceText>common.authors</InterfaceText></div><label><span className="optional"><InterfaceText>book_page.optional</InterfaceText></span></label>
               <TitleVariants titles={authors} options={{'onTitleAddition': addAuthor, 'onTitleDelete': removeAuthor}}/>
             </div>
             <div className="section">
-              <div><InterfaceText>Alternate English Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+              <div><InterfaceText>book_page.alternate_english_titles</InterfaceText></div><label><span className="optional"><InterfaceText>book_page.optional</InterfaceText></span></label>
 
               <TitleVariants update={setTitleVariants} titles={titleVariants}/>
             </div>
 
             {Sefaria._siteSettings.TORAH_SPECIFIC ?
                 <div className="section">
-                  <div><InterfaceText>Alternate Hebrew Titles</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+                  <div><InterfaceText>book_page.alternate_hebrew_titles</InterfaceText></div><label><span className="optional"><InterfaceText>book_page.optional</InterfaceText></span></label>
                   <TitleVariants update={setHeTitleVariants} titles={heTitleVariants}/>
                 </div> : null}
             <div className="section">
@@ -1456,13 +1456,13 @@ const EditTextInfo = function({initTitle, close}) {
             </div>
             <div className="section">
               <div><InterfaceText>Place of Composition</InterfaceText></div>
-              <label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+              <label><span className="optional"><InterfaceText>book_page.optional</InterfaceText></span></label>
               <input id="compPlace" onChange={(e) => setCompPlace(e.target.value)} defaultValue={compPlace}/>
             </div>
             {Sefaria._siteSettings.TORAH_SPECIFIC &&
                 <div className="section">
                   <div><InterfaceText>Hebrew Place of Composition</InterfaceText></div><label>
-                  <span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+                  <span className="optional"><InterfaceText>book_page.optional</InterfaceText></span></label>
                   <input id="heCompPlace" onChange={(e) => setHeCompPlace(e.target.value)} defaultValue={heCompPlace}/>
                 </div>}
             <div className="section">
@@ -1470,18 +1470,18 @@ const EditTextInfo = function({initTitle, close}) {
               <input id="pubDate" onBlur={(e) => validateCompDate(e.target.value, setPubDate)} defaultValue={initPubDate}/>
             </div>
             <div className="section">
-              <div><InterfaceText>Place of Publication</InterfaceText></div><label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+              <div><InterfaceText>Place of Publication</InterfaceText></div><label><span className="optional"><InterfaceText>book_page.optional</InterfaceText></span></label>
               <input id="pubPlace" onChange={(e) => setPubPlace(e.target.value)} defaultValue={pubPlace}/>
             </div>
             {Sefaria._siteSettings.TORAH_SPECIFIC &&
                 <div className="section">
                   <div><InterfaceText>Hebrew Place of Publication</InterfaceText></div>
-                  <label><span className="optional"><InterfaceText>Optional</InterfaceText></span></label>
+                  <label><span className="optional"><InterfaceText>book_page.optional</InterfaceText></span></label>
                   <input id="hePubPlace" onChange={(e) => setHePubPlace(e.target.value)} defaultValue={hePubPlace}/>
                 </div>}
             <div className="section">
                 <div><InterfaceText>Dependence</InterfaceText></div>
-                <label><div className="optional"><InterfaceText>Optional</InterfaceText></div></label>
+                <label><div className="optional"><InterfaceText>book_page.optional</InterfaceText></div></label>
                 <div className="categoryChooserMenu"><select value={dependence} onChange={handleDependenceChange}>
                   <option value="">--Not a dependent text--</option>
                   <option value="Commentary">Commentary</option>
@@ -1494,16 +1494,16 @@ const EditTextInfo = function({initTitle, close}) {
             {dependence.length > 0 && renderCollectiveTitle()}
             {index.current.hasOwnProperty("sectionNames") ?
               <div className="section">
-                <div><label><InterfaceText>Text Structure</InterfaceText></label></div>
+                <div><label><InterfaceText>book_page.text_structure</InterfaceText></label></div>
                 <SectionTypesBox updateParent={setSections} sections={sections} canEdit={index.current === {}}/>
               </div> : null}
             <div onClick={deleteObj} id="deleteTopic" className="button small deleteTopic" tabIndex="0" role="button">
-                <InterfaceText>Delete</InterfaceText>
+                <InterfaceText>common.delete</InterfaceText>
             </div>
           </div>
         </div>
       </div>
-      </div>
+    </div>
   );
 }
 
