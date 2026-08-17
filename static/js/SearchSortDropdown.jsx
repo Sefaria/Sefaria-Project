@@ -36,7 +36,8 @@ export const ENTITY_SORT_OPTIONS = {
 // orders the entire match set in Elasticsearch (ENTITY_SORTS in sefaria/helper/search.py).
 // There is deliberately no client-side sort helper here: sorting the hits already downloaded
 // could only ever reorder those hits, so on "A-Z" the alphabetically-first result would still
-// be missing whenever it happened to fall outside the pages fetched so far.
+// be missing whenever it happened to fall outside the pages fetched so far. Category rows are
+// pinned above the sort by the backend too (see _category_response in sefaria/helper/search.py).
 
 
 const SearchSortDropdown = ({ options, sortType, onSortChange, disabled }) => {

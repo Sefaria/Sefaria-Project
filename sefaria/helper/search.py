@@ -1,4 +1,5 @@
 from functools import wraps
+from django.conf import settings
 from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.query import Bool, Regexp, Term
 from sefaria.system.exceptions import InputError
@@ -239,8 +240,12 @@ def make_filter(type, agg_type, agg_key):
 #  category instead of a flat list.                                           #
 # --------------------------------------------------------------------------- #
 
-from sefaria.settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
+from sefaria.settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK, SEARCH_INDEX_NAME_CATEGORY
 
+# The entity types the API accepts, one per tab. "category" is deliberately absent: it is
+# not a tab of its own, it is a kind of *row* the Books tab can return (see
+# _resolve_categories / _category_response). It still gets its own entries in the query
+# config below, because the same tiered query builder runs against the `category` index.
 ENTITY_TYPES = ("topic", "author", "book")
 
 # Elasticsearch's default `max_result_window`: it rejects any from/size request whose
@@ -259,6 +264,9 @@ ENTITY_SORTS = {
     "topic": ("relevance", "alpha"),
     "author": ("relevance", "alpha", "year_asc", "year_desc"),
     "book": ("relevance", "alpha", "year_asc", "year_desc"),
+    # Internal type (not a tab): categories have no year, and resolution only ever asks
+    # for the top exact matches, so relevance and A-Z are all that is meaningful.
+    "category": ("relevance", "alpha"),
 }
 _ENTITY_ALPHA_SORT_FIELD = "title_en.sort"  # lowercased keyword sub-field (see put_*_mapping)
 # Both year fields are *derived at index time* into a single sortable int, so the sort is a
@@ -303,6 +311,7 @@ _DEFAULT_ENTITY_FIELD_BOOSTS = {
     "author": {"title_en": 3, "title_he": 3, "titleVariants": 2,
                "authored_titles_en": 1.5, "authored_titles_he": 1.5},
     "book": {"title_en": 3, "title_he": 3, "titleVariants": 2, "author_names": 1.5},
+    "category": {"title_en": 3, "title_he": 3, "titleVariants": 2},
 }
 
 # RemoteConfig key holding the per-field boost overrides for each entity type. Each key
@@ -358,6 +367,7 @@ _ENTITY_TITLE_FIELDS = {
     "topic": ["title_en", "title_he", "titleVariants"],
     "author": ["title_en", "title_he", "titleVariants", "authored_titles_en", "authored_titles_he"],
     "book": ["title_en", "title_he", "titleVariants"],
+    "category": ["title_en", "title_he", "titleVariants"],
 }
 # Keyword sub-fields for the exact-match tier. Split into two groups with different
 # decisive boosts (see get_entity_query_obj):
@@ -372,6 +382,10 @@ _ENTITY_SECONDARY_KEYWORD_FIELDS = {
     "topic": [],
     "author": ["authored_titles_en.keyword", "authored_titles_he.keyword"],
     "book": ["titleVariants.keyword"],
+    # A category's variants are its shared Term's titles ("Bible", "Gemara", "Mishnah
+    # Torah"), which are real names for it — an exact hit on one should resolve the
+    # category just as a primary-title hit does.
+    "category": ["titleVariants.keyword"],
 }
 
 # The all-prefixes tier (see get_entity_query_obj) builds `prefix` queries, which are NOT run
@@ -437,7 +451,7 @@ def _entity_sort_clauses(type, sort):
 
 
 def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20, sort="relevance",
-                         category_paths=None):
+                         category_paths=None, exclude_category_paths=None):
     """
     Build the Elasticsearch DSL for a flat entity search over the `topic` or `book`
     index. Layers match-type tiers as `should` clauses with descending boosts
@@ -482,19 +496,29 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     the whole match set instead of only the selected category (see
     _ENTITY_CATEGORY_AGG_NAME). Book searches always carry that aggregation.
 
+    `exclude_category_paths` (books only) is the mirror image: books at or under any of
+    those paths are dropped from the match set. It backs category results on the Books
+    tab — when a query resolves to a category, that category's own books are replaced by
+    a single category row (see _category_response), so they must not also appear
+    individually below it.
+
     :param query: the user query string
-    :param type: one of "topic", "author", "book"
+    :param type: one of "topic", "author", "book" (plus the internal "category")
     :param search_obj: an optional elasticsearch_dsl Search to attach the query to
     :param sort: one of ENTITY_SORTS[type]; default "relevance"
     :param category_paths: optional list of category path strings; only valid for type="book"
+    :param exclude_category_paths: optional list of category path strings to exclude;
+        only valid for type="book"
     :return: Search object ready to .execute()
-    :raises ValueError: if `sort` or `category_paths` is not valid for this entity type
+    :raises ValueError: if `sort` or either path list is not valid for this entity type
     """
     sort_clauses = _entity_sort_clauses(type, sort)
     if search_obj is None:
         search_obj = Search()
     if category_paths and type != "book":
         raise ValueError(f"Entity search 'filter' is only supported for type 'book', not '{type}'.")
+    if exclude_category_paths and type != "book":
+        raise ValueError(f"Entity search category exclusion is only supported for type 'book', not '{type}'.")
     fields = _resolve_entity_field_boosts(type)
     title_fields = _ENTITY_TITLE_FIELDS.get(type, _ENTITY_TITLE_FIELDS["topic"])
     secondary_kw = _ENTITY_SECONDARY_KEYWORD_FIELDS.get(type, _ENTITY_SECONDARY_KEYWORD_FIELDS["topic"])
@@ -545,6 +569,13 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
     # topic and author both live in the topic index; filter by subtype.
     if type in ("topic", "author"):
         base_query = Q("bool", must=[text_query], filter=[Q("term", subtype=type)])
+    elif exclude_category_paths:
+        # Category exclusion: drop books at/under any given path. `must_not` is non-scoring,
+        # so relevance is untouched. Unlike the category *filter* below this belongs in query
+        # context, because the excluded books must not be counted in `total` either — this is
+        # what lets a category row stand in for its books (see _category_response).
+        base_query = Q("bool", must=[text_query],
+                       must_not=[make_path_filter(p) for p in exclude_category_paths])
     else:
         base_query = text_query
 
@@ -647,6 +678,164 @@ def _resolve_author(query, es_client):
     if not slug or not _query_matches_entity_title(query, top):
         return None
     return AuthorTopic.init(slug)
+
+
+# How many category candidates to pull back when resolving a query to a category. The
+# exact-match tier is a constant_score of 1000, so every exact match sits at the very top;
+# this only needs headroom above the largest group of same-titled categories, which is 5
+# ("Seder Moed" and its sibling sedarim name one category each under Mishnah, Bavli,
+# Yerushalmi and both Tosefta editions).
+_CATEGORY_RESOLUTION_CANDIDATES = 20
+# Cap on eponymous books rescued from inside a matched category (see
+# _eponymous_books_in_categories). Realistically 1 per query; the cap only bounds a
+# pathological case.
+_MAX_EPONYMOUS_BOOKS = 5
+
+
+def _resolve_categories(query, es_client):
+    """
+    Resolve `query` to the main TOC categories it names exactly, or [] if it names none.
+
+    Returns *every* exact match, not just one: 57 titles name more than one category —
+    "Seder Moed" names five (under Mishnah, Bavli, Yerushalmi and both Tosefta editions),
+    "Rashi" names three, and "Halakhah" names both the top-level category and
+    Midrash/Halakhah. Picking one would be arbitrary, and the result cards carry
+    breadcrumbs that tell them apart, so all of them are returned.
+
+    Ordered shallowest-first (then A-Z), so a top-level category outranks a nested one of
+    the same name — "Halakhah" leads with the top-level corpus rather than Midrash/Halakhah.
+
+    Matching is exact against the category's title or one of its title variants, via the
+    same guard the author path uses. Because a category's variants come from its shared
+    `Term` (see make_category_index_document), this matches on every title the Term
+    carries: "Bible" resolves Tanakh, "Gemara" resolves Talmud, "Mishnah Torah" resolves
+    Mishneh Torah. Exact and not prefix, for the same reason as authors — a prefix test
+    would let "Mod" or "Tal" hijack the whole Books tab.
+    """
+    search_obj = Search(using=es_client, index=SEARCH_INDEX_NAME_CATEGORY).params(request_timeout=5)
+    search_obj = get_entity_query_obj(query, type="category", search_obj=search_obj,
+                                      size=_CATEGORY_RESOLUTION_CANDIDATES)
+    response = search_obj.execute()
+    if not response.success():
+        return []
+    matched = [h.to_dict() for h in response.hits if _query_matches_entity_title(query, h.to_dict())]
+    matched.sort(key=lambda h: (h.get("depth") or 0, (h.get("title_en") or "").lower()))
+    return matched
+
+
+def _category_row(category):
+    """
+    Shape one resolved category document as a Books-tab result row.
+
+    Deliberately the *same* contract as an aggregated author-works row (`isCategory`,
+    `url`, `categories`): the search page's card builder already branches on those keys,
+    so a category row renders through the existing component with no frontend change.
+
+    `categoryLabel_*` is intentionally omitted. On an author-works row it names the
+    category that collapsed several books; here the category *is* the row's title, and
+    sending it too would render the same words as both the card's heading and its
+    breadcrumb. The parent path in `categories` is the breadcrumb — empty for a top-level
+    category, which correctly yields no breadcrumb at all.
+    """
+    path = category.get("path") or ""
+    return {
+        "title_en": category.get("title_en"),
+        "title_he": category.get("title_he"),
+        "isCategory": True,
+        "categories": category.get("categories") or [],
+        "path": path,
+        "url": f"/texts/{path}",
+        "description_en": category.get("description_en"),
+        "description_he": category.get("description_he"),
+        "compDate": None,  # a category spans too many works to carry one date
+    }
+
+
+def _eponymous_books_in_categories(query, category_paths, es_client):
+    """
+    Books that sit *inside* a matched category and whose own title is exactly the query.
+
+    11 categories contain a book of the same name — Zohar, Tur, Sefer Yetzirah, Shulchan
+    Arukh HaRav, Mishnah Berurah, Sefer HaMitzvot and so on. Category mode hides everything
+    under a matched path, which would otherwise make the actual Zohar vanish from a search
+    for "Zohar". These books are pulled back out and shown above the category card,
+    mirroring the eponymous-work lift the author-works view already does for
+    "Chafetz Chaim".
+
+    Only books *inside* a matched category need rescuing: a same-titled book anywhere
+    else was never excluded, and the flat query's exact-match tier already floats it to #1.
+    """
+    path_filter = Bool(should=[make_path_filter(p) for p in category_paths], minimum_should_match=1)
+    exact_title = Q("bool",
+                    should=[Q("term", **{kf: {"value": query, "case_insensitive": True}})
+                            for kf in _ENTITY_PRIMARY_KEYWORD_FIELDS],
+                    minimum_should_match=1)
+    search_obj = Search(using=es_client, index=SEARCH_INDEX_NAME_BOOK).params(request_timeout=5)
+    search_obj.query = Q("bool", must=[exact_title], filter=[path_filter])
+    response = search_obj[0:_MAX_EPONYMOUS_BOOKS].execute()
+    if not response.success():
+        return []
+    return [hit.to_dict() for hit in response.hits]
+
+
+def _category_response(categories, query, es_client, start=0, size=20, sort="relevance"):
+    """
+    Build the Books-tab response for a query that resolved to one or more categories.
+
+    Rows, in order:
+      1. the eponymous book, if the query also names a book inside a matched category
+      2. one row per matched category, shallowest-first
+      3. the ordinary flat book results, with every book at or under a matched category
+         path excluded
+
+    Step 3 is the point of the whole feature: a search for "Mishneh Torah" answers with
+    one "Mishneh Torah" card instead of the forty-odd "Mishneh Torah, Laws of ..."
+    volumes, while books matching the query from *other* categories still appear.
+
+    **Sorting.** Category mode is a decision about *which* books to show, not what order
+    to show them in, so it holds under every sort — the rows above never collapse back
+    into a flat list. The leading rows are ordered among themselves (A-Z under "alpha",
+    otherwise shallowest-first) and the flat remainder honors the requested sort. Year
+    sorts leave the leading rows in place rather than banishing them to the undated tail;
+    they are the query's answer, not a dateless straggler.
+
+    **Pagination.** The leading rows are a small fixed block, so paging walks through them
+    first and then offsets into the Elasticsearch results. `total` counts both, so the
+    tab's count badge and its "more to load" check stay honest.
+    """
+    category_paths = [c["path"] for c in categories if c.get("path")]
+    lead_rows = _eponymous_books_in_categories(query, category_paths, es_client)
+    category_rows = [_category_row(c) for c in categories]
+    if sort == "alpha":
+        category_rows.sort(key=lambda r: (r.get("title_en") or "").lower())
+    lead_rows += category_rows
+
+    lead_count = len(lead_rows)
+    rows = lead_rows[start:start + size] if start < lead_count else []
+    remaining = size - len(rows)
+    es_start = 0 if start < lead_count else start - lead_count
+
+    # The book query runs either way. When the page was filled by leading rows alone it runs
+    # at size 0, purely for its total — no fetch, scoring or highlighting — because `total`
+    # still has to count the excluded set or the tab badge and the "more to load" check would
+    # both read as "nothing further", silently stranding the remaining books.
+    search_obj = Search(using=es_client, index=SEARCH_INDEX_NAME_BOOK).params(request_timeout=5)
+    search_obj = get_entity_query_obj(query, type="book", search_obj=search_obj, start=es_start,
+                                      size=remaining, sort=sort,
+                                      exclude_category_paths=category_paths)
+    response = search_obj.execute()
+    if not response.success():
+        raise IOError("Elasticsearch entity search failed.")
+    rows += [hit.to_dict() for hit in response.hits]
+
+    # The sidebar's counts come from a *separate* flat search, not from the aggregation riding
+    # along on the query above: that one excludes the matched categories' books in query
+    # context, so its buckets would read low for exactly the categories the query is about.
+    # Same rule as the author path — the number next to a category is how many results
+    # selecting it returns, and selecting one drops back to the flat book list.
+    return {"hits": rows, "total": lead_count + _total_from_response(response),
+            "category_paths": category_paths,
+            "categoryCounts": _book_category_counts(query, es_client)}
 
 
 def _author_work_matches_query(query, hit):
@@ -770,10 +959,18 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     Run an entity search and return a plain dict {"hits": [...], "total": N}.
 
     - type="topic"/"author": flat full-text search over the topic index (filtered by subtype).
-    - type="book": if the query resolves to an author entity, return that author's works
-      aggregated by category; otherwise a flat full-text search over the book index.
-      `category_paths` (books only) restricts hits to books at/under any of the given
-      category paths.
+    - type="book": a resolution chain — an author query returns that author's works
+      aggregated by category; failing that, a category query returns a category row (plus
+      any eponymous book) in place of that category's books; failing both, a flat
+      full-text search over the book index. `category_paths` (books only) restricts hits
+      to books at/under any of the given category paths.
+
+    Author is tried before category on purpose, and this is a high-traffic branch rather
+    than an edge case: 138 category titles are also an author's name or title variant,
+    because the TOC collects a commentator's works under a category named after him
+    (Rashi, Ramban, Maggid Mishneh, Ramak, Ramchal, Josephus, ...). For a name query the
+    person is the likelier intent, so all of those keep returning aggregated author works
+    and never reach category resolution.
 
     Explicit sorts keep the aggregation: each aggregated row carries a `compDate` (a
     category row averages the dates of its collapsed works), and the rows are sorted in
@@ -781,9 +978,9 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     category filter still runs the flat search — a category row spans many per-book
     paths, so it can't be filtered as a unit.
 
-    `aggregate=False` skips the author resolution entirely, so a book query always
-    returns the flat list — a QA escape hatch for comparing the two views side by side.
-    Only books aggregate, so the flag is a no-op for other types.
+    `aggregate=False` skips both the author and the category resolution, so a book query
+    always returns the flat list — a QA escape hatch for comparing the collapsed and flat
+    views side by side. Only books aggregate, so the flag is a no-op for other types.
 
     Book responses carry a third key, `categoryCounts`: {category path -> number of matching
     books}, counted over the entire match set independent of `category_paths` and of paging,
@@ -802,12 +999,18 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     es_client = get_elasticsearch_client()
 
     if type == "book":
+        # A category filter always runs the flat search: both collapsed views (author
+        # works, category rows) span many per-book paths, so they can't be filtered as a
+        # unit.
         if aggregate and not category_paths:
             author = _resolve_author(query, es_client)
             if author is not None:
                 results = _author_works_response(author, query, sort=sort, start=start, size=size)
                 results["categoryCounts"] = _book_category_counts(query, es_client)
                 return results
+            categories = _resolve_categories(query, es_client)
+            if categories:
+                return _category_response(categories, query, es_client, start=start, size=size, sort=sort)
         index_name = SEARCH_INDEX_NAME_BOOK
     else:
         index_name = SEARCH_INDEX_NAME_TOPIC
@@ -852,8 +1055,7 @@ def get_elasticsearch_client_for_indexer():
 # --------------------------------------------------------------------------- #
 
 def process_index_title_change_in_search(indx, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.model import library, text
         from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
         index_names = get_new_and_current_index_names("text")
@@ -915,36 +1117,31 @@ def process_index_title_change_in_book_search(indx, **kwargs):
     # A rename changes the book doc's ES id. Only the stale doc is deleted here:
     # save() emits attributeChange notifications before the "save" notification,
     # so process_index_save_in_book_search upserts the new-id doc right after.
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import delete_book_doc
         delete_book_doc(kwargs.get("old"))
 
 
 def process_index_save_in_book_search(indx, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import index_book_doc
         index_book_doc(indx)
 
 
 def process_index_delete_in_book_search(indx, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import delete_book_doc
         delete_book_doc(indx.title)
 
 
 def process_topic_save_in_topic_search(topic_obj, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import index_topic_doc
         index_topic_doc(topic_obj)
 
 
 def process_topic_delete_in_topic_search(topic_obj, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import delete_topic_doc
         delete_topic_doc(topic_obj.slug)
 
@@ -955,11 +1152,26 @@ def process_category_path_change_in_book_search(cat, **kwargs):
     # hook re-reads. (It saves them with override_dependencies=True, so
     # process_index_save_in_book_search never fires for those books — this hook is
     # their only path back into the book index.)
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.model import text
         from sefaria.search import index_book_docs
         new_path = kwargs.get("new") or []
         if not new_path:  # an empty path would match every book in the library
             return
         index_book_docs(text.IndexSet({f"categories.{i}": p for i, p in enumerate(new_path)}))
+
+
+def process_category_change_in_category_search(cat, **kwargs):
+    """
+    Keep the `category` index in step with a category save or delete.
+
+    Re-syncs the whole index rather than one document — see resync_category_docs for why
+    (a rename cascades into every descendant's document id, and gaining/losing a child
+    moves a category in or out of the indexed set).
+
+    Must be subscribed AFTER text.rebuild_library_after_category_change, since the re-sync
+    reads the TOC tree and needs the rebuilt one, not the stale one.
+    """
+    if settings.SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import resync_category_docs
+        resync_category_docs()
