@@ -10,6 +10,7 @@ import {
   omit,
   mapLocales,
   groupByDocumentId,
+  groupByDocumentIdWithDiagnostics,
   buildInterfaceTextDoc,
 } from "../strapiLocalization";
 
@@ -266,6 +267,15 @@ describe("groupByDocumentId — malformed rows are dropped loudly, never fatal",
   it("returns an empty list when every row is malformed", function () {
     const rowsByLocale = { en: [null, "junk"], he: [undefined] };
     expect(groupByDocumentId(rowsByLocale, LOCALIZED_FIELDS.banner)).toEqual([]);
+    expectReportedSkips();
+  });
+
+  it("reports how many rows were discarded so destructive consumers can preserve state", function () {
+    const rowsByLocale = { en: [null, makeRow("en")], he: ["junk"] };
+    const result = groupByDocumentIdWithDiagnostics(rowsByLocale, LOCALIZED_FIELDS.banner);
+
+    expect(result.documents).toHaveLength(1);
+    expect(result.discardedRowCount).toBe(2);
     expectReportedSkips();
   });
 

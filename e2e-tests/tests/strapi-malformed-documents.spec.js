@@ -35,6 +35,8 @@ import {
   expectInterfaceLanguage,
   advanceBy,
   waitForTimerArmed,
+  strapiResponseCount,
+  waitForStrapiResponse,
 } from './strapi.fixtures.js';
 import { LANGUAGES } from '../globals';
 
@@ -141,6 +143,47 @@ test.describe('Strapi malformed documents — unusable rows are dropped, not fat
     await expectBothHealthySurfaces(page);
     // One report per content type that carried junk (modals and banners here, not sidebar ads).
     expect(skipReports.length).toBeGreaterThanOrEqual(1);
+  });
+
+  test('a discarded modal row preserves its dismissal when the healthy row returns', async ({
+    page,
+    context,
+  }) => {
+    const campaignName = 'transiently-malformed-campaign';
+    const dismissalKey = `modal_${campaignName}`;
+    const payload = strapiPayload({
+      modals: [
+        modal({
+          shared: { showDelay: DELAY_SECONDS, internalModalName: campaignName },
+          locales: { en: { modalText: 'Synthetic modal restored after a malformed response' } },
+        }),
+      ],
+      // The banner is a processing anchor: its timer cannot be armed until context.js has grouped
+      // every content type and completed dismissal cleanup for this response.
+      banners: [healthyBanner()],
+    });
+    const healthyModalRow = payload.data.en_modals[0];
+    payload.data.en_modals[0] = null;
+
+    await page.addInitScript((key) => localStorage.setItem(key, 'true'), dismissalKey);
+    strapi = await open(page, context, payload);
+
+    await elapseShowDelay(page);
+    await expect(bannerBox(page)).toContainText(HEALTHY_BANNER);
+    expect(await page.evaluate((key) => localStorage.getItem(key), dismissalKey)).toBe('true');
+
+    // Simulate the next, healthy response from Strapi. The route serializes `payload` for each
+    // request, so restoring the row before reload makes the same endpoint serve the repaired data.
+    payload.data.en_modals[0] = healthyModalRow;
+    const responsesBeforeReload = strapiResponseCount(page);
+    await page.reload();
+    await waitForStrapiResponse(page, responsesBeforeReload);
+    await elapseShowDelay(page);
+
+    // If the malformed response had pruned the key, the restored modal would now be visible.
+    await expect(bannerBox(page)).toContainText(HEALTHY_BANNER);
+    await expect(modalBox(page)).toHaveCount(0);
+    expect(await page.evaluate((key) => localStorage.getItem(key), dismissalKey)).toBe('true');
   });
 });
 

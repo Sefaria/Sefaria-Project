@@ -3,7 +3,7 @@ import {
   SUPPORTED_LOCALES,
   LOCALIZED_FIELDS,
   mapLocales,
-  groupByDocumentId,
+  groupByDocumentIdWithDiagnostics,
   buildInterfaceTextDoc,
 } from "./sefaria/strapiLocalization";
 import {
@@ -221,12 +221,21 @@ function StrapiDataProvider({ children }) {
             const rowsByLocale = (contentType) =>
               mapLocales((locale) => result.data?.[`${locale}_${contentType}`] || []);
 
-            const groupedModals = groupByDocumentId(rowsByLocale("modals"), LOCALIZED_FIELDS.modal);
-            const groupedBanners = groupByDocumentId(rowsByLocale("banners"), LOCALIZED_FIELDS.banner);
-            const groupedSidebarAds = groupByDocumentId(rowsByLocale("sidebarAds"), LOCALIZED_FIELDS.sidebarAd);
+            const groupedModals = groupByDocumentIdWithDiagnostics(
+              rowsByLocale("modals"),
+              LOCALIZED_FIELDS.modal,
+            );
+            const groupedBanners = groupByDocumentIdWithDiagnostics(
+              rowsByLocale("banners"),
+              LOCALIZED_FIELDS.banner,
+            );
+            const groupedSidebarAds = groupByDocumentIdWithDiagnostics(
+              rowsByLocale("sidebarAds"),
+              LOCALIZED_FIELDS.sidebarAd,
+            );
 
             // Promotions is the only consumer of strapiData; it iterates each grouped ad's `locales`/`byLocale` directly, so no InterfaceText normalization needed here.
-            setStrapiData({ sidebarAds: groupedSidebarAds });
+            setStrapiData({ sidebarAds: groupedSidebarAds.documents });
 
             // Forget dismissals of documents that are no longer in the payload, so a campaign
             // republished much later gets a fresh chance. Dismissals of every LIVE document are
@@ -248,10 +257,15 @@ function StrapiDataProvider({ children }) {
             // (sc-45891). Among several eligible documents the most specific one wins; see
             // strapiSelection.js for the ranking tiers.
             const viewerContext = buildViewerContext();
-            const chooseContent = (groupedDocs, contentType, localizedFields) => {
-              const docs = groupedDocs.map((doc) => buildInterfaceTextDoc(doc, localizedFields));
+            const chooseContent = (groupedResult, contentType, localizedFields) => {
+              const docs = groupedResult.documents.map((doc) => buildInterfaceTextDoc(doc, localizedFields));
               const { storagePrefix, name } = CONTENT_FIELDS[contentType];
-              removeStaleDismissals({ prefix: storagePrefix, keep: docs.map((doc) => doc[name]) });
+              // A discarded row may be the only surviving representation of a still-live
+              // campaign. In that case the partial payload cannot prove the campaign vanished,
+              // so preserve this content type's dismissal keys until a healthy response arrives.
+              if (groupedResult.discardedRowCount === 0) {
+                removeStaleDismissals({ prefix: storagePrefix, keep: docs.map((doc) => doc[name]) });
+              }
               return selectContent(docs, viewerContext, contentType);
             };
 

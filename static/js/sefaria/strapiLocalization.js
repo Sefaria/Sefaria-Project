@@ -61,15 +61,18 @@ const SKIPPED_ROWS_LOG = "Skipped unusable Strapi row(s):";
 
 // rowsByLocale: {en: [row, ...], he: [row, ...]} where each row carries its own
 // `documentId` and `locale` fields (the GraphQL alias's locale, per Strapi v5 docs).
-// Returns one entry per distinct documentId, merging whichever locales are present.
-const groupByDocumentId = (rowsByLocale, localizedFields) => {
+// Returns one entry per distinct documentId, merging whichever locales are present, plus the
+// number of source rows that had to be discarded. The latter lets callers avoid treating a
+// partial/malformed payload as authoritative proof that a previously published document vanished.
+const groupByDocumentIdWithDiagnostics = (rowsByLocale, localizedFields) => {
   const rawRows = SUPPORTED_LOCALES.flatMap((locale) => rowsByLocale[locale] || []);
   const allRows = rawRows.filter(isUsableRow);
-  if (allRows.length < rawRows.length) {
-    console.error(`${SKIPPED_ROWS_LOG} ${rawRows.length - allRows.length} of ${rawRows.length}`);
+  const discardedRowCount = rawRows.length - allRows.length;
+  if (discardedRowCount > 0) {
+    console.error(`${SKIPPED_ROWS_LOG} ${discardedRowCount} of ${rawRows.length}`);
   }
   const rowsByDocumentId = groupBy(allRows, (row) => row.documentId);
-  return Object.values(rowsByDocumentId).map((rows) => {
+  const documents = Object.values(rowsByDocumentId).map((rows) => {
     const byLocale = keyBy(rows, (row) => row.locale);
     // Whatever is left after the localized fields (dates, showDelay, showTo, ...) is expected to be
     // identical across locale rows of the same document, so any row can supply it. Anything an
@@ -78,7 +81,13 @@ const groupByDocumentId = (rowsByLocale, localizedFields) => {
     const sharedFields = omit(rows[0], [...localizedFields, "locale"]);
     return { ...sharedFields, byLocale, locales: rows.map((row) => row.locale) };
   });
+  return { documents, discardedRowCount };
 };
+
+// Most consumers need only the documents. context.js uses the diagnostic form as well because
+// dismissal pruning is destructive and therefore needs to know whether the payload was complete.
+const groupByDocumentId = (rowsByLocale, localizedFields) =>
+  groupByDocumentIdWithDiagnostics(rowsByLocale, localizedFields).documents;
 
 // Rewrites each localized field on a grouped doc into the {en, he} object shape consumed by InterfaceText and the manual .en/.he conditionals in Misc.jsx.
 const buildInterfaceTextDoc = (groupedDoc, localizedFields) => {
@@ -100,5 +109,6 @@ export {
   omit,
   mapLocales,
   groupByDocumentId,
+  groupByDocumentIdWithDiagnostics,
   buildInterfaceTextDoc,
 };
