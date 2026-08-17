@@ -34,19 +34,19 @@ use a bare `page.goto` plus a Strapi route, keeping Strapi **on**.
 | [`strapi-audience.spec.js`](strapi-audience.spec.js) | *(synthetic)* The audience gate for anonymous readers: `logged_out_only` shows and `logged_in_only` doesn't, and new vs. returning visitors (a fresh context IS a new visitor; returning is seeded by writing what `markUserAsReturningVisitor` writes). Mixed payloads prove selection-time filtering in both orders. |
 | [`strapi-audience-real.spec.js`](strapi-audience-real.spec.js) | *(synthetic, real session)* `logged_in_only` against a genuine Django session via `test.use({storageState})` — the newsletter suite's `*-real` pattern. Also pins that a logged-in reader is ALWAYS a returning visitor (ReaderApp marks them so). Skips with a message unless `PLAYWRIGHT_USER_EMAIL`/`PASSWORD` are set. |
 | [`strapi-excluded-paths.spec.js`](strapi-excluded-paths.spec.js) | *(synthetic)* A surface is withheld on the page its own button points at — including when it is the *other* locale's button URL that collides. Also pins the render-guard boundary from both sides: the colliding document is STILL the selected winner (nothing shows on the colliding page — the runner-up is never promoted — and the same winner renders on every other page). |
-| [`strapi-payload-resilience.spec.js`](strapi-payload-resilience.spec.js) | *(synthetic)* Empty, v4-shaped, 500 and non-JSON responses degrade to "no promotions" with the page intact. |
+| [`strapi-payload-resilience.spec.js`](strapi-payload-resilience.spec.js) | *(synthetic)* Empty, v4-shaped, 500, non-JSON, and GraphQL-errors-inside-a-200 responses all degrade to "no promotions" with the page intact — the errors-in-200 case also proves a seeded dismissal key survives it (see below). |
 | [`strapi-malformed-documents.spec.js`](strapi-malformed-documents.spec.js) | *(synthetic)* One bad document among healthy ones costs only itself: broken dates are skipped by the gates, null/junk rows are dropped loudly by row hygiene (`SKIPPED_ROWS_LOG`), and an unparseable buttonURL on the selected doc can no longer crash the React tree. |
 | [`strapi-dismissal-lifecycle.spec.js`](strapi-dismissal-lifecycle.spec.js) | *(synthetic)* Dismissal-state seams crossed the way a user crosses them — real clicks, real reloads, no seeded storage: banner/modal dismissals stay independent even under a shared internal name; the CTA button click dismisses exactly like the × (engaging with a campaign retires it for the runner-up); a dismissed-then-unpublished campaign gets a fresh showing when republished; a dismissal survives client-side browsing (TOC → book → reader → resource panel, with timer-capture non-vacuity anchors); and the next session (storageState = carried localStorage, fresh sessionStorage) crosses the new→returning visitor transition. The drain sequence (winner → runner-up → quiet) lives in `strapi-selection-order.spec.js`. |
 | [`strapi-static-pages.spec.js`](strapi-static-pages.spec.js) | *(synthetic)* headerOnly static pages (/testimonials, /team) get banners AND modals, and revealing the banner adds the `hasBannerMessage` layout class to `<body>` — a branch that exists only for this mode (with the /texts negative control). Also pins that /team's own DIRECT `STRAPI_INSTANCE/graphql` fetch and the promotions' `/api/strapi/graphql-cache` are separate channels: each consumer renders from its own synthetic response, and neither route answers the other's request. |
 | [`strapi-modal.spec.js`](strapi-modal.spec.js) | A published modal reaches the client and renders. Asserts nothing about banners or sidebar ads. |
-| [`strapi-modal-hebrew.spec.js`](strapi-modal-hebrew.spec.js) | Locale separation for modals: a Hebrew-only modal renders under Hebrew UI (header + button) and not under English UI. |
+| [`strapi-modal-hebrew.spec.js`](strapi-modal-hebrew.spec.js) | Locale separation for modals: a Hebrew-only modal renders under Hebrew UI (header + button) and not under English UI; body text also asserted right-aligned (`direction`+`text-align`). |
 | [`strapi-modal-bilingual.spec.js`](strapi-modal-bilingual.spec.js) | Both locales published: each interface shows its own copy, plus the optional-header asymmetry. |
 | [`strapi-banner-expired.spec.js`](strapi-banner-expired.spec.js) | An expired banner is delivered in the payload but not rendered — the client-side date gate. |
 | [`strapi-banner-future.spec.js`](strapi-banner-future.spec.js) | A not-yet-started banner, same idea from the other side of the window. |
 | [`strapi-banner-country-targeting.spec.js`](strapi-banner-country-targeting.spec.js) | Per-locale targeting on the banner call site: one viewer country for which the two locales disagree, plus each rule's own positive/negative. |
 | [`strapi-modal-country-targeting.spec.js`](strapi-modal-country-targeting.spec.js) | `countriesToTarget` include-list gating, per locale — an English viewer outside the list is turned away while a Hebrew viewer in the same country is not. |
 | [`strapi-banner.spec.js`](strapi-banner.spec.js) | A published banner renders; and dismissing it keeps it hidden across a reload. Asserts nothing about modals or sidebar ads. |
-| [`strapi-banner-hebrew.spec.js`](strapi-banner-hebrew.spec.js) | Locale separation: a Hebrew-only banner renders under Hebrew UI (with its own per-locale button) and not under English UI. |
+| [`strapi-banner-hebrew.spec.js`](strapi-banner-hebrew.spec.js) | Locale separation: a Hebrew-only banner renders under Hebrew UI (with its own per-locale button) and not under English UI; body text also asserted right-aligned (`direction` only — see below). |
 | [`strapi-banner-bilingual.spec.js`](strapi-banner-bilingual.spec.js) | Both locales published: each interface shows only its own copy and its own button URL. |
 | [`strapi-sidebar-ad.spec.js`](strapi-sidebar-ad.spec.js) | Keyword targeting: an English ad shows on the prayer/beliefs topic categories and not on social-issues. |
 | [`strapi-sidebar-ad-hebrew.spec.js`](strapi-sidebar-ad-hebrew.spec.js) | The same ad published only in Hebrew: keyword targeting under Hebrew UI, and absent under English UI. |
@@ -136,6 +136,32 @@ case still passes.
 `InterfaceText` also falls back across languages (`isHebrew ? (he || en) : (en || he)`), tagging the
 result `enInHe` / `heInEn`. That is a *different* mechanism from the banner's locale gate, which
 prevents rendering entirely — don't confuse the two when a locale is missing.
+
+### Right-alignment assertions: check `direction`, not `text-align`
+
+Both the modal and the banner need to render right-to-left under Hebrew, but they get there through
+different CSS, and only one of the two sets an explicit `text-align`:
+
+| | Explicit rule | Selector |
+| --- | --- | --- |
+| Modal | `text-align: right` **and** `direction: rtl` | `.interface-hebrew #defaultModal` (s2.css:1048-1051) |
+| Banner | `direction: rtl` only | `.interface-hebrew #bannerMessage` (s2.css:306-308) |
+
+`text-align`'s initial value is the *logical* keyword `start` — "whichever edge `direction`
+currently calls the beginning." An element that inherits `direction: rtl` without ever setting its
+own `text-align` renders right-aligned, but `getComputedStyle` still reports the literal string
+`"start"`, never `"right"`. Verified live: a `#bannerTextBox`-shaped element computes
+`text-align: start` under **both** `interface-english` (`direction: ltr`) and `interface-hebrew`
+(`direction: rtl`) — only `direction` differs between the two.
+
+That makes `toHaveCSS('text-align', 'start')` untrustworthy as an assertion on the banner: it is
+true regardless of interface language, so it cannot fail for the regression it would exist to catch
+(delete the `.interface-hebrew #bannerMessage { direction: rtl }` rule entirely and `text-align`
+still reports `start`). `direction` is the one property this app's CSS actually controls for the
+banner, so it is the only one worth asserting there; the modal, which sets both explicitly, asserts
+both. See the `'renders Hebrew body text right-aligned'` tests in `strapi-modal-hebrew.spec.js` and
+`strapi-banner-hebrew.spec.js`. The same trap will resurface if Hebrew coverage is ever added for
+the sidebar ad — check whether its container sets `text-align` before assuming either form is safe.
 
 ### `shouldShow()` excludes the page a button links to
 
@@ -559,6 +585,7 @@ it as well. Instances already in the suite:
 | "hidden before its delay" | `waitForTimerArmed` — the timer exists, so advancing the clock past it means something |
 | "did not render under the other locale/audience" | a sibling test renders the same document for the audience it *does* target |
 | "a dismissed banner never came back during in-app browsing" | the instrumented `setTimeout` capture shows exactly ONE arm of the banner's (unique) delay, and the capture array surviving proves no reload quietly re-ran selection (`strapi-dismissal-lifecycle.spec.js`) |
+| "nothing rendered when GraphQL reported errors inside a 200" | a seeded dismissal key surviving the response — if the error were mistaken for genuine "nothing published," the dismissal-pruning cleanup would wipe it; a real empty response still carries a data object and prunes as designed, so the key surviving specifically proves the error was recognized as a failed fetch, not just that nothing rendered (`strapi-payload-resilience.spec.js`) |
 
 When writing a new absence assertion, ask: what counter, log line, or captured artifact would the
 bug have to touch? Assert that too, or the absence proves nothing.
