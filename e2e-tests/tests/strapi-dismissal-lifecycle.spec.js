@@ -74,8 +74,8 @@ async function elapseShowDelay(page) {
 }
 
 /** Prove the payload arrived, then advance far past the delay without requiring a timer. */
-async function elapseWithNothingExpected(page) {
-  await waitForStrapiResponse(page, strapiResponseCount(page) - 1);
+async function elapseWithNothingExpected(page, responsesBeforeNavigation) {
+  await waitForStrapiResponse(page, responsesBeforeNavigation);
   await advanceBy(page, DELAY_SECONDS * 1000 * 5);
 }
 
@@ -294,8 +294,9 @@ test.describe('Strapi dismissal lifecycle — a republished campaign gets a fres
 
     // Era 2: unpublished. The cleanup runs on this load and forgets the dismissal.
     strapi = await routeWithStrapiPayload(context, strapiPayload({}));
+    const responsesBeforeUnpublish = strapiResponseCount(page);
     await page.reload();
-    await elapseWithNothingExpected(page);
+    await elapseWithNothingExpected(page, responsesBeforeUnpublish);
     await expect(modalBox(page)).toHaveCount(0);
     // The observable half of the cleanup contract, asserted directly so era 3 cannot pass for
     // some unrelated reason (e.g. dismissal reads breaking entirely).
