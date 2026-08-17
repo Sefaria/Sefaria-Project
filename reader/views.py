@@ -67,7 +67,7 @@ from sefaria.history import text_history, get_maximal_collapsed_activity, top_co
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, is_int
-from sefaria.utils.views_utils import add_query_param
+from sefaria.utils.views_utils import add_query_param, AASA_EXCLUDED_PATHS, NO_APPLINK_PARAM
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
@@ -5231,28 +5231,10 @@ def custom_server_error(request, template_name='500.html'):
     #return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
 
 
-# Paths iOS must NOT hand to the app as universal links. Everything else on the domain
-# still opens the app (see AASA_PATHS below).
-#
-# Auth flows have to stay in the browser: they depend on the session/CSRF cookies held by
-# the browser, which the app can't see. When the SSO round-trip returns from
-# appleid.apple.com or accounts.google.com, that final hop is a cross-domain navigation
-# into sefaria.org -- exactly the trigger for a universal link -- so without these
-# exclusions iOS yanks the user into the app mid-login. Sefaria-Mobile's DeepLinkRouter
-# has no route for these paths either; they fall through to its catchAll, which bounces
-# straight back out to a browser (Sefaria-Mobile/DeepLinkRouter.js).
-AASA_EXCLUDED_PATHS = [
-    "/accounts/*",          # allauth OAuth endpoints, incl. the Apple/Google callbacks
-    "/_allauth/*",          # allauth headless API
-    "/login",
-    "/login/",
-    "/register",
-    "/register/",
-    "/logout",
-    "/logout/",
-    "/password/reset*",     # reset request, emailed confirm link, done/complete pages
-]
-
+# AASA_EXCLUDED_PATHS statically excludes the OAuth callback paths (referer is always
+# external there -- see sefaria/utils/views_utils.py). Everything else that must stay in
+# the browser (e.g. the post-login landing page) is excluded dynamically instead, via
+# NO_APPLINK_PARAM, set by WebSessionRedirectMiddleware (sefaria/system/middleware.py).
 AASA_PATHS = ["NOT " + path for path in AASA_EXCLUDED_PATHS] + ["*"]
 
 
@@ -5273,6 +5255,7 @@ def apple_app_site_association(request):
                     "paths": AASA_PATHS,
                     "components": (
                         [{"/": path, "exclude": True} for path in AASA_EXCLUDED_PATHS]
+                        + [{"/": "*", "?": {NO_APPLINK_PARAM: "*"}, "exclude": True}]
                         + [{"/": "*"}]
                     ),
                 }

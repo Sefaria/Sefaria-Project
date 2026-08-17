@@ -22,3 +22,17 @@ def add_query_param(url, param, value=""):
     pairs.append((param, value))
     new_query = urlencode(pairs, doseq=True)
     return urlunparse(parsed._replace(query=new_query))
+
+
+# Referer is always external here (google/apple), so referer_is_sefaria_domain can't catch these.
+AASA_EXCLUDED_PATHS = [
+    "/accounts/*",
+    "/_allauth/*",
+]
+
+# Marks a redirect as "stay on web". Read by apple_app_site_association's AASA rule, stripped in client.jsx.
+NO_APPLINK_PARAM = "no_applink"
+
+
+def mark_no_applink(url):
+    return add_query_param(url, NO_APPLINK_PARAM, "1")
