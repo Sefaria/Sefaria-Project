@@ -98,10 +98,20 @@ def fake_es(monkeypatch):
 
 @pytest.fixture
 def search_on(monkeypatch, fake_es):
-    """Turn the cascade hooks on. Works because every hook does
-    `from sefaria.settings import SEARCH_INDEX_ON_SAVE` at call time."""
+    """Turn the cascade hooks on.
+
+    Both holders of the flag have to be patched, because the hooks do not all read it
+    the same way. The hooks in sefaria/helper/search.py read
+    `django.conf.settings.SEARCH_INDEX_ON_SAVE`; process_version_title_change_in_search
+    in sefaria/model/dependencies.py still does `from sefaria.settings import
+    SEARCH_INDEX_ON_SAVE` at call time. Django builds its own settings object at startup
+    by copying the module, so the two are separate holders of the same value and patching
+    one does not move the other.
+    """
     import sefaria.settings as sefaria_settings
+    from django.conf import settings as django_settings
     monkeypatch.setattr(sefaria_settings, "SEARCH_INDEX_ON_SAVE", True, raising=False)
+    monkeypatch.setattr(django_settings, "SEARCH_INDEX_ON_SAVE", True, raising=False)
     return fake_es
 
 
@@ -324,7 +334,9 @@ class TestUnitGuards:
     def test_hooks_noop_when_search_index_on_save_off(self, monkeypatch):
         """Prod default is off: with the flag off, no hook may touch sefaria.search."""
         import sefaria.settings as sefaria_settings
+        from django.conf import settings as django_settings
         monkeypatch.setattr(sefaria_settings, "SEARCH_INDEX_ON_SAVE", False, raising=False)
+        monkeypatch.setattr(django_settings, "SEARCH_INDEX_ON_SAVE", False, raising=False)
 
         spied = [
             "index_book_doc", "delete_book_doc", "index_topic_doc",

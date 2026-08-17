@@ -1,4 +1,5 @@
 from functools import wraps
+from django.conf import settings
 from elasticsearch_dsl import Q, Search
 from elasticsearch_dsl.query import Bool, Regexp, Term
 from sefaria.system.exceptions import InputError
@@ -1054,8 +1055,7 @@ def get_elasticsearch_client_for_indexer():
 # --------------------------------------------------------------------------- #
 
 def process_index_title_change_in_search(indx, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.model import library, text
         from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
         index_names = get_new_and_current_index_names("text")
@@ -1117,36 +1117,31 @@ def process_index_title_change_in_book_search(indx, **kwargs):
     # A rename changes the book doc's ES id. Only the stale doc is deleted here:
     # save() emits attributeChange notifications before the "save" notification,
     # so process_index_save_in_book_search upserts the new-id doc right after.
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import delete_book_doc
         delete_book_doc(kwargs.get("old"))
 
 
 def process_index_save_in_book_search(indx, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import index_book_doc
         index_book_doc(indx)
 
 
 def process_index_delete_in_book_search(indx, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import delete_book_doc
         delete_book_doc(indx.title)
 
 
 def process_topic_save_in_topic_search(topic_obj, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import index_topic_doc
         index_topic_doc(topic_obj)
 
 
 def process_topic_delete_in_topic_search(topic_obj, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import delete_topic_doc
         delete_topic_doc(topic_obj.slug)
 
@@ -1157,8 +1152,7 @@ def process_category_path_change_in_book_search(cat, **kwargs):
     # hook re-reads. (It saves them with override_dependencies=True, so
     # process_index_save_in_book_search never fires for those books — this hook is
     # their only path back into the book index.)
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.model import text
         from sefaria.search import index_book_docs
         new_path = kwargs.get("new") or []
@@ -1178,7 +1172,6 @@ def process_category_change_in_category_search(cat, **kwargs):
     Must be subscribed AFTER text.rebuild_library_after_category_change, since the re-sync
     reads the TOC tree and needs the rebuilt one, not the stale one.
     """
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
+    if settings.SEARCH_INDEX_ON_SAVE:
         from sefaria.search import resync_category_docs
         resync_category_docs()
