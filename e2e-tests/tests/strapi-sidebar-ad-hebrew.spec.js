@@ -70,12 +70,13 @@ test.describe('Strapi Sidebar Ad — Hebrew-only', () => {
 
   test(`does not show on the ${expected.hiddenOnTopicCategory} topic category page`, async ({ page }) => {
     await useInterfaceLanguage(page, LANGUAGES.HE);
+    const responsesBeforeNavigation = strapiResponseCount(page);
     await page.goto(`/topics/category/${expected.hiddenOnTopicCategory}`);
     await expectInterfaceLanguage(page, LANGUAGES.HE);
 
     // Prove the payload arrived and the hosting sidebar rendered, so "no ad" is attributable to
     // the '!social-issues' exclusion rather than to missing data or an unrendered page.
-    await waitForStrapiResponse(page, strapiResponseCount(page) - 1);
+    await waitForStrapiResponse(page, responsesBeforeNavigation);
     await expect(page.locator('.navSidebar')).toBeVisible();
 
     await expect(page.locator('.sidebarPromo')).toHaveCount(0);
@@ -85,10 +86,11 @@ test.describe('Strapi Sidebar Ad — Hebrew-only', () => {
     // Same topic that renders the ad in Hebrew above, so the only difference is the interface
     // language — isolating trigger.interfaceLang as the reason for absence.
     await useInterfaceLanguage(page, LANGUAGES.EN);
+    const responsesBeforeNavigation = strapiResponseCount(page);
     await page.goto(`/topics/category/${expected.showsOnTopicCategories[0]}`);
     await expectInterfaceLanguage(page, LANGUAGES.EN);
 
-    await waitForStrapiResponse(page, strapiResponseCount(page) - 1);
+    await waitForStrapiResponse(page, responsesBeforeNavigation);
     await expect(page.locator('.navSidebar')).toBeVisible();
 
     await expect(page.locator('.sidebarPromo')).toHaveCount(0);

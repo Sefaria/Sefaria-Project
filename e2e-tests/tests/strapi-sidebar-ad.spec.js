@@ -78,11 +78,12 @@ test.describe('Strapi Sidebar Ad — keyword targeting', () => {
   }
 
   test(`does not show on the ${expected.hiddenOnTopicCategory} topic category page`, async ({ page }) => {
+    const responsesBeforeNavigation = strapiResponseCount(page);
     await page.goto(`/topics/category/${expected.hiddenOnTopicCategory}`);
     await expectInterfaceLanguage(page, LANGUAGES.EN);
 
     // Prove the payload arrived — otherwise "no ad" could just mean "no data".
-    await waitForStrapiResponse(page, strapiResponseCount(page) - 1);
+    await waitForStrapiResponse(page, responsesBeforeNavigation);
 
     // Prove the sidebar that hosts the ad actually rendered — otherwise "no ad" would just mean
     // "no sidebar yet". The main content of this page is empty without topic-pool data; the

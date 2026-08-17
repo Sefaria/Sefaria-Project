@@ -77,13 +77,14 @@ test.describe('Strapi Modal — Hebrew-only', () => {
 
   test('does not render under English interface', async ({ page }) => {
     await useInterfaceLanguage(page, LANGUAGES.EN);
+    const responsesBeforeNavigation = strapiResponseCount(page);
     await page.goto(scenario.pagePath);
     // Assert the interface really is English — otherwise the absence below proves nothing.
     await expectInterfaceLanguage(page, LANGUAGES.EN);
 
     // Prove the Hebrew-only payload was delivered, so "no modal" means the locale gate rejected it
     // rather than that no data arrived.
-    await waitForStrapiResponse(page, strapiResponseCount(page) - 1);
+    await waitForStrapiResponse(page, responsesBeforeNavigation);
 
     // The positive control for this assertion is the test above: the same recording DOES render
     // this modal, on this same path, under Hebrew.

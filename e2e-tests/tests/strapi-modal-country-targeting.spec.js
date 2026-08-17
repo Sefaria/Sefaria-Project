@@ -62,9 +62,17 @@ const { matching, nonMatching } = scenario.viewerCountries;
 
 const modal = (page) => page.locator('#interruptingMessageBox');
 
+/** Load the scenario page in `lang`, having proved this navigation received its HAR payload. */
+async function open(page, lang) {
+  await useInterfaceLanguage(page, lang);
+  const responsesBeforeNavigation = strapiResponseCount(page);
+  await page.goto(scenario.pagePath);
+  await expectInterfaceLanguage(page, lang);
+  await waitForStrapiResponse(page, responsesBeforeNavigation);
+}
+
 /** Assert the modal never appears, having first proved data arrived and time moved. */
 async function expectModalAbsent(page) {
-  await waitForStrapiResponse(page, strapiResponseCount(page) - 1);
   await advanceBy(page, expected.showDelaySeconds * 1000 * 5);
   await expect(modal(page)).toHaveCount(0);
 }
@@ -85,9 +93,7 @@ test.describe(`Strapi Modal — country targeting, viewer in ${matching} (matche
 
   for (const lang of [LANGUAGES.EN, LANGUAGES.HE]) {
     test(`is shown to a ${lang} viewer`, async ({ page }) => {
-      await useInterfaceLanguage(page, lang);
-      await page.goto(scenario.pagePath);
-      await expectInterfaceLanguage(page, lang);
+      await open(page, lang);
 
       await advanceUntilVisible(page, modal(page));
       await expect(modal(page)).toContainText(expected.byLocale[lang].bodyText);
@@ -110,9 +116,7 @@ test.describe(`Strapi Modal — country targeting, viewer in ${nonMatching} (out
   });
 
   test('is hidden from an english viewer', async ({ page }) => {
-    await useInterfaceLanguage(page, LANGUAGES.EN);
-    await page.goto(scenario.pagePath);
-    await expectInterfaceLanguage(page, LANGUAGES.EN);
+    await open(page, LANGUAGES.EN);
 
     // The positive control is the matching-country describe above: the same recording DOES render
     // this modal for a GB viewer, so absence here is attributable to the include-list.
@@ -124,9 +128,7 @@ test.describe(`Strapi Modal — country targeting, viewer in ${nonMatching} (out
     // declares countryMode 'all', so it is unaffected by the English row's include-list.
     expect(expected.countriesToTargetByLocale.hebrew.countryMode).toBe('all');
 
-    await useInterfaceLanguage(page, LANGUAGES.HE);
-    await page.goto(scenario.pagePath);
-    await expectInterfaceLanguage(page, LANGUAGES.HE);
+    await open(page, LANGUAGES.HE);
 
     await advanceUntilVisible(page, modal(page));
     await expect(modal(page)).toContainText(expected.byLocale[LANGUAGES.HE].bodyText);

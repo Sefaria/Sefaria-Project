@@ -101,6 +101,12 @@ export async function routeWithStrapiHarFixture(context, fixtureName) {
   // Collects any Strapi request the HAR did not answer (each is blocked, not forwarded).
   // expectStrapiServedFromHar turns a non-empty list into an explicit failure.
   const unmatched = [];
+  // Also catch the opposite vacuity: no request/response at all (for example STRAPI_INSTANCE
+  // missing server-side). Synthetic fixtures already enforce this invariant.
+  const served = [];
+  context.on('response', (response) => {
+    if (response.url().includes('/api/strapi/')) served.push(response.url());
+  });
 
   if (!isRecording && !existsSync(harPath)) {
     throw new Error(
@@ -154,7 +160,7 @@ export async function routeWithStrapiHarFixture(context, fixtureName) {
     });
   }
 
-  return { unmatched, replaying: !isRecording };
+  return { unmatched, served, replaying: !isRecording };
 }
 
 /**
@@ -167,18 +173,29 @@ export async function routeWithStrapiHarFixture(context, fixtureName) {
  * Call from test.afterEach. No-op while recording.
  */
 export function expectStrapiServedFromHar(harHandle) {
-  if (!harHandle?.replaying || harHandle.unmatched.length === 0) return;
+  if (!harHandle?.replaying) return;
 
-  throw new Error(
-    `Strapi request(s) did not match the HAR fixture and were BLOCKED ` +
-      `(these specs never call live Strapi), so the page received no Strapi data:\n` +
-      harHandle.unmatched.map((url) => `  - ${url}`).join('\n') +
-      `\n\nThe HAR matches on the full request URL AND the POST body. The usual causes are:\n` +
-      `  * the GraphQL query in static/js/context.js changed (a field added or removed), so the\n` +
-      `    recorded POST body no longer matches — the likeliest cause, and it invalidates every\n` +
-      `    scenario at once;\n` +
-      `  * the scenario's pinnedNow changed, so the derived start_date/end_date params differ;\n` +
-      `  * the spec is pointing at a different scenario than the one that was recorded.\n` +
-      `Re-record with RECORD_HAR=1 — see e2e-tests/tests/README.md.`,
-  );
+  if (harHandle.unmatched.length > 0) {
+    throw new Error(
+      `Strapi request(s) did not match the HAR fixture and were BLOCKED ` +
+        `(these specs never call live Strapi), so the page received no Strapi data:\n` +
+        harHandle.unmatched.map((url) => `  - ${url}`).join('\n') +
+        `\n\nThe HAR matches on the full request URL AND the POST body. The usual causes are:\n` +
+        `  * the GraphQL query in static/js/context.js changed (a field added or removed), so the\n` +
+        `    recorded POST body no longer matches — the likeliest cause, and it invalidates every\n` +
+        `    scenario at once;\n` +
+        `  * the scenario's pinnedNow changed, so the derived start_date/end_date params differ;\n` +
+        `  * the spec is pointing at a different scenario than the one that was recorded.\n` +
+        `Re-record with RECORD_HAR=1 — see e2e-tests/tests/README.md.`,
+    );
+  }
+
+  if (harHandle.served.length === 0) {
+    throw new Error(
+      `The page never received a /api/strapi/** response from the HAR, so any "not visible" ` +
+        `assertion in this test passed without testing the recorded payload.\n\n` +
+        `The usual cause is that STRAPI_LOCATION / STRAPI_PORT are unset server-side, so ` +
+        `templates/base.html renders STRAPI_INSTANCE = null and StrapiDataProvider never fetches.`,
+    );
+  }
 }

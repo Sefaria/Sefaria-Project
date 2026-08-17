@@ -61,13 +61,14 @@ const banner = (page) => page.locator('#bannerMessage');
 /** Load the library home in `lang`, having confirmed the interface actually applied. */
 async function open(page, lang) {
   await useInterfaceLanguage(page, lang);
+  const responsesBeforeNavigation = strapiResponseCount(page);
   await page.goto('/');
   await expectInterfaceLanguage(page, lang);
+  await waitForStrapiResponse(page, responsesBeforeNavigation);
 }
 
 /** Assert the banner never appears, having first proved data arrived and time moved. */
 async function expectBannerAbsent(page) {
-  await waitForStrapiResponse(page, strapiResponseCount(page) - 1);
   await advanceBy(page, expected.showDelaySeconds * 1000 * 5);
   await expect(banner(page)).toHaveCount(0);
 }
