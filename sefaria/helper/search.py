@@ -10,6 +10,7 @@ from remote_config.keys import (
 )
 import structlog
 import re
+import unicodedata
 
 # This module must not import sefaria.model at module level: it is imported by
 # sefaria/model/dependencies.py while sefaria.model's own __init__ is still running
@@ -246,6 +247,12 @@ from sefaria.settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK, SE
 # config below, because the same tiered query builder runs against the `category` index.
 ENTITY_TYPES = ("topic", "author", "book")
 
+# Elasticsearch's default `max_result_window`: it rejects any from/size request whose
+# from+size reads past this offset, so paging through entity results stops here. The API
+# enforces it by *shortening the last page*, never by moving `start` backward — see
+# entity_search_api. The frontend mirrors this cap as ES_MAX_RESULT_WINDOW in SearchPage.jsx.
+ENTITY_MAX_RESULT_WINDOW = 10000
+
 # Sort options per entity type. "relevance" is the scored default; the others impose an
 # explicit field order: "alpha" A-Z on the lowercased English title, "year_asc"/"year_desc"
 # chronological on the per-type year field (books: composition date; authors: death year,
@@ -269,10 +276,30 @@ _ENTITY_ALPHA_SORT_FIELD = "title_en.sort"  # lowercased keyword sub-field (see 
 # the year their result card displays. Changing either derivation needs a reindex.
 _ENTITY_YEAR_SORT_FIELDS = {"author": "sortYear", "book": "compDate"}
 
-# Default per-field match boosts for the tier-3 best_fields multi_match, in priority
-# order: title -> title variants -> the name/works fields (author names on books,
-# authored titles on authors). Descriptions are deliberately excluded from search
-# entirely — a description mention is not a meaningful entity match.
+# Per-category result counts for the Books sidebar ("Tanakh (11)"), returned as
+# `categoryCounts` on every book response.
+#
+# They are computed by an Elasticsearch terms aggregation rather than by counting the hits
+# in the response, because the sidebar has to stay honest under paging and filtering: the
+# numbers must describe the *whole* match set, not the twenty rows that happen to be
+# downloaded, and they must not collapse to "only the selected category has any results"
+# the moment a filter is applied (which is what would hide every other category and leave
+# the reader unable to switch). The category filter is therefore applied as a `post_filter`
+# — Elasticsearch runs aggregations *before* post filters, so the counts span the unfiltered
+# match set while the hits (and `total`) are the filtered page.
+#
+# The aggregation runs on `path` ("Tanakh/Torah/Genesis"), the only indexed field carrying
+# the full hierarchy; the per-category numbers are summed from those buckets in
+# _category_counts_from_response. `path` is unique per book, so there is one bucket per
+# matching book — the cap below sits well above the whole book index, and truncation (which
+# would silently read the counts low) is logged rather than passed off as a real number.
+_ENTITY_CATEGORY_AGG_NAME = "category_paths"
+_ENTITY_CATEGORY_AGG_SIZE = 10000
+
+# Default per-field match boosts for the all-words (tier 3) and any-word (tier 6)
+# multi_match clauses, in priority order: title -> title variants -> the name/works fields
+# (author names on books, authored titles on authors). Descriptions are deliberately
+# excluded from search entirely — a description mention is not a meaningful entity match.
 #
 # These defaults double as the *allow-list* of valid field names. A RemoteConfig
 # override (see _ENTITY_FIELD_BOOSTS_RC_KEYS / _resolve_entity_field_boosts) may change
@@ -297,9 +324,9 @@ _ENTITY_FIELD_BOOSTS_RC_KEYS = {
 
 def _resolve_entity_field_boosts(type):
     """
-    Return the tier-3 multi_match field list (["title_en^3", "titleVariants^2", ...]) for
-    `type`, applying any RemoteConfig per-field boost overrides on top of the hardcoded
-    defaults in _DEFAULT_ENTITY_FIELD_BOOSTS.
+    Return the multi_match field list (["title_en^3", "titleVariants^2", ...]) used by the
+    all-words and any-word tiers for `type`, applying any RemoteConfig per-field boost
+    overrides on top of the hardcoded defaults in _DEFAULT_ENTITY_FIELD_BOOSTS.
 
     The defaults are the source of truth for *which* fields are searchable; the RemoteConfig
     JSON only tunes their boosts. So an override is honored only when:
@@ -360,6 +387,35 @@ _ENTITY_SECONDARY_KEYWORD_FIELDS = {
     "category": ["titleVariants.keyword"],
 }
 
+# The all-prefixes tier (see get_entity_query_obj) builds `prefix` queries, which are NOT run
+# through an analyzer — each term is compared raw against the tokens already stored in the
+# index. So the query has to be split the same way the `exact_english` analyzer splits the
+# titles it indexed, or the terms silently match nothing. The three steps below mirror that
+# analyzer's own pipeline (icu_normalizer char_filter -> standard tokenizer -> icu_folding);
+# every example cited was confirmed against a live index via the _analyze API.
+#
+# Step 1: fold the typographic quotes the way icu_folding does, so "Me’am" and "רמב״ם" carry
+# the ASCII forms actually stored ("me'am", 'רמב"ם').
+_ENTITY_QUOTE_FOLDING = str.maketrans({"’": "'", "׳": "'", "״": '"'})
+# Step 3: approximate the `standard` tokenizer's word boundaries (Unicode UAX #29). Break on
+# whitespace and punctuation, but keep a quote sitting *between* two letters — that tokenizer
+# does not split there, so "Ba'al ha-Turim" is [ba'al, ha, turim] and "רמב״ם" is one token.
+# (Splitting on all punctuation, as a naive reading suggests, would wreck far more of these
+# than the hyphens it fixes.) A *trailing* quote survives only after a Hebrew letter — the
+# "ר׳" = Rabbi abbreviation — and is dropped after a Latin one ("Yosi'" -> yosi).
+_ENTITY_TOKEN_RE = re.compile(r"\w+(?:['\"]\w+)*(?:(?<=[֐-׿])')?", re.UNICODE)
+
+
+def _entity_query_tokens(query):
+    """Split `query` into terms comparable to the tokens `exact_english` actually stores."""
+    query = query.translate(_ENTITY_QUOTE_FOLDING)
+    # Step 2: strip combining marks (icu_folding). This has to happen *before* tokenizing,
+    # as the analyzer's char_filter does: Hebrew niqqud are combining marks that `\w` will
+    # not match, so leaving them in place would split "בְּרֵאשִׁית" into four tokens.
+    query = "".join(c for c in unicodedata.normalize("NFKD", query) if not unicodedata.combining(c))
+    return _ENTITY_TOKEN_RE.findall(query)
+
+
 # Exact-match boosts are applied via constant_score (below), so they are IDF-independent:
 # an exact primary-title hit contributes a fixed, dominant amount that a longer title merely
 # *containing* the query words — or an exact hit on a variant — can never sum past. This is
@@ -408,11 +464,19 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
                          partial tiers below on a longer title, and no exact *variant* hit, can
                          sum past it.
       2. Exact phrase  — `match_phrase` on title fields.
-      3. All words     — `multi_match best_fields` over the per-type field list (with
-                         per-field ^N boosts: title > variants > name/works; descriptions
-                         are not searched).
-      4. Begins with   — `match_phrase_prefix` on title fields ("Mos" -> "Moses").
-      5. Contains      — provided implicitly by the `stemmed_english` analyzer on tier 3.
+      3. All words     — `multi_match cross_fields` with `operator: and` over the per-type
+                         field list (with per-field ^N boosts: title > variants > name/works;
+                         descriptions are not searched). Every query word must match, but the
+                         words may split across fields — "Rambam Torah" finds Mishneh Torah
+                         via author_names + title_en.
+      4. All prefixes  — every query word matches the *start* of a word in one title field
+                         ("Or Chaim" -> "Orach Chaim", "Orchot Chaim"). This is what keeps
+                         near-misses ranked above single-word matches: "Chafetz Chaim" fails
+                         it because nothing there starts with "Or". Multi-word queries only.
+      5. Begins with   — `match_phrase_prefix` on title fields ("Mos" -> "Moses").
+      6. Any word      — the old OR match at a deliberately tiny boost, so results matching
+                         only part of the query stay findable but sink below everything that
+                         matched all of it.
 
     Relevance is *purely textual* — the match tiers above are the whole score. Topic/author
     results were briefly multiplied by a log-scaled `numSources` popularity factor; that was
@@ -425,8 +489,11 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
 
     `category_paths` (books only) restricts hits to books whose `path` sits at or under
     any of the given category paths — the same path-regexp semantics as text search
-    filters (see make_path_filter). Multiple paths OR together; the clause is a
-    non-scoring `filter`, so it never perturbs relevance ranking.
+    filters (see make_path_filter). Multiple paths OR together. It is attached as a
+    `post_filter` rather than a query filter: non-scoring either way, but a post filter
+    runs *after* aggregations, which is what keeps the sidebar's category counts spanning
+    the whole match set instead of only the selected category (see
+    _ENTITY_CATEGORY_AGG_NAME). Book searches always carry that aggregation.
 
     `exclude_category_paths` (books only) is the mirror image: books at or under any of
     those paths are dropped from the match set. It backs category results on the Books
@@ -471,32 +538,63 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
                      for kf in secondary_kw]
     # Tier 2 — exact phrase over the (analyzed) title fields.
     tier2_phrase = Q("multi_match", query=query, fields=title_fields, type="phrase", boost=4)
-    # Tier 3 — all query words, best matching field wins (per-field ^N boosts inside `fields`).
-    tier3_words = Q("multi_match", query=query, fields=fields, type="best_fields", boost=2)
-    # Tier 4 — prefix / begins-with on titles only.
-    tier4_prefix = Q("multi_match", query=query, fields=title_fields, type="phrase_prefix", boost=1)
-    text_query = Q("bool", should=[*tier1_primary, *tier1_variant, tier2_phrase, tier3_words, tier4_prefix],
-                   minimum_should_match=1)
+    # Tier 3 — ALL query words must match (operator "and"), not any one of them. cross_fields
+    # lets the words land in different fields ("Rambam Torah": author_names + title_en) as
+    # long as every word matches somewhere; per-field ^N boosts still apply inside `fields`.
+    tier3_all_words = Q("multi_match", query=query, fields=fields, type="cross_fields",
+                        operator="and", boost=2)
+    # Tier 4 — every word as a prefix, all within a single title field. `prefix` runs against
+    # the analyzed (lowercased) tokens and each prefix hit scores a constant 1, so a field's
+    # bool-must totals the token count; dis_max keeps the best field instead of summing fields.
+    # Only built for multi-word queries — for one word this duplicates tier 5.
+    tokens = _entity_query_tokens(query)
+    tier4_all_prefix = None
+    if len(tokens) > 1:
+        per_field = [Q("bool", must=[Q("prefix", **{f: {"value": t, "case_insensitive": True}})
+                                     for t in tokens])
+                     for f in title_fields]
+        tier4_all_prefix = Q("dis_max", queries=per_field, boost=1.5)
+    # Tier 5 — prefix / begins-with on titles only.
+    tier5_prefix = Q("multi_match", query=query, fields=title_fields, type="phrase_prefix", boost=1)
+    # Tier 6 — any word (OR). The tiny boost keeps partial matches present at the bottom of
+    # the results without letting a common word ("Chaim") crowd out all-word matches above.
+    tier6_any_word = Q("multi_match", query=query, fields=fields, type="best_fields", boost=0.1)
+    tiers = [*tier1_primary, *tier1_variant, tier2_phrase, tier3_all_words]
+    if tier4_all_prefix is not None:
+        tiers.append(tier4_all_prefix)
+    tiers += [tier5_prefix, tier6_any_word]
+    text_query = Q("bool", should=tiers, minimum_should_match=1)
 
     # topic and author both live in the topic index; filter by subtype.
     if type in ("topic", "author"):
         base_query = Q("bool", must=[text_query], filter=[Q("term", subtype=type)])
-    elif category_paths or exclude_category_paths:
-        # Both clauses live in `filter`/`must_not` context, so neither perturbs relevance.
-        bool_kwargs = {"must": [text_query]}
-        if category_paths:
-            # Category filter: match set restricted to books at/under any given path (OR).
-            bool_kwargs["filter"] = [Bool(should=[make_path_filter(p) for p in category_paths],
-                                          minimum_should_match=1)]
-        if exclude_category_paths:
-            # Category exclusion: drop books at/under any given path.
-            bool_kwargs["must_not"] = [make_path_filter(p) for p in exclude_category_paths]
-        base_query = Q("bool", **bool_kwargs)
+    elif exclude_category_paths:
+        # Category exclusion: drop books at/under any given path. `must_not` is non-scoring,
+        # so relevance is untouched. Unlike the category *filter* below this belongs in query
+        # context, because the excluded books must not be counted in `total` either — this is
+        # what lets a category row stand in for its books (see _category_response).
+        base_query = Q("bool", must=[text_query],
+                       must_not=[make_path_filter(p) for p in exclude_category_paths])
     else:
         base_query = text_query
 
     # Score is the tiered text match, nothing else — no document-signal (popularity) boost.
     search_obj.query = base_query
+
+    if type == "book":
+        # Per-category counts for the Books sidebar, over the whole match set — see
+        # _ENTITY_CATEGORY_AGG_NAME and _category_counts_from_response.
+        search_obj.aggs.bucket(_ENTITY_CATEGORY_AGG_NAME, "terms", field="path",
+                               size=_ENTITY_CATEGORY_AGG_SIZE)
+
+    if category_paths:
+        # Category filter: hits restricted to books at/under any given path (OR). Applied as
+        # a post_filter, *not* as a query filter, so it narrows the hits and `total` while
+        # leaving the aggregation above spanning the unfiltered match set — otherwise
+        # selecting "Tanakh" would zero out every other category's count and collapse the
+        # sidebar to a single row. Non-scoring either way, so ranking is untouched.
+        search_obj = search_obj.post_filter(
+            Bool(should=[make_path_filter(p) for p in category_paths], minimum_should_match=1))
 
     if sort_clauses is not None:
         search_obj = search_obj.sort(*sort_clauses)
@@ -506,6 +604,41 @@ def get_entity_query_obj(query, type="topic", search_obj=None, start=0, size=20,
 def _total_from_response(response):
     total = response.hits.total
     return total.value if hasattr(total, "value") else total
+
+
+def _category_counts_from_response(response):
+    """
+    Sum the per-book `path` buckets of the category aggregation into a count for every
+    category path that holds at least one matching book:
+
+        {"Tanakh/Torah/Genesis": 1, "Tanakh/Torah/Exodus": 1, "Halakhah/Mishneh Torah/...": 1}
+        -> {"Tanakh": 2, "Tanakh/Torah": 2, "Halakhah": 1, "Halakhah/Mishneh Torah": 1}
+
+    A book is counted once for each of its ancestor categories, so a book in
+    "Tanakh/Torah" adds to both "Tanakh" and "Tanakh/Torah" — the same nesting the sidebar
+    displays. The *last* component of a path is the book's own title, not a category, so it
+    is dropped: "Tanakh/Torah/Genesis" contributes "Tanakh" and "Tanakh/Torah", never
+    "Tanakh/Torah/Genesis".
+
+    Returns {} when the response carries no aggregation (i.e. anything but a book search).
+    """
+    aggs = getattr(response, "aggregations", None)
+    agg = getattr(aggs, _ENTITY_CATEGORY_AGG_NAME, None) if aggs is not None else None
+    if agg is None:
+        return {}
+    # Buckets past _ENTITY_CATEGORY_AGG_SIZE are dropped by ES, which would read the counts
+    # low without any other signal. Not worth failing the search over, but never silent.
+    dropped = getattr(agg, "sum_other_doc_count", 0)
+    if dropped:
+        logger.warning("entity search: category count aggregation truncated, %s book(s) uncounted "
+                       "(raise _ENTITY_CATEGORY_AGG_SIZE, currently %s)", dropped, _ENTITY_CATEGORY_AGG_SIZE)
+    counts = {}
+    for bucket in agg.buckets:
+        parts = [p for p in bucket.key.split("/") if p]
+        for depth in range(1, len(parts)):  # 1..len-1: every ancestor, excluding the book itself
+            key = "/".join(parts[:depth])
+            counts[key] = counts.get(key, 0) + bucket.doc_count
+    return counts
 
 
 def _query_matches_entity_title(query, hit):
@@ -694,8 +827,14 @@ def _category_response(categories, query, es_client, start=0, size=20, sort="rel
         raise IOError("Elasticsearch entity search failed.")
     rows += [hit.to_dict() for hit in response.hits]
 
+    # The sidebar's counts come from a *separate* flat search, not from the aggregation riding
+    # along on the query above: that one excludes the matched categories' books in query
+    # context, so its buckets would read low for exactly the categories the query is about.
+    # Same rule as the author path — the number next to a category is how many results
+    # selecting it returns, and selecting one drops back to the flat book list.
     return {"hits": rows, "total": lead_count + _total_from_response(response),
-            "category_paths": category_paths}
+            "category_paths": category_paths,
+            "categoryCounts": _book_category_counts(query, es_client)}
 
 
 def _author_work_matches_query(query, hit):
@@ -733,10 +872,23 @@ def _author_works_response(author, query, sort="relevance", start=0, size=None):
     exactly matches the query) first, then category entries, then the remaining works — so a
     search for "Chafetz Chaim" leads with the book of that name rather than burying it among
     the author's other works. Explicit alpha/year sorts are left as pure orderings.
+
+    Individual works also carry `authors`/`author_names` naming this author, in the same shape
+    the flat book search denormalizes onto its hits, so a result card shows the author line on
+    either path (without it, searching an author's exact name — the one query where the author
+    is certain — was the one case that displayed no author at all). Category rows deliberately
+    omit them: such a row collapses many books into a single entry, so an author line there
+    would label the grouping rather than a book.
     """
+    # EN first, then HE — the order the card builder relies on to pick a name per language.
+    # Disambiguation suffixes are suppressed to match _resolve_author_names in sefaria/search.py,
+    # which builds the flat path's `author_names`; otherwise the same author could render as
+    # "Yehuda ben Yakar" on one path and "Yehuda ben Yakar (Rishon)" on the other.
+    author_names = [name for name in (author.get_primary_title(lang, with_disambiguation=False)
+                                      for lang in ("en", "he")) if name]
     hits = []
     for agg in author.get_aggregated_urls_for_authors_indexes():
-        hits.append({
+        hit = {
             "title_en": agg["title"]["en"],
             "title_he": agg["title"]["he"],
             "isCategory": agg["isCategory"],
@@ -747,7 +899,11 @@ def _author_works_response(author, query, sort="relevance", start=0, size=None):
             "description_en": agg["description"]["en"],
             "description_he": agg["description"]["he"],
             "compDate": agg["compDate"],
-        })
+        }
+        if not agg["isCategory"]:
+            hit["authors"] = [author.slug]
+            hit["author_names"] = author_names
+        hits.append(hit)
     if sort == "alpha":
         hits.sort(key=lambda h: (h.get("title_en") or "").lower())
     elif sort in ("year_asc", "year_desc"):
@@ -773,6 +929,28 @@ def _author_works_response(author, query, sort="relevance", start=0, size=None):
     total = len(hits)
     hits = hits[start:] if size is None else hits[start:start + size]
     return {"hits": hits, "total": total, "author_slug": author.slug}
+
+
+def _book_category_counts(query, es_client):
+    """
+    Run an aggregation-only (size=0) flat book search purely for the sidebar's
+    `categoryCounts`.
+
+    Only the author-works path needs this. There the response rows are aggregated works
+    rather than book hits, so no aggregation rides along on the main query — but the sidebar
+    is still shown, and selecting a category there drops back to the flat book list (see
+    entity_search). Counting the flat match set is therefore the deliberate choice: the
+    number next to a category is exactly how many results selecting it returns.
+    """
+    search_obj = Search(using=es_client, index=SEARCH_INDEX_NAME_BOOK).params(request_timeout=5)
+    search_obj = get_entity_query_obj(query, type="book", search_obj=search_obj, start=0, size=0)
+    response = search_obj.execute()
+    if not response.success():
+        # The sidebar degrades to an uncounted category list; the results themselves are fine,
+        # so a failed count is not worth failing the whole search over.
+        logger.warning("entity search: category count aggregation failed for query %r", query)
+        return {}
+    return _category_counts_from_response(response)
 
 
 def entity_search(query, type, start=0, size=20, sort="relevance", category_paths=None, aggregate=True):
@@ -803,6 +981,10 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     always returns the flat list — a QA escape hatch for comparing the collapsed and flat
     views side by side. Only books aggregate, so the flag is a no-op for other types.
 
+    Book responses carry a third key, `categoryCounts`: {category path -> number of matching
+    books}, counted over the entire match set independent of `category_paths` and of paging,
+    so the Books sidebar can show stable, true numbers. See _ENTITY_CATEGORY_AGG_NAME.
+
     :raises ValueError: if `type` is not one of ENTITY_TYPES, `sort` is not one of
         ENTITY_SORTS[type], or `category_paths` is passed for a non-book type
     """
@@ -822,7 +1004,9 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
         if aggregate and not category_paths:
             author = _resolve_author(query, es_client)
             if author is not None:
-                return _author_works_response(author, query, sort=sort, start=start, size=size)
+                results = _author_works_response(author, query, sort=sort, start=start, size=size)
+                results["categoryCounts"] = _book_category_counts(query, es_client)
+                return results
             categories = _resolve_categories(query, es_client)
             if categories:
                 return _category_response(categories, query, es_client, start=start, size=size, sort=sort)
@@ -837,7 +1021,10 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     if not response.success():
         raise IOError("Elasticsearch entity search failed.")
     hits = [hit.to_dict() for hit in response.hits]
-    return {"hits": hits, "total": _total_from_response(response)}
+    results = {"hits": hits, "total": _total_from_response(response)}
+    if type == "book":
+        results["categoryCounts"] = _category_counts_from_response(response)
+    return results
 
 
 def get_elasticsearch_client():

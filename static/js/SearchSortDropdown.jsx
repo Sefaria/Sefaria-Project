@@ -1,13 +1,43 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import Sefaria from './sefaria/sefaria';
 import { InterfaceText, DropdownModal, DropdownOptionList } from './Misc';
 
 
-// The sort options and the hit-sorting function live in a React-free module so they can
-// be unit tested without pulling in the component tree; re-exported here so the existing
-// `import {ENTITY_SORT_OPTIONS, sortEntityHits} from './SearchSortDropdown'` keeps working.
-export { ENTITY_SORT_OPTIONS, sortEntityHits } from './sefaria/entitySort';
+// Labels live in i18n/interface/{en,he}.json. Both consumers of these options
+// (DropdownOptionList here, SortRadioList in SearchFilters) render an English *and* a
+// Hebrew span and let CSS hide one, hence _bilingual rather than Sefaria._().
+const makeSortOption = (type, stringId) => {
+  const {en, he} = Sefaria._bilingual(stringId);
+  return {type, name: en, heName: he};
+};
+
+export const ENTITY_SORT_OPTIONS = {
+  books: [
+    makeSortOption('relevance', 'search.sort.relevance'),
+    makeSortOption('year_asc',  'search.sort.books.year_asc'),
+    makeSortOption('year_desc', 'search.sort.books.year_desc'),
+    makeSortOption('alpha',     'search.sort.alphabetical'),
+  ],
+  authors: [
+    makeSortOption('relevance', 'search.sort.relevance'),
+    makeSortOption('year_asc',  'search.sort.authors.year_asc'),
+    makeSortOption('year_desc', 'search.sort.authors.year_desc'),
+    makeSortOption('alpha',     'search.sort.alphabetical'),
+  ],
+  topics: [
+    makeSortOption('relevance', 'search.sort.relevance'),
+    makeSortOption('alpha',     'search.sort.alphabetical'),
+  ],
+};
+
+// The `type` values above are sent straight to /api/entity-search as its `sort` param, which
+// orders the entire match set in Elasticsearch (ENTITY_SORTS in sefaria/helper/search.py).
+// There is deliberately no client-side sort helper here: sorting the hits already downloaded
+// could only ever reorder those hits, so on "A-Z" the alphabetically-first result would still
+// be missing whenever it happened to fall outside the pages fetched so far. Category rows are
+// pinned above the sort by the backend too (see _category_response in sefaria/helper/search.py).
 
 
 const SearchSortDropdown = ({ options, sortType, onSortChange, disabled }) => {

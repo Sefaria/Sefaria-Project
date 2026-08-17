@@ -6,9 +6,12 @@
  *
  * HOW PAGING WORKS
  * The client sends `start` = however many hits it already holds
- * (`entitySearch(query, type, cur.hits.length)`), and the response carries the
- * FULL match count as `total`. `makeEntityEntry` (SearchPage.jsx:276) appends the
- * new page and recomputes `moreToLoad` as `hits.length < min(total, 10000)`.
+ * (`entitySearch(query, type, cur.hits.length, ...)`), along with the sort and any
+ * category filters currently applied, and the response carries the FULL match
+ * count as `total`. `makeEntityEntry` appends the new page and recomputes
+ * `moreToLoad` as `hits.length < min(total, 10000)`. A sort or filter change is
+ * the opposite operation: it discards the accumulated pages and starts over at
+ * `start=0`, since the new ordering applies to the whole match set (SRCH-037/038).
  *
  * The mock serves 25 topics in pages of 20, so the tab loads 20 → scrolls →
  * loads the final 5 → stops. Asserting on the captured `start` values is what

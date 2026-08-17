@@ -140,6 +140,8 @@ MIDDLEWARE = [
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
+    'sefaria.system.middleware.ClearSsoNextCookieMiddleware',
     'django_hosts.middleware.HostsResponseMiddleware',  # must be last
 ]
 
@@ -177,7 +179,14 @@ INSTALLED_APPS = (
     'django_hosts',
     'pgvector.django',
     'semantic_search',
-    'django.contrib.postgres'
+    'django.contrib.postgres',
+    'sso.apps.SsoConfig',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'allauth.socialaccount.providers.apple',
+    'allauth.headless',
 )
 
 DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
@@ -188,6 +197,11 @@ SEMANTIC_SEARCH_API_TOKEN = os.environ.get("SEMANTIC_SEARCH_API_TOKEN", "")
 # Empty in local dev, where no deploy has happened.
 APP_VERSION = os.environ.get("APP_VERSION", "")
 
+# TLS terminates at the ingress/load balancer; without this, request.is_secure()
+# (and anything built from request.build_absolute_uri(), e.g. allauth's OAuth2
+# callback URLs) incorrectly reports 'http' behind the proxy.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 LOGIN_URL = 'login'
 
 LOGIN_REDIRECT_URL = 'home'
@@ -196,6 +210,7 @@ LOGOUT_REDIRECT_URL = 'home'
 
 AUTHENTICATION_BACKENDS = (
     'emailusernames.backends.EmailAuthBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 )
 
 REST_FRAMEWORK = {
@@ -379,6 +394,44 @@ WEBPACK_LOADER = {
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+# django-allauth configuration (local_settings must be imported first for SSO vars)
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_ADAPTER = 'sso.adapters.SefariaAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'sso.adapters.SefariaSocialAccountAdapter'
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+# Env vars take precedence (production injects these via the deploy environment);
+# fall back to the local_settings values imported above (used in local dev).
+_APPLE_WEB_CLIENT_ID = os.environ.get('APPLE_SSO_CLIENT_ID') or APPLE_SSO_CLIENT_ID
+_APPLE_NATIVE_BUNDLE_ID = os.environ.get('APPLE_SSO_IOS_BUNDLE_ID') or APPLE_SSO_IOS_BUNDLE_ID
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {'client_id': os.environ.get('GOOGLE_SSO_CLIENT_ID') or GOOGLE_SSO_CLIENT_ID, 'secret': '', 'key': ''},
+        'SCOPE': ['profile', 'email'],
+    },
+    'apple': {
+        'APP': {
+            # allauth reads the accepted 'aud's from a comma-separated
+            # client_id (AppleProvider.get_auds); there is no 'audience'
+            # setting. Web ID first -- api calls use client_id.split(",")[0].
+            'client_id': ','.join(filter(None, (_APPLE_WEB_CLIENT_ID, _APPLE_NATIVE_BUNDLE_ID))),
+            # allauth's Apple client signs its own client-secret JWT from these:
+            # 'secret' -> Key ID (JWT 'kid' header), 'key' -> Team ID (JWT 'iss' claim).
+            'secret': os.environ.get('APPLE_SSO_KEY_ID') or APPLE_SSO_KEY_ID,
+            'key': os.environ.get('APPLE_SSO_TEAM_ID') or APPLE_SSO_TEAM_ID,
+            'settings': {
+                'certificate_key': os.environ.get('APPLE_SSO_PRIVATE_KEY') or APPLE_SSO_PRIVATE_KEY,
+            },
+        },
+    },
+}
+SOCIALACCOUNT_LOGIN_ON_GET = True
+HEADLESS_ONLY = False
+HEADLESS_FRONTEND_URLS = {'account_confirm_email': '/'}
 
 ROOT_HOSTCONF = 'sefaria.hosts'
 DEFAULT_HOST = 'library'

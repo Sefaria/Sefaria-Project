@@ -167,9 +167,10 @@ Each entity tab offers explicit sort orders in addition to the default relevance
 The API takes `sort=relevance|alpha|year_asc|year_desc` (default `relevance`); a sort invalid for the type (e.g. a year sort on topics) is rejected. Mechanics:
 
 - **Same match set, different order.** A non-relevance sort keeps the identical tiered text query as a filter and adds an ES `sort` clause; it never changes *which* documents match, only their order. `_score` is the secondary sort, so equal-keyed documents still order by relevance. Because relevance carries no score wrapper, the query is now byte-identical under every sort — the sort clause is the only difference.
+- **The sort is applied to the whole match set, on the server — never in the browser.** The search page sends the selected sort as `sort=` (`entitySearch` in `static/js/sefaria/search.js`), and changing it *discards that tab's accumulated pages and refetches from `start=0`* (`setEntitySort` → `resetEntityResults` in `static/js/SearchPage.jsx`). This is the whole point of the parameter: a client-side sort can only ever reorder the ~20-40 rows already downloaded, so on "A-Z" the alphabetically-first result stays invisible whenever it happens to fall on a page the user never scrolled to, and the order reshuffles as they scroll. The sort is part of the request **cache key** as well as the URL — page 1 by year and page 1 by relevance are different responses at the same offset. *(Regression guard: the tabs shipped in the POC with a client-side `sortEntityHits` helper and a URL built from `q`/`type`/`start` only, so the server sort clauses were unreachable from the UI. That helper is deleted rather than kept as a fallback — a second sort implementation in the client is what let the author year rule drift from the server's in the first place.)*
 - **A-Z is case-insensitive.** Sorting uses a `title_en.sort` keyword sub-field with a `lowercase` normalizer (a raw `keyword` sort would put "iggeret" after "Zohar"). Both title fields on both indices carry the sub-field, so a Hebrew-interface א-ת sort on `title_he.sort` needs no reindex later.
 - **Missing keys always sort last.** Year and title sorts use `missing: "_last"` in both directions, so undated books/authors and Hebrew-only topics (≈7,200 topics have no English title) trail rather than lead. To make this work the document builders *omit* empty titles instead of indexing `""` — an empty string is a real keyword value and would sort first.
-- **An entity's year is a single derived number, and it must be the year the card displays.** Both types derive that number **at index time**, so the ES sort is always a plain field sort with no per-query fallback logic. A book collapses Mongo's `compDate` *list* to one sortable int (`best_time_period`: end year, else start, else `3000` so undated works trail — mirroring the text index). An author collapses to a **`sortYear`** field: `deathYear`, **falling back to `birthYear` when there is no death year** (`_author_sort_year`; raw `birthYear`/`deathYear` are still indexed separately for display). Sorting authors on the raw `deathYear` instead — as the query briefly did — pushes every author who has only a birth year into the `missing: "_last"` undated tail while their card still shows a year; the client-side re-sort in `sortEntityHits` cannot compensate, because it only reorders the page of hits already returned. Changing either derivation requires a **reindex**, not just a query change.
+- **An entity's year is a single derived number, and it must be the year the card displays.** Both types derive that number **at index time**, so the ES sort is always a plain field sort with no per-query fallback logic. A book collapses Mongo's `compDate` *list* to one sortable int (`best_time_period`: end year, else start, else `3000` so undated works trail — mirroring the text index). An author collapses to a **`sortYear`** field: `deathYear`, **falling back to `birthYear` when there is no death year** (`_author_sort_year`; raw `birthYear`/`deathYear` are still indexed separately for display). Sorting authors on the raw `deathYear` instead — as the query briefly did — pushes every author who has only a birth year into the `missing: "_last"` undated tail while their card still shows a year; no client-side re-sort can compensate, since it only reorders the page of hits already returned. Changing either derivation requires a **reindex**, not just a query change.
 
 - **Explicit sorts keep the author-works aggregation.** On the Books tab, a query that resolves to an author returns category-aggregated works (see below) under every sort, not just relevance. To make that sortable, each aggregated row carries a `compDate`: an individual work's own composition year, or — for a category row, which collapses many works and dates into one entry — the **average year of its dated works** (`AuthorCategoryAggregation.get_comp_date`). The rows are then sorted in code with the same semantics as the flat ES sorts (A-Z on lowercased English title; year sorts on `compDate`; missing keys last in either direction). An earlier iteration bypassed the aggregation on explicit sorts to expose each book's individual date; product preferred preserving the collapsed view, with a representative date per category. (Alternative considered: keying a category by its *first* work's date rather than the average — rejected because "first" follows canonical library order, not chronology.)
 
@@ -177,9 +178,22 @@ The API takes `sort=relevance|alpha|year_asc|year_desc` (default `relevance`); a
 
 The Books tab also supports a category filter: `filter=<category path>` on the API (repeatable — multiple filters OR together). This is where the `path` field's design choice pays off: because book `path` mirrors the text index's `"Category/Subcategory/Title"` shape, the filter reuses the exact regexp semantics of text search path filters (`path` or `path/.*`, via a shared `make_path_filter` helper) — e.g. `filter=Tanakh/Torah` matches every book at or under that category. Properties:
 
-- **Non-scoring.** The paths go into the bool query's `filter` context, so filtering never perturbs relevance ranking — the same match scores, just a restricted set. It composes freely with any `sort`.
+- **Non-scoring, and applied as a `post_filter`.** Filtering never perturbs relevance ranking — the same match scores, just a restricted set — and it composes freely with any `sort`. It is attached as a **`post_filter`** rather than a query-context `filter` because Elasticsearch runs aggregations *before* post filters and applies the post filter only to the hits. One query therefore returns the filtered page **and** category counts spanning the *unfiltered* match set; see [Category counts](#category-counts-books-sidebar) below for why that matters. `total` reflects the filtered set either way (a post filter narrows the hit count as well as the hits), so paging and the tab badge are unaffected by the move.
+- **Server-side, over the whole match set — same contract as `sort`.** The sidebar sends one `filter=` per checked category (`selectedCategoryPaths` → `entitySearch`), and toggling a category discards that tab's accumulated pages and refetches from `start=0`, exactly as a sort change does. Filtering the downloaded rows in the browser instead would make a category look *empty* merely because none of the first ~20 books happened to be in it. The selected paths are part of the request cache key alongside `sort` and `start`.
 - **Books only.** Topics and authors carry no category path; a `filter` on those types is rejected (topics may want a different faceting concept later, but it isn't this field).
 - **Bypasses the author-works aggregation** (unlike explicit sorts, which preserve it): category-aggregated rows collapse many books into one entry with no single per-row path, so a filtered query always returns the flat book list.
+
+#### Category counts (Books sidebar)
+
+The Books sidebar shows a count beside each category (`Tanakh (11)`) and hides categories that match nothing. Every `type=book` response therefore carries a third top-level key, **`categoryCounts`** — `{category path → number of matching books}`, with an entry per *ancestor* category (`{"Tanakh": 11, "Tanakh/Torah": 5, …}`), so parent rows total their children.
+
+**Why this needs a real aggregation.** The POC counted the hits it had already downloaded. That number was always wrong in the same two ways: it meant "how many of the ~20 rows I hold", so it climbed as the user scrolled; and once filtering moved server-side it would have become actively broken — a filtered response contains *only* books from the selected category, so every other category would count 0, be hidden as empty, and the sidebar would collapse to a single row with no way to switch categories. The counts have to describe the whole match set, independent of paging and independent of the filter.
+
+- **Mechanism.** A `terms` aggregation on the `path` keyword field, summed into per-category numbers in code (`_category_counts_from_response`). `path` is `"Category/Subcategory/Title"`, so dropping the last component — the book's own title — and accumulating each remaining prefix yields exactly the nesting the sidebar renders. `path` is the only indexed field carrying the full hierarchy: `categories` is a flat keyword array, so a terms aggregation on it cannot tell "Torah under Tanakh" from a same-named subcategory elsewhere in the tree.
+- **Bucket cap.** `path` is unique per book, so there is one bucket per *matching book*; the size cap (10,000) sits well above the whole `book` index, and ES's `sum_other_doc_count` is checked and logged so a truncation reads as a warning rather than as silently low counts.
+- **Independence from the filter is what `post_filter` buys.** Aggregations are computed before the post filter, so the counts are identical whether or not a category is selected — which is what keeps every category visible, clickable, and correctly numbered while a filter is applied.
+- **The author-works branch pays for a second query.** When a book query resolves to an author, the response rows are aggregated works rather than ES book hits, so no aggregation rides along on the main query — but the sidebar is still shown, and selecting a category there drops back to the flat book list. That branch therefore runs one extra aggregation-only (`size: 0`) flat book search (`_book_category_counts`). Counting the *flat* match set is the deliberate choice: the number next to a category then equals exactly how many results selecting it returns, in both branches. A failed count degrades to an uncounted category list rather than failing the search.
+- **Frontend.** The counts are held in their own state slot (`bookCategoryCounts`), not inside the per-tab result data, so they survive the refetch that a filter click triggers instead of blanking out and back on every click.
 
 #### Author-aware book results
 
@@ -255,13 +269,23 @@ GET /api/entity-search?q=Rambam&type=book
       "era": "RI"
     }
   ],
-  "total": 42
+  "total": 42,
+  "categoryCounts": {
+    "Halakhah": 38,
+    "Halakhah/Mishneh Torah": 36,
+    "Jewish Thought": 4
+  }
 }
 ```
 
 In the aggregated view, an individual work carries its full `categories` path (rendered as the card's
 breadcrumb trail); a category row collapses many per-book paths into one entry, so it carries
 `categories: null` and is represented by its `categoryLabel_*` instead (a single breadcrumb).
+
+`categoryCounts` accompanies every `type=book` response (and only those). It counts the **flat** book
+match set across all categories — unaffected by `filter` and by how many pages the client has fetched —
+which is why its numbers don't line up with the collapsed rows shown above; see
+[Category counts](#category-counts-books-sidebar).
 
 ## Categories as first-class search entities
 
@@ -355,7 +379,6 @@ Full local reindex: **309 category documents, 0 errors**, ~0.36s.
 - **Counting.** A category row counts as one toward the Books tab badge; the collapsed-vs-raw ambiguity already flagged for author works applies here too.
 - **Weak `categories` recall.** Now that an exact-match category document owns the head of the list, adding `categories` as a low-boost (~0.5) searchable text field on `book` is safe and would help queries like "talmud commentary". Not built.
 
-
 ## Elastic Search Indexing Operations
 
 ### Scheduled reindex
@@ -391,7 +414,7 @@ Rebuild a single entity index on demand with `index_all_of_type('book')` / `inde
 
 Product wants each tab's result count to appear before that tab's results finish rendering. With the tabbed design this is **four counts** (Sources, Topics, Books, Authors), and they do *not* share a cost profile — the work depends entirely on the index behind the tab.
 
-**The entity tabs (Topics / Books / Authors) need no optimization.** The `topic` and `book` indices hold thousands of docs (not the millions in `text`), the entity query has **no facet aggregations**, and the response **already returns `total`** for free. Read the count straight off the entity response.
+**The entity tabs (Topics / Books / Authors) need no optimization.** The `topic` and `book` indices hold thousands of docs (not the millions in `text`), and the response **already returns `total`** for free. Read the count straight off the entity response. Topic and author queries carry no aggregations at all; a book query carries exactly one — a `terms` aggregation on `path` for the sidebar counts (see [Category counts](#category-counts-books-sidebar)) — over an index of a few thousand documents, nowhere near the `size: 10000` facet tables that dominate source-search latency.
 
 **Only the Sources tab is expensive enough to optimize.** A count is cheap for Elasticsearch to compute — it skips the three things that dominate the *source* search's full response: **aggregations** (facets visit *every* matching doc and build `size: 10000` bucket tables — ~half the latency), **top-N fetch** (scoring + reading/serializing `_source` for the page of hits), and **highlighting** (re-analyzing each returned doc to build snippets). A bench against a 200k-doc local index put a count-only query ~90%+ faster than the full request.
 
@@ -487,4 +510,5 @@ The infrastructure (Coolify instance, Google SSO, machine user) is **already sto
 - Book matching - if index matches query add relevance
 - **Chronological Ordering** - Add an ability to sort sources by chronology (i.e. current view is relevance, add a toggle for chronology)
 - **Date of Death** - Show author date of death next to name if relevant
-- **Send the entity `sort` to the API** — the sort orders described under [Sorting](#sorting-entity-tabs-only) are implemented and tested on the backend, but the search page never requests them: `entitySearch` (`static/js/sefaria/search.js`) builds its URL from `q`, `type` and `start` only, and `setEntitySort` (`static/js/SearchPage.jsx`) just sets React state. So every request uses the default `sort=relevance`, and the dropdown selection is applied client-side by `sortEntityHits` to the hits already in memory. Two consequences: the server-side sort clauses are currently unreachable from the UI, and — because the tabs page in more hits on scroll in *relevance* order — "Year (Oldest First)" returns the oldest of an arbitrary loaded subset rather than the oldest authors, reshuffling as the user scrolls. An author who ranks poorly on relevance never surfaces near the top no matter how old they are. The fix is to thread `sort` through `entitySearch` (URL **and** cache key), refetch from `start=0` with the accumulated hits cleared whenever the sort changes, and then retire `sortEntityHits` — leaving a second sort implementation in the client is what let the author year rule drift from the server's in the first place.
+
+> **Done (was listed here): send the entity `sort` and `filter` to the API.** The POC applied both in the browser to the hits already downloaded, leaving the server-side sort clauses and category filter unreachable from the UI. Both are now threaded through `entitySearch` (URL **and** cache key) with a refetch from `start=0` on every change, `sortEntityHits` is deleted, and the sidebar's counts come from an ES aggregation rather than from the loaded rows. See [Sorting](#sorting-entity-tabs-only), [Category filter](#category-filter-books-only), and [Category counts](#category-counts-books-sidebar).

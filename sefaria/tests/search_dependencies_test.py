@@ -17,6 +17,8 @@ from unittest.mock import MagicMock
 
 from elasticsearch.exceptions import NotFoundError
 
+from django_topics.models import Topic as DjangoTopic, TopicPool, PoolType
+
 import sefaria.model.dependencies as dependencies
 import sefaria.search as search_module
 from sefaria.model import Index, IndexSet, Version, Ref, TextChunk, VersionState, library
@@ -155,6 +157,19 @@ def _delete_topic_records(*slugs):
         ts = TopicSet({"slug": slug})
         if ts.count() > 0:
             ts.delete()
+
+
+def _put_in_library_pool(slug):
+    """Give `slug` a real `library` TopicPool membership row in the test Postgres DB.
+
+    The Mongo Topic and its pool membership are separate stores: a Topic can exist in
+    Mongo without ever being curated into a pool, and that is the ordinary case (~35k of
+    ~40k topics). The entity-search hooks index only pool members, so a test that expects
+    a doc has to establish membership explicitly. Requires @pytest.mark.django_db."""
+    pool, _ = TopicPool.objects.get_or_create(name=PoolType.LIBRARY.value)
+    django_topic, _ = DjangoTopic.objects.get_or_create(slug=slug)
+    django_topic.pools.add(pool)
+    return django_topic
 
 
 def _make_book(title=TEST_BOOK, categories=("Liturgy",), authors=None):
@@ -488,6 +503,7 @@ class TestTopicHooks:
         fake = search_on
         slug = f"test-es-cascade-{klass.__name__.lower()}"
         _delete_topic_records(slug)
+        _put_in_library_pool(slug)
         t = klass({
             "slug": slug,
             "titles": [{"text": f"Test ES Cascade {klass.__name__}", "primary": True, "lang": "en"}],
@@ -508,6 +524,7 @@ class TestTopicHooks:
         fake = search_on
         slug = "test-es-cascade-missing-doc"
         _delete_topic_records(slug)
+        _put_in_library_pool(slug)
         t = Topic({
             "slug": slug,
             "titles": [{"text": "Test ES Cascade Missing Doc", "primary": True, "lang": "en"}],
@@ -519,6 +536,84 @@ class TestTopicHooks:
 
         assert ("delete", TOPIC_INDEX, t.slug) in fake.log
         assert TopicSet({"slug": slug}).count() == 0
+
+    def test_topic_outside_library_pool_is_never_indexed(self, search_on):
+        """Saving one of the ~35k uncurated topics must not publish it to live entity
+        search. The full rebuild indexes only `library` pool members, so a save hook that
+        upserts unconditionally leaks non-members into public results until the next
+        weekly rebuild removes them again."""
+        fake = search_on
+        slug = "test-es-cascade-unpooled"
+        _delete_topic_records(slug)
+        # deliberately NOT added to the library pool
+        t = Topic({
+            "slug": slug,
+            "titles": [{"text": "Test ES Cascade Unpooled", "primary": True, "lang": "en"}],
+        })
+        try:
+            t.save()
+            assert fake.get(TOPIC_INDEX, slug) is None
+            assert ("index", TOPIC_INDEX, slug) not in fake.log
+        finally:
+            t.delete()
+
+    def test_topic_dropped_from_library_pool_is_evicted_on_next_save(self, search_on):
+        """Pool membership can be revoked after a topic was indexed. The save hook is the
+        only thing that notices before the weekly rebuild, so a non-member save must
+        delete the stale doc rather than merely skip it."""
+        fake = search_on
+        slug = "test-es-cascade-depooled"
+        _delete_topic_records(slug)
+        django_topic = _put_in_library_pool(slug)
+        t = Topic({
+            "slug": slug,
+            "titles": [{"text": "Test ES Cascade Depooled", "primary": True, "lang": "en"}],
+        })
+        try:
+            t.save()
+            assert fake.get(TOPIC_INDEX, slug) is not None, "precondition: indexed while pooled"
+
+            django_topic.pools.clear()  # curator removes it from the library pool
+            t.save()
+
+            assert fake.get(TOPIC_INDEX, slug) is None
+            assert ("delete", TOPIC_INDEX, slug) in fake.log
+        finally:
+            t.delete()
+
+    def test_pool_lookup_failure_leaves_the_doc_untouched(self, search_on, monkeypatch):
+        """If the pool lookup itself fails (Postgres unreachable), neither publishing nor
+        deleting is safe — both would act on a guess. The doc must be left exactly as it
+        was for the rebuild to reconcile, and the model save must not raise."""
+        fake = search_on
+        slug = "test-es-cascade-pool-lookup-down"
+        _delete_topic_records(slug)
+        _put_in_library_pool(slug)
+        real_lookup = search_module.is_library_pool_topic  # bound before try: the finally needs it
+        t = Topic({
+            "slug": slug,
+            "titles": [{"text": "Test ES Cascade Pool Lookup Down", "primary": True, "lang": "en"}],
+        })
+        try:
+            t.save()
+            existing = fake.get(TOPIC_INDEX, slug)
+            assert existing is not None, "precondition: indexed while the lookup worked"
+            fake.log.clear()
+
+            def boom(_slug):
+                raise Exception("simulated Postgres outage")
+            monkeypatch.setattr(search_module, "is_library_pool_topic", boom)
+
+            t.save()  # must not raise
+
+            assert fake.get(TOPIC_INDEX, slug) == existing
+            assert fake.log == []
+        finally:
+            # Restore by re-patching, not monkeypatch.undo(): `monkeypatch` is one
+            # instance per test, shared with the fake_es fixture, so undo() would also
+            # rip out the FakeES and send the cleanup delete to a real cluster.
+            monkeypatch.setattr(search_module, "is_library_pool_topic", real_lookup)
+            t.delete()
 
 
 class TestCategoryHooks:
