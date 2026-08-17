@@ -56,7 +56,9 @@ def _social_login_or_error(
     request, provider_id, id_token, first_name=None, last_name=None
 ):
     """Verify a provider ID token and complete the social login.
-    Returns (user, None) on success, or (None, JsonResponse(error)) on failure.
+    Returns (user, outcome, None) on success, or (None, None, JsonResponse(error)) on
+    failure. `outcome` is 'created_new_account' or 'existing_user_login', per
+    sso.adapters.SefariaSocialAccountAdapter.save_user's new-users-only guarantee.
     Shared by the web (session) and mobile (JWT) auth views."""
     adapter = get_social_adapter(request)
     try:
@@ -67,7 +69,7 @@ def _social_login_or_error(
             logger.error(f"{provider_id} JWKS fetch failed", error=str(e))
         else:
             logger.warning(f"{provider_id} token verification failed", error=str(e))
-        return None, JsonResponse({"error": "auth.social_signin_failed"}, status=400)
+        return None, None, JsonResponse({"error": "auth.social_signin_failed"}, status=400)
 
     # Inject name from provider SDK response (absent from the ID token, e.g. Apple)
     if first_name and not sociallogin.user.first_name:
@@ -78,8 +80,9 @@ def _social_login_or_error(
     complete_social_login(request, sociallogin)
 
     if not request.user.is_authenticated:
-        return None, JsonResponse({"error": "auth.social_signin_failed"}, status=400)
-    return request.user, None
+        return None, None, JsonResponse({"error": "auth.social_signin_failed"}, status=400)
+    outcome = "created_new_account" if getattr(request, "_sefaria_new_social_user", False) else "existing_user_login"
+    return request.user, outcome, None
 
 
 # Google One Tap redirect mode (ux_mode: 'redirect') POSTs a signed credential +
@@ -115,12 +118,43 @@ def google_mobile(request):
     if not id_token:
         return JsonResponse({"error": "auth.generic_error"}, status=400)
 
-    user, err = _social_login_or_error(request, "google", id_token)
+    user, _outcome, err = _social_login_or_error(request, "google", id_token)
     if err:
         return err
     tokens = _jwt_for_user(user)
     request.session.flush()  # JWT-only client: don't persist a Django session cookie
     return JsonResponse(tokens)
+
+
+@require_POST
+@ensure_csrf_cookie
+def google_web(request):
+    """
+    Google Sign In — popup button and One Tap, web. Called from useSsoSignIn.jsx's
+    onGoogleResult and GoogleOneTap.jsx's handleCredential, in place of a direct POST
+    to allauth's stock headless ProviderTokenView, which has no hook for surfacing
+    `outcome` for the auth-analytics events. Mirrors apple_callback.
+
+    Body (JSON): { id_token }
+
+    Returns:
+      200 { outcome }  — 'created_new_account' | 'existing_user_login'
+      400 { error }    — missing/invalid token or auth failure
+    """
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "auth.generic_error"}, status=400)
+
+    id_token = data.get("id_token", "")
+
+    if not id_token:
+        return JsonResponse({"error": "auth.generic_error"}, status=400)
+
+    user, outcome, err = _social_login_or_error(request, "google", id_token)
+    if err:
+        return err
+    return JsonResponse({"outcome": outcome})
 
 
 @require_POST
@@ -135,6 +169,10 @@ def apple_callback(request):
     Apple only includes name in the SDK response on the very first sign-in; it
     is never in the ID token. We inject first_name/last_name directly onto the
     sociallogin.user object after token verification so save_user() picks them up.
+
+    Returns:
+      200 { outcome }  — 'created_new_account' | 'existing_user_login'
+      400 { error }    — missing/invalid token or auth failure
     """
     try:
         data = json.loads(request.body)
@@ -148,12 +186,12 @@ def apple_callback(request):
     if not id_token:
         return JsonResponse({"error": "auth.generic_error"}, status=400)
 
-    user, err = _social_login_or_error(
+    user, outcome, err = _social_login_or_error(
         request, "apple", id_token, first_name, last_name
     )
     if err:
         return err
-    return JsonResponse({})
+    return JsonResponse({"outcome": outcome})
 
 
 @csrf_exempt
@@ -184,7 +222,7 @@ def apple_mobile(request):
     if not id_token:
         return JsonResponse({"error": "auth.generic_error"}, status=400)
 
-    user, err = _social_login_or_error(
+    user, _outcome, err = _social_login_or_error(
         request, "apple", id_token, first_name, last_name
     )
     if err:

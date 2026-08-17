@@ -43,7 +43,7 @@ import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
 import AuthPage from './auth/AuthPage';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
-import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
+import { resumePendingAuthAttempt } from './auth/authAnalytics.js';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -236,7 +236,7 @@ class ReaderApp extends Component {
       Sefaria.markUserAsNewVisitor();
     }
 
-    resumePendingSignUpAttempt();
+    resumePendingAuthAttempt();
     if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
       sessionStorage.setItem("sa.reader_app_mounted", "true");
       sa_event("reader_app_mounted");
