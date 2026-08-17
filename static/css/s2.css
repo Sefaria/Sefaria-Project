@@ -5283,12 +5283,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 100%;
   margin: 0 auto;
   padding-top: 16px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 
 .noSearchResults-image {
   width: 140px;
   height: 140px;
   flex-shrink: 0;
+  margin-top: 16px;
+  margin-bottom: 12px;
 }
 
 .noSearchResults-content {
@@ -5303,7 +5307,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 24px;
   text-align: center;
   width: 100%;
 }
@@ -5318,6 +5322,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .noSearchResults-body {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
   color: var(--darker-grey);
   margin: 0;
 }
@@ -5335,7 +5342,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   font-style: normal;
-  font-weight: 600;
+  font-weight: 400;
   line-height: normal;
   text-decoration: none;
   white-space: nowrap;
@@ -5360,6 +5367,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: var(--sefaria-blue);
   text-decoration: underline;
+}
+
+@media (max-width: 540px) {
+  .noSearchResults-cta {
+    margin-bottom: 24px;
+  }
+  .noSearchResults-caption {
+    margin-bottom: 24px;
+  }
 }
 
 .readerNavMenu .yourSheetsLink.navButton {
@@ -16635,6 +16651,8 @@ span.ref-link-color-3 {color: blue}
   color: var(--darker-grey);
   user-select: none;
   outline: none;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .interface-hebrew .searchSortDropdown {
   font-family: var(--hebrew-sans-serif-font-family);

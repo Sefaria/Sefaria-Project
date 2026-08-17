@@ -13,7 +13,7 @@ const CTA_HREFS = {
 function renderCaption() {
   const reportBugText = Sefaria._('search.null.caption.report_bug');
   const contactUsText = Sefaria._('search.null.caption.contact_us');
-  const [before, middle, after] = Sefaria._('search.null.caption').split(/\[report_bug\]|\[contact_us\]/);
+  const [before, middle, after] = Sefaria._('search.null.caption').split(/\{bug\}|\{contact\}/);
   return (
     <p className="noSearchResults-caption">
       {before}
@@ -32,7 +32,9 @@ function NoSearchResults({ mode, query }) {
   return (
     <div className="noSearchResults">
       <img
-        src="/static/img/placeholder3.svg"
+        src={`/static/img/no-results-search-illustrations/NoResults${
+          {sources: 'Source', books: 'Books', authors: 'Authors', topics: 'Topics'}[mode]
+        }.svg`}
         alt=""
         className="noSearchResults-image"
         aria-hidden="true"
