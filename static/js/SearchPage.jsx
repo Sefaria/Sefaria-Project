@@ -217,7 +217,7 @@ const ENTITY_CARD_PROP_BUILDERS = {
 };
 
 
-const EntitySearchResults = ({type, data, query, loadMore}) => {
+const EntitySearchResults = ({type, data, query, loadMore, openURL}) => {
   if (!data) {
     const searching = Sefaria._bilingual("search.searching");
     return <LoadingMessage message={searching.en} heMessage={searching.he} />;
@@ -234,7 +234,11 @@ const EntitySearchResults = ({type, data, query, loadMore}) => {
       loadMore={loadMore}>
       {data.hits.map(hit => {
         const cardProps = ENTITY_CARD_PROP_BUILDERS[type](hit, query);
-        return <SearchResultCard key={cardProps.href} {...cardProps} />;
+        // These cards don't all point at refs the way Sources cards do — a book is "/Brit_Moshe",
+        // a category row is "/texts/Tanakh/Torah", an author or topic is "/topics/<slug>". So they
+        // navigate by URL (openURL) rather than by ref (onResultClick); without it the card falls
+        // back to window.location and the whole page reloads.
+        return <SearchResultCard key={cardProps.href} {...cardProps} openURL={openURL} />;
       })}
     </InfiniteScroll>
   );
@@ -611,7 +615,8 @@ class SearchPage extends Component {
             }
           </div>
           <EntitySearchResults type={type} data={this.state.entityData[type]} query={this.props.query}
-                               loadMore={() => this.loadNextEntityPage(type)}/>
+                               loadMore={() => this.loadNextEntityPage(type)}
+                               openURL={this.props.openURL}/>
         </div>
       )),
     ];
@@ -683,6 +688,7 @@ SearchPage.propTypes = {
   panelsOpen:               PropTypes.number,
   close:                    PropTypes.func,
   onResultClick:            PropTypes.func,
+  openURL:                  PropTypes.func,
   onQueryChange:            PropTypes.func,
   updateAppliedFilter:      PropTypes.func,
   updateAppliedOptionField: PropTypes.func,

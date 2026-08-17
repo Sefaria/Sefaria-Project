@@ -86,6 +86,7 @@ function SearchResultCard({
   href,
   tref,
   onResultClick,
+  openURL,
   query,
   accentColor,
   // Sources-mode specific props
@@ -107,6 +108,12 @@ function SearchResultCard({
   const openResult = async (target) => {
     Sefaria.track.event('Search', 'Search Result Card Click', `${query} - ${name}`);
     if (!onResultClick) {
+      // Books/authors/topics results have no ref-based handler; they navigate by URL instead.
+      // openURL is ReaderApp's router entry point, so this opens a panel in place of reloading
+      // the page. It returns false for a path it doesn't recognize — then fall back to a real
+      // page load, which is also what happens outside the app (e.g. Storybook), where the prop
+      // isn't supplied at all.
+      if (openURL && openURL(target.href)) { return; }
       window.location.href = target.href;
       return;
     }
@@ -138,11 +145,20 @@ function SearchResultCard({
   // differently depending on where you click.
   const handleLinkClick = (target) => (e) => {
     e.stopPropagation();  // the card's own onClick would fire too, opening the wrong version
-    // Modified clicks, and modes with no in-app handler, fall through to the browser;
+    // Modified clicks, and cards with no in-app handler at all, fall through to the browser;
     // the href already points at the matched version with the query highlighted.
-    if (!onResultClick || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if ((!onResultClick && !openURL) || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
     e.preventDefault();
     openResult(target);
+  };
+
+  // Links to somewhere other than the result itself (the author under a book title, the
+  // breadcrumb categories). They never open a result, so they don't go through openResult —
+  // they just need the same "don't reload the page" treatment as the title link.
+  const handleSubLinkClick = (linkHref) => (e) => {
+    e.stopPropagation();  // otherwise the card's onClick opens the result instead
+    if (!openURL || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (openURL(linkHref)) { e.preventDefault(); }
   };
 
   const handleCardKeyDown = (e) => {
@@ -198,7 +214,7 @@ function SearchResultCard({
         )}
         <div className="searchResultCard-body">
           {crumbs && crumbs.length > 0 && (
-            <BreadcrumbPath crumbs={crumbs} />
+            <BreadcrumbPath crumbs={crumbs} onCrumbClick={handleSubLinkClick} />
           )}
           <div className="searchResultCard-header">
             <a href={href} className="searchResultCard-titleLink" onClick={handleLinkClick(ownResult)}>
@@ -226,7 +242,7 @@ function SearchResultCard({
                 {secondaryAuthor && (
                   <span className="searchResultCard-secondary-author">
                     {secondaryAuthorHref ? (
-                      <a href={secondaryAuthorHref} onClick={e => e.stopPropagation()}>
+                      <a href={secondaryAuthorHref} onClick={handleSubLinkClick(secondaryAuthorHref)}>
                         <InterfaceText text={{ en: secondaryAuthor, he: hebrewSecondaryAuthor }} />
                       </a>
                     ) : (
@@ -332,6 +348,9 @@ SearchResultCard.propTypes = {
   href:                 PropTypes.string.isRequired,
   tref:                 PropTypes.string,
   onResultClick:        PropTypes.func,
+  // URL-based in-app navigation (ReaderApp.openURL), used by cards whose href isn't a ref:
+  // books, categories, authors and topics. Returns true if it handled the path.
+  openURL:              PropTypes.func,
   query:                PropTypes.string,
   accentColor:          PropTypes.string,   // explicit override; skips palette lookup
   // Sources mode

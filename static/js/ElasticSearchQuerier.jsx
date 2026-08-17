@@ -354,6 +354,7 @@ class ElasticSearchQuerier extends Component {
                     settings={this.props.settings}
                     panelsOpen={this.props.panelsOpen}
                     onResultClick={this.props.onResultClick}
+                    openURL={this.props.openURL}
                     openDisplaySettings={this.props.openDisplaySettings}
                     toggleLanguage={this.props.toggleLanguage}
                     close={this.props.close}
@@ -376,6 +377,7 @@ ElasticSearchQuerier.propTypes = {
     setTab: PropTypes.func,
     searchState: PropTypes.object,
     onResultClick: PropTypes.func,
+    openURL: PropTypes.func,
     registerAvailableFilters: PropTypes.func,
     settings: PropTypes.object,
     openDisplaySettings: PropTypes.func,

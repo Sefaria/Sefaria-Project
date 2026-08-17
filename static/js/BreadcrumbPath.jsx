@@ -5,14 +5,14 @@ import { InterfaceText } from './Misc';
 
 const CHEVRON = '/static/icons/chevron-right-sm.svg';
 
-function Breadcrumb({ label, hebrewLabel, href }) {
+function Breadcrumb({ label, hebrewLabel, href, onCrumbClick }) {
   const text = <InterfaceText text={{ en: label, he: hebrewLabel }} />;
   if (href) {
     return (
       <a
         href={href}
         className="searchResultCard-crumb searchResultCard-crumb--link"
-        onClick={(e) => e.stopPropagation()}
+        onClick={onCrumbClick ? onCrumbClick(href) : (e) => e.stopPropagation()}
       >
         {text}
       </a>
@@ -32,11 +32,12 @@ function CrumbSep() {
   );
 }
 
-function CrumbList({ crumbs }) {
+function CrumbList({ crumbs, onCrumbClick }) {
   return crumbs.map((crumb, i) => (
     <React.Fragment key={i}>
       {i > 0 && <CrumbSep />}
-      <Breadcrumb label={crumb.label} hebrewLabel={crumb.hebrewLabel} href={crumb.href} />
+      <Breadcrumb label={crumb.label} hebrewLabel={crumb.hebrewLabel} href={crumb.href}
+                  onCrumbClick={onCrumbClick} />
     </React.Fragment>
   ));
 }
@@ -44,7 +45,11 @@ function CrumbList({ crumbs }) {
 /**
  * BreadcrumbPath
  *
- * Props: crumbs – array of { label: string, hebrewLabel?: string, href?: string }
+ * Props:
+ *   crumbs – array of { label: string, hebrewLabel?: string, href?: string }
+ *   onCrumbClick – optional (href) => clickHandler, so the parent can navigate in-app
+ *                  instead of letting the link reload the page. Defaults to a handler that
+ *                  only stops the click from reaching a clickable parent.
  *
  * Truncation rules (per spec):
  *   - Never truncate individual nodes mid-label.
@@ -53,7 +58,7 @@ function CrumbList({ crumbs }) {
  *   - Hovering "..." shows a static tooltip listing the hidden middle crumbs
  *     joined by ">", styled like the reader-header tooltip.
  */
-function BreadcrumbPath({ crumbs }) {
+function BreadcrumbPath({ crumbs, onCrumbClick }) {
   const containerRef = useRef(null);
   const measureRef   = useRef(null);
   const [isTruncated, setIsTruncated] = useState(false);
@@ -86,7 +91,8 @@ function BreadcrumbPath({ crumbs }) {
 
   const truncatedCrumbs = (
     <>
-      <Breadcrumb label={first.label} hebrewLabel={first.hebrewLabel} href={first.href} />
+      <Breadcrumb label={first.label} hebrewLabel={first.hebrewLabel} href={first.href}
+                  onCrumbClick={onCrumbClick} />
       {middle.length > 0 && (
         <>
           <CrumbSep />
@@ -101,7 +107,8 @@ function BreadcrumbPath({ crumbs }) {
       {crumbs.length > 1 && (
         <>
           <CrumbSep />
-          <Breadcrumb label={last.label} hebrewLabel={last.hebrewLabel} href={last.href} />
+          <Breadcrumb label={last.label} hebrewLabel={last.hebrewLabel} href={last.href}
+                      onCrumbClick={onCrumbClick} />
         </>
       )}
     </>
@@ -114,10 +121,10 @@ function BreadcrumbPath({ crumbs }) {
         className="searchResultCard-breadcrumbs-measure"
         aria-hidden="true"
       >
-        <CrumbList crumbs={crumbs} />
+        <CrumbList crumbs={crumbs} onCrumbClick={onCrumbClick} />
       </div>
       <div className="searchResultCard-breadcrumbs-inner">
-        {isTruncated ? truncatedCrumbs : <CrumbList crumbs={crumbs} />}
+        {isTruncated ? truncatedCrumbs : <CrumbList crumbs={crumbs} onCrumbClick={onCrumbClick} />}
       </div>
     </div>
   );
@@ -129,6 +136,7 @@ BreadcrumbPath.propTypes = {
     hebrewLabel: PropTypes.string,
     href:        PropTypes.string,
   })),
+  onCrumbClick: PropTypes.func,
 };
 
 export default BreadcrumbPath;

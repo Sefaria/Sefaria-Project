@@ -2417,6 +2417,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       onSearchResultClick={onSearchResultClick}
                       onSidebarSearchClick={onSidebarSearchClick}
                       onNavigationClick={this.handleNavigationClick}
+                      openURL={this.openURL}
                       openConnectionsPanel={openConnectionsPanel}
                       openComparePanel={openComparePanel}
                       setTextListHighlight={setTextListHighlight}
