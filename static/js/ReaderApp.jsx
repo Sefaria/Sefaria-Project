@@ -967,9 +967,13 @@ class ReaderApp extends Component {
   }
   setContainerMode() {
     // Applies CSS classes to the React container and body so that the App can function as a
-    // header only on top of a static page.
+    // header only on top of a static page. Full-viewport mode is needed whenever a ReaderPanel
+    // is open, OR a non-panel full-app view is active (e.g. auth) — extend hasNonPanelView
+    // for future views of that kind rather than open-coding more state checks below.
     if (this.props.headerMode) {
-      if (this.state.panels && this.state.panels.length) {
+      const hasPanels = this.state.panels?.length;
+      const hasNonPanelView = this.state.showAuth;
+      if (hasPanels || hasNonPanelView) {
         $("#s2").removeClass("headerOnly");
         $("body").css({overflow: "hidden"})
           .addClass("inApp")
