@@ -376,7 +376,13 @@ class SearchPage extends Component {
             if (this._entityFetchTokens[type] !== token) { return; }  // a newer fetch superseded this one
             this.setState(prev => this.withCategoryCounts({...prev.entityData, [type]: this.makeEntityEntry(data)}, data));
           })
-          .catch(() => {});  // count badge stays at "0", panel stays on the loading message
+          .catch(() => {
+            if (this._entityFetchTokens[type] !== token) { return; }
+            this.setState(prev => ({
+              entityData: {...prev.entityData, [type]: {hits: [], total: 0, moreToLoad: false, isLoadingMore: false}},
+              ...(type === 'book' ? {bookCategoryCounts: null} : {}),
+            }));
+          });
     });
   }
 
