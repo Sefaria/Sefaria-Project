@@ -43,6 +43,14 @@ def sso_only_account_info(email):
     One user lookup plus one social-account fetch: has_usable_password()
     reads a field already on the fetched user, so it needs no query of
     its own.
+
+    That password check is defence-in-depth rather than a live branch: an
+    account with both a usable password and a linked provider is not
+    reachable today, since linking wipes the password (adapters.py's
+    "SSO always wins on an email collision"). It is kept because it is
+    free and because that is a product decision, not an invariant -- if it
+    is ever revisited, this check is what stops a mistyped password being
+    reported as "your account is Google-only".
     """
     try:
         user = get_user(email)
