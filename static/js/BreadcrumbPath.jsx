@@ -5,14 +5,20 @@ import { InterfaceText } from './Misc';
 
 const CHEVRON = '/static/icons/chevron-right-sm.svg';
 
-function Breadcrumb({ label, hebrewLabel, href }) {
+function Breadcrumb({ label, hebrewLabel, href, linkProps }) {
   const text = <InterfaceText text={{ en: label, he: hebrewLabel }} />;
   if (href) {
+    // onClick is pulled out of linkProps instead of being spread with the rest, so a caller's
+    // handler runs *in addition to* stopPropagation rather than replacing it. Without the
+    // stopPropagation, clicking a crumb would also trigger the enclosing card and open the
+    // result instead of the category.
+    const { onClick, ...rest } = linkProps || {};
     return (
       <a
         href={href}
         className="searchResultCard-crumb searchResultCard-crumb--link"
-        onClick={(e) => e.stopPropagation()}
+        {...rest}
+        onClick={(e) => { e.stopPropagation(); onClick?.(e); }}
       >
         {text}
       </a>
@@ -32,11 +38,12 @@ function CrumbSep() {
   );
 }
 
-function CrumbList({ crumbs }) {
+function CrumbList({ crumbs, getCrumbLinkProps }) {
   return crumbs.map((crumb, i) => (
     <React.Fragment key={i}>
       {i > 0 && <CrumbSep />}
-      <Breadcrumb label={crumb.label} hebrewLabel={crumb.hebrewLabel} href={crumb.href} />
+      <Breadcrumb label={crumb.label} hebrewLabel={crumb.hebrewLabel} href={crumb.href}
+                  linkProps={getCrumbLinkProps?.(crumb)} />
     </React.Fragment>
   ));
 }
@@ -44,7 +51,12 @@ function CrumbList({ crumbs }) {
 /**
  * BreadcrumbPath
  *
- * Props: crumbs – array of { label: string, hebrewLabel?: string, href?: string }
+ * Props:
+ *   crumbs – array of { label: string, hebrewLabel?: string, href?: string }
+ *   getCrumbLinkProps – optional (crumb) => props, spread onto that crumb's <a>.
+ *     An `onClick` in the returned props runs after the built-in stopPropagation
+ *     rather than replacing it. Used by SearchResultCard to report crumb clicks
+ *     to search analytics; the component itself knows nothing about analytics.
  *
  * Truncation rules (per spec):
  *   - Never truncate individual nodes mid-label.
@@ -53,7 +65,7 @@ function CrumbList({ crumbs }) {
  *   - Hovering "..." shows a static tooltip listing the hidden middle crumbs
  *     joined by ">", styled like the reader-header tooltip.
  */
-function BreadcrumbPath({ crumbs }) {
+function BreadcrumbPath({ crumbs, getCrumbLinkProps }) {
   const containerRef = useRef(null);
   const measureRef   = useRef(null);
   const [isTruncated, setIsTruncated] = useState(false);
@@ -86,7 +98,8 @@ function BreadcrumbPath({ crumbs }) {
 
   const truncatedCrumbs = (
     <>
-      <Breadcrumb label={first.label} hebrewLabel={first.hebrewLabel} href={first.href} />
+      <Breadcrumb label={first.label} hebrewLabel={first.hebrewLabel} href={first.href}
+                  linkProps={getCrumbLinkProps?.(first)} />
       {middle.length > 0 && (
         <>
           <CrumbSep />
@@ -101,7 +114,8 @@ function BreadcrumbPath({ crumbs }) {
       {crumbs.length > 1 && (
         <>
           <CrumbSep />
-          <Breadcrumb label={last.label} hebrewLabel={last.hebrewLabel} href={last.href} />
+          <Breadcrumb label={last.label} hebrewLabel={last.hebrewLabel} href={last.href}
+                      linkProps={getCrumbLinkProps?.(last)} />
         </>
       )}
     </>
@@ -114,10 +128,14 @@ function BreadcrumbPath({ crumbs }) {
         className="searchResultCard-breadcrumbs-measure"
         aria-hidden="true"
       >
+        {/* Measurement copy only — `pointer-events: none`, and deliberately given no
+            link props, so it can never emit a duplicate analytics event. */}
         <CrumbList crumbs={crumbs} />
       </div>
       <div className="searchResultCard-breadcrumbs-inner">
-        {isTruncated ? truncatedCrumbs : <CrumbList crumbs={crumbs} />}
+        {isTruncated
+          ? truncatedCrumbs
+          : <CrumbList crumbs={crumbs} getCrumbLinkProps={getCrumbLinkProps} />}
       </div>
     </div>
   );
@@ -129,6 +147,7 @@ BreadcrumbPath.propTypes = {
     hebrewLabel: PropTypes.string,
     href:        PropTypes.string,
   })),
+  getCrumbLinkProps: PropTypes.func,
 };
 
 export default BreadcrumbPath;

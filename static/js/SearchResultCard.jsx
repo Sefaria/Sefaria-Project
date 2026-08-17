@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
-import SearchAnalytics from './sefaria/searchAnalytics';
+import SearchAnalytics, { resultLinkAnalyticsAttrs } from './sefaria/searchAnalytics';
 import { InterfaceText } from './Misc';
 import BreadcrumbPath from './BreadcrumbPath';
 
@@ -102,15 +102,31 @@ function SearchResultCard({
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [pressRef, isPressed] = usePressState();
 
-  // Reports this click as a search_element_clicked (type 'result') GA4 event
-  // and ends the search flow with reason 'clicked_result'. Must fire from the
-  // card itself: entity cards navigate via window.location.href and the title
-  // link stops propagation, so neither path reaches ReaderApp's central link
-  // handler. Only cards given an analyticsPosition (main search page) report.
-  const fireResultClickAnalytics = () => {
+  // Reports a click anywhere on this card as a search_element_clicked (type 'result') GA4
+  // event, and — for clicks that navigate the current window — ends the search flow with
+  // reason 'clicked_result'. Must fire from the card itself: entity cards navigate via
+  // window.location.href and every link here stops propagation, so none of these paths
+  // reaches ReaderApp's central link handler. Only cards given an analyticsPosition (the
+  // main search page) report; compare-panel and sidebar-search cards stay silent.
+  //
+  // `elementValue` names what was clicked — the result's ref for the card and its title,
+  // the category or author name for the links inside it.
+  const fireResultClickAnalytics = (elementValue, endsFlow = true) => {
     if (analyticsPosition) {
-      SearchAnalytics.resultClicked(tref ?? name, analyticsPosition);
+      SearchAnalytics.resultClicked(elementValue, analyticsPosition, endsFlow);
     }
+  };
+
+  // Stamped on every link in the card so that a modified click — which ReaderApp kills at
+  // the document capture phase, before any React handler runs — can still be attributed to
+  // this result. See SearchAnalytics.reportModifiedResultLinkClick.
+  const linkAnalyticsAttrs = (elementValue) => resultLinkAnalyticsAttrs(elementValue, analyticsPosition);
+
+  // Categories and the author name lead away from search in the current window, so each is
+  // a result click that ends the flow. stopPropagation keeps the card from also opening.
+  const handleSubLinkClick = (elementValue) => (e) => {
+    e.stopPropagation();
+    fireResultClickAnalytics(elementValue);
   };
 
   // The single click path for every clickable part of the card. Opening a result has to
@@ -143,7 +159,7 @@ function SearchResultCard({
 
   const handleCardClick = () => {
     if (window.getSelection && window.getSelection().toString()) return;
-    fireResultClickAnalytics();
+    fireResultClickAnalytics(tref ?? name);
     openResult(ownResult);
   };
 
@@ -152,10 +168,15 @@ function SearchResultCard({
   // differently depending on where you click.
   const handleLinkClick = (target) => (e) => {
     e.stopPropagation();  // the card's own onClick would fire too, opening the wrong version
-    fireResultClickAnalytics();  // ahead of the early return, so Cmd-click into a new tab still reports
+    // A modified click opens a new tab or window and leaves the user on the search page, so
+    // it reports the click but must not end the flow. Inside ReaderApp these clicks never
+    // get here at all (ReaderApp reports them itself, see linkAnalyticsAttrs above); the
+    // check keeps the card correct on its own, e.g. in Storybook.
+    const opensNewTab = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
+    fireResultClickAnalytics(tref ?? name, !opensNewTab);
     // Modified clicks, and modes with no in-app handler, fall through to the browser;
     // the href already points at the matched version with the query highlighted.
-    if (!onResultClick || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if (!onResultClick || opensNewTab) return;
     e.preventDefault();
     openResult(target);
   };
@@ -213,10 +234,18 @@ function SearchResultCard({
         )}
         <div className="searchResultCard-body">
           {crumbs && crumbs.length > 0 && (
-            <BreadcrumbPath crumbs={crumbs} />
+            <BreadcrumbPath
+              crumbs={crumbs}
+              getCrumbLinkProps={(crumb) => ({
+                ...linkAnalyticsAttrs(crumb.label),
+                onClick: handleSubLinkClick(crumb.label),
+              })}
+            />
           )}
           <div className="searchResultCard-header">
-            <a href={href} className="searchResultCard-titleLink" onClick={handleLinkClick(ownResult)}>
+            <a href={href} className="searchResultCard-titleLink"
+               {...linkAnalyticsAttrs(tref ?? name)}
+               onClick={handleLinkClick(ownResult)}>
               <div className="searchResultCard-titleRow">
                 <span className="searchResultCard-name">
                   <InterfaceText text={{ en: name, he: hebrewName }} />
@@ -241,7 +270,9 @@ function SearchResultCard({
                 {secondaryAuthor && (
                   <span className="searchResultCard-secondary-author">
                     {secondaryAuthorHref ? (
-                      <a href={secondaryAuthorHref} onClick={e => e.stopPropagation()}>
+                      <a href={secondaryAuthorHref}
+                         {...linkAnalyticsAttrs(secondaryAuthor)}
+                         onClick={handleSubLinkClick(secondaryAuthor)}>
                         <InterfaceText text={{ en: secondaryAuthor, he: hebrewSecondaryAuthor }} />
                       </a>
                     ) : (
@@ -292,6 +323,7 @@ function SearchResultCard({
                       key={i}
                       href={v.href}
                       className="searchResultCard-versionItem"
+                      {...linkAnalyticsAttrs(tref ?? name)}
                       onClick={handleLinkClick(v)}
                     >
                       <div

@@ -5,9 +5,13 @@
  *   search_flow_started   -- user arrives at the search page; assigns a flow_id
  *   search_query_executed -- a query finishes, i.e. ALL FOUR search APIs have
  *                            returned (sources + books + authors + topics)
- *   search_element_clicked -- a tab, filter, or result was clicked
+ *   search_element_clicked -- a tab, filter, or result was clicked. "Result"
+ *                            covers the card itself and every link inside it:
+ *                            title, version row, breadcrumb category, author.
  *   search_flow_ended     -- user leaves the search page (clicked a result or
- *                            navigated away in-app)
+ *                            navigated away in-app). Opening a result in a NEW
+ *                            TAB is a click but not an exit -- the user is
+ *                            still on the search page, so the flow continues.
  *
  * These events call gtag() directly (like templates/registration/register.html)
  * rather than going through analyticsEventTracker.js's data-anl-* attribute
@@ -28,6 +32,23 @@
 // The four API calls whose return "completes" a query. These keys are also the
 // keys of the result_counts JSON sent with search_query_executed.
 const QUERY_APIS = ['sources', 'books', 'authors', 'topics'];
+
+// Attributes a search result card stamps onto every link inside it, naming the
+// result that link belongs to. Only read on the modified-click path, where the
+// card's own onClick never runs -- see reportModifiedResultLinkClick.
+const RESULT_VALUE_ATTR = 'data-search-result-value';
+const RESULT_POSITION_ATTR = 'data-search-result-position';
+
+/**
+ * Build those attributes for one link, to be spread onto an <a>. Returns an
+ * empty object when the card is not opted into analytics (no position), so the
+ * attributes never appear on compare-panel or sidebar-search cards.
+ */
+export const resultLinkAnalyticsAttrs = (elementValue, resultPosition) => (
+    resultPosition
+        ? {[RESULT_VALUE_ATTR]: elementValue, [RESULT_POSITION_ATTR]: resultPosition}
+        : {}
+);
 
 const SearchAnalytics = {
     _flow: null,   // {flowId} -- set while the user is on the search page
@@ -131,15 +152,50 @@ const SearchAnalytics = {
     },
 
     /**
-     * A result was clicked. Fires the click event AND ends the flow with
-     * reason 'clicked_result' -- clicking a result is a "true exit" from
-     * search. Called by SearchResultCard, which navigates in ways that bypass
-     * ReaderApp's link handling (onResultClick / window.location.href).
+     * A result was clicked -- either the card itself or any link inside it:
+     * the title, a version row, a breadcrumb category, or the author name.
+     * They all report as element_type 'result'.
+     *
+     * `endsFlow` is true for a click that navigates the current window, which
+     * is a "true exit" from search. Pass false when the click opens a new tab
+     * or window: the user is still sitting on the search page, so the flow has
+     * not ended and their later clicks must keep reporting.
+     *
+     * Called by SearchResultCard, which navigates in ways that bypass
+     * ReaderApp's link handling (onResultClick / window.location.href, and
+     * crumbs that stop propagation).
      */
-    resultClicked: function(elementValue, resultPosition) {
+    resultClicked: function(elementValue, resultPosition, endsFlow = true) {
         if (!this._flow) { return; }
         this.elementClicked({elementType: 'result', elementValue, resultPosition});
-        this.endFlow('clicked_result');
+        if (endsFlow) { this.endFlow('clicked_result'); }
+    },
+
+    /**
+     * A modified click (Cmd/Ctrl/Shift/Alt) on a link inside a result card,
+     * reported from ReaderApp rather than from the card itself.
+     *
+     * It has to come from there: ReaderApp listens for clicks on `document` in
+     * the CAPTURE phase and calls stopImmediatePropagation() on any modified
+     * click (handleInAppClickWithModifiers). That stops the event before it
+     * reaches the link, and before React 16's delegated bubble-phase listener
+     * on `document` -- which is where every onClick in the app actually runs.
+     * So no React handler in the card ever sees these clicks; the card instead
+     * publishes what it would have reported as data-search-result-* attributes,
+     * and this reads them back off the clicked link.
+     *
+     * The flow is deliberately not ended: the result opens in a new tab and the
+     * user stays on the search page.
+     */
+    reportModifiedResultLinkClick: function(linkEl) {
+        if (!this._flow || !linkEl?.closest) { return; }
+        const el = linkEl.closest(`[${RESULT_VALUE_ATTR}]`);
+        if (!el) { return; }
+        this.resultClicked(
+            el.getAttribute(RESULT_VALUE_ATTR),
+            Number(el.getAttribute(RESULT_POSITION_ATTR)) || undefined,
+            false,  // new tab -- the visit to the search page is still going
+        );
     },
 
     /**

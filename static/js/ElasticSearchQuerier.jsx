@@ -139,6 +139,17 @@ class ElasticSearchQuerier extends Component {
         this._executeAllQueries();
     }
     componentWillUnmount() {
+        // Unmounting IS "leaving the search page", and it is the one signal that catches every
+        // in-app exit: the browser back button out of search (handlePopState swaps the panel
+        // but calls nothing), closing the panel, or switching to another menu. Reason
+        // 'abandoned' is correct here because a result click already ended the flow with
+        // 'clicked_result' before navigating, and a flow can only end once.
+        // NOTE: this does NOT cover leaving the browser entirely -- closing the tab, reloading,
+        // or typing a new URL destroys the page without unmounting React, so those flows still
+        // end with no search_flow_ended. That needs a `pagehide` listener.
+        if (this._searchAnalyticsInScope()) {
+            SearchAnalytics.endFlow('abandoned');
+        }
         this._abortRunningQuery();  // todo: make this work w/ promises
     }
     _searchAnalyticsInScope() {

@@ -1,4 +1,4 @@
-import SearchAnalytics from '../searchAnalytics';
+import SearchAnalytics, { resultLinkAnalyticsAttrs } from '../searchAnalytics';
 
 // The module reads the global `gtag` (GA4) and `crypto.randomUUID` at call
 // time, so both are replaced with deterministic mocks.
@@ -143,6 +143,82 @@ describe('search_flow_ended', () => {
         SearchAnalytics.endFlow('abandoned');  // e.g. a second navigation handler
         const ended = firedEvents().filter(([name]) => name === 'search_flow_ended');
         expect(ended.length).toBe(1);
+    });
+
+    // The search page also ends its flow when it unmounts, which is how back-button exits and
+    // panel changes get caught. On a result click that unmount happens right after the card has
+    // already ended the flow, so the reason must stay 'clicked_result' and must not fire twice.
+    test('the unmount that follows a result click does not overwrite clicked_result', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        SearchAnalytics.resultClicked('Genesis 44:1', 3);   // card, before navigating
+        SearchAnalytics.endFlow('abandoned');               // ElasticSearchQuerier.componentWillUnmount
+        const ended = firedEvents().filter(([name]) => name === 'search_flow_ended');
+        expect(ended.length).toBe(1);
+        expect(ended[0][1].reason).toBe('clicked_result');
+    });
+
+    // Per the analytics spec: opening a result in a new tab leaves the user on the search
+    // page, so it is a click but not an exit.
+    test('a new-tab result click reports without ending the flow', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        SearchAnalytics.resultClicked('Genesis 44:1', 3, false);
+        expect(firedEvents().map(([name]) => name))
+            .toEqual(['search_flow_started', 'search_element_clicked']);
+        expect(SearchAnalytics.isFlowActive()).toBe(true);
+
+        // and the visit keeps reporting afterwards
+        SearchAnalytics.elementClicked({elementType: 'tab', elementValue: 'Books', count: 31});
+        expect(firedEvents()[2][0]).toBe('search_element_clicked');
+    });
+});
+
+describe('modified clicks reported from ReaderApp', () => {
+    // ReaderApp kills modified clicks in the document capture phase, before any React handler
+    // runs, so it reads what the card would have reported off the link's data-* attributes.
+    const makeLink = (attrs) => {
+        document.body.innerHTML = `<a href="/x" ${attrs}><span id="inner">go</span></a>`;
+        return document.getElementById('inner');  // the event target is usually inside the <a>
+    };
+
+    test('reads the value and position off the link and does not end the flow', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        const link = makeLink('data-search-result-value="Genesis 44:1" data-search-result-position="3"');
+        SearchAnalytics.reportModifiedResultLinkClick(link.closest('a'));
+
+        const [name, params] = firedEvents()[1];
+        expect(name).toBe('search_element_clicked');
+        expect(params.element_type).toBe('result');
+        expect(params.element_value).toBe('Genesis 44:1');
+        expect(params.result_position).toBe(3);          // a number, not the "3" string
+        expect(SearchAnalytics.isFlowActive()).toBe(true);
+    });
+
+    test('ignores links with no result attributes (ordinary nav links)', () => {
+        SearchAnalytics.startFlow();
+        const link = makeLink('class="someOtherLink"');
+        SearchAnalytics.reportModifiedResultLinkClick(link.closest('a'));
+        expect(firedEvents().map(([name]) => name)).toEqual(['search_flow_started']);
+    });
+
+    test('no-ops on a null link and when no flow is active', () => {
+        expect(() => SearchAnalytics.reportModifiedResultLinkClick(null)).not.toThrow();
+        const link = makeLink('data-search-result-value="Genesis 44:1" data-search-result-position="3"');
+        SearchAnalytics.reportModifiedResultLinkClick(link.closest('a'));  // no flow started
+        expect(global.gtag).not.toHaveBeenCalled();
+    });
+});
+
+describe('resultLinkAnalyticsAttrs', () => {
+    test('emits the attributes a card needs, and nothing when not opted in', () => {
+        expect(resultLinkAnalyticsAttrs('Genesis 44:1', 3)).toEqual({
+            'data-search-result-value': 'Genesis 44:1',
+            'data-search-result-position': 3,
+        });
+        // compare panel / sidebar search cards pass no position — they stay unmarked
+        expect(resultLinkAnalyticsAttrs('Genesis 44:1', undefined)).toEqual({});
     });
 });
 
