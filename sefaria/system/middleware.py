@@ -508,8 +508,15 @@ class ClearSsoNextCookieMiddleware(MiddlewareMixin):
     get_signup_redirect_url — email login/register/password-reset are all fully custom
     Sefaria views that never touch that adapter machinery. Keep this cookie name in
     sync with sso.adapters.SefariaAccountAdapter.SSO_NEXT_COOKIE.
+
+    Also sets the `sefaria_sso_outcome` cookie here, for the same two paths, when those
+    adapter methods set `request._sefaria_sso_outcome` — they return a plain URL string,
+    not a response, so this is the first point in the request a Set-Cookie can happen.
+    Read by static/js/auth/authAnalytics.js's resumePendingAuthAttempt() on the next
+    page load to report `outcome` for redirect-mode SSO (mobile web).
     """
     SSO_NEXT_COOKIE = 'sefaria_sso_next'
+    SSO_OUTCOME_COOKIE = 'sefaria_sso_outcome'
     SSO_CALLBACK_PATHS = {
         '/api/auth/google/redirect',
         '/accounts/apple/login/callback/finish/',
@@ -520,4 +527,7 @@ class ClearSsoNextCookieMiddleware(MiddlewareMixin):
             # samesite must match the original cookie's (SameSite=None) for browsers to
             # treat this as the same cookie being cleared.
             response.delete_cookie(self.SSO_NEXT_COOKIE, samesite='None')
+            outcome = getattr(request, '_sefaria_sso_outcome', None)
+            if outcome:
+                response.set_cookie(self.SSO_OUTCOME_COOKIE, outcome, max_age=300, samesite='None', secure=True)
         return response

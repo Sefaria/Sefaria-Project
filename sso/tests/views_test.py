@@ -108,6 +108,33 @@ class AppleCallbackTest(TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(sl.user.first_name, 'Alice')
         self.assertEqual(sl.user.last_name, 'Smith')
+        # No _sefaria_new_social_user flag was set (complete_social_login is mocked, so the
+        # real save_user() that would set it never runs) -- an existing-user login.
+        self.assertEqual(res.json(), {'outcome': 'existing_user_login'})
+
+    @patch('sso.views.complete_social_login')
+    def test_success_reports_created_new_account_outcome_for_new_user(self, mock_complete):
+        # Simulates what SefariaSocialAccountAdapter.save_user actually does for a
+        # brand-new user (setting request._sefaria_new_social_user = True) without
+        # running the real save_user side effects (mongo/CRM), same mocking level as
+        # test_success_injects_name above.
+        with patch('sso.views.get_social_adapter') as mock_get_adapter:
+            sl = MagicMock()
+            provider = MagicMock()
+            provider.verify_token.return_value = sl
+            mock_get_adapter.return_value.get_provider.return_value = provider
+
+            def set_authenticated_new_user(request, sociallogin):
+                request.user = MagicMock()
+                request.user.is_authenticated = True
+                request._sefaria_new_social_user = True
+
+            mock_complete.side_effect = set_authenticated_new_user
+
+            res = self._post({'id_token': 'valid'})
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {'outcome': 'created_new_account'})
 
     @patch('sso.views.complete_social_login')
     def test_does_not_overwrite_existing_name(self, mock_complete):
@@ -124,6 +151,79 @@ class AppleCallbackTest(TestCase):
 
         self.assertEqual(sl.user.first_name, 'Bob')
         self.assertEqual(sl.user.last_name, 'Jones')
+
+
+class GoogleWebCallbackTest(TestCase):
+    """
+    Web counterpart to AppleCallbackTest for Google: useSsoSignIn.jsx's popup button and
+    GoogleOneTap.jsx both POST here instead of allauth's stock headless ProviderTokenView,
+    specifically so `outcome` can be reported (that stock endpoint has no hook for it).
+    """
+    def setUp(self):
+        self.client = Client()
+        self.url = '/api/auth/google/callback'
+
+    def _post(self, body):
+        return self.client.post(
+            self.url,
+            data=json.dumps(body),
+            content_type='application/json',
+        )
+
+    def test_missing_id_token(self):
+        res = self._post({})
+        self.assertEqual(res.status_code, 400)
+
+    def test_invalid_json(self):
+        res = self.client.post(self.url, data='bad', content_type='application/json')
+        self.assertEqual(res.status_code, 400)
+
+    def test_invalid_token_returns_400(self):
+        with patch('sso.views.get_social_adapter') as mock_get_adapter:
+            provider = MagicMock()
+            provider.verify_token.side_effect = Exception('bad token')
+            mock_get_adapter.return_value.get_provider.return_value = provider
+            res = self._post({'id_token': 'bogus'})
+        self.assertEqual(res.status_code, 400)
+
+    @patch('sso.views.complete_social_login')
+    def test_success_reports_existing_user_login_outcome(self, mock_complete):
+        with patch('sso.views.get_social_adapter') as mock_get_adapter:
+            sl = MagicMock()
+            provider = MagicMock()
+            provider.verify_token.return_value = sl
+            mock_get_adapter.return_value.get_provider.return_value = provider
+
+            def set_authenticated(request, sociallogin):
+                request.user = MagicMock()
+                request.user.is_authenticated = True
+
+            mock_complete.side_effect = set_authenticated
+
+            res = self._post({'id_token': 'valid'})
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {'outcome': 'existing_user_login'})
+
+    @patch('sso.views.complete_social_login')
+    def test_success_reports_created_new_account_outcome_for_new_user(self, mock_complete):
+        with patch('sso.views.get_social_adapter') as mock_get_adapter:
+            sl = MagicMock()
+            provider = MagicMock()
+            provider.verify_token.return_value = sl
+            mock_get_adapter.return_value.get_provider.return_value = provider
+
+            def set_authenticated_new_user(request, sociallogin):
+                request.user = MagicMock()
+                request.user.is_authenticated = True
+                request._sefaria_new_social_user = True
+
+            mock_complete.side_effect = set_authenticated_new_user
+
+            res = self._post({'id_token': 'valid'})
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json(), {'outcome': 'created_new_account'})
 
 
 def _sso_only_user(email):

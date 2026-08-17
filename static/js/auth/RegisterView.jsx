@@ -112,7 +112,7 @@ const RegisterView = ({
       return { error: authError(null, 'auth.generic_error') };
     }
     if (data?.redirect) {
-      endProcess('success', null);
+      endProcess('success', null, 'created_new_account');
       window.location.href = data.redirect;
       return;
     }
