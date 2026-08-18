@@ -11,8 +11,9 @@ rollout is not retained. This script clears both stores:
     everywhere. Its False values are the serialized-on-save default and are not
     archived — they record nothing a user chose.
 
-The opt-in endpoint writes the row and the flag in one call, so a True profile normally
-has a row behind it; the run reports how many diverge instead of assuming none do.
+Every writer of the flag (`reader.models._set_user_experiments`) writes the row in the
+same call, so a True profile normally has a row behind it; the run reports how many
+diverge instead of assuming none do.
 Deleting a Django account cascades its row away and leaves the profile, which is the one
 known source of divergence.
 
@@ -33,6 +34,9 @@ row and every True-flagged profile is archived to `db.experiments_data_archive` 
 experiments value, run id, and a `source` of "row" or "profile"). Together these hold the
 full pre-wipe record of both stores' meaningful values.
 
+Every run names the databases it resolved before printing a single count, and a real run
+re-reads both stores at the end to report PASS or WARN per check.
+
 Usage (`./run` sets PYTHONPATH and DJANGO_SETTINGS_MODULE; a bare `python` cannot import
 sefaria):
     ./run scripts/migrations/wipe_experiments_data.py --dry-run
@@ -46,6 +50,8 @@ from datetime import datetime, timezone
 import django
 
 django.setup()
+
+from django.conf import settings as django_settings
 
 from sefaria.system.database import db
 from sefaria.helper.library_assistant import SETTING_KEY
@@ -140,6 +146,15 @@ def _backfill(rows, run_id, dry_run):
         print(f"Profiles backfilled (archived to db.{BACKFILL_ARCHIVE_COLLECTION}): {written}")
 
 
+def _print_targets():
+    """Name the databases every count below comes from."""
+    # Printed, not asserted: the script is meant for prod and local alike. A run pointed
+    # at the wrong database prints numbers that look perfectly consistent, so the operator
+    # gets the targets before any of those numbers can look plausible.
+    print(f"Mongo database:    {db.name}")
+    print(f"Postgres database: {django_settings.DATABASES['default']['NAME']}\n")
+
+
 def _report_divergence(rows, flagged_true):
     """Report True-flagged profiles with no row behind them. Informational, never blocks."""
     # Ids are compared as they are stored: Postgres user_id is an int, some profile ids
@@ -177,8 +192,46 @@ def _archive(run_id, rows, flagged_true, wiped_at):
     return len(entries)
 
 
+def _verify(run_id, archived):
+    """Re-read both stores and report on the state the run left behind."""
+    # Independent re-reads, never the run's own counters: a counter can only report what
+    # the script believed it did, which is the thing under test.
+    print("\nVerification:")
+
+    rows_left = UserExperimentSettings.objects.count()
+    if rows_left:
+        print(f"WARN: {rows_left} UserExperimentSettings rows remain — a row landed mid-run;"
+              f" it is left in place unarchived. Re-run the script to archive and delete it.")
+    else:
+        print("PASS: no UserExperimentSettings rows remain.")
+
+    unmigrated = len(db.profiles.distinct("id", _unmigrated()))
+    if unmigrated:
+        print(f"WARN: {unmigrated} profiles have no {SETTING_KEY} key. Do not blindly re-run:"
+              f" with the rows gone the backfill writes True. Check"
+              f" db.{BACKFILL_ARCHIVE_COLLECTION} for the user's archived value first.")
+    else:
+        print(f"PASS: every profile has a {SETTING_KEY} key.")
+
+    # A profile save is a whole-document replace, so a session in flight during the unset
+    # can re-add the field, and every save afterwards re-adds it as the serialized False
+    # default. Either is harmless — nothing reads the field.
+    flagged_docs = db.profiles.count_documents({"experiments": {"$exists": True}})
+    if flagged_docs:
+        print(f"WARN: {flagged_docs} profile documents still carry an `experiments` field.")
+    else:
+        print("PASS: no profile documents carry an `experiments` field.")
+
+    entries = db[ARCHIVE_COLLECTION].count_documents({"run_id": run_id})
+    if entries == archived:
+        print(f"PASS: {entries} archive entries under this run_id, matching what was archived.")
+    else:
+        print(f"WARN: {entries} archive entries under this run_id, but the run archived {archived}.")
+
+
 def wipe(dry_run=False):
     run_id = uuid.uuid4().hex
+    _print_targets()
     if not dry_run:
         print(f"run_id: {run_id}\n")
 
@@ -234,6 +287,8 @@ def wipe(dry_run=False):
           f" ({len(rows)} rows, {len(flagged_true)} profiles)")
     print(f"Postgres rows deleted: {deleted}")
     print(f"Mongo profile documents unset: {unset}")
+
+    _verify(run_id, archived)
 
 
 if __name__ == "__main__":
