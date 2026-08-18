@@ -25,6 +25,7 @@ import { LibraryTopicPage } from "./libraryTopicPage"
 import { VoicesBookmarksPage } from "./voicesBookmarksPage"
 import { InterfaceStringsPage } from "./interfaceStringsPage"
 import { UserHistoryCookiePage } from "./userHistoryCookiePage"
+import { LinkExplorerPage } from "./linkExplorerPage"
 
 
 export class PageManager {
@@ -53,6 +54,7 @@ export class PageManager {
     private readonly voicesBookmarksPage: VoicesBookmarksPage
     private readonly interfaceStringsPage: InterfaceStringsPage
     private readonly userHistoryCookiePage: UserHistoryCookiePage
+    private readonly linkExplorerPage: LinkExplorerPage
 
 
 
@@ -82,6 +84,7 @@ export class PageManager {
         this.voicesBookmarksPage = new VoicesBookmarksPage(page, language)
         this.interfaceStringsPage = new InterfaceStringsPage(page, language)
         this.userHistoryCookiePage = new UserHistoryCookiePage(page, language)
+        this.linkExplorerPage = new LinkExplorerPage(page, language)
 
     }
 
@@ -180,6 +183,8 @@ export class PageManager {
 
     onUserHistoryCookie() {
         return this.userHistoryCookiePage
+    onLinkExplorer() {
+        return this.linkExplorerPage
     }
 
 

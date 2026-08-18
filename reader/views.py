@@ -21,6 +21,7 @@ import uuid
 from dataclasses import asdict
 from functools import lru_cache
 
+from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_KEY
 from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
 from sefaria.helper import library_assistant
@@ -393,6 +394,11 @@ def base_props(request):
         if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
             chatbot_data["in_chatbot_experiment"] = True
     user_data.update(chatbot_data)
+    user_data.update({
+        "googleClientId": getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
+        "appleClientId": getattr(settings, "APPLE_SSO_CLIENT_ID", ""),
+        "recaptchaSiteKey": getattr(settings, "RECAPTCHA_PUBLIC_KEY", TEST_RECAPTCHA_PUBLIC_KEY if settings.DEBUG else None),
+    })
     return user_data
 
 
@@ -4489,6 +4495,7 @@ def account_settings(request):
         'user': request.user,
         'profile': profile,
         'experiments_available': experiments_available,
+        'social_providers': list(request.user.socialaccount_set.values_list('provider', flat=True)),
         # The toggle must render the *effective* value: a user who is on through the
         # legacy rule has no setting key yet, and must still see "On".
         'library_assistant_enabled': library_assistant.is_enabled(profile),
@@ -5224,16 +5231,50 @@ def custom_server_error(request, template_name='500.html'):
     #return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
 
 
+# Paths iOS must NOT hand to the app as universal links. Everything else on the domain
+# still opens the app (see AASA_PATHS below).
+#
+# Auth flows have to stay in the browser: they depend on the session/CSRF cookies held by
+# the browser, which the app can't see. When the SSO round-trip returns from
+# appleid.apple.com or accounts.google.com, that final hop is a cross-domain navigation
+# into sefaria.org -- exactly the trigger for a universal link -- so without these
+# exclusions iOS yanks the user into the app mid-login. Sefaria-Mobile's DeepLinkRouter
+# has no route for these paths either; they fall through to its catchAll, which bounces
+# straight back out to a browser (Sefaria-Mobile/DeepLinkRouter.js).
+AASA_EXCLUDED_PATHS = [
+    "/accounts/*",          # allauth OAuth endpoints, incl. the Apple/Google callbacks
+    "/_allauth/*",          # allauth headless API
+    "/login",
+    "/login/",
+    "/register",
+    "/register/",
+    "/logout",
+    "/logout/",
+    "/password/reset*",     # reset request, emailed confirm link, done/complete pages
+]
+
+AASA_PATHS = ["NOT " + path for path in AASA_EXCLUDED_PATHS] + ["*"]
+
+
 def apple_app_site_association(request):
     teamID = "2626EW4BML"
     bundleID = "org.sefaria.sefariaApp"
+    appID = "{}.{}".format(teamID, bundleID)
     return jsonResponse({
         "applinks": {
             "apps": [],
             "details": [
                 {
-                    "appID": "{}.{}".format(teamID, bundleID),
-                    "paths": ["*"]
+                    "appID": appID,
+                    "appIDs": [appID],
+                    # `paths` is the pre-iOS 13 format, `components` the current one.
+                    # Both are ordered, first match wins, so the exclusions must come
+                    # before the catch-all.
+                    "paths": AASA_PATHS,
+                    "components": (
+                        [{"/": path, "exclude": True} for path in AASA_EXCLUDED_PATHS]
+                        + [{"/": "*"}]
+                    ),
                 }
             ]
         }
