@@ -523,7 +523,7 @@ class SearchPage extends Component {
     // Sidebar rule: Sources keeps the existing filters, Books gets a searchable
     // category list, Authors/Topics get a sort-only panel on mobile.
     let sidebar = null;
-    if (activeTab === "sources" && this.props.totalResults?.getValue() > 0) {
+    if (activeTab === "sources" && (this.props.totalResults?.getValue() > 0 || !Sefaria.multiPanel)) {
       sidebar = <SearchFilters
           query={this.props.query}
           searchState={this.props.searchState}
@@ -533,7 +533,7 @@ class SearchPage extends Component {
           closeMobileFilters={closeMobileFilters}
           compare={this.props.compare}
           type={this.props.type}/>;
-    } else if (activeTab === "books") {
+    } else if (activeTab === "books" && (!Sefaria.multiPanel || this.state.entityData['book'] === null || this.state.entityData['book'].total > 0)) {
       // The numbers next to each category come from the API (`categoryCounts`), which counts
       // the whole match set — not from the rows on screen. Counting those would mean "how
       // many of the ~20 books I downloaded", a number that climbs as you scroll and, once
@@ -597,7 +597,7 @@ class SearchPage extends Component {
             />
           )}
           <div>
-            {makeSortFilterControls(!(this.props.totalResults?.getValue() > 0))}
+            {makeSortFilterControls(!Sefaria.multiPanel ? false : !(this.props.totalResults?.getValue() > 0))}
           </div>
         </div>
         {this.props.totalResults && !this.props.totalResults.getValue()
