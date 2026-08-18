@@ -256,9 +256,7 @@ const isChatbotBannerExcludedPath = (path, moduleUrl) => {
   );
 };
 
-// The promo is for logged-out visitors only, so this renders a single call to action:
-// log in and try the assistant. Logged-in users never see it — ReaderApp gates it on the
-// viewer being logged out.
+// Shown to logged-out visitors only — ReaderApp gates it on the viewer being logged out.
 const LibraryAssistantPromoBanner = ({ promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
   if (isChatbotBannerExcludedPath(Sefaria.util.currentPath(), Sefaria.getModuleURL())) {
     return null;

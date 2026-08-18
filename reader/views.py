@@ -4073,8 +4073,8 @@ def profile_api(request, slug=None):
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
-        # Parked experiments framework: the legacy `experiments` field is only
-        # writable by whitelisted users. The Library Assistant no longer reads it.
+        # Parked experiments framework: the `experiments` field is only writable
+        # by whitelisted users.
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
 
@@ -4093,7 +4093,7 @@ def profile_api(request, slug=None):
         else:
             profile.save()
             # Parked experiments framework: keep the Postgres whitelist row in
-            # sync for the still-whitelisted `experiments` field.
+            # sync with the `experiments` field.
             if "experiments" in profileUpdate:
                 _set_user_experiments(request.user, profile.experiments)
             return jsonResponse(profile.to_mongo_dict())

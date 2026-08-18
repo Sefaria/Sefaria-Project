@@ -48,7 +48,6 @@ def test_no_profile_is_not_enabled():
 
 
 def test_absent_key_is_not_enabled():
-    # Every account carries the key; a profile without it has yet to be migrated.
     assert library_assistant.is_enabled(FakeProfile(settings={})) is False
 
 
