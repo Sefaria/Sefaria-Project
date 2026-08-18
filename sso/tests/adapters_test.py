@@ -258,6 +258,11 @@ class SaveUserTest(TestCase):
         # before the CRM call ran.
         self.assertIs(result, user)
         self.assertEqual(mock_profile_cls.return_value.save.call_count, 2)
+        # This request has no interfaceLang, so this doubles as the assertion that
+        # the Library Assistant key is written unconditionally, not only alongside
+        # the interface-language write.
+        mock_profile_cls.return_value.settings.__setitem__.assert_called_once_with(
+            library_assistant.SETTING_KEY, True)
 
 
 class SaveUserAtomicityTest(TestCase):
