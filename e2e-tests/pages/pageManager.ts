@@ -183,6 +183,7 @@ export class PageManager {
 
     onUserHistoryCookie() {
         return this.userHistoryCookiePage
+    }
     onLinkExplorer() {
         return this.linkExplorerPage
     }
