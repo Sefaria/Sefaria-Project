@@ -120,8 +120,13 @@ data:
     echo "=== Verifying Dump Contents ==="
     
     # Get tables from dump
-    DUMP_TABLES=$(pg_restore --list "$DUMP_FILE" 2>/dev/null | grep "TABLE DATA" | awk '{print $6}')
-    
+    DUMP_TABLES=$(pg_restore --list "$DUMP_FILE" 2>/dev/null | grep "TABLE DATA" | awk '{print $7}')
+
+    if [[ -z "$DUMP_TABLES" ]]; then
+      echo "ERROR: no TABLE DATA entries found in dump; pg_restore --list returned nothing to verify."
+      exit 1
+    fi
+
     echo ""
     printf "%-35s | %12s | %12s | %12s | %s\n" "Table" "DB Rows" "Dump Rows" "Diff" "Status"
     printf "%-35s-|-%12s-|-%12s-|-%12s-|-%s\n" "-----------------------------------" "------------" "------------" "------------" "--------"
@@ -135,45 +140,64 @@ data:
         continue
       fi
 
-      # Get DB count (live query)
-      DB_COUNT=$(psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" -t -c \
-        "SELECT COUNT(*) FROM \"$TABLE\";" 2>/dev/null | xargs)
-      
-      if [[ -z "$DB_COUNT" ]]; then
-        DB_COUNT=0
+      # Get DB count (live query). Note: "set -e" is in effect and these are bare
+      # command substitutions, so the "|| VAR=$?" form is required -- without it a
+      # failing psql/pg_restore aborts the script before the error branch below is
+      # ever reached. stderr goes to a file so it cannot be counted as dump rows.
+      DB_COUNT_STATUS=0
+      DB_COUNT_OUTPUT=$(psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" -t -c \
+        "SELECT COUNT(*) FROM \"$TABLE\";" 2>"$DATADIR/verify_db_err.txt") || DB_COUNT_STATUS=$?
+      if [[ $DB_COUNT_STATUS -ne 0 ]]; then
+        DB_COUNT_OUTPUT=$(cat "$DATADIR/verify_db_err.txt")
       fi
+      DB_COUNT=$(echo "$DB_COUNT_OUTPUT" | xargs)
 
       # Get dump count by extracting and counting rows
-      DUMP_COUNT=$(pg_restore --data-only --table="$TABLE" "$DUMP_FILE" 2>/dev/null | \
+      DUMP_COUNT_STATUS=0
+      DUMP_COUNT_OUTPUT=$(pg_restore --data-only --table="$TABLE" "$DUMP_FILE" \
+        2>"$DATADIR/verify_dump_err.txt") || DUMP_COUNT_STATUS=$?
+      if [[ $DUMP_COUNT_STATUS -ne 0 ]]; then
+        DUMP_COUNT_OUTPUT=$(cat "$DATADIR/verify_dump_err.txt")
+      fi
+      DUMP_COUNT=$(echo "$DUMP_COUNT_OUTPUT" | \
         grep -v "^SET " | grep -v "^SELECT " | grep -v "^--" | grep -v "^$" | \
         grep -v "^COPY " | grep -v "^\\\." | wc -l | xargs)
-      
-      if [[ -z "$DUMP_COUNT" ]]; then
-        DUMP_COUNT=0
-      fi
 
-      # Calculate difference and percentage
-      DIFF=$((DB_COUNT - DUMP_COUNT))
-      
-      # Calculate percentage difference (allow 1% tolerance for changes during backup)
-      if [[ $DB_COUNT -gt 0 ]]; then
-        DIFF_PCT=$(awk "BEGIN {printf \"%.2f\", ($DIFF / $DB_COUNT) * 100}")
-        ABS_DIFF_PCT=$(awk "BEGIN {printf \"%.2f\", sqrt(($DIFF_PCT)^2)}")
-      else
-        ABS_DIFF_PCT=0
-      fi
-      
-      # Status logic: OK if exact match or within 1% tolerance
-      if [[ $DIFF -eq 0 ]]; then
-        STATUS="OK"
-      elif (( $(awk "BEGIN {print ($ABS_DIFF_PCT <= 1.0)}") )); then
-        STATUS="OK (±1%)"
-      elif [[ $DIFF -gt 0 ]]; then
-        STATUS="MISSING"
+      if [[ $DB_COUNT_STATUS -ne 0 || ! "$DB_COUNT" =~ ^[0-9]+$ ]]; then
+        echo "ERROR: failed to get live row count for \"$TABLE\": $DB_COUNT_OUTPUT"
+        DB_COUNT=0
+        DIFF=0
+        STATUS="DB QUERY FAILED"
+        MISMATCH=$((MISMATCH + 1))
+      elif [[ $DUMP_COUNT_STATUS -ne 0 ]]; then
+        echo "ERROR: failed to read dump contents for \"$TABLE\": $DUMP_COUNT_OUTPUT"
+        DIFF=0
+        STATUS="DUMP READ FAILED"
         MISMATCH=$((MISMATCH + 1))
       else
-        STATUS="EXTRA"
-        MISMATCH=$((MISMATCH + 1))
+        # Calculate difference and percentage
+        DIFF=$((DB_COUNT - DUMP_COUNT))
+
+        # Calculate percentage difference (allow 1% tolerance for changes during backup)
+        if [[ $DB_COUNT -gt 0 ]]; then
+          DIFF_PCT=$(awk "BEGIN {printf \"%.2f\", ($DIFF / $DB_COUNT) * 100}")
+          ABS_DIFF_PCT=$(awk "BEGIN {printf \"%.2f\", sqrt(($DIFF_PCT)^2)}")
+        else
+          ABS_DIFF_PCT=0
+        fi
+
+        # Status logic: OK if exact match or within 1% tolerance
+        if [[ $DIFF -eq 0 ]]; then
+          STATUS="OK"
+        elif (( $(awk "BEGIN {print ($ABS_DIFF_PCT <= 1.0)}") )); then
+          STATUS="OK (±1%)"
+        elif [[ $DIFF -gt 0 ]]; then
+          STATUS="MISSING"
+          MISMATCH=$((MISMATCH + 1))
+        else
+          STATUS="EXTRA"
+          MISMATCH=$((MISMATCH + 1))
+        fi
       fi
 
       printf "%-35s | %12s | %12s | %12s | %s\n" "$TABLE" "$DB_COUNT" "$DUMP_COUNT" "$DIFF" "$STATUS"
@@ -185,6 +209,13 @@ data:
     echo ""
     printf "%-35s | %12s | %12s | %12s |\n" "TOTAL" "$TOTAL_DB" "$TOTAL_DUMP" "$((TOTAL_DB - TOTAL_DUMP))"
     echo ""
+
+    # Guard against a tautological pass: if every count came back zero, the
+    # comparison above verified nothing, even if MISMATCH is 0.
+    if [[ $TOTAL_DUMP -eq 0 || $TOTAL_DB -eq 0 ]]; then
+      echo "ERROR: verification totals are zero (TOTAL_DB=$TOTAL_DB, TOTAL_DUMP=$TOTAL_DUMP); the check compared nothing and cannot be trusted."
+      MISMATCH=$((MISMATCH + 1))
+    fi
 
     # Final summary
     echo "=== Summary ==="
@@ -206,10 +237,10 @@ data:
     echo "Dump file: $DUMP_FILE"
     echo "Row counts saved to: $COUNTS_FILE"
 
-    # Exit with error if mismatches found (optional - comment out if you want to allow mismatches)
-    # if [[ $MISMATCH -gt 0 ]]; then
-    #   exit 1
-    # fi
+    # Exit with error if mismatches found, so a real mismatch fails the Job.
+    if [[ $MISMATCH -gt 0 ]]; then
+      exit 1
+    fi
 
     exit $DUMP_EXIT_CODE
 {{- end }}
