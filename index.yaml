@@ -243,6 +243,21 @@ entries:
     version: 0.87.4-preprod.1
   - apiVersion: v2
     appVersion: v6.110.12
+    created: "2026-08-18T14:18:44.919225457Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 0b51c7a772b2e46fe7c1a369596a747bba019f1cf191ee96c40d589a5617239c
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.87.4-fixpgdump-verifier.2.tgz
+    version: 0.87.4-fixpgdump-verifier.2
+  - apiVersion: v2
+    appVersion: v6.110.12
     created: "2026-08-18T14:14:59.324792776Z"
     description: Chart to deploy complete Sefaria environment
     digest: d6bbfb3f43b7725866078b8c74b2f7e4c62e1cc6689fc6dbc768dbdc87c9d31f
@@ -20220,4 +20235,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-08-18T14:14:59.321700251Z"
+generated: "2026-08-18T14:18:44.915509349Z"
