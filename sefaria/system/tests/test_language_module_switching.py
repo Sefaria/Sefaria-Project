@@ -20,7 +20,8 @@ Test Coverage:
 import pytest
 from django.test import RequestFactory, override_settings
 from django.contrib.auth.models import AnonymousUser
-from sefaria.system.middleware import LanguageSettingsMiddleware, LanguageCookieMiddleware
+from django.http import HttpResponse
+from sefaria.system.middleware import LanguageSettingsMiddleware, LanguageCookieMiddleware, WebSessionRedirectMiddleware
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 
 # ============================================================================
@@ -398,3 +399,29 @@ class TestLanguageModuleSwitching:
         assert response.status_code == 302, "Should be a redirect (302)"
         assert 'voices.sefaria.org' in response.url, "Should redirect to English domain"
         assert 'set-language-cookie' in response.url, "Should include cookie parameter"
+
+
+# ============================================================================
+# HOP 2: LanguageCookieMiddleware's stripped-param redirect must still be marked
+# no_applink by WebSessionRedirectMiddleware, or iOS can hijack it mid-switch.
+# ============================================================================
+
+class TestWebSessionMarkingOnLanguageSwitch:
+    @production_settings
+    def test_hop_two_redirect_is_marked_no_applink(self):
+        request = RequestFactory().get(
+            '/texts?set-language-cookie',
+            HTTP_HOST='www.sefaria.org.il',
+            HTTP_REFERER='https://www.sefaria.org/texts?set-language-cookie',
+        )
+        request.user = AnonymousUser()
+
+        hop_two_response = LanguageCookieMiddleware(get_response=lambda r: HttpResponse()).process_request(request)
+        assert hop_two_response is not None, "LanguageCookieMiddleware should redirect"
+
+        marked_response = WebSessionRedirectMiddleware(
+            get_response=lambda r: HttpResponse()
+        ).process_response(request, hop_two_response)
+
+        assert 'no_applink=1' in marked_response['Location']
+        assert 'set-language-cookie' not in marked_response['Location']

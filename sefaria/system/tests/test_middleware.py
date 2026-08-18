@@ -7,8 +7,8 @@ an approved list derived from DOMAIN_MODULES.
 from unittest.mock import patch
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, override_settings
-from django.http import HttpResponse
-from sefaria.system.middleware import ModuleMiddleware, SessionCookieDomainMiddleware, SessionIDAuthMiddleware, LocationSettingsMiddleware
+from django.http import HttpResponse, HttpResponseRedirect
+from sefaria.system.middleware import ModuleMiddleware, SessionCookieDomainMiddleware, SessionIDAuthMiddleware, LocationSettingsMiddleware, WebSessionRedirectMiddleware
 from sefaria.utils.chatbot import build_chatbot_user_token
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 
@@ -763,3 +763,65 @@ class TestLocationSettingsMiddleware:
         middleware.process_request(request)
 
         assert request.country_code == 'us'
+
+
+# ============================================================================
+# TESTS: WEB SESSION REDIRECT MARKING (no_applink)
+# ============================================================================
+
+class TestWebSessionRedirectMiddleware:
+    """A redirect gets marked no_applink when it continues a web session (sefaria
+    Referer, or an allauth OAuth path where Referer is always external) -- see
+    sefaria/utils/views_utils.py for why."""
+
+    def _middleware(self):
+        return WebSessionRedirectMiddleware(get_response=lambda r: HttpResponse())
+
+    @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
+    def test_sefaria_referer_marks_redirect(self):
+        request = RequestFactory().get('/', HTTP_REFERER='https://www.sefaria.org/texts')
+        result = self._middleware().process_response(request, HttpResponseRedirect('/next'))
+
+        assert 'no_applink=1' in result['Location']
+
+    @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
+    def test_external_referer_does_not_mark_redirect(self):
+        request = RequestFactory().get('/', HTTP_REFERER='https://mail.google.com/')
+        result = self._middleware().process_response(request, HttpResponseRedirect('/next'))
+
+        assert 'no_applink' not in result['Location']
+
+    @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
+    def test_no_referer_does_not_mark_redirect(self):
+        request = RequestFactory().get('/login')
+        result = self._middleware().process_response(request, HttpResponseRedirect('/'))
+
+        assert 'no_applink' not in result['Location']
+
+    def test_accounts_path_marks_redirect_regardless_of_referer(self):
+        request = RequestFactory().get('/accounts/google/login/callback/')
+        result = self._middleware().process_response(request, HttpResponseRedirect('/'))
+
+        assert 'no_applink=1' in result['Location']
+
+    def test_allauth_path_marks_redirect_regardless_of_referer(self):
+        request = RequestFactory().get('/_allauth/browser/v1/auth/session')
+        result = self._middleware().process_response(request, HttpResponseRedirect('/'))
+
+        assert 'no_applink=1' in result['Location']
+
+    def test_google_one_tap_redirect_path_marks_redirect_regardless_of_referer(self):
+        # accounts.google.com POSTs here directly (redirect-mode SSO) -- Referer is
+        # always Google's, never sefaria's, same as /accounts/* and /_allauth/*.
+        request = RequestFactory().post('/api/auth/google/redirect', HTTP_REFERER='https://accounts.google.com/')
+        result = self._middleware().process_response(request, HttpResponseRedirect('/'))
+
+        assert 'no_applink=1' in result['Location']
+
+    def test_non_redirect_response_is_untouched(self):
+        request = RequestFactory().get('/accounts/google/login/callback/')
+        response = HttpResponse('ok')
+
+        result = self._middleware().process_response(request, response)
+
+        assert result is response
