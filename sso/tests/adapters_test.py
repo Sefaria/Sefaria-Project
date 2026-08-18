@@ -2,7 +2,7 @@ import socket
 import sys
 import urllib.error
 import urllib.parse
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 from django.contrib.auth.models import User
 from django.test import TestCase, RequestFactory, override_settings
@@ -14,6 +14,7 @@ from allauth.core.context import request_context
 from allauth.socialaccount.models import SocialAccount, SocialLogin
 from google.cloud.exceptions import GoogleCloudError
 
+from sefaria.helper import library_assistant
 from sso.adapters import SefariaSocialAccountAdapter, SefariaAccountAdapter, import_gravatar
 
 
@@ -225,7 +226,11 @@ class SaveUserTest(TestCase):
         profile = mock_profile_cls.return_value
         profile.assign_slug.assert_called_once()
         profile.join_invited_collections.assert_called_once()
-        profile.settings.__setitem__.assert_called_once_with('interface_language', 'english')
+        profile.settings.__setitem__.assert_has_calls([
+            call('interface_language', 'english'),
+            call(library_assistant.SETTING_KEY, True),
+        ])
+        self.assertEqual(profile.settings.__setitem__.call_count, 2)
         mock_import_gravatar.assert_called_once_with(profile)
         self.assertEqual(profile.save.call_count, 2)
         mock_crm_cls.return_value.create_crm_user.assert_called_once_with(

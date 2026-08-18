@@ -447,6 +447,11 @@ class UserProfile(object):
             # while maintaining separate profiles (e.g. Sefaria and S4D).
             self.show_editor_toggle = False
             self.uses_new_editor = True
+            # Every path that creates a profile writes the Library Assistant key; the key
+            # is deliberately absent from the settings defaults. Imported here because
+            # sefaria.helper.library_assistant imports this module.
+            from sefaria.helper import library_assistant
+            self.settings[library_assistant.SETTING_KEY] = True
             self.assign_slug()
             self.save()
 
