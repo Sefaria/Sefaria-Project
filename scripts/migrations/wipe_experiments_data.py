@@ -7,8 +7,14 @@ parked for a future experiment — but the data it accumulated for the Library A
 rollout is not retained. This script clears both stores:
 
   * every Postgres `UserExperimentSettings` row is archived and deleted;
-  * the Mongo `profiles.experiments` field is unset everywhere. Its True values mirror
-    the archived rows; everything else is the serialized-on-save False default.
+  * the Mongo `profiles.experiments` field is archived wherever it is True, then unset
+    everywhere. Its False values are the serialized-on-save default and are not
+    archived — they record nothing a user chose.
+
+The opt-in endpoint writes the row and the flag in one call, so a True profile normally
+has a row behind it; the run reports how many diverge instead of assuming none do.
+Deleting a Django account cascades its row away and leaves the profile, which is the one
+known source of divergence.
 
 The rows this script deletes are the only record of a deliberate assistant choice, so
 before touching anything it backfills `settings.library_assistant` onto any profile
@@ -23,8 +29,9 @@ backfill, the script aborts before deleting anything.
 
 Backfilled writes are archived to `db.library_assistant_migration_archive` (user id,
 value written, cohort, run id), continuing the launch migration's record; every deleted
-row is archived to `db.experiments_data_archive` (user id, experiments value, run id).
-Together these preserve the full pre-wipe record.
+row and every True-flagged profile is archived to `db.experiments_data_archive` (user id,
+experiments value, run id, and a `source` of "row" or "profile"). Together these hold the
+full pre-wipe record of both stores' meaningful values.
 
 Usage (`./run` sets PYTHONPATH and DJANGO_SETTINGS_MODULE; a bare `python` cannot import
 sefaria):
@@ -50,6 +57,8 @@ BACKFILL_ARCHIVE_COLLECTION = "library_assistant_migration_archive"
 SETTING_PATH = f"settings.{SETTING_KEY}"
 COHORT_ROW = "whitelist_row"
 COHORT_BACKFILL = "backfill"
+SOURCE_ROW = "row"
+SOURCE_PROFILE = "profile"
 
 BATCH_SIZE = 1000
 
@@ -131,6 +140,43 @@ def _backfill(rows, run_id, dry_run):
         print(f"Profiles backfilled (archived to db.{BACKFILL_ARCHIVE_COLLECTION}): {written}")
 
 
+def _report_divergence(rows, flagged_true):
+    """Report True-flagged profiles with no row behind them. Informational, never blocks."""
+    # Ids are compared as they are stored: Postgres user_id is an int, some profile ids
+    # are strings and one is null, so coercing either side to text would invent matches.
+    row_uids = {uid for uid, _ in rows}
+    orphaned = [uid for uid in flagged_true if uid not in row_uids]
+    print(f"Profiles with experiments=True and no UserExperimentSettings row: {len(orphaned)}"
+          f" (deleted accounts, expected near zero)")
+
+
+def _archive(run_id, rows, flagged_true, wiped_at):
+    """Record both stores' meaningful values. Returns the number of entries written."""
+    entries = [
+        {
+            "run_id": run_id,
+            "uid": uid,
+            "experiments": experiments,
+            "source": SOURCE_ROW,
+            "wiped_at": wiped_at,
+        }
+        for uid, experiments in rows
+    ]
+    entries += [
+        {
+            "run_id": run_id,
+            "uid": uid,
+            "experiments": True,
+            "source": SOURCE_PROFILE,
+            "wiped_at": wiped_at,
+        }
+        for uid in flagged_true
+    ]
+    if entries:
+        db[ARCHIVE_COLLECTION].insert_many(entries)
+    return len(entries)
+
+
 def wipe(dry_run=False):
     run_id = uuid.uuid4().hex
     if not dry_run:
@@ -150,27 +196,27 @@ def wipe(dry_run=False):
                   f" the backfill. Nothing archived or deleted.")
             return
 
-    flagged = db.profiles.count_documents({"experiments": {"$exists": True}})
+    # Distinct ids, because the archive is per user; documents, because the unset is per
+    # document and a handful of ids own more than one profile document.
+    flagged_true = db.profiles.distinct("id", {"experiments": True})
+    flagged_docs = db.profiles.count_documents({"experiments": {"$exists": True}})
+
+    _report_divergence(rows, flagged_true)
 
     print(f"UserExperimentSettings rows to archive and delete: {len(rows)}"
           f" (experiments=True: {sum(1 for _, e in rows if e)},"
           f" experiments=False: {sum(1 for _, e in rows if not e)})")
-    print(f"Mongo profiles carrying an `experiments` field to unset: {flagged}")
+    print(f"Profiles with experiments=True to archive: {len(flagged_true)}")
+    print(f"Mongo profile documents carrying an `experiments` field to unset: {flagged_docs}")
 
     if dry_run:
         print("\n--dry-run: nothing written.")
         return
 
-    if rows:
-        db[ARCHIVE_COLLECTION].insert_many([
-            {
-                "run_id": run_id,
-                "uid": uid,
-                "experiments": experiments,
-                "wiped_at": datetime.now(timezone.utc),
-            }
-            for uid, experiments in rows
-        ])
+    # Both stores are archived before either is touched, so a crash mid-run can only
+    # over-record; wiping first would destroy values with nothing left to recover them from.
+    archived = _archive(run_id, rows, flagged_true, datetime.now(timezone.utc))
+
     # Delete exactly what was archived, not everything present at this instant: a row
     # created between the read above and here would otherwise be deleted unarchived.
     # Left in place it survives for a re-run, which archives and deletes it in turn.
@@ -184,9 +230,10 @@ def wipe(dry_run=False):
         {"$unset": {"experiments": ""}},
     ).modified_count
 
-    print(f"Rows archived to db.{ARCHIVE_COLLECTION} under run_id {run_id}: {len(rows)}")
+    print(f"Archived to db.{ARCHIVE_COLLECTION} under run_id {run_id}: {archived}"
+          f" ({len(rows)} rows, {len(flagged_true)} profiles)")
     print(f"Postgres rows deleted: {deleted}")
-    print(f"Mongo profiles unset: {unset}")
+    print(f"Mongo profile documents unset: {unset}")
 
 
 if __name__ == "__main__":
