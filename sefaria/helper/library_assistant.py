@@ -7,9 +7,10 @@ The assistant is a plain per-user setting living at
 module — views, templates, context processors and scripts all call in here rather than
 touching the key directly.
 
-The key is written for every account: registration writes it for new accounts, and
-``scripts/migrations/migrate_experiments_to_library_assistant.py`` backfills any profile
-missing it. A profile without the key reads as off; re-run the migration if any turn up.
+The key is written for every account: registration writes it for new accounts, and the
+opt-out launch backfilled everyone else (``scripts/migrations/wipe_experiments_data.py``
+caught any stragglers before retiring the experiments data). A profile without the key
+reads as off.
 
 Deliberately *not* done: adding the key to ``UserProfile``'s settings defaults. A default
 of ``True`` would silently override a real opt-out on any profile that lost the key, and
