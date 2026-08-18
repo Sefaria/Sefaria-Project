@@ -240,4 +240,4 @@ Add it to the `app_props` dict in that page's view function before calling `rend
 Use `UserExperimentSettings` via Django admin. Bulk-enable via CSV upload. Check with `user_has_experiments(request.user)` or `request.user.experiments` in views.
 
 ### The Library Assistant switch
-Not a feature flag: it is a per-user setting at `profile.settings["library_assistant"]`, read and written only through `sefaria.helper.library_assistant` -- call `is_enabled(profile)` / `is_enabled_for_user(user)` rather than reading the key. On for everyone unless they turn it off in account settings; see [the naming decision](../../decisions/library_assistant_naming.md) for why `chatbot` names persist alongside it.
+Not a feature flag: it is a per-user setting at `profile.settings["library_assistant"]`, read and written only through `sefaria.helper.library_assistant` -- call `is_enabled(profile)` / `is_enabled_for_user(user)` rather than reading the key. On for everyone unless they turn it off in account settings; the module docstring explains why `chatbot` names persist alongside it (vendor/wire contracts, not leftovers).

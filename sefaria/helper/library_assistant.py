@@ -15,6 +15,13 @@ Deliberately *not* done: adding the key to ``UserProfile``'s settings defaults. 
 of ``True`` would silently override a real opt-out on any profile that lost the key, and
 ``UserProfile.update()`` deep-merges settings, so the wrong value would then be written
 back on the user's next profile save. Absent means absent.
+
+Naming: ``library_assistant`` is the product — this setting, the
+``/enable-library-assistant`` route, UI components. ``chatbot`` is the vendor/wire name —
+the bundle really is ``lc-chatbot``, and the props, remote-config keys, Salesforce
+webhook and analytics identifiers are contracts written against that service, where a
+rename breaks continuity. Both are correct; a ``chatbot``-named identifier is not a
+leftover, and no mass rename is planned.
 """
 
 from sefaria.model.user_profile import UserProfile
