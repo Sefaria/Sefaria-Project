@@ -523,7 +523,7 @@ class SearchPage extends Component {
     // Sidebar rule: Sources keeps the existing filters, Books gets a searchable
     // category list, Authors/Topics get a sort-only panel on mobile.
     let sidebar = null;
-    if (activeTab === "sources" && this.props.totalResults?.getValue() > 0) {
+    if (activeTab === "sources" && (this.props.totalResults?.getValue() > 0 || !Sefaria.multiPanel)) {
       sidebar = <SearchFilters
           query={this.props.query}
           searchState={this.props.searchState}
@@ -597,7 +597,7 @@ class SearchPage extends Component {
             />
           )}
           <div>
-            {makeSortFilterControls(!(this.props.totalResults?.getValue() > 0))}
+            {makeSortFilterControls(!Sefaria.multiPanel ? false : !(this.props.totalResults?.getValue() > 0))}
           </div>
         </div>
         {this.props.totalResults && !this.props.totalResults.getValue()
