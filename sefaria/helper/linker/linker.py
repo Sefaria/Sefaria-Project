@@ -1,5 +1,6 @@
 import dataclasses
 import json
+from django.conf import settings
 from cerberus import Validator
 from ne_span import RefPartType
 from sefaria.model.linker.ref_part import TermContext
@@ -148,11 +149,15 @@ def _save_webpage_text_from_linker_request(meta_data: dict, request_text: _FindR
     url = meta_data.get("url")
     if not url:
         return
-    WebPageText.add_or_update({
+    status, webpage_text = WebPageText.add_or_update({
         "url": url,
         "title": request_text.title,
         "body": request_text.body,
     })
+    if status == "saved" and getattr(settings, "WEBPAGE_SEARCH_INDEX_ON_SAVE", False):
+        from sefaria.celery_setup.config import CeleryQueue
+        from sefaria.helper.linker.tasks import index_webpage_text_task
+        index_webpage_text_task.apply_async(args=(webpage_text.url,), queue=CeleryQueue.TASKS.value)
 
 
 @django_cache(cache_type="persistent")
