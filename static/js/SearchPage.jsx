@@ -533,7 +533,7 @@ class SearchPage extends Component {
           closeMobileFilters={closeMobileFilters}
           compare={this.props.compare}
           type={this.props.type}/>;
-    } else if (activeTab === "books") {
+    } else if (activeTab === "books" && (!Sefaria.multiPanel || this.state.entityData['book']?.total > 0)) {
       // The numbers next to each category come from the API (`categoryCounts`), which counts
       // the whole match set — not from the rows on screen. Counting those would mean "how
       // many of the ~20 books I downloaded", a number that climbs as you scroll and, once
