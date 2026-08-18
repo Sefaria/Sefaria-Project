@@ -217,9 +217,10 @@ other:
 
 Two design choices make that assertion mean something:
 
-- **The viewer country is GB, not US.** The banner targets `exclude [US]`, which GB passes, so
-  expiry is the *only* gate it fails. Under a US viewer it would fail two gates at once and its
-  absence would prove nothing about dates.
+- **The viewer's plausible-country set is pinned to `{GB}`.** The banner targets `exclude [US]`,
+  which `{GB}` passes, so expiry is the *only* gate it fails. The test neutralizes the configured
+  timezone's country hint and uses an `en-GB` browser locale without changing the timezone used by
+  `Date`, which keeps the HAR request stable.
 - **The positive control is a real render**, not just "a response arrived": a co-published modal is
   still active at the pinned clock, and the test waits for it to appear. That one step proves the
   payload arrived, the clock advanced past `showDelay`, and rendering works.
@@ -230,20 +231,22 @@ the test fails.
 ### Choosing a viewer country that can actually detect the bug
 
 Per-locale targeting is only observable through a viewer for whom the two locales **disagree**. The
-banner scenario targets `en → exclude [US]` and `he → include [IL]`, which makes GB the
-discriminating country: English shows the banner (GB is not excluded), Hebrew does not (GB is not
-included). An IL or US viewer gets the same answer from both locales, so those cases cannot tell a
-correct implementation from one that applies the English row to everything.
+banner scenario targets `en → exclude [US]` and `he → include [IL]`. An IL IP-country signal plus
+the configured America/New_York timezone produces plausible countries `{IL, US}`: English hides
+because US intersects its exclude-list, while Hebrew shows because IL intersects its include-list.
+A GB or US viewer gets the same answer from both locales, so those cases cannot tell a correct
+implementation from one that applies the English row to everything.
 
-Verified by running the spec against the pre-fix code: of its four tests, **exactly one failed** —
-the Hebrew half of the GB pair. Worth remembering when adding targeting scenarios: pick the viewer
+Verified by running the spec against the pre-fix code: of its tests, **exactly one failed** —
+the Hebrew half of the IL pair. Worth remembering when adding targeting scenarios: pick the viewer
 country where the rules conflict, or the test proves nothing about localization.
 
 ### These specs complement the Jest tests, they do not repeat them
 
 `static/js/sefaria/tests/` already covers the pure logic exhaustively — `strapiTargeting.test.js`
 (every `countryMode`, empty/null lists), `countryCandidates.test.js` (how IP, timezone and locale
-signals combine), `strapiLocalization.test.js` (the `documentId` grouping). 67 tests, all green.
+signals combine), `strapiLocalization.test.js` (the `documentId` grouping), and
+`strapiSelection.test.js` (eligibility, fallthrough, and ranking). 129 tests, all green.
 
 What unit tests cannot reach is the **call site**: whether the component feeds those functions the
 right object for the document actually on screen, once the payload has been fetched, merged and

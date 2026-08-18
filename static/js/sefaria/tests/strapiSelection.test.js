@@ -59,6 +59,11 @@ const include = (...codes) => ({
   countries: codes.map((code) => ({ name: code, code })),
 });
 
+const exclude = (...codes) => ({
+  countryMode: "exclude",
+  countries: codes.map((code) => ({ name: code, code })),
+});
+
 describe("isEligible", function () {
   it("accepts an unrestricted, in-window document", function () {
     expect(isEligible(modal(), viewer(), ContentType.MODAL)).toBe(true);
@@ -252,6 +257,40 @@ describe("selectContent", function () {
     expect(selectContent([weekly, daily], dismissedDaily, ContentType.MODAL).internalModalName).toBe(
       "bilingual-weekly",
     );
+  });
+
+  it("an ambiguous country viewer never falls through to the counterpart that excludes that country", function () {
+    const ukCampaign = modal({
+      internalModalName: "uk-campaign",
+      countriesToTarget: { en: include("GB"), he: null },
+    });
+    const everyoneExceptUk = modal({
+      internalModalName: "everyone-except-uk",
+      countriesToTarget: { en: exclude("GB"), he: null },
+    });
+    const ambiguousViewer = viewer({ countryCandidates: new Set(["gb", "us"]) });
+
+    // GB is plausible, so the targeted campaign is eligible and the exclude-GB counterpart is not.
+    expect(selectContent([everyoneExceptUk, ukCampaign], ambiguousViewer, ContentType.MODAL).internalModalName).toBe(
+      "uk-campaign",
+    );
+
+    // Dismissing the UK campaign does not expose content whose Strapi audience explicitly excludes
+    // UK. This is different from an ALL-country campaign, which remains a legitimate fallback.
+    const afterDismissal = viewer({
+      countryCandidates: new Set(["gb", "us"]),
+      hasDismissed: (key) => key === "modal_uk-campaign",
+    });
+    expect(selectContent([everyoneExceptUk, ukCampaign], afterDismissal, ContentType.MODAL)).toBe(null);
+
+    // A viewer with no plausible UK signal still receives the counterpart.
+    expect(
+      selectContent(
+        [everyoneExceptUk, ukCampaign],
+        viewer({ countryCandidates: new Set(["us"]) }),
+        ContentType.MODAL,
+      ).internalModalName,
+    ).toBe("everyone-except-uk");
   });
 
   describe("ranking, tier by tier", function () {
