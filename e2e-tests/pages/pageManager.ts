@@ -26,6 +26,7 @@ import { ReaderScrollPage } from "./readerScrollPage"
 import { MobileSurfacesPage } from "./mobileSurfacesPage"
 import { VoicesBookmarksPage } from "./voicesBookmarksPage"
 import { InterfaceStringsPage } from "./interfaceStringsPage"
+import { LinkExplorerPage } from "./linkExplorerPage"
 
 
 export class PageManager {
@@ -55,6 +56,7 @@ export class PageManager {
     private readonly mobileSurfacesPage: MobileSurfacesPage
     private readonly voicesBookmarksPage: VoicesBookmarksPage
     private readonly interfaceStringsPage: InterfaceStringsPage
+    private readonly linkExplorerPage: LinkExplorerPage
 
 
 
@@ -85,6 +87,7 @@ export class PageManager {
         this.mobileSurfacesPage = new MobileSurfacesPage(page, language)
         this.voicesBookmarksPage = new VoicesBookmarksPage(page, language)
         this.interfaceStringsPage = new InterfaceStringsPage(page, language)
+        this.linkExplorerPage = new LinkExplorerPage(page, language)
 
     }
 
@@ -187,6 +190,10 @@ export class PageManager {
 
     onInterfaceStrings() {
         return this.interfaceStringsPage
+    }
+
+    onLinkExplorer() {
+        return this.linkExplorerPage
     }
 
 

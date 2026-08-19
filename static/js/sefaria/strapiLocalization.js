@@ -8,9 +8,13 @@ const INTERFACE_LANG_TO_LOCALE = Object.fromEntries(
   Object.entries(LOCALE_TO_INTERFACE_LANG).map(([locale, lang]) => [lang, locale]),
 );
 
+// `countriesToTarget` is localized even though it isn't text: editors can target each locale
+// separately in Strapi — showing a Hebrew-interface promotion to readers in the US but not in
+// Israel, say — so it has to survive the per-document merge rather than being taken from whichever
+// locale row happens to come first. Sidebar ads have no targeting field at all.
 const LOCALIZED_FIELDS = {
-  banner: ["bannerText", "buttonText", "buttonURL"],
-  modal: ["modalHeader", "modalText", "buttonText", "buttonURL"],
+  banner: ["bannerText", "buttonText", "buttonURL", "countriesToTarget"],
+  modal: ["modalHeader", "modalText", "buttonText", "buttonURL", "countriesToTarget"],
   sidebarAd: ["title", "bodyText", "buttonText", "buttonURL"],
 };
 
@@ -52,7 +56,10 @@ const groupByDocumentId = (rowsByLocale, localizedFields) => {
   const rowsByDocumentId = groupBy(allRows, (row) => row.documentId);
   return Object.values(rowsByDocumentId).map((rows) => {
     const byLocale = keyBy(rows, (row) => row.locale);
-    // Non-text fields (dates, targeting, showTo, ...) are identical across locale rows of the same document, so any row can supply them.
+    // Whatever is left after the localized fields (dates, showDelay, showTo, ...) is expected to be
+    // identical across locale rows of the same document, so any row can supply it. Anything an
+    // editor can vary per locale must be listed in LOCALIZED_FIELDS instead — otherwise the first
+    // row silently wins and the other locale's value is dropped.
     const sharedFields = omit(rows[0], [...localizedFields, "locale"]);
     return { ...sharedFields, byLocale, locales: rows.map((row) => row.locale) };
   });

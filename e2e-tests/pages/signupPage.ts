@@ -1,26 +1,28 @@
 import { Page, expect } from "@playwright/test"
 import { LANGUAGES } from "../globals"
 import { HelperBase } from "./helperBase"
+import { clickContinueWithEmail } from "../utils"
 
 export class SignUpPage extends HelperBase{
     constructor(page: Page, language: string){
         super(page, language)
     }
 
-    // This class will be good to validate error messages associated with sign-up
-    async fillNewUser(email: string, password: string, firstName: string, lastName: string, isEducator: boolean){
-        await this.page.getByRole('textbox', {name: 'Email'}).fill(email)
-        await this.page.getByRole('textbox', {name: 'Password'}).fill(password)
-        await this.page.getByRole('textbox', {name: 'First Name'}).fill(firstName)
-        await this.page.getByRole('textbox', {name: 'Last Name'}).fill(lastName)
+    // /register lands on AuthPage's ChooseView before the RegisterView form
+    // exists — see clickContinueWithEmail in utils.ts (shared with LoginPage).
+    async clickContinueWithEmail() {
+        await clickContinueWithEmail(this.page, this.language);
+    }
 
-        if(isEducator){
-            if(this.language == LANGUAGES.HE){
-                await this.page.getByRole('checkbox', {name: 'אני מחנך/ מחנכת'}).check()
-            }
-            else{
-                await this.page.getByRole('checkbox', {name: 'I am an educator'}).check()
-            }
-        }
+    // This class will be good to validate error messages associated with sign-up.
+    // RegisterView (static/js/auth/RegisterView.jsx) has no educator checkbox.
+    async fillNewUser(email: string, password: string, firstName: string, lastName: string){
+        const labels = this.language === LANGUAGES.HE
+            ? { email: 'דוא״ל', password: 'סיסמה', first: 'שם פרטי', last: 'שם משפחה' }
+            : { email: 'Email Address', password: 'Password', first: 'First Name', last: 'Last Name' };
+        await this.page.getByLabel(labels.email).fill(email)
+        await this.page.getByLabel(labels.password).fill(password)
+        await this.page.getByLabel(labels.first).fill(firstName)
+        await this.page.getByLabel(labels.last).fill(lastName)
     }
 }

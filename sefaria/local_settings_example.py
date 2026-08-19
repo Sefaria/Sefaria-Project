@@ -179,6 +179,9 @@ SEARCH_URL = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'
+SEARCH_INDEX_NAME_TOPIC = 'topic'  # topics and authors (authors are a subtype of topic) - powers /api/entity-search
+SEARCH_INDEX_NAME_BOOK = 'book'  # Index (book) records - powers /api/entity-search
+SEARCH_INDEX_NAME_CATEGORY = 'category'  # searchable TOC categories - powers category results on the Books tab
 
 # Node Server
 USE_NODE = False
@@ -253,6 +256,14 @@ GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = ""
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
 GPU_SERVER_URL = 'http://localhost:5000'
+
+# SSO (Google + Apple Sign In via django-allauth)
+GOOGLE_SSO_CLIENT_ID = ""
+APPLE_SSO_CLIENT_ID = "org.sefaria.web.signin"
+APPLE_SSO_IOS_BUNDLE_ID = "org.sefaria.sefariaApp"
+APPLE_SSO_TEAM_ID = ""
+APPLE_SSO_KEY_ID = ""
+APPLE_SSO_PRIVATE_KEY = ""
 
 # Simple JWT
 SIMPLE_JWT = {
