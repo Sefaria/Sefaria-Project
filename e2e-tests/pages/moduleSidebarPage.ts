@@ -227,7 +227,11 @@ export class ModuleSidebarPage extends HelperBase {
    */
   async verifyStandardFooterLinks() {
     const specs: FooterLinkSpec[] = [
-      { name: 'About', href: /\w*\.org/, opensNewTab: false },
+      // Library links About internally (`/about`); Voices links it out to the
+      // Library host (bd4632c27, "Redirect about-sidebar pages from voices to
+      // sefaria.org"). Accept both — the previous `/\w*\.org/` only matched the
+      // absolute Voices form and fails on Library, where the href is a path.
+      { name: 'About', href: /^\/about$|\w+\.org\/about/, opensNewTab: false },
       { name: 'Help', href: /help\.\w*\.org/, opensNewTab: true },
       { name: 'Contact Us', href: /^mailto:/, isMailto: true, opensNewTab: true },
       { name: 'Newsletter', href: /newsletter/, opensNewTab: false },

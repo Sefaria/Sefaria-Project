@@ -23,7 +23,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     const pm = new PageManager(page, LANGUAGES.EN);
 
     // Verify initially not logged in
-    expect(await isUserLoggedIn(page)).toBe(false);
+    await expect.poll(() => isUserLoggedIn(page), { timeout: t(30000) }).toBe(false);
 
     // Navigate to login page
     await openHeaderDropdown(page, 'user');
@@ -42,7 +42,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await profilePic.waitFor({ state: 'visible', timeout: t(10000) });
 
     // Verify user is logged in
-    expect(await isUserLoggedIn(page)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(page), { timeout: t(30000) }).toBe(true);
 
     // Verify still on Library
     expect(page.url()).toContain(MODULE_URLS.EN.LIBRARY);
@@ -62,7 +62,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enUser);
 
     // Verify logged in on Library
-    expect(await isUserLoggedIn(page)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(page), { timeout: t(30000) }).toBe(true);
 
     // Switch to Voices using module switcher
     await openHeaderDropdown(page, 'module');
@@ -76,7 +76,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     expect(voicesPage!.url()).toContain(MODULE_URLS.EN.VOICES);
 
     // Verify logged in on Voices
-    expect(await isUserLoggedIn(voicesPage!)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(voicesPage!), { timeout: t(30000) }).toBe(true);
 
     // Verify header shows logged in state
     const profileImg = voicesPage!.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
@@ -95,7 +95,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
 
     // Verify logged in on Voices
-    expect(await isUserLoggedIn(page)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(page), { timeout: t(30000) }).toBe(true);
 
     // Switch to Library using module switcher
     await openHeaderDropdown(page, 'module');
@@ -109,7 +109,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     expect(libraryPage!.url()).toContain(MODULE_URLS.EN.LIBRARY);
 
     // Verify logged in on Library
-    expect(await isUserLoggedIn(libraryPage!)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(libraryPage!), { timeout: t(30000) }).toBe(true);
 
     // Verify header shows logged in state
     const profileImg = libraryPage!.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
@@ -123,7 +123,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await libraryPage!.close();
   });
 
-  test('XMOD-L04: Multiple Library tabs - attempt login on second tab shows error', async ({ context }) => {
+  test('XMOD-L04: Multiple Library tabs - /login on the second tab redirects an already-authenticated user home', async ({ context }) => {
     // XMOD-L04: Multiple Library tabs
     // Open first Library tab (not logged in)
     const libraryTab1 = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
@@ -134,8 +134,8 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await hideAllModalsAndPopups(libraryTab2);
 
     // Verify both tabs not logged in
-    expect(await isUserLoggedIn(libraryTab1)).toBe(false);
-    expect(await isUserLoggedIn(libraryTab2)).toBe(false);
+    await expect.poll(() => isUserLoggedIn(libraryTab1), { timeout: t(30000) }).toBe(false);
+    await expect.poll(() => isUserLoggedIn(libraryTab2), { timeout: t(30000) }).toBe(false);
 
     // Log in on first tab
     await openHeaderDropdown(libraryTab1, 'user');
@@ -145,21 +145,29 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await libraryTab1.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(libraryTab1);
 
-    // Verify first tab is logged in
-    expect(await isUserLoggedIn(libraryTab1)).toBe(true);
+    // Verify first tab is logged in. AuthPage submits with fetch and swaps the
+    // view in place, so there is no navigation for loginAs to await — a
+    // one-shot read can land before the header re-renders.
+    await expect.poll(() => isUserLoggedIn(libraryTab1), { timeout: t(30000) }).toBe(true);
 
     // Try to navigate to login on second tab
     await libraryTab2.goto(`${MODULE_URLS.EN.LIBRARY}/login?next=%2Ftexts`);
     await libraryTab2.waitForLoadState('domcontentloaded');
 
-    // Verify error message appears
-    const errorText = libraryTab2.locator('text=/You are already logged in as/i');
-    await expect(errorText).toBeVisible({ timeout: t(10000) });
+    // A logged-in GET to /login no longer renders the old Django template's
+    // "You are already logged in as <user>" notice — that template was removed
+    // with the SSO work. CustomLoginView.get (sefaria/views.py) now redirects an
+    // authenticated request straight to "/" (the ?next= param is not honoured on
+    // that branch); the Library module then serves its home at /texts. Assert we
+    // left /login, stayed in-module, and kept the session — not an exact path.
+    await expect(libraryTab2).not.toHaveURL(/\/login/, { timeout: t(10000) });
+    expect(libraryTab2.url().startsWith(MODULE_URLS.EN.LIBRARY)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(libraryTab2), { timeout: t(30000) }).toBe(true);
 
     await libraryTab1.close();
     await libraryTab2.close();
   });
-  test('XMOD-L05: Multiple Voices tabs - attempt login on second tab shows error', async ({ context }) => {
+  test('XMOD-L05: Multiple Voices tabs - /login on the second tab redirects an already-authenticated user home', async ({ context }) => {
     // XMOD-L05: Multiple Voices tabs
     // Open first Voices tab (not logged in)
     const voicesTab1 = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
@@ -170,8 +178,8 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await hideAllModalsAndPopups(voicesTab2);
 
     // Verify both tabs not logged in
-    expect(await isUserLoggedIn(voicesTab1)).toBe(false);
-    expect(await isUserLoggedIn(voicesTab2)).toBe(false);
+    await expect.poll(() => isUserLoggedIn(voicesTab1), { timeout: t(30000) }).toBe(false);
+    await expect.poll(() => isUserLoggedIn(voicesTab2), { timeout: t(30000) }).toBe(false);
 
     // Log in on first tab
     await openHeaderDropdown(voicesTab1, 'user');
@@ -181,16 +189,18 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await voicesTab1.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(voicesTab1);
 
-    // Verify first tab is logged in
-    expect(await isUserLoggedIn(voicesTab1)).toBe(true);
+    // See XMOD-L04 — poll rather than read once.
+    await expect.poll(() => isUserLoggedIn(voicesTab1), { timeout: t(30000) }).toBe(true);
 
     // Try to navigate to login on second tab
     await voicesTab2.goto(`${MODULE_URLS.EN.VOICES}/login?next=%2F`);
     await voicesTab2.waitForLoadState('domcontentloaded');
 
-    // Verify error message appears
-    const errorTextVoices = voicesTab2.locator('text=/You are already logged in as/i');
-    await expect(errorTextVoices).toBeVisible({ timeout: t(10000) });
+    // See XMOD-L04: an authenticated /login GET redirects to "/" instead of
+    // rendering the removed "already logged in" notice.
+    await expect(voicesTab2).not.toHaveURL(/\/login/, { timeout: t(10000) });
+    expect(voicesTab2.url().startsWith(MODULE_URLS.EN.VOICES)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(voicesTab2), { timeout: t(30000) }).toBe(true);
 
     await voicesTab1.close();
     await voicesTab2.close();
@@ -207,8 +217,8 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await hideAllModalsAndPopups(voicesTab);
 
     // Verify both tabs not logged in
-    expect(await isUserLoggedIn(libraryTab)).toBe(false);
-    expect(await isUserLoggedIn(voicesTab)).toBe(false);
+    await expect.poll(() => isUserLoggedIn(libraryTab), { timeout: t(30000) }).toBe(false);
+    await expect.poll(() => isUserLoggedIn(voicesTab), { timeout: t(30000) }).toBe(false);
 
     // Log in on Library tab
     await openHeaderDropdown(libraryTab, 'user');
@@ -222,16 +232,19 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await libraryTab.locator('.header .profile-pic').waitFor({ state: 'visible', timeout: t(10000) });
 
     // Verify Library tab is logged in
-    expect(await isUserLoggedIn(libraryTab)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(libraryTab), { timeout: t(30000) }).toBe(true);
 
     // Try to navigate to login on Voices tab
     await voicesTab.goto(`${MODULE_URLS.EN.VOICES}/login?next=%2F`);
     await voicesTab.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(voicesTab);
 
-    // Verify error message appears
-    const errorText1 = voicesTab.locator('text=/You are already logged in as/i');
-    await expect(errorText1).toBeVisible({ timeout: t(10000) });
+    // See XMOD-L04: an authenticated /login GET redirects to "/" instead of
+    // rendering the removed "already logged in" notice. The session was
+    // established on Library and must carry across to the Voices subdomain.
+    await expect(voicesTab).not.toHaveURL(/\/login/, { timeout: t(10000) });
+    expect(voicesTab.url().startsWith(MODULE_URLS.EN.VOICES)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(voicesTab), { timeout: t(30000) }).toBe(true);
 
     await libraryTab.close();
     await voicesTab.close();
@@ -247,8 +260,8 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     const voicesTab2 = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
 
     // Verify both tabs not logged in
-    expect(await isUserLoggedIn(libraryTab2)).toBe(false);
-    expect(await isUserLoggedIn(voicesTab2)).toBe(false);
+    await expect.poll(() => isUserLoggedIn(libraryTab2), { timeout: t(30000) }).toBe(false);
+    await expect.poll(() => isUserLoggedIn(voicesTab2), { timeout: t(30000) }).toBe(false);
 
     // Log in on Voices tab
     await openHeaderDropdown(voicesTab2, 'user');
@@ -262,16 +275,19 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await hideAllModalsAndPopups(voicesTab2);
 
     // Verify Voices tab is logged in
-    expect(await isUserLoggedIn(voicesTab2)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(voicesTab2), { timeout: t(30000) }).toBe(true);
 
     // Try to navigate to login on Library tab
     await libraryTab2.goto(`${MODULE_URLS.EN.LIBRARY}/login?next=%2Ftexts`);
     await libraryTab2.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(libraryTab2);
 
-    // Verify error message appears
-    const errorText2 = libraryTab2.locator('text=/You are already logged in as/i');
-    await expect(errorText2).toBeVisible({ timeout: t(10000) });
+    // See XMOD-L04: an authenticated /login GET redirects to "/" instead of
+    // rendering the removed "already logged in" notice. The session was
+    // established on Voices and must carry across to the Library subdomain.
+    await expect(libraryTab2).not.toHaveURL(/\/login/, { timeout: t(10000) });
+    expect(libraryTab2.url().startsWith(MODULE_URLS.EN.LIBRARY)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(libraryTab2), { timeout: t(30000) }).toBe(true);
 
     await libraryTab2.close();
     await voicesTab2.close();
@@ -282,7 +298,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     const page = await goToPageWithUser(context, `${MODULE_URLS.EN.LIBRARY}/texts`, BROWSER_SETTINGS.enUser);
 
     // Verify logged in on Library
-    expect(await isUserLoggedIn(page)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(page), { timeout: t(30000) }).toBe(true);
 
     // Navigate to a sheet link (simulating external navigation like from Google)
     // Using a known public sheet
@@ -295,7 +311,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     expect(page.url()).toContain('/sheets/');
 
     // Verify user is still logged in on Voices
-    expect(await isUserLoggedIn(page)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(page), { timeout: t(30000) }).toBe(true);
 
     // Verify Voices logo is visible
     const voicesLogo = page.locator(MODULE_SELECTORS.LOGO.VOICES);
@@ -311,7 +327,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
 
     // Verify logged in on Voices
-    expect(await isUserLoggedIn(page)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(page), { timeout: t(30000) }).toBe(true);
 
     // Navigate to a text link (simulating external navigation like from Google)
     // Using a known text
@@ -324,7 +340,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     expect(page.url()).toContain('Genesis');
 
     // Verify user is still logged in on Library
-    expect(await isUserLoggedIn(page)).toBe(true);
+    await expect.poll(() => isUserLoggedIn(page), { timeout: t(30000) }).toBe(true);
 
     // Verify Library logo is visible
     const libraryLogo = page.locator(MODULE_SELECTORS.LOGO.LIBRARY);

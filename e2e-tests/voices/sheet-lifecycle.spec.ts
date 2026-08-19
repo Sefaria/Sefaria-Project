@@ -19,6 +19,10 @@ let sheetUrl: string;
 let sheetTitle: string;
 // Test is serial because it relies on shared state (the sheet created in the first test)
 test.describe.serial('Sheet Lifecycle', { tag: '@sanity' }, () => {
+  // Every step here round-trips to the sandbox (create, save, ref lookup,
+  // publish), and the suite runs alongside nine other projects at full
+  // parallelism. Triple the per-test budget instead of capping workers.
+  test.slow();
 
   // =================================================================
   // TEST 1: Login and Create Sheet
@@ -62,8 +66,13 @@ test.describe.serial('Sheet Lifecycle', { tag: '@sanity' }, () => {
     await page.keyboard.press('Enter');
     await page.waitForTimeout(t(2000)); // Extra wait for auto-save
 
+    // Typing a bare ref makes the editor round-trip to the server to resolve it
+    // before it can replace the text node with a `.sheetItem` source. Under full
+    // parallelism the sandbox queues that lookup well past the 10s default
+    // expect timeout, so give it room rather than capping workers
+    // (e2e-tests/CLAUDE.md rule §2.20).
     const genesisSource = sheetEditorPage.addedSource().filter({ hasText: "Genesis 1:3" }).first();
-    await expect(genesisSource).toBeVisible();
+    await expect(genesisSource).toBeVisible({ timeout: t(40000) });
   });
 
   // =================================================================
@@ -82,8 +91,9 @@ test.describe.serial('Sheet Lifecycle', { tag: '@sanity' }, () => {
     await sheetEditorPage.addSampleSource(); // Genesis 1:1
     await page.waitForTimeout(t(2000)); // Extra wait for auto-save
 
+    // Same server-side ref resolution as SHT-002 — see the note there.
     const genesisSource = sheetEditorPage.addedSource().filter({ hasText: "Genesis 1:1" }).first();
-    await expect(genesisSource).toBeVisible();
+    await expect(genesisSource).toBeVisible({ timeout: t(40000) });
   });
 
   // =================================================================

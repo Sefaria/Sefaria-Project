@@ -22,6 +22,26 @@ function creds(emailVar: string, passwordVar: string): Credentials {
   };
 }
 
+// SANDBOX_URL may be written with or without a `www.` prefix (both forms appear
+// in e2e-tests/.env and example.env). The apex host 301-redirects to `www.` —
+// `https://sefariastaging.org/login` -> `https://www.sefariastaging.org/login` —
+// so logging in against the raw value tripped the off-domain guard below and
+// took down every authenticated suite. playwright.config.ts already normalizes
+// the same way when it builds MODULE_URLS (strip `www.`, then re-prefix it), so
+// mirror that here: log in on exactly the host the tests will run against.
+function canonicalSiteURL(rawURL: string): string {
+  const url = new URL(rawURL);
+  url.hostname = 'www.' + url.hostname.replace(/^www\./, '');
+  return url.origin;
+}
+
+// True when two hostnames differ only by a leading `www.` — i.e. the same site,
+// not the geo-redirect (.org -> .org.il) this guard exists to catch.
+function sameSiteHost(a: string, b: string): boolean {
+  const strip = (h: string) => h.replace(/^www\./, '');
+  return strip(a) === strip(b);
+}
+
 // Group profiles by unique account. We log each account in once and stamp out
 // its storage-state variants from the same captured cookie set; one login per
 // account keeps setup fast. EN/HE variants of the standard user & admin differ
@@ -86,7 +106,7 @@ async function loginAndCaptureState(baseURL: string, credentials: Credentials) {
 
     // If geo still redirected us off-domain, fail loudly here rather than
     // time out later waiting for the email/password form.
-    if (new URL(page.url()).hostname !== baseHost) {
+    if (!sameSiteHost(new URL(page.url()).hostname, baseHost)) {
       throw new Error(
         `[global-setup] /login redirected from ${baseHost} to ${new URL(page.url()).hostname}. ` +
         `Check that the interfaceLang cookie applied correctly on the parent domain.`
@@ -155,7 +175,7 @@ async function loginAndCaptureStateIL(baseURL: string, credentials: Credentials)
     const loginPage = new LoginPage(page, LANGUAGES.HE);
     await loginPage.clickContinueWithEmail();
 
-    if (new URL(page.url()).hostname !== baseHost) {
+    if (!sameSiteHost(new URL(page.url()).hostname, baseHost)) {
       throw new Error(
         `[global-setup] IL /login redirected from ${baseHost} to ${new URL(page.url()).hostname}. ` +
         `Check that the interfaceLang cookie applied on the parent domain.`
@@ -174,7 +194,7 @@ async function loginAndCaptureStateIL(baseURL: string, credentials: Credentials)
         .waitFor({ state: 'visible', timeout: t(30000) });
     } catch {
       const landedHost = new URL(page.url()).hostname;
-      if (landedHost !== baseHost) {
+      if (!sameSiteHost(landedHost, baseHost)) {
         throw new Error(
           `IL login on ${baseHost} did not reach a logged-in state — after submitting the form ` +
           `the browser landed on ${landedHost} (URL: ${page.url()}). This is Sefaria's MDL ` +
@@ -221,8 +241,8 @@ function stampVariant(baseState: any, profile: Profile) {
 }
 
 export default async function globalSetup(_config: FullConfig) {
-  const baseURL = process.env.SANDBOX_URL || 'https://www.sefaria.org';
-  const baseURLIL = process.env.SANDBOX_URL_IL || 'https://www.sefaria.org.il';
+  const baseURL = canonicalSiteURL(process.env.SANDBOX_URL || 'https://www.sefaria.org');
+  const baseURLIL = canonicalSiteURL(process.env.SANDBOX_URL_IL || 'https://www.sefaria.org.il');
 
   // Wipe stale auth files exactly once. Workers will only read from this
   // point forward — no race between worker processes, no in-flight login.
@@ -257,9 +277,21 @@ export default async function globalSetup(_config: FullConfig) {
     console.log(`[global-setup] Logging in ${label} (${credentials.email}) on ${loginURL}`);
 
     try {
-      const baseState = group.site === 'IL'
-        ? await loginAndCaptureStateIL(loginURL, credentials)
-        : await loginAndCaptureState(loginURL, credentials);
+      // One retry. A single slow /login render (the sandbox occasionally takes
+      // >15s to hydrate AuthPage) otherwise takes down every authenticated suite
+      // for the whole run, since a failed group writes no auth file at all.
+      const capture = () => (group.site === 'IL'
+        ? loginAndCaptureStateIL(loginURL, credentials)
+        : loginAndCaptureState(loginURL, credentials));
+      let baseState;
+      try {
+        baseState = await capture();
+      } catch (firstAttemptError: any) {
+        console.warn(
+          `[global-setup] ${label}: first login attempt failed (${firstAttemptError?.message ?? firstAttemptError}) — retrying once.`
+        );
+        baseState = await capture();
+      }
 
       // Validate the captured session BEFORE writing anything — never persist a
       // logged-out auth file, which would fail tests confusingly downstream.

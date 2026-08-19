@@ -105,8 +105,17 @@ test.describe('Search — NoSearchResults null state — entity tabs', () => {
   });
 
   // =================================================================
-  // TEST SRCH-064: Caption has exactly two mailto: links (report bug, contact us)
-  // NoSearchResults.jsx:33 — renderCaption splits on [report_bug] / [contact_us]
+  // TEST SRCH-064: Caption has a report-bug link and a contact-us link
+  // NoSearchResults.jsx renderCaption() splits `search.null.caption` on
+  // {bug} / {contact} and hrefs them from `search.null.caption.bug.link` and
+  // `search.null.caption.contact_us.href`.
+  //
+  // Only the *contact* link is a mailto. The bug link points at Sefaria's
+  // Formstack bug-report form (en.json `search.null.caption.bug.link` =
+  // https://sefaria.formstack.com/forms/bug_report; he.json points at
+  // .../hebrew_bugs). The two-mailto expectation this test used to carry was
+  // written against the unused `search.null.caption.report_bug.href` key,
+  // which renderCaption never reads.
   // =================================================================
   test('SRCH-064: Null state caption has report-bug and contact-us links', async () => {
     await pm.onSearchPage().selectTab('books');
@@ -114,7 +123,7 @@ test.describe('Search — NoSearchResults null state — entity tabs', () => {
 
     const hrefs = await pm.onSearchPage().nullStateCaptionLinkHrefs();
     expect(hrefs).toHaveLength(2);
-    expect(hrefs[0]).toMatch(/^mailto:/);
+    expect(hrefs[0]).toMatch(/formstack\.com\/forms\/(bug_report|hebrew_bugs)/);
     expect(hrefs[1]).toMatch(/^mailto:/);
   });
 });

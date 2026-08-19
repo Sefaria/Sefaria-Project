@@ -1,6 +1,7 @@
 import { expect, Page } from '@playwright/test';
 import { HelperBase } from './helperBase';
 import { hideAllModalsAndPopups, changeLanguage } from '../utils';
+import { LoginPage } from './loginPage';
 import { LANGUAGES, t } from '../globals';
 import {
   MODULE_SELECTORS,
@@ -154,11 +155,22 @@ export class ModuleHeaderPage extends HelperBase {
     // Ensure any overlays are dismissed on the login page before interacting with the form
     await hideAllModalsAndPopups(this.page);
 
-    await this.page.getByPlaceholder('Email Address').fill(credentials.email);
-    await this.page.getByPlaceholder('Password').fill(credentials.password);
-    await this.page.getByRole('button', { name: 'Login' }).click();
+    // /login is now AuthPage (static/js/auth/AuthPage.jsx): it lands on
+    // ChooseView — provider buttons plus "Continue with Email" — and the
+    // email/password form only mounts after that click. The fields are also
+    // label-bound now, not placeholder-bound, and the submit button reads
+    // "Log in", not "Login". Delegate to LoginPage so this flow is described in
+    // exactly one place instead of drifting again the next time auth changes.
+    await new LoginPage(this.page, this.language).loginAs(credentials);
 
-    await this.page.waitForLoadState('domcontentloaded');
+    // AuthPage submits the credentials with fetch and swaps the view in place,
+    // so there is no navigation to wait on — `domcontentloaded` resolves while
+    // the request is still in flight and callers would read a logged-out
+    // header. Wait on the authenticated-state oracle instead (the same one
+    // global-setup.ts uses): the logged-out profile icon disappears from the
+    // header only once the session is live.
+    await expect(this.page.locator(MODULE_SELECTORS.HEADER.USER_MENU_ICON_LOGGED_OUT))
+      .toHaveCount(0, { timeout: t(30000) });
   }
 
   async isLoggedIn(): Promise<boolean> {

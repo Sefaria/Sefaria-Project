@@ -81,6 +81,11 @@ export const BROWSER_SETTINGS = {
         file: AUTH_PATHS.enLAUserFile,
         lang: LANGUAGES.EN,
         user: testLAUser,
+        // The only profiles that keep `<lc-chatbot>` clickable: every other
+        // profile has it neutralised by installOverlaySuppression so the
+        // floating widget can't intercept clicks meant for the page (see
+        // utils.ts layer 1d).
+        isLAUser: true,
         // Account is Django staff → the LA More-options menu shows the extra
         // "Settings" item (the chatbot's `is-moderator` branch).
         isModerator: true,
@@ -91,6 +96,8 @@ export const BROWSER_SETTINGS = {
         lang: LANGUAGES.HE,
         user: testHeLAUser,
         site: 'IL' as const,
+        // See enLAUser above.
+        isLAUser: true,
         // Set to match the account's Django staff status. qa+automationLAHebrew is
         // now staff, so the LA More-options menu renders the extra "Settings" item
         // first (5 items total, like enLAUser) — the chatbot's `is-moderator` branch.

@@ -104,9 +104,18 @@ export class SheetEditorPage extends HelperBase {
   resourcePanelCloseButton = () => this.page.locator('#panel-1').getByRole('link', { name: 'Close' });
 
   addSomethingButton = () => this.page.locator('.editorAddInterface');
-  addSourceButton = () => this.page.locator('#addSourceButton');
-  addImageButton = () => this.page.locator('#addImageButton');
-  addMediaButton = () => this.page.locator('#addMediaButton');
+  /**
+   * A sheet can hold more than one `.editorAddInterface` (one per empty
+   * spacer), and Editor.jsx gives every one of them the SAME ids —
+   * `#addSourceButton` / `#addImageButton` / `#addMediaButton` /
+   * `#addImageFileSelector`. Matching those ids page-wide is a strict-mode
+   * violation as soon as a second spacer exists. Scope every add control to the
+   * add-interface `clickPlusButton` just opened; only one can be `.active`.
+   */
+  private activeAddInterface = () => this.page.locator('.editorAddInterface.active').last();
+  addSourceButton = () => this.activeAddInterface().locator('#addSourceButton');
+  addImageButton = () => this.activeAddInterface().locator('#addImageButton');
+  addMediaButton = () => this.activeAddInterface().locator('#addMediaButton');
 
   optionsButton = () => this.page.getByAltText('Options');
 
@@ -155,30 +164,68 @@ export class SheetEditorPage extends HelperBase {
    * Methods to click buttons and interact with the sheet editor
    */
 
-  async clickPlusButton() {
-    const editorInterface = this.page.locator('.editorAddInterface');
-
-    try {
-      const box = await editorInterface.boundingBox({ timeout: t(2000) });
-      if (box) {
-        await this.page.mouse.click(box.x - 31, box.y + box.height / 2);
-        return;
-      }
-    } catch (error) {
-      // Fallback: position cursor at end and retry
-      await this.page.getByRole('textbox').first().click({ force: true });
-      await this.page.keyboard.press('End');
-
-      try {
-        const box = await editorInterface.boundingBox({ timeout: t(1000) });
-        if (box) {
-          await this.page.mouse.click(box.x - 31, box.y + box.height / 2);
-        }
-      } catch (retryError) {
-        // Create new line if plus button unavailable
-        await this.page.keyboard.press('Enter');
-      }
+  /**
+   * Put the caret on the sheet's trailing empty spacer, which is the only place
+   * the editor renders `.editorAddInterface` (Editor.jsx:1108 — the whole add
+   * interface is a child of the selected empty spacer). Without this, the plus
+   * button simply doesn't exist in the DOM and every downstream click times out.
+   */
+  private async focusTrailingSpacer() {
+    const spacer = this.page.locator('.sheetContent .spacer').last();
+    if (await spacer.count()) {
+      await spacer.click({ force: true }).catch(() => {});
+      return;
     }
+    const editable = this.page.locator('.sheetContent [contenteditable="true"]').last();
+    if (await editable.count()) {
+      await editable.click({ force: true }).catch(() => {});
+      await this.page.keyboard.press('End');
+      await this.page.keyboard.press('Enter');
+    }
+  }
+
+  /**
+   * Open the editor's add-a-source/image/media menu.
+   *
+   * The "+" affordance is not an element — it is `.editorAddInterface::before`
+   * (s2.css:12092), a 30px circle offset `margin-inline-start: -46px` from the
+   * container, so its centre sits ~31px to the container's left. Only the
+   * pseudo-element has `pointer-events: auto`; the container itself is
+   * `pointer-events: none` and clicking it does NOT toggle the menu.
+   *
+   * Two things made the old implementation flaky as sheets grew: it took the
+   * bounding box once and clicked blind without ever checking whether the menu
+   * opened, and it assumed `.editorAddInterface` was in the DOM at all — which
+   * only holds while the caret is on an empty spacer. Callers that navigate with
+   * a fixed number of ArrowDown presses drift off that spacer once earlier tests
+   * have added content. Poll instead: park the caret, click the pseudo-element,
+   * confirm `.active`.
+   *
+   * Note: the -31px offset is LTR-specific (margin-inline-start flips under RTL).
+   * All current callers drive the English editor.
+   */
+  async clickPlusButton() {
+    // `.hidden` kills the ::before entirely (s2.css:12162) — such a node can
+    // never be opened, so never target one.
+    const addInterface = this.page.locator('.editorAddInterface:not(.hidden)').last();
+    const isActive = () =>
+      addInterface.evaluate((el) => el.classList.contains('active')).catch(() => false);
+
+    if ((await addInterface.count()) > 0 && (await isActive())) return;
+
+    await expect
+      .poll(async () => {
+        if ((await addInterface.count()) === 0) {
+          await this.focusTrailingSpacer();
+          return false;
+        }
+        await addInterface.scrollIntoViewIfNeeded().catch(() => {});
+        const box = await addInterface.boundingBox();
+        if (!box) return false;
+        await this.page.mouse.click(box.x - 31, box.y + box.height / 2);
+        return await isActive();
+      }, { timeout: t(30000), intervals: [400] })
+      .toBe(true);
   }
 
   async clickAddSomething() {
@@ -243,7 +290,7 @@ export class SheetEditorPage extends HelperBase {
   async addSampleImage() {
     await this.clickAddImage();
     const imagePath = 'e2e-tests/fixtures/test-image.jpg';
-    const fileInput = this.page.locator('#addImageFileSelector');
+    const fileInput = this.activeAddInterface().locator('#addImageFileSelector');
     await fileInput.setInputFiles(imagePath);
     // Wait for the image to be added to the sheet
     await expect(this.addedImage()).toBeVisible({ timeout: t(10000) });

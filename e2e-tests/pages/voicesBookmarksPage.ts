@@ -229,7 +229,26 @@ export class VoicesBookmarksPage extends HelperBase {
 
   /** Wait until /saved or /history rendered either its list or empty-state message. */
   async waitForSavedRendered(): Promise<void> {
-    await expect(this.savedList.or(this.savedEmptyMessage)).toBeVisible({ timeout: t(15000) });
+    // Both /saved and /history embed their first page of rows in SERVER-RENDERED
+    // props (`last_place` / history), and that render is cached server-side (see
+    // the `last_cached` field in the page props). Right after a test seeds a
+    // history row, the first request can therefore be answered from a cache
+    // built before the seed. If that stale payload still contains a row with no
+    // `ownerName`, SheetBlock -> ProfilePic throws on `name.trim()`, React
+    // unmounts with no error boundary, and the whole page renders blank — so
+    // neither the list nor the empty-state message ever appears.
+    //
+    // One bounded reload lets the cache catch up. If the page is blank a second
+    // time the failure is real, and the assertion below reports it.
+    const rendered = this.savedList.or(this.savedEmptyMessage);
+    try {
+      await expect(rendered).toBeVisible({ timeout: t(15000) });
+      return;
+    } catch {
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      await hideAllModalsAndPopups(this.page);
+    }
+    await expect(rendered).toBeVisible({ timeout: t(15000) });
   }
 
   /** Assert the Saved/History nav tabs render on the /saved page. */
@@ -360,12 +379,34 @@ export class VoicesBookmarksPage extends HelperBase {
   async seedSheetHistory(sheetId: number): Promise<void> {
     await this.page.evaluate(async (id) => {
       const S = (window as any).Sefaria;
+      // Post the SAME shape the reader does. `Sefaria.saveUserHistory`
+      // (sefaria.js:2836) documents a history item as `ref`, `book`, `versions`,
+      // `sheet_title`, `sheet_owner`. Seeding a bare `{ref, versions,
+      // time_stamp}` made the server store the row with `sheet_owner: ""` /
+      // `sheet_title: ""`, and that degenerate row is then embedded in the
+      // SERVER-RENDERED `last_place` props for /history and /saved — where
+      // SheetBlock -> ProfilePic does `name.trim()` on an undefined ownerName,
+      // throws, and (with no error boundary) blanks the entire page. The row
+      // persists on the shared QA account, so one seeded run broke /history for
+      // every later run, and `sanitizeHistoryResponses` cannot help: it patches
+      // the fetched `/api/profile/user_history` responses, and this row never
+      // goes through that fetch.
+      const meta = await fetch(`${S.apiHost}/api/sheets/${id}?more_data=1`)
+        .then((r) => r.json())
+        .catch(() => ({}));
       await new Promise((resolve) => {
         (window as any).$.post(
           S.apiHost + '/api/profile/sync?no_return=1&annotate=1',
           {
             user_history: JSON.stringify([
-              { ref: `Sheet ${id}`, versions: {}, time_stamp: Math.floor(Date.now() / 1000) },
+              {
+                ref: `Sheet ${id}`,
+                book: 'Sheet',
+                versions: {},
+                sheet_title: meta?.title ?? '',
+                sheet_owner: meta?.ownerName ?? '',
+                time_stamp: Math.floor(Date.now() / 1000),
+              },
             ]),
             client: 'web',
           },
@@ -401,18 +442,27 @@ export class VoicesBookmarksPage extends HelperBase {
     if (this.historySanitized) return;
     this.historySanitized = true;
     await this.page.route('**/api/profile/user_history**', async (route) => {
-      const response = await route.fetch();
-      let body: unknown;
+      // An in-flight request can outlive the test: when the page closes while
+      // this handler is awaiting, `route.fetch` / `route.fulfill` reject with
+      // "Target page, context or browser has been closed" and Playwright
+      // surfaces that as a test failure. Nothing is left to sanitize at that
+      // point, so swallow it.
       try {
-        body = await response.json();
+        const response = await route.fetch();
+        let body: unknown;
+        try {
+          body = await response.json();
+        } catch {
+          await route.fulfill({ response });
+          return;
+        }
+        const sanitized = Array.isArray(body)
+          ? body.filter((item: any) => !(item?.is_sheet && !item?.ownerName))
+          : body;
+        await route.fulfill({ response, json: sanitized });
       } catch {
-        await route.fulfill({ response });
-        return;
+        /* page closed mid-flight — nothing to do */
       }
-      const sanitized = Array.isArray(body)
-        ? body.filter((item: any) => !(item?.is_sheet && !item?.ownerName))
-        : body;
-      await route.fulfill({ response, json: sanitized });
     });
   }
 

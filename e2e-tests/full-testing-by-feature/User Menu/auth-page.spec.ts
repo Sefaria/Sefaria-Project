@@ -75,7 +75,12 @@ test.describe('Auth Page', () => {
     await pm.onLoginPage().loginAs(testUser);
 
     await hideAllModalsAndPopups(page);
-    expect(await pm.onModuleHeader().isLoggedIn()).toBe(true);
+    // AuthPage posts the credentials with fetch and swaps the view in place —
+    // there is no navigation for loginAs to await, so a single synchronous
+    // isLoggedIn() read can land before the header re-renders. Poll instead.
+    await expect
+      .poll(() => pm.onModuleHeader().isLoggedIn(), { timeout: t(30000) })
+      .toBe(true);
   });
 
   test('UMN-A05: Register form required-field validation sets on blur, clears on typing', async () => {
@@ -83,13 +88,22 @@ test.describe('Auth Page', () => {
     await selectDropdownOption(page, 'Sign up');
     await pm.onSignUpPage().clickContinueWithEmail();
 
+    // Scope both assertions to the EMAIL field's own error slot
+    // (Input.jsx renders `.sefaria-input-error` inside the field's
+    // `.sefaria-input` wrapper). A page-wide `getByText('Required field')`
+    // count is wrong here: tabbing out of Email moves focus to Password, so
+    // the later `fill()` on Email blurs Password and legitimately raises
+    // Password's own required error. The email error does clear on typing —
+    // verified against RegisterView.jsx's `onChangeClear` wiring.
+    const emailError = page.locator('.sefaria-input:has(input[name="email"]) .sefaria-input-error');
     const emailField = page.getByLabel('Email Address');
     await emailField.click();
     await page.keyboard.press('Tab'); // blur without typing anything
-    await expect(page.getByText('Required field')).toBeVisible({ timeout: t(5000) });
+    await expect(emailError).toBeVisible({ timeout: t(5000) });
+    await expect(emailError).toHaveText(/Required field/);
 
     await emailField.fill('a@test.com');
-    await expect(page.getByText('Required field')).toHaveCount(0, { timeout: t(5000) });
+    await expect(emailError).toHaveCount(0, { timeout: t(5000) });
   });
 
   test('UMN-A06: Registering with an already-used email shows the "already exists" error', async () => {
@@ -104,7 +118,12 @@ test.describe('Auth Page', () => {
     await pm.onSignUpPage().fillNewUser(testUser.email, 'Xk7mQ9zLp2!', 'QA', 'Automation');
     await page.getByRole('button', { name: /^Create Account$/i }).click();
 
-    await expect(page.getByRole('alert')).toContainText(/already exists/i, { timeout: t(15000) });
+    // Scope to the auth error banner. The unsolved reCAPTCHA now also renders
+    // its own `.sefaria-captcha-error` alert alongside ErrorBanner's
+    // `.sefaria-auth-error`, so a bare getByRole('alert') is a strict-mode
+    // violation (two matches).
+    await expect(page.locator('.sefaria-auth-error[role="alert"]'))
+      .toContainText(/already exists/i, { timeout: t(15000) });
     await expect(page).toHaveURL(/\/register/);
   });
 

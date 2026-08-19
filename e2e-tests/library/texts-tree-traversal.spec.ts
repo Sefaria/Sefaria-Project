@@ -314,7 +314,10 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', { tag: '@sanity' },
         await page.getByRole('link', { name: 'מילונים וספרי יעץ' }).click();
         await page.getByRole('link', { name: 'סדר הדורות' }).click();
 
-        await page.getByRole('link', { name: 'מחברים' }).click();
+        // The Hebrew title of the Authors schema node is 'אישים' — confirmed
+        // against /api/v2/index/Seder_HaDorot (schema.nodes[].heTitle). The
+        // previous 'מחברים' matches no node on this index.
+        await page.getByRole('link', { name: 'אישים' }).click();
         const item = page.locator('.schema-node-toc').first();
         await item.click();
         await expect(page).toHaveURL(/Seder_HaDorot%2C_Authors/);

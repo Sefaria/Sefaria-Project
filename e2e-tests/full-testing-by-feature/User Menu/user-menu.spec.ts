@@ -59,6 +59,15 @@ test.describe.serial('User Menu', () => {
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
     const pm = new PageManager(page, LANGUAGES.EN);
 
+    // Read the display name off the session rather than hardcoding one. The
+    // name belongs to whichever account PLAYWRIGHT_USER_EMAIL points at, which
+    // differs between CI and local .env files; pinning a literal made this test
+    // assert the fixture, not the feature. `Sefaria.full_name` is
+    // server-injected for the logged-in user (same source the profile header
+    // renders from).
+    const expectedName: string = await page.evaluate(() => (window as any).Sefaria?.full_name);
+    expect(expectedName, 'session should expose the logged-in user\'s full name').toBeTruthy();
+
     // Navigate to profile via user menu
     await openHeaderDropdown(page, 'user');
     await selectDropdownOption(page, 'Profile');
@@ -75,7 +84,7 @@ test.describe.serial('User Menu', () => {
     // Verify profile artifacts
     const profilePage = pm.onProfilePage();
     await profilePage.verifyProfileArtifacts({
-      name: 'QA Automation',
+      name: expectedName,
       hasBio: false,
     });
 
@@ -174,7 +183,12 @@ test.describe.serial('User Menu', () => {
 
     // Verify language changed to Hebrew
     await expect(page.locator('body')).toHaveClass(/interface-hebrew/);
-    await expect(page.getByRole('link', { name: 'מקורות' })).toBeVisible();
+    // Anchor on the href, not the Hebrew label — the /texts nav label is
+    // Weblate-managed and has already moved once (מקורות -> טקסטים on staging).
+    // See the same change in library/header.spec.ts MOD-H005. CLAUDE.md §2.15.
+    const textsLink = page.locator('nav a[href="/texts"]').first();
+    await expect(textsLink).toBeVisible();
+    await expect(textsLink).not.toHaveText('Texts');
 
     // Switch back to English (uses dropdown with cookie fallback)
     await changeLanguage(page, LANGUAGES.EN);

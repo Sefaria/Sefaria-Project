@@ -206,11 +206,19 @@ export const STRING_PAGES: StringsPageSpec[] = [
     // in every environment while local dev sandboxes often index no English.
     name: 'Search results',
     path: `/search?q=${encodeURIComponent('אהבה')}`,
-    anchor: '.result.textResult',
+    // Multi-Entity Search Results (45bf5d34c) replaced the old
+    // `.result.textResult` rows with `SearchResultCard`; the old class no
+    // longer renders anywhere on /search.
+    anchor: '.searchResultCard',
     expectedIds: [
       'search_page.results',                      // renders once totalResults > 0
-      'common.options',                           // TextSearchFilters (desktop sidebar)
-      'search_filters.exact_matches_only',
+      // The old desktop `TextSearchFilters` sidebar ("Options" + "Exact Matches
+      // Only") was replaced by the SearchToggle / SearchSortDropdown chrome in
+      // Multi-Entity Search Results (45bf5d34c); those two keys no longer reach
+      // the page. Assert on the toggle and the entity tabs instead.
+      'search.exact_match_toggle.all_results',    // SearchToggle, left option
+      'search.exact_match_toggle.exact_match',    // SearchToggle, right option
+      'common.topics',                            // entity tab label
     ],
   },
   {

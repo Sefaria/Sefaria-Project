@@ -302,9 +302,13 @@ export const MOBILE_HAMBURGER = {
   // Module-switcher row — selector pattern + the per-row text.
   MODULE_SWITCHER_ANCHOR: 'a.mobileModuleSwitcher',
 
-  // Login/signup wrappers
-  SIGNUP_LINK_CLASS: 'a.login.signupLink',
-  LOGIN_LINK_CLASS: 'a.login.loginLink',
+  // Login/signup links in the mobile drawer's account block. The SSO work
+  // (Header.jsx `LoggedOutButtons` -> `AuthNavLink`) replaced the old
+  // `a.login.signupLink` / `a.login.loginLink` markup with a shared
+  // `a.interfaceLinks-option.dropdownItem` whose only stable, language-invariant
+  // discriminator is its href, so anchor on that.
+  SIGNUP_LINK: '.mobileAccountLinks a[href="/register"]',
+  LOGIN_LINK: '.mobileAccountLinks a[href="/login"]',
 
   // Search dropdown — the open-shadow-pierced selectors already exist as
   // SEARCH_DROPDOWN above; mobile reuses them verbatim. The expected sections

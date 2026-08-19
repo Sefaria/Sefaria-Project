@@ -632,10 +632,18 @@ export class ResourcePanelPage extends HelperBase {
     const x2 = endBox.x + endBox.width / 2;
     const y2 = endBox.y + endBox.height / 2;
 
+    // Firefox will not start a text selection from a mousedown immediately
+    // followed by a large jump — it needs a small initial drag to enter
+    // selection mode, and it collapses the range if mouseup lands in the same
+    // tick as the last move. Chromium tolerates the terse version; the extra
+    // nudge and settle are harmless there.
     await this.page.mouse.move(x1, y1);
     await this.page.mouse.down();
+    await this.page.mouse.move(x1 + 5, y1, { steps: 3 });
     await this.page.mouse.move(x2, y2, { steps: 20 });
+    await this.page.waitForTimeout(t(150));
     await this.page.mouse.up();
+    await this.page.waitForTimeout(t(150));
 
     // Read which segments the resulting selection actually covers (after React
     // dispatched `handleTextSelection`). highlightedRefs is internal to React
@@ -644,14 +652,19 @@ export class ResourcePanelPage extends HelperBase {
     return await this.page.evaluate(() => {
       const refs: string[] = [];
       const sel = window.getSelection();
-      if (sel && sel.rangeCount > 0) {
-        const range = sel.getRangeAt(0);
-        const segments = document.querySelectorAll('.readerPanelBox:not(.sidebar) .segment[data-ref]');
+      if (!sel || sel.rangeCount === 0) return refs;
+      // Firefox models a drag-selection as MULTIPLE ranges (one per block it
+      // crosses); Chromium collapses the same gesture into a single range.
+      // Reading only getRangeAt(0) therefore saw just the first fragment on
+      // Firefox — often not a segment at all — and returned []. Union every
+      // range instead, and de-duplicate since a segment can appear in several.
+      const segments = document.querySelectorAll('.readerPanelBox:not(.sidebar) .segment[data-ref]');
+      for (let i = 0; i < sel.rangeCount; i++) {
+        const range = sel.getRangeAt(i);
         segments.forEach((seg) => {
-          if (range.intersectsNode(seg)) {
-            const r = seg.getAttribute('data-ref');
-            if (r) refs.push(r);
-          }
+          if (!range.intersectsNode(seg)) return;
+          const r = seg.getAttribute('data-ref');
+          if (r && !refs.includes(r)) refs.push(r);
         });
       }
       return refs;

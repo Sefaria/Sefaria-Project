@@ -159,11 +159,11 @@ export class MobileHamburgerPage extends HelperBase {
   }
 
   private get signupLink(): Locator {
-    return this.navMenu.locator(MOBILE_HAMBURGER.SIGNUP_LINK_CLASS);
+    return this.navMenu.locator(MOBILE_HAMBURGER.SIGNUP_LINK);
   }
 
   private get loginLink(): Locator {
-    return this.navMenu.locator(MOBILE_HAMBURGER.LOGIN_LINK_CLASS);
+    return this.navMenu.locator(MOBILE_HAMBURGER.LOGIN_LINK);
   }
 
   /**

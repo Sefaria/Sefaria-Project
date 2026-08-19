@@ -98,7 +98,19 @@ export const fixCookieDomainsForCrossSubdomain = (cookies: Cookie[]): Cookie[] =
  *   call (`addInitScript` is documented as applying to every page in the
  *   context; `route` is registered context-wide).
  */
-export const installOverlaySuppression = async (context: BrowserContext) => {
+export interface OverlaySuppressionOptions {
+  /**
+   * Leave the Library Assistant (`<lc-chatbot>`) clickable. Only the assistant
+   * suite wants this — every other suite needs the floating widget out of the
+   * way. See the `lc-chatbot` note in layer 1d below.
+   */
+  allowLibraryAssistant?: boolean;
+}
+
+export const installOverlaySuppression = async (
+  context: BrowserContext,
+  options: OverlaySuppressionOptions = {},
+) => {
   // Layer 1a: monkey-patch localStorage.getItem for modal_/banner_ keys.
   // Runs before any page script (init scripts execute after document is
   // created but before any other script — Playwright docs).
@@ -145,6 +157,61 @@ export const installOverlaySuppression = async (context: BrowserContext) => {
     { name: 'cookiesNotificationAccepted', value: '1', domain: cookieDomainEN, path: '/' },
     { name: 'cookiesNotificationAccepted', value: '1', domain: cookieDomainIL, path: '/' },
   ]);
+
+  // Layer 1d: neutralise the Library Assistant floating widget for every suite
+  // that isn't testing it. The LA (`<lc-chatbot>`, mounted by ReaderApp) now
+  // ships to ordinary logged-in accounts with `default-open="true"`, so it
+  // renders an always-on floating panel over the right-hand side of the
+  // viewport — exactly where the Resource Panel, the sheet editor toolbar and
+  // the reader's connections column live. Playwright's actionability check then
+  // reports "<lc-chatbot ...> intercepts pointer events" and the click retries
+  // until the test times out.
+  //
+  // We disable hit-testing rather than hiding the element: the LA-NEG-* tests in
+  // assistant/ assert the widget is ABSENT for logged-out users and on Voices,
+  // and `display: none` would make those assertions pass vacuously. The host is
+  // still in the DOM and still reports its real visibility; it just stops
+  // swallowing clicks meant for the page underneath.
+  // Layer 1e: keep Google One Tap out of the way. `GoogleOneTap.jsx` (added
+  // with the SSO work) loads Google's GSI client, which injects a fixed-position
+  // `#credential_picker_container` iframe over the top-right of the page. On
+  // Firefox and WebKit it renders for anonymous visitors and swallows clicks on
+  // the header nav — Playwright reports "<iframe …> from
+  // <div id="credential_picker_container"> subtree intercepts pointer events"
+  // and the click retries until the test times out. (Chromium's headless
+  // fingerprint usually suppresses it, which is why this only showed up once the
+  // Firefox/WebKit projects were run.) No e2e test asserts on One Tap, so block
+  // the GSI endpoints outright and hide any container that still mounts.
+  await context.route('**/accounts.google.com/gsi/**', (route) => route.abort());
+  await context.addInitScript(() => {
+    const STYLE_ID = 'playwright-gsi-suppression';
+    const inject = () => {
+      if (document.getElementById(STYLE_ID)) return;
+      const style = document.createElement('style');
+      style.id = STYLE_ID;
+      style.textContent = '#credential_picker_container, #credential_picker_iframe { display: none !important; }';
+      (document.head || document.documentElement).appendChild(style);
+    };
+    if (document.head) inject();
+    else document.addEventListener('DOMContentLoaded', inject, { once: true });
+  });
+
+  if (!options.allowLibraryAssistant) {
+    await context.addInitScript(() => {
+      const STYLE_ID = 'playwright-la-pointer-suppression';
+      const inject = () => {
+        if (document.getElementById(STYLE_ID)) return;
+        const style = document.createElement('style');
+        style.id = STYLE_ID;
+        // The host rule covers the shadow tree too — pointer-events inherits
+        // across the shadow boundary, and the component sets no override.
+        style.textContent = 'lc-chatbot { pointer-events: none !important; }';
+        (document.head || document.documentElement).appendChild(style);
+      };
+      if (document.head) inject();
+      else document.addEventListener('DOMContentLoaded', inject, { once: true });
+    });
+  }
 };
 
 /** One captured `/api/entity-search` call, in the order the page made it. */
@@ -559,7 +626,9 @@ export const goToPageWithUser = async (context: BrowserContext, url: string, set
   await context.addCookies(storageState.cookies);
 
   // Same ordering rule as goToPageWithLang — must precede context.newPage().
-  await installOverlaySuppression(context);
+  // Only the LA profiles keep the assistant clickable; every other profile gets
+  // it neutralised so the floating widget can't intercept panel clicks.
+  await installOverlaySuppression(context, { allowLibraryAssistant: !!settings.isLAUser });
 
   const page = await context.newPage();
   await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
