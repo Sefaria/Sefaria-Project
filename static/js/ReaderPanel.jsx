@@ -951,6 +951,7 @@ class ReaderPanel extends Component {
                     settings={Sefaria.util.clone(this.state.settings)}
                     panelsOpen={this.props.panelsOpen}
                     onResultClick={this.props.onSearchResultClick}
+                    openURL={this.props.openURL}
                     toggleLanguage={this.toggleLanguage}
                     close={this.props.closePanel}
                     onQueryChange={this.props.onQueryChange}
@@ -1221,6 +1222,7 @@ ReaderPanel.propTypes = {
   openNamedEntityInNewPanel:   PropTypes.func,
   onNavTextClick:              PropTypes.func,
   onSearchResultClick:         PropTypes.func,
+  openURL:                     PropTypes.func,   // ReaderApp.openURL: routes any in-app path (ref, /texts/…, /topics/…) without a page load
   onUpdate:                    PropTypes.func,
   onError:                     PropTypes.func,
   closePanel:                  PropTypes.func,

@@ -16,6 +16,7 @@ from sefaria.helper.search import (
     process_topic_save_in_topic_search,
     process_topic_delete_in_topic_search,
     process_category_path_change_in_book_search,
+    process_category_change_in_category_search,
 )
 import sefaria.system.cache as scache
 import structlog
@@ -192,6 +193,11 @@ subscribe(text.rebuild_library_after_category_change,                   category
 # Entity search: must stay subscribed after category.process_category_path_change,
 # which cascades the new path into the Mongo Index records this hook re-reads.
 subscribe(process_category_path_change_in_book_search,  category.Category, "attributeChange", "path")
+# Category search: must stay subscribed after text.rebuild_library_after_category_change,
+# because the re-sync reads the (rebuilt) TOC tree. Save and delete both re-sync the whole
+# `category` index -- see sefaria.search.resync_category_docs.
+subscribe(process_category_change_in_category_search,  category.Category, "save")
+subscribe(process_category_change_in_category_search,  category.Category, "delete")
 
 # Manuscripts
 subscribe(manuscript.process_slug_change_in_manuscript,  manuscript.Manuscript, "attributeChange", "slug")

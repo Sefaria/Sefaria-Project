@@ -87,6 +87,7 @@ function SearchResultCard({
   href,
   tref,
   onResultClick,
+  openURL,
   query,
   accentColor,
   analyticsPosition,
@@ -122,13 +123,6 @@ function SearchResultCard({
   // this result. See SearchAnalytics.reportModifiedResultLinkClick.
   const linkAnalyticsAttrs = (elementValue) => resultLinkAnalyticsAttrs(elementValue, analyticsPosition);
 
-  // Categories and the author name lead away from search in the current window, so each is
-  // a result click that ends the flow. stopPropagation keeps the card from also opening.
-  const handleSubLinkClick = (elementValue) => (e) => {
-    e.stopPropagation();
-    fireResultClickAnalytics(elementValue);
-  };
-
   // The single click path for every clickable part of the card. Opening a result has to
   // carry two things the ref alone can't: which version matched, and which words to
   // highlight once the panel renders. `target` says *which* result was clicked — the
@@ -136,6 +130,12 @@ function SearchResultCard({
   const openResult = async (target) => {
     Sefaria.track.event('Search', 'Search Result Card Click', `${query} - ${name}`);
     if (!onResultClick) {
+      // Books/authors/topics results have no ref-based handler; they navigate by URL instead.
+      // openURL is ReaderApp's router entry point, so this opens a panel in place of reloading
+      // the page. It returns false for a path it doesn't recognize — then fall back to a real
+      // page load, which is also what happens outside the app (e.g. Storybook), where the prop
+      // isn't supplied at all.
+      if (openURL && openURL(target.href)) { return; }
       window.location.href = target.href;
       return;
     }
@@ -174,11 +174,28 @@ function SearchResultCard({
     // check keeps the card correct on its own, e.g. in Storybook.
     const opensNewTab = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
     fireResultClickAnalytics(tref ?? name, !opensNewTab);
-    // Modified clicks, and modes with no in-app handler, fall through to the browser;
+    // Modified clicks, and cards with no in-app handler at all, fall through to the browser;
     // the href already points at the matched version with the query highlighted.
-    if (!onResultClick || opensNewTab) return;
+    if ((!onResultClick && !openURL) || opensNewTab) return;
     e.preventDefault();
     openResult(target);
+  };
+
+  // Links to somewhere other than the result itself (the author under a book title, the
+  // breadcrumb categories). They never open a result, so they don't go through openResult —
+  // they just need the same "don't reload the page" treatment as the title link.
+  //
+  // These links lead away from search in the current window, so each is a result click that
+  // ends the flow. `elementValue` names what was clicked for analytics (the category or
+  // author name); `linkHref` is where it goes. A modified click opens a new tab and leaves
+  // the user on the search page, so it reports the click without ending the flow — the same
+  // split handleLinkClick makes.
+  const handleSubLinkClick = (elementValue, linkHref) => (e) => {
+    e.stopPropagation();  // otherwise the card's onClick opens the result instead
+    const opensNewTab = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
+    fireResultClickAnalytics(elementValue, !opensNewTab);
+    if (!openURL || opensNewTab) return;
+    if (openURL(linkHref)) { e.preventDefault(); }
   };
 
   const handleCardKeyDown = (e) => {
@@ -238,7 +255,7 @@ function SearchResultCard({
               crumbs={crumbs}
               getCrumbLinkProps={(crumb) => ({
                 ...linkAnalyticsAttrs(crumb.label),
-                onClick: handleSubLinkClick(crumb.label),
+                onClick: handleSubLinkClick(crumb.label, crumb.href),
               })}
             />
           )}
@@ -272,7 +289,7 @@ function SearchResultCard({
                     {secondaryAuthorHref ? (
                       <a href={secondaryAuthorHref}
                          {...linkAnalyticsAttrs(secondaryAuthor)}
-                         onClick={handleSubLinkClick(secondaryAuthor)}>
+                         onClick={handleSubLinkClick(secondaryAuthor, secondaryAuthorHref)}>
                         <InterfaceText text={{ en: secondaryAuthor, he: hebrewSecondaryAuthor }} />
                       </a>
                     ) : (
@@ -379,6 +396,9 @@ SearchResultCard.propTypes = {
   href:                 PropTypes.string.isRequired,
   tref:                 PropTypes.string,
   onResultClick:        PropTypes.func,
+  // URL-based in-app navigation (ReaderApp.openURL), used by cards whose href isn't a ref:
+  // books, categories, authors and topics. Returns true if it handled the path.
+  openURL:              PropTypes.func,
   query:                PropTypes.string,
   accentColor:          PropTypes.string,   // explicit override; skips palette lookup
   analyticsPosition:    PropTypes.number,   // 1-based rank; presence opts the card into search analytics

@@ -218,7 +218,7 @@ const ENTITY_CARD_PROP_BUILDERS = {
 };
 
 
-const EntitySearchResults = ({type, data, query, loadMore, trackClicks}) => {
+const EntitySearchResults = ({type, data, query, loadMore, trackClicks, openURL}) => {
   if (!data) {
     const searching = Sefaria._bilingual("search.searching");
     return <LoadingMessage message={searching.en} heMessage={searching.he} />;
@@ -235,9 +235,14 @@ const EntitySearchResults = ({type, data, query, loadMore, trackClicks}) => {
       loadMore={loadMore}>
       {data.hits.map((hit, i) => {
         const cardProps = ENTITY_CARD_PROP_BUILDERS[type](hit, query);
+        // These cards don't all point at refs the way Sources cards do — a book is "/Brit_Moshe",
+        // a category row is "/texts/Tanakh/Torah", an author or topic is "/topics/<slug>". So they
+        // navigate by URL (openURL) rather than by ref (onResultClick); without it the card falls
+        // back to window.location and the whole page reloads.
+        //
         // analyticsPosition (1-based rank) opts the card into firing the
         // search_element_clicked / search_flow_ended GA4 events on click.
-        return <SearchResultCard key={cardProps.href} {...cardProps}
+        return <SearchResultCard key={cardProps.href} {...cardProps} openURL={openURL}
                                  analyticsPosition={trackClicks ? i + 1 : undefined} />;
       })}
     </InfiniteScroll>
@@ -394,9 +399,20 @@ class SearchPage extends Component {
             if (!this.props.compare) { SearchAnalytics.recordApiResult(type + 's', data.total); }
             this.setState(prev => this.withCategoryCounts({...prev.entityData, [type]: this.makeEntityEntry(data)}, data));
           })
-          .catch((err) => {  // count badge stays at "0", panel stays on the loading message
-            if (this.props.query !== query || this.props.compare) { return; }
-            SearchAnalytics.recordApiResult(type + 's', null, err?.message || String(err));
+          .catch((err) => {
+            // Report the failure to analytics for the query still on screen only. Guarded
+            // separately from the token check below: a sort or filter change bumps the token
+            // without changing the query, and the failed API still has to report in so
+            // search_query_executed isn't left waiting on it forever.
+            if (this.props.query === query && !this.props.compare) {
+              SearchAnalytics.recordApiResult(type + 's', null, err?.message || String(err));
+            }
+            if (this._entityFetchTokens[type] !== token) { return; }  // a newer fetch superseded this one
+            // Show the empty state rather than leaving the panel on the loading message.
+            this.setState(prev => ({
+              entityData: {...prev.entityData, [type]: {hits: [], total: 0, moreToLoad: false, isLoadingMore: false}},
+              ...(type === 'book' ? {bookCategoryCounts: null} : {}),
+            }));
           });
     });
   }
@@ -553,7 +569,7 @@ class SearchPage extends Component {
     // Sidebar rule: Sources keeps the existing filters, Books gets a searchable
     // category list, Authors/Topics get a sort-only panel on mobile.
     let sidebar = null;
-    if (activeTab === "sources" && this.props.totalResults?.getValue() > 0) {
+    if (activeTab === "sources" && (this.props.totalResults?.getValue() > 0 || !Sefaria.multiPanel)) {
       sidebar = <SearchFilters
           query={this.props.query}
           searchState={this.props.searchState}
@@ -563,7 +579,7 @@ class SearchPage extends Component {
           closeMobileFilters={closeMobileFilters}
           compare={this.props.compare}
           type={this.props.type}/>;
-    } else if (activeTab === "books") {
+    } else if (activeTab === "books" && (!Sefaria.multiPanel || this.state.entityData['book'] === null || this.state.entityData['book'].total > 0)) {
       // The numbers next to each category come from the API (`categoryCounts`), which counts
       // the whole match set — not from the rows on screen. Counting those would mean "how
       // many of the ~20 books I downloaded", a number that climbs as you scroll and, once
@@ -627,7 +643,7 @@ class SearchPage extends Component {
             />
           )}
           <div>
-            {makeSortFilterControls(!(this.props.totalResults?.getValue() > 0))}
+            {makeSortFilterControls(!Sefaria.multiPanel ? false : !(this.props.totalResults?.getValue() > 0))}
           </div>
         </div>
         {this.props.totalResults && !this.props.totalResults.getValue()
@@ -652,7 +668,8 @@ class SearchPage extends Component {
           </div>
           <EntitySearchResults type={type} data={this.state.entityData[type]} query={this.props.query}
                                trackClicks={!this.props.compare}
-                               loadMore={() => this.loadNextEntityPage(type)}/>
+                               loadMore={() => this.loadNextEntityPage(type)}
+                               openURL={this.props.openURL}/>
         </div>
       )),
     ];
@@ -724,6 +741,7 @@ SearchPage.propTypes = {
   panelsOpen:               PropTypes.number,
   close:                    PropTypes.func,
   onResultClick:            PropTypes.func,
+  openURL:                  PropTypes.func,
   onQueryChange:            PropTypes.func,
   updateAppliedFilter:      PropTypes.func,
   updateAppliedOptionField: PropTypes.func,

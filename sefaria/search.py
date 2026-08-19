@@ -27,7 +27,10 @@ from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags, strip_markdown
 from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
-from .settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK
+from .settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK, SEARCH_INDEX_NAME_CATEGORY
+# Aliased on import: this module already defines an unrelated `get_search_categories(oref,
+# categories)` (the text index's category-path helper, below), which would shadow it.
+from sefaria.model.autospell import get_search_categories as get_searchable_toc_categories
 from sefaria.helper.search import get_elasticsearch_client, get_elasticsearch_client_for_indexer
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
@@ -399,6 +402,10 @@ def create_index(index_name, type, force=False):
         logger.debug(f"Applying book mapping to index - index_name: {index_name}")
         put_book_mapping(index_name)
         logger.debug(f"Book mapping applied successfully - index_name: {index_name}")
+    elif type == 'category':
+        logger.debug(f"Applying category mapping to index - index_name: {index_name}")
+        put_category_mapping(index_name)
+        logger.debug(f"Category mapping applied successfully - index_name: {index_name}")
     else:
         logger.warning(f"Unknown type, no mapping applied - type: {type}, index_name: {index_name}")
 
@@ -708,6 +715,73 @@ def put_book_mapping(index_name):
         }
     }
     index_client.put_mapping(body=book_mapping, index=index_name)
+
+
+def put_category_mapping(index_name):
+    """
+    Sets mapping for the `category` document type (the searchable TOC categories — see
+    sefaria.model.autospell.get_search_categories).
+
+    Deliberately parallel to the `book` mapping: same analyzers, same `keyword`/`sort`
+    sub-fields, same `alias_bag` similarity on titleVariants. `path` is the document id
+    ("Halakhah/Mishneh Torah") and also the key the Books tab uses to exclude a matched
+    category's own books from the flat results, so it mirrors the text/book index path
+    shape exactly.
+    """
+    category_mapping = {
+        'properties': {
+            'title_en': {
+                'type': 'text',
+                'analyzer': 'stemmed_english',
+                'fields': {
+                    'keyword': {'type': 'keyword'},
+                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
+                },
+            },
+            'title_he': {
+                'type': 'text',
+                'fields': {
+                    'keyword': {'type': 'keyword'},
+                    'sort': {'type': 'keyword', 'normalizer': 'keyword_lowercase'},
+                },
+            },
+            # Every non-primary title of the category, EN and HE in one field. For a
+            # category with a `sharedTitle` these come from the shared Term (see
+            # make_category_index_document), which is where the real aliases live:
+            # "Bible" for Tanakh, "Gemara" for Talmud, "Mishnah Torah" for Mishneh Torah.
+            'titleVariants': {
+                'type': 'text',
+                'analyzer': 'stemmed_english',
+                'norms': False,
+                'similarity': 'alias_bag',
+                'fields': {
+                    'keyword': {'type': 'keyword'},
+                },
+            },
+            # Parent path components ("Halakhah" for Halakhah/Mishneh Torah); rendered as
+            # the result card's breadcrumb. Empty for a top-level category.
+            'categories': {
+                'type': 'keyword',
+            },
+            'path': {
+                'type': 'keyword',
+            },
+            'depth': {
+                'type': 'integer',
+            },
+            'description_en': {
+                'type': 'text',
+                'analyzer': 'stemmed_english',
+            },
+            'description_he': {
+                'type': 'text',
+            },
+            'order': {
+                'type': 'integer',
+            },
+        }
+    }
+    index_client.put_mapping(body=category_mapping, index=index_name)
 
 
 def get_search_categories(oref, categories):
@@ -1542,6 +1616,66 @@ def make_book_index_document(index, author_name_cache=None):
     })
 
 
+def make_category_index_document(toc_node):
+    """
+    Build an Elasticsearch document for one TOC category for the `category` index.
+
+    The document id is the slash-joined path ("Halakhah/Mishneh Torah"), so reindexing is
+    idempotent and the id doubles as the key used to exclude that category's books from
+    the Books tab's flat results.
+
+    **Where the title variants come from.** A `Category` record almost always carries a
+    `sharedTitle` naming a `Term` (all 309 searchable categories do today), and
+    `AbstractTitledOrTermedObject._process_terms` — which runs during `Category`'s own
+    `_set_derived_attributes` — *replaces* the category's title group with that Term's
+    title group. So `cat_obj.get_titles(lang)` already returns the Term's full title list
+    when there is a sharedTitle, and the category's own titles when there isn't. That is
+    exactly the intended matching rule, and it needs no explicit Term lookup here.
+
+    Note this can't read titles off `toc_node` itself: `TocCategory.__init__` copies only
+    the *primary* EN/HE titles out of the category object, so the variants ("Bible",
+    "Gemara", "Mishnah Torah") only exist on the underlying `Category` record.
+
+    :param toc_node: a `TocCategory` node from the TOC tree
+    :return: dict document, or None if the node has no English title or no path
+    """
+    path_components = toc_node.full_path
+    title_en = toc_node.primary_title("en")
+    if not path_components or not title_en:
+        return None
+    title_he = toc_node.primary_title("he") or None  # "" would sort before "A" in the A-Z sort
+
+    cat_obj = toc_node.get_category_object()
+    if cat_obj is not None:
+        all_titles = (cat_obj.get_titles("en") or []) + (cat_obj.get_titles("he") or [])
+    else:
+        # No backing Category record (not observed among the searchable categories, but the
+        # TOC tree does not guarantee one): fall back to the node's primary titles alone.
+        all_titles = []
+    primaries = {title_en, title_he}
+    variants = []
+    for t in all_titles:
+        if t and t not in primaries and t not in variants:
+            variants.append(t)
+
+    # Prefer the short description (what the book index indexes), fall back to the long one.
+    desc_en = getattr(toc_node, 'enShortDesc', '') or getattr(toc_node, 'enDesc', '') or ''
+    desc_he = getattr(toc_node, 'heShortDesc', '') or getattr(toc_node, 'heDesc', '') or ''
+
+    order = getattr(toc_node, 'order', None)
+    return _without_none({
+        'title_en': title_en,
+        'title_he': title_he,
+        'titleVariants': variants,
+        'categories': path_components[:-1],  # parent path -> the card's breadcrumb
+        'path': "/".join(path_components),
+        'depth': len(path_components),
+        'description_en': strip_markdown(desc_en),
+        'description_he': strip_markdown(desc_he),
+        'order': order if isinstance(order, int) else None,
+    })
+
+
 def _bulk_index_entities(index_name, actions, entity_label):
     """
     Run a bulk index of already-built actions, absorbing per-doc errors so one bad
@@ -1625,6 +1759,49 @@ def index_books(index_name):
     result.update({"total": total, "skipped": skipped})
     if skipped:
         logger.info(f"index_books skipped {len(skipped)} books (sample): {skipped[:20]}")
+    return result
+
+
+def index_categories(index_name):
+    """
+    Index the library's searchable TOC categories into `index_name`, keyed by path
+    (idempotent). Skipped/failed paths are collected into the returned summary.
+
+    Only the categories returned by `get_search_categories` are indexed — the browse
+    taxonomy (categories with at least two children), plus the good names harvested one
+    level below each commentary/era/"Other" boundary (Rashi, Ramban, Kessef Mishneh, …)
+    but never the boundary node itself. The rest of the ~1,000-node category tree is
+    either leaf buckets or repeated per-book structure that nobody searches for by name.
+    Sharing that function with the autocompleter is deliberate: the set of categories you
+    can complete and the set you can search stay identical by construction.
+    """
+    logger.info(f"Starting index_categories - index_name: {index_name}")
+    skipped = []
+    total = 0
+    toc_nodes = get_searchable_toc_categories(library.get_toc_tree().get_root())
+    if not toc_nodes:
+        raise RuntimeError("index_categories: no searchable categories found; refusing to build an empty category index")
+
+    def actions():
+        nonlocal total
+        for node in toc_nodes:
+            total += 1
+            try:
+                doc = make_category_index_document(node)
+            except Exception as e:
+                label = "/".join(getattr(node, 'full_path', None) or ['<unknown>'])
+                logger.warning(f"index_categories: failed building doc for '{label}': {e}")
+                skipped.append(label)
+                continue
+            if doc is None:
+                skipped.append("/".join(getattr(node, 'full_path', None) or ['<no-path>']))
+                continue
+            yield {"_index": index_name, "_id": doc['path'], "_source": doc}
+
+    result = _bulk_index_entities(index_name, actions(), "categories")
+    result.update({"total": total, "skipped": skipped})
+    if skipped:
+        logger.info(f"index_categories skipped {len(skipped)} categories (sample): {skipped[:20]}")
     return result
 
 
@@ -1772,6 +1949,65 @@ def index_book_docs(indexes):
         logger.error(f"index_book_docs failed - error: {e}")
 
 
+def resync_category_docs():
+    """
+    Re-sync the whole live `category` index from the current TOC tree: upsert every main
+    category and delete any doc whose path is no longer one.
+
+    Unlike topics and books — which get surgical per-document upserts — categories are
+    re-synced wholesale, because a single category edit is not a single-document change.
+    Renaming "Halakhah" rewrites the path (and therefore the document id) of every
+    category beneath it, and a category that gains or loses its last child moves in or
+    out of the searchable set entirely (its child count crosses the two-child threshold, or
+    a rename turns it into a boundary). Tracking those cascades individually would be easy
+    to get subtly wrong; a full re-sync is unconditionally correct and, at ~309 documents
+    in one bulk request, cheaper than the logic it replaces.
+
+    Best-effort like the other on-save hooks: failures are logged, not raised, since the
+    Mongo write has already been committed and the weekly rebuild reconciles anyway.
+    """
+    try:
+        index_name = _current_entity_index_name('category')
+        if not index_name:
+            return
+        actions = []
+        current_paths = set()
+        for node in get_searchable_toc_categories(library.get_toc_tree().get_root()):
+            try:
+                doc = make_category_index_document(node)
+            except Exception as e:
+                label = "/".join(getattr(node, 'full_path', None) or ['<unknown>'])
+                logger.warning(f"resync_category_docs: failed building doc for '{label}': {e}")
+                continue
+            if doc is None:
+                continue
+            current_paths.add(doc['path'])
+            actions.append({"_index": index_name, "_id": doc['path'], "_source": doc})
+        if not actions:
+            # Never delete the whole index off the back of an empty or half-built TOC tree.
+            logger.warning("resync_category_docs: no category docs built; leaving the index untouched")
+            return
+
+        # Delete docs for paths that no longer exist (renames, deletions, categories that
+        # dropped out of the main set). Scan is bounded by the index's ~309 docs, well under
+        # the size cap below — a category set that outgrew the cap would silently stop having
+        # its stale docs deleted.
+        try:
+            existing = es_client.search(index=index_name, size=1000, source=False, query={"match_all": {}})
+            for hit in existing.get('hits', {}).get('hits', []):
+                if hit['_id'] not in current_paths:
+                    actions.append({"_op_type": "delete", "_index": index_name, "_id": hit['_id']})
+        except NotFoundError:
+            logger.warning(f"resync_category_docs: index not found, will only upsert - index_name: {index_name}")
+
+        succeeded, errors = bulk(es_client, actions, raise_on_error=False)
+        if errors:
+            logger.warning(f"resync_category_docs bulk errors - count: {len(errors)}, sample: {errors[:5]}")
+        logger.info(f"resync_category_docs - index_name: {index_name}, succeeded: {succeeded}, errors: {len(errors)}")
+    except Exception as e:
+        logger.error(f"resync_category_docs failed - error: {e}")
+
+
 def clear_index(index_name):
     """
     Delete the search index.
@@ -1844,6 +2080,7 @@ def get_new_and_current_index_names(type, debug=False):
         'sheet': SEARCH_INDEX_NAME_SHEET,
         'topic': SEARCH_INDEX_NAME_TOPIC,
         'book': SEARCH_INDEX_NAME_BOOK,
+        'category': SEARCH_INDEX_NAME_CATEGORY,
     }
     debug_suffix = '-debug' if debug else ''
     index_name_a = f"{base_index_name_dict[type]}-a{debug_suffix}"
@@ -1919,7 +2156,7 @@ def index_all(skip=0, debug=False):
     logger.info("=" * 60)
 
 
-def index_entities(skip=0, debug=False, types=('topic', 'book')):
+def index_entities(skip=0, debug=False, types=('topic', 'book', 'category')):
     """
     (Re)build the entity indices that power /api/entity-search.
 
@@ -1927,7 +2164,7 @@ def index_entities(skip=0, debug=False, types=('topic', 'book')):
     recorded but does not prevent the others from completing. Callable on its own
     for an on-demand entity reindex, or from `index_all` as part of the full run.
 
-    :param types: which entity index types to rebuild (subset of 'topic', 'book')
+    :param types: which entity index types to rebuild (subset of 'topic', 'book', 'category')
     :return: timedelta elapsed across all entity indexing
     """
     entity_start = datetime.now()
@@ -2047,6 +2284,10 @@ def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False, force
         logger.debug("Starting book indexing")
         index_books(index_name)
         logger.debug("Completed book indexing")
+    elif type == 'category':
+        logger.debug("Starting category indexing")
+        index_categories(index_name)
+        logger.debug("Completed category indexing")
     else:
         logger.error(f"Unknown index type - type: {type}")
         raise ValueError(f"Unknown index type: {type}")

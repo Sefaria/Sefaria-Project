@@ -4889,7 +4889,7 @@ def entity_search_api(request):
     Entity search endpoint powering the Topics / Authors / Books tabs.
 
     GET /api/entity-search?q=<query>&type=<topic|author|book>&sort=<relevance|alpha|year_asc|year_desc>
-                          &filter=<category path>&aggregate=<1|0>&start=<offset>&size=<page size>
+                          &filter=<category path>&start=<offset>&size=<page size>
 
     `start` (default 0) and `size` (default 20, capped at 100) page the results; the tab
     fetches successive pages on scroll. `total` always reports the full match count.
@@ -4915,10 +4915,6 @@ def entity_search_api(request):
     (e.g. filter=Tanakh/Torah); multiple filters OR together. A filter always returns the
     flat list — category rows collapse many books, so they carry no per-row path.
     Explicit sorts keep the aggregation (rows are sorted in code by their own compDate).
-
-    `aggregate=0` turns the author-works aggregation off, so a book query always returns
-    the flat list — a QA escape hatch for comparing the two views. Ignored for types
-    that never aggregate (topic/author).
     """
     from sefaria.helper.search import entity_search, ENTITY_TYPES, ENTITY_SORTS, ENTITY_MAX_RESULT_WINDOW
 
@@ -4926,7 +4922,6 @@ def entity_search_api(request):
     entity_type = request.GET.get("type", "topic").strip()
     sort = request.GET.get("sort", "relevance").strip()
     category_paths = [f.strip() for f in request.GET.getlist("filter") if f.strip()]
-    aggregate = request.GET.get("aggregate", "").strip().lower() not in ("0", "false")
     callback = request.GET.get("callback", None)
 
     if not query:
@@ -4965,10 +4960,9 @@ def entity_search_api(request):
     size = min(size, ENTITY_MAX_RESULT_WINDOW - start)
 
     try:
-        results = entity_search(query, entity_type, start=start, size=size, sort=sort, category_paths=category_paths,
-                                aggregate=aggregate)
+        results = entity_search(query, entity_type, start=start, size=size, sort=sort, category_paths=category_paths)
     except Exception as e:
-        logger.error(f"entity_search_api failed - q: {query}, type: {entity_type}, sort: {sort}, filter: {category_paths}, aggregate: {aggregate}, error: {e}", exc_info=True)
+        logger.error(f"entity_search_api failed - q: {query}, type: {entity_type}, sort: {sort}, filter: {category_paths}, error: {e}", exc_info=True)
         return jsonResponse({"error": "Error running entity search."}, callback=callback)
 
     return jsonResponse(results, callback=callback)

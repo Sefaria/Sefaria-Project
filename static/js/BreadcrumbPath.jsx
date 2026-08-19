@@ -56,7 +56,8 @@ function CrumbList({ crumbs, getCrumbLinkProps }) {
  *   getCrumbLinkProps – optional (crumb) => props, spread onto that crumb's <a>.
  *     An `onClick` in the returned props runs after the built-in stopPropagation
  *     rather than replacing it. Used by SearchResultCard to report crumb clicks
- *     to search analytics; the component itself knows nothing about analytics.
+ *     to search analytics and to navigate in-app instead of reloading the page;
+ *     the component itself knows nothing about either.
  *
  * Truncation rules (per spec):
  *   - Never truncate individual nodes mid-label.
