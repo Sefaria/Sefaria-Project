@@ -103,7 +103,7 @@ class _SaveableProfile(FakeProfile):
 @pytest.fixture
 def saveable_profile():
     profile = _SaveableProfile()
-    with mock.patch("sefaria.helper.library_assistant.UserProfile", return_value=profile):
+    with mock.patch("sefaria.model.user_profile.UserProfile", return_value=profile):
         yield profile
 
 

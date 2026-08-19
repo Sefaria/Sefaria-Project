@@ -41,6 +41,18 @@ class LibraryAssistantUserTestCase(TestCase):
         return self.post_profile({"settings": {SETTING_KEY: value}})
 
 
+class ProfileCreationTest(LibraryAssistantUserTestCase):
+    """
+    The key is written at the single point every profile-creation path passes
+    through: UserProfile.__init__, when no stored doc exists yet.
+    """
+
+    def test_new_profile_is_created_with_the_setting_on(self):
+        UserProfile(id=self.user.id)
+
+        self.assertIs(self.stored_setting(), True)
+
+
 class ProfileApiTest(LibraryAssistantUserTestCase):
     """
     /api/profile is the settings page's write path and a public endpoint.

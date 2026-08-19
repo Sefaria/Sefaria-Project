@@ -16,7 +16,6 @@ from google.cloud.exceptions import GoogleCloudError
 from PIL import Image
 
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.helper import library_assistant
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.file import get_resized_file
 from sefaria.model.user_profile import UserProfile
@@ -150,8 +149,7 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
 
         After the base implementation creates the Django User and SocialAccount
         row, we:
-        1. Create the MongoDB UserProfile (slug, language setting, Library
-           Assistant setting, Gravatar pic)
+        1. Create the MongoDB UserProfile (slug, language setting, Gravatar pic)
         2. Register the user in Salesforce CRM — wrapped in its own try/except
            so a CRM outage doesn't affect the user or profile already created above
 
@@ -168,10 +166,6 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
             p.join_invited_collections()
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
-            # New accounts get the Library Assistant on. Written explicitly: the key is
-            # deliberately absent from the settings defaults, so a new account starts
-            # with no value at all unless one is written here.
-            p.settings[library_assistant.SETTING_KEY] = True
             p.save()
 
         import_gravatar(p)

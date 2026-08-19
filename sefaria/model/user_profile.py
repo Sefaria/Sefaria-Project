@@ -442,17 +442,20 @@ class UserProfile(object):
             # with the mongo database. This is an existing issue; a 'new user' will be populated with 'old user'
             # data from a nonexistent user (in postgres)
             self.update(profile, ignore_flags_on_init=True)
-        elif self.exists() and not user_registration:
-            # If we encounter a user that has a Django user record but not a profile document
-            # create a profile for them. This allows two enviornments to share a user database,
-            # while maintaining separate profiles (e.g. Sefaria and S4D).
-            self.show_editor_toggle = False
-            self.uses_new_editor = True
-            # Every path that creates a profile writes the Library Assistant key; the key
-            # is deliberately absent from the settings defaults.
+        else:
+            # A profile being created for the first time starts with the Library Assistant
+            # on. Written here, the one point every creation path passes through, and not
+            # as a settings default: an existing doc without the key would read a default
+            # as its value and persist it on its next save.
             self.settings[library_assistant.SETTING_KEY] = True
-            self.assign_slug()
-            self.save()
+            if self.exists() and not user_registration:
+                # If we encounter a user that has a Django user record but not a profile document
+                # create a profile for them. This allows two enviornments to share a user database,
+                # while maintaining separate profiles (e.g. Sefaria and S4D).
+                self.show_editor_toggle = False
+                self.uses_new_editor = True
+                self.assign_slug()
+                self.save()
 
     @property
     def full_name(self):
