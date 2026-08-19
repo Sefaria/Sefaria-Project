@@ -36,6 +36,7 @@ class SemanticTextChunk(models.Model):
     _ALLOWED_FILTER_FIELDS = frozenset({
         'index_title', 'language', 'version_title', 'ref', 'chunked_from_ref',
         'primary_category', 'is_primary', 'is_source', 'era_name', 'direction',
+        'ref__in',
     })
 
     class Meta:

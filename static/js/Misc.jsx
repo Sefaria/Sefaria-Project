@@ -11,6 +11,7 @@ import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
 import {AdContext, StrapiDataContext} from './context';
 import {matchesCountryTarget} from './sefaria/strapiTargeting';
+import {INTERFACE_LANG_TO_LOCALE} from './sefaria/strapiLocalization';
 import {getViewerCountryCandidates} from './sefaria/countryCandidates';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
@@ -1975,7 +1976,7 @@ class LoginPrompt extends Component {
           <span className="int-en">Log In</span>
           <span className="int-he">התחברות</span>
         </a>
-        <a className="button" href={"/register" + nextParam}>
+        <a className="button" href={"/register" + nextParam} data-signup-source="login_prompt">
           <span className="int-en">Sign Up</span>
           <span className="int-he">הרשמה</span>
         </a>
@@ -1985,6 +1986,22 @@ class LoginPrompt extends Component {
 LoginPrompt.propTypes = {
   fullPanel: PropTypes.bool,
 };
+
+const MODAL_KIND_TRACKING_NAME = {
+  [SignUpModalKind.AddConnection]: 'add_connection',
+  [SignUpModalKind.ViewHistory]: 'view_history',
+  [SignUpModalKind.AddToSheet]: 'add_to_sheet',
+  [SignUpModalKind.AddTranslation]: 'add_translation',
+  [SignUpModalKind.Follow]: 'follow',
+  [SignUpModalKind.Notes]: 'notes',
+  [SignUpModalKind.Save]: 'save',
+  [SignUpModalKind.Default]: 'default',
+};
+
+// Sign-up funnel analytics `source` value for the SignUpModal CTA, e.g. "signup_modal_add_to_sheet".
+function sourceForModalKind(signUpModalKind) {
+  return `signup_modal_${MODAL_KIND_TRACKING_NAME[signUpModalKind] || MODAL_KIND_TRACKING_NAME[SignUpModalKind.Default]}`;
+}
 
 class SignUpModal extends Component {
   render() {
@@ -2020,7 +2037,8 @@ class SignUpModal extends Component {
           <div className="sefariaModalInnerContent">
             { innerContent }
           </div>
-          <a className="button white control-elem" href={"/register" + nextParam}>
+          <a className="button white control-elem" href={"/register" + nextParam}
+             data-signup-source={sourceForModalKind(this.props.modalContentKind)}>
             <InterfaceText>common.sign_up</InterfaceText>
           </a>
           <div className="sefariaModalBottomContent">
@@ -2143,14 +2161,18 @@ const InterruptingMessage = ({
 
   const shouldShow = () => {
     if (!strapi.modal) return false;
-    if (Sefaria.interfaceLang === 'hebrew' && !strapi.modal.locales.includes('he')) return false;
+    const locale = INTERFACE_LANG_TO_LOCALE[Sefaria.interfaceLang];
+    if (!strapi.modal.locales.includes(locale)) return false;
     if (
       hasModalBeenInteractedWith(
         strapi.modal.internalModalName
       )
     )
       return false;
-    if (!matchesCountryTarget(strapi.modal.countriesToTarget, getViewerCountryCandidates())) return false;
+    // Targeting is localized (see LOCALIZED_FIELDS), so read the active locale's entry rather than
+    // the document as a whole. A locale with no targeting set yields null, which matches everyone.
+    if (!matchesCountryTarget(strapi.modal.countriesToTarget?.[locale], getViewerCountryCandidates()))
+      return false;
 
     let shouldShowModal = false;
 
@@ -2325,15 +2347,15 @@ const Banner = ({ onClose }) => {
 
   const shouldShow = () => {
     if (!strapi.banner) return false;
-    if (
-      Sefaria.interfaceLang === "hebrew" &&
-      !strapi.banner.locales.includes("he")
-    )
-      return false;
+    const locale = INTERFACE_LANG_TO_LOCALE[Sefaria.interfaceLang];
+    if (!strapi.banner.locales.includes(locale)) return false;
     if (Sefaria.experiments) return false;
     if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
       return false;
-    if (!matchesCountryTarget(strapi.banner.countriesToTarget, getViewerCountryCandidates())) return false;
+    // Targeting is localized (see LOCALIZED_FIELDS), so read the active locale's entry rather than
+    // the document as a whole. A locale with no targeting set yields null, which matches everyone.
+    if (!matchesCountryTarget(strapi.banner.countriesToTarget?.[locale], getViewerCountryCandidates()))
+      return false;
 
     let shouldShowBanner = false;
 

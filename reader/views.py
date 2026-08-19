@@ -21,9 +21,10 @@ import uuid
 from dataclasses import asdict
 from functools import lru_cache
 
+from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_KEY
 from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
-from sefaria.system.context_processors import _is_user_in_experiment
+from sefaria.helper import library_assistant
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY
 from rest_framework.decorators import api_view, permission_classes
@@ -382,12 +383,22 @@ def base_props(request):
         "chatbot_promo_session_length_seconds": remoteConfigCache.get(CHATBOT_PROMO_SESSION_LENGTH_SECONDS, default=30*60),
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
-    if user_has_experiments(request.user):
-        chatbot_data["in_chatbot_experiment"] = True
-        if _is_user_in_experiment(request):
+    if request.user.is_authenticated:
+        if library_assistant.is_enabled(profile):
             chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
             chatbot_data["chatbot_enabled"] = True
+        # TEMPORARY (goes with the experiments framework): `in_chatbot_experiment`
+        # suppresses the "try the Library Assistant" promo banner for users who have
+        # already made a choice about the assistant — whether they are using it or
+        # deliberately turned it off.
+        if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
+            chatbot_data["in_chatbot_experiment"] = True
     user_data.update(chatbot_data)
+    user_data.update({
+        "googleClientId": getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
+        "appleClientId": getattr(settings, "APPLE_SSO_CLIENT_ID", ""),
+        "recaptchaSiteKey": getattr(settings, "RECAPTCHA_PUBLIC_KEY", TEST_RECAPTCHA_PUBLIC_KEY if settings.DEBUG else None),
+    })
     return user_data
 
 
@@ -632,6 +643,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
         "menuOpen": "search",
         "searchQuery": search_params["query"],
         "searchType": search_params["tab"],
+        "tab": search_params["search_tab"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -1062,6 +1074,9 @@ def get_search_params(get_dict, i=None):
     return {
         "query": urllib.parse.unquote(get_dict.get(get_param("q", i), "")),
         "tab": urllib.parse.unquote(get_dict.get(get_param("tab", i), "text")),
+        # `tab` is the text/sheet search type; `search_tab` is the active results tab
+        # on the search page (sources/books/authors/topics).
+        "search_tab": urllib.parse.unquote(get_dict.get(get_param("search_tab", i), "")) or None,
         "field": field,
         "sort": sort,
         "filters": filters,
@@ -1102,6 +1117,7 @@ def search(request):
     props={
         "initialMenu": "search",
         "initialQuery": search_params["query"],
+        "initialSearchTab": search_params["search_tab"],
         "initialSearchFilters": search_params["filters"],
         "initialSearchFilterAggTypes": search_params["filterAggTypes"],
         "initialSearchField": search_params["field"],
@@ -4075,8 +4091,15 @@ def profile_api(request, slug=None):
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
+        # TEMPORARY (goes with the experiments framework): legacy handling of the
+        # `experiments` field.
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
+
+        la_key = library_assistant.SETTING_KEY
+        if la_key in profileUpdate.get("settings", {}):
+            # Public endpoint — coerce so a posted "false" can't read as truthy.
+            profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
 
         profile = UserProfile(id=request.user.id)
         profile.update(profileUpdate)
@@ -4087,6 +4110,8 @@ def profile_api(request, slug=None):
             return jsonResponse({"error": error})
         else:
             profile.save()
+            # TEMPORARY (goes with the experiments framework): keep the Postgres
+            # whitelist row in sync for the still-whitelisted `experiments` field.
             if "experiments" in profileUpdate:
                 _set_user_experiments(request.user, profile.experiments)
             return jsonResponse(profile.to_mongo_dict())
@@ -4099,6 +4124,8 @@ def experiments_opt_in_api(request):
     """
     API endpoint for users to self-enroll in the experiments whitelist.
     This enables the experiments toggle in their settings menu.
+
+    TEMPORARY (goes with the experiments framework): no first-party caller.
     """
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -4110,12 +4137,12 @@ def experiments_opt_in_api(request):
 
 def enable_library_assistant(request):
     """
-    Opt-in landing for anon users who arrived via the Library Assistant promo CTA.
-    The promo points login/register's ?next= here, so once authentication
-    completes the user lands here; we enroll them in the experiments whitelist and
-    bounce them back to where they were. On that reload the Library Assistant appears
-    with no extra "Join" click. Normal logins (which don't route through here) are
-    unaffected.
+    Turns the Library Assistant on after a promo-driven login or registration.
+    The promo CTA points login/register's ?next= here, so once authentication
+    completes the user lands here; we write settings.library_assistant = True for them
+    and bounce them back to where they were. On that reload the Library Assistant
+    appears with no extra "Join" click. Normal logins (which don't route through here)
+    are unaffected.
     """
     next_url = request.GET.get("next") or "/"
     if not url_has_allowed_host_and_scheme(
@@ -4128,9 +4155,9 @@ def enable_library_assistant(request):
     if not request.user.is_authenticated:
         return redirect_to_login(request.get_full_path())
 
-    # Prevent cross-site enrollment via GET.
+    # Prevent a cross-site request from turning the setting on via GET.
     if request.headers.get("Sec-Fetch-Site") != "cross-site":
-        _set_user_experiments(request.user, True)
+        library_assistant.set_enabled(request.user, True)
 
     # The register flow appends ?welcome=to-sefaria to its redirect target; forward
     # it onto the final destination so the new-user welcome still shows after the hop.
@@ -4289,6 +4316,9 @@ def profile_sync_api(request):
                 except ValueError as e:
                     logger.warning(f'profile_sync_api: {e}')
                     continue
+                if library_assistant.SETTING_KEY in field_data:
+                    # Public endpoint — coerce so a posted "false" can't read as truthy.
+                    field_data[library_assistant.SETTING_KEY] = library_assistant.normalize(field_data[library_assistant.SETTING_KEY])
                 if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
                     profile.attr_time_stamps.update({field: settings_time_stamp})
@@ -4463,11 +4493,17 @@ def account_settings(request):
     Page for managing a user's account settings.
     """
     profile = UserProfile(id=request.user.id)
+    # TEMPORARY (goes with the experiments framework): only gates the parked
+    # Experiments toggle in the template, not the Library Assistant one.
     experiments_available = user_has_experiments(request.user)
     return render_template(request,'account_settings.html', {"headerMode": True}, {
         'user': request.user,
         'profile': profile,
         'experiments_available': experiments_available,
+        'social_providers': list(request.user.socialaccount_set.values_list('provider', flat=True)),
+        # The toggle must render the *effective* value: a user who is on through the
+        # legacy rule has no setting key yet, and must still see "On".
+        'library_assistant_enabled': library_assistant.is_enabled(profile),
         'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
         'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),
         'diaspora': request.diaspora,
@@ -4848,6 +4884,91 @@ def search_wrapper_api(request, es6_compat=False):
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 @csrf_exempt
+def entity_search_api(request):
+    """
+    Entity search endpoint powering the Topics / Authors / Books tabs.
+
+    GET /api/entity-search?q=<query>&type=<topic|author|book>&sort=<relevance|alpha|year_asc|year_desc>
+                          &filter=<category path>&start=<offset>&size=<page size>
+
+    `start` (default 0) and `size` (default 20, capped at 100) page the results; the tab
+    fetches successive pages on scroll. `total` always reports the full match count.
+    Paging stops at Elasticsearch's result window (ENTITY_MAX_RESULT_WINDOW): a request
+    straddling the edge keeps its `start` and comes back short rather than being shifted
+    backward, so successive pages never overlap.
+
+    `topic` and `author` search the `topic` Elasticsearch index (filtered by subtype);
+    `book` searches the `book` index, or — when the query resolves to an author — returns
+    that author's works aggregated by category. Returns {"hits": [...], "total": N}.
+
+    A `book` response carries one extra key, `categoryCounts`: {category path -> number of
+    matching books}, e.g. {"Tanakh": 11, "Tanakh/Torah": 5}. These counts are computed by an
+    aggregation over the *entire* match set, so they are unaffected by `filter` and by how
+    many pages the client has fetched — that is what lets the Books sidebar show true
+    numbers and stay complete once a category is selected.
+
+    `sort` defaults to "relevance". "alpha" is A-Z on the English title; "year_asc"/
+    "year_desc" sort books by composition date and authors by birth year (topics have no
+    year, so they only accept relevance/alpha).
+
+    `filter` (books only, repeatable) restricts hits to books at or under a category path
+    (e.g. filter=Tanakh/Torah); multiple filters OR together. A filter always returns the
+    flat list — category rows collapse many books, so they carry no per-row path.
+    Explicit sorts keep the aggregation (rows are sorted in code by their own compDate).
+    """
+    from sefaria.helper.search import entity_search, ENTITY_TYPES, ENTITY_SORTS, ENTITY_MAX_RESULT_WINDOW
+
+    query = request.GET.get("q", "").strip()
+    entity_type = request.GET.get("type", "topic").strip()
+    sort = request.GET.get("sort", "relevance").strip()
+    category_paths = [f.strip() for f in request.GET.getlist("filter") if f.strip()]
+    callback = request.GET.get("callback", None)
+
+    if not query:
+        return jsonResponse({"error": "Missing required query parameter 'q'."}, callback=callback)
+    if entity_type not in ENTITY_TYPES:
+        return jsonResponse(
+            {"error": f"Invalid 'type' parameter '{entity_type}'. Must be one of {list(ENTITY_TYPES)}."},
+            callback=callback,
+        )
+    if sort not in ENTITY_SORTS[entity_type]:
+        return jsonResponse(
+            {"error": f"Invalid 'sort' parameter '{sort}' for type '{entity_type}'. Must be one of {list(ENTITY_SORTS[entity_type])}."},
+            callback=callback,
+        )
+    if category_paths and entity_type != "book":
+        return jsonResponse(
+            {"error": f"The 'filter' parameter is only supported for type 'book', not '{entity_type}'."},
+            callback=callback,
+        )
+
+    try:
+        size = max(1, min(int(request.GET.get("size", 20)), 100))
+    except (TypeError, ValueError):
+        size = 20
+
+    try:
+        start = max(0, min(int(request.GET.get("start", 0)), ENTITY_MAX_RESULT_WINDOW - 1))
+    except (TypeError, ValueError):
+        start = 0
+
+    # The result window is a ceiling on start+size, and the only way to honour it without
+    # corrupting the response is to shorten the final page. Clamping `start` backward to
+    # ENTITY_MAX_RESULT_WINDOW - size instead would silently re-serve rows the caller
+    # already has: start=9950&size=100 would become start=9900 and repeat 50 earlier hits
+    # as if they were new. `start` is capped at WINDOW - 1 above, so this stays >= 1.
+    size = min(size, ENTITY_MAX_RESULT_WINDOW - start)
+
+    try:
+        results = entity_search(query, entity_type, start=start, size=size, sort=sort, category_paths=category_paths)
+    except Exception as e:
+        logger.error(f"entity_search_api failed - q: {query}, type: {entity_type}, sort: {sort}, filter: {category_paths}, error: {e}", exc_info=True)
+        return jsonResponse({"error": "Error running entity search."}, callback=callback)
+
+    return jsonResponse(results, callback=callback)
+
+
+@csrf_exempt
 def search_path_filter(request, book_title):
     oref = Ref(book_title)
 
@@ -5200,16 +5321,50 @@ def custom_server_error(request, template_name='500.html'):
     #return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
 
 
+# Paths iOS must NOT hand to the app as universal links. Everything else on the domain
+# still opens the app (see AASA_PATHS below).
+#
+# Auth flows have to stay in the browser: they depend on the session/CSRF cookies held by
+# the browser, which the app can't see. When the SSO round-trip returns from
+# appleid.apple.com or accounts.google.com, that final hop is a cross-domain navigation
+# into sefaria.org -- exactly the trigger for a universal link -- so without these
+# exclusions iOS yanks the user into the app mid-login. Sefaria-Mobile's DeepLinkRouter
+# has no route for these paths either; they fall through to its catchAll, which bounces
+# straight back out to a browser (Sefaria-Mobile/DeepLinkRouter.js).
+AASA_EXCLUDED_PATHS = [
+    "/accounts/*",          # allauth OAuth endpoints, incl. the Apple/Google callbacks
+    "/_allauth/*",          # allauth headless API
+    "/login",
+    "/login/",
+    "/register",
+    "/register/",
+    "/logout",
+    "/logout/",
+    "/password/reset*",     # reset request, emailed confirm link, done/complete pages
+]
+
+AASA_PATHS = ["NOT " + path for path in AASA_EXCLUDED_PATHS] + ["*"]
+
+
 def apple_app_site_association(request):
     teamID = "2626EW4BML"
     bundleID = "org.sefaria.sefariaApp"
+    appID = "{}.{}".format(teamID, bundleID)
     return jsonResponse({
         "applinks": {
             "apps": [],
             "details": [
                 {
-                    "appID": "{}.{}".format(teamID, bundleID),
-                    "paths": ["*"]
+                    "appID": appID,
+                    "appIDs": [appID],
+                    # `paths` is the pre-iOS 13 format, `components` the current one.
+                    # Both are ordered, first match wins, so the exclusions must come
+                    # before the catch-all.
+                    "paths": AASA_PATHS,
+                    "components": (
+                        [{"/": path, "exclude": True} for path in AASA_EXCLUDED_PATHS]
+                        + [{"/": "*"}]
+                    ),
                 }
             ]
         }

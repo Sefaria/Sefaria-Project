@@ -23,7 +23,24 @@ import {
 import Util from './sefaria/util';
 import Button from './common/Button';
 
-const LoggedOutDropdown = ({module}) => {
+const AuthNavLink = ({flow, openURL, close, children}) => {
+  const href = `/${flow}`;
+  return (
+    <a className='interfaceLinks-option int-bi dropdownItem'
+       href={href}
+       onClick={(e) => { e.preventDefault(); openURL(href, undefined, undefined, undefined, 'nav_bar'); close?.(); }}>
+      {children}
+    </a>
+  );
+};
+AuthNavLink.propTypes = {
+  flow: PropTypes.oneOf(['login', 'register']).isRequired,
+  openURL: PropTypes.func.isRequired,
+  close: PropTypes.func,
+  children: PropTypes.node.isRequired,
+};
+
+const LoggedOutDropdown = ({module, openURL}) => {
   return (
     <DropdownMenu positioningClass="headerDropdownMenu" buttonComponent={
       <Button
@@ -33,12 +50,12 @@ const LoggedOutDropdown = ({module}) => {
       />
     }>
       <div className='dropdownLinks-options'>
-        <NextRedirectAnchor url='/login'>
+        <AuthNavLink flow='login' openURL={openURL}>
           <InterfaceText text={{ 'en': 'Log in', 'he': 'התחברות' }} />
-        </NextRedirectAnchor>
-        <NextRedirectAnchor url='/register'>
+        </AuthNavLink>
+        <AuthNavLink flow='register' openURL={openURL}>
           <InterfaceText text={{ 'en': 'Sign up', 'he': 'להרשמה' }} />
-        </NextRedirectAnchor>
+        </AuthNavLink>
         <DropdownMenuSeparator />
         <DropdownLanguageToggle />
         <DropdownMenuSeparator />
@@ -296,7 +313,7 @@ const Header = (props) => {
 
           {Sefaria._uid ?
             <LoggedInDropdown module={props.module} />
-            : <LoggedOutDropdown module={props.module} />
+            : <LoggedOutDropdown module={props.module} openURL={props.openURL} />
           }
         </div>
       </div>
@@ -381,25 +398,25 @@ Header.propTypes = {
   notificationCount: PropTypes.number,
 };
 
-const LoggedOutButtons = ({ mobile, loginOnly }) => {
+const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
   const classes = classNames({accountLinks: !mobile, anon: !mobile});
 
   return (
     <div className={classes}>
       {loginOnly && (
-        <NextRedirectAnchor className="login loginLink" url={'/login'}>
+        <AuthNavLink flow='login' openURL={openURL} close={close}>
           {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("header.login")} /> : null}
           <InterfaceText>header.log_in</InterfaceText>
-        </NextRedirectAnchor>)}
+        </AuthNavLink>)}
       {loginOnly ? null :
         <span>
-          <NextRedirectAnchor className="login signupLink" url={'/register'}>
+          <AuthNavLink flow='register' openURL={openURL} close={close}>
             {mobile ? <img src="/static/icons/login.svg" alt={Sefaria._("header.login")} /> : null}
             <InterfaceText>header.sign_up</InterfaceText>
-          </NextRedirectAnchor>
-          <NextRedirectAnchor className="login loginLink" url={'/login'}>
+          </AuthNavLink>
+          <AuthNavLink flow='login' openURL={openURL} close={close}>
             <InterfaceText>header.log_in</InterfaceText>
-          </NextRedirectAnchor>
+          </AuthNavLink>
         </span>}
     </div>
   );
@@ -567,7 +584,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
             <InterfaceText>header.logout</InterfaceText>
           </a>
           :
-          <LoggedOutButtons mobile={true} loginOnly={false} />}
+          <LoggedOutButtons mobile={true} loginOnly={false} openURL={openURL} close={close} />}
 
         <hr />
       </div>
@@ -617,9 +634,11 @@ const HelpButton = () => {
 
 const SignUpButton = () => {
   return (
-    <Button className="auto-width-button" href="/register" targetModule={Sefaria.LIBRARY_MODULE}>
-      <InterfaceText>common.sign_up</InterfaceText>
-    </Button>
+    <span data-signup-source="nav_bar" style={{ display: 'contents' }}>
+      <Button className="auto-width-button" href="/register" targetModule={Sefaria.LIBRARY_MODULE}>
+        <InterfaceText>common.sign_up</InterfaceText>
+      </Button>
+    </span>
   );
 }
 

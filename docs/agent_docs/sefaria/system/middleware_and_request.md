@@ -41,7 +41,7 @@ Handles the Django request/response pipeline: middleware classes that enrich req
 - **`large_data()`**: Injects `toc`, `topic_toc`, `titles_json`, `terms_json`, `virtual_books` from the library. Only runs for data-serving endpoints.
 - **`cache_timestamp()`**: Provides `last_cached` timestamp for cache-busting.
 - **`module_context()`**: Provides `active_module` and `domain_modules` to templates.
-- **`chatbot_user_token()`**: Manages chatbot script URL/type based on user experiment enrollment and optional `chatbot_version` query parameter (persisted in session).
+- **`chatbot_user_token()`**: Manages chatbot script URL/type based on `sefaria.helper.library_assistant.is_enabled_for_user()` and an optional `chatbot_version` query parameter (persisted in session).
 
 ### exceptions.py -- Exception Hierarchy
 

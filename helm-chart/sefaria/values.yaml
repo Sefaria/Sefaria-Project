@@ -68,7 +68,14 @@ backup:
     version: 4.4
   postgres:
     enabled: false
-    version: 10.3
+    # Optional `app` label to co-locate the dumper with. Hard scheduling rule: a
+    # label no pod carries leaves the backup Job Pending silently.
+    podAffinityApp: ""
+    version: 18.3
+    # Table contents omitted from the dump -- data only, never the table itself: the
+    # restored django_migrations marks the migration applied, so Django won't recreate it.
+    excludeTableData:
+      - django_session
     prefix: ""
     bucket: sefaria-user-backup
     serviceAccount: database-backup-write
@@ -458,6 +465,9 @@ localSettings:
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   SEARCH_INDEX_NAME_TEXT: "text"  # Override per cauldron for isolated indexes (e.g. "prod-sync_text")
   SEARCH_INDEX_NAME_SHEET: "sheet"  # Override per cauldron for isolated indexes (e.g. "prod-sync_sheet")
+  SEARCH_INDEX_NAME_TOPIC: "topic"  # Override per cauldron for isolated indexes (e.g. "prod-sync_topic")
+  SEARCH_INDEX_NAME_BOOK: "book"  # Override per cauldron for isolated indexes (e.g. "prod-sync_book")
+  SEARCH_INDEX_NAME_CATEGORY: "category"  # Override per cauldron for isolated indexes (e.g. "prod-sync_category")
   USE_CLOUDFLARE: false
   FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.cauldron.sefaria.org" in cauldrons
   OFFLINE: "False"

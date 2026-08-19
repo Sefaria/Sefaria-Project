@@ -2,8 +2,10 @@ from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, Ter
 from sefaria.model.linker.referenceable_book_node import DiburHamatchilNodeSet, NumberedReferenceableBookNode
 from sefaria.model.linker.ref_resolver import ResolvedRef, RefResolver, IbidHistory
 from sefaria.model.linker.linker import LinkedDoc
+from sefaria.model.linker.linker_entity_recognizer import LinkerEntityRecognizer
 from .linker_test_utils import *
 from sefaria.model import schema
+from sefaria.model.text import TextChunk
 from sefaria.settings import ENABLE_LINKER
 from sefaria.model.marked_up_text_chunk import LinkerOutput
 from sefaria.system.exceptions import IndexSchemaError
@@ -148,12 +150,12 @@ def test_multiple_ambiguities():
     [crrd(["@רש\"י", "@פרק כל כנויי נזירות", "@בנזיר", "*ד\"ה כל כינויי נזירות"]), ("Rashi on Nazir 2a:1:1",)],  # rashi perek dibur hamatchil
 
     # Numbered alt structs
-    [crrd(["#פרק קמא", "@בפסחים"]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
-    [crrd(['#פ"ק', '@בפסחים']), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
-    [crrd(["#פרק ה", "@בפסחים"]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5")],  # numbered talmud perek
-    [crrd(['#פ"ה', '@בפסחים']), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85")],  # numbered talmud perek
+    [crrd(["#פרק קמא", "@בפסחים"]), ("Mishnah Pesachim 1", "Pesachim 2a:1-21a:7")],  # numbered talmud perek
+    [crrd(['#פ"ק', '@בפסחים']), ("Mishnah Pesachim 1",)],  # numbered talmud perek
+    [crrd(["#פרק ה", "@בפסחים"]), ("Mishnah Pesachim 5", "Pesachim 58a:1-65b:9")],  # numbered talmud perek
+    [crrd(['#פ"ה', '@בפסחים']), ("Mishnah Pesachim 5", "Pesachim 85")],  # numbered talmud perek
     [crrd(["#פרק בתרא", "@בפסחים"]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3")],  # numbered talmud perek
-    [crrd(['@מגמ\'', '#דרפ\"ו', '@דנדה']), ("Niddah 48a:11-54b:9",)],  # prefixes in front of perek name
+    [crrd(['@מגמ\'', '@דפרק כל היד', '@דנדה']), ["Niddah 13a:1-21a:3"]],  # prefixes in front of perek name
 
     # Using addressTypes of alt structs
     [crrd(["@JT", "@Bikkurim", "#Chapter 2"], lang="en"), ("Jerusalem Talmud Bikkurim 2",)],
@@ -240,7 +242,7 @@ def test_multiple_ambiguities():
     # Superfluous information
     [crrd(['@Vayikra', '@Leviticus', '#1'], lang='en'), ("Leviticus 1",)],
     [crrd(['@תוספות', '#פרק קמא', '@דברכות', '#דף ב']), ['Tosafot on Berakhot 2']],
-    [crrd(["#ובפ\"ק", "@דסוטה", "#ה'", "#א'"]), ("Sotah 5a",)],  # used to match Mishneh Torah Sotah instead of Bavli
+    [crrd(["#ובפ\"ק", "@דסוטה", "#ה'", "#א'"]), tuple()],  # used to match Mishneh Torah Sotah instead of Bavli
     [crrd(["#ובפ\"ק", "@דסוטה", "@ה'", "#א'"]), tuple()],  # used to match Mishneh Torah Sotah. Hey is marked as named part so it won't match anything including Bavli
 
     # Passage nodes
@@ -378,7 +380,43 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
     assert len(matched_orefs) == len(expected_trefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), matched_orefs):
         assert matched_oref == Ref(expected_tref)
-        
+
+
+def _mock_full_pipeline_ner_response(input_str, expected_pretty_texts, expected_part_strs_list):
+    entities = []
+    search_start = 0
+    for pretty_text, expected_part_strs in zip(expected_pretty_texts, expected_part_strs_list):
+        span_text = pretty_text
+        entity_start = input_str.find(span_text, search_start)
+        if entity_start < 0 and pretty_text.endswith(")"):
+            span_text = f"{pretty_text[:-1]}:)"
+            entity_start = input_str.find(span_text, search_start)
+        if entity_start < 0:
+            entity_start = input_str.find(expected_part_strs[0], search_start)
+            span_text = None
+        assert entity_start >= 0
+        part_search_start = entity_start
+        parts = []
+        for i, part_str in enumerate(expected_part_strs):
+            absolute_part_start = input_str.find(part_str, part_search_start)
+            assert absolute_part_start >= 0
+            absolute_part_end = absolute_part_start + len(part_str)
+            part_search_start = absolute_part_end
+            part_start = absolute_part_start - entity_start
+            assert part_start >= 0
+            part_end = part_start + len(part_str)
+            if part_str.startswith(("ד\"ה", "s.v.")) or (i == len(expected_part_strs) - 1 and len(expected_part_strs) >= 4):
+                label = "DH"
+            elif any(c.isdigit() for c in part_str) or part_str.startswith("דף") or any(amud in part_str for amud in ("ע\"א", "ע\"ב", "ע״א", "ע״ב")):
+                label = "number"
+            else:
+                label = "title"
+            parts.append({"range": [part_start, part_end], "label": label})
+        entity_end = entity_start + (len(span_text) if span_text is not None else parts[-1]["range"][1])
+        search_start = entity_end
+        entities.append({"range": [entity_start, entity_end], "label": "Citation", "parts": parts})
+    return {"entities": entities}
+
 
 @pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs', 'expected_pretty_texts', 'expected_part_strs_list'), [
     ["Berakhot 2a", 'It says in the Talmud, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple(), tuple()],  # Don't match Talmud using Berakhot 2a as ibid context
@@ -387,12 +425,15 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
     [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",), ['מנחות מד ע"א תד"ה טלית'], [['מנחות', 'מד ע"א', 'תד"ה','טלית']]],
     [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",), ['''מנחות דף עח ע"א תוס' ד"ה אחת'''], [['מנחות', 'דף עח ע"א', "תוס'", "ד\"ה אחת"]]],
     [None, """cf. Ex. 9:6,12:8""", 'en', ("Exodus 9:6", "Exodus 12:8"), ['Ex. 9:6', '12:8'], [['Ex.', '9', '6'], ['12', '8']]],
-    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר'], [['רש"י', 'תמורה', 'כח ע"ב', 'ד"ה נעבד']]],
+    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר.'], [['רש"י', 'תמורה', 'כח ע"ב', 'ד"ה נעבד']]],
     [None, "See Genesis 1:1. It says in the Torah, \"Don't steal\". It also says in 1:3 \"Let there be light\".", "en", ("Genesis 1:1", "Genesis 1:3"), ("Genesis 1:1", "1:3"), [["Genesis", "1", "1"], ["1", "3"]]],
 ])
-def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs, expected_pretty_texts, expected_part_strs_list):
+def test_full_pipeline_ref_resolver(monkeypatch, context_tref, input_str, lang, expected_trefs, expected_pretty_texts, expected_part_strs_list):
     context_oref = context_tref and Ref(context_tref)
     linker = library.get_linker(lang)
+    normalized_input_str = linker.get_ner().normalizer.normalize(input_str)
+    mock_result = _mock_full_pipeline_ner_response(normalized_input_str, expected_pretty_texts, expected_part_strs_list)
+    monkeypatch.setattr(LinkerEntityRecognizer, "_bulk_recognize_entities_api_request", lambda _self, _inputs: {"results": [mock_result]})
     doc = linker.link_by_paragraph(input_str, context_oref, type_filter='citation')
     resolved = doc.resolved_refs
     resolved_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in resolved], []), key=lambda x: x.normal())
@@ -400,7 +441,7 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
         print(f"Found {len(resolved_orefs)} refs instead of {len(expected_trefs)}")
         for matched_oref in resolved_orefs:
             print("-", matched_oref.normal())
-    assert len(resolved) == len(expected_trefs)
+    assert len(resolved_orefs) == len(expected_trefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):
         assert matched_oref == Ref(expected_tref)
     for match, expected_pretty_text, expected_part_strs in zip(resolved, expected_pretty_texts, expected_part_strs_list):
@@ -593,7 +634,7 @@ def test_group_ranged_parts(raw_ref_params, expected_section_slices):
 
 @pytest.mark.parametrize(('context_tref', 'match_title', 'common_title', 'expected_sec_cons'), [
     ['Gilyon HaShas on Berakhot 12b:1', 'Tosafot on Berakhot', 'Berakhot', (('Talmud', 'Daf', 24),)],
-    ['Berakhot 2a:1', 'Berakhot', 'Berakhot', (('Talmud', 'Daf', 3),)]  # skip "Line" address which isn't referenceable
+    ['Berakhot 2a:1', 'Berakhot', 'Berakhot', (('Talmud', 'Daf', 3), ('Integer', 'Line', 1))]
 ])
 def test_get_section_contexts(context_tref, match_title, common_title, expected_sec_cons):
     context_ref = Ref(context_tref)
@@ -687,9 +728,15 @@ def test_linker_output_validate(resolver_data, is_ambiguous):
     spans = _extract_debug_spans(doc)
     for span in spans:
         assert span['ambiguous'] == is_ambiguous
-    assert LinkerOutput({
+    validation_text = TextChunk(Ref("Genesis 1:1"), lang="en", vtitle="Tanakh: The Holy Scriptures, published by JPS").text
+    validation_spans = [span | {"charRange": [0, len(validation_text)], "text": validation_text} for span in spans]
+    pkey_data = {
         "ref": "Genesis 1:1",
         "versionTitle": "Tanakh: The Holy Scriptures, published by JPS",
         "language": "en",
-        "spans": spans
-    })._validate()
+        "spans": validation_spans
+    }
+    existing = LinkerOutput().load({key: pkey_data[key] for key in LinkerOutput.pkeys})
+    if existing:
+        pkey_data["_id"] = existing._id
+    assert LinkerOutput(pkey_data)._validate()

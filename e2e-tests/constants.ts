@@ -2,6 +2,18 @@
  * Constant variables for E2E tests
  */
 
+import { LANGUAGES } from './globals';
+
+// AuthPage (static/js/auth/AuthPage.jsx) labels shared by every page object
+// that has to click through ChooseView before an email/password form exists
+// (LoginPage, SignUpPage) — both /login and /register land there first.
+export const AUTH_LABELS = {
+  CONTINUE_WITH_EMAIL: {
+    [LANGUAGES.EN]: 'Continue with Email',
+    [LANGUAGES.HE]: 'המשך עם דוא״ל',
+  },
+} as const;
+
 // Interface for save state objects
 export interface SaveState {
   text: RegExp;
@@ -307,6 +319,25 @@ export const MOBILE_PAGE_URLS = {
   ABOUT: /\/mobile-about-menu/,
   MORE_FROM_SEFARIA: /\/products(\/|$|\?)/,
 } as const;
+
+/**
+ * Library search-results URL for a query, optionally deep-linked to a results tab.
+ *
+ * `search_tab` (not `tab`) selects sources/books/authors/topics — on a search URL
+ * `tab` already means the text-vs-sheet search type. See `get_search_params` in
+ * reader/views.py:1066.
+ */
+export const librarySearchUrl = (query: string, searchTab?: string) =>
+  `${MODULE_URLS.EN.LIBRARY}/search?q=${encodeURIComponent(query)}`
+  + (searchTab ? `&search_tab=${encodeURIComponent(searchTab)}` : '');
+
+/**
+ * The Voices "Sheets With <ref>" results page — the destination of the Resource
+ * Panel's Sheets button (`createSheetsWithRefURL`, ConnectionsPanel.jsx:655).
+ * Lives on Voices, not Library, which is why it takes its own base URL.
+ */
+export const sheetsWithRefUrl = (ref: string) =>
+  `${MODULE_URLS.EN.VOICES}/sheets-with-ref/${encodeURIComponent(ref)}`;
 
 export const SEARCH_DROPDOWN = {
   CONTAINER: '.autocomplete-dropdown',
