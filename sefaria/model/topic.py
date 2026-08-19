@@ -39,7 +39,31 @@ class SubCatBookSet:
         return hash(self.sub_cat_path)
 
 
+def _index_comp_date(index):
+    """
+    Collapse an Index's composition period to a single sortable year (prefer end year,
+    else start), or None when the index has no usable date. Mirrors the collapse used
+    for the `compDate` field of the ES book index (see make_book_index_document).
+    """
+    try:
+        tp = index.best_time_period()
+    except Exception:
+        return None
+    if not tp:
+        return None
+    year = getattr(tp, 'end', None)
+    if year is None:
+        year = getattr(tp, 'start', None)
+    return int(year) if year is not None else None
+
+
 class AuthorWorksAggregation(ABC):
+    """
+    Common interface for an entry in an author's list of works, which is either a single
+    work (AuthorIndexAggregation) or a group of works under one category
+    (AuthorCategoryAggregation). Callers iterating an author's works rely on these methods
+    to treat both cases uniformly, so every subclass must implement all of them.
+    """
     @abstractmethod
     def get_description(self, lang):
         pass
@@ -50,6 +74,27 @@ class AuthorWorksAggregation(ABC):
 
     @abstractmethod
     def get_url(self):
+        pass
+
+    @abstractmethod
+    def is_category(self):
+        """True if this entry aggregates several works under one category."""
+        pass
+
+    @abstractmethod
+    def get_category_label(self, lang):
+        """Localized label of the category these works are grouped under, or None for a single book."""
+        pass
+
+    @abstractmethod
+    def get_categories(self):
+        """English category path of a single work (e.g. ["Jewish Thought", "Rishonim"]), or None
+        for a category entry, which is represented by its own label (get_category_label) instead."""
+        pass
+
+    @abstractmethod
+    def get_comp_date(self):
+        """Single sortable composition year for this entry, or None when undatable."""
         pass
 
 
@@ -67,12 +112,25 @@ class AuthorIndexAggregation(AuthorWorksAggregation):
     def get_url(self):
         return f'/{self._index.title.replace(" ", "_").replace("?", "%3F")}'
 
+    def is_category(self):
+        return False
+
+    def get_category_label(self, lang):
+        return None
+
+    def get_categories(self):
+        return getattr(self._index, 'categories', None) or []
+
+    def get_comp_date(self):
+        return _index_comp_date(self._index)
+
 
 class AuthorCategoryAggregation(AuthorWorksAggregation):
-    def __init__(self, index_category, collective_term, base_category):
+    def __init__(self, index_category, collective_term, base_category, indexes=None):
         self._index_category: Category = index_category
         self._collective_title_term: Term = collective_term
         self._base_category: Category = base_category
+        self._indexes: List[Index] = indexes or []
 
     def get_description(self, lang):
         desc = getattr(self._index_category, f'{lang}ShortDesc', None)
@@ -89,17 +147,38 @@ class AuthorCategoryAggregation(AuthorWorksAggregation):
     def get_url(self):
         return f'/texts/{"/".join(self._index_category.path)}'
 
+    def is_category(self):
+        return True
+
+    def get_category_label(self, lang):
+        # Localized name of the category the works are grouped under (e.g. "Mishneh Torah").
+        return self._index_category.get_primary_title(lang)
+
+    def get_categories(self):
+        # A category entry is its own breadcrumb (get_category_label); the works it
+        # collapses live at many per-book paths, so no single path represents it.
+        return None
+
+    def get_comp_date(self):
+        # A category row collapses many works (and dates) into one entry; represent it by
+        # the average composition year of its dated works so year sorts can order it.
+        dates = [d for d in (_index_comp_date(i) for i in self._indexes) if d is not None]
+        if not dates:
+            return None
+        return round(sum(dates) / len(dates))
+
 
 class AuthorAggregationFactory:
     @staticmethod
-    def create(index=None, index_category=None, collective_term=None, base_category=None):
+    def create(index=None, index_category=None, collective_term=None, base_category=None, indexes=None):
         if index:
             return AuthorIndexAggregation(index)
         elif index_category:
             return AuthorCategoryAggregation(
                 index_category,
                 collective_term,
-                base_category
+                base_category,
+                indexes
             )
         else:
             raise ValueError("Invalid parameters for aggregation creation")
@@ -773,14 +852,16 @@ class AuthorTopic(PersonTopic):
                 for temp_index in temp_indexes:
                     final_aggregations += [AuthorAggregationFactory.create(index=temp_index)]
                 continue
-            final_aggregations += [AuthorAggregationFactory.create(index_category=index_category, collective_term=collective_title_term, base_category=base_category)]
+            final_aggregations += [AuthorAggregationFactory.create(index_category=index_category, collective_term=collective_title_term, base_category=base_category, indexes=temp_indexes)]
         return final_aggregations
 
 
     def get_aggregated_urls_for_authors_indexes(self) -> list:
         """
         Aggregates author's works by category when possible and
-        returns a dictionary. Each dictionary is of shape {"url": str, "title": {"en": str, "he": str}, "description": {"en": str, "he": str}}
+        returns a dictionary. Each dictionary is of shape {"url": str, "title": {"en": str, "he": str},
+        "description": {"en": str, "he": str}, "isCategory": bool, "categoryLabel": {"en": str, "he": str},
+        "categories": list or None, "compDate": int or None}
         corresponding to an index or category of indexes of this author's works.
         """
         aggregations = self.aggregate_authors_indexes_by_category()
@@ -788,7 +869,11 @@ class AuthorTopic(PersonTopic):
         for agg in aggregations:
             unique_urls.append({"url": agg.get_url(),
                                 "title": {"en": agg.get_title('en'), "he": agg.get_title('he')},
-                                "description": {"en": agg.get_description('en'), "he": agg.get_description('he')}})
+                                "description": {"en": agg.get_description('en'), "he": agg.get_description('he')},
+                                "isCategory": agg.is_category(),
+                                "categoryLabel": {"en": agg.get_category_label('en'), "he": agg.get_category_label('he')},
+                                "categories": agg.get_categories(),
+                                "compDate": agg.get_comp_date()})
         return unique_urls
 
     @staticmethod

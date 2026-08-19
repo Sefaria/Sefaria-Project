@@ -147,7 +147,7 @@ export default defineConfig({
     // Resource Panel (ConnectionsPanel) feature-coverage tests — Library module
     {
       name: 'chrome-resource-panel',
-      testDir: './e2e-tests/Full testing by Feature/Resource Panel',
+      testDir: './e2e-tests/full-testing-by-feature/Resource Panel',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -156,7 +156,7 @@ export default defineConfig({
     // Voices Topics feature-coverage tests — Voices module
     {
       name: 'chrome-voices-topics',
-      testDir: './e2e-tests/Full testing by Feature/Voices Topics',
+      testDir: './e2e-tests/full-testing-by-feature/Voices Topics',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.VOICES,
@@ -165,7 +165,7 @@ export default defineConfig({
     // Library Topics feature-coverage tests — Library module
     {
       name: 'chrome-library-topics',
-      testDir: './e2e-tests/Full testing by Feature/Library Topics',
+      testDir: './e2e-tests/full-testing-by-feature/Library Topics',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -174,7 +174,7 @@ export default defineConfig({
     // Voices Bookmarks & History feature-coverage tests — Voices module
     {
       name: 'chrome-bookmarks-(saved)-and-history',
-      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks (Saved) and History',
+      testDir: './e2e-tests/full-testing-by-feature/Voices Bookmarks (Saved) and History',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.VOICES,
@@ -183,7 +183,7 @@ export default defineConfig({
     // Search feature-coverage tests — spans Library + Voices (navigates absolute MODULE_URLS)
     {
       name: 'chrome-search',
-      testDir: './e2e-tests/Full testing by Feature/Search',
+      testDir: './e2e-tests/full-testing-by-feature/Search',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -192,7 +192,7 @@ export default defineConfig({
     // User Menu feature-coverage tests (profile/account/language/module switcher/logout)
     {
       name: 'chrome-user-menu',
-      testDir: './e2e-tests/Full testing by Feature/User Menu',
+      testDir: './e2e-tests/full-testing-by-feature/User Menu',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -201,7 +201,7 @@ export default defineConfig({
     // Cross-Module integration tests (auth persistence + redirects across Library/Voices)
     {
       name: 'chrome-cross-module',
-      testDir: './e2e-tests/Full testing by Feature/Cross-Module',
+      testDir: './e2e-tests/full-testing-by-feature/Cross-Module',
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -258,7 +258,7 @@ export default defineConfig({
     },
     {
       name: 'firefox-resource-panel',
-      testDir: './e2e-tests/Full testing by Feature/Resource Panel',
+      testDir: './e2e-tests/full-testing-by-feature/Resource Panel',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -266,7 +266,7 @@ export default defineConfig({
     },
     {
       name: 'firefox-voices-topics',
-      testDir: './e2e-tests/Full testing by Feature/Voices Topics',
+      testDir: './e2e-tests/full-testing-by-feature/Voices Topics',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.VOICES,
@@ -274,7 +274,7 @@ export default defineConfig({
     },
     {
       name: 'firefox-library-topics',
-      testDir: './e2e-tests/Full testing by Feature/Library Topics',
+      testDir: './e2e-tests/full-testing-by-feature/Library Topics',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -282,7 +282,7 @@ export default defineConfig({
     },
     {
       name: 'firefox-voices-bookmarks',
-      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks (Saved) and History',
+      testDir: './e2e-tests/full-testing-by-feature/Voices Bookmarks (Saved) and History',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.VOICES,
@@ -290,7 +290,7 @@ export default defineConfig({
     },
     {
       name: 'firefox-search',
-      testDir: './e2e-tests/Full testing by Feature/Search',
+      testDir: './e2e-tests/full-testing-by-feature/Search',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -298,7 +298,7 @@ export default defineConfig({
     },
     {
       name: 'firefox-user-menu',
-      testDir: './e2e-tests/Full testing by Feature/User Menu',
+      testDir: './e2e-tests/full-testing-by-feature/User Menu',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -306,7 +306,7 @@ export default defineConfig({
     },
     {
       name: 'firefox-cross-module',
-      testDir: './e2e-tests/Full testing by Feature/Cross-Module',
+      testDir: './e2e-tests/full-testing-by-feature/Cross-Module',
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -363,7 +363,7 @@ export default defineConfig({
     },
     {
       name: 'safari-resource-panel',
-      testDir: './e2e-tests/Full testing by Feature/Resource Panel',
+      testDir: './e2e-tests/full-testing-by-feature/Resource Panel',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -371,7 +371,7 @@ export default defineConfig({
     },
     {
       name: 'safari-voices-topics',
-      testDir: './e2e-tests/Full testing by Feature/Voices Topics',
+      testDir: './e2e-tests/full-testing-by-feature/Voices Topics',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.VOICES,
@@ -379,7 +379,7 @@ export default defineConfig({
     },
     {
       name: 'safari-library-topics',
-      testDir: './e2e-tests/Full testing by Feature/Library Topics',
+      testDir: './e2e-tests/full-testing-by-feature/Library Topics',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -387,7 +387,7 @@ export default defineConfig({
     },
     {
       name: 'safari-voices-bookmarks',
-      testDir: './e2e-tests/Full testing by Feature/Voices Bookmarks (Saved) and History',
+      testDir: './e2e-tests/full-testing-by-feature/Voices Bookmarks (Saved) and History',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.VOICES,
@@ -395,7 +395,7 @@ export default defineConfig({
     },
     {
       name: 'safari-search',
-      testDir: './e2e-tests/Full testing by Feature/Search',
+      testDir: './e2e-tests/full-testing-by-feature/Search',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -403,7 +403,7 @@ export default defineConfig({
     },
     {
       name: 'safari-user-menu',
-      testDir: './e2e-tests/Full testing by Feature/User Menu',
+      testDir: './e2e-tests/full-testing-by-feature/User Menu',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -411,7 +411,7 @@ export default defineConfig({
     },
     {
       name: 'safari-cross-module',
-      testDir: './e2e-tests/Full testing by Feature/Cross-Module',
+      testDir: './e2e-tests/full-testing-by-feature/Cross-Module',
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,

@@ -493,6 +493,9 @@ localSettings:
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   SEARCH_INDEX_NAME_TEXT: "text"  # Override per cauldron for isolated indexes (e.g. "prod-sync_text")
   SEARCH_INDEX_NAME_SHEET: "sheet"  # Override per cauldron for isolated indexes (e.g. "prod-sync_sheet")
+  SEARCH_INDEX_NAME_TOPIC: "topic"  # Override per cauldron for isolated indexes (e.g. "prod-sync_topic")
+  SEARCH_INDEX_NAME_BOOK: "book"  # Override per cauldron for isolated indexes (e.g. "prod-sync_book")
+  SEARCH_INDEX_NAME_CATEGORY: "category"  # Override per cauldron for isolated indexes (e.g. "prod-sync_category")
   USE_CLOUDFLARE: false
   FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.cauldron.sefaria.org" in cauldrons
   OFFLINE: "False"
