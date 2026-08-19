@@ -29,7 +29,7 @@ def test_current_990_form_redirects_to_latest_matching_pdf(tmp_path, monkeypatch
     response = reader_views.current_990_form(RequestFactory().get('/current-990-form'))
 
     assert response.status_code == 302
-    assert response['Location'] == '/static/files/Sefaria_2025_990_Public.pdf'
+    assert response['Location'] == f'{reader_views.STATIC_URL}files/Sefaria_2025_990_Public.pdf'
 
 
 def test_current_990_form_caches_the_latest_filename(tmp_path, monkeypatch):
