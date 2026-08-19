@@ -1,224 +1,251 @@
 name: Run Integration Tests
-on:
-  merge_group:
-  pull_request:
-  workflow_dispatch:
 
-concurrency: integration_environment
+# Post-merge verification of the LIVE staging site.
+#
+# This workflow used to build web/node/asset images, deploy an ephemeral Helm
+# sandbox from the merge commit, point Playwright at it and tear it down. All of
+# that is gone. Every merge to master is followed a few minutes later by a
+# `deploy(staging): app=X` release, so instead we wait for staging to pick up
+# that new build and run the suite against https://www.sefariastaging.org.
+#
+# ⚠️ REQUIRED-CHECK CHANGE: this now runs POST-merge, on `push`. A push-triggered
+# run cannot report a status on a pull request or a merge-queue entry, so
+# "Playwright" must be REMOVED from the required status checks on `master`
+# (Settings → Branches → master → Require status checks). Until it is, PRs will
+# wait forever on a check that never arrives. The job keeps the name
+# "Playwright" because build/notify/notifyEnd.js matches on it for Slack.
+#
+# To run the suite on demand, against staging/preprod/prod and from an arbitrary
+# branch, use playwright-deployed.yaml instead.
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: 'How much to run'
+        required: true
+        default: 'sanity'
+        type: choice
+        options:
+          - sanity          # @sanity release gate: 3 desktop browsers + mobile
+          - sanity-chrome   # @sanity release gate, Chromium + mobile only
+          - desktop-chrome  # every desktop suite, Chromium only
+
+# The suite logs in as shared QA accounts and mutates their server-side state,
+# so only one run may touch staging at a time. Not cancel-in-progress: killing a
+# run mid-flight can leave a half-created sheet or a logged-out admin behind.
+concurrency:
+  group: playwright-staging
+  cancel-in-progress: false
+
+env:
+  STAGING_URL: https://www.sefariastaging.org
+  STAGING_URL_IL: https://www.sefariastaging-il.org
 
 jobs:
-  variables:
-    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
+  wait-for-staging:
+    name: "Wait for staging deploy"
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     outputs:
-      date: ${{ steps.data.outputs.date }}
-      commit: ${{ steps.get-sha.outputs.sha_short }}
-      branch: ${{ steps.branch-name.outputs.current_branch }}
-      runner-image: us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT}}/containers/hosted-runner:latest
+      version: ${{ steps.wait.outputs.version }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Get current date
-        id: date
-        run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
-      - name: Set outputs
-        id: get-sha
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Format branch name
-        id: branch-name
-        run: >-
-          echo "current_branch=merge-queue"
-          >> $GITHUB_OUTPUT
-  build-generic:
-    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
-    name: "Integration Image Build"
-    needs:
-      - variables
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        app: [ web, node ]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - id: auth
-        name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          token_format: 'access_token'
-          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
-          service_account: '${{ secrets.DEV_GKE_SA }}'
-      - name: Login to GAR
-        uses: docker/login-action@v3
-        with:
-          registry: us-east1-docker.pkg.dev
-          username: oauth2accesstoken
-          password: '${{ steps.auth.outputs.access_token }}'
-      - name: Generate image metadata
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: |
-            us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/sefaria-${{ matrix.app }}-${{ needs.variables.outputs.branch }}
-          # generate Docker tags based on the following events/attributes
-          tags: |
-            type=ref,event=branch
-            type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ needs.variables.outputs.date }},format=short
-            type=sha
-          flavor: |
-            latest=true
-      - name: build and push
-        uses: docker/build-push-action@v3
-        with:
-#         cache-from: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache
-#         cache-to: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache, mode=max
-          context: .
-          push: true
-          file: ./build/${{ matrix.app }}/Dockerfile
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          
-  build-derived:
-    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
-    runs-on: ubuntu-latest
-    name: "Integration Image Build Stage 2"
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    needs:
-      - build-generic
-      - variables
-    strategy:
-      matrix:
-        app: [ asset, linker ]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - id: auth
-        name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          token_format: 'access_token'
-          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
-          service_account: '${{ secrets.DEV_GKE_SA }}'
-      - name: Login to GAR
-        uses: docker/login-action@v3
-        with:
-          registry: us-east1-docker.pkg.dev
-          username: oauth2accesstoken
-          password: '${{ steps.auth.outputs.access_token }}'
-      - name: Generate image metadata
-        id: meta
-        uses: docker/metadata-action@v3
-        with:
-          images: |
-            us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/sefaria-${{ matrix.app }}-${{ needs.variables.outputs.branch }}
-          # generate Docker tags based on the following events/attributes
-          tags: |
-            type=ref,event=branch
-            type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ needs.variables.outputs.date }},format=short
-            type=sha
-          flavor: |
-            latest=true
-      - name: build and push
-        uses: docker/build-push-action@v3
-        with:
-#         cache-from: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache
-#         cache-to: type=registry,ref=gcr.io/${{ secrets.DEV_PROJECT }}/sefaria-${{ matrix.app }}/cache,mode=max
-          context: .
-          push: true
-          build-args: |
-            SRC_IMG=us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/containers/sefaria-web-${{ needs.variables.outputs.branch }}:sha-${{ needs.variables.outputs.commit }}
-          file: ./build/${{ matrix.app }}/Dockerfile
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - name: Wait for the new build, then for it to report healthy
+        id: wait
+        run: |
+          set -uo pipefail
+
+          # reader/views.py:367 renders the running release into the page props
+          # as `appVersion` (from the APP_VERSION env var, e.g. "v6.110.15").
+          # That is the only externally visible marker of which build is live.
+          version_of () {
+            curl -s --max-time 30 "$1/texts" \
+              | grep -o '"appVersion": *"[^"]*"' \
+              | head -1 \
+              | sed 's/.*"appVersion": *"\([^"]*\)".*/\1/'
+          }
+
+          baseline=$(version_of "$STAGING_URL")
+          echo "staging is currently on: ${baseline:-<unknown>}"
+
+          if [ "${{ github.event_name }}" = "push" ]; then
+            # A merge has just landed; the release that carries it is still on
+            # its way. Wait for appVersion to move off the value it had when
+            # this job started.
+            deadline=$(( $(date +%s) + 20 * 60 ))
+            while :; do
+              current=$(version_of "$STAGING_URL")
+              if [ -n "$current" ] && [ "$current" != "$baseline" ]; then
+                echo "staging moved to: $current"
+                break
+              fi
+              if [ "$(date +%s)" -ge "$deadline" ]; then
+                echo "::error::staging still reports '${baseline:-<unknown>}' 20 minutes after the merge — the deploy never landed, so there is no new build to test."
+                exit 1
+              fi
+              sleep 20
+            done
+          else
+            echo "manual run — testing whatever is live, not waiting for a version change"
+          fi
+
+          # The version flips as soon as the first new pod serves traffic; give
+          # the rollout a moment to finish and confirm both domains are healthy.
+          for host in "$STAGING_URL" "$STAGING_URL_IL"; do
+            deadline=$(( $(date +%s) + 5 * 60 ))
+            while :; do
+              health=$(curl -s --max-time 30 "$host/healthz-rollout" || true)
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 "$host/texts" || echo 000)
+              if [ "$health" = "Healthy" ] && [ "$code" = "200" ]; then
+                echo "$host: healthy"
+                break
+              fi
+              if [ "$(date +%s)" -ge "$deadline" ]; then
+                echo "::error::$host did not become healthy (healthz-rollout='$health', /texts=$code)"
+                exit 1
+              fi
+              sleep 15
+            done
+          done
+
+          version=$(version_of "$STAGING_URL")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "### Staging is up on \`$version\`" >> "$GITHUB_STEP_SUMMARY"
+
   run-tests:
-    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
     name: "Playwright"   # This name is referenced when slacking status
     needs:
-      - build-derived
-      - variables
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    runs-on: sefaria-integrations
+      - wait-for-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-      - name: Setup base utils
-        run: |
-          export DEBIAN_FRONTEND=noninteractive
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends curl unzip
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v4
-      - name: setup helm
-        uses: azure/setup-helm@v4
-      - name: Set up yq
-        run: |
-          curl -L https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O
-          sudo mv yq_linux_amd64 /usr/bin/yq
-          chmod +x /usr/bin/yq
-      - name: Deploy Sandbox
-        run: ./build/ci/integration-helm-deploy.sh build/ci/integration-values.yaml
-        env:
-          GIT_COMMIT: "${{ needs.variables.outputs.commit }}"
-          BRANCH: "${{ needs.variables.outputs.branch }}"
-          PROJECT_ID: "${{ secrets.DEV_PROJECT }}"
-          NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
-      - name: Wait for env
-        run: while [[ $( curl -s -o /dev/null -w "%{http_code}" "nginx-integration-${{ needs.variables.outputs.commit }}.${{secrets.DEV_SANDBOX_NAMESPACE}}/texts") != "200" ]]; do sleep 10; done
-        timeout-minutes: 5
 
-      - name: Set SANDBOX_URL
-        run: echo "SANDBOX_URL=http://nginx-integration-${{ needs.variables.outputs.commit }}.${{ secrets.DEV_SANDBOX_NAMESPACE }}/texts" >> $GITHUB_ENV
-      
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
+          cache: 'npm'
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-      
+        run: npx playwright install --with-deps chromium firefox webkit
+
       - name: Run Playwright tests
-        run: npx playwright test
         env:
-          PLAYWRIGHT_SUPERUSER_EMAIL: "${{ secrets.PLAYWRIGHT_SUPERUSER_EMAIL }}"
-          PLAYWRIGHT_SUPERUSER_PASSWORD: "${{ secrets.PLAYWRIGHT_SUPERUSER_PASSWORD }}"
-          PLAYWRIGHT_USER_EMAIL: "${{ secrets.PLAYWRIGHT_USER_EMAIL }}"
-          PLAYWRIGHT_USER_PASSWORD: "${{ secrets.PLAYWRIGHT_USER_PASSWORD }}"
+          SANDBOX_URL: ${{ env.STAGING_URL }}
+          SANDBOX_URL_IL: ${{ env.STAGING_URL_IL }}
+          # Staging is slower and more contended than a local sandbox.
+          TIMEOUT_MULTIPLIER: '1.5'
+          GENERATE_REPORTS: '1'
+          PLAYWRIGHT_USER_EMAIL: ${{ secrets.PLAYWRIGHT_USER_EMAIL }}
+          PLAYWRIGHT_USER_PASSWORD: ${{ secrets.PLAYWRIGHT_USER_PASSWORD }}
+          PLAYWRIGHT_SUPERUSER_EMAIL: ${{ secrets.PLAYWRIGHT_SUPERUSER_EMAIL }}
+          PLAYWRIGHT_SUPERUSER_PASSWORD: ${{ secrets.PLAYWRIGHT_SUPERUSER_PASSWORD }}
+          PLAYWRIGHT_LA_USER_EMAIL: ${{ secrets.PLAYWRIGHT_LA_USER_EMAIL }}
+          PLAYWRIGHT_LA_USER_PASSWORD: ${{ secrets.PLAYWRIGHT_LA_USER_PASSWORD }}
+          PLAYWRIGHT_LA_USER_HE_EMAIL: ${{ secrets.PLAYWRIGHT_LA_USER_HE_EMAIL }}
+          PLAYWRIGHT_LA_USER_HE_PASSWORD: ${{ secrets.PLAYWRIGHT_LA_USER_HE_PASSWORD }}
+          SUITE: ${{ inputs.suite || 'sanity' }}
+        run: |
+          set -uo pipefail
+          mkdir -p reports
+          overall=0
+
+          # Legs run SEQUENTIALLY on purpose. UMN-007 performs a real UI logout
+          # of the shared admin account, which invalidates the session every
+          # other concurrently-running browser is reading from disk — see
+          # e2e-tests/CLAUDE.md rule 2.21. In parallel, UMN-007 and its
+          # neighbours fail for reasons unrelated to the code under test.
+          run_leg () {
+            local label="$1"; shift
+            echo "::group::playwright $label"
+            npx playwright test "$@"
+            local rc=$?
+            echo "::endgroup::"
+            [ $rc -eq 0 ] || overall=1
+            # The html/junit paths are fixed in the configs, so archive each
+            # leg's report before the next invocation overwrites it.
+            for d in e2e-tests/e2e-test-logs/html-report e2e-tests/e2e-test-logs/html-report-mobile; do
+              [ -d "$d" ] && mv "$d" "reports/${label}-html" && break
+            done
+            for f in e2e-tests/e2e-test-logs/junit-results.xml e2e-tests/e2e-test-logs/junit-results-mobile.xml; do
+              [ -f "$f" ] && mv "$f" "reports/${label}-junit.xml" && break
+            done
+            echo "$label: $([ $rc -eq 0 ] && echo PASSED || echo FAILED)" >> reports/summary.txt
+            return 0
+          }
+
+          MOBILE=(--config=playwright.mobileweb.config.ts)
+
+          case "$SUITE" in
+            sanity)
+              run_leg chrome-sanity  --project=chrome-sanity
+              run_leg firefox-sanity --project=firefox-sanity
+              run_leg safari-sanity  --project=safari-sanity
+              run_leg mobile-sanity  "${MOBILE[@]}" --project=mobile-sanity
+              ;;
+            sanity-chrome)
+              run_leg chrome-sanity  --project=chrome-sanity
+              run_leg mobile-sanity  "${MOBILE[@]}" --project=mobile-sanity
+              ;;
+            desktop-chrome)
+              run_leg desktop-chrome \
+                --project=chrome-library \
+                --project=chrome-voices \
+                --project=chrome-misc \
+                --project=chrome-assistant \
+                --project=chrome-resource-panel \
+                --project=chrome-voices-topics \
+                --project=chrome-library-topics \
+                --project='chrome-bookmarks-(saved)-and-history' \
+                --project=chrome-search \
+                --project=chrome-user-menu \
+                --project=chrome-cross-module
+              ;;
+            *)
+              echo "::error::Unknown suite '$SUITE'"
+              exit 1
+              ;;
+          esac
+
+          {
+            echo "### Playwright — \`$SUITE\` on staging \`${{ needs.wait-for-staging.outputs.version }}\`"
+            echo ""
+            echo '```'
+            cat reports/summary.txt 2>/dev/null || echo "(no legs ran)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          exit $overall
 
       - name: Upload Playwright report
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: playwright-report
-          path: playwright-report/
+          name: playwright-report-${{ github.run_id }}
+          path: |
+            reports/
+            e2e-tests/e2e-test-logs/test-results/
           retention-days: 30
-      - name: Uninstall
-        run: helm delete integration-${{ needs.variables.outputs.commit }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
+          if-no-files-found: warn
+
   ending-notification:
-    if: ${{ github.event_name == 'merge_group' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     needs:
       - run-tests
+    if: always()
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
-          node-version: '14'
+          node-version: '20'
       - run: npm ci
         working-directory: ./build/notify
       - run: node notifyEnd.js
