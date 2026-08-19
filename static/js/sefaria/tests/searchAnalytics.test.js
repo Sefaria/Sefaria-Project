@@ -1,4 +1,4 @@
-import SearchAnalytics, { resultLinkAnalyticsAttrs } from '../searchAnalytics';
+import SearchAnalytics, { resultLinkAnalyticsAttrs, initialFlowSource } from '../searchAnalytics';
 
 // The module reads the global `gtag` (GA4) and `crypto.randomUUID` at call
 // time, so both are replaced with deterministic mocks.
@@ -230,4 +230,53 @@ test('all events are skipped silently when gtag is unavailable (ad blocker)', ()
         reportAllApis();
         SearchAnalytics.endFlow('abandoned');
     }).not.toThrow();
+});
+
+describe('initialFlowSource (back button that rebuilds the document)', () => {
+    // jsdom defines `performance` as a non-writable global, so plain assignment is
+    // silently ignored -- it has to be redefined.
+    const realPerformance = global.performance;
+    const setPerformance = (value) => Object.defineProperty(
+        global, 'performance', {value, configurable: true, writable: true});
+    const withNavType = (type) => setPerformance(
+        {getEntriesByType: (name) => name === 'navigation' ? [{type}] : []});
+    afterAll(() => setPerformance(realPerformance));
+
+    test("a back/forward navigation is a back_click, not a fresh arrival", () => {
+        withNavType('back_forward');
+        expect(initialFlowSource()).toBe('back_click');
+    });
+
+    test('an ordinary load is a deep_link', () => {
+        withNavType('navigate');
+        expect(initialFlowSource()).toBe('deep_link');
+        withNavType('reload');
+        expect(initialFlowSource()).toBe('deep_link');
+    });
+
+    test('falls back to deep_link where the timing API is unavailable', () => {
+        setPerformance({});                            // no getEntriesByType
+        expect(initialFlowSource()).toBe('deep_link');
+        setPerformance({getEntriesByType: () => []});  // no navigation entry
+        expect(initialFlowSource()).toBe('deep_link');
+    });
+});
+
+describe('sort and toggle clicks', () => {
+    test('report their own element_type with the visible label, and no count', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        SearchAnalytics.elementClicked({elementType: 'sort', elementValue: 'Chronological'});
+        SearchAnalytics.elementClicked({elementType: 'toggle', elementValue: 'Exact Phrase'});
+        const [sort, toggle] = firedEvents().slice(1).map(([, params]) => params);
+        expect(sort.element_type).toBe('sort');
+        expect(sort.element_value).toBe('Chronological');
+        expect(sort.count).toBeUndefined();
+        expect(sort.result_position).toBeUndefined();
+        expect(toggle.element_type).toBe('toggle');
+        expect(toggle.element_value).toBe('Exact Phrase');
+        // both belong to the query on screen, so they carry its search_id
+        expect(sort.search_id).toBe('uuid-1');
+        expect(toggle.search_id).toBe('uuid-1');
+    });
 });

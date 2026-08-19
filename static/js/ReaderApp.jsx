@@ -330,7 +330,7 @@ class ReaderApp extends Component {
       // source. Popping within the search page itself doesn't remount, so it
       // must not set the hint (it would mislabel some later flow).
       if (state.panels[0]?.menuOpen === "search" && this.state.panels[0]?.menuOpen !== "search") {
-        SearchAnalytics.setNextFlowSource('back_from_result');
+        SearchAnalytics.setNextFlowSource('back_click');
       }
 
       // need to clone state and panels; if we don't clone them, when we run setState, it will make it so that

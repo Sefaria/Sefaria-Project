@@ -307,6 +307,16 @@ class SearchPage extends Component {
 
   setEntitySort(type, sortKey) {
     if (this.state.entitySort[type] === sortKey) { return; }
+    if (!this.props.compare) {
+      // element_value is the option's visible English label ("Chronological"),
+      // matching how tab and filter clicks report. `name` on a sort option is
+      // already the English string -- see makeSortOption in SearchSortDropdown.
+      const sortOptions = ENTITY_SORT_OPTIONS[ENTITY_TABS.find(t => t.type === type)?.sortOptions] || [];
+      SearchAnalytics.elementClicked({
+        elementType: 'sort',
+        elementValue: sortOptions.find(o => o.type === sortKey)?.name || sortKey,
+      });
+    }
     // The server sorts the entire match set, so every page already downloaded is in the old
     // order and can't be reused — discard them and start again from the first page.
     this.setState(prev => ({entitySort: {...prev.entitySort, [type]: sortKey}}),
@@ -350,6 +360,25 @@ class SearchPage extends Component {
       prev => ({entityData: {...prev.entityData, ...Object.fromEntries(types.map(t => [t, null]))}}),
       () => this.fetchEntityResults(types),  // runs after state settles, so it reads the new sort/filters
     );
+  }
+
+  // Wraps the sources-tab sort callback so the change is also reported to search
+  // analytics. Every sources sort control routes through here (the desktop
+  // dropdown, the mobile filter panel, and the one inside SearchResultList) so
+  // the event fires wherever the user changes it. SearchSortBox already ignores
+  // a click on the option that is currently selected, so this only ever reports
+  // a real change.
+  handleSourcesSortChange(sortType) {
+    if (!this.props.compare) {
+      // `name` on a sortTypeArray entry is the visible English label
+      // ("Relevance" / "Chronological") -- see searchState.js.
+      const option = (this.props.sortTypeArray || []).find(o => o.type === sortType);
+      SearchAnalytics.elementClicked({
+        elementType: 'sort',
+        elementValue: option?.name || sortType,
+      });
+    }
+    this.props.updateAppliedOptionSort(sortType);
   }
 
   // Wraps the sources-tab filter callback so the click is also reported to
@@ -517,7 +546,7 @@ class SearchPage extends Component {
         compare={this.props.compare}
         searchState={this.props.searchState}
         onResultClick={this.props.onResultClick}
-        updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+        updateAppliedOptionSort={this.handleSourcesSortChange}
         registerAvailableFilters={this.props.registerAvailableFilters}
         loadNextPage={this.props.loadNextPage}
         isQueryRunning={this.props.isQueryRunning}
@@ -530,7 +559,7 @@ class SearchPage extends Component {
         ? <SearchSortBox
               type={this.props.type}
               sortTypeArray={this.props.sortTypeArray}
-              updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+              updateAppliedOptionSort={this.handleSourcesSortChange}
               sortType={this.props.searchState.sortType}
               disabled={disabled} />
         : <MobileFilterIconButton
@@ -546,7 +575,24 @@ class SearchPage extends Component {
     const closeMobileFilters = () => this.setState({mobileFiltersOpen: false});
 
     const isExactSearch = this.props.searchState.field === this.props.searchState.fieldExact;
+    // Rendered twice — above the results on desktop, inside the filter panel on mobile —
+    // and read a third time for the analytics label below, so the label always matches
+    // the words the user actually clicked.
+    const exactMatchOptions = [
+      {name: "all",   ...Sefaria._bilingual("search.exact_match_toggle.all_results")},
+      {name: "exact", ...Sefaria._bilingual("search.exact_match_toggle.exact_match")},
+    ];
     const handleExactMatchChange = (val) => {
+      // The toggle calls onChange even for a click on the option already selected;
+      // that changes nothing, so it isn't reported. Keeps this consistent with the
+      // sort control, which ignores a no-op selection before it ever gets here.
+      const isNoOp = (val === "exact") === isExactSearch;
+      if (!isNoOp && !this.props.compare) {
+        SearchAnalytics.elementClicked({
+          elementType: 'toggle',
+          elementValue: exactMatchOptions.find(o => o.name === val)?.en || val,
+        });
+      }
       const defaultField = SearchState.metadataByType[this.props.type]?.field;
       this.props.updateAppliedOptionField(val === "exact" ? this.props.searchState.fieldExact : defaultField);
     };
@@ -556,10 +602,7 @@ class SearchPage extends Component {
       <div className="searchFilterGroup">
         <h2><InterfaceText>search_page.search_type</InterfaceText></h2>
         <SearchToggle
-          options={[
-            {name: "all",   ...Sefaria._bilingual("search.exact_match_toggle.all_results")},
-            {name: "exact", ...Sefaria._bilingual("search.exact_match_toggle.exact_match")},
-          ]}
+          options={exactMatchOptions}
           selected={isExactSearch ? "exact" : "all"}
           onChange={handleExactMatchChange}
         />
@@ -574,7 +617,7 @@ class SearchPage extends Component {
           query={this.props.query}
           searchState={this.props.searchState}
           updateAppliedFilter={this.handleSourcesFilterClick}
-          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+          updateAppliedOptionSort={this.handleSourcesSortChange}
           topSection={searchTypeSection}
           closeMobileFilters={closeMobileFilters}
           compare={this.props.compare}
@@ -634,10 +677,7 @@ class SearchPage extends Component {
         <div className="searchTopMatter">
           {Sefaria.multiPanel && !this.props.compare && this.props.type === "text" && (
             <SearchToggle
-              options={[
-                {name: "all",   ...Sefaria._bilingual("search.exact_match_toggle.all_results")},
-                {name: "exact", ...Sefaria._bilingual("search.exact_match_toggle.exact_match")},
-              ]}
+              options={exactMatchOptions}
               selected={isExactSearch ? "exact" : "all"}
               onChange={handleExactMatchChange}
             />
