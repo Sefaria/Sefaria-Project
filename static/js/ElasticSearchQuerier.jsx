@@ -12,6 +12,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import {SearchResultList} from "./SearchResultList";
 import SearchPage from "./SearchPage";
+import SearchInVoicesPage from "./SearchInVoicesPage";
 
 class TopicQuerier {
     async addCollection(collection) {
@@ -92,7 +93,7 @@ class TopicQuerier {
 class ElasticSearchQuerier extends Component {
     constructor(props) {
       super(props);
-      this.querySize = {"text": 50, "sheet": 20};
+      this.querySize = {"text": 100, "sheet": 20};
       this.state = {
         runningQueries: null,
         isQueryRunning: false,
@@ -335,12 +336,16 @@ class ElasticSearchQuerier extends Component {
         }
     }
     render () {
-        return <SearchPage
+        const isVoices = Sefaria.activeModule === Sefaria.VOICES_MODULE;
+        const SearchPageComponent = isVoices ? SearchInVoicesPage : SearchPage;
+        return <SearchPageComponent
                     key={"searchPage"}
                     moreToLoad={this.state.moreToLoad}
                     isQueryRunning={this.state.isQueryRunning}
-                    searchTopMsg="search_page.results_for"
+                    searchTopMsg={isVoices && "search_page.results_for"}
                     query={this.props.query}
+                    tab={this.props.tab}
+                    setTab={this.props.setTab}
                     sortTypeArray={SearchState.metadataByType[this.props.searchState.type].sortTypeArray}
                     hits={this.normalizeHitsMetaData()}
                     totalResults={this.state.totals}
@@ -349,6 +354,7 @@ class ElasticSearchQuerier extends Component {
                     settings={this.props.settings}
                     panelsOpen={this.props.panelsOpen}
                     onResultClick={this.props.onResultClick}
+                    openURL={this.props.openURL}
                     openDisplaySettings={this.props.openDisplaySettings}
                     toggleLanguage={this.props.toggleLanguage}
                     close={this.props.close}
@@ -367,8 +373,11 @@ class ElasticSearchQuerier extends Component {
 
 ElasticSearchQuerier.propTypes = {
     query: PropTypes.string,
+    tab: PropTypes.string,
+    setTab: PropTypes.func,
     searchState: PropTypes.object,
     onResultClick: PropTypes.func,
+    openURL: PropTypes.func,
     registerAvailableFilters: PropTypes.func,
     settings: PropTypes.object,
     openDisplaySettings: PropTypes.func,
