@@ -10,18 +10,17 @@
  * `countriesToTarget?.[activeLocale]`; strapi-modal-country-targeting.spec.js covers the modal
  * path. It is also the only integration test exercising `exclude` mode.
  *
- * THE FIRST TWO TESTS ARE THE POINT. They use ONE viewer country (GB) for which the two locales
- * disagree — English shows it, Hebrew does not. Under the pre-fix code, where the English row's
- * targeting governed every locale, both interfaces would have shown the banner, so these two
+ * THE FIRST TWO TESTS ARE THE POINT. They use ONE viewer country (IL) for which the two locales
+ * disagree — English hides it, Hebrew shows it. Under the pre-fix code, where the English row's
+ * targeting governed every locale, both interfaces would have hidden the banner, so these two
  * assertions together are what distinguishes the fixed implementation from the broken one. A
  * viewer country for which the locales happen to agree could not tell them apart.
  *
- * EXCLUDE IS NOT SIMPLY THE INVERSE OF INCLUDE. strapiTargeting.js maximises recall:
- *     candidates.size === 0 || [...candidates].some((code) => !targetCodes.includes(code))
- * A viewer is withheld from only once EVERY plausible candidate country is on the exclude-list.
- * The config's America/New_York timezone contributes 'us' to every candidate set, so the GB viewer
- * has candidates {gb, us} and still passes the English exclude-US rule, because 'gb' escapes it.
- * A test assuming strict inversion would assert the wrong thing.
+ * INCLUDE AND EXCLUDE USE THE SAME PLAUSIBILITY RULE. One matching candidate is enough to include
+ * a viewer in a targeted campaign and to withhold them from a campaign excluding that country.
+ * The config's America/New_York timezone contributes 'us', while the header contributes 'il', so
+ * this viewer has candidates {il, us}: the English exclude-US rule withholds the banner and the
+ * Hebrew include-IL rule admits it.
  *
  * COUNTRY COMES FROM THE `cf-ipcountry` HEADER — see strapi-modal-country-targeting.spec.js for
  * why (PINNED_IPCOUNTRY makes every local viewer look British by default, and varying `timezoneId`
@@ -54,7 +53,7 @@ import { LANGUAGES } from '../globals';
 
 const scenario = SCENARIOS.bannerCountryTargeted;
 const expected = scenario.expected.banner;
-const { discriminating, hebrewIncluded, englishExcluded } = scenario.viewerCountries;
+const { discriminating, englishExcluded } = scenario.viewerCountries;
 
 const banner = (page) => page.locator('#bannerMessage');
 
@@ -94,23 +93,14 @@ function describeViewerIn(country, title, body) {
 }
 
 describeViewerIn(discriminating, 'the two locales disagree', () => {
-  test('is shown to an english viewer, who is not on the exclude-list', async ({ page }) => {
+  test('is hidden from an english viewer, who has a plausible country on the exclude-list', async ({ page }) => {
     await open(page, LANGUAGES.EN);
-    await advanceUntilVisible(page, banner(page));
-    await expect(banner(page)).toContainText(expected.byLocale[LANGUAGES.EN].bodyText);
-  });
-
-  test('is hidden from a hebrew viewer, who is not on the include-list', async ({ page }) => {
-    // Same viewer country as above; only the interface differs. This pair is what proves targeting
-    // is read per locale rather than taken from the English row.
-    await open(page, LANGUAGES.HE);
     await expectBannerAbsent(page);
   });
-});
 
-describeViewerIn(hebrewIncluded, "on the hebrew locale's include-list", () => {
-  test('is shown to a hebrew viewer', async ({ page }) => {
-    // The positive half of the Hebrew rule: its include-list is consulted, not merely ignored.
+  test('is shown to a hebrew viewer, who has a plausible country on the include-list', async ({ page }) => {
+    // Same viewer country as above; only the interface differs. This pair is what proves targeting
+    // is read per locale rather than taken from the English row.
     await open(page, LANGUAGES.HE);
     await advanceUntilVisible(page, banner(page));
     await expect(banner(page)).toContainText(expected.byLocale[LANGUAGES.HE].bodyText);

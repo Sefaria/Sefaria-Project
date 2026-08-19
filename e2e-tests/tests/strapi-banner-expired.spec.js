@@ -14,9 +14,10 @@
  *      so it is what the app saw, not what a fixture file claims);
  *   2. nothing renders for it.
  *
- * VIEWER COUNTRY IS GB ON PURPOSE. The banner targets `exclude [US]`, which a GB viewer passes, so
- * expiry is the ONLY gate it fails. Under a US viewer it would fail both the date and the country
- * check, and its absence would prove nothing about dates.
+ * VIEWER CANDIDATES ARE PINNED TO {GB} ON PURPOSE. The banner targets `exclude [US]`, which that
+ * viewer passes, so expiry is the ONLY gate it fails. The test overrides only the signals consumed
+ * by countryCandidates; it leaves Date and the browser timezone itself alone so the HAR request's
+ * recorded date range still matches.
  *
  * THE POSITIVE CONTROL IS A REAL RENDER. A modal published in the same payload is still active at
  * the pinned clock, and the test waits for it to appear. That single step establishes three things
@@ -55,6 +56,22 @@ test.describe('Strapi Banner — expired date window', () => {
   test.beforeEach(async ({ page, context }) => {
     har = await routeWithStrapiHarFixture(context, scenario.har);
     await prepareStrapiPage(page, scenario);
+
+    // The shared Playwright config uses America/New_York and an en-US browser locale, either of
+    // which would add US to the plausible-country set. Under conservative exclusion that would
+    // make this expired exclude-[US] banner fail two gates. Pin the targeting signals to GB while
+    // preserving the real timezone used by Date, because changing that would invalidate the HAR's
+    // date-derived query and POST body.
+    await page.addInitScript(() => {
+      const nativeResolvedOptions = Intl.DateTimeFormat.prototype.resolvedOptions;
+      Intl.DateTimeFormat.prototype.resolvedOptions = function resolvedOptionsWithoutCountryHint() {
+        return { ...nativeResolvedOptions.call(this), timeZone: 'Etc/Unknown' };
+      };
+      Object.defineProperty(window.navigator, 'language', {
+        value: 'en-GB',
+        configurable: true,
+      });
+    });
 
     payload = null;
     page.on('response', async (response) => {
