@@ -58,6 +58,7 @@ if not hasattr(sys, '_doc_build'):
     from anymail.exceptions import AnymailRecipientsRefused
 
 from . import abstract as abst
+from sefaria.helper import library_assistant
 from sefaria.model.following import FollowersSet, FolloweesSet, general_follow_recommendations
 from sefaria.model.blocking import BlockersSet, BlockeesSet
 from sefaria.model.text import Ref, TextChunk
@@ -448,9 +449,7 @@ class UserProfile(object):
             self.show_editor_toggle = False
             self.uses_new_editor = True
             # Every path that creates a profile writes the Library Assistant key; the key
-            # is deliberately absent from the settings defaults. Imported here because
-            # sefaria.helper.library_assistant imports this module.
-            from sefaria.helper import library_assistant
+            # is deliberately absent from the settings defaults.
             self.settings[library_assistant.SETTING_KEY] = True
             self.assign_slug()
             self.save()
