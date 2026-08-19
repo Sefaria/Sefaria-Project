@@ -13,6 +13,7 @@ import React from "react";
 import {SearchResultList} from "./SearchResultList";
 import SearchPage from "./SearchPage";
 import SearchInVoicesPage from "./SearchInVoicesPage";
+import SearchAnalytics from "./sefaria/searchAnalytics";
 
 class TopicQuerier {
     async addCollection(collection) {
@@ -126,10 +127,79 @@ class ElasticSearchQuerier extends Component {
       }
     }
     componentDidMount() {
+        // Search analytics (sc-46034) cover the main search page only -- not
+        // the compare panel, sidebar search-in-book, or the Voices module.
+        // Mounting this component IS "arriving at the search page", so the
+        // flow starts here; SearchAnalytics no-ops everywhere else because no
+        // flow was ever started.
+        if (this._searchAnalyticsInScope()) {
+            SearchAnalytics.startFlow();
+            SearchAnalytics.startQuery(this.props.query);
+            this._attachPageTransitionListeners();
+        }
         this._executeAllQueries();
     }
+
+    /**
+     * React lifecycle only sees navigation that happens *inside* the app. Leaving
+     * by a real page load -- an external link, typing a URL, closing the tab --
+     * destroys the document without ever unmounting React, and coming back can
+     * resurrect that same document without running any script at all. Neither
+     * shows up as a mount or an unmount, so both need a browser-level listener.
+     * (Same approach as the signup funnel, see auth/useSignUpTracking.js.)
+     */
+    _attachPageTransitionListeners() {
+        // Fires whether the document is being discarded or frozen into the
+        // back-forward cache, and it is the last point at which an event can still
+        // be sent. Ends the flow that componentWillUnmount would otherwise have
+        // ended. A result click already ended the flow with 'clicked_result', and a
+        // flow can only end once, so this only ever reports genuine abandonment.
+        this._onPageHide = () => SearchAnalytics.endFlow('abandoned');
+
+        // persisted:true means the browser restored THIS document from the
+        // back-forward cache. Nothing re-runs: React does not remount, so
+        // componentDidMount never fires again and the flow ended at pagehide stays
+        // ended -- leaving the user looking at the search page with no active flow,
+        // where every later click reports nothing. Start a fresh flow instead.
+        //
+        // Note the results on screen are the ones the browser froze; no API is
+        // re-run, so this visit has no search_query_executed. Clicks still carry a
+        // search_id, so they remain attributable to the query that produced them.
+        this._onPageShow = (e) => {
+            if (!e.persisted) { return; }
+            SearchAnalytics.setNextFlowSource('back_click');
+            SearchAnalytics.startFlow();
+            SearchAnalytics.startQuery(this.props.query);
+        };
+
+        window.addEventListener('pagehide', this._onPageHide);
+        window.addEventListener('pageshow', this._onPageShow);
+    }
+
+    _detachPageTransitionListeners() {
+        if (this._onPageHide) { window.removeEventListener('pagehide', this._onPageHide); }
+        if (this._onPageShow) { window.removeEventListener('pageshow', this._onPageShow); }
+        this._onPageHide = null;
+        this._onPageShow = null;
+    }
     componentWillUnmount() {
+        // Unmounting IS "leaving the search page", and it is the one signal that catches every
+        // in-app exit: the browser back button out of search (handlePopState swaps the panel
+        // but calls nothing), closing the panel, or switching to another menu. Reason
+        // 'abandoned' is correct here because a result click already ended the flow with
+        // 'clicked_result' before navigating, and a flow can only end once.
+        // Leaving the browser entirely -- closing the tab, reloading, or typing a new URL --
+        // destroys the page without unmounting React, so it never reaches here; the `pagehide`
+        // listener attached on mount covers those.
+        if (this._searchAnalyticsInScope()) {
+            SearchAnalytics.endFlow('abandoned');
+            this._detachPageTransitionListeners();
+        }
         this._abortRunningQuery();  // todo: make this work w/ promises
+    }
+    _searchAnalyticsInScope() {
+        return !this.props.compare && !this.props.searchInBook &&
+            Sefaria.activeModule !== Sefaria.VOICES_MODULE;
     }
     componentWillReceiveProps(newProps) {
         let state = {
@@ -138,6 +208,8 @@ class ElasticSearchQuerier extends Component {
             moreToLoad: true
         };
         if (this.props.query !== newProps.query) {
+            // New query text within the same visit: same flow_id, new search_id.
+            SearchAnalytics.startQuery(newProps.query);
             this.setState(state, () => {
                 this._executeAllQueries(newProps);
                 if (!this.props.searchInBook) {
@@ -232,6 +304,11 @@ class ElasticSearchQuerier extends Component {
 
       args.success = data => {
               this.updateRunningQuery(null);
+              // Report the "sources" API as returned. Duplicate reports (the
+              // sources query re-runs when filters/sort change) are ignored
+              // inside SearchAnalytics -- only the first response per search_id
+              // counts toward firing search_query_executed.
+              SearchAnalytics.recordApiResult('sources', data.hits.total.getValue());
               if (this.state.pagesLoaded === 0) { // Skip if pages have already been loaded from cache, but let aggregation processing below occur
                 const currTotal = data.hits.total;
                 let state = {
@@ -319,6 +396,7 @@ class ElasticSearchQuerier extends Component {
         //this.updateCurrentQuery(null);
         return;
       }
+      SearchAnalytics.recordApiResult('sources', null, errorThrown || textStatus || 'unknown error');
       this.setState({error: true});
       this.updateRunningQuery(null);
     }

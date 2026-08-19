@@ -9,6 +9,7 @@ import {CONNECTION_MODE_STRING_IDS} from './constants';
 import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import SearchState from './sefaria/searchState';
+import SearchAnalytics from './sefaria/searchAnalytics';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
 import {
   ContestLandingPage,
@@ -322,6 +323,14 @@ class ReaderApp extends Component {
         }
       } else {
         state.panels = [];
+      }
+
+      // Going back INTO the search page (currently elsewhere, restored state is
+      // search) will remount it and start a new analytics flow -- label its
+      // source. Popping within the search page itself doesn't remount, so it
+      // must not set the hint (it would mislabel some later flow).
+      if (state.panels[0]?.menuOpen === "search" && this.state.panels[0]?.menuOpen !== "search") {
+        SearchAnalytics.setNextFlowSource('back_click');
       }
 
       // need to clone state and panels; if we don't clone them, when we run setState, it will make it so that
@@ -1128,6 +1137,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (linkTarget) { // We want the absolute target of the event to be a link tag, not the "currentTarget".
       // Dont trigger if user is attempting to open a link with a modifier key (new tab, new window)
       if (e.metaKey || e.shiftKey || e.ctrlKey || e.altKey) { //the ctrl/cmd, shift and alt/options keys in Windows and MacOS
+        // Report a search-result click before the event is killed below. This listener is on
+        // `document` in the CAPTURE phase, so the stopImmediatePropagation() a few lines down
+        // stops the event before it ever reaches the link — and before React's delegated
+        // bubble-phase listener, where every onClick in the app runs. Nothing after this point
+        // gets a chance to report, so the search result card cannot do it itself. No-ops
+        // unless a search flow is active and the link carries the card's analytics attributes.
+        SearchAnalytics.reportModifiedResultLinkClick(linkTarget);
         // Update href for links with data-target-module to ensure correct subdomain
         this.updateModuleLinkHref(linkTarget);
         // in this case we want to stop other handlers from running and just go to target href
@@ -1180,6 +1196,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (!this.props.multiPanel) {
       const handled = this.openURL(href, true, false, moduleTarget, signupSource);
       if (handled) {
+        // Any in-app navigation away from the search page ends its analytics
+        // flow. Result clicks don't reach here (SearchResultCard handles them
+        // and ends the flow itself), so this exit is an abandonment. No-ops
+        // when no search flow is active.
+        SearchAnalytics.endFlow('abandoned');
         e.preventDefault();
       }
       return
@@ -1190,6 +1211,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const isTranslationsPage = !!(linkTarget.closest(".translationsPage"));
     const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget, signupSource);
     if (handled) {
+      // See the mobile branch above -- ends any active search analytics flow.
+      SearchAnalytics.endFlow('abandoned');
       e.preventDefault();
     }
   }
@@ -1954,6 +1977,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   showSearch(searchQuery) {
+    // Label the flow the search page is about to start: this path is only reached from the
+    // header search bar (desktop + mobile nav menu). Only when a flow is actually about to
+    // start, though — searching from the nav bar while the search page is already open keeps
+    // the same panel (setSinglePanelState below leaves the panel key unchanged), so the page
+    // is re-rendered with new props rather than remounted and no new flow begins: the visit
+    // continues under the same flow_id with a new search_id. Setting the hint anyway would
+    // leave it uncollected and mislabel the *next* flow, which could be an unrelated deep link.
+    if (this.state.panels?.[0]?.menuOpen !== "search") {
+      SearchAnalytics.setNextFlowSource('nav_bar');
+    }
     const hasSearchState = !!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState;
     const searchState =  hasSearchState  ? this.state.panels[0].searchState.update({ filtersValid: false })
         : new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)});
