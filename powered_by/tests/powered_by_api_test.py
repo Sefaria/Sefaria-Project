@@ -259,6 +259,120 @@ def test_clean_rejects_invalid_email():
 # --- view: POST create path ---------------------------------------------------
 
 import json as _json
+from powered_by.views import translate_formstack_payload
+
+
+# --- Formstack payload translation -------------------------------------------
+
+def test_translate_formstack_maps_simple_text_fields():
+    body = {
+        "Field179244264": "ada@example.com",
+        "Field179244268": "Software Engineer",
+        "Field193691179": "A friend told me.",
+        "Field179244711": "My Project",
+        "Field179244929": "https://myproject.example.com",
+        "Field179355747": "https://github.com/example/myproject",
+        "Field179244923": "It does things.",
+        "Field193691243": "React, Node",
+        "Field196457952": "Wanted to try it out.",
+        "Field196457997": "10-50",
+        "Field179245600": "No further comments.",
+    }
+    cleaned = translate_formstack_payload(body)
+    assert cleaned["creator_email"] == "ada@example.com"
+    assert cleaned["job_title"] == "Software Engineer"
+    assert cleaned["found_sefaria"] == "A friend told me."
+    assert cleaned["project_name"] == "My Project"
+    assert cleaned["project_link"] == "https://myproject.example.com"
+    assert cleaned["project_source_code"] == "https://github.com/example/myproject"
+    assert cleaned["project_desc"] == "It does things."
+    assert cleaned["tech_used_raw"] == "React, Node"
+    assert cleaned["project_why"] == "Wanted to try it out."
+    assert cleaned["project_reach"] == "10-50"
+    assert cleaned["notes"] == "No further comments."
+
+
+def test_translate_formstack_combines_first_and_last_name_into_creator():
+    body = {"Field179244240": "Ada", "Field179244241": "Lovelace"}
+    cleaned = translate_formstack_payload(body)
+    assert cleaned["creator"] == "Ada Lovelace"
+
+
+def test_translate_formstack_converts_yes_no_radios_to_booleans():
+    body = {
+        "Field196457843": "Yes",
+        "Field196457992": "No",
+        "Field179245509": "Yes",
+        "Field191150099": "No",
+    }
+    cleaned = translate_formstack_payload(body)
+    assert cleaned["is_developer"] is True
+    assert cleaned["vibe_coded"] is False
+    assert cleaned["consent_to_display"] is True
+    assert cleaned["has_pbs_logo"] is False
+
+
+def test_translate_formstack_joins_category_checkbox_values():
+    body = {"Field179248693": ["Apps", "AI Projects"]}
+    cleaned = translate_formstack_payload(body)
+    assert cleaned["project_category"] == "Apps, AI Projects"
+
+
+def test_translate_formstack_merges_endpoint_checkboxes_into_sefaria_tools_used():
+    body = {
+        "Field196457970": ["Texts API"],
+        "Field196602042": ["Reference resolution"],
+        "Field196602151": ["Related endpoint"],
+        "Field196602699": ["Topics endpoint"],
+    }
+    cleaned = translate_formstack_payload(body)
+    assert cleaned["sefaria_tools_used"] == [
+        "Texts API", "Reference resolution", "Related endpoint", "Topics endpoint",
+    ]
+
+
+def test_translate_formstack_takes_first_checked_technical_experience_value():
+    body = {"Field196457848": ["5-10 years", "10+ years"]}
+    cleaned = translate_formstack_payload(body)
+    assert cleaned["technical_experience"] == "5-10 years"
+
+
+def test_translate_formstack_omits_fields_not_present_in_payload():
+    body = {"Field179244711": "My Project"}
+    cleaned = translate_formstack_payload(body)
+    assert "creator" not in cleaned
+    assert "creator_email" not in cleaned
+    assert "is_developer" not in cleaned
+    assert "sefaria_tools_used" not in cleaned
+    assert "technical_experience" not in cleaned
+
+
+def test_translate_formstack_handles_comma_separated_checkbox_string():
+    body = {"Field179248693": "Apps, AI Projects"}
+    cleaned = translate_formstack_payload(body)
+    assert cleaned["project_category"] == "Apps, AI Projects"
+
+
+@pytest.mark.django_db
+def test_post_creates_project_from_formstack_payload(client):
+    body = {
+        "FormID": "12345",
+        "UniqueID": "999",
+        "Field179244240": "Ada",
+        "Field179244241": "Lovelace",
+        "Field179244264": "ada@example.com",
+        "Field179244711": "Formstack Project",
+        "Field179244929": "https://formstackproject.example.com",
+        "Field179245509": "Yes",
+    }
+    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    assert response.status_code == 201
+    project = Project.objects.get(project_link="https://formstackproject.example.com")
+    assert project.project_name == "Formstack Project"
+    assert project.creator == "Ada Lovelace"
+    assert project.creator_email == "ada@example.com"
+    assert project.consent_to_display is True
+    assert project.submission_source == "formstack"
 
 
 @pytest.mark.django_db

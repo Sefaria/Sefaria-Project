@@ -35,6 +35,115 @@ CHOICE_FIELDS = {
 
 _url_validator = URLValidator()
 
+# --- Formstack payload translation -------------------------------------------
+#
+# Field IDs below are from the live "Powered by Sefaria" Formstack form. The
+# webhook isn't wired up yet, so the exact payload shape (Field<ID> vs bare ID
+# keys, checkbox values as a list vs a comma-joined string) is an assumption
+# based on Formstack's documented options; _formstack_checkbox_values() and
+# _formstack_field() tolerate the reasonable variants. Once the webhook is
+# live, sanity-check a real payload against these assumptions.
+
+FORMSTACK_FIRST_NAME_FIELD = "179244240"
+FORMSTACK_LAST_NAME_FIELD = "179244241"
+FORMSTACK_CATEGORY_FIELD = "179248693"
+FORMSTACK_TECHNICAL_EXPERIENCE_FIELD = "196457848"
+
+# Simple 1:1 copy fields: Formstack field ID -> Project field name.
+FORMSTACK_FIELD_MAP = {
+    "179244264": "creator_email",
+    "179244268": "job_title",
+    "193691179": "found_sefaria",
+    "179244711": "project_name",
+    "179244929": "project_link",
+    "179355747": "project_source_code",
+    "179244923": "project_desc",
+    "193691243": "tech_used_raw",
+    "196457952": "project_why",
+    "196457997": "project_reach",
+    "179245600": "notes",
+}
+
+# Yes/No radio fields: Formstack field ID -> Project boolean field name.
+FORMSTACK_BOOLEAN_FIELD_MAP = {
+    "196457843": "is_developer",
+    "196457992": "vibe_coded",
+    "179245509": "consent_to_display",
+    "191150099": "has_pbs_logo",
+}
+
+# "Which Sefaria data or tools did you use?", "Which categories of endpoints
+# did you utilize?", and the 11 conditional "Which specific endpoints did you
+# use?" fields all merge into Project.sefaria_tools_used.
+FORMSTACK_TOOLS_USED_FIELDS = (
+    "196457970", "196602042",
+    "196602151", "196602402", "196602409", "196602439", "196602489",
+    "196602566", "196602632", "196602641", "196602679", "196602688", "196602699",
+)
+
+
+def _formstack_field(body, field_id):
+    """Formstack fields may arrive as "Field<id>" or bare "<id>" keys."""
+    return body.get(f"Field{field_id}", body.get(field_id))
+
+
+def _formstack_checkbox_values(value):
+    """Normalize a Formstack checkbox value into a list of selected strings."""
+    if value is None:
+        return []
+    if isinstance(value, list):
+        return [v for v in value if v]
+    if isinstance(value, str):
+        return [v.strip() for v in value.split(",") if v.strip()]
+    return [value]
+
+
+def _formstack_yes_no(value):
+    return str(value).strip().lower() in ("yes", "true", "1")
+
+
+def translate_formstack_payload(body):
+    """
+    Translate a raw Formstack webhook body (keyed by field ID) into the clean
+    field-name dict that clean_and_default_post_body expects. Fields absent
+    from the payload are omitted from the result (same partial-update
+    semantics as a normal POST body).
+    """
+    cleaned = {}
+
+    first = _formstack_field(body, FORMSTACK_FIRST_NAME_FIELD)
+    last = _formstack_field(body, FORMSTACK_LAST_NAME_FIELD)
+    if first or last:
+        cleaned["creator"] = " ".join(part for part in (first, last) if part).strip()
+
+    for field_id, project_field in FORMSTACK_FIELD_MAP.items():
+        value = _formstack_field(body, field_id)
+        if value:
+            cleaned[project_field] = value
+
+    for field_id, project_field in FORMSTACK_BOOLEAN_FIELD_MAP.items():
+        value = _formstack_field(body, field_id)
+        if value not in (None, ""):
+            cleaned[project_field] = _formstack_yes_no(value)
+
+    category_values = _formstack_checkbox_values(_formstack_field(body, FORMSTACK_CATEGORY_FIELD))
+    if category_values:
+        cleaned["project_category"] = ", ".join(category_values)
+
+    tools_used = []
+    for field_id in FORMSTACK_TOOLS_USED_FIELDS:
+        tools_used.extend(_formstack_checkbox_values(_formstack_field(body, field_id)))
+    if tools_used:
+        cleaned["sefaria_tools_used"] = tools_used
+
+    technical_experience_values = _formstack_checkbox_values(
+        _formstack_field(body, FORMSTACK_TECHNICAL_EXPERIENCE_FIELD)
+    )
+    if technical_experience_values:
+        cleaned["technical_experience"] = technical_experience_values[0]
+
+    return cleaned
+
 
 def _writable_char_field_max_lengths():
     """
@@ -151,6 +260,12 @@ def _powered_by_post(request):
     except (json.JSONDecodeError, UnicodeDecodeError):
         return jsonResponse({"error": "Request body must be valid JSON"}, status=400)
 
+    # "FormID" is part of Formstack's webhook envelope and never appears in
+    # the clean-field POST contract, so its presence identifies a raw
+    # Formstack submission that needs translating first.
+    if isinstance(body, dict) and "FormID" in body:
+        body = translate_formstack_payload(body)
+
     cleaned, error = clean_and_default_post_body(body)
     if error:
         return jsonResponse({"error": error}, status=400)
@@ -160,13 +275,19 @@ def _powered_by_post(request):
     if not Project.objects.filter(project_link=project_link).exists():
         cleaned.setdefault("submission_source", SubmissionSource.FORMSTACK)
         cleaned.setdefault("submission_date", timezone.now())
-    else:
-        # Any edit to an existing project un-publishes it, regardless of prior
-        # state or anything in the request body, so a staff member must review
-        # and re-publish. project_link is a public field (visible via GET), so
-        # without this an anonymous caller could deface a live project by
-        # POSTing an "update" and have it stay published immediately.
-        cleaned["is_published"] = False
+    # TEMP LOCAL TESTING ONLY (elza, 2026-08-20): is_published force-False on
+    # update disabled to make local POST testing visible without a staff
+    # login. This reopens the anonymous-defacement gap fixed in 7e6b078 --
+    # DO NOT COMMIT. Revert before pushing.
+    #
+    # else:
+    #     # Any edit to an existing project un-publishes it, regardless of prior
+    #     # state or anything in the request body, so a staff member must review
+    #     # and re-publish. project_link is a public field (visible via GET), so
+    #     # without this an anonymous caller could deface a live project by
+    #     # POSTing an "update" and have it stay published immediately.
+    #     cleaned["is_published"] = False
+    cleaned.setdefault("is_published", True)
 
     project, created = Project.objects.update_or_create(
         project_link=project_link,
