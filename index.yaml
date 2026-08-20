@@ -137,6 +137,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.88.0-autocompleterefactor.1.tgz
     version: 0.88.0-autocompleterefactor.1
   - apiVersion: v2
+    appVersion: v6.110.15
+    created: "2026-08-20T14:18:02.47531011Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 9d27e12c4b050f0c137f1830ef697187dff26e0cb76ff603b9e2e0b83dafb6cf
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.87.5-sc-46102.1.tgz
+    version: 0.87.5-sc-46102.1
+  - apiVersion: v2
     appVersion: v6.110.14
     created: "2026-08-19T15:01:31.571282903Z"
     description: Chart to deploy complete Sefaria environment
@@ -20370,4 +20385,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-08-20T08:14:25.954795642Z"
+generated: "2026-08-20T14:18:02.471320508Z"
