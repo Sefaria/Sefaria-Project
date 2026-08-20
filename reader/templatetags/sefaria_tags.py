@@ -51,6 +51,10 @@ def social_image_url(request, platform):
     Build the social-image endpoint URL with a real query encoder so version
     titles containing spaces, pipes, ampersands, or punctuation survive when
     nested inside the meta tag URL.
+
+    Module is not part of the URL: ModuleMiddleware resolves the active module
+    (library vs. voices) from the request host for /api/img-gen/ paths, so the
+    image endpoint sees the same module the page is rendered for.
     """
     params = {
         "lang": request.GET.get("lang", ""),

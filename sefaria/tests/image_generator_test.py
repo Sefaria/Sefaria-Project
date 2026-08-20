@@ -1,4 +1,5 @@
 import io
+from pathlib import Path
 
 from PIL import Image, ImageChops, ImageStat
 
@@ -9,13 +10,17 @@ from sefaria import image_generator
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from sefaria.image_generator import (
     generate_image,
+    generate_toc_image,
     get_category_colors,
     make_img_http_response,
+    make_module_fallback_img_http_response,
     make_png_http_response,
     make_static_img_http_response,
+    make_toc_img_http_response,
     open_social_image_logo,
     palette,
     platforms,
+    social_image_color_category_for_path,
     social_image_fallback_bg_color,
     social_image_logo_path,
 )
@@ -170,13 +175,74 @@ def test_generate_social_image_renders_logo_in_header():
     _assert_logo_rendered(img)
 
 
+def test_generate_toc_social_image_uses_category_color_and_header_logo():
+    img = generate_toc_image(
+        title="Genesis",
+        subtitle="Tanakh",
+        category="Tanakh",
+        lang="en",
+        platform="facebook",
+        module=LIBRARY_MODULE,
+        category_path=("Tanakh", "Torah"),
+    )
+
+    assert img.size == (platforms["facebook"]["width"], platforms["facebook"]["height"])
+    assert img.getpixel((100, 200))[:3] == palette["Tanakh"][0]
+    _assert_text_rendered(img)
+    _assert_logo_rendered(img)
+
+
+def test_generate_toc_primary_category_uses_larger_centered_text():
+    # Primary category pages (/texts/Tanakh) use larger fonts and vertically centered layout vs. the standard quote-image positioning.
+    img_primary = generate_toc_image(
+        title="Tanakh",
+        subtitle=None,
+        category="Tanakh",
+        lang="en",
+        platform="facebook",
+        module=LIBRARY_MODULE,
+        category_path=("Tanakh",),
+        is_primary_category=True,
+    )
+    img_standard = generate_toc_image(
+        title="Tanakh",
+        subtitle=None,
+        category="Tanakh",
+        lang="en",
+        platform="facebook",
+        module=LIBRARY_MODULE,
+        category_path=("Tanakh", "Torah"),
+        is_primary_category=False,
+    )
+
+    assert img_primary.size == (platforms["facebook"]["width"], platforms["facebook"]["height"])
+    # The two images differ because font size and vertical position differ.
+    assert list(img_primary.getdata()) != list(img_standard.getdata())
+
+
+def test_make_toc_social_image_response_renders_png():
+    response = make_toc_img_http_response(
+        title="Talmud",
+        subtitle=None,
+        category="Talmud",
+        lang="en",
+        platform="twitter",
+        module=LIBRARY_MODULE,
+    )
+    img = Image.open(io.BytesIO(response.content))
+
+    assert response["Content-Type"] == "image/png"
+    assert img.size == (platforms["twitter"]["width"], platforms["twitter"]["height"])
+    assert img.getpixel((100, 200))[:3] == palette["Talmud"][0]
+
+
 @pytest.mark.parametrize(
     ("module", "lang", "expected_logo"),
     [
-        (LIBRARY_MODULE, "en", "static/img/library-logo-english.png"),
-        (LIBRARY_MODULE, "he", "static/img/library-logo-hebrew.png"),
-        (VOICES_MODULE, "en", "static/img/voices-logo-english.png"),
-        (VOICES_MODULE, "he", "static/img/voices-logo-hebrew.png"),
+        (LIBRARY_MODULE, "en", "static/img/library/library-logo-en.png"),
+        (LIBRARY_MODULE, "he", "static/img/library/library-logo-he.png"),
+        (VOICES_MODULE, "en", "static/img/voices/voices-logo-en.png"),
+        (VOICES_MODULE, "he", "static/img/voices/voices-logo-he.png"),
     ],
 )
 def test_generate_social_image_uses_module_and_language_header_logo(monkeypatch, module, lang, expected_logo):
@@ -204,10 +270,10 @@ def test_generate_social_image_uses_module_and_language_header_logo(monkeypatch,
 @pytest.mark.parametrize(
     ("module", "lang", "expected_logo"),
     [
-        (LIBRARY_MODULE, "en", "static/img/library-logo-english-white.png"),
-        (LIBRARY_MODULE, "he", "static/img/library-logo-hebrew-white.png"),
-        (VOICES_MODULE, "en", "static/img/voices-logo-english-white.png"),
-        (VOICES_MODULE, "he", "static/img/voices-logo-hebrew-white.png"),
+        (LIBRARY_MODULE, "en", "static/img/library/library-logo-en-white.png"),
+        (LIBRARY_MODULE, "he", "static/img/library/library-logo-he-white.png"),
+        (VOICES_MODULE, "en", "static/img/voices/voices-logo-en-white.png"),
+        (VOICES_MODULE, "he", "static/img/voices/voices-logo-he-white.png"),
     ],
 )
 def test_social_image_exception_fallback_uses_module_and_language_logo(monkeypatch, module, lang, expected_logo):
@@ -241,6 +307,28 @@ def test_voices_social_image_exception_fallback_uses_voices_background_color():
     assert social_image_fallback_bg_color(VOICES_MODULE) == "#518159"
 
 
+def test_module_fallback_uses_slightly_larger_centered_logo(monkeypatch):
+    calls = []
+
+    def fake_centered_logo(platform, bg_color, logo_path, max_logo_size=400):
+        calls.append(
+            {
+                "platform": platform,
+                "bg_color": bg_color,
+                "logo_path": logo_path,
+                "max_logo_size": max_logo_size,
+            }
+        )
+        return Image.new("RGBA", (platforms[platform]["width"], platforms[platform]["height"]), color=bg_color)
+
+    monkeypatch.setattr(image_generator, "generate_centered_logo_image", fake_centered_logo)
+
+    response = make_module_fallback_img_http_response("en", "facebook", LIBRARY_MODULE)
+
+    assert response["Content-Type"] == "image/png"
+    assert calls[0]["max_logo_size"] == 500
+
+
 def test_static_social_image_uses_static_color_and_original_fallback_logo(monkeypatch):
     opened_paths = []
     original_open = image_generator.Image.open
@@ -260,12 +348,42 @@ def test_static_social_image_uses_static_color_and_original_fallback_logo(monkey
     assert "static/img/logo-white.png" in opened_paths
 
 
+def test_static_social_image_keeps_default_centered_logo_size(monkeypatch):
+    calls = []
+
+    def fake_centered_logo(platform, bg_color, logo_path, max_logo_size=400):
+        calls.append(
+            {
+                "platform": platform,
+                "bg_color": bg_color,
+                "logo_path": logo_path,
+                "max_logo_size": max_logo_size,
+            }
+        )
+        return Image.new("RGBA", (platforms[platform]["width"], platforms[platform]["height"]), color=bg_color)
+
+    monkeypatch.setattr(image_generator, "generate_centered_logo_image", fake_centered_logo)
+
+    response = make_static_img_http_response("facebook")
+
+    assert response["Content-Type"] == "image/png"
+    assert calls[0]["max_logo_size"] == 400
+    assert calls[0]["logo_path"] == "static/img/logo-white.png"
+
+
 def test_social_image_logo_path_defaults_unknown_module_to_library():
-    assert social_image_logo_path("unknown", "en", "header") == "static/img/library-logo-english.png"
+    assert social_image_logo_path("unknown", "en", "header") == "static/img/library/library-logo-en.png"
+
+
+@pytest.mark.parametrize("module", [LIBRARY_MODULE, VOICES_MODULE])
+@pytest.mark.parametrize("lang", ["en", "he"])
+@pytest.mark.parametrize("variant", ["header", "fallback"])
+def test_social_image_logo_path_asset_exists(module, lang, variant):
+    assert Path(social_image_logo_path(module, lang, variant)).exists()
 
 
 def test_social_image_logo_assets_are_converted_to_rgba_before_resizing():
-    logo = open_social_image_logo("static/img/library-logo-english-white.png")
+    logo = open_social_image_logo("static/img/library/library-logo-en-white.png")
 
     assert logo.mode == "RGBA"
 
@@ -289,6 +407,11 @@ def test_generate_social_image_renders_unknown_category_with_stable_fallback_col
 def test_unknown_category_color_fallback_is_deterministic():
     assert get_category_colors("New Category") == get_category_colors("New Category")
     assert get_category_colors("New Category") != palette["System"]
+
+
+def test_social_image_color_category_for_path_prefers_deepest_configured_category():
+    assert social_image_color_category_for_path(("Tanakh", "Targum", "Aramaic Targum")) == "Targum"
+    assert social_image_color_category_for_path(("Tanakh", "Torah")) == "Tanakh"
 
 
 @pytest.mark.parametrize(
@@ -359,3 +482,113 @@ def test_hebrew_text_uses_bidi_fallback_without_pillow_rtl_support(monkeypatch):
 
     assert image_generator.prepare_text_for_drawing(text, "he") == get_display(text)
     assert image_generator.get_text_direction("he") is None
+
+
+def test_english_direction_is_ltr_when_pillow_supports_rtl(monkeypatch):
+    monkeypatch.setattr(image_generator, "supports_rtl_text_layout", lambda: True)
+
+    # When Raqm is available it does the layout; the "ltr" hint tells it the paragraph base direction so neutral chars at English/Hebrew boundaries (a comma after an embedded Hebrew word) stay on the English side.
+    text = "the name יהוה, spoken"
+    assert image_generator.get_text_direction("en") == "ltr"
+    assert image_generator.prepare_text_for_drawing(text, "en") == text
+
+
+def test_english_with_hebrew_uses_ltr_base_dir_without_pillow_rtl_support(monkeypatch):
+    monkeypatch.setattr(image_generator, "supports_rtl_text_layout", lambda: False)
+
+    # English passage with an embedded Hebrew word.
+    # Reordering with an LTR base direction keeps the comma resolved on the English side — distinct from the RTL base direction used for Hebrew-primary text.
+    text = "the name יהוה, spoken"
+    assert image_generator.prepare_text_for_drawing(text, "en") == get_display(text, base_dir="L")
+    assert image_generator.prepare_text_for_drawing(text, "en") != get_display(text, base_dir="R")
+    assert image_generator.get_text_direction("en") is None
+
+
+# --- width-aware truncation helpers ---
+
+def _ref_font(size=30):
+    from PIL import ImageFont
+    return ImageFont.truetype("static/fonts/Roboto-Regular.ttf", size)
+
+
+def test_fit_line_to_width_leaves_short_text_untouched():
+    font = _ref_font()
+    assert image_generator._fit_line_to_width("Short title", font, 10000) == "Short title"
+
+
+def test_fit_line_to_width_truncates_long_text_with_ellipsis():
+    font = _ref_font()
+    text = "The Babylonian Talmud is the central text of Rabbinic Judaism and law"
+    out = image_generator._fit_line_to_width(text, font, 300)
+    assert out.endswith("…")
+    assert font.getlength(out) <= 300
+    assert out != text
+
+
+def test_fit_breadcrumb_keeps_leading_segments():
+    font = _ref_font()
+    segs = ["Tanakh", "Rishonim on Tanakh", "Ramban", "Bereshit"]
+    out = image_generator._fit_breadcrumb_to_width(segs, font, 260)
+    assert out.startswith("Tanakh")
+    assert out.endswith("…")
+    assert font.getlength(out) <= 260
+
+
+def test_fit_breadcrumb_full_when_it_fits():
+    font = _ref_font()
+    segs = ["Talmud", "Bavli"]
+    assert image_generator._fit_breadcrumb_to_width(segs, font, 10000) == "Talmud / Bavli"
+
+
+def test_fit_breadcrumb_single_oversized_segment_char_truncates():
+    font = _ref_font()
+    segs = ["Supercalifragilisticexpialidocious Rishonim Commentary Collection"]
+    out = image_generator._fit_breadcrumb_to_width(segs, font, 200)
+    assert out.endswith("…")
+    assert font.getlength(out) <= 200
+
+
+# --- TOC image layout (Mockup A) render smoke tests ---
+
+def _toc_kwargs(**over):
+    base = dict(title="Bavli", subtitle="Talmud", category="Talmud", lang="en",
+                platform="facebook", module="library", category_path=("Talmud", "Bavli"),
+                desc="The Babylonian Talmud, the central text of rabbinic law and lore.",
+                is_primary_category=False)
+    base.update(over)
+    return base
+
+
+def test_toc_image_renders_valid_png_with_description_and_breadcrumb():
+    img = image_generator.generate_toc_image(**_toc_kwargs())
+    assert img.size == (1200, 630)
+
+
+def test_toc_image_primary_category_renders_valid_png():
+    img = image_generator.generate_toc_image(**_toc_kwargs(
+        title="Talmud", subtitle=None, category_path=("Talmud",), is_primary_category=True))
+    assert img.size == (1200, 630)
+
+
+def test_toc_image_survives_overlong_description_and_breadcrumb():
+    img = image_generator.generate_toc_image(**_toc_kwargs(
+        subtitle="Talmud / Bavli / Rishonim on Talmud / Ramban / Chiddushei HaRamban",
+        desc=("An extremely long description that keeps going well beyond two lines "
+              "so that the width-aware truncation and the two-line cap both have to "
+              "engage in order to keep everything inside the fixed image canvas.")))
+    assert img.size == (1200, 630)
+
+
+def test_description_line_limit_more_when_footerless():
+    # Footered pages cap the description at 3 lines; footerless (top-level category) pages have the bottom band free, so they allow a 4th line.
+    assert image_generator._description_line_limit(has_footer=True) == 3
+    assert image_generator._description_line_limit(has_footer=False) == 4
+
+
+def test_wrap_and_cap_caps_lines_with_ellipsis():
+    font = _ref_font()
+    text = " ".join(["word"] * 200)  # wraps to far more than 4 lines
+    out3 = image_generator._wrap_and_cap(text, font, 300, max_lines=3)
+    out4 = image_generator._wrap_and_cap(text, font, 300, max_lines=4)
+    assert out3.count("\n") == 2 and out3.endswith("…")   # exactly 3 lines
+    assert out4.count("\n") == 3 and out4.endswith("…")   # exactly 4 lines
