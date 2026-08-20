@@ -65,6 +65,8 @@ spec:
           ref: logging-secret-production
         schoolLookup:
           ref: school-lookup-data-production
+    nameService:
+      replicaCount: 2
     redis:
       containerImage:
         imageRegistry: redis
