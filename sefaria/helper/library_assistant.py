@@ -27,7 +27,9 @@ user reads exactly as they do today. The migration run — not the deploy — is
 the assistant switches from opt-in to opt-out, and rollback is unsetting the key.
 """
 
-from sefaria.model.user_profile import UserProfile
+# Module import, not `from … import UserProfile`: user_profile imports this module at
+# its own top level, so binding the class here at import time would break the cycle.
+from sefaria.model import user_profile
 
 SETTING_KEY = "library_assistant"
 
@@ -61,7 +63,7 @@ def is_enabled_for_user(user):
     """
     if not user or not getattr(user, "is_authenticated", False):
         return False
-    return is_enabled(UserProfile(user_obj=user))
+    return is_enabled(user_profile.UserProfile(user_obj=user))
 
 
 def _legacy_enabled(profile):
@@ -85,7 +87,7 @@ def set_enabled(user, enabled):
     Set the preference for `user` and persist it. Returns the new value.
     """
     enabled = normalize(enabled)
-    profile = UserProfile(id=user.id)
+    profile = user_profile.UserProfile(id=user.id)
     profile.update({"settings": {SETTING_KEY: enabled}})
     profile.save()
 
