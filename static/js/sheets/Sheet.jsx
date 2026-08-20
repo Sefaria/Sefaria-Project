@@ -63,9 +63,7 @@ class Sheet extends Component {
     // Check the hostname too, so that e.g. https://someothersite.com/sheets/42 isn't mistaken for one of our sheets.
     // These checks look at every interface language's domains, since a link can point at the Hebrew domain
     // (or the English one) no matter which language the reader is currently using.
-    // A link on the page's own host is ours by definition; the domainModules lookup covers our other subdomains.
-    const isOurDomain = url.hostname === window.location.hostname || Sefaria.getAllHostnames().has(url.hostname);
-    const isSheetLink = isOurDomain && /^\/sheets\/\d+/.test(url.pathname);
+    const isSheetLink = Sefaria.getAllHostnames().has(url.hostname) && /^\/sheets\/\d+/.test(url.pathname);
     const isVoicesDomain = Sefaria.getCurrentModuleHostnames(Sefaria.VOICES_MODULE).has(url.hostname);
     if (isSheetLink || isVoicesDomain) {
       window.location.href = fullUrl;
