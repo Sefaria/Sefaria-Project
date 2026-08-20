@@ -13,7 +13,8 @@ import powered_by.views as powered_by_views
 from sefaria.heapdump import heapdump_view
 from sefaria.site.urls import site_urlpatterns
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
+from sso.views import MobileTokenObtainPairView
 
 shared_patterns = [
     path('_allauth/', include('allauth.headless.urls')),
@@ -31,7 +32,7 @@ shared_patterns = [
         name='password_reset_complete'),
     re_path(fr'password/reset/done/$', sefaria_views.CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
 
-    re_path(fr'api/login/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    re_path(fr'api/login/$', MobileTokenObtainPairView.as_view(), name='token_obtain_pair'),
     re_path(fr'api/login/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
 
     re_path(r'^saved/?$', reader_views.saved_content),
