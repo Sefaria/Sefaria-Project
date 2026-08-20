@@ -45,27 +45,32 @@ class Sheet extends Component {
   }
   handleClick(e) {
     const target = e.target.closest('a');
-    if (target) {
-      e.preventDefault();
-      const href = target.getAttribute('href');
-      if (!href) { return; }
-      const moduleTarget = target.getAttribute('data-target-module');
-      const fullUrl = Sefaria.util.fullURL(href, moduleTarget); // Ignores moduleTarget if it's null
-      let url;
-      try {
-        url = new URL(fullUrl, window.location.href); // second arg resolves relative paths against the current page
-      } catch (err) {
-        Sefaria.util.openInNewTab(fullUrl);
-        return;
-      }
-      const isSheetLink = /^\/sheets\/\d+/.test(url.pathname);
-      const voicesHostname = Sefaria.getModuleURL(Sefaria.VOICES_MODULE)?.hostname;
-      const isVoicesDomain = url.hostname === voicesHostname;
-      if (isSheetLink || isVoicesDomain) {
-        window.location.href = fullUrl;
-      } else {
-        Sefaria.util.openInNewTab(fullUrl);
-      }
+    if (!target) { return; }
+    // Cmd/ctrl/shift-click is the user explicitly asking for a new tab or window -- let the browser do its thing.
+    if (e.metaKey || e.ctrlKey || e.shiftKey) { return; }
+    e.preventDefault();
+    const href = target.getAttribute('href');
+    if (!href) { return; }
+    const moduleTarget = target.getAttribute('data-target-module');
+    const fullUrl = Sefaria.util.fullURL(href, moduleTarget); // Ignores moduleTarget if it's null
+    let url;
+    try {
+      url = new URL(fullUrl, window.location.href); // second arg resolves relative paths against the current page
+    } catch (err) {
+      Sefaria.util.openInNewTab(fullUrl);
+      return;
+    }
+    // Check the hostname too, so that e.g. https://someothersite.com/sheets/42 isn't mistaken for one of our sheets.
+    // These checks look at every interface language's domains, since a link can point at the Hebrew domain
+    // (or the English one) no matter which language the reader is currently using.
+    // A link on the page's own host is ours by definition; the domainModules lookup covers our other subdomains.
+    const isOurDomain = url.hostname === window.location.hostname || Sefaria.getAllHostnames().has(url.hostname);
+    const isSheetLink = isOurDomain && /^\/sheets\/\d+/.test(url.pathname);
+    const isVoicesDomain = Sefaria.getCurrentModuleHostnames(Sefaria.VOICES_MODULE).has(url.hostname);
+    if (isSheetLink || isVoicesDomain) {
+      window.location.href = fullUrl;
+    } else {
+      Sefaria.util.openInNewTab(fullUrl);
     }
   }
   handleCollectionsChange() {
