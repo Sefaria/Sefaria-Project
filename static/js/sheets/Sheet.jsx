@@ -62,7 +62,8 @@ class Sheet extends Component {
     }
     // Check the hostname too, so that e.g. https://someothersite.com/sheets/42 isn't mistaken for one of our sheets.
     // These checks look at every interface language's domains, since a link can point at the Hebrew domain
-    // (or the English one) no matter which language the reader is currently using.
+    // (or the English one) no matter which language the reader is currently using.  We also accept "www.sefaria.org" as a hostname
+    // for backward compatibility with old links (especially since they get forwarded currently "voices.sefaria.org")
     const isSheetLink = Sefaria.getAllHostnames().has(url.hostname) && /^\/sheets\/\d+/.test(url.pathname);
     const isVoicesDomain = Sefaria.getCurrentModuleHostnames(Sefaria.VOICES_MODULE).has(url.hostname);
     if (isSheetLink || isVoicesDomain) {
