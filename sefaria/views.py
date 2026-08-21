@@ -802,8 +802,12 @@ def collections_image_upload(request, resize_image=True):
 
 @staff_member_required
 def reset_cache(request):
-    model.library.rebuild()
-    signal_and_reset_skip_counts("reset_cache")
+    # finally: an aborted rebuild (unguarded bad record, or a skip-tracking breaker ruling the
+    # degradation systemic) must still post what it skipped — that log is the diagnosis.
+    try:
+        model.library.rebuild()
+    finally:
+        signal_and_reset_skip_counts("reset_cache")
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "rebuild")
@@ -915,8 +919,10 @@ def delete_orphaned_counts(request):
 
 @staff_member_required
 def rebuild_toc(request):
-    model.library.rebuild_toc()
-    signal_and_reset_skip_counts("reset_toc")
+    try:
+        model.library.rebuild_toc()
+    finally:
+        signal_and_reset_skip_counts("reset_toc")
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "rebuild_toc")

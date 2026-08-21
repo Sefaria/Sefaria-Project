@@ -11,11 +11,12 @@ exercised against the test DB by the existing TOC-rebuild tests.
 """
 import sys
 import threading
+from contextlib import contextmanager
 
 import pytest
 from unittest.mock import MagicMock, patch
 
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, BuildDegradationError
 from sefaria.helper import skip_tracking
 from sefaria.helper.skip_tracking import (
     bad_record_guard,
@@ -26,6 +27,18 @@ from sefaria.helper.skip_tracking import (
     reset_skip_counts,
     MAX_STORED_PER_GROUP,
 )
+
+
+@contextmanager
+def thresholds(signature=None, volume=None):
+    """Set the breaker thresholds for one test; None disables that breaker.
+
+    Most tests in this file predate the breakers and exercise unbounded skipping, so they
+    run with both disabled rather than being rewritten around them.
+    """
+    with patch.object(skip_tracking, "SIGNATURE_BREAKER_THRESHOLD", signature), \
+         patch.object(skip_tracking, "VOLUME_BREAKER_THRESHOLD", volume):
+        yield
 
 
 @pytest.fixture(autouse=True)
@@ -77,13 +90,23 @@ class TestBadRecordGuard:
         log.error.assert_called_once()
         log.warning.assert_not_called()
 
-    def test_systemic_exception_propagates(self):
-        """AttributeError is not in BAD_RECORD_EXCEPTIONS — a code bug must abort the
-        build loudly, not degrade into a silently incomplete library."""
+    def test_attribute_error_is_now_a_bad_record(self):
+        """AttributeError IS in BAD_RECORD_EXCEPTIONS: a Mongo document missing a field
+        surfaces as AttributeError on the Python object, which is the most common real
+        corruption shape. A code bug that raises it on every record is stopped by the
+        signature breaker instead of by the exception tuple — see TestBreakers."""
         skip_bad_record = bad_record_guard(MagicMock())
-        with pytest.raises(AttributeError):
+        with thresholds():
             with skip_bad_record("startup", "test operation", record="rec"):
-                raise AttributeError("renamed method")
+                raise AttributeError("'Topic' object has no attribute 'slug'")
+        assert get_skip_records()[0].error_type == "AttributeError"
+
+    def test_truly_systemic_exception_still_propagates(self):
+        """Exceptions outside the tuple are untouched by any of this — they abort loudly."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        with pytest.raises(ImportError):
+            with skip_bad_record("startup", "test operation", record="rec"):
+                raise ImportError("bad deploy")
         assert get_skip_records() == []
 
     def test_narrowed_exceptions_only_catch_what_was_asked(self):
@@ -170,9 +193,12 @@ class TestSignalAndReset:
     def test_stored_records_bounded_but_counts_complete(self, mock_notify):
         skip_bad_record = bad_record_guard(MagicMock())
         n_skips = MAX_STORED_PER_GROUP + 5
-        for i in range(n_skips):
-            with skip_bad_record("startup", "flood op", record="rec{}".format(i)):
-                raise InputError("corrupt")
+        # Breakers off: this test is about the storage bound, and n_skips identical errors
+        # would otherwise trip the signature breaker before the flood finishes.
+        with thresholds():
+            for i in range(n_skips):
+                with skip_bad_record("startup", "flood op", record="rec{}".format(i)):
+                    raise InputError("corrupt")
 
         assert len(get_skip_records()) == MAX_STORED_PER_GROUP
         assert get_skip_counts() == {"startup": {"flood op": n_skips}}
@@ -181,6 +207,122 @@ class TestSignalAndReset:
         message = mock_notify.call_args[0][0]
         assert "skipped *{}* bad record(s)".format(n_skips) in message
         assert "_… 5 more_" in message
+
+
+class TestBreakers:
+    """The stopping rule that makes widening BAD_RECORD_EXCEPTIONS safe.
+
+    AttributeError/TypeError are in the tuple because a missing Mongo field surfaces as
+    AttributeError, but their dominant cause is still a code bug. Bad data and a broken
+    refactor raise the SAME exception class and differ only in volume, so these breakers
+    discriminate on volume rather than on type.
+    """
+
+    def test_repeated_signature_aborts_with_the_original_exception(self, mock_notify):
+        """A rename raises one byte-identical message per record. That must abort the build,
+        and abort with the original exception — its message names the broken code."""
+        log = MagicMock()
+        skip_bad_record = bad_record_guard(log)
+        seen = 0
+        with thresholds(signature=3):
+            with pytest.raises(AttributeError, match="no attribute 'slug'"):
+                for i in range(50):
+                    with skip_bad_record("startup", "topic mapping", record="topic{}".format(i)):
+                        seen += 1
+                        raise AttributeError("'Topic' object has no attribute 'slug'")
+
+        # Aborted ON the 3rd record, not after draining all 50.
+        assert seen == 3
+        log.error.assert_called_once()
+        assert "ABORTING BUILD" in log.error.call_args[0][0]
+
+    def test_varied_messages_do_not_trip_the_signature_breaker(self, mock_notify):
+        """Genuine corruption produces varied messages; each signature stays at 1. This is
+        what keeps the breaker from firing on the bad data the guards exist to survive."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        with thresholds(signature=3, volume=500):
+            for i in range(50):
+                with skip_bad_record("startup", "TocTree index", record="idx{}".format(i)):
+                    raise InputError("Please provide category for Index record: book{}".format(i))
+        assert get_skip_counts() == {"startup": {"TocTree index": 50}}
+
+    def test_volume_backstop_catches_corruption_too_varied_to_repeat(self, mock_notify):
+        """The case the signature breaker is structurally blind to: many records broken in
+        many different ways, e.g. a half-finished migration."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        seen = 0
+        with thresholds(signature=3, volume=10):
+            with pytest.raises(InputError):
+                for i in range(50):
+                    with skip_bad_record("startup", "TocTree index", record="idx{}".format(i)):
+                        seen += 1
+                        raise InputError("record {} is broken in its own way".format(i))
+        assert seen == 10
+
+    def test_breakers_count_per_site_not_globally(self, mock_notify):
+        """Both counters are keyed by site, so unrelated degradation across many sites does
+        not add up into a spurious abort."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        with thresholds(signature=3, volume=5):
+            for site in range(4):
+                for i in range(4):
+                    with skip_bad_record("startup", "site{}".format(site), record=i):
+                        raise InputError("distinct {} {}".format(site, i))
+        assert sum(get_skip_counts()["startup"].values()) == 16
+
+    def test_summary_posts_before_the_build_aborts(self, mock_notify):
+        """The reason _trip_breaker posts the summary itself: the pathway's own
+        signal_and_reset_skip_counts() call sits AFTER the work, so an abort would skip it
+        and discard the skip log — which for a volume trip IS the diagnosis, since the
+        exception that happens to surface says nothing about the other records."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        with thresholds(volume=3):
+            with pytest.raises(InputError):
+                for i in range(10):
+                    with skip_bad_record("startup", "TocTree index", record="idx{}".format(i)):
+                        raise InputError("broken {}".format(i))
+
+        mock_notify.assert_called_once()
+        message = mock_notify.call_args[0][0]
+        assert "skipped *3* bad record(s)" in message
+        assert "'idx0' — InputError: broken 0" in message
+
+    def test_pathway_finally_does_not_double_post_after_a_trip(self, mock_notify):
+        """_trip_breaker posts AND resets, so the try/finally at the pathway call sites
+        (reader/startup.py, sefaria/views.py) finds an empty log and posts nothing more."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        with thresholds(volume=3):
+            try:
+                for i in range(10):
+                    with skip_bad_record("startup", "op", record=i):
+                        raise InputError("broken {}".format(i))
+            except InputError:
+                pass
+            finally:
+                signal_and_reset_skip_counts("startup")
+        mock_notify.assert_called_once()
+
+    def test_soft_skips_feed_volume_but_not_signature(self, mock_notify):
+        """A soft skip is a known, handled condition, not an exception symptom — repeating
+        one is not evidence of broken code. Mass soft-skipping is still degradation, so the
+        volume backstop still applies, and raises since there is no original exception."""
+        log = MagicMock()
+        with thresholds(signature=3, volume=6):
+            # 5 identical soft skips: past the signature threshold, and nothing happens.
+            for i in range(5):
+                log_skip(log, "reset_toc", "topic toc", "node has no slug", record=i)
+            assert get_skip_counts() == {"reset_toc": {"topic toc": 5}}
+
+            with pytest.raises(BuildDegradationError, match="aborting build"):
+                log_skip(log, "reset_toc", "topic toc", "node has no slug", record=99)
+
+    def test_breakers_can_be_disabled(self, mock_notify):
+        skip_bad_record = bad_record_guard(MagicMock())
+        with thresholds(signature=None, volume=None):
+            for i in range(200):
+                with skip_bad_record("startup", "op", record=i):
+                    raise AttributeError("'Topic' object has no attribute 'slug'")
+        assert get_skip_counts() == {"startup": {"op": 200}}
 
 
 class TestThreadSafety:
