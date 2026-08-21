@@ -511,6 +511,22 @@ def strip_tags(html, remove_new_lines=False):
         stripped = re.sub(r"\n+", " ", stripped)
     return stripped
 
+
+def strip_markdown(text):
+    """
+    Returns `text` with markdown links, emphasis, and any HTML tags stripped,
+    leaving plain text.
+
+    Handles only the narrow markdown grammar that appears in topic/book
+    descriptions — [text](url) links, **bold**, and *emphasis*/_emphasis_ —
+    not arbitrary markdown.
+    """
+    text = re.sub(r'\[([^\]]*)\]\([^)]*\)', r'\1', text or '')  # [text](url) -> text
+    text = re.sub(r'(\*\*|__)(.+?)\1', r'\2', text)
+    text = re.sub(r'([*_])(.+?)\1', r'\2', text)
+    # strip_tags inserts a space per stripped tag; collapse the doubles it leaves
+    return re.sub(r'[ \t]{2,}', ' ', strip_tags(text))
+
 '''
 language code utils
 '''

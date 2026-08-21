@@ -21,6 +21,7 @@ import uuid
 from dataclasses import asdict
 from functools import lru_cache
 
+from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_KEY
 from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
 from sefaria.helper import library_assistant
@@ -393,6 +394,11 @@ def base_props(request):
         if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
             chatbot_data["in_chatbot_experiment"] = True
     user_data.update(chatbot_data)
+    user_data.update({
+        "googleClientId": getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
+        "appleClientId": getattr(settings, "APPLE_SSO_CLIENT_ID", ""),
+        "recaptchaSiteKey": getattr(settings, "RECAPTCHA_PUBLIC_KEY", TEST_RECAPTCHA_PUBLIC_KEY if settings.DEBUG else None),
+    })
     return user_data
 
 
@@ -637,6 +643,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
         "menuOpen": "search",
         "searchQuery": search_params["query"],
         "searchType": search_params["tab"],
+        "tab": search_params["search_tab"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -1067,6 +1074,9 @@ def get_search_params(get_dict, i=None):
     return {
         "query": urllib.parse.unquote(get_dict.get(get_param("q", i), "")),
         "tab": urllib.parse.unquote(get_dict.get(get_param("tab", i), "text")),
+        # `tab` is the text/sheet search type; `search_tab` is the active results tab
+        # on the search page (sources/books/authors/topics).
+        "search_tab": urllib.parse.unquote(get_dict.get(get_param("search_tab", i), "")) or None,
         "field": field,
         "sort": sort,
         "filters": filters,
@@ -1107,6 +1117,7 @@ def search(request):
     props={
         "initialMenu": "search",
         "initialQuery": search_params["query"],
+        "initialSearchTab": search_params["search_tab"],
         "initialSearchFilters": search_params["filters"],
         "initialSearchFilterAggTypes": search_params["filterAggTypes"],
         "initialSearchField": search_params["field"],
@@ -4489,6 +4500,7 @@ def account_settings(request):
         'user': request.user,
         'profile': profile,
         'experiments_available': experiments_available,
+        'social_providers': list(request.user.socialaccount_set.values_list('provider', flat=True)),
         # The toggle must render the *effective* value: a user who is on through the
         # legacy rule has no setting key yet, and must still see "On".
         'library_assistant_enabled': library_assistant.is_enabled(profile),
@@ -4872,6 +4884,91 @@ def search_wrapper_api(request, es6_compat=False):
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 @csrf_exempt
+def entity_search_api(request):
+    """
+    Entity search endpoint powering the Topics / Authors / Books tabs.
+
+    GET /api/entity-search?q=<query>&type=<topic|author|book>&sort=<relevance|alpha|year_asc|year_desc>
+                          &filter=<category path>&start=<offset>&size=<page size>
+
+    `start` (default 0) and `size` (default 20, capped at 100) page the results; the tab
+    fetches successive pages on scroll. `total` always reports the full match count.
+    Paging stops at Elasticsearch's result window (ENTITY_MAX_RESULT_WINDOW): a request
+    straddling the edge keeps its `start` and comes back short rather than being shifted
+    backward, so successive pages never overlap.
+
+    `topic` and `author` search the `topic` Elasticsearch index (filtered by subtype);
+    `book` searches the `book` index, or — when the query resolves to an author — returns
+    that author's works aggregated by category. Returns {"hits": [...], "total": N}.
+
+    A `book` response carries one extra key, `categoryCounts`: {category path -> number of
+    matching books}, e.g. {"Tanakh": 11, "Tanakh/Torah": 5}. These counts are computed by an
+    aggregation over the *entire* match set, so they are unaffected by `filter` and by how
+    many pages the client has fetched — that is what lets the Books sidebar show true
+    numbers and stay complete once a category is selected.
+
+    `sort` defaults to "relevance". "alpha" is A-Z on the English title; "year_asc"/
+    "year_desc" sort books by composition date and authors by birth year (topics have no
+    year, so they only accept relevance/alpha).
+
+    `filter` (books only, repeatable) restricts hits to books at or under a category path
+    (e.g. filter=Tanakh/Torah); multiple filters OR together. A filter always returns the
+    flat list — category rows collapse many books, so they carry no per-row path.
+    Explicit sorts keep the aggregation (rows are sorted in code by their own compDate).
+    """
+    from sefaria.helper.search import entity_search, ENTITY_TYPES, ENTITY_SORTS, ENTITY_MAX_RESULT_WINDOW
+
+    query = request.GET.get("q", "").strip()
+    entity_type = request.GET.get("type", "topic").strip()
+    sort = request.GET.get("sort", "relevance").strip()
+    category_paths = [f.strip() for f in request.GET.getlist("filter") if f.strip()]
+    callback = request.GET.get("callback", None)
+
+    if not query:
+        return jsonResponse({"error": "Missing required query parameter 'q'."}, callback=callback)
+    if entity_type not in ENTITY_TYPES:
+        return jsonResponse(
+            {"error": f"Invalid 'type' parameter '{entity_type}'. Must be one of {list(ENTITY_TYPES)}."},
+            callback=callback,
+        )
+    if sort not in ENTITY_SORTS[entity_type]:
+        return jsonResponse(
+            {"error": f"Invalid 'sort' parameter '{sort}' for type '{entity_type}'. Must be one of {list(ENTITY_SORTS[entity_type])}."},
+            callback=callback,
+        )
+    if category_paths and entity_type != "book":
+        return jsonResponse(
+            {"error": f"The 'filter' parameter is only supported for type 'book', not '{entity_type}'."},
+            callback=callback,
+        )
+
+    try:
+        size = max(1, min(int(request.GET.get("size", 20)), 100))
+    except (TypeError, ValueError):
+        size = 20
+
+    try:
+        start = max(0, min(int(request.GET.get("start", 0)), ENTITY_MAX_RESULT_WINDOW - 1))
+    except (TypeError, ValueError):
+        start = 0
+
+    # The result window is a ceiling on start+size, and the only way to honour it without
+    # corrupting the response is to shorten the final page. Clamping `start` backward to
+    # ENTITY_MAX_RESULT_WINDOW - size instead would silently re-serve rows the caller
+    # already has: start=9950&size=100 would become start=9900 and repeat 50 earlier hits
+    # as if they were new. `start` is capped at WINDOW - 1 above, so this stays >= 1.
+    size = min(size, ENTITY_MAX_RESULT_WINDOW - start)
+
+    try:
+        results = entity_search(query, entity_type, start=start, size=size, sort=sort, category_paths=category_paths)
+    except Exception as e:
+        logger.error(f"entity_search_api failed - q: {query}, type: {entity_type}, sort: {sort}, filter: {category_paths}, error: {e}", exc_info=True)
+        return jsonResponse({"error": "Error running entity search."}, callback=callback)
+
+    return jsonResponse(results, callback=callback)
+
+
+@csrf_exempt
 def search_path_filter(request, book_title):
     oref = Ref(book_title)
 
@@ -5224,16 +5321,50 @@ def custom_server_error(request, template_name='500.html'):
     #return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
 
 
+# Paths iOS must NOT hand to the app as universal links. Everything else on the domain
+# still opens the app (see AASA_PATHS below).
+#
+# Auth flows have to stay in the browser: they depend on the session/CSRF cookies held by
+# the browser, which the app can't see. When the SSO round-trip returns from
+# appleid.apple.com or accounts.google.com, that final hop is a cross-domain navigation
+# into sefaria.org -- exactly the trigger for a universal link -- so without these
+# exclusions iOS yanks the user into the app mid-login. Sefaria-Mobile's DeepLinkRouter
+# has no route for these paths either; they fall through to its catchAll, which bounces
+# straight back out to a browser (Sefaria-Mobile/DeepLinkRouter.js).
+AASA_EXCLUDED_PATHS = [
+    "/accounts/*",          # allauth OAuth endpoints, incl. the Apple/Google callbacks
+    "/_allauth/*",          # allauth headless API
+    "/login",
+    "/login/",
+    "/register",
+    "/register/",
+    "/logout",
+    "/logout/",
+    "/password/reset*",     # reset request, emailed confirm link, done/complete pages
+]
+
+AASA_PATHS = ["NOT " + path for path in AASA_EXCLUDED_PATHS] + ["*"]
+
+
 def apple_app_site_association(request):
     teamID = "2626EW4BML"
     bundleID = "org.sefaria.sefariaApp"
+    appID = "{}.{}".format(teamID, bundleID)
     return jsonResponse({
         "applinks": {
             "apps": [],
             "details": [
                 {
-                    "appID": "{}.{}".format(teamID, bundleID),
-                    "paths": ["*"]
+                    "appID": appID,
+                    "appIDs": [appID],
+                    # `paths` is the pre-iOS 13 format, `components` the current one.
+                    # Both are ordered, first match wins, so the exclusions must come
+                    # before the catch-all.
+                    "paths": AASA_PATHS,
+                    "components": (
+                        [{"/": path, "exclude": True} for path in AASA_EXCLUDED_PATHS]
+                        + [{"/": "*"}]
+                    ),
                 }
             ]
         }
