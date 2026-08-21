@@ -355,9 +355,11 @@ CASES = [
     # -- category.py:246  TocTree index -------------------------------------------
     case("S3", "TocTree index", "index whose `categories` is empty",
          "index", _index_doc("ZZAuditEmptyCats", categories=[]),
-         _toc_tree, PROPAGATED, "InputError", outside_guard=True,
-         note="rejected by Index.load_from_dict during IndexSet() iteration, so it aborts "
-              "_build_index_maps before the TocTree guard is ever reached"),
+         _toc_tree, WRONG_SITE,
+         note="rejected by Index.load_from_dict while IndexSet materializes, which used to "
+              "abort _build_index_maps before any guard was reached. Now caught -- by "
+              "IndexSet().with_skip_guard() in _build_index_maps, upstream of the TocTree "
+              "guard this case is filed under, hence WRONG_SITE rather than CAUGHT"),
     case("S3", "TocTree index", "index whose `categories` is a string, not a list",
          "index", _index_doc("ZZAuditStrCats", categories="Tanakh"),
          _toc_tree, NO_EFFECT,
@@ -399,17 +401,22 @@ CASES = [
          "category", {"path": ["Tanakh", "ZZAuditSerialize"], "lastPath": "ZZAuditSerialize",
                       "depth": 2, "sharedTitle": "ZZNoSuchTerm"},
          _toc_tree_serialize, PROPAGATED, "IndexError", outside_guard=True,
-         note="IndexError IS in BAD_RECORD_EXCEPTIONS, but it is raised during TocTree "
-              "__init__/_sort, outside every with-block -- see `escaped at` column"),
+         note="LOCAL/CI ONLY -- does not abort a real deploy. Category._process_terms is "
+              "decorated @conditional_graceful_exception(), which swallows and logs when "
+              "settings.FAIL_GRACEFULLY is true. That is \"True\" in prod and preprod "
+              "(envs/*/helmrelease.yaml) but False in local_settings.py and in CI "
+              "(build/ci/integration-values.yaml), which is why it propagates here. Left "
+              "unfixed deliberately: guarding it would mean guarding Category construction "
+              "to paper over a setting that already handles it where it matters"),
 
     # -- text.py:5036  _build_index_maps index record ------------------------------
     case("S7", "_build_index_maps index record", "index whose `schema` is not a dict",
          "index", _index_doc("ZZAuditSchemaStr", schema={"nodes": "not-a-list"}),
-         _index_maps, PROPAGATED, "AttributeError", outside_guard=True,
-         note="AttributeError is now IN the tuple, and this still escapes -- it raises "
-              "during IndexSet() iteration, OUTSIDE the with-block. Previously recorded as "
-              "a deliberate exclusion; widening the tuple exposed it as a third instance of "
-              "the placement gap"),
+         _index_maps, CAUGHT, "AttributeError",
+         note="raises in deserialize_tree while IndexSet materializes the record, outside "
+              "the with-block. Was recorded as a deliberate AttributeError exclusion until "
+              "widening the tuple exposed it as a placement problem; now caught by "
+              "IndexSet().with_skip_guard()"),
     case("S7", "_build_index_maps index record", "index with no `title`",
          "index", {"categories": ["Tanakh", "Torah"], "schema": _index_doc("x")["schema"]},
          _index_maps, CAUGHT, "AttributeError"),

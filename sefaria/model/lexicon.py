@@ -550,17 +550,17 @@ class LexiconEntrySet(abst.AbstractMongoSet):
         super(LexiconEntrySet, self).__init__(query, page, limit, sort, proj, hint)
         self._primary_tuples = primary_tuples
 
-    def _read_records(self):
+    def _instantiate_record(self, raw):
+        # The entry class depends on the document's lexicon, so this set cannot use
+        # `recordClass` — see AbstractMongoSet._instantiate_record.
+        return LexiconEntrySubClassMapping.instance_from_record_factory(raw)
+
+    def _post_read_records(self):
         def is_primary(entry):
             return not (entry.headword, entry.parent_lexicon) in self._primary_tuples
 
-        if self.records is None:
-            self.records = []
-            for rec in self.raw_records:
-                self.records.append(LexiconEntrySubClassMapping.instance_from_record_factory(rec))
-            self.max = len(self.records)
-            if self._primary_tuples:
-                self.records.sort(key=is_primary)
+        if self._primary_tuples:
+            self.records.sort(key=is_primary)
 
 
 class LexiconLookupAggregator(object):
