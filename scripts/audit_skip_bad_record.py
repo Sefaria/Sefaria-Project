@@ -18,11 +18,19 @@ WHAT THIS IS FOR
         PROPAGATED  the exception escaped the guard entirely (the build would abort)
         NO_EFFECT   the bad record caused no error and no skip (corruption was benign)
 
-    PROPAGATED is not automatically a bug: BAD_RECORD_EXCEPTIONS deliberately excludes
-    AttributeError and TypeError so that ordinary code bugs still crash loudly rather
-    than degrading into a silently incomplete library. The report labels those cases
-    `by design`. What matters is the ones NOT labelled that way -- those are corruptions
-    a real DB can hold that would still take the site down.
+    PROPAGATED is not automatically a bug. A case labelled `outside guard` escaped because
+    the exception is raised where no `with` block is in scope -- typically while the
+    `for rec in SomeSet()` iterator instantiates the record -- so no exception tuple could
+    have caught it, however wide. Those are fixable only by moving the guard. A PROPAGATED
+    case NOT labelled that way is a genuine breadth gap: the guard was in scope and let the
+    exception through.
+
+    A separate section (site "B1") exercises the skip-tracking breakers, which the 38
+    corruption cases cannot: each of those seeds one bad record, and the breakers only
+    engage when degradation is systemic. See BREAKER_CASES.
+
+    Rerun this after any change to BAD_RECORD_EXCEPTIONS, to the guards, or to the
+    breakers; the script exits non-zero if any case stops behaving as its table predicts.
 
 SAFETY
     * Refuses to run unless MONGO_HOST resolves to localhost/127.0.0.1. There is no
@@ -40,6 +48,7 @@ USAGE
     ./run audit_skip_bad_record.py                  # run every case, print the report
     ./run audit_skip_bad_record.py --list           # show the case table, touch nothing
     ./run audit_skip_bad_record.py --only S1 S3     # run only certain sites
+    ./run audit_skip_bad_record.py --only B1        # just the breaker case
     ./run audit_skip_bad_record.py --clean          # purge leftovers from a hard kill
 """
 import argparse
@@ -59,10 +68,13 @@ django.setup()
 from django.conf import settings
 
 from sefaria.system.database import db
-from sefaria.helper.skip_tracking import reset_skip_counts, get_skip_records
+from sefaria.helper import skip_tracking
+from sefaria.helper.skip_tracking import (reset_skip_counts, get_skip_records,
+                                          SIGNATURE_BREAKER_THRESHOLD)
 
 # Outcome codes, ordered worst-first for the report summary.
 CAUGHT, WRONG_SITE, PROPAGATED, NO_EFFECT = "CAUGHT", "WRONG_SITE", "PROPAGATED", "NO_EFFECT"
+BROKE, NO_BREAK = "BROKE", "NO_BREAK"   # outcomes for the breaker cases below
 
 
 # ---------------------------------------------------------------------------
@@ -262,13 +274,18 @@ def restore_library_baseline():
 # Case table
 #
 # Each case: a synthetic bad document, the builder that reaches the guard, and what the
-# guard is expected to do. `by_design=True` marks a propagation that BAD_RECORD_EXCEPTIONS
-# deliberately allows (AttributeError / TypeError = code-bug symptoms, not bad data).
+# guard is expected to do. `outside_guard=True` marks a propagation the guard could not have
+# caught at any breadth, because the raise happens outside its `with` block.
 # ---------------------------------------------------------------------------
 
 def case(site, operation, corruption, collection, doc, trigger, expect,
-         error_type=None, by_design=False, note=None, extra_docs=None, skip=None):
+         error_type=None, outside_guard=False, note=None, extra_docs=None, skip=None):
     """One audit case.
+
+    `outside_guard=True` marks a propagation caused by catch PLACEMENT rather than catch
+    breadth: the exception is raised while the `for rec in SomeSet()` iterator instantiates
+    the record, or inside a constructor, so no `with` block is in scope yet and no exception
+    tuple can reach it.
 
     `extra_docs` seeds additional documents the corruption needs in order to be REACHED --
     e.g. a bad child topic is only visited if an IntraTopicLink makes it a child of
@@ -278,7 +295,7 @@ def case(site, operation, corruption, collection, doc, trigger, expect,
     docs = [(collection, doc)] + list(extra_docs or [])
     return dict(site=site, operation=operation, corruption=corruption, collection=collection,
                 docs=docs, trigger=trigger, expect=expect, error_type=error_type,
-                by_design=by_design, note=note, skip=skip)
+                outside_guard=outside_guard, note=note, skip=skip)
 
 
 def _index_doc(title, **overrides):
@@ -318,10 +335,10 @@ CASES = [
          _toc_tree, CAUGHT, "KeyError"),
     case("S1", "TocTree vstate record", "`flags` is a string instead of a dict",
          "vstate", {"title": "ZZAudit_vs_flags_str", "first_section_ref": "Audit 1", "flags": "broken"},
-         _toc_tree, PROPAGATED, "AttributeError", by_design=True),
+         _toc_tree, CAUGHT, "AttributeError"),
     case("S1", "TocTree vstate record", "`flags` is null",
          "vstate", {"title": "ZZAudit_vs_flags_null", "first_section_ref": "Audit 1", "flags": None},
-         _toc_tree, PROPAGATED, "AttributeError", by_design=True),
+         _toc_tree, CAUGHT, "AttributeError"),
 
     # -- category.py:238  TocTree first_comment link ------------------------------
     case("S2", "TocTree first_comment link", "link with no `first_comment_indexes`",
@@ -333,12 +350,12 @@ CASES = [
     case("S2", "TocTree first_comment link", "`first_comment_indexes` is an int, not a list",
          "links", {"is_first_comment": True, "first_comment_indexes": 5,
                    "first_comment_section_ref": "Audit 1"},
-         _toc_tree, PROPAGATED, "TypeError", by_design=True),
+         _toc_tree, CAUGHT, "TypeError"),
 
     # -- category.py:246  TocTree index -------------------------------------------
     case("S3", "TocTree index", "index whose `categories` is empty",
          "index", _index_doc("ZZAuditEmptyCats", categories=[]),
-         _toc_tree, PROPAGATED, "InputError",
+         _toc_tree, PROPAGATED, "InputError", outside_guard=True,
          note="rejected by Index.load_from_dict during IndexSet() iteration, so it aborts "
               "_build_index_maps before the TocTree guard is ever reached"),
     case("S3", "TocTree index", "index whose `categories` is a string, not a list",
@@ -352,7 +369,7 @@ CASES = [
          _toc_tree, CAUGHT, "InputError"),
     case("S3", "TocTree index", "`base_text_titles` is an int, not a list",
          "index", _index_doc("ZZAuditBadBTT", dependence="Commentary", base_text_titles=7),
-         _toc_tree, PROPAGATED, "TypeError", by_design=True),
+         _toc_tree, CAUGHT, "TypeError"),
 
     # -- category.py:272  TocTree collection ---------------------------------------
     case("S4", "TocTree collection", "collection with `toc` set but no `name`",
@@ -361,7 +378,9 @@ CASES = [
          _toc_tree, CAUGHT, "KeyError"),
     case("S4", "TocTree collection", "collection whose `toc` is a string",
          "groups", {"toc": "not-a-dict", "listed": True, "slug": "zzaudit-toc-str"},
-         _toc_tree, PROPAGATED, "AttributeError", by_design=True),
+         _toc_tree, CAUGHT, "TypeError",
+         note="a str `toc` is subscripted before any attribute access, so this surfaces as "
+              "TypeError rather than the AttributeError one might predict"),
 
     # -- category.py:340  TocTree._add_category ------------------------------------
     case("S5", "TocTree._add_category", "category whose parent path does not exist",
@@ -370,25 +389,30 @@ CASES = [
          _toc_tree, CAUGHT, "KeyError"),
     case("S5", "TocTree._add_category", "category with an empty `path`",
          "category", {"path": [], "lastPath": "", "depth": 0},
-         _toc_tree, NO_EFFECT, note="empty path attaches to root without raising"),
+         _toc_tree, WRONG_SITE,
+         note="the empty path attaches to root without raising here, but the malformed "
+              "category then breaks an index lookup in the TocTree index loop, which now "
+              "catches it -- a skip is recorded, at a different site than this one"),
 
     # -- category.py:464  TocTree.serialize node -----------------------------------
     case("S6", "TocTree.serialize node", "category whose `sharedTitle` names a nonexistent term",
          "category", {"path": ["Tanakh", "ZZAuditSerialize"], "lastPath": "ZZAuditSerialize",
                       "depth": 2, "sharedTitle": "ZZNoSuchTerm"},
-         _toc_tree_serialize, PROPAGATED, "IndexError",
+         _toc_tree_serialize, PROPAGATED, "IndexError", outside_guard=True,
          note="IndexError IS in BAD_RECORD_EXCEPTIONS, but it is raised during TocTree "
               "__init__/_sort, outside every with-block -- see `escaped at` column"),
 
     # -- text.py:5036  _build_index_maps index record ------------------------------
     case("S7", "_build_index_maps index record", "index whose `schema` is not a dict",
          "index", _index_doc("ZZAuditSchemaStr", schema={"nodes": "not-a-list"}),
-         _index_maps, PROPAGATED, "AttributeError", by_design=True,
-         note="raises in IndexSet() iteration, OUTSIDE the with-block"),
+         _index_maps, PROPAGATED, "AttributeError", outside_guard=True,
+         note="AttributeError is now IN the tuple, and this still escapes -- it raises "
+              "during IndexSet() iteration, OUTSIDE the with-block. Previously recorded as "
+              "a deliberate exclusion; widening the tuple exposed it as a third instance of "
+              "the placement gap"),
     case("S7", "_build_index_maps index record", "index with no `title`",
          "index", {"categories": ["Tanakh", "Torah"], "schema": _index_doc("x")["schema"]},
-         _index_maps, PROPAGATED, "AttributeError", by_design=True,
-         note="raises in IndexSet() iteration, OUTSIDE the with-block"),
+         _index_maps, CAUGHT, "AttributeError"),
 
     # -- text.py:5046  _build_index_maps title dict --------------------------------
     case("S8", "_build_index_maps title dict", "index whose schema titles have no primary",
@@ -401,17 +425,18 @@ CASES = [
     case("S9", "get_topic_toc_json_recursive top-level topic", "top-level topic with no `slug`",
          "topics", {"isTopLevelDisplay": True,
                     "titles": [{"text": "ZZAuditNoSlug", "lang": "en", "primary": True}]},
-         _topic_toc, PROPAGATED, "AttributeError",
-         note="this is the exact corruption the guard was added for, and it is NOT caught: "
-              "a missing attribute on a Mongo record surfaces as AttributeError, which "
-              "BAD_RECORD_EXCEPTIONS deliberately excludes"),
+         _topic_toc, CAUGHT, "AttributeError",
+         note="the exact corruption the guard was added for. Was NOT caught while the tuple "
+              "excluded AttributeError -- a missing Mongo field surfaces as AttributeError "
+              "on the Python object, not KeyError. This case is the reason the tuple was "
+              "widened"),
 
     # -- text.py:5260  topic TOC child ---------------------------------------------
     # A bad child topic is only visited if a 'displays-under' link makes it a child, so
     # each case seeds a valid top-level parent plus the link alongside the bad child.
     case("S10", "topic TOC child", "child topic whose `titles` is a string, not a list",
          "topics", _topic_doc("zzaudit-child-strtitles", titles="notalist"),
-         _topic_toc, PROPAGATED, "AttributeError", by_design=True,
+         _topic_toc, CAUGHT, "AttributeError",
          extra_docs=[
              ("topics", dict(_topic_doc("zzaudit-parent"), isTopLevelDisplay=True,
                              )),
@@ -443,11 +468,11 @@ CASES = [
          note="same -- absent primary degrades to '' silently"),
     case("S11", "build_term_mappings term", "term whose `titles` is a string, not a list",
          "term", {"name": "ZZAuditTermStrTitles", "titles": "notalist"},
-         _term_mappings, PROPAGATED, "AttributeError", by_design=True),
+         _term_mappings, CAUGHT, "AttributeError"),
     case("S11", "build_term_mappings term", "term with no `name`",
          "term", {"titles": [{"text": "ZZAuditTermNoName", "lang": "en", "primary": True},
                              {"text": "א", "lang": "he", "primary": True}]},
-         _term_mappings, PROPAGATED, "AttributeError", by_design=True),
+         _term_mappings, CAUGHT, "AttributeError"),
 
     # -- text.py:5780  _build_topic_mapping topic ----------------------------------
     case("S12", "_build_topic_mapping topic", "topic with an empty `titles` list",
@@ -456,7 +481,7 @@ CASES = [
          note="TitleGroup.primary_title() returns '' rather than raising"),
     case("S12", "_build_topic_mapping topic", "topic whose `titles` is a string, not a list",
          "topics", _topic_doc("zzaudit-topic-strtitles", titles="notalist"),
-         _topic_mapping, PROPAGATED, "AttributeError", by_design=True),
+         _topic_mapping, CAUGHT, "AttributeError"),
     case("S12", "_build_topic_mapping topic", "topic with an English title but no Hebrew",
          "topics", _topic_doc("zzaudit-topic-noheb",
                               titles=[{"text": "ZZAuditNoHeb", "lang": "en", "primary": True}]),
@@ -474,8 +499,7 @@ CASES = [
     case("S14", "build_virtual_books index", "dictionary index with a `lexiconName` but no title",
          "index", {"lexiconName": "ZZAuditLexicon", "categories": ["Reference", "Dictionary"],
                    "schema": _index_doc("x")["schema"]},
-         _virtual_books, PROPAGATED, "AttributeError", by_design=True,
-         note="raises in IndexSet() iteration, OUTSIDE the with-block"),
+         _virtual_books, CAUGHT, "AttributeError"),
 
     # -- autospell.py:129  AutoCompleter user --------------------------------------
     case("S15", "AutoCompleter user", "profile whose `user` sub-document has no `slug`",
@@ -485,13 +509,16 @@ CASES = [
               "for aggregate_profiles() to return it -- out of scope for a Mongo-only script"),
 
     # -- autospell.py:498  LexiconTrie entry ---------------------------------------
-    case("S16", "LexiconTrie(...) entry", "lexicon entry with no `headword`",
+    # The operation string here is built at runtime as "LexiconTrie({}) entry".format(name),
+    # so the case must spell out the lexicon. Writing "LexiconTrie(...)" made these two
+    # report as WRONG_SITE when the correct guard had in fact fired.
+    case("S16", "LexiconTrie(Jastrow Dictionary) entry", "lexicon entry with no `headword`",
          "lexicon_entry", {"parent_lexicon": "Jastrow Dictionary", "content": {}},
-         _lexicon_trie, PROPAGATED, "AttributeError", by_design=True),
-    case("S16", "LexiconTrie(...) entry", "lexicon entry whose `headword` is an int",
+         _lexicon_trie, CAUGHT, "AttributeError"),
+    case("S16", "LexiconTrie(Jastrow Dictionary) entry", "lexicon entry whose `headword` is an int",
          "lexicon_entry", {"parent_lexicon": "Jastrow Dictionary", "headword": 12345,
                            "content": {}},
-         _lexicon_trie, PROPAGATED, "TypeError", by_design=True),
+         _lexicon_trie, CAUGHT, "TypeError"),
 
     # -- category_resolver.py:55  CategoryMatcher category -------------------------
     # The missing-term-slug corruption is handled by the inner log_skip (see S20), so the
@@ -499,7 +526,9 @@ CASES = [
     case("S17", "CategoryMatcher category", "category whose `match_templates` is a string",
          "category", {"path": ["Tanakh", "ZZAuditMTStr"], "lastPath": "ZZAuditMTStr",
                       "depth": 2, "match_templates": "notalist"},
-         _category_matcher, PROPAGATED, "AttributeError", by_design=True),
+         _category_matcher, CAUGHT, "TypeError",
+         note="MatchTemplate(**'notalist') fails on the ** unpack, so TypeError rather "
+              "than AttributeError"),
 
     # -- match_template.py:72  MatchTemplateTrie node ------------------------------
     case("S18", "MatchTemplateTrie node", "index whose node match_template names a missing term",
@@ -513,7 +542,7 @@ CASES = [
          "index", _index_doc("ZZAuditMTTrieStr",
                              schema=dict(_index_doc("ZZAuditMTTrieStr")["schema"],
                                          match_templates="notalist")),
-         _match_template_trie, PROPAGATED, "TypeError", by_design=True),
+         _match_template_trie, CAUGHT, "TypeError"),
 ]
 
 
@@ -523,9 +552,10 @@ LOG_SKIP_CASES = [
     case("S19", "build_topic_toc_category_mapping", "top-level topic-toc node with no `slug`",
          "topics", {"isTopLevelDisplay": True,
                     "titles": [{"text": "ZZAuditTocNoSlug", "lang": "en", "primary": True}]},
-         _topic_toc_category_mapping, PROPAGATED, "AttributeError",
-         note="unreachable in practice: the same slugless topic crashes get_topic_toc() "
-              "upstream (S9), so this log_skip never gets the chance to fire"),
+         _topic_toc_category_mapping, WRONG_SITE,
+         note="unreachable in practice, exactly as predicted: the same slugless topic is now "
+              "caught by get_topic_toc()'s guard upstream (S9), so this log_skip still never "
+              "gets the chance to fire. Dead code either way"),
     case("S20", "CategoryMatcher category match_template",
          "category match_template pointing at a nonexistent term slug",
          "category", {"path": ["Tanakh", "ZZAuditNoTermSlug"], "lastPath": "ZZAuditNoTermSlug",
@@ -533,8 +563,88 @@ LOG_SKIP_CASES = [
          _category_matcher, CAUGHT, None),
 ]
 
+
+# ---------------------------------------------------------------------------
+# Breaker cases
+#
+# The 38 cases above seed ONE bad record each, so none of them can exercise the stopping
+# rule that makes a widened BAD_RECORD_EXCEPTIONS safe. These seed many identical bad
+# records instead, and assert the build aborts rather than logging its way through the
+# whole collection. Unit tests in sefaria/helper/tests/skip_tracking_test.py cover the
+# same mechanism with mocks; these run it against real builders and a real Mongo.
+#
+# They also verify the abort path posts its summary. That is not incidental: the pathway's
+# own signal_and_reset_skip_counts() call runs AFTER the build, so an abort skips it, and
+# without the post inside the breaker the skip log — the whole diagnosis — is discarded.
+# ---------------------------------------------------------------------------
+
+BREAKER_CASES = [
+    dict(site="B1",
+         corruption="{} top-level topics all missing `slug`".format(SIGNATURE_BREAKER_THRESHOLD + 2),
+         detail=("one identical AttributeError per record, the shape a renamed attribute "
+                 "produces"),
+         collection="topics",
+         doc={"isTopLevelDisplay": True,
+              "titles": [{"text": "ZZAuditBreaker", "lang": "en", "primary": True}]},
+         count=SIGNATURE_BREAKER_THRESHOLD + 2,
+         trigger=_topic_toc,
+         operation="get_topic_toc_json_recursive top-level topic",
+         error_type="AttributeError"),
+]
+
+
+def run_breaker_case(c, notify, index, total):
+    """Seed `count` identical bad records, run the builder, and assert the build aborted."""
+    print("[{:>2}/{}] {} {}".format(index, total, c["site"], c["corruption"]))
+    reset_skip_counts()
+    notify.reset_mock()
+    raised = None
+    try:
+        for _ in range(c["count"]):
+            insert(c["collection"], dict(c["doc"]))
+        try:
+            c["trigger"]()
+        except BaseException as e:                  # noqa: BLE001 -- classifying, not handling
+            raised = e
+    finally:
+        cleanup()
+        try:
+            restore_library_baseline()
+        except Exception as e:
+            print("  ! baseline restore failed: {}".format(e))
+        reset_skip_counts()
+
+    problems = []
+    if raised is None:
+        problems.append("build did not abort")
+    elif not error_type_matches(type(raised).__name__, c["error_type"]):
+        problems.append("aborted with {}, expected {}".format(
+            type(raised).__name__, c["error_type"]))
+
+    # The summary must reach Slack BEFORE the abort, or the skip log is lost with it.
+    if not notify.call_count:
+        problems.append("no summary posted on the abort path")
+    else:
+        message = notify.call_args[0][0]
+        if c["operation"] not in message:
+            problems.append("summary does not name {!r}".format(c["operation"]))
+        if "*{}*".format(SIGNATURE_BREAKER_THRESHOLD) not in message:
+            problems.append("summary does not report {} skips".format(
+                SIGNATURE_BREAKER_THRESHOLD))
+
+    outcome = NO_BREAK if problems else BROKE
+    detail = "; ".join(problems) if problems else "aborted at {} skips, summary posted".format(
+        SIGNATURE_BREAKER_THRESHOLD)
+    print("      -> {} ({})".format(outcome, detail))
+    return dict(site=c["site"], operation=c["operation"], corruption=c["corruption"],
+                outcome=outcome, detail=detail, matched=not problems, expect=BROKE,
+                error_type=c["error_type"], outside_guard=False, note=c["detail"], skip=None,
+                escaped_at="")
+
+
 ALL_CASES = CASES + LOG_SKIP_CASES
-TOUCHED_COLLECTIONS = {coll for c in ALL_CASES for coll, _ in c["docs"]}
+TOUCHED_COLLECTIONS = ({coll for c in ALL_CASES for coll, _ in c["docs"]}
+                       | {c["collection"] for c in BREAKER_CASES})
 
 
 # ---------------------------------------------------------------------------
@@ -654,6 +764,8 @@ def report(results):
     print("\n" + "=" * 100)
     print("SKIP_BAD_RECORD AUDIT -- {} cases across {} guard sites".format(
         len(results), len({r["site"] for r in results})))
+    print("Breaker thresholds: signature={}, volume={}".format(
+        SIGNATURE_BREAKER_THRESHOLD, skip_tracking.VOLUME_BREAKER_THRESHOLD))
     print("=" * 100)
 
     width = max(len(r["corruption"]) for r in results)
@@ -663,7 +775,7 @@ def report(results):
             current = r["site"]
             print("\n{}  {}".format(r["site"], r["operation"]))
         flag = "ok " if r["matched"] else "DIFF"
-        design = "  [by design]" if r["by_design"] and r["outcome"] == PROPAGATED else ""
+        design = "  [outside guard]" if r["outside_guard"] and r["outcome"] == PROPAGATED else ""
         print("  {} {:<12} {:<{w}}  {}{}".format(
             flag, r["outcome"], r["corruption"], r["detail"], design, w=width))
         if r.get("escaped_at"):
@@ -672,14 +784,15 @@ def report(results):
             print("       note: {}".format(r["note"]))
 
     print("\n" + "-" * 100)
-    for outcome in (CAUGHT, PROPAGATED, WRONG_SITE, NO_EFFECT, "SKIPPED"):
+    for outcome in (CAUGHT, PROPAGATED, WRONG_SITE, NO_EFFECT, "SKIPPED", BROKE, NO_BREAK):
         rows = by_outcome.get(outcome, [])
         if not rows:
             continue
         extra = ""
         if outcome == PROPAGATED:
-            unexpected = [r for r in rows if not r["by_design"]]
-            extra = "  ({} by design, {} NOT)".format(len(rows) - len(unexpected), len(unexpected))
+            unexpected = [r for r in rows if not r["outside_guard"]]
+            extra = "  ({} outside the guard, {} inside)".format(
+                len(rows) - len(unexpected), len(unexpected))
         print("{:<12} {:>3}{}".format(outcome, len(rows), extra))
 
     surprises = [r for r in results if not r["matched"]]
@@ -701,7 +814,10 @@ def main():
     if args.list:
         for c in ALL_CASES:
             print("{:<5} {:<45} {}".format(c["site"], c["operation"], c["corruption"]))
-        print("\n{} cases across {} sites.".format(len(ALL_CASES), len({c["site"] for c in ALL_CASES})))
+        for c in BREAKER_CASES:
+            print("{:<5} {:<45} {}".format(c["site"], c["operation"], c["corruption"]))
+        print("\n{} corruption cases across {} sites, plus {} breaker case(s).".format(
+            len(ALL_CASES), len({c["site"] for c in ALL_CASES}), len(BREAKER_CASES)))
         return 0
 
     assert_local_mongo()
@@ -711,7 +827,7 @@ def main():
         return 0
 
     cases = [c for c in ALL_CASES if not args.only or c["site"] in args.only]
-    if not cases:
+    if not cases and not [c for c in BREAKER_CASES if not args.only or c["site"] in args.only]:
         sys.exit("No cases matched --only {}".format(args.only))
 
     # Clear anything a previous hard kill left behind, so stale docs can't skew results.
@@ -719,15 +835,26 @@ def main():
     print("\nEstablishing clean library baseline...")
     restore_library_baseline()
 
+    breaker_cases = [c for c in BREAKER_CASES if not args.only or c["site"] in args.only]
+    total = len(cases) + len(breaker_cases)
+
     results = []
-    with slack_muted():
+    with slack_muted() as notify:
         for i, c in enumerate(cases, 1):
             try:
-                results.append(run_case(c, i, len(cases)))
+                results.append(run_case(c, i, total))
             except Exception:
                 traceback.print_exc()
                 results.append(dict(c, outcome="HARNESS_ERROR", detail="see traceback",
                                     matched=False))
+        for j, c in enumerate(breaker_cases, len(cases) + 1):
+            try:
+                results.append(run_breaker_case(c, notify, j, total))
+            except Exception:
+                traceback.print_exc()
+                results.append(dict(c, operation=c["operation"], outcome="HARNESS_ERROR",
+                                    detail="see traceback", matched=False, expect=BROKE,
+                                    outside_guard=False, note=None, skip=None, escaped_at=""))
 
     purge(TOUCHED_COLLECTIONS)
     surprises = report(results)
