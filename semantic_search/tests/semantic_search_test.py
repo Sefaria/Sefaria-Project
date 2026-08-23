@@ -2,7 +2,7 @@
 Unit tests for the semantic_search app.
 
 All tests run without a live pgvector connection and without a Gemini API key.
-ORM-touching code is mocked at the Chunk.objects / Vector.objects boundary.
+ORM-touching code is mocked at the ChunkMetadata.objects / Vector.objects boundary.
 """
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -19,7 +19,7 @@ from semantic_search.linked_refs import (
 )
 from semantic_search.router import SemanticSearchRouter
 from semantic_search.search import semantic_search, semantic_search_by_embedding
-from semantic_search.models import Chunk, Vector, DEFAULT_CHUNKING_SCHEME_ID, DEFAULT_EMBEDDING_MODEL_ID
+from semantic_search.models import ChunkMetadata, Vector, DEFAULT_CHUNKING_SCHEME_ID, DEFAULT_EMBEDDING_MODEL_ID
 
 
 def make_chunk(**overrides):
@@ -128,16 +128,16 @@ class TestSearchByEmbeddingFilters:
 # upsert
 # ---------------------------------------------------------------------------
 
-class TestChunkUpsert:
+class TestChunkMetadataUpsert:
     def test_empty_list_skips_bulk_create(self):
-        with patch("semantic_search.models.Chunk") as mock_cls:
-            Chunk().upsert([])
+        with patch("semantic_search.models.ChunkMetadata") as mock_cls:
+            ChunkMetadata().upsert([])
             mock_cls.objects.bulk_create.assert_not_called()
 
     def test_calls_bulk_create_with_conflict_args(self):
         chunk = MagicMock()
-        with patch("semantic_search.models.Chunk") as mock_cls:
-            Chunk().upsert([chunk])
+        with patch("semantic_search.models.ChunkMetadata") as mock_cls:
+            ChunkMetadata().upsert([chunk])
             _, kwargs = mock_cls.objects.bulk_create.call_args
             assert kwargs["update_conflicts"] is True
             assert kwargs["unique_fields"] == [
@@ -146,8 +146,8 @@ class TestChunkUpsert:
 
     def test_update_fields_excludes_unique_fields_and_created_at(self):
         chunk = MagicMock()
-        with patch("semantic_search.models.Chunk") as mock_cls:
-            Chunk().upsert([chunk])
+        with patch("semantic_search.models.ChunkMetadata") as mock_cls:
+            ChunkMetadata().upsert([chunk])
             _, kwargs = mock_cls.objects.bulk_create.call_args
             update_fields = kwargs["update_fields"]
             for field in ["ref", "version_title", "language", "chunk_ordinal", "chunking_scheme_id"]:
@@ -196,16 +196,16 @@ class TestGetIndexedUnitRefs:
         mock_objects.filter.return_value.values_list.return_value.distinct.return_value = [
             "Genesis 1", "Genesis 1", "Genesis 2"
         ]
-        with patch("semantic_search.models.Chunk.objects", mock_objects):
-            result = Chunk().get_indexed_unit_refs("Genesis", "en", "SCT")
+        with patch("semantic_search.models.ChunkMetadata.objects", mock_objects):
+            result = ChunkMetadata().get_indexed_unit_refs("Genesis", "en", "SCT")
         assert isinstance(result, set)
         assert result == {"Genesis 1", "Genesis 2"}
 
     def test_filters_by_index_language_version_scheme_and_embedding_model(self):
         mock_objects = MagicMock()
         mock_objects.filter.return_value.values_list.return_value.distinct.return_value = []
-        with patch("semantic_search.models.Chunk.objects", mock_objects):
-            Chunk().get_indexed_unit_refs("Mishnah Berakhot", "he", "Torat Emet 357")
+        with patch("semantic_search.models.ChunkMetadata.objects", mock_objects):
+            ChunkMetadata().get_indexed_unit_refs("Mishnah Berakhot", "he", "Torat Emet 357")
         mock_objects.filter.assert_called_once_with(
             index_title="Mishnah Berakhot",
             language="he",
@@ -217,8 +217,8 @@ class TestGetIndexedUnitRefs:
     def test_empty_queryset_returns_empty_set(self):
         mock_objects = MagicMock()
         mock_objects.filter.return_value.values_list.return_value.distinct.return_value = []
-        with patch("semantic_search.models.Chunk.objects", mock_objects):
-            result = Chunk().get_indexed_unit_refs("Genesis", "en", "SCT")
+        with patch("semantic_search.models.ChunkMetadata.objects", mock_objects):
+            result = ChunkMetadata().get_indexed_unit_refs("Genesis", "en", "SCT")
         assert result == set()
 
 
@@ -229,15 +229,15 @@ class TestGetIndexedUnitRefs:
 class TestBulkDelete:
     def test_filters_by_ids(self):
         mock_objects = MagicMock()
-        with patch("semantic_search.models.Chunk.objects", mock_objects):
-            Chunk().bulk_delete(["id1", "id2"])
+        with patch("semantic_search.models.ChunkMetadata.objects", mock_objects):
+            ChunkMetadata().bulk_delete(["id1", "id2"])
         mock_objects.filter.assert_called_once_with(id__in=["id1", "id2"])
         mock_objects.filter.return_value.delete.assert_called_once()
 
     def test_empty_list_still_calls_filter(self):
         mock_objects = MagicMock()
-        with patch("semantic_search.models.Chunk.objects", mock_objects):
-            Chunk().bulk_delete([])
+        with patch("semantic_search.models.ChunkMetadata.objects", mock_objects):
+            ChunkMetadata().bulk_delete([])
         mock_objects.filter.assert_called_once_with(id__in=[])
 
 

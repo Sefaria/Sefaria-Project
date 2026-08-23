@@ -3,7 +3,7 @@
 """
 Debug script: chunk and embed a single section ref, write output to a JSON file.
 
-Shows exactly what would be upserted into the chunks/vectors pgvector tables,
+Shows exactly what would be upserted into the chunk_metadata/vectors pgvector tables,
 with embeddings truncated to their first 8 dimensions + L2 norm.
 
 Usage:
@@ -36,8 +36,9 @@ from sefaria.helper.vector.embed_library_to_pgvector import (
 
 
 def chunk_to_dict(built) -> dict:
-    """`built` is a `ChunkAndVector` (see embed_library_to_pgvector.py) - the `chunks` row
-    paired with the `vectors` row (text + embedding) it would become once upserted."""
+    """`built` is a `ChunkAndVector` (see embed_library_to_pgvector.py) - the
+    `chunk_metadata` row paired with the `vectors` row (text + embedding) it would become
+    once upserted."""
     chunk = built.chunk
     embedding = list(built.embedding) if built.embedding is not None else []
     d = {
@@ -120,7 +121,7 @@ def main():
         "ref": section_ref.normal(),
         "index_title": index.title,
         "generated_at": datetime.now().isoformat(),
-        "tables": ["chunks", "vectors"],
+        "tables": ["chunk_metadata", "vectors"],
         "rows": [],
     }
 

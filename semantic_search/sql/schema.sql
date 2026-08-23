@@ -1,15 +1,17 @@
--- Schema for the pgvector-backed semantic search store: `chunks` + `vectors`.
+-- Schema for the pgvector-backed semantic search store: `chunk_metadata` + `vectors`.
 --
--- `Chunk` / `Vector` (semantic_search/models.py) map to these tables with `managed = False`,
--- so Django never creates or migrates them. This file is the source of truth for the schema,
--- created/populated out-of-band by the embed job (sefaria/helper/vector/embed_library_to_pgvector.py).
+-- `ChunkMetadata` / `Vector` (semantic_search/models.py) map to these tables with
+-- `managed = False`, so Django never creates or migrates them. This file is the source of
+-- truth for the schema, created/populated out-of-band by the embed job
+-- (sefaria/helper/vector/embed_library_to_pgvector.py).
 --
--- Split rationale: `chunks` holds metadata (index/version/ref context, categories, authors,
--- topics, pagerank, chunking provenance) which changes on admin/content operations; `vectors`
--- holds text + embedding together (they only ever change together - re-chunk or re-embed).
--- Metadata edits never rewrite vector rows, and multiple embedding models can coexist per
--- chunk without duplicating metadata. `chunking_schemes` / `embedding_models` are lookup
--- tables so new chunkers/models can be added as new rows instead of overwriting history.
+-- Split rationale: `chunk_metadata` holds metadata (index/version/ref context, categories,
+-- authors, topics, pagerank, chunking provenance) which changes on admin/content operations;
+-- `vectors` holds text + embedding together (they only ever change together - re-chunk or
+-- re-embed). Metadata edits never rewrite vector rows, and multiple embedding models can
+-- coexist per chunk without duplicating metadata. `chunking_schemes` / `embedding_models`
+-- are lookup tables so new chunkers/models can be added as new rows instead of overwriting
+-- history.
 --
 -- Idempotent: table/index statements are `IF NOT EXISTS`, so re-running is safe (e.g. after a
 -- restore that doesn't carry indexes forward reliably).
@@ -21,8 +23,8 @@
 --        -U "${PGVECTOR_USER:-pgvector}" -d "${PGVECTOR_DB:-pgvector}" \
 --        -v ON_ERROR_STOP=1 -f semantic_search/sql/schema.sql
 --
--- CONCURRENTLY avoids taking an ACCESS EXCLUSIVE lock on chunks/vectors while an index builds,
--- so live reads/writes are not blocked during creation. A CONCURRENTLY build that is
+-- CONCURRENTLY avoids taking an ACCESS EXCLUSIVE lock on chunk_metadata/vectors while an index
+-- builds, so live reads/writes are not blocked during creation. A CONCURRENTLY build that is
 -- interrupted can leave an INVALID index behind; drop it and re-run if so:
 --   SELECT indexrelid::regclass FROM pg_index WHERE NOT indisvalid;
 
@@ -51,12 +53,12 @@ INSERT INTO embedding_models (id, description) VALUES
 ON CONFLICT (id) DO NOTHING;
 
 -- ---------------------------------------------------------------------------
--- chunks: metadata only (no text, no embedding). PK'd by a stable surrogate `id` so metadata
--- edits (title renames, topic slug changes, pagerank recompute, ...) never need to touch or
--- invalidate `vectors` rows referencing this chunk.
+-- chunk_metadata: metadata only (no text, no embedding). PK'd by a stable surrogate `id` so
+-- metadata edits (title renames, topic slug changes, pagerank recompute, ...) never need to
+-- touch or invalidate `vectors` rows referencing this chunk.
 -- ---------------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS chunks (
+CREATE TABLE IF NOT EXISTS chunk_metadata (
     id                      bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     index_title             text NOT NULL,
     version_title           text NOT NULL,
@@ -92,13 +94,13 @@ CREATE TABLE IF NOT EXISTS chunks (
 );
 
 -- ---------------------------------------------------------------------------
--- vectors: text + embedding together, FK'd to chunks. Multiple embedding_model_id rows can
--- exist per chunk (to compare models) without duplicating any chunks metadata.
+-- vectors: text + embedding together, FK'd to chunk_metadata. Multiple embedding_model_id
+-- rows can exist per chunk (to compare models) without duplicating any chunk metadata.
 -- ---------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS vectors (
     id                  bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    chunk_id            bigint NOT NULL REFERENCES chunks(id) ON DELETE CASCADE,
+    chunk_id            bigint NOT NULL REFERENCES chunk_metadata(id) ON DELETE CASCADE,
     embedding_model_id  smallint NOT NULL REFERENCES embedding_models(id),
     text                text NOT NULL,
     embedding           vector(1536) NOT NULL,
@@ -110,7 +112,7 @@ CREATE TABLE IF NOT EXISTS vectors (
 -- ---------------------------------------------------------------------------
 -- Indexes
 --
--- chunks: the UNIQUE constraint above already creates a btree on
+-- chunk_metadata: the UNIQUE constraint above already creates a btree on
 -- (ref, version_title, language, chunk_ordinal, chunking_scheme_id), which via leftmost-prefix
 -- also serves `ref` / `ref, version_title` lookups (KnnSearch's ref/ref__in filters,
 -- get_chunks_containing_ref-style admin queries) without a dedicated index.
@@ -118,16 +120,16 @@ CREATE TABLE IF NOT EXISTS vectors (
 
 -- Resume/filter lookups: get_indexed_unit_refs, and KnnSearch's index_title/language/
 -- version_title filters.
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_chunks_resume
-    ON chunks (index_title, language, version_title);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_chunk_metadata_resume
+    ON chunk_metadata (index_title, language, version_title);
 
 -- P2: GIN indexes on the two slug arrays, for `<array> @> ARRAY[slug]` containment lookups
 -- (e.g. topic/author slug renames) without a full table scan.
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_chunks_author_slugs_gin
-    ON chunks USING gin (author_slugs);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_chunk_metadata_author_slugs_gin
+    ON chunk_metadata USING gin (author_slugs);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_chunks_assoc_topic_slugs_gin
-    ON chunks USING gin (associated_topic_slugs);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_chunk_metadata_assoc_topic_slugs_gin
+    ON chunk_metadata USING gin (associated_topic_slugs);
 
 -- vectors: HNSW vector index powering search_by_embedding's `embedding <=> query` cosine
 -- ordering; without it every search seq-scans and sorts the whole table. Same type/params as
@@ -144,11 +146,11 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_vectors_embedding_hnsw
 
 -- ---------------------------------------------------------------------------
 -- section_text_cache: last-seen text hash per (section/passage ref, version, language).
--- Deliberately independent of chunks/vectors - no chunking_scheme_id/embedding_model_id, so a
--- row stays valid across chunker/embedding-model changes and only goes stale when the
--- underlying text does. embed_library_to_pgvector.py loads this whole table at startup and
--- diffs it against freshly computed hashes to skip re-running the chunker (and re-billing
--- Gemini) for units whose text hasn't changed since the last run.
+-- Deliberately independent of chunk_metadata/vectors - no chunking_scheme_id/
+-- embedding_model_id, so a row stays valid across chunker/embedding-model changes and only
+-- goes stale when the underlying text does. embed_library_to_pgvector.py loads this whole
+-- table at startup and diffs it against freshly computed hashes to skip re-running the
+-- chunker (and re-billing Gemini) for units whose text hasn't changed since the last run.
 -- ---------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS section_text_cache (
