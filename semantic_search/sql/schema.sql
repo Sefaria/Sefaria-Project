@@ -119,9 +119,10 @@ CREATE TABLE IF NOT EXISTS vectors (
 -- ---------------------------------------------------------------------------
 
 -- Resume/filter lookups: get_indexed_unit_refs, and KnnSearch's index_title/language/
--- version_title filters.
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_chunk_metadata_resume
-    ON chunk_metadata (index_title, language, version_title);
+-- version_title filters. Include chunking_scheme_id because resume checks are scoped to
+-- a specific chunking scheme.
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_chunk_metadata_resume_by_scheme
+    ON chunk_metadata (index_title, language, version_title, chunking_scheme_id);
 
 -- P2: GIN indexes on the two slug arrays, for `<array> @> ARRAY[slug]` containment lookups
 -- (e.g. topic/author slug renames) without a full table scan.
