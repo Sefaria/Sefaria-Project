@@ -612,8 +612,13 @@ def main():
                 f"{len(changed_units)} changed or new since last run")
 
     section_cache_store.upsert([
-        SectionTextCache(section_ref=section_ref, version_title=vtitle, language=lang, section_text_hash=h)
-        for (section_ref, vtitle, lang), h in current_hashes.items()
+        SectionTextCache(
+            section_ref=section_ref,
+            version_title=vtitle,
+            language=lang,
+            section_text_hash=current_hashes[(section_ref, vtitle, lang)],
+        )
+        for section_ref, vtitle, lang in changed_units
     ])
 
     total_versions = sum(VersionSet({"title": idx.title}).count() for idx in all_indexes)
