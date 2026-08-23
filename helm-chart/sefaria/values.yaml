@@ -432,11 +432,9 @@ cronJobs:
     schedule: "0 5 * * 0"
     threads: 10
     # patot (the chunking dependency embed_library_to_pgvector.py requires) isn't in the
-    # standard web image's requirements.txt, so the job installs it at startup instead of
-    # needing a dedicated image - same pattern as cronJobs.reindexElasticSearch's
-    # `pip install numpy && ...`. Pinned to a released tag (github.com/Sefaria/patot); bump
-    # this when patot cuts a new release.
-    patotVersion: "v0.1.5"
+    # standard web image's requirements.txt, so the job installs the latest default-branch
+    # version from GitHub at startup instead of needing a dedicated image - same pattern as
+    # cronJobs.reindexElasticSearch's `pip install numpy && ...`.
     # 2 CPU / 4Gi request matches the prod sizing fix noted in the pgvector embed runbook - the
     # workload is Gemini-API-bound, not CPU-bound, and a 4 CPU/8Gi request left the pod Pending
     # (cluster had no node with that much spare capacity).
