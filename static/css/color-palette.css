@@ -2,21 +2,29 @@
   /* colors */
   --inline-link-blue: #4871bf;
   --sefaria-blue: #18345D;
-  --sheets-green: #518159; 
-  --devportal-purple: #7C416F; /* same as --mussar-purple but serves a different purpose so separate */
+  --sefaria-purple: #7C416F;
+  --sheets-green: #518159;
+  --devportal-purple: var(--sefaria-purple); /* a distinct name for a distinct purpose, sharing the one purple */
   --highlight-blue: #DDEEFF;
   --highlight-blue-light: #F0F7FF;
   --highlight-green-light: #F1FCF5;
+  --near-black: #121212;
   --beit-midrash-grey: #333333;
   --darkest-grey: #333333;
   --darker-grey: #575757;
   --dark-grey: #666666;
   --medium-grey: #6f6f6f;
+  --secondary-text-grey: #707070;
   --medium-grey-legacy: #999999;
   --light-grey: #CCCCCC;
+  --lighter-grey-hover: #DFDFDF;  /* hover state for surfaces painted --lighter-grey */
   --lighter-grey: #EDEDEC;
+  --skeleton-grey-shimmer: #EFEFEF;  /* the moving highlight in a --skeleton-grey shimmer */
+  --skeleton-grey: #e6e6e6;
+  --background-grey: #FAFAFA;
   --lightest-grey: #FBFBFA;
   --black: #000000;
+  --white: #FFFFFF;
   --commentary-blue: #4B71B7;
   --essay-links-green: #3B5849;
   --tanakh-teal: #004E5F;
@@ -29,7 +37,7 @@
   --philosophy-purple: #7F85A9;
   --taanitic-green: #00827F;
   --chasidut-green: #97B386;
-  --mussar-purple: #7C416F;
+  --mussar-purple: var(--sefaria-purple);
   --responsa-red: #CB6158;
   --apocrypha-pink: #C6A7B4;
   --modern-works-blue: #B8D4D3;

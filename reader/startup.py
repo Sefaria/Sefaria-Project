@@ -55,6 +55,9 @@ def init_library_cache():
         library.build_linker('he')
         library.build_linker('en')
 
+    from sefaria.helper.skip_tracking import signal_and_reset_skip_counts
+    signal_and_reset_skip_counts("startup")
+
     if server_coordinator:
         server_coordinator.connect()
     logger.info("Initialization Complete")

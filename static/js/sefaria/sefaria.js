@@ -2780,6 +2780,7 @@ _media: {},
       $.post(`${Sefaria.apiHost}/api/profile`, data, resolve);
     });
   },
+  // TEMPORARY (goes with the experiments framework): no callers.
   experimentsOptInAPI: () => {
     return Sefaria.apiRequestWithBodyAndAlert("/api/profile/experiments/opt-in", null, null, "POST");
   },
@@ -3617,7 +3618,7 @@ _media: {},
     return typeof inputStr === "string" && Sefaria._keyedStringIdRegex.test(inputStr);
   },
   _keyedString: function(id, lang) {
-    // Resolve a keyed string ID from i18n/interface*/*.json; falls back to
+    // Resolve a keyed string ID from i18n/interface/*.json; falls back to
     // English, then to the ID itself.
     const maps = Sefaria._i18nInterfaceStrings;
     if (lang === "he" && id in maps.he) {
@@ -3663,8 +3664,8 @@ _media: {},
   /**
    * Translates interface strings to the current interface language.
    * Takes a keyed string ID (e.g. "header.log_in", resolved via the JSON maps
-   * in i18n/interface and i18n/interface-context). Non-ID strings pass through
-   * unchanged in English and fall back to the terms dictionary in Hebrew.
+   * in i18n/interface). Non-ID strings pass through unchanged in English and
+   * fall back to the terms dictionary in Hebrew.
    * Add new strings to i18n/interface/en.json + he.json.
    * For displaying interface text you should use <InterfaceText> which calls this function automatically.
    */
@@ -3689,6 +3690,23 @@ _media: {},
     */
     const lang = Sefaria._getShortInterfaceLang();
     return langOptions[lang] ? langOptions[lang] : "";
+  },
+  _bilingual: function(id, params) {
+    /* The inverse of _v: takes a keyed interface string ID and returns
+     * {en: "something", he: "משהו"}.
+     * Sefaria._() returns only the string for the *current* interface language, but some
+     * components (InterfaceText's `text` prop, LoadingMessage) render both languages and
+     * let CSS hide one, so they need both.
+     * `params` fills {placeholder} tokens: _bilingual("search.year.ce", {year: 1204}).
+     */
+    const resolve = (lang) => {
+      let str = Sefaria._keyedString(id, lang);
+      for (const [key, value] of Object.entries(params || {})) {
+        str = str.split(`{${key}}`).join(value);
+      }
+      return str;
+    };
+    return {en: resolve("en"), he: resolve("he")};
   },
   _r: function (inputRef) {
     const oref = Sefaria.getRefFromCache(inputRef);
@@ -3947,6 +3965,7 @@ Sefaria.unpackBaseProps = function(props){
       "userHistory",
       "last_place",
       "interfaceLang",
+      "countryCode",
       "multiPanel",
       "community",
       "followRecommendations",
@@ -3963,6 +3982,9 @@ Sefaria.unpackBaseProps = function(props){
       "chatbot_api_base_url",
       "chatbot_version",
       "chatbot_use_local_script",
+      "googleClientId",
+      "appleClientId",
+      "recaptchaSiteKey",
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {
@@ -4001,6 +4023,11 @@ Sefaria.palette.indexColor = function(title) {
 Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(ref).index);
 
 Sefaria = extend(Sefaria, Strings);
+
+Sefaria.ssoUseRedirect = function() {
+  return window.matchMedia('(max-width: 767px)').matches ||
+    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+};
 
 Sefaria.setup = function(data, props = null, resetCache = false) {
     if (resetCache) {

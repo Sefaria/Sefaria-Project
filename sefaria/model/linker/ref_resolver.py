@@ -13,7 +13,7 @@ from sefaria.model.linker.context_mutation import ContextMutationOp, ContextMuta
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, SectionContext, ContextPart, TermContext, RawRefPartPair, RefPartType
 from sefaria.model.linker.ref_part_and_node_match import RefPartAndNodeMatch
 from ne_span import NESpan
-from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode
+from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NamedReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 from sefaria.model.linker.resolved_ref_refiner_factory import resolved_ref_refiner_factory
 import structlog
@@ -542,13 +542,14 @@ class RefResolver:
         title_trie = title_trie or self.get_ref_part_title_trie()
         prev_ref_parts = prev_ref_parts or []
         matches = []
-        for part in ref_parts:
+        part_pairs = self._get_named_part_pairs(ref_parts)
+        for part in ref_parts + part_pairs:
             temp_raw_ref = raw_ref
             temp_title_trie, partial_key_end = title_trie.get_continuations(part.key(), allow_partial=True)
             if temp_title_trie is None: continue
             if partial_key_end is None:
                 matched_part = part
-            elif part.type == RefPartType.NAMED:
+            elif part.type == RefPartType.NAMED and not isinstance(part, RawRefPartPair):
                 try:
                     temp_raw_ref, apart, bpart = raw_ref.split_part(part, partial_key_end)
                     matched_part = apart
@@ -556,7 +557,8 @@ class RefResolver:
                     matched_part = part  # fallback on original part
             else:
                 continue
-            temp_prev_ref_parts = tuple(list(prev_ref_parts) + [matched_part])
+            matched_parts = list(matched_part.part_pair) if isinstance(matched_part, RawRefPartPair) else [matched_part]
+            temp_prev_ref_parts = tuple(list(prev_ref_parts) + matched_parts)
             if LEAF_TRIE_ENTRY in temp_title_trie:
                 for node in temp_title_trie[LEAF_TRIE_ENTRY]:
                     try:
@@ -565,7 +567,8 @@ class RefResolver:
                         continue
                     part_and_node_matches = [RefPartAndNodeMatch(temp_prev_ref_parts, node, True)]
                     matches += [ResolvedRef(temp_raw_ref, part_and_node_matches, ref, _thoroughness=self._thoroughness)]
-            temp_ref_parts = [temp_part for temp_part in ref_parts if temp_part != part]
+            used_parts = set(part.part_pair) if isinstance(part, RawRefPartPair) else {part}
+            temp_ref_parts = [temp_part for temp_part in ref_parts if temp_part not in used_parts]
             matches += self._get_unrefined_ref_part_matches_recursive(temp_raw_ref, temp_title_trie, ref_parts=temp_ref_parts, prev_ref_parts=temp_prev_ref_parts)
 
         return ResolvedRefPruner.prune_unrefined_ref_part_matches(matches)
@@ -712,6 +715,10 @@ class RefResolver:
 
     def _get_refined_ref_part_matches_recursive(self, match: ResolvedRef, ref_parts: List[RawRefPart]) -> List[ResolvedRef]:
         fully_refined = []
+        for temp_match in self._get_refined_matches_for_numbered_parts_in_matched_range(match, ref_parts):
+            temp_ref_parts = list(set(ref_parts) - set(temp_match.resolved_parts))
+            fully_refined += self._get_refined_ref_part_matches_recursive(temp_match, temp_ref_parts)
+
         children = match.get_node_children()
         part_pairs = self._get_named_part_pairs(ref_parts)
         for part in (ref_parts + part_pairs):
@@ -725,6 +732,52 @@ class RefResolver:
             # original match is better than no matches
             return [match]
         return fully_refined
+
+    def _get_refined_matches_for_numbered_parts_in_matched_range(self, match: ResolvedRef, ref_parts: List[RawRefPart]) -> List[ResolvedRef]:
+        """
+        If a named part matched an alt-structure range, allow explicit numbered
+        parts to refine within that range. This lets refs like "Tosafot, Perek
+        Haya Koreh, 13b, DH ..." use both the perek title and daf/amud.
+        """
+        if match.ref is None or not match.ref.is_range():
+            return []
+        input_parts = set(match.raw_entity.parts_to_match)
+        numbered_parts = [
+            part for part in ref_parts
+            if part.type == RefPartType.NUMBERED and part in input_parts and not part.is_context
+        ]
+        if len(numbered_parts) == 0:
+            return []
+        if not any(part.type == RefPartType.DH and part in input_parts and not part.is_context for part in ref_parts):
+            return []
+
+        containing_node = self._get_containing_named_node(match.ref)
+        node_seed = RefPartAndNodeMatch(tuple(), containing_node, True)
+        node_match = match.clone(
+            ref_part_and_node_matches=match.ref_part_and_node_matches + [node_seed],
+            ref=containing_node.ref(),
+        )
+        refined_matches = self._get_refined_ref_part_matches_recursive(node_match, numbered_parts)
+        return [
+            refined_match.clone(ref_part_and_node_matches=[
+                part_match for part_match in refined_match.ref_part_and_node_matches
+                if part_match is not node_seed
+            ])
+            for refined_match in refined_matches
+            if refined_match.ref is not None
+            and not refined_match.ref.is_range()
+            and match.ref.contains(refined_match.ref)
+            and any(part in refined_match.resolved_parts for part in numbered_parts)
+        ]
+
+    @staticmethod
+    def _get_containing_named_node(ref: text.Ref) -> NamedReferenceableBookNode:
+        """
+        Return the named node whose children should be traversed to re-match
+        numbered parts inside `ref`'s range.
+        """
+        containing_titled_node = ref.index if ref.index_node.parent is None else ref.index_node.parent
+        return NamedReferenceableBookNode(containing_titled_node)
 
 
 class ResolvedRefPruner:

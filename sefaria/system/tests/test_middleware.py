@@ -8,7 +8,7 @@ from unittest.mock import patch
 from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, override_settings
 from django.http import HttpResponse
-from sefaria.system.middleware import ModuleMiddleware, SessionCookieDomainMiddleware, SessionIDAuthMiddleware
+from sefaria.system.middleware import ModuleMiddleware, SessionCookieDomainMiddleware, SessionIDAuthMiddleware, LocationSettingsMiddleware
 from sefaria.utils.chatbot import build_chatbot_user_token
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 
@@ -682,3 +682,84 @@ class TestCsrfTrustedOrigins:
             request = self._post_request(host=self.UNRELATED_HOST, origin=origin)
             assert self._check_referer(request) is None, \
                 f"Origin {origin} should be trusted via wildcard but was rejected"
+
+
+# ============================================================================
+# TESTS: LOCATION SETTINGS (cf-ipcountry -> country_code / diaspora)
+# ============================================================================
+
+class TestLocationSettingsMiddleware:
+    """Test that country_code/diaspora are derived from cf-ipcountry, falling back to
+    PINNED_IPCOUNTRY (or 'us') when the header is missing or unrecognized."""
+
+    def test_valid_country_header_sets_country_code(self):
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/', HTTP_CF_IPCOUNTRY='FR')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'fr'
+        assert request.diaspora is True
+
+    def test_il_header_sets_diaspora_false(self):
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/', HTTP_CF_IPCOUNTRY='IL')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'il'
+        assert request.diaspora is False
+
+    @patch('sefaria.settings.PINNED_IPCOUNTRY', 'de', create=True)
+    def test_missing_header_falls_back_to_pinned_ipcountry(self):
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'de'
+
+    @patch('sefaria.settings.PINNED_IPCOUNTRY', 'de', create=True)
+    def test_unknown_xx_header_falls_back_to_pinned_ipcountry(self):
+        """Cloudflare sets cf-ipcountry to XX when it can't geolocate the visitor -- this
+        should be treated the same as a missing header, not passed on as a real country."""
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/', HTTP_CF_IPCOUNTRY='XX')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'de'
+
+    @patch('sefaria.settings.PINNED_IPCOUNTRY', 'de', create=True)
+    def test_lowercase_xx_header_also_falls_back(self):
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/', HTTP_CF_IPCOUNTRY='xx')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'de'
+
+    def test_missing_setting_falls_back_to_env_var(self, monkeypatch):
+        """Kubernetes deploys inject PINNED_IPCOUNTRY as a pod env var, but the chart's
+        generated local_settings may not define the Django setting -- the env var must
+        still take effect."""
+        import sefaria.settings
+        monkeypatch.delattr(sefaria.settings, 'PINNED_IPCOUNTRY', raising=False)
+        monkeypatch.setenv('PINNED_IPCOUNTRY', 'GB')
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'gb'
+
+    def test_missing_setting_and_env_defaults_to_us(self, monkeypatch):
+        import sefaria.settings
+        monkeypatch.delattr(sefaria.settings, 'PINNED_IPCOUNTRY', raising=False)
+        monkeypatch.delenv('PINNED_IPCOUNTRY', raising=False)
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'us'
