@@ -493,10 +493,10 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
                                                  chunk_result, index_context, version_context)
                         # chunk metadata first (surrogate `id` populated in-place via RETURNING on
                         # bulk_create/update_conflicts), then vectors, which need that id for
-                        # their chunk_id FK.
+                        # their chunk_metadata_id FK.
                         chunk_store.upsert([b.chunk for b in built])
                         vector_store.upsert([
-                            Vector(chunk=b.chunk, embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID,
+                            Vector(chunk_metadata=b.chunk, embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID,
                                    text=b.text, embedding=b.embedding)
                             for b in built
                         ])

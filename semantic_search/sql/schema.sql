@@ -100,13 +100,13 @@ CREATE TABLE IF NOT EXISTS chunk_metadata (
 
 CREATE TABLE IF NOT EXISTS vectors (
     id                  bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    chunk_id            bigint NOT NULL REFERENCES chunk_metadata(id) ON DELETE CASCADE,
+    chunk_metadata_id   bigint NOT NULL REFERENCES chunk_metadata(id) ON DELETE CASCADE,
     embedding_model_id  smallint NOT NULL REFERENCES embedding_models(id),
     text                text NOT NULL,
     embedding           vector(1536) NOT NULL,
     created_at          timestamptz NOT NULL DEFAULT now(),
     updated_at          timestamptz NOT NULL DEFAULT now(),
-    UNIQUE (chunk_id, embedding_model_id)
+    UNIQUE (chunk_metadata_id, embedding_model_id)
 );
 
 -- ---------------------------------------------------------------------------
@@ -140,9 +140,9 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_chunk_metadata_assoc_topic_slugs_gin
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_vectors_embedding_hnsw
     ON vectors USING hnsw (embedding vector_cosine_ops) WITH (m = 32, ef_construction = 200);
 
--- Not strictly needed (the UNIQUE(chunk_id, embedding_model_id) constraint's implicit btree
--- already covers chunk_id-prefix lookups), but named here for discoverability alongside the
--- other vectors indexes.
+-- Not strictly needed (the UNIQUE(chunk_metadata_id, embedding_model_id) constraint's
+-- implicit btree already covers chunk_metadata_id-prefix lookups), but named here for
+-- discoverability alongside the other vectors indexes.
 
 -- ---------------------------------------------------------------------------
 -- section_text_cache: last-seen text hash per (section/passage ref, version, language).

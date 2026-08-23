@@ -106,14 +106,14 @@ class Vector(models.Model):
     and re-embeds in one step.
     """
     id                  = models.BigAutoField(primary_key=True)
-    chunk               = models.ForeignKey(ChunkMetadata, db_column='chunk_id', on_delete=models.CASCADE, related_name='vectors')
+    chunk_metadata      = models.ForeignKey(ChunkMetadata, db_column='chunk_metadata_id', on_delete=models.CASCADE, related_name='vectors')
     embedding_model_id  = models.SmallIntegerField(default=DEFAULT_EMBEDDING_MODEL_ID)
     text                = models.TextField()
     embedding           = VectorField(dimensions=1536)
     created_at          = models.DateTimeField(auto_now_add=True)
     updated_at          = models.DateTimeField(auto_now=True)
 
-    _UNIQUE_FIELDS = ['chunk', 'embedding_model_id']
+    _UNIQUE_FIELDS = ['chunk_metadata', 'embedding_model_id']
 
     class Meta:
         managed = False
@@ -133,16 +133,16 @@ class Vector(models.Model):
     def search_by_embedding(self, embedding: list, limit: int = 10, filters: Optional[dict] = None,
                              embedding_model_id: int = DEFAULT_EMBEDDING_MODEL_ID) -> list[ChunkMetadata]:
         safe_filters = {k: v for k, v in (filters or {}).items() if k in ChunkMetadata._ALLOWED_FILTER_FIELDS}
-        chunk_filters = {f"chunk__{k}": v for k, v in safe_filters.items()}
+        chunk_filters = {f"chunk_metadata__{k}": v for k, v in safe_filters.items()}
         results = list(
             Vector.objects
             .filter(embedding_model_id=embedding_model_id, **chunk_filters)
-            .select_related('chunk')
+            .select_related('chunk_metadata')
             .order_by(CosineDistance('embedding', embedding))[:limit]
         )
         chunks = []
         for vector in results:
-            chunk = vector.chunk
+            chunk = vector.chunk_metadata
             chunk.text = vector.text
             chunks.append(chunk)
         return chunks
@@ -151,7 +151,7 @@ class Vector(models.Model):
 _VECTOR_UPSERT_UPDATE_FIELDS = [
     f.attname
     for f in Vector._meta.concrete_fields
-    if not f.primary_key and f.attname not in ('created_at', 'chunk_id', 'embedding_model_id')
+    if not f.primary_key and f.attname not in ('created_at', 'chunk_metadata_id', 'embedding_model_id')
 ]
 
 
