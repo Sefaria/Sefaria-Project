@@ -2,7 +2,8 @@
 Unit tests for the semantic_search app.
 
 All tests run without a live pgvector connection and without a Gemini API key.
-ORM-touching code is mocked at the ChunkMetadata.objects / Vector.objects boundary.
+ORM-touching code is mocked at the SemanticTextChunk.objects / ChunkMetadata.objects /
+Vector.objects boundary.
 """
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -19,7 +20,13 @@ from semantic_search.linked_refs import (
 )
 from semantic_search.router import SemanticSearchRouter
 from semantic_search.search import semantic_search, semantic_search_by_embedding
-from semantic_search.models import ChunkMetadata, Vector, DEFAULT_CHUNKING_SCHEME_ID, DEFAULT_EMBEDDING_MODEL_ID
+from semantic_search.models import (
+    ChunkMetadata,
+    SemanticTextChunk,
+    Vector,
+    DEFAULT_CHUNKING_SCHEME_ID,
+    DEFAULT_EMBEDDING_MODEL_ID,
+)
 
 
 def make_chunk(**overrides):
@@ -122,6 +129,31 @@ class TestSearchByEmbeddingFilters:
         with patch("semantic_search.models.Vector.objects", mock_objects):
             Vector().search_by_embedding([0.0] * 1536)
         assert mock_objects.filter.call_args.kwargs["embedding_model_id"] == DEFAULT_EMBEDDING_MODEL_ID
+
+
+class TestLegacySearchByEmbeddingFilters:
+    def _run(self, filters):
+        mock_objects = MagicMock()
+        mock_objects.filter.return_value.order_by.return_value.__getitem__.return_value = []
+        with patch(
+            "semantic_search.models.SemanticTextChunk.objects",
+            mock_objects,
+        ):
+            SemanticTextChunk().search_by_embedding([0.0] * 1536, filters=filters)
+        return dict(mock_objects.filter.call_args.kwargs)
+
+    def test_known_field_passes_through(self):
+        kwargs = self._run({"language": "en"})
+        assert kwargs == {"language": "en"}
+
+    def test_ref_in_filter_passes_through(self):
+        kwargs = self._run({"ref__in": ["Genesis 1:1", "Genesis 1:2"]})
+        assert kwargs == {"ref__in": ["Genesis 1:1", "Genesis 1:2"]}
+
+    def test_unknown_field_is_dropped(self):
+        kwargs = self._run({"bad__inject": "x"})
+        assert "bad__inject" not in kwargs
+        assert not kwargs
 
 
 # ---------------------------------------------------------------------------
@@ -535,40 +567,51 @@ class TestEmbedQuery:
 
 class TestSemanticSearch:
     @override_settings(GEMINI_API_KEY="test-key")
-    @patch("semantic_search.search.Vector")
+    @patch("semantic_search.search.SemanticTextChunk")
     @patch("semantic_search.search.embed_query")
-    def test_calls_embed_query_then_search_by_embedding(self, mock_embed, mock_vector_cls):
+    def test_calls_embed_query_then_legacy_search_by_default(self, mock_embed, mock_chunk_cls):
         mock_embed.return_value = [0.5] * 1536
-        mock_vector_cls.return_value.search_by_embedding.return_value = []
+        mock_chunk_cls.return_value.search_by_embedding.return_value = []
         semantic_search("what is shabbat")
         mock_embed.assert_called_once()
         assert mock_embed.call_args[0][0] == "what is shabbat"
-        mock_vector_cls.return_value.search_by_embedding.assert_called_once_with(
-            [0.5] * 1536, limit=10, filters=None, embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID
+        mock_chunk_cls.return_value.search_by_embedding.assert_called_once_with(
+            [0.5] * 1536, limit=10, filters=None
         )
 
     @override_settings(GEMINI_API_KEY="test-key")
-    @patch("semantic_search.search.Vector")
+    @patch("semantic_search.search.SemanticTextChunk")
     @patch("semantic_search.search.embed_query")
-    def test_forwards_filters_and_limit(self, mock_embed, mock_vector_cls):
+    def test_forwards_filters_and_limit_to_legacy_by_default(self, mock_embed, mock_chunk_cls):
         mock_embed.return_value = [0.1] * 1536
-        mock_vector_cls.return_value.search_by_embedding.return_value = []
+        mock_chunk_cls.return_value.search_by_embedding.return_value = []
         semantic_search("query", filters={"language": "en"}, limit=5)
-        mock_vector_cls.return_value.search_by_embedding.assert_called_once_with(
-            [0.1] * 1536, limit=5, filters={"language": "en"}, embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID
+        mock_chunk_cls.return_value.search_by_embedding.assert_called_once_with(
+            [0.1] * 1536, limit=5, filters={"language": "en"}
         )
 
     @override_settings(GEMINI_API_KEY="test-key")
-    @patch("semantic_search.search.Vector")
+    @patch("semantic_search.search.SemanticTextChunk")
     @patch("semantic_search.search.embed_query")
-    def test_returns_search_results(self, mock_embed, mock_vector_cls):
+    def test_returns_legacy_search_results_by_default(self, mock_embed, mock_chunk_cls):
         mock_embed.return_value = [0.0] * 1536
         expected = [MagicMock()]
-        mock_vector_cls.return_value.search_by_embedding.return_value = expected
+        mock_chunk_cls.return_value.search_by_embedding.return_value = expected
         assert semantic_search("query") == expected
 
+    @patch("semantic_search.search.SemanticTextChunk")
+    def test_search_by_embedding_uses_legacy_table_by_default(self, mock_chunk_cls):
+        embedding = [0.25] * 1536
+        expected = [MagicMock()]
+        mock_chunk_cls.return_value.search_by_embedding.return_value = expected
+        assert semantic_search_by_embedding(embedding, filters={"ref": "Genesis 1"}, limit=2) == expected
+        mock_chunk_cls.return_value.search_by_embedding.assert_called_once_with(
+            embedding, limit=2, filters={"ref": "Genesis 1"}
+        )
+
+    @override_settings(SEMANTIC_SEARCH_TABLE_VERSION="new")
     @patch("semantic_search.search.Vector")
-    def test_search_by_embedding_uses_existing_embedding(self, mock_vector_cls):
+    def test_search_by_embedding_uses_new_tables_when_enabled(self, mock_vector_cls):
         embedding = [0.25] * 1536
         expected = [MagicMock()]
         mock_vector_cls.return_value.search_by_embedding.return_value = expected
@@ -576,3 +619,8 @@ class TestSemanticSearch:
         mock_vector_cls.return_value.search_by_embedding.assert_called_once_with(
             embedding, limit=2, filters={"ref": "Genesis 1"}, embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID
         )
+
+    @override_settings(SEMANTIC_SEARCH_TABLE_VERSION="bad")
+    def test_search_by_embedding_rejects_invalid_table_version(self):
+        with pytest.raises(ValueError, match="Invalid SEMANTIC_SEARCH_TABLE_VERSION"):
+            semantic_search_by_embedding([0.25] * 1536)

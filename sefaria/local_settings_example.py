@@ -368,3 +368,4 @@ CHATBOT_USE_LOCAL_SCRIPT = True
 
 GEMINI_API_KEY = ""  # API key for Gemini embedding model (used by semantic search)
 SEMANTIC_SEARCH_API_TOKEN = ""  # Bearer token for the /api/knn-search endpoint
+SEMANTIC_SEARCH_TABLE_VERSION = "legacy"  # "legacy" uses library_chunks; "new" uses chunk_metadata + vectors
