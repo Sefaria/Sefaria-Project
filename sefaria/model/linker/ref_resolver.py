@@ -117,9 +117,9 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
         return [span]
 
     @property
-    def pretty_text(self) -> str:
+    def pretty_span(self) -> NESpan:
         """
-        Return text of underlying RawRef with modifications to make it nicer
+        Return span of underlying RawRef with modifications to make it nicer
         Currently
         - adds ending parentheses if just outside span
         - adds extra DH words that were matched but aren't in span
@@ -127,7 +127,15 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
         """
         new_raw_ref_span = self._get_pretty_dh_span(self.raw_entity.span)
         new_raw_ref_span = self._get_pretty_end_paren_span(new_raw_ref_span)
-        return new_raw_ref_span.text
+        return new_raw_ref_span
+
+    @property
+    def pretty_text(self) -> str:
+        """
+        Return text of underlying RawRef with modifications to make it nicer. See `pretty_span`.
+        @return:
+        """
+        return self.pretty_span.text
 
     def _get_pretty_dh_span(self, curr_span: NESpan) -> NESpan:
         curr_start, curr_end = curr_span.range
@@ -878,6 +886,13 @@ class ResolvedRefPruner:
                 if part is None:
                     break  # no more
                 to_match_explicit.remove(part)
+        elif RefPartType.RELATIVE in {part.type for part in to_match_explicit}:
+            # A RELATIVE part (e.g. "לקמן"/"להלן") only signals that context *may* help disambiguate; it doesn't
+            # correspond to a resolvable section itself. When a match doesn't use context at all -- e.g. the book
+            # and all sections were stated explicitly -- the marker is redundant and shouldn't block the match
+            # from counting as complete (see sc-46799: this used to force an explicit "<Book Daf Amud" citation
+            # through context-based resolution, which could compute the wrong daf/amud).
+            to_match_explicit = {part for part in to_match_explicit if part.type != RefPartType.RELATIVE}
         return resolved_explicit == to_match_explicit
 
     @staticmethod
@@ -978,7 +993,12 @@ class ResolvedRefPruner:
     @staticmethod
     def get_context_free_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
         def match_is_context_free(match: ResolvedRef) -> bool:
-            return match.context_ref is None and set(match.get_resolved_parts()) == set(match.raw_entity.parts_to_match)
+            if match.context_ref is not None:
+                return False
+            # See matched_all_explicit_sections: a RELATIVE part is just a signal, not a resolvable section, so
+            # it shouldn't be required for a match to count as "using all input parts".
+            required_parts = {part for part in match.raw_entity.parts_to_match if part.type != RefPartType.RELATIVE}
+            return set(match.get_resolved_parts()) == required_parts
         return list(filter(match_is_context_free, resolved_refs))
 
     @staticmethod
