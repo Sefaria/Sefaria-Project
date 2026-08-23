@@ -5,8 +5,8 @@ Embed Library to pgvector
 
 Chunks and embeds the entire Sefaria library (every Index, every Version, every
 language) using the patot semantic chunker + Gemini embedding pipeline, and upserts
-the resulting rows into two pgvector-backed Postgres tables: `chunks` (metadata) and
-`vectors` (text + embedding, FK'd to `chunks`).
+the resulting rows into two pgvector-backed Postgres tables: `chunk_metadata` (metadata)
+and `vectors` (text + embedding, FK'd to `chunk_metadata`).
 
 Resumable - on restart, (index, language, version_title) combinations whose section
 refs are already present in pgvector are skipped, so a restart does not re-embed
@@ -43,7 +43,7 @@ from sefaria.model import *
 from sefaria.search import setup_logging
 from semantic_search.embedder import GeminiEmbedder
 from semantic_search.models import (
-    Chunk, Vector, SectionTextCache, DEFAULT_CHUNKING_SCHEME_ID, DEFAULT_EMBEDDING_MODEL_ID,
+    ChunkMetadata, Vector, SectionTextCache, DEFAULT_CHUNKING_SCHEME_ID, DEFAULT_EMBEDDING_MODEL_ID,
 )
 
 import tqdm as _tqdm_module
@@ -310,9 +310,9 @@ def chunk_ref_from_segments(source_segment_refs: list):
 
 @dataclass
 class ChunkAndVector:
-    """A built `Chunk` metadata row paired with the text/embedding that will become its
+    """A built `ChunkMetadata` row paired with the text/embedding that will become its
     `Vector` row once the chunk has been upserted and has a real `.id`."""
-    chunk: Chunk
+    chunk: ChunkMetadata
     text: str
     embedding: list
 
@@ -326,8 +326,8 @@ def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedde
     # patot/chunker.py) - every other chunk's source_segment_refs (and therefore ref) is
     # disjoint from every other chunk in this unit. chunk_ordinal numbers pieces within such a
     # group (1-based, in patot's output order, which is already left-to-right); every other
-    # chunk gets ordinal 1. This is what `chunks`' UNIQUE (ref, version_title, language,
-    # chunk_ordinal, chunking_scheme_id) constraint relies on.
+    # chunk gets ordinal 1. This is what `chunk_metadata`'s UNIQUE (ref, version_title,
+    # language, chunk_ordinal, chunking_scheme_id) constraint relies on.
     chunk_refs = [chunk_ref_from_segments(chunk.source_segment_refs) for chunk in result.chunks]
     ordinal_counters: dict[str, int] = {}
     chunk_ordinals = []
@@ -341,7 +341,7 @@ def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedde
         vector = embedder.embed_text(chunk.text, "RETRIEVAL_DOCUMENT")
         chunk_context = get_chunk_context(chunk_ref)
 
-        chunk_row = Chunk(
+        chunk_row = ChunkMetadata(
             index_title=index_title,
             version_title=vtitle,
             language=version_context["language"],
@@ -453,12 +453,13 @@ def compute_current_unit_hashes(indexes, known_section_refs: set) -> dict:
 
 
 def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_for_version,
-                   chunk_store: Chunk, vector_store: Vector, changed_units: set, version_pbar=None):
+                   chunk_store: ChunkMetadata, vector_store: Vector, changed_units: set, version_pbar=None):
     """
     Core per-index loop shared by section-based and passage-based processing.
 
     `get_units_for_version(version)` must return a list of (unit_ref, segment_records) pairs,
-    where unit_ref is a Ref whose .normal() is used as the resume key and stored in chunks.chunked_from_ref.
+    where unit_ref is a Ref whose .normal() is used as the resume key and stored in
+    chunk_metadata.chunked_from_ref.
 
     `changed_units` is the set of (unit_ref_normal, version_title, language) keys whose text
     hash (see compute_current_unit_hashes) differs from - or is absent from - the last run's
@@ -490,7 +491,7 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
                     else:
                         built = build_chunk_data(unit_ref, lang, vtitle, index.title, thread_local.embedder,
                                                  chunk_result, index_context, version_context)
-                        # chunks first (surrogate `id` populated in-place via RETURNING on
+                        # chunk metadata first (surrogate `id` populated in-place via RETURNING on
                         # bulk_create/update_conflicts), then vectors, which need that id for
                         # their chunk_id FK.
                         chunk_store.upsert([b.chunk for b in built])
@@ -510,7 +511,7 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
             version_pbar.set_postfix(index=index.title[:30], lang=lang)
 
 
-def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: Chunk, vector_store: Vector,
+def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: ChunkMetadata, vector_store: Vector,
                   changed_units: set, version_pbar=None):
     if is_passage_based(index):
         passages = get_passages_for_index(index)
@@ -570,7 +571,7 @@ def main():
         raise SystemExit("GEMINI_API_KEY is not set in Django settings.")
 
     result = EmbeddingResult()
-    chunk_store = Chunk()
+    chunk_store = ChunkMetadata()
     vector_store = Vector()
 
     logger.info(SEPARATOR_LINE)
