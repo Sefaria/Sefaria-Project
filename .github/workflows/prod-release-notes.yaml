@@ -1,0 +1,154 @@
+name: "Prod Release Notes"
+
+# Fires when the prod rollout-complete AnalysisTemplate (see
+# helm-chart/sefaria/templates/analysistemplate/rollout-complete.yaml) confirms
+# Argo Rollouts' post-promotion analysis passed for prod — i.e. the new
+# revision's pods are up and its health checks are green, not merely that the
+# promotion PR merged. That job relays a repository_dispatch here.
+#
+# This workflow then runs the sefaria-release-notes skill headlessly (see
+# .claude/skills/sefaria-release-notes/) against the promotion PR and posts
+# both generated files to Slack.
+#
+# Manual setup this depends on: see build/ci/README-prod-release-notes.md
+
+on:
+  repository_dispatch:
+    types: [prod-rollout-succeeded]
+
+jobs:
+  generate-and-post:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve the promotion PR
+        id: resolve_pr
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Heuristic: the most recently merged PR into `prod` is the one whose
+          # rollout just completed, since this workflow only fires right after
+          # that rollout's own post-promotion analysis passes. Good enough in
+          # practice because prod promotions are infrequent and sequential.
+          PR_NUMBER=$(gh pr list --repo Sefaria/Sefaria-Project --base prod --state merged \
+            --limit 1 --json number --jq '.[0].number')
+
+          if [[ -z "$PR_NUMBER" || "$PR_NUMBER" == "null" ]]; then
+            echo "ERROR: could not resolve a merged preprod->prod PR." >&2
+            exit 1
+          fi
+
+          echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "Resolved promotion PR #${PR_NUMBER}"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Generate release notes (headless Claude Code)
+        id: generate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHORTCUT_API_TOKEN: ${{ secrets.SHORTCUT_API_TOKEN }}
+          PR_NUMBER: ${{ steps.resolve_pr.outputs.pr_number }}
+        run: |
+          mkdir -p release-notes-output
+          claude -p "Use the sefaria-release-notes skill (.claude/skills/sefaria-release-notes/SKILL.md) in CI / headless mode (SHORTCUT_API_TOKEN is set — follow the '## CI / headless mode' section instead of the mcp__shortcut__* tool calls). Generate release notes for GitHub PR #${PR_NUMBER} in repo Sefaria/Sefaria-Project. Output directory: release-notes-output/. Do not ask any clarifying questions — proceed with defaults documented in the skill's Edge Cases table." \
+            --dangerously-skip-permissions
+
+          if [[ ! -s release-notes-output/release-notes-tech-slack.txt ]]; then
+            echo "ERROR: release-notes-tech-slack.txt missing or empty." >&2
+            exit 1
+          fi
+          echo "generated=true" >> "$GITHUB_OUTPUT"
+
+      - name: Post tech notes to Slack
+        if: steps.generate.outputs.generated == 'true'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+        run: |
+          python3 - <<'PYEOF'
+import json, os, urllib.request
+
+with open("release-notes-output/release-notes-tech-slack.txt", encoding="utf-8") as f:
+    text = f.read()
+
+# Slack section blocks cap at ~3000 chars per text field; split on blank
+# lines (paragraph/section boundaries) and repack under that limit rather
+# than truncating content.
+LIMIT = 2900
+chunks, current = [], ""
+for para in text.split("\n\n"):
+    candidate = (current + "\n\n" + para) if current else para
+    if len(candidate) > LIMIT and current:
+        chunks.append(current)
+        current = para
+    else:
+        current = candidate
+if current:
+    chunks.append(current)
+
+blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": c}} for c in chunks]
+payload = json.dumps({"blocks": blocks}).encode("utf-8")
+
+req = urllib.request.Request(
+    os.environ["SLACK_WEBHOOK_URL"], data=payload,
+    headers={"Content-Type": "application/json"},
+)
+urllib.request.urlopen(req)
+PYEOF
+
+      - name: Post product notes to Slack
+        if: steps.generate.outputs.generated == 'true' && env.SLACK_PRODUCT_WEBHOOK != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_PRODUCT_WEBHOOK }}
+          SLACK_PRODUCT_WEBHOOK: ${{ secrets.SLACK_PRODUCT_WEBHOOK }}
+        run: |
+          python3 - <<'PYEOF'
+import json, os, urllib.request
+
+with open("release-notes-output/release-notes-product-slack.txt", encoding="utf-8") as f:
+    text = f.read()
+
+LIMIT = 2900
+chunks, current = [], ""
+for para in text.split("\n\n"):
+    candidate = (current + "\n\n" + para) if current else para
+    if len(candidate) > LIMIT and current:
+        chunks.append(current)
+        current = para
+    else:
+        current = candidate
+if current:
+    chunks.append(current)
+
+blocks = [{"type": "section", "text": {"type": "mrkdwn", "text": c}} for c in chunks]
+payload = json.dumps({"blocks": blocks}).encode("utf-8")
+
+req = urllib.request.Request(
+    os.environ["SLACK_WEBHOOK_URL"], data=payload,
+    headers={"Content-Type": "application/json"},
+)
+urllib.request.urlopen(req)
+PYEOF
+
+      - name: Notify Slack on failure
+        if: failure()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+          PR_NUMBER: ${{ steps.resolve_pr.outputs.pr_number }}
+        run: |
+          curl -s -X POST -H 'Content-type: application/json' \
+            --data "{\"text\": \":warning: Prod rollout succeeded, but release-notes generation failed (PR #${PR_NUMBER:-unknown}). Check the Prod Release Notes workflow run.\"}" \
+            "$SLACK_WEBHOOK_URL" || true

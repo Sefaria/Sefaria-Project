@@ -49,4 +49,42 @@ spec:
                             name: {{ .Values.secrets.localSettings.ref }}
                             key: SLACK_URL
                             optional: true
+                  {{- if eq .Values.deployEnv "prod" }}
+                  # Prod-only: relay the confirmed-healthy rollout to Sefaria-Project so a
+                  # GitHub Actions workflow can generate and post full release notes. Fires
+                  # only after Argo's own post-promotion analysis reaches this point, so it
+                  # carries the same health guarantee as the Slack ping above. A missing or
+                  # failing token/call must never fail the rollout itself.
+                  - name: notify-github
+                    image: curlimages/curl
+                    command: [ "sh" ]
+                    args:
+                      - -c
+                      - >
+                        curl
+                        -X
+                        POST
+                        -H
+                        "Authorization: token $GH_DISPATCH_TOKEN"
+                        -H
+                        "Accept: application/vnd.github+json"
+                        https://api.github.com/repos/Sefaria/Sefaria-Project/dispatches
+                        -d
+                        '{"event_type":"prod-rollout-succeeded","client_payload":{"revision":"'$REVISION'","version":"'$VERSION'","chartVersion":"'$CHART_VERSION'"}}'
+                        ||
+                        /bin/true
+                    env:
+                      - name: REVISION
+                        value: "{{`{{args.revision}}`}}" # {{`...`}}
+                      - name: VERSION
+                        value: "{{`{{args.version}}`}}" # {{`...`}}
+                      - name: CHART_VERSION
+                        value: "{{`{{args.chartVersion}}`}}"
+                      - name: GH_DISPATCH_TOKEN
+                        valueFrom:
+                          secretKeyRef:
+                            name: {{ .Values.secrets.localSettings.ref }}
+                            key: GH_DISPATCH_TOKEN
+                            optional: true
+                  {{- end }}
                 restartPolicy: Never
