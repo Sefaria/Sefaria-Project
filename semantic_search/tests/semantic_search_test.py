@@ -88,22 +88,22 @@ class TestSearchByEmbeddingFilters:
 
     def test_known_field_passes_through(self):
         kwargs = self._run({"language": "en"})
-        assert kwargs == {"chunk__language": "en"}
+        assert kwargs == {"chunk_metadata__language": "en"}
 
     def test_ref_in_filter_passes_through(self):
         kwargs = self._run({"ref__in": ["Genesis 1:1", "Genesis 1:2"]})
-        assert kwargs == {"chunk__ref__in": ["Genesis 1:1", "Genesis 1:2"]}
+        assert kwargs == {"chunk_metadata__ref__in": ["Genesis 1:1", "Genesis 1:2"]}
 
     def test_unknown_field_is_dropped(self):
         kwargs = self._run({"bad__inject": "x"})
-        assert "chunk__bad__inject" not in kwargs
+        assert "chunk_metadata__bad__inject" not in kwargs
         assert not kwargs
 
     def test_mixed_keeps_known_drops_unknown(self):
         kwargs = self._run({"language": "en", "evil": "x", "index_title": "Genesis"})
-        assert "chunk__language" in kwargs
-        assert "chunk__index_title" in kwargs
-        assert "chunk__evil" not in kwargs
+        assert "chunk_metadata__language" in kwargs
+        assert "chunk_metadata__index_title" in kwargs
+        assert "chunk_metadata__evil" not in kwargs
 
     def test_none_filters_calls_filter_with_no_kwargs(self):
         assert self._run(None) == {}
@@ -170,7 +170,7 @@ class TestVectorUpsert:
             Vector().upsert([vector])
             _, kwargs = mock_cls.objects.bulk_create.call_args
             assert kwargs["update_conflicts"] is True
-            assert kwargs["unique_fields"] == ["chunk", "embedding_model_id"]
+            assert kwargs["unique_fields"] == ["chunk_metadata", "embedding_model_id"]
 
     def test_update_fields_excludes_unique_fields_and_created_at(self):
         vector = MagicMock()
@@ -178,7 +178,7 @@ class TestVectorUpsert:
             Vector().upsert([vector])
             _, kwargs = mock_cls.objects.bulk_create.call_args
             update_fields = kwargs["update_fields"]
-            assert "chunk_id" not in update_fields
+            assert "chunk_metadata_id" not in update_fields
             assert "embedding_model_id" not in update_fields
             assert "created_at" not in update_fields
             assert "text" in update_fields
