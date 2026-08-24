@@ -346,6 +346,18 @@ CACHES = {
 }
 
 
+# Elasticsearch index names, defaulted here (before local_settings is imported) so that a
+# deployment whose local_settings.py predates one of these constants still boots. Without a
+# default, an omitted name is simply undefined, and `global_settings`
+# (sefaria/system/context_processors.py) raises NameError on *every* page render — a far
+# worse failure than an unused index name. local_settings.py overrides these below when it
+# defines them.
+SEARCH_INDEX_NAME_TEXT = 'text'
+SEARCH_INDEX_NAME_SHEET = 'sheet'
+SEARCH_INDEX_NAME_TOPIC = 'topic'
+SEARCH_INDEX_NAME_BOOK = 'book'
+SEARCH_INDEX_NAME_CATEGORY = 'category'
+
 # Grab environment specific settings from a file which
 # is left out of the repo.
 if os.getenv("CI_RUN"):
