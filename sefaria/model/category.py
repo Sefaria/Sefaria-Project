@@ -246,7 +246,13 @@ class TocTree(object):
         # Place Indexes. Wrap each index so one malformed record (empty categories,
         # bad base_text_titles, broken schema, etc.) logs and is skipped rather than
         # aborting the whole TOC build and preventing server startup.
-        indx_set = self._library.all_index_records() if self._library else text.IndexSet()
+        # The library branch is already covered: all_index_records() returns a plain list built
+        # from _index_map, which _build_index_maps guards as it materializes. The IndexSet()
+        # fallback materializes here, so it needs its own construction guard.
+        indx_set = (self._library.all_index_records() if self._library
+                    else text.IndexSet().with_skip_guard(
+                        skip_bad_record, "reset_toc,startup", "TocTree index record",
+                        level="error"))
         for i in indx_set:
             with skip_bad_record("reset_toc,startup", "TocTree index", record=getattr(i, "title", "<unknown>"), level="error"):
                 if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record

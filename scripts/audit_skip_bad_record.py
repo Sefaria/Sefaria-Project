@@ -180,6 +180,19 @@ def _toc_tree():
     return TocTree(lib=library)
 
 
+def _toc_tree_no_library():
+    """TocTree built WITHOUT a library, which takes a different index source.
+
+    With `lib` set, TocTree reads library.all_index_records() -- a plain list, already
+    materialized and guarded by _build_index_maps. With `lib` None it falls back to
+    text.IndexSet(), which materializes right there and so needs its own construction
+    guard. Only this trigger reaches that branch; every other TocTree case passes
+    lib=library and would report a guard that is never exercised as passing.
+    """
+    from sefaria.model.category import TocTree
+    return TocTree()
+
+
 def _toc_tree_serialize():
     _toc_tree().get_serialized_toc()
 
@@ -373,6 +386,14 @@ CASES = [
          "index", _index_doc("ZZAuditBadBTT", dependence="Commentary", base_text_titles=7),
          _toc_tree, CAUGHT, "TypeError"),
 
+    # -- category.py:249  TocTree index record (the no-library IndexSet fallback) ---
+    case("S21", "TocTree index record", "index whose `categories` is empty",
+         "index", _index_doc("ZZAuditNoLibCats", categories=[]),
+         _toc_tree_no_library, CAUGHT, "InputError",
+         note="the same corruption as S3, but reached through TocTree's text.IndexSet() "
+              "fallback rather than through library.all_index_records(). Aborts the TOC "
+              "build without the construction guard on that set"),
+
     # -- category.py:272  TocTree collection ---------------------------------------
     case("S4", "TocTree collection", "collection with `toc` set but no `name`",
          "groups", {"toc": {"categories": ["Tanakh"], "title": "ZZAudit"}, "listed": True,
@@ -391,10 +412,12 @@ CASES = [
          _toc_tree, CAUGHT, "KeyError"),
     case("S5", "TocTree._add_category", "category with an empty `path`",
          "category", {"path": [], "lastPath": "", "depth": 0},
-         _toc_tree, WRONG_SITE,
-         note="the empty path attaches to root without raising here, but the malformed "
-              "category then breaks an index lookup in the TocTree index loop, which now "
-              "catches it -- a skip is recorded, at a different site than this one"),
+         _toc_tree, NO_EFFECT,
+         note="empty path attaches to root without raising. This case read as WRONG_SITE for "
+              "a while, which was an ORDERING ARTEFACT: a preceding case had left a poisoned "
+              "library index map, and the resulting lookup failure was recorded against "
+              "'TocTree index'. In isolation, and with the per-case baseline restore below, "
+              "it is benign -- widening BAD_RECORD_EXCEPTIONS did not make it register"),
 
     # -- category.py:464  TocTree.serialize node -----------------------------------
     case("S6", "TocTree.serialize node", "category whose `sharedTitle` names a nonexistent term",
@@ -721,10 +744,13 @@ def run_case(c, index, total):
         # the measured region: at a real startup _build_index_maps() runs before the TOC
         # build anyway, so an index that breaks the rebuild is a genuine result for the
         # case, not a harness error.
-        needs_refresh = (any(coll == "index" for coll, _ in c["docs"])
-                         and c["trigger"] not in POISONS_LIBRARY)
+        # Restore before EVERY case, not just the ones seeding an index. Restoring only for
+        # index cases left every other case reading whatever in-memory map its predecessor
+        # happened to leave behind, and that produced a real false finding: the empty-category
+        # -path case reported WRONG_SITE for a while purely because an earlier case had
+        # poisoned library._index_map. A case's result must depend on its own corruption only.
         try:
-            if needs_refresh:
+            if c["trigger"] not in POISONS_LIBRARY:
                 restore_library_baseline()
             c["trigger"]()
         except BaseException as e:                      # noqa: BLE001 -- classifying, not handling
