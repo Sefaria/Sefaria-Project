@@ -355,6 +355,8 @@ if "pytest" in sys.modules:
 WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
 WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
 
+FORMSTACK_HANDSHAKE_KEY = os.getenv("FORMSTACK_HANDSHAKE_KEY")
+
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer' # this is the default anyway right now, but make sure
 

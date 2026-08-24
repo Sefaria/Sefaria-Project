@@ -262,6 +262,23 @@ import json as _json
 from powered_by.views import translate_formstack_payload
 
 
+TEST_HANDSHAKE_KEY = "test-handshake-key"
+
+
+@pytest.fixture(autouse=True)
+def formstack_handshake_key(settings):
+    """POST now requires a matching HandshakeKey; configure one for every test."""
+    settings.FORMSTACK_HANDSHAKE_KEY = TEST_HANDSHAKE_KEY
+
+
+def post_powered_by(client, body, handshake_key=TEST_HANDSHAKE_KEY):
+    """POST to /api/powered-by, injecting a valid HandshakeKey by default."""
+    payload = dict(body)
+    if handshake_key is not None:
+        payload["HandshakeKey"] = handshake_key
+    return client.post("/api/powered-by", data=_json.dumps(payload), content_type="application/json")
+
+
 # --- Formstack payload translation -------------------------------------------
 
 def test_translate_formstack_maps_simple_text_fields():
@@ -365,7 +382,7 @@ def test_post_creates_project_from_formstack_payload(client):
         "Field179244929": "https://formstackproject.example.com",
         "Field179245509": "Yes",
     }
-    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    response = post_powered_by(client, body)
     assert response.status_code == 201
     project = Project.objects.get(project_link="https://formstackproject.example.com")
     assert project.project_name == "Formstack Project"
@@ -378,7 +395,7 @@ def test_post_creates_project_from_formstack_payload(client):
 @pytest.mark.django_db
 def test_post_creates_project_and_returns_201(client):
     body = {"project_name": "New Project", "project_link": "https://newproject.example.com"}
-    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    response = post_powered_by(client, body)
     assert response.status_code == 201
     project = response.json()["project"]
     assert project["project_name"] == "New Project"
@@ -390,7 +407,7 @@ def test_post_creates_project_and_returns_201(client):
 @pytest.mark.django_db
 def test_post_missing_project_name_returns_400(client):
     body = {"project_link": "https://newproject.example.com"}
-    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    response = post_powered_by(client, body)
     assert response.status_code == 400
     assert response.json()["error"] == "project_name is required"
     assert not Project.objects.filter(project_link="https://newproject.example.com").exists()
@@ -403,10 +420,37 @@ def test_post_invalid_json_returns_400(client):
     assert "JSON" in response.json()["error"]
 
 
+# --- view: HandshakeKey requirement --------------------------------------------
+
+@pytest.mark.django_db
+def test_post_missing_handshake_key_returns_401(client):
+    body = {"project_name": "New Project", "project_link": "https://unauthorized.example.com"}
+    response = post_powered_by(client, body, handshake_key=None)
+    assert response.status_code == 401
+    assert not Project.objects.filter(project_link="https://unauthorized.example.com").exists()
+
+
+@pytest.mark.django_db
+def test_post_wrong_handshake_key_returns_401(client):
+    body = {"project_name": "New Project", "project_link": "https://unauthorized.example.com"}
+    response = post_powered_by(client, body, handshake_key="not-the-real-key")
+    assert response.status_code == 401
+    assert not Project.objects.filter(project_link="https://unauthorized.example.com").exists()
+
+
+@pytest.mark.django_db
+def test_post_returns_401_when_server_has_no_handshake_key_configured(client, settings):
+    settings.FORMSTACK_HANDSHAKE_KEY = None
+    body = {"project_name": "New Project", "project_link": "https://unauthorized.example.com"}
+    response = post_powered_by(client, body)
+    assert response.status_code == 401
+    assert not Project.objects.filter(project_link="https://unauthorized.example.com").exists()
+
+
 @pytest.mark.django_db
 def test_post_invalid_submission_source_returns_400(client):
     body = {"project_name": "New Project", "project_link": "https://newproject.example.com", "submission_source": "carrier_pigeon"}
-    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    response = post_powered_by(client, body)
     assert response.status_code == 400
     assert not Project.objects.filter(project_link="https://newproject.example.com").exists()
 
@@ -414,7 +458,7 @@ def test_post_invalid_submission_source_returns_400(client):
 @pytest.mark.django_db
 def test_post_response_strips_private_fields_for_anonymous(client):
     body = {"project_name": "New Project", "project_link": "https://newproject.example.com", "creator_email": "a@example.com"}
-    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    response = post_powered_by(client, body)
     assert response.status_code == 201
     assert "creator_email" not in response.json()["project"]
     assert Project.objects.get(project_link="https://newproject.example.com").creator_email == "a@example.com"
@@ -425,7 +469,7 @@ def test_post_response_includes_private_fields_for_staff(client):
     staff = User.objects.create_user(username="staff2", password="pw", is_staff=True)
     client.force_login(staff)
     body = {"project_name": "New Project", "project_link": "https://newproject.example.com", "creator_email": "a@example.com"}
-    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    response = post_powered_by(client, body)
     assert response.status_code == 201
     assert response.json()["project"]["creator_email"] == "a@example.com"
 
@@ -436,7 +480,7 @@ def test_post_ignores_staff_only_fields_on_create(client):
         "project_name": "New Project", "project_link": "https://newproject.example.com",
         "is_published": True, "featured": True, "tags": ["AI"], "is_buggy": True,
     }
-    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    response = post_powered_by(client, body)
     assert response.status_code == 201
     project = Project.objects.get(project_link="https://newproject.example.com")
     assert project.is_published is False
@@ -445,121 +489,72 @@ def test_post_ignores_staff_only_fields_on_create(client):
     assert project.is_buggy is False
 
 
-# --- view: POST idempotency / update path ------------------------------------
+# --- view: POST create-only (no upsert) ---------------------------------------
 
 @pytest.mark.django_db
-def test_post_same_project_link_updates_not_duplicates(client):
+def test_post_same_project_link_creates_a_new_project(client):
+    # There is no update/upsert path: project_link is a public field (visible
+    # via GET), so keying a write off it would let anyone overwrite an
+    # existing project's data by POSTing its project_link back with
+    # different content. Every POST inserts a new row; staff are expected to
+    # reconcile any resulting project_link duplicates on the admin side.
     body = {"project_name": "Original Name", "project_link": "https://sameproject.example.com"}
-    first = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    first = post_powered_by(client, body)
     assert first.status_code == 201
 
-    body["project_name"] = "Updated Name"
-    second = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
-    assert second.status_code == 200
+    body["project_name"] = "Second Submission"
+    second = post_powered_by(client, body)
+    assert second.status_code == 201
+    assert first.json()["project"]["project_name"] != second.json()["project"]["project_name"]
 
     matching = Project.objects.filter(project_link="https://sameproject.example.com")
-    assert matching.count() == 1
-    assert matching.get().project_name == "Updated Name"
+    assert matching.count() == 2
+    assert set(matching.values_list("project_name", flat=True)) == {"Original Name", "Second Submission"}
 
 
 @pytest.mark.django_db
-def test_post_partial_update_does_not_clobber_omitted_fields(client):
-    create_body = {
-        "project_name": "Original Name",
-        "project_link": "https://partialupdate.example.com",
-        "project_desc": "Original description.",
-    }
-    client.post("/api/powered-by", data=_json.dumps(create_body), content_type="application/json")
-
-    update_body = {"project_name": "New Name", "project_link": "https://partialupdate.example.com"}
-    response = client.post("/api/powered-by", data=_json.dumps(update_body), content_type="application/json")
-    assert response.status_code == 200
-
-    project = Project.objects.get(project_link="https://partialupdate.example.com")
-    assert project.project_name == "New Name"
-    assert project.project_desc == "Original description."
-
-
-@pytest.mark.django_db
-def test_post_update_preserves_staff_only_fields(client):
-    project = make_project(
-        project_link="https://staffcurated.example.com",
-        is_published=True, featured=True, tags=["AI"], is_buggy=True,
-    )
-
-    update_body = {
-        "project_name": "Resubmitted Name",
-        "project_link": "https://staffcurated.example.com",
-        "is_published": False, "featured": False, "tags": [], "is_buggy": False,
-    }
-    response = client.post("/api/powered-by", data=_json.dumps(update_body), content_type="application/json")
-    assert response.status_code == 200
-
-    project.refresh_from_db()
-    assert project.project_name == "Resubmitted Name"
-    # is_published is force-unpublished on every update (see
-    # test_post_update_unpublishes_previously_published_project); other
-    # staff-only fields are untouched since they're not writable via POST.
-    assert project.is_published is False
-    assert project.featured is True
-    assert project.tags == ["AI"]
-    assert project.is_buggy is True
-
-
-@pytest.mark.django_db
-def test_post_update_does_not_reset_submission_source_or_date(client):
-    # Create project via direct DB insert with specific submission_source and submission_date.
-    from datetime import datetime, timezone as dt_timezone
-    past_date = datetime(2025, 1, 1, 12, 0, 0, tzinfo=dt_timezone.utc)
-    project = make_project(
-        project_link="https://submissiontracking.example.com",
-        submission_source="manual",
-        submission_date=past_date,
-    )
-
-    # POST an update that omits submission_source and submission_date entirely.
-    update_body = {
-        "project_name": "Updated Project",
-        "project_link": "https://submissiontracking.example.com",
-    }
-    response = client.post("/api/powered-by", data=_json.dumps(update_body), content_type="application/json")
-    assert response.status_code == 200
-
-    # Verify submission_source and submission_date were NOT reset to defaults.
-    project.refresh_from_db()
-    assert project.submission_source == "manual"  # NOT reset to "formstack"
-    assert project.submission_date == past_date  # NOT bumped to "now"
-
-
-@pytest.mark.django_db
-def test_post_update_unpublishes_previously_published_project(client):
-    # A published project's project_link is public (returned by GET), so an
-    # anonymous caller can learn it and then POST an "update" to it. Any such
-    # update must force is_published back to False so staff review the change
-    # before it goes live again.
+def test_post_cannot_alter_an_existing_published_project(client):
+    # Even a POST that reuses a live project's project_link and claims
+    # is_published must not touch the existing row -- it just creates a
+    # separate, unpublished project of its own.
     project = make_project(
         project_link="https://livesite.example.com",
+        project_name="Original Name",
         is_published=True,
     )
 
-    update_body = {
+    body = {
         "project_name": "Defaced Name",
         "project_link": "https://livesite.example.com",
-        # Even an explicit attempt to keep it published must be ignored.
         "is_published": True,
     }
-    response = client.post("/api/powered-by", data=_json.dumps(update_body), content_type="application/json")
-    assert response.status_code == 200
+    response = post_powered_by(client, body)
+    assert response.status_code == 201
 
     project.refresh_from_db()
-    assert project.project_name == "Defaced Name"
-    assert project.is_published is False
+    assert project.project_name == "Original Name"
+    assert project.is_published is True
+
+    new_project = Project.objects.get(id=response.json()["project"]["id"])
+    assert new_project.project_name == "Defaced Name"
+    assert new_project.is_published is False
+
+
+@pytest.mark.django_db
+def test_post_always_defaults_submission_source_and_date(client):
+    body = {"project_name": "New Project", "project_link": "https://freshdefaults.example.com"}
+    response = post_powered_by(client, body)
+    assert response.status_code == 201
+
+    project = Project.objects.get(project_link="https://freshdefaults.example.com")
+    assert project.submission_source == "formstack"
+    assert project.submission_date is not None
 
 
 @pytest.mark.django_db
 def test_post_create_still_defaults_unpublished(client):
     body = {"project_name": "Brand New Project", "project_link": "https://brandnew.example.com"}
-    response = client.post("/api/powered-by", data=_json.dumps(body), content_type="application/json")
+    response = post_powered_by(client, body)
     assert response.status_code == 201
     project = Project.objects.get(project_link="https://brandnew.example.com")
     assert project.is_published is False

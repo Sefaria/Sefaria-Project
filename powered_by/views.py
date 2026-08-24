@@ -1,5 +1,7 @@
+import hmac
 import json
 
+from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.validators import URLValidator, validate_email
 from django.utils import timezone
@@ -83,8 +85,8 @@ FORMSTACK_TOOLS_USED_FIELDS = (
 
 
 def _formstack_field(body, field_id):
-    """Formstack fields may arrive as "Field<id>" or bare "<id>" keys."""
-    return body.get(f"Field{field_id}", body.get(field_id))
+    """Formstack fields may arrive with an upper/lowercase prefix or as bare IDs."""
+    return body.get(f"Field{field_id}", body.get(f"field{field_id}", body.get(field_id)))
 
 
 def _formstack_checkbox_values(value):
@@ -173,9 +175,8 @@ def clean_and_default_post_body(body):
     Returns (cleaned, error). On success `cleaned` is a dict of field name ->
     validated value, containing only allowlisted fields actually present in
     `body` (no additional defaults — defaulting of submission_source/submission_date
-    is the caller's responsibility to apply only on create). On failure
-    `cleaned` is None and `error` is a human-readable message naming the
-    offending field.
+    is the caller's responsibility). On failure `cleaned` is None and `error`
+    is a human-readable message naming the offending field.
     """
     if not isinstance(body, dict):
         return None, "Request body must be a JSON object"
@@ -216,7 +217,7 @@ def clean_and_default_post_body(body):
                 return None, "submission_date must be a valid ISO 8601 datetime"
             value = parsed
 
-        if field == "creator_email" and value:
+        if field == "creator_email":
             try:
                 validate_email(value)
             except DjangoValidationError:
@@ -241,8 +242,16 @@ def powered_by_api(request):
     stripped. Staff see all projects with all fields. No pagination.
         {"projects": [ { ...project fields... }, ... ]}
 
-    POST: create a Powered by Sefaria project from a JSON body (see
-    clean_and_default_post_body for field rules and defaults).
+    POST: create a new Powered by Sefaria project from a JSON body (see
+    clean_and_default_post_body for field rules and defaults). Requires a
+    valid Formstack "HandshakeKey" field in the body matching
+    settings.FORMSTACK_HANDSHAKE_KEY (see _valid_handshake_key) -- unrelated
+    to the project_link exposure concern, this rejects any POST that didn't
+    come from the configured Formstack webhook. Always inserts a new row,
+    even if project_link matches an existing project -- there is no
+    update/upsert path, so a caller cannot alter another project's data by
+    re-submitting its project_link. Any resulting duplicates are expected to
+    be resolved by staff on the admin side.
         {"project": { ...project fields... }}
     """
     if request.method == "POST":
@@ -254,11 +263,26 @@ def powered_by_api(request):
     return jsonResponse({"projects": projects})
 
 
+def _valid_handshake_key(body):
+    """
+    Formstack includes the webhook's configured "Handshake Key" as a
+    top-level "HandshakeKey" field in the POST body (alongside "FormID"),
+    not as a header. FORMSTACK_HANDSHAKE_KEY lives only in the untracked
+    sefaria/local_settings.py / env, never in source control.
+    """
+    expected = getattr(settings, "FORMSTACK_HANDSHAKE_KEY", None)
+    provided = body.get("HandshakeKey") if isinstance(body, dict) else None
+    return bool(expected) and isinstance(provided, str) and hmac.compare_digest(provided, expected)
+
+
 def _powered_by_post(request):
     try:
         body = json.loads(request.body)
     except (json.JSONDecodeError, UnicodeDecodeError):
         return jsonResponse({"error": "Request body must be valid JSON"}, status=400)
+
+    if not _valid_handshake_key(body):
+        return jsonResponse({"error": "Unauthorized"}, status=401)
 
     # "FormID" is part of Formstack's webhook envelope and never appears in
     # the clean-field POST contract, so its presence identifies a raw
@@ -270,29 +294,15 @@ def _powered_by_post(request):
     if error:
         return jsonResponse({"error": error}, status=400)
 
-    project_link = cleaned.pop("project_link")
-    # Apply defaults only when creating a new project (not on partial updates).
-    if not Project.objects.filter(project_link=project_link).exists():
-        cleaned.setdefault("submission_source", SubmissionSource.FORMSTACK)
-        cleaned.setdefault("submission_date", timezone.now())
-    # TEMP LOCAL TESTING ONLY (elza, 2026-08-20): is_published force-False on
-    # update disabled to make local POST testing visible without a staff
-    # login. This reopens the anonymous-defacement gap fixed in 7e6b078 --
-    # DO NOT COMMIT. Revert before pushing.
-    #
-    # else:
-    #     # Any edit to an existing project un-publishes it, regardless of prior
-    #     # state or anything in the request body, so a staff member must review
-    #     # and re-publish. project_link is a public field (visible via GET), so
-    #     # without this an anonymous caller could deface a live project by
-    #     # POSTing an "update" and have it stay published immediately.
-    #     cleaned["is_published"] = False
-    cleaned.setdefault("is_published", True)
+    cleaned.setdefault("submission_source", SubmissionSource.FORMSTACK)
+    cleaned.setdefault("submission_date", timezone.now())
 
-    project, created = Project.objects.update_or_create(
-        project_link=project_link,
-        defaults=cleaned,
-    )
+    # No upsert: project_link is a public field (visible via GET), so keying
+    # a write off it would let anyone overwrite an existing project's data by
+    # POSTing its project_link back with different content. Every POST
+    # inserts a new row instead; is_published defaults to False (model
+    # default) pending staff review, and staff are expected to reconcile any
+    # resulting project_link duplicates on the admin side.
+    project = Project.objects.create(**cleaned)
     authenticated = request.user.is_staff
-    status = 201 if created else 200
-    return jsonResponse({"project": project.contents(authenticated=authenticated)}, status=status)
+    return jsonResponse({"project": project.contents(authenticated=authenticated)}, status=201)
