@@ -2395,9 +2395,11 @@ def index_all(skip=0, debug=False):
         logger.error(f"Sheet indexing phase failed after {sheet_elapsed} - error: {str(e)}", exc_info=True)
         raise
     
-    # Index entities (topics/authors and books). Unlike text/sheet, a failure here
-    # is recorded but does NOT abort the run — the entity indices are independent of
-    # each other and of the text/sheet indices.
+    # Index entities (topics, books, categories). Each entity type is attempted
+    # independently of the others - a failure on one does not block the rest - but
+    # index_entities raises once all types have been attempted if any failed, so this
+    # call can raise too. By this point the durable text/sheet cutover above has already
+    # completed, so a failure here costs a re-run of entity indexing, not the full reindex.
     topic_elapsed = index_entities(skip=skip, debug=debug)
 
     # Clear index queue
@@ -2484,6 +2486,9 @@ def reindex_init(type, debug=False):
     return names
 
 
+ENTITY_TYPES = ('topic', 'book', 'category')
+
+
 def reindex_index_shard(type, shard_index=None, shard_count=None, debug=False):
     """
     Phase 2: Index one shard (or the whole corpus if shard_index/shard_count are None)
@@ -2495,6 +2500,20 @@ def reindex_index_shard(type, shard_index=None, shard_count=None, debug=False):
         TextIndexer.index_all(names['new'], debug=debug, shard_index=shard_index, shard_count=shard_count)
     elif type == 'sheet':
         index_public_sheets(names['new'])
+    elif type in ENTITY_TYPES:
+        # Entity corpora are small (topics in the thousands, books ~3k, categories in the
+        # hundreds) against text's millions of segments - sharding buys nothing here and only
+        # adds ES write pressure. They are indexed single-shot, never fanned out: under a
+        # sharded invocation only shard 0 does the work, so N pods don't each rebuild the
+        # whole corpus.
+        if shard_index not in (None, 0):
+            logger.info(f"reindex_index_shard skipping {type} on shard {shard_index} - "
+                        f"entity types are indexed single-shot on shard 0")
+            return
+        # Built here (not at module scope) so it resolves index_topics/index_books/index_categories
+        # by current name each call, same as the text/sheet branches above.
+        entity_indexers = {'topic': index_topics, 'book': index_books, 'category': index_categories}
+        entity_indexers[type](names['new'])
     else:
         raise ValueError(f"Unknown index type: {type}")
     logger.info(f"reindex_index_shard complete - type: {type}, shard: {shard_index}/{shard_count}")
@@ -2564,13 +2583,19 @@ def index_entities(skip=0, debug=False, types=('topic', 'book', 'category')):
     (Re)build the entity indices that power /api/entity-search.
 
     Each index type is rebuilt independently: a failure on one is logged and
-    recorded but does not prevent the others from completing. Callable on its own
-    for an on-demand entity reindex, or from `index_all` as part of the full run.
+    recorded but does not prevent the others from completing. Once every type has
+    been attempted, any failures are raised together in a single summary so a
+    stale entity index is never silently reported as a successful reindex.
+    Callable on its own for an on-demand entity reindex, or from `index_all` as
+    part of the full run.
 
     :param types: which entity index types to rebuild (subset of 'topic', 'book', 'category')
     :return: timedelta elapsed across all entity indexing
+    :raises RuntimeError: if any entity type failed, naming which one(s), after all
+        types have been attempted
     """
     entity_start = datetime.now()
+    failures = []
     for entity_type in types:
         type_start = datetime.now()
         logger.info(f"Starting {entity_type} indexing phase")
@@ -2579,7 +2604,9 @@ def index_entities(skip=0, debug=False, types=('topic', 'book', 'category')):
             logger.info(f"Completed {entity_type} indexing phase - elapsed: {datetime.now() - type_start}")
         except Exception as e:
             logger.error(f"{entity_type} indexing phase failed after {datetime.now() - type_start} - error: {str(e)}", exc_info=True)
-            # Intentionally not re-raised: entity index failures are independent.
+            failures.append((entity_type, e))
+    if failures:
+        raise RuntimeError(f"Entity indexing failed for: {', '.join(t for t, _ in failures)}")
     return datetime.now() - entity_start
 
 

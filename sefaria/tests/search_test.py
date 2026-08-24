@@ -1027,3 +1027,97 @@ def test_reindex_init_proceeds_for_isolated_alias_without_opt_in(monkeypatch):
     search.reindex_init("text", debug=True)
 
     assert create_calls == [("text-debug-new", False)]
+
+
+def test_reindex_index_shard_dispatches_each_entity_type(monkeypatch):
+    """reindex_index_shard must route each entity type to its own indexer function,
+    the same dispatch that already exists (and is correct) in
+    index_all_of_type_by_index_name - this is the seam where the phased reindex
+    composition never learned about the entity types added on master."""
+    from sefaria import search
+
+    def names_for(entity_type):
+        return {"new": f"{entity_type}-new", "current": f"{entity_type}-current", "alias": entity_type}
+
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names_for(type))
+
+    calls = {}
+    monkeypatch.setattr(search, "index_topics", lambda index_name: calls.setdefault("topic", []).append(index_name))
+    monkeypatch.setattr(search, "index_books", lambda index_name: calls.setdefault("book", []).append(index_name))
+    monkeypatch.setattr(search, "index_categories", lambda index_name: calls.setdefault("category", []).append(index_name))
+
+    for entity_type in ("topic", "book", "category"):
+        search.reindex_index_shard(entity_type)
+
+    assert calls == {
+        "topic": ["topic-new"],
+        "book": ["book-new"],
+        "category": ["category-new"],
+    }
+
+
+def test_reindex_index_shard_entity_types_only_run_on_shard_zero(monkeypatch):
+    """Entity corpora are small and indexed single-shot (D1) - under a sharded
+    invocation only shard 0 should do the work, so N pods don't each rebuild the
+    whole corpus (D2)."""
+    from sefaria import search
+
+    names = {"new": "topic-new", "current": "topic-current", "alias": "topic"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    calls = []
+    monkeypatch.setattr(search, "index_topics", lambda index_name: calls.append(index_name))
+
+    search.reindex_index_shard("topic", shard_index=3, shard_count=8)
+    assert calls == [], "a non-zero shard index must skip entity indexing entirely"
+
+    search.reindex_index_shard("topic", shard_index=0, shard_count=8)
+    search.reindex_index_shard("topic", shard_index=None, shard_count=None)
+    assert calls == ["topic-new", "topic-new"], "shard 0 and no-shard invocations must both index"
+
+
+def test_index_all_of_type_composes_phases_for_entity_types(monkeypatch):
+    """index_all_of_type must compose init -> shard -> finalize for an entity type in
+    order, same as it already does for text/sheet, and must not raise."""
+    from sefaria import search
+
+    call_order = []
+    monkeypatch.setattr(search, "reindex_init", lambda t, debug=False: call_order.append(("init", t)))
+    monkeypatch.setattr(search, "reindex_index_shard", lambda t, debug=False: call_order.append(("shard", t)))
+    monkeypatch.setattr(search, "reindex_finalize", lambda t, debug=False: call_order.append(("finalize", t)))
+
+    search.index_all_of_type("topic")
+
+    assert call_order == [("init", "topic"), ("shard", "topic"), ("finalize", "topic")]
+
+
+def test_index_entities_attempts_all_types_then_raises(monkeypatch):
+    """index_entities must keep its per-type isolation (a failure on one type does not
+    stop the others from being attempted) but must raise a summary once all types have
+    been attempted, naming the type(s) that failed (D3) - so a stale entity index is
+    never silently reported as a successful reindex."""
+    from sefaria import search
+
+    calls = []
+
+    def fake_index_all_of_type(entity_type, skip=0, debug=False):
+        calls.append(entity_type)
+        if entity_type == "book":
+            raise RuntimeError("boom")
+
+    monkeypatch.setattr(search, "index_all_of_type", fake_index_all_of_type)
+
+    with pytest.raises(RuntimeError, match="book"):
+        search.index_entities()
+
+    assert calls == ["topic", "book", "category"], "all types must be attempted even though book fails"
+
+
+def test_reindex_index_shard_still_rejects_unknown_type(monkeypatch):
+    """Regression guard: a genuinely unknown type must still fail loudly."""
+    from sefaria import search
+
+    names = {"new": "bogus-new", "current": "bogus-current", "alias": "bogus"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+
+    with pytest.raises(ValueError, match="Unknown index type"):
+        search.reindex_index_shard("bogus")
