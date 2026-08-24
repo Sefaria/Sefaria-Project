@@ -24,6 +24,13 @@
  * Within a flow, each distinct query text gets its own search_id; filter and
  * sort changes do NOT create a new search_id (they are element clicks).
  *
+ * Both search_query_executed and search_element_clicked carry a `tab` field, but
+ * they mean different moments. On a click it is read live -- the tab the user is
+ * on as they click. On a completed query it is snapshotted when the query starts,
+ * because that event does not fire until all four APIs return and the user may
+ * have changed tabs in between; `tab` names the tab the results are shown in, not
+ * wherever they happened to wander while waiting.
+ *
  * Three different mechanisms are needed to catch a back click, because the
  * browser has three ways of putting the user back on the search page:
  *   1. in-app back      -- ReaderApp.handlePopState sets the source hint and
@@ -40,6 +47,16 @@
 // The four API calls whose return "completes" a query. These keys are also the
 // keys of the result_counts JSON sent with search_query_executed.
 const QUERY_APIS = ['sources', 'books', 'authors', 'topics'];
+
+/**
+ * Tab ids (what lives in the URL and in panel state) mapped to the visible
+ * English label reported to GA4, so `tab` and a tab click's `element_value`
+ * always spell the tab the same way. The single source of truth for both --
+ * SearchPage reports tab clicks through tabLabel() too.
+ */
+const TAB_LABELS = {sources: 'Sources', books: 'Books', authors: 'Authors', topics: 'Topics'};
+
+export const tabLabel = (tab) => TAB_LABELS[tab] || tab;
 
 /**
  * How the FIRST flow in this document is labelled.
@@ -91,7 +108,17 @@ export const resultLinkAnalyticsAttrs = (elementValue, resultPosition) => (
 
 const SearchAnalytics = {
     _flow: null,   // {flowId} -- set while the user is on the search page
-    _query: null,  // {searchId, searchText, pending, counts, error, fired}
+    _query: null,  // {searchId, searchText, tab, pending, counts, error, fired}
+
+    // The tab the user is looking at right now, as a label ('Sources'/'Books'/
+    // ...). SearchPage keeps this in sync on mount and on every update, so it
+    // tracks tab clicks, deep links (?tab=books), and back/forward alike.
+    //
+    // Deliberately NOT cleared by endFlow(): a back-forward cache restore
+    // resurrects the frozen document and starts a new flow without remounting
+    // SearchPage, so nothing would set it again -- and the tab on screen is
+    // still the one that was frozen.
+    _currentTab: null,
 
     // One-shot hint for the `source` field of the next search_flow_started.
     // Seeded from the browser's navigation type (see initialFlowSource): if the
@@ -100,6 +127,16 @@ const SearchAnalytics = {
     // ('back_click'). ReaderApp sets 'nav_bar' (header search) or 'back_click'
     // (in-app back into search) just before the search page mounts.
     _nextFlowSource: initialFlowSource(),
+
+    /**
+     * `tab` is a tab id ('sources' | 'books' | 'authors' | 'topics'); it is
+     * stored as the visible label. Not flow-guarded, because SearchPage mounts
+     * (and reports its starting tab) before ElasticSearchQuerier starts the
+     * flow -- a child's componentDidMount runs before its parent's.
+     */
+    setCurrentTab: function(tab) {
+        this._currentTab = tabLabel(tab);
+    },
 
     setNextFlowSource: function(source) {
         this._nextFlowSource = source;
@@ -134,6 +171,13 @@ const SearchAnalytics = {
         this._query = {
             searchId: crypto.randomUUID(),
             searchText: searchText,
+            // Snapshotted here rather than read when the event fires: `tab` on
+            // search_query_executed is the tab the results are shown in, i.e.
+            // the one displayed when the query ran. The event only fires once
+            // all four APIs return, and the user can switch tabs while waiting;
+            // that switch is a search_element_clicked, and must not retroactively
+            // relabel which tab this query was run from.
+            tab: this._currentTab,
             pending: new Set(QUERY_APIS),
             counts: {},
             error: null,
@@ -168,13 +212,20 @@ const SearchAnalytics = {
                 status: q.error ? 'failure' : 'success',
                 result_counts: JSON.stringify(q.counts),
                 error: q.error || undefined,
+                tab: q.tab || undefined,
             });
         }
     },
 
     /**
      * A tab, filter, or result was clicked.
-     * elementType: 'tab' | 'filter' | 'result'
+     *
+     * `tab` is read live, so it is the tab the user is on AT THE MOMENT OF THE
+     * CLICK. For a tab click that is the tab they are leaving, not the one they
+     * picked -- element_value already names the destination, so the pair reads
+     * as "went from `tab` to `element_value`".
+     *
+     * elementType: 'tab' | 'filter' | 'sort' | 'toggle' | 'result'
      * elementValue: tab/filter name, or the result's reference/title
      * count: result count shown on the tab/filter (omit for results)
      * resultPosition: 1-based rank of a clicked result (omit for tabs/filters)
@@ -186,6 +237,7 @@ const SearchAnalytics = {
             search_id: this._query ? this._query.searchId : undefined,
             element_type: elementType,
             element_value: elementValue,
+            tab: this._currentTab || undefined,
             count: (count === null || count === undefined) ? undefined : count,
             result_position: resultPosition || undefined,
         });

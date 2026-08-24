@@ -1,4 +1,4 @@
-import SearchAnalytics, { resultLinkAnalyticsAttrs, initialFlowSource } from '../searchAnalytics';
+import SearchAnalytics, { resultLinkAnalyticsAttrs, initialFlowSource, tabLabel } from '../searchAnalytics';
 
 // The module reads the global `gtag` (GA4) and `crypto.randomUUID` at call
 // time, so both are replaced with deterministic mocks.
@@ -12,6 +12,7 @@ beforeEach(() => {
     SearchAnalytics._flow = null;
     SearchAnalytics._query = null;
     SearchAnalytics._nextFlowSource = 'deep_link';
+    SearchAnalytics._currentTab = null;
 });
 
 // gtag is called as gtag('event', name, params); return [name, params] pairs.
@@ -278,5 +279,87 @@ describe('sort and toggle clicks', () => {
         // both belong to the query on screen, so they carry its search_id
         expect(sort.search_id).toBe('uuid-1');
         expect(toggle.search_id).toBe('uuid-1');
+    });
+});
+
+describe('tab', () => {
+    test('is the visible label, set from the tab id SearchPage is showing', () => {
+        expect(tabLabel('books')).toBe('Books');
+        expect(tabLabel('sources')).toBe('Sources');
+        SearchAnalytics.setCurrentTab('authors');
+        expect(SearchAnalytics._currentTab).toBe('Authors');
+    });
+
+    test('search_query_executed reports the tab the query was run from', () => {
+        SearchAnalytics.setCurrentTab('books');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('rashi');
+        reportAllApis();
+        expect(firedEvents()[1][1].tab).toBe('Books');
+    });
+
+    test('switching tabs while a query is still loading does not relabel it', () => {
+        SearchAnalytics.setCurrentTab('sources');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('rashi');
+        SearchAnalytics.recordApiResult('sources', 933);
+        // The user gets bored of waiting and clicks over to Books.
+        SearchAnalytics.elementClicked({elementType: 'tab', elementValue: 'Books', count: 31});
+        SearchAnalytics.setCurrentTab('books');
+        SearchAnalytics.recordApiResult('books', 31);
+        SearchAnalytics.recordApiResult('authors', 1);
+        SearchAnalytics.recordApiResult('topics', 2);
+
+        const [click] = firedEvents().filter(([name]) => name === 'search_element_clicked');
+        const [executed] = firedEvents().filter(([name]) => name === 'search_query_executed');
+        // The click happened on Sources (that is where they were standing) and named Books
+        // as its destination; the query still belongs to Sources, where its results are shown.
+        expect(click[1].tab).toBe('Sources');
+        expect(click[1].element_value).toBe('Books');
+        expect(executed[1].tab).toBe('Sources');
+    });
+
+    test('a refined query picks up the tab the user has since moved to', () => {
+        SearchAnalytics.setCurrentTab('sources');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('first');
+        reportAllApis();
+        SearchAnalytics.setCurrentTab('topics');
+        SearchAnalytics.startQuery('second');
+        reportAllApis();
+        const tabs = firedEvents().filter(([name]) => name === 'search_query_executed')
+                                  .map(([, params]) => params.tab);
+        expect(tabs).toEqual(['Sources', 'Topics']);
+    });
+
+    test('element clicks report the tab live, including result clicks', () => {
+        SearchAnalytics.setCurrentTab('topics');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        SearchAnalytics.elementClicked({elementType: 'filter', elementValue: 'Talmud', count: 42});
+        SearchAnalytics.resultClicked('Shabbat', 2);
+        const [filterClick, resultClick] = firedEvents()
+            .filter(([name]) => name === 'search_element_clicked').map(([, params]) => params);
+        expect(filterClick.tab).toBe('Topics');
+        expect(resultClick.tab).toBe('Topics');
+    });
+
+    test('is omitted entirely when no tab has been reported (out-of-scope pages)', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        SearchAnalytics.elementClicked({elementType: 'tab', elementValue: 'Books', count: 31});
+        reportAllApis();
+        firedEvents().forEach(([, params]) => expect('tab' in params).toBe(false));
+    });
+
+    test('survives a back-forward cache restore, which does not remount SearchPage', () => {
+        SearchAnalytics.setCurrentTab('authors');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.endFlow('abandoned');   // pagehide
+        SearchAnalytics.startFlow();            // pageshow with persisted:true
+        SearchAnalytics.startQuery('q');
+        reportAllApis();
+        const [executed] = firedEvents().filter(([name]) => name === 'search_query_executed');
+        expect(executed[1].tab).toBe('Authors');
     });
 });

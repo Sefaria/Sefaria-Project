@@ -24,7 +24,7 @@ import {
 import SearchLoadSkeleton from './SearchLoadSkeleton';
 import SearchToggle from './SearchToggle';
 import SearchTabsMobileWeb from './SearchTabsMobileWeb';
-import SearchAnalytics from './sefaria/searchAnalytics';
+import SearchAnalytics, { tabLabel } from './sefaria/searchAnalytics';
 
 
 const SearchPageSearchBar = ({query, onQueryChange}) => {
@@ -390,7 +390,22 @@ class SearchPage extends Component {
     this.props.updateAppliedFilter(this.props.searchState, filter);
   }
 
+  // The tab actually being displayed. this.props.tab comes from panel state and so from the
+  // URL, where it can be missing or garbage; the page falls back to Sources in that case.
+  activeTab() {
+    return ALL_TAB_IDS.includes(this.props.tab) ? this.props.tab : "sources";
+  }
+
+  // Tell search analytics which tab is on screen. Driven from the lifecycle rather than from
+  // setTab() so it also covers the ways the tab changes without a click: the initial tab from
+  // a deep link (?tab=books) and back/forward, which both arrive as a props change.
+  reportActiveTabToAnalytics() {
+    if (this.props.compare || this.props.searchInBook) { return; }
+    SearchAnalytics.setCurrentTab(this.activeTab());
+  }
+
   componentDidMount() {
+    this.reportActiveTabToAnalytics();
     this.fetchEntityResults();
     this._onResize();  // first real viewport measurement; the constructor could not take one
     window.addEventListener('resize', this._onResize);
@@ -401,6 +416,7 @@ class SearchPage extends Component {
   }
 
   componentDidUpdate(prevProps) {
+    if (prevProps.tab !== this.props.tab) { this.reportActiveTabToAnalytics(); }
     if (prevProps.query !== this.props.query) {
       // A new query invalidates the category selections and their counts — both describe the
       // previous result set — so rebuild the filter tree unselected before refetching.
@@ -520,8 +536,7 @@ class SearchPage extends Component {
         authors: this.state.entityData.author?.total,
         topics:  this.state.entityData.topic?.total,
       };
-      const tabLabels = {sources: 'Sources', books: 'Books', authors: 'Authors', topics: 'Topics'};
-      SearchAnalytics.elementClicked({elementType: 'tab', elementValue: tabLabels[tab] || tab, count: tabCounts[tab]});
+      SearchAnalytics.elementClicked({elementType: 'tab', elementValue: tabLabel(tab), count: tabCounts[tab]});
     }
     this.setState({mobileFiltersOpen: false});
     this.props.setTab(tab, replaceHistory);
@@ -571,7 +586,7 @@ class SearchPage extends Component {
     }
 
     const isValidTab = ALL_TAB_IDS.includes(this.props.tab);
-    const activeTab = isValidTab ? this.props.tab : "sources";
+    const activeTab = this.activeTab();
     const closeMobileFilters = () => this.setState({mobileFiltersOpen: false});
 
     const isExactSearch = this.props.searchState.field === this.props.searchState.fieldExact;
