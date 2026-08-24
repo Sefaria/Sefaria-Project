@@ -227,8 +227,13 @@ class TocTree(object):
                     "enComplete": bool(vs.get("flags", {}).get("enComplete", False)),
                 }
 
-        # Build Category object tree from stored Category objects
-        for c in CategorySet(sort=[("depth", 1)]):
+        # Build Category object tree from stored Category objects. Two guards, covering two
+        # different failures: with_skip_guard() covers CONSTRUCTING each Category — a bad
+        # `sharedTitle` raises out of _process_terms during _set_derived_attributes, while the
+        # set is materializing, so it would otherwise abort the whole TOC build before
+        # _add_category ran even once — and _add_category's own guard covers USING it.
+        for c in CategorySet(sort=[("depth", 1)]).with_skip_guard(
+                skip_bad_record, "reset_toc,startup", "TocTree category record"):
             self._add_category(c)
 
         # Get all of the first comment links. A single link missing either field must not abort startup.

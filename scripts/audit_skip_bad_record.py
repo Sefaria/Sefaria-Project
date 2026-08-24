@@ -400,14 +400,16 @@ CASES = [
     case("S6", "TocTree.serialize node", "category whose `sharedTitle` names a nonexistent term",
          "category", {"path": ["Tanakh", "ZZAuditSerialize"], "lastPath": "ZZAuditSerialize",
                       "depth": 2, "sharedTitle": "ZZNoSuchTerm"},
-         _toc_tree_serialize, PROPAGATED, "IndexError", outside_guard=True,
-         note="LOCAL/CI ONLY -- does not abort a real deploy. Category._process_terms is "
-              "decorated @conditional_graceful_exception(), which swallows and logs when "
-              "settings.FAIL_GRACEFULLY is true. That is \"True\" in prod and preprod "
-              "(envs/*/helmrelease.yaml) but False in local_settings.py and in CI "
-              "(build/ci/integration-values.yaml), which is why it propagates here. Left "
-              "unfixed deliberately: guarding it would mean guarding Category construction "
-              "to paper over a setting that already handles it where it matters"),
+         _toc_tree_serialize, WRONG_SITE,
+         note="raised by Category._process_terms while CategorySet materializes, so it is "
+              "caught by that set's with_skip_guard rather than by this serialize-node guard. "
+              "NOTE the behavior still differs by environment, though it no longer aborts "
+              "anything: _process_terms is decorated @conditional_graceful_exception(), so "
+              "where settings.FAIL_GRACEFULLY is true (prod, preprod) the decorator swallows "
+              "first and the Category survives with its own titles instead of the Term's; "
+              "where it is false (local, CI) the exception escapes and the set guard DROPS "
+              "the Category from the TOC. Degrade-in-place is the better of the two, which "
+              "is why the decorator was left in rather than replaced by this guard"),
 
     # -- text.py:5036  _build_index_maps index record ------------------------------
     case("S7", "_build_index_maps index record", "index whose `schema` is not a dict",
