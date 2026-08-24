@@ -96,7 +96,18 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
         return interface
 
     def process_request(self, request):
-        excluded = ('/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/", "/apple-app-site-association", settings.STATIC_URL)
+        # '/accounts/' and '/_allauth/' are allauth's OAuth endpoints, not user-facing pages
+        # (Sefaria's own login/register live at /login and /register). They must never be
+        # domain-redirected: Apple returns its response as a cross-site form POST, which
+        # carries no cookies, so interfaceLang would be resolved from cf-ipcountry alone and
+        # could bounce the callback to the other language domain. A 30x turns that POST into
+        # a GET, and allauth's Apple callback is POST-only -- the user gets a 405.
+        # '/.well-known/' covers the canonical apple-app-site-association location. Apple's
+        # CDN won't follow a redirect when fetching that file, so a language bounce there
+        # silently breaks universal links for the whole domain.
+        excluded = ('/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/",
+                    "/accounts/", "/_allauth/", "/apple-app-site-association", "/.well-known/",
+                    settings.STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
             request.interfaceLang = self._interface_from_request_signals(request)
             request.LANGUAGE_CODE = request.interfaceLang[0:2]

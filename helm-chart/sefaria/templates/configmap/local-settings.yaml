@@ -38,6 +38,9 @@ data:
   SEARCH_SSL_ENABLE: {{ .Values.nginx.SEARCH_SSL_ENABLE | quote }}
   SEARCH_INDEX_NAME_TEXT: {{ .Values.localSettings.SEARCH_INDEX_NAME_TEXT | quote }}
   SEARCH_INDEX_NAME_SHEET: {{ .Values.localSettings.SEARCH_INDEX_NAME_SHEET | quote }}
+  SEARCH_INDEX_NAME_TOPIC: {{ .Values.localSettings.SEARCH_INDEX_NAME_TOPIC | quote }}
+  SEARCH_INDEX_NAME_BOOK: {{ .Values.localSettings.SEARCH_INDEX_NAME_BOOK | quote }}
+  SEARCH_INDEX_NAME_CATEGORY: {{ .Values.localSettings.SEARCH_INDEX_NAME_CATEGORY | quote }}
   {{- if .Values.tasks.enabled }}
   REDIS_URL: {{ .Values.tasks.redis.url }}
   REDIS_PORT: {{ .Values.tasks.redis.port | quote }}
