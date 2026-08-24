@@ -18,6 +18,11 @@ Interested developers can join the [sefaria-dev mailing list](https://groups.goo
 - If you believe you have encountered a bug while using our website or mobile app, you can report it [here](https://sefaria.formstack.com/forms/bug_report).
 - If you find bugs in the code, you can create a [GitHub Issue](https://github.com/sefaria/Sefaria-Project/issues?direction=desc&page=1&sort=created&state=open).
 
+## A Note on Contributions
+At Sefaria, features or bugs get prioritized based on the organization's long term vision and user research. To this end, we rarely prioritize a public code contribution which is not in the Sefaria product pipeline. We appreciate feature requests and bug reports, and are always happy to hear suggestions of how we can improve our product. 
+
+For those looking to build a feature to support Torah study, instead of submitting a PR to our repository, we highly encourage building a Powered by Sefaria project. You can see a full list of projects built by the community on our technology and data [here](https://developers.sefaria.org/docs/powered-by-sefaria). 
+
 
 ## Thanks
 We're grateful to the following organizations for providing us with donated services:
