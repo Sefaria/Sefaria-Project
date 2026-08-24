@@ -28,13 +28,8 @@ def subref(ref: text.Ref, section: int, is_amud: bool = False):
 
 def _talmud_subref(ref: text.Ref, section: int):
     """
-    Refine `ref` (whose Daf is already set) by amud. Unlike a normal subref, this merges into the ref's existing
-    (last) section instead of appending a new one, since Daf+Amud are stored as a single combined address.
-    `section` must be 1 (amud aleph) or 2 (amud bet) -- the only values AddressAmud can ever produce -- and must
-    only be called once per ref: calling it a second time (e.g. on a ref whose amud has already been merged in,
-    or with an out-of-range value like a daf number) silently produces a bogus daf/amud instead of failing to
-    match. Callers are expected to only reach this via the dedicated Amud referenceable node (see
-    NumberedReferenceableBookNode.possible_subrefs), which structurally can only be matched once per ref chain.
+    Refine a Talmud daf ref by amud, merging `section` into the existing daf address.
+    `section` must be 1 (amud aleph) or 2 (amud bet).
     """
     if section not in (1, 2):
         raise InputError(f"Talmud amud value must be 1 (aleph) or 2 (bet), got {section}")
