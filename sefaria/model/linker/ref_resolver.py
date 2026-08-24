@@ -890,8 +890,7 @@ class ResolvedRefPruner:
             # A RELATIVE part (e.g. "לקמן"/"להלן") only signals that context *may* help disambiguate; it doesn't
             # correspond to a resolvable section itself. When a match doesn't use context at all -- e.g. the book
             # and all sections were stated explicitly -- the marker is redundant and shouldn't block the match
-            # from counting as complete (see sc-46799: this used to force an explicit "<Book Daf Amud" citation
-            # through context-based resolution, which could compute the wrong daf/amud).
+            # from counting as complete .
             to_match_explicit = {part for part in to_match_explicit if part.type != RefPartType.RELATIVE}
         return resolved_explicit == to_match_explicit
 
