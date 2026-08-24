@@ -234,7 +234,7 @@ def test_multiple_ambiguities():
     # Relative (e.g. Lekaman)
     [crrd(["@תוס'", "<לקמן", "#ד ע\"ב", "*ד\"ה דאר\"י"], "Gilyon HaShas on Berakhot 2a:2"), ("Tosafot on Berakhot 4b:6:1",)],  # likaman + abbrev in DH
     [crrd(['<לקמן', '#משנה א'], "Mishnah Berakhot 1", prev_trefs=['Mishnah Shabbat 1']), ("Mishnah Berakhot 1:1",)],  # competing relative and sham
-    [crrd(["<להלן", "@מנחות", "#ג", "#ב"], "Steinsaltz on Menachot 2b:5"), ("Menachot 3b", "Mishnah Menachot 3:2")],  # sc-46799: explicit book+daf+amud shouldn't be forced through context (used to wrongly match Menachot 4a); ambiguous with Mishnah Menachot same as the same citation without the relative marker
+    [crrd(["<להלן", "@מנחות", "#ג", "#ב"], "Steinsaltz on Menachot 2b:5"), ("Menachot 3b",)],  # sc-46799: relative refs stay in the current book/base-text context, so Mishnah Menachot is pruned
     
     # Section name matching instead of address type
     [crrd(["@Teshuvot", "@HaRosh", "#Klal 1"], lang='en'), ("Teshuvot HaRosh 1",)],

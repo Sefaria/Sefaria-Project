@@ -603,7 +603,7 @@ class RefResolver:
                 # BUT did get refined more when considering context
                 context_free_matches = list(filter(lambda x: not (x.num_resolved(include={ContextPart}) > 0 and x.ref.normal() in refs_matched), context_free_matches))
             temp_matches += context_free_matches + context_full_matches
-        return ResolvedRefPruner.prune_refined_ref_part_matches(self._thoroughness, temp_matches)
+        return ResolvedRefPruner.prune_refined_ref_part_matches(self._thoroughness, temp_matches, book_context_ref)
 
     @staticmethod
     def _get_section_contexts(context_ref: text.Ref, match_index: text.Index, common_index: text.Index) -> List[SectionContext]:
@@ -991,6 +991,33 @@ class ResolvedRefPruner:
         return temp_resolved_refs
 
     @staticmethod
+    def _get_index_title_context(index: text.Index) -> Set[str]:
+        return {index.title} | set(getattr(index, 'base_text_titles', []))
+
+    @staticmethod
+    def _has_relative_part(match: ResolvedRef) -> bool:
+        return any(part.type == RefPartType.RELATIVE for part in match.raw_entity.parts_to_match)
+
+    @staticmethod
+    def _matches_current_book_context(match: ResolvedRef, book_context_ref: Optional[text.Ref]) -> bool:
+        if not match.ref or not book_context_ref:
+            return False
+        context_titles = ResolvedRefPruner._get_index_title_context(book_context_ref.index)
+        match_titles = ResolvedRefPruner._get_index_title_context(match.ref.index)
+        return len(context_titles & match_titles) > 0
+
+    @staticmethod
+    def prune_relative_ref_matches(resolved_refs: List[ResolvedRef], book_context_ref: Optional[text.Ref]) -> List[ResolvedRef]:
+        if not book_context_ref or not any(ResolvedRefPruner._has_relative_part(match) for match in resolved_refs):
+            return resolved_refs
+        temp_resolved_refs = [
+            match for match in resolved_refs
+            if not ResolvedRefPruner._has_relative_part(match)
+            or ResolvedRefPruner._matches_current_book_context(match, book_context_ref)
+        ]
+        return temp_resolved_refs if len(temp_resolved_refs) > 0 else resolved_refs
+
+    @staticmethod
     def get_context_free_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
         def match_is_context_free(match: ResolvedRef) -> bool:
             if match.context_ref is not None:
@@ -1012,13 +1039,14 @@ class ResolvedRefPruner:
         return top_resolved_refs
 
     @staticmethod
-    def prune_refined_ref_part_matches(thoroughness, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+    def prune_refined_ref_part_matches(thoroughness, resolved_refs: List[ResolvedRef], book_context_ref: Optional[text.Ref] = None) -> List[ResolvedRef]:
         """
         Applies some heuristics to remove false positives
         """
         resolved_refs = ResolvedRefPruner.remove_incorrect_matches(resolved_refs)
         if len(resolved_refs) == 0:
             return resolved_refs
+        resolved_refs = ResolvedRefPruner.prune_relative_ref_matches(resolved_refs, book_context_ref)
 
         # if any context-free match uses all input parts, dont need to try context
         context_free_matches = ResolvedRefPruner.get_context_free_matches(resolved_refs)
