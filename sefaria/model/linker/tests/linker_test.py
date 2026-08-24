@@ -453,11 +453,6 @@ def test_full_pipeline_ref_resolver(monkeypatch, context_tref, input_str, lang, 
 
 
 @pytest.mark.parametrize(('doc_text', 'span_text', 'expected_pretty_text'), [
-    # Rashba on Berakhot 17b:1: "אסקה רב אשי בגמרא (לקמן ברכות יח, א) דמוטל...". Confirmed against the real
-    # LinkerOutput debug span (GET /api/v3/texts/Rashba_on_Berakhot.17b.1?debug_mode=linker) that the raw
-    # entity span is 'בגמרא (לקמן ברכות יח, א' (open paren included, closing paren just outside the span).
-    # ResolvedRef.pretty_text handles this correctly on its own -- see test_extract_resolved_spans_end_paren
-    # in sefaria/helper/linker/tests/task_test.py for where the trailing paren actually gets lost.
     ['אסקה רב אשי בגמרא (לקמן ברכות יח, א) דמוטל עליו לקוברו', 'בגמרא (לקמן ברכות יח, א', 'בגמרא (לקמן ברכות יח, א)'],
     # Same shape, with a trailing ":)" instead of just ")"
     ['גמ\' שמזונותן עליך. עיין ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:) עוד', 'ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע', 'ביצה (דף טו ע"ב רש"י ד"ה שמא יפשע:)'],
