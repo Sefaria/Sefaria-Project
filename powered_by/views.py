@@ -218,6 +218,8 @@ def clean_and_default_post_body(body):
             value = parsed
 
         if field == "creator_email":
+            if not isinstance(value, str):
+                return None, "creator_email must be a valid email address"
             try:
                 validate_email(value)
             except DjangoValidationError:

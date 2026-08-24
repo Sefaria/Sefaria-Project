@@ -256,6 +256,19 @@ def test_clean_rejects_invalid_email():
     assert error == "creator_email must be a valid email address"
 
 
+def test_clean_rejects_non_string_email_without_raising():
+    # validate_email(123) raises TypeError (not DjangoValidationError), so a
+    # non-string value must be rejected before reaching the validator or this
+    # 400 path becomes an unhandled 500.
+    body = {
+        "project_name": "Example", "project_link": "https://example.com",
+        "creator_email": 12345,
+    }
+    cleaned, error = clean_and_default_post_body(body)
+    assert cleaned is None
+    assert error == "creator_email must be a valid email address"
+
+
 # --- view: POST create path ---------------------------------------------------
 
 import json as _json
