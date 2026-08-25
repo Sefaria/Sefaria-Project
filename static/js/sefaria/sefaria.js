@@ -520,15 +520,56 @@ Sefaria = extend(Sefaria, {
 
     return result;
   },
-  getDomainHostnames: function() {
-    // Returns a Set of all hostnames of current language from domainModules.
-    const hostnames = new Set();
-    for (const moduleUrl of Object.values(Sefaria.domainModules[Sefaria._getShortInterfaceLang()])) {
-      const url = new URL(moduleUrl);
-      hostnames.add(url.hostname);
-    }
+  /* The three hostname getters below all read Sefaria.domainModules, which maps
+     interface language -> module -> that module's URL. For example:
+       { en: { library: "https://www.sefaria.org",    voices: "https://voices.sefaria.org"    },
+         he: { library: "https://www.sefaria.org.il", voices: "https://voices.sefaria.org.il" } }
+     They differ only in which slice of that map they read:
 
+                                           languages:              modules:
+       getCurrentLangHostnames()           just the current one    all of them
+       getAllHostnames()                   all of them             all of them
+       getCurrentModuleHostnames(module)   all of them             just the one passed in
+
+     Rule of thumb: use getCurrentLangHostnames when you are building or checking something the
+     reader will see in their own language (a cookie domain, a link you are about to render), and
+     one of the language-spanning two when you are reacting to a URL you did not create -- a link
+     inside sheet content can point at the Hebrew domain while the interface language is English,
+     and vice versa, and it is still ours.
+     All three return a Set of hostnames (no scheme, no path), so callers check with .has(). */
+  _hostnamesFromModuleURLs: function(moduleUrls) {
+    // Shared inner loop for the three getters: turns a list of module URL strings into a Set of
+    // their hostnames. One unparseable URL is logged and skipped rather than throwing, so a bad
+    // entry in domainModules can't break every caller.
+    const hostnames = new Set();
+    for (const moduleUrl of moduleUrls) {
+      try {
+        hostnames.add(new URL(moduleUrl).hostname);
+      } catch (e) {
+        console.error('Error creating URL:', e);
+      }
+    }
     return hostnames;
+  },
+  getCurrentLangHostnames: function() {
+    // Every module, current interface language only.
+    // example (interface language English) -> Set { "www.sefaria.org", "voices.sefaria.org" }
+    const langModules = Sefaria.domainModules?.[Sefaria._getShortInterfaceLang()] || {};
+    return Sefaria._hostnamesFromModuleURLs(Object.values(langModules));
+  },
+  getAllHostnames: function() {
+    // Every module, every interface language -- i.e. every hostname this deploy answers on.
+    // example -> Set { "www.sefaria.org", "voices.sefaria.org", "www.sefaria.org.il", "voices.sefaria.org.il" }
+    const allModuleUrls = Object.values(Sefaria.domainModules || {}).flatMap(langModules => Object.values(langModules || {}));
+    return Sefaria._hostnamesFromModuleURLs(allModuleUrls);
+  },
+  getCurrentModuleHostnames: function(module) {
+    // One module, every interface language. Languages that don't configure the module are skipped.
+    // example: module = "voices" -> Set { "voices.sefaria.org", "voices.sefaria.org.il" }
+    const moduleUrls = Object.values(Sefaria.domainModules || {})
+        .map(langModules => langModules?.[module])
+        .filter(moduleUrl => !!moduleUrl);
+    return Sefaria._hostnamesFromModuleURLs(moduleUrls);
   },
   getModuleURL: function(module=null) {
     // returns a URL object with the href of the module's subdomain.
@@ -549,7 +590,7 @@ Sefaria = extend(Sefaria, {
   },
   isSefariaURL: function(url) {
     // Check if URL's hostname matches any of our domain hostnames
-    const hostnames = this.getDomainHostnames();
+    const hostnames = this.getCurrentLangHostnames();
     return hostnames.has(url.hostname);
   },
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
