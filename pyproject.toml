@@ -1,0 +1,44 @@
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors — PEP 8 style violations (indentation, whitespace, line length)
+    "W",     # pycodestyle warnings — softer PEP 8 issues (trailing whitespace, blank lines)
+    "F",     # pyflakes — undefined names, unused imports, unused variables
+    "I",     # isort — import order, grouping, and section formatting
+    "B",     # flake8-bugbear — likely bugs and design issues (mutable defaults, bare excepts, loop variable misuse)
+    "UP",    # pyupgrade — modernises syntax to target Python version (f-strings, new-style hints, etc.)
+    "N",     # pep8-naming — enforces PEP 8 naming conventions for classes, functions, variables, and type args
+    "PTH",   # flake8-use-pathlib — replaces os.path calls with pathlib equivalents
+    "T20",   # flake8-print — flags print() and pprint() calls left in code
+    "PLE",   # pylint errors — subset of Pylint covering only error-level issues (e.g. bad format strings, return outside function)
+    "SIM",   # flake8-simplify — suggests simpler rewrites (collapsed ifs, ternaries, redundant open modes)
+    "RET",   # flake8-return — enforces clean return patterns (no implicit None, no redundant elif after return)
+    "TD",    # flake8-todos — enforces consistent TODO comment format (author, issue link, etc.)
+    "ASYNC", # flake8-async — detects blocking calls (time.sleep, open, HTTP) inside async functions
+    "A",     # flake8-builtins — warns when variable or argument names shadow Python builtins (e.g. list, id, type)
+    "COM",   # flake8-commas — enforces trailing commas in multi-line collections and function signatures
+    "C4",    # flake8-comprehensions — rewrites unnecessary generators/comprehensions to simpler forms
+    "DJ",    # flake8-django — Django-specific checks (null on string fields, ModelForm misuse, missing __str__)
+    "EM",    # flake8-errmsg — disallows string literals directly in raise statements; assign to a variable first
+    "FIX",   # flake8-fixme — flags FIXME, TODO, XXX, and HACK comments as unresolved issues
+    "PIE",   # flake8-pie — misc improvements (unnecessary pass, duplicate class fields, non-unique enums)
+    "PT",    # flake8-pytest-style — enforces consistent pytest patterns (fixture scope, raises usage, parametrize format)
+    "Q",     # flake8-quotes — enforces consistent quote style (single vs double) across the codebase
+    "RSE",   # flake8-raise — flags unnecessary parentheses in raise statements
+    "ARG",   # flake8-unused-arguments — flags unused function, method, and lambda arguments
+]
+
+ignore = [
+    "PLR0913",  # too many arguments
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.ruff.lint.per-file-ignores]
+"*/migrations/*.py" = ["E501", "N", "I"]
+"manage.py" = ["T20"]

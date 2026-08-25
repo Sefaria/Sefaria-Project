@@ -1,0 +1,4 @@
+{
+  "extends": ["stylelint-config-standard-scss"],
+  "ignoreFiles": ["node_modules/**", "static/bundles/**", "static/css/*.css", "static/css/*.css.map"]
+}

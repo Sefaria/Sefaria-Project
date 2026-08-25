@@ -64,7 +64,26 @@
     "test:voices-topics": "playwright test --project=chrome-voices-topics",
     "scss": "sass --watch static/css:static/css",
     "scss-compile": "sass static/css:static/css",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "lint": "npm run lint:js && npm run lint:css && npm run lint:format",
+    "lint:js": "eslint 'static/js/**/*.{js,jsx}' --max-warnings=0",
+    "lint:css": "stylelint 'static/css/**/*.scss' --max-warnings=0",
+    "lint:format": "prettier --check 'static/js/**/*.{js,jsx}' 'static/css/**/*.scss' '**/*.md'",
+    "lint:py": "ruff check . && ruff format --check .",
+    "format": "prettier --write 'static/js/**/*.{js,jsx}' 'static/css/**/*.scss' '**/*.md'"
+  },
+  "lint-staged": {
+    "static/js/**/*.{js,jsx}": [
+      "prettier --write",
+      "eslint --max-warnings=0"
+    ],
+    "static/css/**/*.scss": [
+      "prettier --write",
+      "stylelint --max-warnings=0"
+    ],
+    "**/*.{json,md}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "@floating-ui/react-dom": "^2.1.6",
@@ -132,6 +151,7 @@
     "@babel/plugin-transform-destructuring": "^7.6.0",
     "@babel/preset-env": "^7.10.2",
     "@babel/preset-react": "^7.0.0",
+    "@eslint/js": "^9.39.5",
     "@hebcal/core": "^3.33.2",
     "@mozilla/readability": "^0.4.1",
     "@storybook/addon-docs": "10.0.2",
@@ -142,14 +162,24 @@
     "babel-watch": "^2.0.0",
     "concurrently": "^9.1.2",
     "css-loader": "^3.2.0",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.11.0",
     "husky": "^8.0.0",
     "jest": "^24.9.0",
+    "knip": "^5.88.1",
+    "lint-staged": "^16.4.0",
     "nodemon": "^1.9.2",
     "playwright": "^1.62.1",
+    "prettier": "^3.9.6",
     "sass": "^1.89.1",
     "source-map-support": "^0.4.15",
     "storybook": "10.0.2",
     "style-loader": "^1.0.0",
+    "stylelint": "^17.14.1",
+    "stylelint-config-standard-scss": "^17.0.0",
     "webpack": "^5.60.0",
     "webpack-bundle-tracker": "^1.4.0",
     "webpack-cli": "^4.9.1"
