@@ -63,8 +63,10 @@ ArrayMapNode that
   (not added as an empty node).
 
 The struct is added to the commentary's `alt_structs`, where it's usable for ref
-resolution, search, etc., and also shows up as a navigation toggle in the "Table of
-Contents" on the book page.
+resolution, search, etc. The struct name "Parasha" is also added to the index's
+`exclude_structs` list, which tells the client to leave it out of the navigation
+toggle on the book page's "Table of Contents" -- the struct is fully functional,
+just not surfaced as a nav option.
 
 The commentator's NonUniqueTerm slug is guessed as the first term_slug of the first
 match_template on the commentary index's root node (e.g. "Rashi on Genesis" has root
@@ -375,15 +377,19 @@ def add_parsha_struct_to_commentary(title, commentator_slug, dry_run=False, forc
     struct_obj = build_parasha_alt_struct(index, commentator_slug, kind, extra)
 
     if dry_run:
-        print("Would set 'Parasha' alt structure on '{}' [{}]:".format(title, kind))
+        print("Would set 'Parasha' alt structure on '{}' [{}] (hidden from TOC nav via exclude_structs):".format(title, kind))
         for node in struct_obj.children:
             print("  {} -> {} | match_templates={}".format(
                 node.get_primary_title("en"), node.wholeRef, node.match_templates))
         return True
 
     index.set_alt_structure("Parasha", struct_obj)
+    exclude_structs = list(getattr(index, "exclude_structs", None) or [])
+    if "Parasha" not in exclude_structs:
+        exclude_structs.append("Parasha")
+    index.exclude_structs = exclude_structs
     index.save()
-    print("Added 'Parasha' alt structure to '{}' [{}]".format(title, kind))
+    print("Added 'Parasha' alt structure to '{}' [{}] (hidden from TOC nav via exclude_structs)".format(title, kind))
     return True
 
 
