@@ -4,16 +4,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError
 from sefaria.helper import linker_editor
 from sefaria.helper import linker_admin
-from .views import _load_json_body
-
-
-class StaffRequiredMixin:
-    """Mixin for CBVs that must reject non-staff users with a JSON 403."""
-
-    def dispatch(self, request, *args, **kwargs):
-        if not request.user.is_staff:
-            return jsonResponse({"error": "Staff only."}, status=403)
-        return super().dispatch(request, *args, **kwargs)
+from .views import _load_json_body, StaffRequiredMixin
 
 
 class LinkerAdminAPIView(StaffRequiredMixin, View):

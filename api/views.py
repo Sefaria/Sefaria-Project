@@ -16,6 +16,15 @@ from .api_warnings import *
 logger = logging.getLogger(__name__)
 
 
+class StaffRequiredMixin:
+    """Mixin for CBVs that must reject non-staff users with a JSON 403."""
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return jsonResponse({"error": "Staff only."}, status=403)
+        return super().dispatch(request, *args, **kwargs)
+
+
 class Text(View):
 
     RETURN_FORMATS = ['default', 'wrap_all_entities', 'text_only', 'strip_only_footnotes']
