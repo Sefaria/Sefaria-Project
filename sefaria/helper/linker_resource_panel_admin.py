@@ -1,3 +1,7 @@
+# Backend logic for the linker admin box shown in the reader's resource (connections)
+# panel: parsing/rerunning linker citations, deleting/recreating generated links, and
+# capturing ref and ref-part training dataset examples. Sibling to linker_editor.py,
+# which backs the standalone Linker Editor page instead.
 import re
 import time
 from typing import Any, Optional

@@ -20,7 +20,7 @@ from sefaria.helper.linker.disambiguator import (
     NonSegmentResolutionPayload, NonSegmentResolutionResult,
     AmbiguousResolutionPayload, AmbiguousResolutionResult,
 )
-from sefaria.helper.linker_admin import _span_matches, parse_linker_citation
+from sefaria.helper.linker_resource_panel_admin import _span_matches, parse_linker_citation
 
 
 def _seed_non_unique_terms(term_defs):
