@@ -24,6 +24,9 @@ class SemanticSearchQuerier extends Component {
         error:          false,
         englishQuery:   null,
         hebrewQuery:    null,
+        phase:          null,
+        phaseCompleted: null,
+        phaseTotal:     null,
       };
     }
     componentDidMount() {
@@ -66,6 +69,9 @@ class SemanticSearchQuerier extends Component {
             hits:           [],
             englishQuery:   null,
             hebrewQuery:    null,
+            phase:          null,
+            phaseCompleted: null,
+            phaseTotal:     null,
         });
 
         try {
@@ -86,6 +92,9 @@ class SemanticSearchQuerier extends Component {
                     const update = {};
                     if (meta.english_query) { update.englishQuery = meta.english_query; }
                     if (meta.hebrew_query) { update.hebrewQuery = meta.hebrew_query; }
+                    if (meta.phase) { update.phase = meta.phase; }
+                    update.phaseCompleted = typeof meta.completed === "number" ? meta.completed : null;
+                    update.phaseTotal = typeof meta.total === "number" ? meta.total : null;
                     if (Object.keys(update).length) { this.setState(update); }
                 },
             });
@@ -96,10 +105,13 @@ class SemanticSearchQuerier extends Component {
                 hits,
                 englishQuery: result.english_query,
                 hebrewQuery: result.hebrew_query,
+                phase: null,
+                phaseCompleted: null,
+                phaseTotal: null,
             });
         } catch (e) {
             if (controller.signal.aborted || e.name === "AbortError") { return; }
-            this.setState({isQueryRunning: false, error: true});
+            this.setState({isQueryRunning: false, error: true, phase: null, phaseCompleted: null, phaseTotal: null});
         }
     }
     render () {
