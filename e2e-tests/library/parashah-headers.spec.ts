@@ -2,15 +2,13 @@
  * PURPOSE: Verify parashah / aliyah headers in the reader (Library module).
  *   - PAR-001: with Aliyot off (default), a plain parasha header shows at the parasha start.
  *   - PAR-002: enabling Aliyot switches the headers to aliyah style, naming the parasha
- *              ("Bereshit: First"), with more than one aliyah header in the chapter.
+ *              ("Bereshit: First").
  *   - PAR-003: the same, in Hebrew, on the .org.il domain ("בראשית: ראשון").
  *
  * Data: Genesis 1 opens Parashat Bereshit (Rishon at 1:1); Bereshit's later aliyot begin
  * mid-chapter (Second at 2:4, Third at 2:19, ...). Verified against /api/texts/Genesis.N.
- *
- * NOTE: The combined "<parasha>: <aliyah>" string is produced by
- * feature/sc-29017; PAR-002/PAR-003's content assertions only pass once that
- * branch is deployed to the sandbox under test. PAR-001 passes today.
+ * So the Genesis 1 view holds a single aliyah header — the Rishon's; later aliyot begin
+ * in ch. 2 and load on scroll.
  */
 
 import { test, expect, Page } from '@playwright/test';
@@ -58,9 +56,6 @@ test.describe('Reader — Parashah & Aliyah headers (English)', () => {
     await expect(aliyahHeaders.first()).toBeVisible({ timeout: t(15000) });
     // The Rishon now reads "Bereshit: First".
     await expect(aliyahHeaders.first()).toContainText(/Bereshit:\s*First/i);
-    // Aliyah 1 (Rishon) spans Gen 1:1–2:3, so the Genesis 1 view holds exactly one
-    // aliyah header; later aliyot begin in ch. 2 and load on scroll.
-    expect(await aliyahHeaders.count()).toBeGreaterThanOrEqual(1);
   });
 });
 
@@ -79,7 +74,5 @@ test.describe('Reader — Parashah & Aliyah headers (Hebrew)', () => {
     await expect(aliyahHeaders.first()).toBeVisible({ timeout: t(15000) });
     // The Rishon now reads "בראשית: ראשון".
     await expect(aliyahHeaders.first()).toContainText(/בראשית:\s*ראשון/);
-    // See PAR-002: only the Rishon's header falls within the Genesis 1 view.
-    expect(await aliyahHeaders.count()).toBeGreaterThanOrEqual(1);
   });
 });
