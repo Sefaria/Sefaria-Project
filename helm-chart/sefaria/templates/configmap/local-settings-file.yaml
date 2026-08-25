@@ -156,6 +156,13 @@ data:
     GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv("GOOGLE_OAUTH2_CLIENT_SECRET")
     # This is the field that is actually used
     GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH = "/client-secret/client_secrets.json"
+    GOOGLE_SSO_CLIENT_ID = os.getenv('GOOGLE_SSO_CLIENT_ID')
+
+    APPLE_SSO_CLIENT_ID = os.getenv('APPLE_SSO_CLIENT_ID')
+    APPLE_SSO_IOS_BUNDLE_ID = os.getenv('APPLE_SSO_IOS_BUNDLE_ID')
+    APPLE_SSO_TEAM_ID = os.getenv('APPLE_SSO_TEAM_ID')
+    APPLE_SSO_KEY_ID = os.getenv('APPLE_SSO_KEY_ID')
+    APPLE_SSO_PRIVATE_KEY = os.getenv('APPLE_SSO_PRIVATE_KEY')
 
     SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
     SESSION_CACHE_ALIAS = "default"
@@ -188,7 +195,10 @@ data:
     SEARCH_INDEX_ON_SAVE = True
     SEARCH_INDEX_NAME_TEXT = os.getenv("SEARCH_INDEX_NAME_TEXT", "text")  # name of the ElasticSearch index to use
     SEARCH_INDEX_NAME_SHEET = os.getenv("SEARCH_INDEX_NAME_SHEET", "sheet")
-
+    SEARCH_INDEX_NAME_TOPIC = os.getenv("SEARCH_INDEX_NAME_TOPIC", "topic")
+    SEARCH_INDEX_NAME_BOOK = os.getenv("SEARCH_INDEX_NAME_BOOK", "book")
+    SEARCH_INDEX_NAME_CATEGORY = os.getenv("SEARCH_INDEX_NAME_CATEGORY", "category")
+    
     USE_NODE = True
     NODE_HOST = "http://{}:3000".format(nodejsHost)
     NODE_TIMEOUT = 5

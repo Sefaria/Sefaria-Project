@@ -836,7 +836,7 @@ class Util {
      * @returns {string|null} - The cookie domain (e.g., ".sefaria.org") or null if no domain should be set
      */
     static getCookieDomain() {
-        const hostnames = Array.from(Sefaria.getDomainHostnames());
+        const hostnames = Array.from(Sefaria.getCurrentLangHostnames());
 
         // Skip domain setting for local development.
         // IP addresses don't have subdomain support.

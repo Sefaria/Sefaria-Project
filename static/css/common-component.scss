@@ -1,0 +1,197 @@
+/*
+ * Shared auth-component styles.
+ * Used by the common/ components (Input, Captcha)
+ * and the auth-primary Button variant.
+ *
+ * No font-family or dir rules — these are inherited from the site.
+ * No !important rules (see auth.scss for the one exception, the Google SDK
+ * overlay's inline-style override).
+ */
+
+// ── SCSS vars ────────────────────────────────────────────────────────────────
+$sef-error:           #c03522;
+$sef-text-primary:    #121212;
+$sef-text-muted:      #707070;
+$sef-surface:         #ffffff;
+$sef-border-default:  #e6e6e6;
+$sef-surface-disabled:#f5f5f5;
+
+$sp-1:  4px;
+$sp-2:  8px;
+$sp-3:  12px;
+$sp-4:  16px;
+$sp-6:  24px;
+
+$font-size-field: 16px;
+$font-size-label: 14px;
+$font-size-error: 14px;
+$stroke:          1px;
+$stroke-strong:   1.5px;
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Input
+// ══════════════════════════════════════════════════════════════════════════════
+.sefaria-input {
+  display: flex;
+  flex-direction: column;
+  gap: $sp-2;
+  width: 100%;
+
+  &-labelRow {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: $sp-2;
+  }
+
+  &-label {
+    font-size: $font-size-label;
+    line-height: 1.3;
+    color: $sef-text-primary;
+  }
+
+  &-trailingLink {
+    font-size: $font-size-label;
+    color: var(--sefaria-blue);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
+  &--disabled .sefaria-input-label {
+    color: var(--medium-grey-legacy);
+  }
+
+  &-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    &.has-trailing-icon .sefaria-input-control {
+      padding-inline-end: 40px;
+    }
+  }
+
+  &-control {
+    width: 100%;
+    box-sizing: border-box;
+    height: 45px;
+    padding: 0 $sp-4;
+    border: $stroke solid $sef-border-default;
+    border-radius: 4px;
+    background: $sef-surface;
+    color: $sef-text-primary;
+    font-size: $font-size-field;
+    line-height: 1.45;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+
+    &::placeholder {
+      color: var(--medium-grey-legacy);
+      font-size: $font-size-label;
+      opacity: 1;
+    }
+
+    &:hover:not(:disabled)  { border-color: var(--medium-grey-legacy); }
+    &:focus                 { border-color: var(--light-grey); }
+
+    &:disabled {
+      background: $sef-surface-disabled;
+      color: var(--medium-grey-legacy);
+      border-color: $sef-border-default;
+      cursor: not-allowed;
+    }
+  }
+
+  &--error .sefaria-input-control { border-color: $sef-error; }
+
+  // Password reveal toggle
+  &-reveal {
+    position: absolute;
+    inset-inline-end: $sp-3;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    margin: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: $sef-text-muted;
+    direction: ltr;
+
+    img { width: 20px; height: 20px; display: block; }
+  }
+
+  // Inline error message
+  &-error {
+    display: flex;
+    align-items: center;
+    gap: $sp-1;
+    color: $sef-error;
+    font-size: $font-size-error;
+    line-height: 1.3;
+  }
+
+  &-errorIcon { width: 16px; height: 16px; flex: 0 0 auto; }
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Auth-primary button variant
+// Layered on the .sefaria-common-button reset in common-components.css
+// ══════════════════════════════════════════════════════════════════════════════
+button.sefaria-common-button.auth-primary,
+a.sefaria-common-button.auth-primary {
+  background-color: var(--sefaria-blue);
+  border: $stroke-strong solid var(--sefaria-blue);
+  border-radius: 4px;
+  font-size: $font-size-field;
+  font-weight: 600;
+  height: 51px;
+  color: #ffffff;
+
+  * { color: #ffffff; }
+
+  &:hover { background-color: #132b4c; }
+}
+
+button.sefaria-common-button.auth-primary:disabled {
+  cursor: not-allowed;
+}
+
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Captcha wrapper
+// ══════════════════════════════════════════════════════════════════════════════
+.sefaria-captcha {
+  display: flex;
+  flex-direction: column;
+  gap: $sp-2;
+  width: 100%;
+
+  &-box {
+    display: block;
+    width: 100%;
+    border-radius: 2px;
+  }
+
+  &--error .sefaria-captcha-box {
+    outline: $stroke solid $sef-error;
+    outline-offset: -1px;
+  }
+
+  &-error {
+    display: flex;
+    align-items: center;
+    gap: $sp-2;
+    color: $sef-error;
+    font-size: $font-size-error;
+    line-height: 1;
+
+    img { width: 18px; height: 18px; flex: 0 0 18px; }
+  }
+}

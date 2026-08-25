@@ -238,3 +238,6 @@ Add it to the `app_props` dict in that page's view function before calling `rend
 
 ### Managing feature flags
 Use `UserExperimentSettings` via Django admin. Bulk-enable via CSV upload. Check with `user_has_experiments(request.user)` or `request.user.experiments` in views.
+
+### The Library Assistant switch
+Not a feature flag: it is a per-user setting at `profile.settings["library_assistant"]`, read and written only through `sefaria.helper.library_assistant`. Until every profile has been backfilled, an absent key falls back to the old rule (`UserExperimentSettings` row exists AND `profile.experiments`), so never read the key directly — call `is_enabled(profile)` / `is_enabled_for_user(user)`.

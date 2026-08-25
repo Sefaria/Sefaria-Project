@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from django.urls import re_path
 from django.contrib import admin
 from sefaria.settings import ADMIN_PATH
@@ -17,6 +17,10 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 shared_patterns = [
+    path('_allauth/', include('allauth.headless.urls')),
+    path('accounts/', include('allauth.urls')),
+    path('', include('sso.urls')),
+
     re_path(fr'^login/?$', sefaria_views.CustomLoginView.as_view(), name='login'),
     re_path(fr'^register/?$', sefaria_views.register, name='register'),
     re_path(fr'^enable-library-assistant/?$', reader_views.enable_library_assistant, name='enable_library_assistant'),
@@ -191,6 +195,7 @@ shared_patterns = [
     path('api/search-wrapper/es6', reader_views.search_wrapper_api, {'es6_compat': True}),
     path('api/search-wrapper/es8', reader_views.search_wrapper_api),
     path('api/search-wrapper', reader_views.search_wrapper_api, {'es6_compat': True}),
+    re_path(r'^api/entity-search/?$', reader_views.entity_search_api),
     path('api/search-path-filter/<path:book_title>', reader_views.search_path_filter),
 
     re_path(r'^api/(?P<action>(follow|unfollow))/(?P<uid>\d+)$', reader_views.follow_api),
