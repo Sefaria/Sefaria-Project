@@ -30,18 +30,23 @@ use a bare `page.goto` plus a Strapi route, keeping Strapi **on**.
 | [`strapi.fixtures.js`](strapi.fixtures.js) | The `SCENARIOS` map (one entry per recorded Strapi state) plus the setup helpers: `prepareStrapiPage`, `useInterfaceLanguage`, `advanceUntilVisible`, `advanceBy`, `waitForTimerArmed`. |
 | [`strapi-payload-contract.spec.js`](strapi-payload-contract.spec.js) | Holds the factory's field set to what every committed recording actually contains — the guard that keeps synthetic payloads honest. Needs no server. |
 | [`strapi-show-delay.spec.js`](strapi-show-delay.spec.js) | *(synthetic)* Each surface waits exactly its own `showDelay` — hidden a second before, visible a second after, with two surfaces on different delays. |
-| [`strapi-selection-order.spec.js`](strapi-selection-order.spec.js) | *(synthetic)* Only the first date-active banner/modal is surfaced; reversing the order flips the winner; an English-only banner masks a Hebrew-only one. Carries the known-gap `test.fail` for targeting-after-selection. |
-| [`strapi-excluded-paths.spec.js`](strapi-excluded-paths.spec.js) | *(synthetic)* A surface is withheld on the page its own button points at — including when it is the *other* locale's button URL that collides. |
-| [`strapi-payload-resilience.spec.js`](strapi-payload-resilience.spec.js) | *(synthetic)* Empty, v4-shaped, 500 and non-JSON responses degrade to "no promotions" with the page intact. |
+| [`strapi-selection-order.spec.js`](strapi-selection-order.spec.js) | *(synthetic)* Selection runs every viewer gate (locale, country, dismissal) and ranks eligible documents by specificity — Hebrew readers get their own document past English competitors, a dismissed winner falls through to the runner-up, a shorter window outranks a longer one, and identical documents tie to payload order. |
+| [`strapi-audience.spec.js`](strapi-audience.spec.js) | *(synthetic)* The audience gate for anonymous readers: `logged_out_only` shows and `logged_in_only` doesn't, and new vs. returning visitors (a fresh context IS a new visitor; returning is seeded by writing what `markUserAsReturningVisitor` writes). Mixed payloads prove selection-time filtering in both orders. |
+| [`strapi-audience-real.spec.js`](strapi-audience-real.spec.js) | *(synthetic, real session)* `logged_in_only` against a genuine Django session via `test.use({storageState})` — the newsletter suite's `*-real` pattern. Also pins that a logged-in reader is ALWAYS a returning visitor (ReaderApp marks them so). Skips with a message unless `PLAYWRIGHT_USER_EMAIL`/`PASSWORD` are set. |
+| [`strapi-excluded-paths.spec.js`](strapi-excluded-paths.spec.js) | *(synthetic)* A surface is withheld on the page its own button points at — including when it is the *other* locale's button URL that collides. Also pins the render-guard boundary from both sides: the colliding document is STILL the selected winner (nothing shows on the colliding page — the runner-up is never promoted — and the same winner renders on every other page). |
+| [`strapi-payload-resilience.spec.js`](strapi-payload-resilience.spec.js) | *(synthetic)* Empty, v4-shaped, 500, non-JSON, and GraphQL-errors-inside-a-200 responses all degrade to "no promotions" with the page intact — the errors-in-200 case also proves a seeded dismissal key survives it (see below). |
+| [`strapi-malformed-documents.spec.js`](strapi-malformed-documents.spec.js) | *(synthetic)* One bad document among healthy ones costs only itself: broken dates are skipped by the gates, null/junk rows are dropped loudly by row hygiene (`SKIPPED_ROWS_LOG`), and an unparseable buttonURL on the selected doc can no longer crash the React tree. Also pins that a discarded row's dismissal key survives — `groupByDocumentIdWithDiagnostics`'s `discardedRowCount` tells `context.js` to skip stale-dismissal pruning for that content type until a healthy response confirms the document is truly gone. |
+| [`strapi-dismissal-lifecycle.spec.js`](strapi-dismissal-lifecycle.spec.js) | *(synthetic)* Dismissal-state seams crossed the way a user crosses them — real clicks, real reloads, no seeded storage: banner/modal dismissals stay independent even under a shared internal name; the CTA button click dismisses exactly like the × (engaging with a campaign retires it for the runner-up); a dismissed-then-unpublished campaign gets a fresh showing when republished; a dismissal survives client-side browsing (TOC → book → reader → resource panel, with timer-capture non-vacuity anchors); and the next session (storageState = carried localStorage, fresh sessionStorage) crosses the new→returning visitor transition. The drain sequence (winner → runner-up → quiet) lives in `strapi-selection-order.spec.js`. |
+| [`strapi-static-pages.spec.js`](strapi-static-pages.spec.js) | *(synthetic)* headerOnly static pages (/testimonials, /team) get banners AND modals, and revealing the banner adds the `hasBannerMessage` layout class to `<body>` — a branch that exists only for this mode (with the /texts negative control). Also pins that /team's own DIRECT `STRAPI_INSTANCE/graphql` fetch and the promotions' `/api/strapi/graphql-cache` are separate channels: each consumer renders from its own synthetic response, and neither route answers the other's request. |
 | [`strapi-modal.spec.js`](strapi-modal.spec.js) | A published modal reaches the client and renders. Asserts nothing about banners or sidebar ads. |
-| [`strapi-modal-hebrew.spec.js`](strapi-modal-hebrew.spec.js) | Locale separation for modals: a Hebrew-only modal renders under Hebrew UI (header + button) and not under English UI. |
+| [`strapi-modal-hebrew.spec.js`](strapi-modal-hebrew.spec.js) | Locale separation for modals: a Hebrew-only modal renders under Hebrew UI (header + button) and not under English UI; body text also asserted right-aligned (`direction`+`text-align`). |
 | [`strapi-modal-bilingual.spec.js`](strapi-modal-bilingual.spec.js) | Both locales published: each interface shows its own copy, plus the optional-header asymmetry. |
 | [`strapi-banner-expired.spec.js`](strapi-banner-expired.spec.js) | An expired banner is delivered in the payload but not rendered — the client-side date gate. |
 | [`strapi-banner-future.spec.js`](strapi-banner-future.spec.js) | A not-yet-started banner, same idea from the other side of the window. |
 | [`strapi-banner-country-targeting.spec.js`](strapi-banner-country-targeting.spec.js) | Per-locale targeting on the banner call site: one viewer country for which the two locales disagree, plus each rule's own positive/negative. |
 | [`strapi-modal-country-targeting.spec.js`](strapi-modal-country-targeting.spec.js) | `countriesToTarget` include-list gating, per locale — an English viewer outside the list is turned away while a Hebrew viewer in the same country is not. |
 | [`strapi-banner.spec.js`](strapi-banner.spec.js) | A published banner renders; and dismissing it keeps it hidden across a reload. Asserts nothing about modals or sidebar ads. |
-| [`strapi-banner-hebrew.spec.js`](strapi-banner-hebrew.spec.js) | Locale separation: a Hebrew-only banner renders under Hebrew UI (with its own per-locale button) and not under English UI. |
+| [`strapi-banner-hebrew.spec.js`](strapi-banner-hebrew.spec.js) | Locale separation: a Hebrew-only banner renders under Hebrew UI (with its own per-locale button) and not under English UI; body text also asserted right-aligned (`direction` only — see below). |
 | [`strapi-banner-bilingual.spec.js`](strapi-banner-bilingual.spec.js) | Both locales published: each interface shows only its own copy and its own button URL. |
 | [`strapi-sidebar-ad.spec.js`](strapi-sidebar-ad.spec.js) | Keyword targeting: an English ad shows on the prayer/beliefs topic categories and not on social-issues. |
 | [`strapi-sidebar-ad-hebrew.spec.js`](strapi-sidebar-ad-hebrew.spec.js) | The same ad published only in Hebrew: keyword targeting under Hebrew UI, and absent under English UI. |
@@ -78,9 +83,7 @@ Per-scenario quirks worth knowing, because they shaped the assertions:
 - **Modal (Hebrew row)**: by contrast it *does* have a `modalHeader`, so the `int-he` `<h1>`
   renders and is asserted. Same field, opposite nullability per locale on the same document.
 - **Banner**: `bannerText` is markdown (`**MATCHING**` → `<strong>`), so the asserted substring
-  deliberately avoids the bold span. Banners also carry a gate modals do not —
-  `if (Sefaria.experiments) return false` — which passes here because anonymous users get
-  `experiments: False` from the server.
+  deliberately avoids the bold span.
 - **Hebrew-only banner**: the *same document* as `publishedBanner` with a different locale
   published, which is why one recording covers both directions of locale separation — the GraphQL
   query always asks for every locale, so the request is identical under either interface language
@@ -134,6 +137,32 @@ case still passes.
 result `enInHe` / `heInEn`. That is a *different* mechanism from the banner's locale gate, which
 prevents rendering entirely — don't confuse the two when a locale is missing.
 
+### Right-alignment assertions: check `direction`, not `text-align`
+
+Both the modal and the banner need to render right-to-left under Hebrew, but they get there through
+different CSS, and only one of the two sets an explicit `text-align`:
+
+| | Explicit rule | Selector |
+| --- | --- | --- |
+| Modal | `text-align: right` **and** `direction: rtl` | `.interface-hebrew #defaultModal` (s2.css:1048-1051) |
+| Banner | `direction: rtl` only | `.interface-hebrew #bannerMessage` (s2.css:306-308) |
+
+`text-align`'s initial value is the *logical* keyword `start` — "whichever edge `direction`
+currently calls the beginning." An element that inherits `direction: rtl` without ever setting its
+own `text-align` renders right-aligned, but `getComputedStyle` still reports the literal string
+`"start"`, never `"right"`. Verified live: a `#bannerTextBox`-shaped element computes
+`text-align: start` under **both** `interface-english` (`direction: ltr`) and `interface-hebrew`
+(`direction: rtl`) — only `direction` differs between the two.
+
+That makes `toHaveCSS('text-align', 'start')` untrustworthy as an assertion on the banner: it is
+true regardless of interface language, so it cannot fail for the regression it would exist to catch
+(delete the `.interface-hebrew #bannerMessage { direction: rtl }` rule entirely and `text-align`
+still reports `start`). `direction` is the one property this app's CSS actually controls for the
+banner, so it is the only one worth asserting there; the modal, which sets both explicitly, asserts
+both. See the `'renders Hebrew body text right-aligned'` tests in `strapi-modal-hebrew.spec.js` and
+`strapi-banner-hebrew.spec.js`. The same trap will resurface if Hebrew coverage is ever added for
+the sidebar ad — check whether its container sets `text-align` before assuming either form is safe.
+
 ### `shouldShow()` excludes the page a button links to
 
 Both banners and modals refuse to render on the pathname their own button points at:
@@ -172,8 +201,8 @@ Both pin the **same instant**, so the pair differs only in where the content sit
 They are not redundant: if the first comparison were inverted, every expired test would still pass.
 
 **Sidebar ads get all three states in one recording**, because Promotions filters each ad
-independently and renders every match, whereas `context.js` surfaces only the first date-active
-banner/modal. `sidebarAdDateStates` holds an expired, an active and a future ad that are identical
+independently and renders every match, whereas `context.js` surfaces only a single
+highest-priority banner/modal. `sidebarAdDateStates` holds an expired, an active and a future ad that are identical
 apart from title and window — same `!everywhere` keywords, `showTo`, `debug` and locale — so the
 date is the only thing that can separate them, and if the filter were ignored all three would
 render. The active ad doubles as the positive control.
@@ -183,14 +212,15 @@ other:
 
 | surface | where | shape |
 | --- | --- | --- |
-| banner / modal | `context.js` | `.find()` — selects the first active item |
+| banner / modal | `context.js` → `strapiSelection.js` | `isDateActive` gate — an out-of-window document is never eligible for selection |
 | sidebar ad | `Promotions.jsx` | `.filter()` — rejects each inactive ad |
 
 Two design choices make that assertion mean something:
 
-- **The viewer country is GB, not US.** The banner targets `exclude [US]`, which GB passes, so
-  expiry is the *only* gate it fails. Under a US viewer it would fail two gates at once and its
-  absence would prove nothing about dates.
+- **The viewer's plausible-country set is pinned to `{GB}`.** The banner targets `exclude [US]`,
+  which `{GB}` passes, so expiry is the *only* gate it fails. The test neutralizes the configured
+  timezone's country hint and uses an `en-GB` browser locale without changing the timezone used by
+  `Date`, which keeps the HAR request stable.
 - **The positive control is a real render**, not just "a response arrived": a co-published modal is
   still active at the pinned clock, and the test waits for it to appear. That one step proves the
   payload arrived, the clock advanced past `showDelay`, and rendering works.
@@ -201,20 +231,22 @@ the test fails.
 ### Choosing a viewer country that can actually detect the bug
 
 Per-locale targeting is only observable through a viewer for whom the two locales **disagree**. The
-banner scenario targets `en → exclude [US]` and `he → include [IL]`, which makes GB the
-discriminating country: English shows the banner (GB is not excluded), Hebrew does not (GB is not
-included). An IL or US viewer gets the same answer from both locales, so those cases cannot tell a
-correct implementation from one that applies the English row to everything.
+banner scenario targets `en → exclude [US]` and `he → include [IL]`. An IL IP-country signal plus
+the configured America/New_York timezone produces plausible countries `{IL, US}`: English hides
+because US intersects its exclude-list, while Hebrew shows because IL intersects its include-list.
+A GB or US viewer gets the same answer from both locales, so those cases cannot tell a correct
+implementation from one that applies the English row to everything.
 
-Verified by running the spec against the pre-fix code: of its four tests, **exactly one failed** —
-the Hebrew half of the GB pair. Worth remembering when adding targeting scenarios: pick the viewer
+Verified by running the spec against the pre-fix code: of its tests, **exactly one failed** —
+the Hebrew half of the IL pair. Worth remembering when adding targeting scenarios: pick the viewer
 country where the rules conflict, or the test proves nothing about localization.
 
 ### These specs complement the Jest tests, they do not repeat them
 
 `static/js/sefaria/tests/` already covers the pure logic exhaustively — `strapiTargeting.test.js`
 (every `countryMode`, empty/null lists), `countryCandidates.test.js` (how IP, timezone and locale
-signals combine), `strapiLocalization.test.js` (the `documentId` grouping). 67 tests, all green.
+signals combine), `strapiLocalization.test.js` (the `documentId` grouping), and
+`strapiSelection.test.js` (eligibility, fallthrough, and ranking). 129 tests, all green.
 
 What unit tests cannot reach is the **call site**: whether the component feeds those functions the
 right object for the document actually on screen, once the payload has been fetched, merged and
@@ -228,7 +260,7 @@ Worth reading before extending that surface — four differences, each of which 
 | | Banners / modals | Sidebar ads |
 | --- | --- | --- |
 | Locale filtering | rows merged per `documentId`, component gates on `locales.includes(active)` | one in-app ad emitted **per locale**, filtered by `ad.trigger.interfaceLang === context.interfaceLang` |
-| How many render | only the FIRST date-active one is surfaced by `context.js` | Promotions renders **all** matches |
+| How many render | exactly ONE — the highest-priority eligible document (gates + ranking, `strapiSelection.js`) | Promotions renders **all** matches |
 | Delay | `showDelay` timer must elapse | none — renders as soon as the payload lands, so ad specs never advance the clock |
 | Extra gating | date window, country, showTo, excluded paths | date window, showTo, `debug`, and **keyword overlap with the page** |
 
@@ -264,7 +296,8 @@ Every gate each surface applies, so a new scenario can be checked against this b
 | date window: expired / future | — | ✓ ✓ (`context.js` selection) | ✓ ✓ (`Promotions` filtering) |
 | dismissal persists across reload | — | ✓ | n/a — no dismiss control |
 | `showDelay` boundary | ✓ *(synthetic)* | ✓ *(synthetic)* | n/a — no delay on this type |
-| selection among several in-window | ✓ *(synthetic)* | ✓ *(synthetic; locale masking marked as a known gap)* | n/a — all matches render |
+| selection among several in-window | ✓ *(synthetic; locale gate + ranking)* | ✓ *(synthetic; locale + country gates, dismissal fallthrough, window ranking)* | n/a — all matches render |
+| audience: `showTo` / visitor kind | — (same code path as the modal) | ✓ *(synthetic; logged-out + new/returning; logged-in via `-real`, needs creds; sustainer uncovered)* | `showTo: "all"` only |
 | `excludedPaths`, incl. cross-locale | ✓ *(synthetic)* | — (same code path as the modal) | n/a |
 | malformed / failed response | ✓ *(synthetic)* | ✓ *(synthetic)* | ✓ *(synthetic)* |
 
@@ -273,36 +306,49 @@ Deliberately **not** covered, with reasons:
 - **More country modes or edge cases at this layer.** `matchesCountryTarget` has ~28 exhaustive Jest
   cases; integration owns the wiring, not the predicate. Two country cases per call site is the
   budget — a synthetic country matrix would be cheap to write and would still be duplication.
-- **Logged-in visitor states** (`showTo: logged_in_only`, sustainer, returning-visitor). Needs an
-  authenticated profile; every scenario so far runs logged out. The factory removes the *payload*
-  obstacle, so this is now only an auth-fixture problem.
+- **Sustainer vs. non-sustainer.** The one audience state still uncovered: `is_sustainer` comes
+  from the user profile and cannot be seeded client-side, so it needs a sustainer-flagged test
+  account. Everything else in the audience gate IS covered now — `strapi-audience.spec.js`
+  (anonymous: `logged_out_only`, new vs. returning visitors via the web-storage lever) and
+  `strapi-audience-real.spec.js` (`logged_in_only` against a real Django session; skips with a
+  message when `PLAYWRIGHT_USER_EMAIL`/`PASSWORD` are absent).
 - **Mobile viewport.** `shouldDeployOnMobile` exists on the payload and is never asserted.
 - **Analytics.** Impression and interaction events fire through `gtag`/`sa_event`; see the note in
   the interaction section for why a naive stub does not capture them.
 
-### Known gap, deliberately marked
+### Selection behavior (formerly the "known gap")
 
-`strapi-selection-order.spec.js` carries **three `test.fail()` markers** for one defect: gating is
-applied *after* selection, not during it. `context.js` picks a single winner on the date window
-alone (`.find()`, lines 229 and 245), then `Misc.jsx` gates that one document — and there is no
-fallback to the runner-up, so a reader the runner-up was written for sees **nothing at all**.
+This suite once carried `test.fail()` markers for one defect: gating was applied *after*
+selection. `context.js` picked a single winner on the date window alone (`.find()`), then
+`Misc.jsx` gated that one document with no fallback to the runner-up — so a Hebrew reader saw
+**nothing at all** while any English-only document shared the window (`groupByDocumentId`
+flattens every `en` row before every `he` row, so order was never a workaround).
 
-It bites twice:
+The sc-45891 fix moved every viewer gate into selection itself
+(`static/js/sefaria/strapiSelection.js`, shared with `shouldShow()`): date window, locale,
+country, audience (`showTo` + user-kind flags), and dismissal all run *before* the list is
+collapsed, so an ineligible document is skipped in favor of one the viewer can see. Among several
+eligible documents the most specific wins, tier by tier:
 
-- **Country** (1 marker). Two modals scheduled at the same time targeting different countries: the
-  first wins on date, fails the country check, and the modal aimed at this viewer is never
-  reconsidered. Listing the right one first *does* rescue it, so order is at least a workaround.
-- **Locale** (2 markers). An English-only and a Hebrew-only banner over the same window: the
-  English one is handed to everyone and rejected for Hebrew readers. **Order is not a workaround
-  here** — `groupByDocumentId` flattens every `en` row before every `he` row, so the English
-  document sorts first however the payload was ordered. Measured across all four combinations: the
-  English reader is served either way, the Hebrew reader neither way. So a Hebrew-only banner
-  cannot reach Hebrew readers at all while any English banner shares its window. Both orders are
-  marked, so a partial fix that merely respected payload order cannot close the gap prematurely.
+1. country include-list naming the viewer > untargeted;
+2. restricted audience > everyone;
+3. locale-exclusive > bilingual;
+4. shorter date window > longer;
+5. earlier start date > later (equal-length overlaps expire in start order, so the earlier one
+   is the more urgent — the viewer will still see the later one after it ends);
+6. payload order (stable) breaks remaining ties.
 
-Each marker is paired with passing controls proving the content renders in isolation, so the
-failure is "nothing was surfaced", not "this document is unrenderable". A fix is planned
-separately; Playwright fails the run the moment a marker starts passing, so they close themselves.
+Two tier orderings were examined and deliberately ratified (2026-08-13), each pinned by its own
+unit + e2e tests: **exclusivity beats urgency** (a locale-exclusive weekly outranks a bilingual
+daily for its reader) and **country targeting beats urgency** (an include-targeted monthly
+outranks an untargeted daily for a viewer both may address).
+
+Two consequences worth knowing when writing tests here: a **dismissed** document is ineligible, so
+the runner-up wins the next load (dismissal keys are kept for every document still in the payload
+and dropped for vanished ones); and the **path guard** (`/donate` etc. + the button's own page)
+stays display-only, so the winner is page-independent and nothing is shown on excluded pages
+rather than a lower-ranked rival. The former `test.fail` markers are now ordinary passing tests in
+`strapi-selection-order.spec.js`, each still paired with its controls.
 
 ## The levers
 
@@ -523,8 +569,29 @@ Three things to know before using it:
   stale-fixture guard: here the payload always matches, so the danger is that no request happens at
   all (`STRAPI_INSTANCE` unset, or the standard entry helpers suppressing the endpoint), which
   would make every absence assertion pass while testing nothing.
-- **Row order within each alias is the order documents are passed** — a documented guarantee, since
-  `context.js` selects with `.find()` and order decides the winner.
+- **Row order within each alias is the order documents are passed** — a documented guarantee.
+  Selection ranks eligible documents by specificity and payload order is only the final tie-break
+  (tier 6), but the tests that pin tie-break outcomes depend on this order being stable.
+
+### Absence assertions need a positive anchor
+
+A recurring principle in this suite, worth naming because it keeps appearing in new clothes:
+"still not visible" can be true for a dozen wrong reasons — the payload never arrived, the clock
+never moved, the element was renamed, the page crashed. An absence assertion becomes trustworthy
+only when paired with a **positive fact that bounds it**: find something the forbidden behavior
+would *have* to change — a served-request list, an armed timer, a monotonic counter — and assert
+it as well. Instances already in the suite:
+
+| Absence being asserted | Positive anchor that bounds it |
+| --- | --- |
+| "this surface never rendered" | `expectStrapiServed` / `expectStrapiServedFromHar` — the payload really reached the page |
+| "hidden before its delay" | `waitForTimerArmed` — the timer exists, so advancing the clock past it means something |
+| "did not render under the other locale/audience" | a sibling test renders the same document for the audience it *does* target |
+| "a dismissed banner never came back during in-app browsing" | the instrumented `setTimeout` capture shows exactly ONE arm of the banner's (unique) delay, and the capture array surviving proves no reload quietly re-ran selection (`strapi-dismissal-lifecycle.spec.js`) |
+| "nothing rendered when GraphQL reported errors inside a 200" | a seeded dismissal key surviving the response — if the error were mistaken for genuine "nothing published," the dismissal-pruning cleanup would wipe it; a real empty response still carries a data object and prunes as designed, so the key surviving specifically proves the error was recognized as a failed fetch, not just that nothing rendered (`strapi-payload-resilience.spec.js`) |
+
+When writing a new absence assertion, ask: what counter, log line, or captured artifact would the
+bug have to touch? Assert that too, or the absence proves nothing.
 
 ### Which to reach for
 

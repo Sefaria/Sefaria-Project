@@ -88,8 +88,9 @@ export const SCENARIOS = {
    *
    * Strapi also holds three other Hebrew modals and a Hebrew sidebar ad, but their date windows
    * fall outside this scenario's ±14-day fetch range — verified against the live endpoint before
-   * recording. That isolation matters more for modals than for banners: context.js surfaces only
-   * the FIRST date-active modal, so a second in-window modal could mask this one entirely.
+   * recording. That isolation matters more for modals than for banners: selection surfaces a
+   * single winner (gates + ranking, strapiSelection.js), so another eligible in-window modal
+   * could outrank and mask this one entirely.
    *
    * Note the contrast with the English row of the same document: this row HAS a modalHeader
    * ('Support Sefaria'), so an <h1 class="int-he"> renders and is asserted, whereas the English
@@ -416,18 +417,15 @@ export const SCENARIOS = {
    * covers the modal path; this covers the banner one, and additionally exercises `exclude` mode,
    * which the modal scenario does not.
    *
-   * THE DISCRIMINATING VIEWER IS GB. The two locales disagree for that viewer — English shows
-   * (GB is not on the exclude-list) while Hebrew does not (GB is not on the include-list). Under
-   * the pre-fix code, where the English row's targeting governed every locale, BOTH interfaces
-   * would have shown the banner. A viewer for whom the locales happen to agree could not tell the
-   * two implementations apart.
+   * THE DISCRIMINATING VIEWER IS IL. The two locales disagree for that viewer — English hides
+   * because the America/New_York timezone makes US a plausible country, while Hebrew shows because
+   * the IP-country header makes IL plausible. Under the pre-fix code, where the English row's
+   * targeting governed every locale, BOTH interfaces would have hidden the banner. A viewer for
+   * whom the locales happen to agree could not tell the two implementations apart.
    *
-   * EXCLUDE IS NOT THE MIRROR OF INCLUDE. strapiTargeting.js deliberately maximises recall:
-   *     candidates.size === 0 || [...candidates].some((code) => !targetCodes.includes(code))
-   * i.e. a viewer is excluded only once EVERY plausible candidate country is on the list. The
-   * config's America/New_York timezone contributes 'us' to every candidate set, so the GB viewer's
-   * candidates are {gb, us} and the English banner still shows, because 'gb' escapes the list.
-   * Only a viewer whose every signal says US is turned away.
+   * INCLUDE AND EXCLUDE ARE MIRRORS OVER THE PLAUSIBLE-COUNTRY SET. Any intersection with an
+   * include-list admits the viewer; any intersection with an exclude-list withholds them. Thus the
+   * IL viewer's candidates {il, us} are enough both to pass include [IL] and fail exclude [US].
    *
    * pinnedNow is deliberately a DAY LATER than the other banner scenarios (2026-08-06 rather than
    * 08-05), giving this fixture its own request URL and its own key in the date-keyed Django cache.
@@ -437,10 +435,8 @@ export const SCENARIOS = {
     pinnedNow: '2026-08-06T16:00:00.000Z',
     /** Sent as the `cf-ipcountry` header; see the spec for why that, and not `timezoneId`. */
     viewerCountries: {
-      // The locales disagree for this viewer: english shows, hebrew does not.
-      discriminating: 'GB',
-      // On the Hebrew include-list.
-      hebrewIncluded: 'IL',
+      // The locales disagree for this viewer: English hides, Hebrew shows.
+      discriminating: 'IL',
       // On the English exclude-list.
       englishExcluded: 'US',
     },
@@ -570,9 +566,9 @@ export const SCENARIOS = {
    *
    * WHY ADS ARE THE RIGHT SURFACE FOR THIS. Promotions filters each ad independently and renders
    * every match, so all three date states coexist in one payload and one page load — whereas
-   * context.js surfaces only the FIRST date-active banner/modal, which is why those needed a
+   * selection surfaces only a single winning banner/modal, which is why those needed a
    * recording each. It is also a genuinely different implementation of the same rule:
-   *   banner/modal → context.js  `.find()`   — selects the first active item
+   *   banner/modal → strapiSelection.js `isDateActive` — an out-of-window doc is never eligible
    *   sidebar ad   → Promotions  `.filter()` — rejects each inactive ad
    *
    * EVERY OTHER GATE IS NEUTRALISED so the date is the only differentiator:

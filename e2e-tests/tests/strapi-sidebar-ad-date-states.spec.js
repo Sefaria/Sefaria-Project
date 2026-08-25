@@ -5,10 +5,10 @@
  *
  * WHY THIS SURFACE GETS ALL THREE STATES IN ONE RECORDING. Promotions filters each ad
  * independently and renders every match, so the three states coexist on a single page load.
- * context.js instead surfaces only the FIRST date-active banner/modal, which is why those needed a
+ * Selection instead surfaces only a single winning banner/modal, which is why those needed a
  * recording per state (strapi-banner-expired / strapi-banner-future). The two surfaces are also
  * separate implementations of the same rule, so neither set of tests covers the other:
- *   banner/modal → context.js  `.find()`   — selects the first active item
+ *   banner/modal → strapiSelection.js `isDateActive` — an out-of-window doc is never eligible
  *   sidebar ad   → Promotions  `.filter()` — rejects each inactive ad
  *
  * WHAT MAKES THE ASSERTION MEAN SOMETHING. All three ads are identical apart from their titles and
