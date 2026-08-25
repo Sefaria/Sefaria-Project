@@ -710,6 +710,26 @@ class TestScoreResult:
     def test_returns_zero_on_llm_config_error(self, mock_get_llm):
         assert score_result("query", "text") == 0
 
+    @patch("semantic_search.relevance.get_chat_llm")
+    def test_passes_ref_and_index_title_to_llm(self, mock_get_llm):
+        structured_llm = mock_get_llm.return_value.with_structured_output.return_value
+        structured_llm.invoke.return_value = {"score": 5}
+        score_result("query", "text", ref="Genesis 3:14", index_title="Genesis")
+
+        message_content = structured_llm.invoke.call_args[0][0][1].content
+        assert "Ref: Genesis 3:14" in message_content
+        assert "Work: Genesis" in message_content
+
+    @patch("semantic_search.relevance.get_chat_llm")
+    def test_omits_source_block_when_ref_and_index_title_missing(self, mock_get_llm):
+        structured_llm = mock_get_llm.return_value.with_structured_output.return_value
+        structured_llm.invoke.return_value = {"score": 5}
+        score_result("query", "text")
+
+        message_content = structured_llm.invoke.call_args[0][0][1].content
+        assert "Ref:" not in message_content
+        assert "Work:" not in message_content
+
 
 class TestSummarizeResult:
     @patch("semantic_search.relevance.get_chat_llm")
@@ -722,12 +742,21 @@ class TestSummarizeResult:
         mock_get_llm.return_value.invoke.side_effect = RuntimeError("boom")
         assert summarize_result("query", "text") == ""
 
+    @patch("semantic_search.relevance.get_chat_llm")
+    def test_passes_ref_and_index_title_to_llm(self, mock_get_llm):
+        mock_get_llm.return_value.invoke.return_value = SimpleNamespace(content="summary")
+        summarize_result("query", "text", ref="Taanit 30a:13", index_title="Taanit")
+
+        message_content = mock_get_llm.return_value.invoke.call_args[0][0][1].content
+        assert "Ref: Taanit 30a:13" in message_content
+        assert "Work: Taanit" in message_content
+
 
 class TestScoreResultsParallel:
     def test_preserves_original_order_regardless_of_completion_order(self):
         items = [{"text": f"item-{i}"} for i in range(10)]
 
-        def fake_score(query, text):
+        def fake_score(query, text, **kwargs):
             # deliberately return based on content, not call order, so the test
             # can't pass just by luck of thread scheduling
             return int(text.split("-")[1]) % 5
@@ -759,12 +788,25 @@ class TestScoreResultsParallel:
         assert scores == []
         assert progress_calls == []
 
+    def test_forwards_ref_and_index_title_from_items(self):
+        items = [{"text": "item-0", "ref": "Genesis 3:14", "index_title": "Genesis"}]
+        calls = []
+
+        def fake_score(query, text, **kwargs):
+            calls.append(kwargs)
+            return 5
+
+        with patch("semantic_search.relevance.score_result", side_effect=fake_score):
+            score_results_parallel("query", items)
+
+        assert calls == [{"ref": "Genesis 3:14", "index_title": "Genesis"}]
+
 
 class TestSummarizeResultsParallel:
     def test_preserves_original_order_regardless_of_completion_order(self):
         items = [{"text": f"item-{i}"} for i in range(8)]
 
-        def fake_summarize(query, text):
+        def fake_summarize(query, text, **kwargs):
             return f"summary-{text}"
 
         with patch("semantic_search.relevance.summarize_result", side_effect=fake_summarize):
