@@ -271,25 +271,33 @@ def test_clean_rejects_non_string_email_without_raising():
 
 # --- view: POST create path ---------------------------------------------------
 
+import hashlib
+import hmac
 import json as _json
 from powered_by.views import translate_formstack_payload
 
 
-TEST_HANDSHAKE_KEY = "test-handshake-key"
+TEST_HMAC_SECRET = "test-hmac-secret"
 
 
 @pytest.fixture(autouse=True)
-def formstack_handshake_key(settings):
-    """POST now requires a matching HandshakeKey; configure one for every test."""
-    settings.FORMSTACK_HANDSHAKE_KEY = TEST_HANDSHAKE_KEY
+def formstack_hmac_secret(settings):
+    """POST now requires a valid X-FS-Signature; configure a secret for every test."""
+    settings.POWERED_BY_FORMSTACK_HMAC_SECRET = TEST_HMAC_SECRET
 
 
-def post_powered_by(client, body, handshake_key=TEST_HANDSHAKE_KEY):
-    """POST to /api/powered-by, injecting a valid HandshakeKey by default."""
-    payload = dict(body)
-    if handshake_key is not None:
-        payload["HandshakeKey"] = handshake_key
-    return client.post("/api/powered-by", data=_json.dumps(payload), content_type="application/json")
+def _sign(body_bytes, secret=TEST_HMAC_SECRET):
+    digest = hmac.new(secret.encode(), body_bytes, hashlib.sha256).hexdigest()
+    return f"sha256={digest}"
+
+
+def post_powered_by(client, body, secret=TEST_HMAC_SECRET):
+    """POST to /api/powered-by, signing the body with a valid X-FS-Signature by default."""
+    body_bytes = _json.dumps(body).encode()
+    headers = {}
+    if secret is not None:
+        headers["HTTP_X_FS_SIGNATURE"] = _sign(body_bytes, secret)
+    return client.post("/api/powered-by", data=body_bytes, content_type="application/json", **headers)
 
 
 # --- Formstack payload translation -------------------------------------------
@@ -428,32 +436,38 @@ def test_post_missing_project_name_returns_400(client):
 
 @pytest.mark.django_db
 def test_post_invalid_json_returns_400(client):
-    response = client.post("/api/powered-by", data="not json", content_type="application/json")
+    body_bytes = b"not json"
+    response = client.post(
+        "/api/powered-by",
+        data=body_bytes,
+        content_type="application/json",
+        HTTP_X_FS_SIGNATURE=_sign(body_bytes),
+    )
     assert response.status_code == 400
     assert "JSON" in response.json()["error"]
 
 
-# --- view: HandshakeKey requirement --------------------------------------------
+# --- view: X-FS-Signature requirement ------------------------------------------
 
 @pytest.mark.django_db
-def test_post_missing_handshake_key_returns_401(client):
+def test_post_missing_signature_returns_401(client):
     body = {"project_name": "New Project", "project_link": "https://unauthorized.example.com"}
-    response = post_powered_by(client, body, handshake_key=None)
+    response = post_powered_by(client, body, secret=None)
     assert response.status_code == 401
     assert not Project.objects.filter(project_link="https://unauthorized.example.com").exists()
 
 
 @pytest.mark.django_db
-def test_post_wrong_handshake_key_returns_401(client):
+def test_post_wrong_signature_returns_401(client):
     body = {"project_name": "New Project", "project_link": "https://unauthorized.example.com"}
-    response = post_powered_by(client, body, handshake_key="not-the-real-key")
+    response = post_powered_by(client, body, secret="not-the-real-secret")
     assert response.status_code == 401
     assert not Project.objects.filter(project_link="https://unauthorized.example.com").exists()
 
 
 @pytest.mark.django_db
-def test_post_returns_401_when_server_has_no_handshake_key_configured(client, settings):
-    settings.FORMSTACK_HANDSHAKE_KEY = None
+def test_post_returns_401_when_server_has_no_hmac_secret_configured(client, settings):
+    settings.POWERED_BY_FORMSTACK_HMAC_SECRET = None
     body = {"project_name": "New Project", "project_link": "https://unauthorized.example.com"}
     response = post_powered_by(client, body)
     assert response.status_code == 401

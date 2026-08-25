@@ -1,3 +1,4 @@
+import hashlib
 import hmac
 import json
 
@@ -21,7 +22,7 @@ WRITABLE_FIELDS = (
     "technical_experience", "vibe_coded", "project_why", "project_name", "project_link",
     "project_source_code", "project_reach", "project_desc", "project_category",
     "image_url", "has_pbs_logo", "consent_to_display", "creator", "creator_email",
-    "is_developer", "job_title", "found_sefaria", "submitter", "salesforce_id", "notes",
+    "is_developer", "job_title", "found_sefaria", "notes",
 )
 
 BOOLEAN_FIELDS = ("vibe_coded", "is_developer", "consent_to_display", "has_pbs_logo")
@@ -246,10 +247,11 @@ def powered_by_api(request):
 
     POST: create a new Powered by Sefaria project from a JSON body (see
     clean_and_default_post_body for field rules and defaults). Requires a
-    valid Formstack "HandshakeKey" field in the body matching
-    settings.FORMSTACK_HANDSHAKE_KEY (see _valid_handshake_key) -- unrelated
-    to the project_link exposure concern, this rejects any POST that didn't
-    come from the configured Formstack webhook. Always inserts a new row,
+    valid Formstack HMAC signature in the "X-FS-Signature" header, computed
+    over the raw request body with settings.POWERED_BY_FORMSTACK_HMAC_SECRET
+    (see _formstack_signature_ok) -- unrelated to the project_link exposure
+    concern, this rejects any POST that didn't come from the configured
+    Formstack webhook. Always inserts a new row,
     even if project_link matches an existing project -- there is no
     update/upsert path, so a caller cannot alter another project's data by
     re-submitting its project_link. Any resulting duplicates are expected to
@@ -265,26 +267,29 @@ def powered_by_api(request):
     return jsonResponse({"projects": projects})
 
 
-def _valid_handshake_key(body):
+def _formstack_signature_ok(request):
     """
-    Formstack includes the webhook's configured "Handshake Key" as a
-    top-level "HandshakeKey" field in the POST body (alongside "FormID"),
-    not as a header. FORMSTACK_HANDSHAKE_KEY lives only in the untracked
-    sefaria/local_settings.py / env, never in source control.
+    Formstack signs the raw webhook payload and sends the signature in the
+    "X-FS-Signature" header (as "sha256=<hex digest>"), computed with the
+    webhook's configured secret. POWERED_BY_FORMSTACK_HMAC_SECRET lives only
+    in the untracked sefaria/local_settings.py / env, never in source control.
     """
-    expected = getattr(settings, "FORMSTACK_HANDSHAKE_KEY", None)
-    provided = body.get("HandshakeKey") if isinstance(body, dict) else None
-    return bool(expected) and isinstance(provided, str) and hmac.compare_digest(provided, expected)
+    secret = getattr(settings, "POWERED_BY_FORMSTACK_HMAC_SECRET", None)
+    sent = request.headers.get("X-FS-Signature", "")
+    if not secret or not sent:
+        return False
+    # request.body = the exact bytes received; never re-serialise a parsed dict
+    digest = hmac.new(secret.encode(), request.body, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(f"sha256={digest}", sent)
 
 
 def _powered_by_post(request):
+    if not _formstack_signature_ok(request):   ## BEFORE json.loads
+        return jsonResponse({"error": "Unauthorized"}, status=401)
     try:
         body = json.loads(request.body)
     except (json.JSONDecodeError, UnicodeDecodeError):
         return jsonResponse({"error": "Request body must be valid JSON"}, status=400)
-
-    if not _valid_handshake_key(body):
-        return jsonResponse({"error": "Unauthorized"}, status=401)
 
     # "FormID" is part of Formstack's webhook envelope and never appears in
     # the clean-field POST contract, so its presence identifies a raw
