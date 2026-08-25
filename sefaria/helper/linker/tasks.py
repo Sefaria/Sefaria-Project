@@ -1072,9 +1072,9 @@ def parse_linker_citation_task(self, payload: dict) -> dict:
     action in the reader's linker admin sidebar). Runs on a worker, where the linker is
     already built, instead of the web pod.
     """
-    from sefaria.helper import linker_admin
+    from sefaria.helper import linker_resource_panel_admin
     logger.info("parse_linker_citation:start", task_id=self.request.id)
-    return linker_admin.parse_linker_citation(payload)
+    return linker_resource_panel_admin.parse_linker_citation(payload)
 
 
 @app.task(name="linker.rebuild_nonuniqueterm_index", bind=True)

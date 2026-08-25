@@ -3,7 +3,7 @@ from django.views import View
 from sefaria.client.util import jsonResponse
 from sefaria.system.exceptions import InputError
 from sefaria.helper import linker_editor
-from sefaria.helper import linker_admin
+from sefaria.helper import linker_resource_panel_admin
 from .views import _load_json_body, StaffRequiredMixin
 
 
@@ -24,7 +24,7 @@ class LinkerAdminDeleteCitationView(LinkerAdminAPIView):
     def post(self, request):
         return self._handle(
             request,
-            lambda body: linker_admin.set_linker_citation_deleted(body, request.user.id, True)
+            lambda body: linker_resource_panel_admin.set_linker_citation_deleted(body, request.user.id, True)
         )
 
 
@@ -33,14 +33,14 @@ class LinkerAdminRecreateCitationView(LinkerAdminAPIView):
     def post(self, request):
         return self._handle(
             request,
-            lambda body: linker_admin.set_linker_citation_deleted(body, request.user.id, False)
+            lambda body: linker_resource_panel_admin.set_linker_citation_deleted(body, request.user.id, False)
         )
 
 
 class LinkerAdminParseCitationView(LinkerAdminAPIView):
 
     def post(self, request):
-        return self._handle(request, linker_admin.parse_linker_citation_sync)
+        return self._handle(request, linker_resource_panel_admin.parse_linker_citation_sync)
 
 
 class LinkerAdminRerunSegmentView(LinkerAdminAPIView):
@@ -48,7 +48,7 @@ class LinkerAdminRerunSegmentView(LinkerAdminAPIView):
     def post(self, request):
         return self._handle(
             request,
-            lambda body: linker_admin.rerun_linker_for_segment(body, request.user.id),
+            lambda body: linker_resource_panel_admin.rerun_linker_for_segment(body, request.user.id),
             status=202,
         )
 
@@ -58,7 +58,7 @@ class LinkerAdminAddRefDatasetView(LinkerAdminAPIView):
     def post(self, request):
         return self._handle(
             request,
-            lambda body: linker_admin.add_ref_dataset_example(body, request.user.id),
+            lambda body: linker_resource_panel_admin.add_ref_dataset_example(body, request.user.id),
             status=201,
         )
 
@@ -68,7 +68,7 @@ class LinkerAdminAddRefPartDatasetView(LinkerAdminAPIView):
     def post(self, request):
         return self._handle(
             request,
-            lambda body: linker_admin.add_ref_part_dataset_example(body, request.user.id),
+            lambda body: linker_resource_panel_admin.add_ref_part_dataset_example(body, request.user.id),
             status=201,
         )
 
