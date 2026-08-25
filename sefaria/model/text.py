@@ -3224,13 +3224,17 @@ class Ref(object, metaclass=RefCacheType):
         :return: list of all segment level refs under this Ref.  
         """
         supported_classes = (JaggedArrayNode, DictionaryEntryNode, SheetNode)
-        assert self.index_node is not None
+        if self.index_node is None:
+            raise InputError(f"all_segment_refs() failed for {self}: no index_node")
         if not isinstance(self.index_node, supported_classes):
             # search for default node child
             for child in self.index_node.children:
                 if child.is_default():
                     return child.ref().all_segment_refs()
-            assert isinstance(self.index_node, supported_classes)
+            raise InputError(
+                f"all_segment_refs() doesn't support {self}: its node ({type(self.index_node).__name__}) "
+                f"is not one of {[c.__name__ for c in supported_classes]} and has no default child."
+            )
 
         if self.is_range():
             input_refs = self.range_list()
@@ -3772,10 +3776,17 @@ class Ref(object, metaclass=RefCacheType):
                 return bool(len(text) and all(text))
             except NoVersionFoundError:
                 return False
-        else:
+        elif isinstance(self.index_node, JaggedArrayNode):
             sja = self.get_state_ja(lang)
             subarray = sja.subarray_with_ref(self)
             return subarray.is_full()
+        else:
+            # A ref to a whole branching/structural node (e.g. a named, directly
+            # referenceable node covering several JaggedArrayNode leaves, like a Sifra
+            # parsha) has no availableTexts JaggedArray of its own in VersionState -
+            # only the rolled-up per-language completeness _aggregate_structure_state
+            # computes from its leaves.
+            return bool(self.get_state_node(hint=[(lang, "textComplete")]).var(lang, "textComplete"))
 
     def is_text_translated(self):
         """
@@ -4891,7 +4902,7 @@ class Ref(object, metaclass=RefCacheType):
                 continue
             try:
                 expanded_set |= {r.normal() for r in oref.all_segment_refs()}
-            except AssertionError:
+            except InputError:
                 continue
         return list(expanded_set)
 
@@ -5602,6 +5613,15 @@ class Library(object):
         assert new_index, "No Index record found for {}: {}".format(index_object.__class__.__name__, index_object_title)
         self.add_index_record_to_cache(new_index, rebuild=True)
 
+    def refresh_non_unique_term_in_cache(self, slug: str):
+        """
+        Drop `slug` from NonUniqueTerm's process-level `.init()` cache so the next lookup
+        re-reads it from Mongo -- otherwise an edit (e.g. via the linker editor) stays
+        invisible to this process, including on a RefResolver rebuild.
+        """
+        from sefaria.model.schema import NonUniqueTerm
+        NonUniqueTerm._init_cache.pop(slug, None)
+
     # todo: the for_js path here does not appear to be in use.
     # todo: Rename, as method not gauraunteed to return all titles
     def all_titles_regex_string(self, lang="en", with_terms=False, citing_only=False): #, for_js=False):
@@ -5786,6 +5806,20 @@ class Library(object):
         if not linker or rebuild:
             linker = self.build_linker(lang)
         return linker
+
+    def rebuild_linker_resolvers(self, langs=("en", "he")):
+        """
+        Rebuild only the linker components affected by linker-editor metadata:
+        RefResolver and CategoryResolver. If a linker for a language has not been
+        initialized in this process, build the full linker once.
+        """
+        for lang in langs:
+            linker = self._linker_by_lang.get(lang)
+            if not linker:
+                self.build_linker(lang)
+                continue
+            linker._ref_resolver = self._build_ref_resolver(lang)
+            linker._cat_resolver = self._build_category_resolver(lang)
 
     def build_linker(self, lang: str):
         from sefaria.model.linker.linker import Linker
