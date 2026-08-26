@@ -346,6 +346,22 @@ class Search {
         this.queryAborter = queryAborter;
 
         const updateAggreagations = (args.aggregationsToUpdate.length > 0);
+
+        /* Route a failed query to the caller's `error` callback. sefariaQuery/dictaQuery
+         * wrap $.ajax in a Promise whose `error: reject` passes only the jqXHR, so
+         * rebuild the (jqXHR, textStatus, errorThrown) shape jQuery-style callers expect.
+         * Passed as the *second* argument to .then() rather than as a trailing .catch()
+         * on purpose: that way it only catches failures of the query itself, and an
+         * exception thrown by args.success() doesn't get reported as a search failure. */
+        const reportQueryFailure = (err) => {
+            const textStatus = err?.statusText || err?.message || 'unknown error';
+            if (args.error) {
+                args.error(err, textStatus, err?.statusText || null);
+            } else {
+                console.log(err);
+            }
+        };
+
         if (this.queryDictaFlag) {
             Promise.all([
                 this.sefariaQuery(args, updateAggreagations, queryAborter),
@@ -368,7 +384,7 @@ class Search {
                         args.success(cacheResult);
                     }
                 }
-            }).catch(x => console.log(x));
+            }, reportQueryFailure).catch(x => console.log(x));
         }
         else {
             this.sefariaQuery(args, updateAggreagations, queryAborter)
@@ -380,7 +396,8 @@ class Search {
                         this._cacheQuery(args, this.sefariaQueryQueue);
                         args.success(this.sefariaQueryQueue);
                     }
-                })
+                }, reportQueryFailure)
+                .catch(x => console.log(x));
         }
 
         return queryAborter;

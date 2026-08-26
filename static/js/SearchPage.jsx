@@ -445,14 +445,18 @@ class SearchPage extends Component {
             this.setState(prev => this.withCategoryCounts({...prev.entityData, [type]: this.makeEntityEntry(data)}, data));
           })
           .catch((err) => {
-            // Report the failure to analytics for the query still on screen only. Guarded
-            // separately from the token check below: a sort or filter change bumps the token
-            // without changing the query, and the failed API still has to report in so
-            // search_query_executed isn't left waiting on it forever.
+            if (this._entityFetchTokens[type] !== token) { return; }  // a newer fetch superseded this one
+            // Report the failure to analytics for the query still on screen only.
+            //
+            // The token check above deliberately comes FIRST. recordApiResult only counts the
+            // first report per API, so a superseded request that reports a failure would claim
+            // that API's slot and make search_query_executed say 'failure' even though the
+            // newer request succeeded and the user is looking at results. Dropping the stale
+            // report can't leave the event waiting forever, because whatever superseded this
+            // request reports in its own place -- on success or on failure.
             if (this.props.query === query && !this.props.compare) {
               SearchAnalytics.recordApiResult(type + 's', null, err?.message || String(err));
             }
-            if (this._entityFetchTokens[type] !== token) { return; }  // a newer fetch superseded this one
             // Show the empty state rather than leaving the panel on the loading message.
             this.setState(prev => ({
               entityData: {...prev.entityData, [type]: {hits: [], total: 0, moreToLoad: false, isLoadingMore: false}},

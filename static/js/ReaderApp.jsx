@@ -226,6 +226,9 @@ class ReaderApp extends Component {
     // (because its set to capture, or the event going down the dom stage, and the listener is the document element- it should fire before other handlers. Specifically
     // handleInAppLinkClick that disables modifier keys such as cmd, alt, shift)
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
+    // Middle-click never fires 'click' -- it fires 'auxclick'. Registered separately so the
+    // new-tab gesture still reports search result clicks. See handleInAppAuxClick.
+    document.addEventListener('auxclick', this.handleInAppAuxClick, {capture: true});
     document.addEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.addEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
 
@@ -264,6 +267,7 @@ class ReaderApp extends Component {
     document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.removeEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
     document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
+    document.removeEventListener('auxclick', this.handleInAppAuxClick, {capture: true});
   }
   componentDidUpdate(prevProps, prevState) {
     $(".content").off("scroll.scrollPosition").on("scroll.scrollPosition", this.setScrollPositionInHistory); // when .content may have rerendered
@@ -1164,6 +1168,22 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         return;
       }
     }
+  }
+  handleInAppAuxClick(e) {
+    // Middle-clicking a link opens it in a new background tab. Browsers dispatch `auxclick`
+    // for non-primary mouse buttons, NOT `click`, so neither the capture listener above nor
+    // any React onClick in the app runs for this gesture -- without this handler the most
+    // common "open a search result in a new tab" interaction would go unreported.
+    if (e.button !== 1) { return; }   // 1 == middle; back/forward buttons are not link clicks
+    const linkTarget = this.getHTMLLinkParentOfEventTarget(e);
+    if (!linkTarget) { return; }
+    // The user stays on the search page, so this reports the result click WITHOUT ending the
+    // flow -- same treatment a cmd/ctrl-click gets above. No-ops unless a search flow is
+    // active and the link carries the card's analytics attributes.
+    SearchAnalytics.reportModifiedResultLinkClick(linkTarget);
+    // Point data-target-module links at the right subdomain before the browser opens the tab,
+    // the same fix the modifier-click path above and the right-click path below apply.
+    this.updateModuleLinkHref(linkTarget);
   }
   handleAppClick(event) {
     if (linkTarget) {
