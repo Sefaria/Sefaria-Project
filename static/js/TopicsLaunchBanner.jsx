@@ -141,7 +141,7 @@ const TopicsLaunchBanner = ({ onClose }) => {
           />
         </div>
         <div id="topicsLaunchBannerMessageClose" onClick={() => closeBanner("close_clicked")}>
-          <img src="/static/img/topics-launch-banner-close-button-final.svg" alt={Sefaria._("Close banner")} />
+          <img src="/static/img/topics-launch-banner-close-button-final.svg" alt={Sefaria._("topics_launch_banner.close_banner")} />
         </div>
       </div>
     </OnInView>

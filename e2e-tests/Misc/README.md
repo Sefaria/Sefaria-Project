@@ -1,6 +1,6 @@
 # Misc — Cross-cutting / Platform-level E2E Tests
 
-Tests for platform-level invariants that don't belong to any single module's UI — currently, legacy URL redirects. Runs under the `chrome-misc` / `firefox-misc` / `safari-misc` projects with `baseURL` = `www.<sandbox-domain>`.
+Tests for platform-level invariants that don't belong to any single module's UI — legacy URL redirects and the keyed interface-string (i18n) sweep. Runs under the `chrome-misc` / `firefox-misc` / `safari-misc` projects with `baseURL` = `www.<sandbox-domain>`.
 
 New here? Read the root [handbook](../README.md) first.
 
@@ -11,8 +11,11 @@ New here? Read the root [handbook](../README.md) first.
 | Spec file | Area |
 | --- | --- |
 | [help-sheet-redirects.spec.ts](help-sheet-redirects.spec.ts) | Legacy **help-sheet URLs redirect to the Zendesk Help Center**. Two describes (English + Hebrew), each **data-driven** from [../helpDeskLinksConstants.ts](../helpDeskLinksConstants.ts): every old `www.sefaria.org/sheets/*` (EN) and `www.sefaria.org.il/sheets/*` (HE) link must 301-redirect to its exact `help.sefaria.org/hc/...` article, with no error status. |
+| [i18n-keyed-strings.spec.ts](i18n-keyed-strings.spec.ts) | **Keyed interface strings render where they should** (`I18N-NNN`). Data-driven from [i18nStringsManifest.ts](i18nStringsManifest.ts): for each page in the manifest, in both English and Hebrew interfaces, (1) the localized value of every keyed string ID expected on that page is rendered — visible text or aria-label/alt/title/placeholder — and (2) **no raw keyed ID** (e.g. `common.cancel`) leaked into the rendered DOM, which is what a broken `Sefaria._()` lookup produces. IDs and translations live in `static/js/sefaria/i18n/keyed/{en,he}.json`; the manifest stores only IDs, so Weblate edits never break tests. Uses `pm.onInterfaceStrings()` ([../pages/interfaceStringsPage.ts](../pages/interfaceStringsPage.ts)). |
 
-Tests are generated dynamically — one per redirect mapping in `helpDeskLinksConstants.ts` — so adding a new redirect to that constants file automatically adds a test.
+Tests are generated dynamically — one per redirect mapping in `helpDeskLinksConstants.ts`, and one per page × language in `i18nStringsManifest.ts` — so extending those data files automatically adds tests.
+
+**Adding a page to the i18n sweep:** add a `StringsPageSpec` entry to `i18nStringsManifest.ts` with the page path, a CSS anchor that only exists once the page's content loaded, and the keyed IDs verified (in component source) to render unconditionally on load. The manifest header documents what is deliberately out of scope (interaction-gated, moderator-only, overlay, and empty-state strings — the leak check still covers those surfaces).
 
 ---
 

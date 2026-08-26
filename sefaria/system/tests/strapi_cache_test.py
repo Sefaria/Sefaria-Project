@@ -57,24 +57,20 @@ def get_sample_graphql_query(start_date, end_date):
           and: [{{ bannerEndDate: {{ lte: "{end_date}" }} }}]
         }}
       ) {{
-        data {{
-          id
-          attributes {{
-            internalBannerName
-            bannerStartDate
-            bannerEndDate
-            bannerText
-            buttonText
-            buttonURL
-            showDelay
-            bannerBackgroundColor
-            showToNewVisitors
-            showToReturningVisitors
-            showToSustainers
-            showToNonSustainers
-            shouldDeployOnMobile
-          }}
-        }}
+        documentId
+        internalBannerName
+        bannerStartDate
+        bannerEndDate
+        bannerText
+        buttonText
+        buttonURL
+        showDelay
+        bannerBackgroundColor
+        showToNewVisitors
+        showToReturningVisitors
+        showToSustainers
+        showToNonSustainers
+        shouldDeployOnMobile
       }}
       modals(
         filters: {{
@@ -82,24 +78,20 @@ def get_sample_graphql_query(start_date, end_date):
           and: [{{ modalEndDate: {{ lte: "{end_date}" }} }}]
         }}
       ) {{
-        data {{
-          id
-          attributes {{
-            internalModalName
-            modalStartDate
-            modalEndDate
-            modalHeader
-            modalText
-            buttonText
-            buttonURL
-            showDelay
-            showToNewVisitors
-            showToReturningVisitors
-            showToSustainers
-            showToNonSustainers
-            shouldDeployOnMobile
-          }}
-        }}
+        documentId
+        internalModalName
+        modalStartDate
+        modalEndDate
+        modalHeader
+        modalText
+        buttonText
+        buttonURL
+        showDelay
+        showToNewVisitors
+        showToReturningVisitors
+        showToSustainers
+        showToNonSustainers
+        shouldDeployOnMobile
       }}
     }}
     """
@@ -196,16 +188,18 @@ def test_strapi_graphql_cache_functionality(client):
     from sefaria.system.cache import get_cache_elem, set_cache_elem
 
     query = get_sample_graphql_query("2023-01-01T00:00:00Z", "2023-01-31T23:59:59Z")
-    cache_key = "strapi_graphql_2023-01-01_2023-01-31"
+    cache_key = "strapi_graphql_v5_2023-01-01_2023-01-31"
 
     # Mock Strapi response
     mock_response = Mock()
     mock_response.status_code = 200
     # Use example data when there is nothing available
     # TODO: Use example data returned from Strapi in the future
-    mock_response.text = json.dumps(
-        {"data": {"banners": {"data": []}, "modals": {"data": []}}}
-    )
+    response_body = {"data": {"banners": [], "modals": []}}
+    mock_response.text = json.dumps(response_body)
+    # The view calls response.json() to check for GraphQL errors before caching
+    # Give it a real payload, so the error check sees no errors and the successful result is cached
+    mock_response.json.return_value = response_body
 
     # Should this use actual environment variables since they're mocked anyway?
     with patch("requests.post", return_value=mock_response), patch(
@@ -239,6 +233,39 @@ def test_strapi_graphql_cache_functionality(client):
             # Should return cached data without calling Strapi
             mock_post.assert_not_called()
             assert data1 == data2
+
+
+def test_strapi_graphql_error_response_not_cached(client):
+    # A GraphQL error response (HTTP 200 with an "errors" body) must not be cached
+    # Otherwise, a transient error or a query/schema mismatch would be served from the cache for the full TTL.
+    from sefaria.system.cache import get_cache_elem
+
+    query = get_sample_graphql_query("2023-01-01T00:00:00Z", "2023-01-31T23:59:59Z")
+    cache_key = "strapi_graphql_v5_2023-01-01_2023-01-31"
+
+    error_body = {"errors": [{"message": 'Cannot query field "documentId"'}]}
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.text = json.dumps(error_body)
+    mock_response.json.return_value = error_body
+
+    with patch("requests.post", return_value=mock_response), patch(
+        "django.conf.settings.STRAPI_LOCATION", "http://localhost"
+    ), patch("django.conf.settings.STRAPI_PORT", "1337"):
+
+        response = client.post(
+            "/api/strapi/graphql-cache?start_date=2023-01-01&end_date=2023-01-31",
+            data=query,
+            content_type="text/plain",
+        )
+
+        # The error body is still returned to the client so the frontend can degrade gracefully
+        assert response.status_code == 200
+        data = json.loads(response.content)
+        assert "errors" in data
+
+        # But nothing should have been cached
+        assert get_cache_elem(cache_key, cache_type="default") is None
 
 
 def test_strapi_cache_invalidate_get_method_not_allowed_with_auth(client):
@@ -326,7 +353,7 @@ def test_cache_key_generation():
     from sefaria.system.cache import get_cache_elem, set_cache_elem
 
     # Test that same dates generate same cache key
-    cache_key = "strapi_graphql_2023-01-01_2023-12-31"
+    cache_key = "strapi_graphql_v5_2023-01-01_2023-12-31"
     test_data = {"test": "data"}
 
     # Set cache
@@ -364,8 +391,10 @@ def test_strapi_non_200_response(client):
     query = get_sample_graphql_query("2023-01-01T00:00:00Z", "2023-01-31T23:59:59Z")
 
     # Mock Strapi error response
+    # A real requests.Response.text is always a string, and the view logs response.text[:500] on non-200s, so the mock must provide a string here.
     mock_response = Mock()
     mock_response.status_code = 500
+    mock_response.text = "Internal Server Error"
 
     with patch("requests.post", return_value=mock_response), patch(
         "django.conf.settings.STRAPI_LOCATION", "http://localhost"

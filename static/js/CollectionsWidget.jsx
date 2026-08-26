@@ -115,68 +115,68 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
     close();
   };
 
-  return <div className="collectionsWidget">
-    <div className="collectionsWidgetTop">
-      <span className={"collectionsWidgetTitle"}>
-        <InterfaceText>Collections</InterfaceText>
-      </span>
-      <div
-        className="collectionsWidgetClose"
-        onClick={onClose}
-        role="button"
-        tabIndex="0"
-        aria-label="Close collections"
-        onKeyDown={(e) => Util.handleKeyboardClick(e, onClose)}
-      >×</div>
-    </div>
-    <div className="collectionsWidgetList serif">
-      {!dataLoaded ? null :
-        collections.map((collection, i) => {
-        return <label className="checkmarkLabel" key={i+collection.name}>
-          <input 
-            type="checkbox"
-            onChange={event => onCheckChange(collection, event.target.checked)}
-            checked={collectionsSelected.filter(x => x.slug === collection.slug).length ? "checked" : ""} />
-          <span className="checkmark"></span>
-          {collection.name}
-        </label>
-      })}
-      {dataLoaded && collections.length == 0 ?
-        <span className={"emptyMessage"}>
-          <InterfaceText>
-          You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.
-          </InterfaceText>
-        </span> : null }
-    </div>
-    <div className="collectionsWidgetCreate">
-      <span className="collectionsWidgetPlus">+</span>
-      <div className="collectionsWidgetCreateInputBox">
-        <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("Create new collection")} aria-label={Sefaria._("Create new collection")} type="text" value={newName} onChange={onNameChange} />
+  return (
+    <div className="collectionsWidget">
+      <div className="collectionsWidgetTop">
+        <span className={"collectionsWidgetTitle"}>
+          <InterfaceText>common.collections</InterfaceText>
+        </span>
+        <div
+          className="collectionsWidgetClose"
+          onClick={onClose}
+          role="button"
+          tabIndex="0"
+          aria-label="Close collections"
+          onKeyDown={(e) => Util.handleKeyboardClick(e, onClose)}
+        >×</div>
       </div>
-       {newName.length ?
-      <div
-        className="button extraSmall white collectionsWidgetCreateButton"
-        role="button"
-        tabIndex="0"
-        onClick={onCreateClick}
-        onKeyDown={(e) => Util.handleKeyboardClick(e, onCreateClick)}
-      >
-        <InterfaceText>Create</InterfaceText>
+      <div className="collectionsWidgetList serif">
+        {!dataLoaded ? null :
+          collections.map((collection, i) => {
+          return <label className="checkmarkLabel" key={i+collection.name}>
+            <input 
+              type="checkbox"
+              onChange={event => onCheckChange(collection, event.target.checked)}
+              checked={collectionsSelected.filter(x => x.slug === collection.slug).length ? "checked" : ""} />
+            <span className="checkmark"></span>
+            {collection.name}
+          </label>
+        })}
+        {dataLoaded && collections.length == 0 ?
+          <span className={"emptyMessage"}>
+            <InterfaceText>common.you_can_use_collections_to_organize_your_sheets</InterfaceText>
+          </span> : null }
       </div>
-      : null}
+      <div className="collectionsWidgetCreate">
+        <span className="collectionsWidgetPlus">+</span>
+        <div className="collectionsWidgetCreateInputBox">
+          <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("collections_widget.create_new_collection")} aria-label={Sefaria._("collections_widget.create_new_collection")} type="text" value={newName} onChange={onNameChange} />
+        </div>
+         {newName.length ?
+        <div
+          className="button extraSmall white collectionsWidgetCreateButton"
+          role="button"
+          tabIndex="0"
+          onClick={onCreateClick}
+          onKeyDown={(e) => Util.handleKeyboardClick(e, onCreateClick)}
+        >
+          <InterfaceText>collections_widget.create</InterfaceText>
+        </div>
+        : null}
+      </div>
+      <div className="collectionsWidgetDone">
+         <div
+          className="button large fillWidth"
+          role="button"
+          tabIndex="0"
+          onClick={onClose}
+          onKeyDown={(e) => Util.handleKeyboardClick(e, onClose)}
+         >
+          <InterfaceText>collections_widget.done</InterfaceText>
+        </div>     
+      </div>
     </div>
-    <div className="collectionsWidgetDone">
-       <div
-        className="button large fillWidth"
-        role="button"
-        tabIndex="0"
-        onClick={onClose}
-        onKeyDown={(e) => Util.handleKeyboardClick(e, onClose)}
-       >
-        <InterfaceText>Done</InterfaceText>
-      </div>     
-    </div>
-  </div>
+  );
 };
 
 

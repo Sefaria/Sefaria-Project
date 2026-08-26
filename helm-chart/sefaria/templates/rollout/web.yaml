@@ -102,6 +102,8 @@ spec:
             value: "{{ .Values.deployEnv }}"
           - name: STACK_COMPONENT
             value: web
+          - name: APP_VERSION
+            value: "{{ .Values.web.containerImage.tag }}"
           {{- if .Values.datadog.enabled }}
           - name: DD_LOGS_INJECTION
             value: "true"

@@ -520,15 +520,56 @@ Sefaria = extend(Sefaria, {
 
     return result;
   },
-  getDomainHostnames: function() {
-    // Returns a Set of all hostnames of current language from domainModules.
-    const hostnames = new Set();
-    for (const moduleUrl of Object.values(Sefaria.domainModules[Sefaria._getShortInterfaceLang()])) {
-      const url = new URL(moduleUrl);
-      hostnames.add(url.hostname);
-    }
+  /* The three hostname getters below all read Sefaria.domainModules, which maps
+     interface language -> module -> that module's URL. For example:
+       { en: { library: "https://www.sefaria.org",    voices: "https://voices.sefaria.org"    },
+         he: { library: "https://www.sefaria.org.il", voices: "https://voices.sefaria.org.il" } }
+     They differ only in which slice of that map they read:
 
+                                           languages:              modules:
+       getCurrentLangHostnames()           just the current one    all of them
+       getAllHostnames()                   all of them             all of them
+       getCurrentModuleHostnames(module)   all of them             just the one passed in
+
+     Rule of thumb: use getCurrentLangHostnames when you are building or checking something the
+     reader will see in their own language (a cookie domain, a link you are about to render), and
+     one of the language-spanning two when you are reacting to a URL you did not create -- a link
+     inside sheet content can point at the Hebrew domain while the interface language is English,
+     and vice versa, and it is still ours.
+     All three return a Set of hostnames (no scheme, no path), so callers check with .has(). */
+  _hostnamesFromModuleURLs: function(moduleUrls) {
+    // Shared inner loop for the three getters: turns a list of module URL strings into a Set of
+    // their hostnames. One unparseable URL is logged and skipped rather than throwing, so a bad
+    // entry in domainModules can't break every caller.
+    const hostnames = new Set();
+    for (const moduleUrl of moduleUrls) {
+      try {
+        hostnames.add(new URL(moduleUrl).hostname);
+      } catch (e) {
+        console.error('Error creating URL:', e);
+      }
+    }
     return hostnames;
+  },
+  getCurrentLangHostnames: function() {
+    // Every module, current interface language only.
+    // example (interface language English) -> Set { "www.sefaria.org", "voices.sefaria.org" }
+    const langModules = Sefaria.domainModules?.[Sefaria._getShortInterfaceLang()] || {};
+    return Sefaria._hostnamesFromModuleURLs(Object.values(langModules));
+  },
+  getAllHostnames: function() {
+    // Every module, every interface language -- i.e. every hostname this deploy answers on.
+    // example -> Set { "www.sefaria.org", "voices.sefaria.org", "www.sefaria.org.il", "voices.sefaria.org.il" }
+    const allModuleUrls = Object.values(Sefaria.domainModules || {}).flatMap(langModules => Object.values(langModules || {}));
+    return Sefaria._hostnamesFromModuleURLs(allModuleUrls);
+  },
+  getCurrentModuleHostnames: function(module) {
+    // One module, every interface language. Languages that don't configure the module are skipped.
+    // example: module = "voices" -> Set { "voices.sefaria.org", "voices.sefaria.org.il" }
+    const moduleUrls = Object.values(Sefaria.domainModules || {})
+        .map(langModules => langModules?.[module])
+        .filter(moduleUrl => !!moduleUrl);
+    return Sefaria._hostnamesFromModuleURLs(moduleUrls);
   },
   getModuleURL: function(module=null) {
     // returns a URL object with the href of the module's subdomain.
@@ -549,7 +590,7 @@ Sefaria = extend(Sefaria, {
   },
   isSefariaURL: function(url) {
     // Check if URL's hostname matches any of our domain hostnames
-    const hostnames = this.getDomainHostnames();
+    const hostnames = this.getCurrentLangHostnames();
     return hostnames.has(url.hostname);
   },
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
@@ -624,13 +665,13 @@ Sefaria = extend(Sefaria, {
   _buildLinkerOutputMap: function(linker_output = []) {
       const getKey = (ref, language, charRange) => `${ref}|${language}|${charRange.join('-')}`;
       for (let linkerOutput of linker_output) {
-          const {ref, language} = linkerOutput;
+          const {ref, language, versionTitle} = linkerOutput;
           // reset arrays to keep track of ambiguous spans
           for (let span of linkerOutput.spans) {
               Sefaria._linkerOutputMap[getKey(ref, language, span.charRange)] = [];
           }
           for (let span of linkerOutput.spans) {
-              Sefaria._linkerOutputMap[getKey(ref, language, span.charRange)].push(span);
+              Sefaria._linkerOutputMap[getKey(ref, language, span.charRange)].push({...span, refContext: ref, language, versionTitle});
           }
       }
   },
@@ -681,7 +722,7 @@ Sefaria = extend(Sefaria, {
       return testStr;
   },
   _getLinkerTestStringForParts(refParts, refPartTypes, rangeSections, rangeToSections) {
-      const partTypeSymbolMap = {"NAMED": "@", "NUMBERED": "#", "DH": "*", "RANGE_SYMBOL": "^", "IBID": "&", "RELATIVE": "<"}
+      const partTypeSymbolMap = {"NAMED": "@", "NUMBERED": "#", "DH": "*", "RANGE_SYMBOL": "^", "IBID": "&", "RELATIVE": "<", "NON_CTS": "~"}
       let testStr = "";
       for (let i = 0; i < refParts.length; i++) {
           const part = refParts[i];
@@ -694,7 +735,7 @@ Sefaria = extend(Sefaria, {
               testStr += Sefaria._getLinkerTestStringForParts(rangeToSections, Array(rangeToSections.length).fill("NUMBERED"));
           } else {
               const symbol = partTypeSymbolMap[type] || "?";
-              testStr += `"${symbol}${part.replace('"', '\\"')}"`;
+              testStr += JSON.stringify(`${symbol}${part}`);
           }
           if (i < refParts.length - 1) {
               testStr += ", ";
@@ -870,6 +911,12 @@ Sefaria = extend(Sefaria, {
     const lookupVar = native ? "nativeName" : "name";
     return Sefaria.ISOMap?.[code.toLowerCase()]?.[lookupVar] || code;
   },
+  translateISOLanguageName(code) {
+    // Interface-language display name for an ISO language code, via the
+    // languages.* interface strings. Unknown codes pass through unchanged.
+    const c = code.toLowerCase();
+    return Sefaria.ISOMap?.[c] ? Sefaria._(`languages.${c}`) : code;
+  },
   getHebrewTitle: function(slug) {
     return Sefaria.ISOMap[slug] ? Sefaria.ISOMap[slug]["title"] ?  Sefaria.ISOMap[slug]["title"] : "Jewish Texts in " + Sefaria.ISOMap[slug]["name"] : "Jewish texts in " + slug ;
   },
@@ -934,7 +981,7 @@ Sefaria = extend(Sefaria, {
       try {
           result = await Sefaria.apiRequestWithBody(url, urlParams, payload, method);
       } catch (e) {
-          alert(Sefaria._("Something went wrong. Sorry!"));
+          alert(Sefaria._("sefaria.something_went_wrong_sorry"));
           throw e;
       }
       if (result.error) {
@@ -1070,6 +1117,20 @@ Sefaria = extend(Sefaria, {
 
     Sefaria.track.event("Reader", "Set Version Preference", `${corpus}|${vtitle}|${lang}`);
     Sefaria.editProfileAPI({version_preferences_by_corpus: {[corpus]: {[lang]: vtitle}}})
+  },
+  _licenseStringIds: {
+    "Public Domain": "licenses.public_domain",
+    "CC0": "licenses.cc0",
+    "CC-BY": "licenses.cc_by",
+    "CC-BY-SA": "licenses.cc_by_sa",
+    "CC-BY-NC": "licenses.cc_by_nc",
+    "Copyright: JPS, 1985": "licenses.copyright_jps_1985",
+  },
+  translateLicense: function(license) {
+    // License values come from version records; known licenses translate via
+    // licenses.* interface strings, anything else passes through unchanged.
+    if (!license) { return license; }
+    return Sefaria._(Sefaria._licenseStringIds[license] || license);
   },
   getLicenseMap: function() {
     const licenseMap = {
@@ -2760,6 +2821,7 @@ _media: {},
       $.post(`${Sefaria.apiHost}/api/profile`, data, resolve);
     });
   },
+  // TEMPORARY (goes with the experiments framework): no callers.
   experimentsOptInAPI: () => {
     return Sefaria.apiRequestWithBodyAndAlert("/api/profile/experiments/opt-in", null, null, "POST");
   },
@@ -3026,22 +3088,22 @@ _media: {},
     let tabKey, title;
     if (Sefaria.activeModule === Sefaria.VOICES_MODULE && refObj.is_sheet) {
       tabKey = 'sheets';
-      title = {en: "Sheets", he: Sefaria.translation('hebrew', "Sheets")};
+      title = {en: "Sheets", he: Sefaria.translation('hebrew', "common.sheets")};
     } 
     else if (Sefaria.activeModule === Sefaria.LIBRARY_MODULE && !refObj?.is_sheet) {
       if (linkType === 'popular-writing-of') {
         tabKey = linkType;
-        title = {en: 'Top Citations', he: Sefaria.translation('hebrew', 'Top Citations')};
+        title = {en: 'Top Citations', he: Sefaria.translation('hebrew', "sefaria.top_citations")};
       } else if (linkType === 'about') {
         const lang = Sefaria._getShortInterfaceLang();
         const desc = refObj.descriptions?.[lang];
         const isNotableSource = (desc?.title || desc?.prompt) && desc?.published !== false;
         if (isNotableSource) {
           tabKey = 'notable-sources';
-          title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', 'Notable Sources')};
+          title = {en: 'Notable Sources', he: Sefaria.translation('hebrew', "sefaria.notable_sources")};
         } else {
           tabKey = 'sources';
-          title = {en: 'Sources', he: Sefaria.translation('hebrew', 'Sources')};
+          title = {en: 'Sources', he: Sefaria.translation('hebrew', "common.sources")};
         }
       }
     }
@@ -3092,7 +3154,7 @@ _media: {},
           tabs.sources = {
             shouldDisplay: true,
             refs: [],
-            title: {en: 'All Sources', he: Sefaria.translation('hebrew', 'All Sources')}
+            title: {en: 'All Sources', he: Sefaria.translation('hebrew', "sefaria.all_sources")}
           };
         }
         tabs.sources.refs = [...tabs["notable-sources"].refs, ...tabs.sources.refs];
@@ -3101,7 +3163,7 @@ _media: {},
       // set up admin tab which contains all 'sources'
       if (Sefaria.is_moderator && !!tabs.sources) {
         tabs["admin"] = {...tabs["sources"]};
-        tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "Admin")};
+        tabs["admin"].title = {en: 'Admin', he: Sefaria.translation('hebrew', "sefaria.admin")};
       }
     }
     topicData.tabs = tabs;
@@ -3455,7 +3517,7 @@ _media: {},
     },
     getSheetTitle: function(title) {
       // Useful for displaying sheet titles in the UI without HTML tags and handling null or empty values by falling back to "Untitled"
-      return title?.stripHtml() || Sefaria._("Untitled");
+      return title?.stripHtml() || Sefaria._("common.untitled");
     }
   },
   testUnknownNewEditorSaveError: false,
@@ -3521,34 +3583,43 @@ _media: {},
    * @returns {Promise}
    */
   pollTask(taskId, { interval = 3000, onProgress } = {}) {
+    // Schedules each poll only after the previous one settles (rather than on a fixed
+    // setInterval clock), so a slow/loaded server doesn't get a pile-up of overlapping
+    // in-flight polls for the same task.
     return new Promise((resolve, reject) => {
-      const handle = setInterval(async () => {
+      const poll = async () => {
         try {
           const resp = await fetch("/api/async/" + taskId);
-          if (!resp.ok) {
-            clearInterval(handle);
-            const err = new Error("Network error polling task " + taskId);
-            err.isNetworkError = true;
-            reject(err);
-            return;
-          }
           const data = await resp.json();
-          if (!data.ready) {
-            if (onProgress && data.meta) onProgress(data.meta);
+          if (!resp.ok) {
+            if (data && data.state) {
+              // A well-formed task-status payload came back with a failure state (e.g. FAILURE) --
+              // this is a real task failure, not a network/connectivity problem, even if the
+              // server-side exception had no message.
+              reject(new Error(data.error || `Task ${taskId} failed (state: ${data.state})`));
+            } else {
+              const error = new Error(data.error || "Network error polling task " + taskId);
+              error.isNetworkError = true;
+              reject(error);
+            }
             return;
           }
-          clearInterval(handle);
+          if (!data.ready) {
+            if (onProgress) onProgress(data.meta || { state: data.state });
+            setTimeout(poll, interval);
+            return;
+          }
           if (data.error) {
             reject(new Error(data.error));
           } else {
             resolve(data.result);
           }
         } catch (e) {
-          clearInterval(handle);
           e.isNetworkError = true;
           reject(e);
         }
-      }, interval);
+      };
+      setTimeout(poll, interval);
     });
   },
   calendarRef: function(calendarTitle) {
@@ -3590,15 +3661,31 @@ _media: {},
         return name;
     }
   },
-  hebrewTranslation: function(inputStr, context = null){
+  _keyedStringIdRegex: /^[a-z0-9_]+(\.[a-z0-9_]+)+$/,
+  _isKeyedStringId: function(inputStr) {
+    // Keyed interface string IDs look like "header.log_in"; no legacy English
+    // interface string matches this shape.
+    return typeof inputStr === "string" && Sefaria._keyedStringIdRegex.test(inputStr);
+  },
+  _keyedString: function(id, lang) {
+    // Resolve a keyed string ID from i18n/interface/*.json; falls back to
+    // English, then to the ID itself.
+    const maps = Sefaria._i18nInterfaceStrings;
+    if (lang === "he" && id in maps.he) {
+      return maps.he[id];
+    }
+    if (id in maps.en) {
+      return maps.en[id];
+    }
+    console.warn("Missing keyed interface string: " + id);
+    return id;
+  },
+  hebrewTranslation: function(inputStr){
     let translatedString;
-    if (context && context in Sefaria._i18nInterfaceStringsWithContext){
-      translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
-      if (translatedString !== null) return translatedString;
+    if (Sefaria._isKeyedStringId(inputStr)) {
+      return Sefaria._keyedString(inputStr, "he");
     }
-    if ((translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)) !== null ) {
-      return translatedString;
-    }
+    // Non-ID strings are data values (categories, titles, etc.) translated as terms.
     if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
       return translatedString;
     }
@@ -3610,25 +3697,34 @@ _media: {},
       return inputStr;
     }
   },
-  translation: function(language, inputStr, context=null){
+  translation: function(language, inputStr){
+      if (Sefaria._isKeyedStringId(inputStr)) {
+          return Sefaria._keyedString(inputStr, language.slice(0,2));
+      }
       const translationMatrix = {
           "he": Sefaria.hebrewTranslation
       };
       try {
-          return translationMatrix[language.slice(0,2)](inputStr, context);
+          return translationMatrix[language.slice(0,2)](inputStr);
       }catch (e){
           console.warn("No transaltion available for " + language)
           return inputStr;
       }
   },
   /**
-   * Translates English strings to current interface language.
-   * Add translations to strings.js.
+   * Translates interface strings to the current interface language.
+   * Takes a keyed string ID (e.g. "header.log_in", resolved via the JSON maps
+   * in i18n/interface). Non-ID strings pass through unchanged in English and
+   * fall back to the terms dictionary in Hebrew.
+   * Add new strings to i18n/interface/en.json + he.json.
    * For displaying interface text you should use <InterfaceText> which calls this function automatically.
    */
-  _: function(inputStr, context=null){
+  _: function(inputStr){
+    if (Sefaria._isKeyedStringId(inputStr)) {
+      return Sefaria._keyedString(inputStr, Sefaria._getShortInterfaceLang());
+    }
     if(Sefaria.interfaceLang != "english"){
-      return Sefaria.translation(Sefaria.interfaceLang, inputStr, context);
+      return Sefaria.translation(Sefaria.interfaceLang, inputStr);
     } else {
       return inputStr;
     }
@@ -3645,26 +3741,36 @@ _media: {},
     const lang = Sefaria._getShortInterfaceLang();
     return langOptions[lang] ? langOptions[lang] : "";
   },
+  _bilingual: function(id, params) {
+    /* The inverse of _v: takes a keyed interface string ID and returns
+     * {en: "something", he: "משהו"}.
+     * Sefaria._() returns only the string for the *current* interface language, but some
+     * components (InterfaceText's `text` prop, LoadingMessage) render both languages and
+     * let CSS hide one, so they need both.
+     * `params` fills {placeholder} tokens: _bilingual("search.year.ce", {year: 1204}).
+     */
+    const resolve = (lang) => {
+      let str = Sefaria._keyedString(id, lang);
+      for (const [key, value] of Object.entries(params || {})) {
+        str = str.split(`{${key}}`).join(value);
+      }
+      return str;
+    };
+    return {en: resolve("en"), he: resolve("he")};
+  },
   _r: function (inputRef) {
     const oref = Sefaria.getRefFromCache(inputRef);
     if (!oref) { return inputRef; }
     return Sefaria.interfaceLang != "english" ? oref.heRef : oref.ref;
   },
-  _getStringCaseInsensitive: function (store, inputStr){
-    if(inputStr in store){
-        return store[inputStr];
-    }else if(inputStr.toLowerCase() in store){
-        return store[inputStr.toLowerCase()];
-    }else return null;
-
-    //return inputStr in store ? store[inputStr] : (inputStr.toLowerCase() in store ? store[inputStr.toLowerCase()]
-      // : null);
-  },
   _cacheSiteInterfaceStrings: function() {
-    // Ensure that names set in Site Settings are available for translation in JS.
+    // Ensure that names set in Site Settings override the defaults shipped in
+    // the interface string maps, so other deployments see their own names.
     if (!Sefaria._siteSettings) { return; }
-    ["SITE_NAME", "LIBRARY_NAME"].map(key => {
-      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["he"];
+    [["SITE_NAME", "common.site_name"], ["LIBRARY_NAME", "common.library_name"]].forEach(([key, id]) => {
+      if (!Sefaria._siteSettings[key]) { return; }
+      Sefaria._i18nInterfaceStrings.en[id] = Sefaria._siteSettings[key]["en"];
+      Sefaria._i18nInterfaceStrings.he[id] = Sefaria._siteSettings[key]["he"];
     });
   },
   _makeBooksDict: function() {
@@ -3792,25 +3898,25 @@ _media: {},
       // Page title suffix configuration
       const suffixes = {
         home: {
-          voices: "Voices on Sefaria",
-          library: "Sefaria: a Living Library of Jewish Texts Online"
+          voices: "header.voices_on_sefaria",
+          library: "sefaria.sefaria_a_living_library_of_jewish_texts"
         },
         topic: {
-          voices: "Sheets from Voices on Sefaria",
-          library: "Texts from the Sefaria Library"
+          voices: "sefaria.sheets_from_voices_on_sefaria",
+          library: "sefaria.texts_from_the_sefaria_library"
         },
         collection: {
-          voices: "Voices on Sefaria Collection"
+          voices: "sefaria.voices_on_sefaria_collection"
         },
         default: {
-          voices: "Voices on Sefaria",
-          library: "Sefaria Library"
+          voices: "header.voices_on_sefaria",
+          library: "common.library_name"
         }
       };
   
       // Special case: Sheet titles need default if empty
       if (pageType === "sheet" && !baseTitle) {
-        baseTitle = "Untitled";
+        baseTitle = "common.untitled";
       }
 
       // If no page tye, or a page type with a default suffix
@@ -3909,6 +4015,7 @@ Sefaria.unpackBaseProps = function(props){
       "userHistory",
       "last_place",
       "interfaceLang",
+      "countryCode",
       "multiPanel",
       "community",
       "followRecommendations",
@@ -3925,6 +4032,9 @@ Sefaria.unpackBaseProps = function(props){
       "chatbot_api_base_url",
       "chatbot_version",
       "chatbot_use_local_script",
+      "googleClientId",
+      "appleClientId",
+      "recaptchaSiteKey",
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {
@@ -3963,6 +4073,11 @@ Sefaria.palette.indexColor = function(title) {
 Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(ref).index);
 
 Sefaria = extend(Sefaria, Strings);
+
+Sefaria.ssoUseRedirect = function() {
+  return window.matchMedia('(max-width: 767px)').matches ||
+    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+};
 
 Sefaria.setup = function(data, props = null, resetCache = false) {
     if (resetCache) {
@@ -4023,7 +4138,6 @@ Sefaria.resetCache = function() {
     this._userCollections = {};
     this._userCollectionsForSheet = {};
     this._ajaxObjects = {};
-    this._i18nInterfaceStringsWithContext = {}; // Not sure about this one.  May be retainable.
     this._siteSettings = {}; // Where does this get set?
 
     this.sheets._loadSheetByID = {};
@@ -4048,8 +4162,8 @@ Sefaria.resetCache = function() {
     this._portals = {}; // constant
     this._tableOfContentsDedications  = {};
     
-    // Resetting _i18nInterfaceStrings will break ssr translation
-    // this._i18nInterfaceStrings = {}; // This gets built from setup, via  _cacheSiteInterfaceStrings
+    // Not resetting _i18nInterfaceStrings: it holds the static interface string
+    // maps plus site-settings overrides applied by _cacheSiteInterfaceStrings.
 
   };
 

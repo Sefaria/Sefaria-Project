@@ -4,11 +4,11 @@ Tests for catchall view redirects between modules (library and voices).
 Tests that reference links accessed from the wrong module (e.g., voices)
 are properly redirected to the library module.
 """
+from urllib.parse import urlparse, parse_qs
 import pytest
 from django.test import override_settings
-from django.test.client import Client
 from sefaria.system.exceptions import InputError
-from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
+from sefaria.constants.model import VOICES_MODULE
 
 
 TEST_DOMAIN_MODULES = {
@@ -149,3 +149,121 @@ def test_redirect_to_module_same_module(client):
     assert response.status_code == 301
     assert "/Genesis.1.1" in response["Location"]
     assert "param=value" in response["Location"]
+
+
+MOCK_VERSIONS = [
+    {"versionTitle": "Koren Tanakh", "languageFamilyName": "hebrew", "direction": "rtl"},
+    {"versionTitle": "William Davidson Edition", "languageFamilyName": "english", "direction": "ltr"},
+]
+
+
+class DummyRefWithVersions:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def url(self, _=False):
+        return "Genesis.1.1"
+
+    def version_list(self):
+        return MOCK_VERSIONS
+
+    @staticmethod
+    def instantiate_ref_with_legacy_parse_fallback(tref):
+        return DummyRefWithVersions()
+
+
+def _setup_version_mocks(monkeypatch):
+    monkeypatch.setattr("reader.views.Ref", DummyRefWithVersions)
+
+
+def _get_redirect_params(response):
+    location = response["Location"]
+    parsed = urlparse(location)
+    return parse_qs(parsed.query)
+
+
+@pytest.mark.django_db
+def test_catchall_redirect_version_language_only(client, monkeypatch):
+    """
+    When ven/vhe has a valid language but invalid title, the version is resolved by language (Tier 2 fallback).
+    Also tests that a bare language name without pipe is treated as a title lookup and removed when unmatched.
+    """
+    _setup_version_mocks(monkeypatch)
+
+    response = client.get("/Genesis.1.1", {
+        "ven": "english|Nonexistent_Title",
+        "vhe": "hebrew|Nonexistent_Title",
+        "p2": "Genesis.1",
+        "ven2": "english|Nonexistent_Title",
+    })
+    assert response.status_code == 302
+    params = _get_redirect_params(response)
+    assert params["ven"] == ["english|William_Davidson_Edition"]
+    assert params["vhe"] == ["hebrew|Koren_Tanakh"]
+    assert params["ven2"] == ["english|William_Davidson_Edition"]
+
+    # bare language name (no pipe) → treated as legacy title, no match → removed
+    response = client.get("/Genesis.1.1", {"ven": "english", "vhe": "russian"})
+    assert response.status_code == 302
+    params = _get_redirect_params(response)
+    assert "ven" not in params
+    assert "vhe" not in params
+
+
+@pytest.mark.django_db
+def test_catchall_redirect_version_title_only(client, monkeypatch):
+    """
+    When ven/vhe is a legacy format with only the version title (no pipe),
+    the version is resolved by title (Tier 3 fallback).
+    """
+    _setup_version_mocks(monkeypatch)
+
+    response = client.get("/Genesis.1.1", {
+        "vhe": "Koren_Tanakh",
+        "p2": "Genesis.1",
+        "vhe2": "Koren_Tanakh",
+        "p10": "Genesis.1",
+        "ven10": "William_Davidson_Edition",
+    })
+    assert response.status_code == 302
+    params = _get_redirect_params(response)
+    assert params["vhe"] == ["hebrew|Koren_Tanakh"]
+    assert params["vhe2"] == ["hebrew|Koren_Tanakh"]
+    assert params["ven10"] == ["english|William_Davidson_Edition"]
+
+
+@pytest.mark.django_db
+def test_catchall_redirect_version_one_invalid(client, monkeypatch):
+    """
+    When ven/vhe has an invalid language but valid title,
+    the version is resolved by title only (Tier 3 fallback).
+    """
+    _setup_version_mocks(monkeypatch)
+
+    response = client.get("/Genesis.1.1", {
+        "ven": "nonexistent|William_Davidson_Edition",
+        "p2": "Genesis.1",
+        "vhe2": "nonexistent|Koren_Tanakh",
+    })
+    assert response.status_code == 302
+    params = _get_redirect_params(response)
+    assert params["ven"] == ["english|William_Davidson_Edition"]
+    assert params["vhe2"] == ["hebrew|Koren_Tanakh"]
+
+
+@pytest.mark.django_db
+def test_catchall_redirect_version_both_invalid(client, monkeypatch):
+    """
+    When both language and title are invalid, the version param is removed from the redirect URL.
+    """
+    _setup_version_mocks(monkeypatch)
+
+    response = client.get("/Genesis.1.1", {
+        "ven": "nonexistent|Nonexistent_Title",
+        "p2": "Genesis.1",
+        "vhe2": "nonexistent|Nonexistent_Title",
+    })
+    assert response.status_code == 302
+    params = _get_redirect_params(response)
+    assert "ven" not in params
+    assert "vhe2" not in params

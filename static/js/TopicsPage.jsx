@@ -17,9 +17,9 @@ import {Card} from "./common/Card";
 const TopicsPage = ({setNavTopic, multiPanel}) => {
   let categoryListings = Sefaria.topic_toc.map((topic, i) => <TopicTOCCard topic={topic} setNavTopic={setNavTopic} key={i}/>);
   const letter = Sefaria.interfaceLang === "hebrew" ? "א" : "a";
-  const description = {"en": "Browse or search our complete list of topics.", "he": Sefaria._("Browse or search our complete list of topics.")};
+  const description = {"en": "Browse or search our complete list of topics.", "he": Sefaria._("topics_page.browse_or_search_our_complete_list_of_topics")};
   const topicsA_Z = <Card cardTitleHref={`/topics/all/${letter}`}
-                                     cardTitle={{"en": "All Topics A-Z", "he": Sefaria._("All Topics A-Z")}}
+                                     cardTitle={{"en": "All Topics A-Z", "he": Sefaria._("topics_page.all_topics_a_z")}}
                                      cardText={description}
                                      analyticsEventName="navto_topic:click"
                                      analyticsLinkType={"topic"}
@@ -47,7 +47,7 @@ const TopicsPage = ({setNavTopic, multiPanel}) => {
           <div className="contentInner" data-anl-feature_name="Main">
               <div className="navTitle tight sans-serif">
                   <CategoryHeader type="topics" toggleButtonIDs={["subcategory", "reorder"]}>
-                    <h1><InterfaceText>Explore by Topic</InterfaceText></h1>
+                    <h1><InterfaceText>topics_page.explore_by_topic</InterfaceText></h1>
                   </CategoryHeader>
               </div>
               { about }

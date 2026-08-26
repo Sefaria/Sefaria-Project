@@ -13,7 +13,7 @@ from sefaria.model.linker.context_mutation import ContextMutationOp, ContextMuta
 from sefaria.model.linker.ref_part import RawRef, RawRefPart, SectionContext, ContextPart, TermContext, RawRefPartPair, RefPartType
 from sefaria.model.linker.ref_part_and_node_match import RefPartAndNodeMatch
 from ne_span import NESpan
-from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode
+from sefaria.model.linker.referenceable_book_node import ReferenceableBookNode, NamedReferenceableBookNode
 from sefaria.model.linker.match_template import MatchTemplateTrie, LEAF_TRIE_ENTRY
 from sefaria.model.linker.resolved_ref_refiner_factory import resolved_ref_refiner_factory
 import structlog
@@ -46,7 +46,7 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
     Partial or complete resolution of a RawRef
     """
 
-    def __init__(self, _raw_entity: RawRef, ref_part_and_node_matches: list[RefPartAndNodeMatch], ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None) -> None:
+    def __init__(self, _raw_entity: RawRef, ref_part_and_node_matches: list[RefPartAndNodeMatch], ref: text.Ref, context_ref: text.Ref = None, context_type: ContextType = None, context_parts: List[ContextPart] = None, _thoroughness=ResolutionThoroughness.NORMAL, _matched_dh_map=None, disqualification_reason: str = None) -> None:
         self._raw_entity = _raw_entity
         self.ref_part_and_node_matches = ref_part_and_node_matches
         self.ref = ref
@@ -55,6 +55,7 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
         self.context_parts = context_parts[:] if context_parts else []
         self._thoroughness = _thoroughness
         self._matched_dh_map = _matched_dh_map or {}
+        self.disqualification_reason = disqualification_reason
 
     def complies_with_thoroughness_level(self):
         return self._thoroughness >= ResolutionThoroughness.HIGH or not self.ref.is_book_level()
@@ -102,6 +103,8 @@ class ResolvedRef(AbstractResolvedEntity, abst.Cloneable):
             "contextRef": self.context_ref.normal() if self.context_ref else None,
             "contextType": self.context_type.name if self.context_type else None,
         })
+        if self.disqualification_reason:
+            span["disqualificationReason"] = self.disqualification_reason
         if self.ref:
             span.update({
                 "resolvedRefParts": [p.term.slug if isinstance(p, TermContext) else p.text for p in self.resolved_parts],
@@ -445,14 +448,14 @@ class RefResolver:
     def set_thoroughness(self, thoroughness: ResolutionThoroughness) -> None:
         self._thoroughness = thoroughness
 
-    def resolve_raw_ref(self, book_context_ref: Optional[text.Ref], raw_ref: RawRef) -> PossiblyAmbigResolvedRef:
+    def resolve_raw_ref(self, book_context_ref: Optional[text.Ref], raw_ref: RawRef, keep_disqualified: bool = False) -> PossiblyAmbigResolvedRef:
         context_mutations = self._collect_context_mutations(book_context_ref)
         if context_mutations:
             context_mutations.apply_to(raw_ref, self.get_term_matcher())
         else:
             raw_ref.parts_to_match = raw_ref.raw_ref_parts
         unrefined_matches = self.get_unrefined_ref_part_matches(book_context_ref, raw_ref)
-        temp_resolved_list = self.refine_ref_part_matches(book_context_ref, unrefined_matches)
+        temp_resolved_list = self.refine_ref_part_matches(book_context_ref, unrefined_matches, keep_disqualified=keep_disqualified)
         if len(temp_resolved_list) > 1:
             return AmbiguousResolvedRef(temp_resolved_list)
         elif len(temp_resolved_list) == 0:
@@ -542,13 +545,14 @@ class RefResolver:
         title_trie = title_trie or self.get_ref_part_title_trie()
         prev_ref_parts = prev_ref_parts or []
         matches = []
-        for part in ref_parts:
+        part_pairs = self._get_named_part_pairs(ref_parts)
+        for part in ref_parts + part_pairs:
             temp_raw_ref = raw_ref
             temp_title_trie, partial_key_end = title_trie.get_continuations(part.key(), allow_partial=True)
             if temp_title_trie is None: continue
             if partial_key_end is None:
                 matched_part = part
-            elif part.type == RefPartType.NAMED:
+            elif part.type == RefPartType.NAMED and not isinstance(part, RawRefPartPair):
                 try:
                     temp_raw_ref, apart, bpart = raw_ref.split_part(part, partial_key_end)
                     matched_part = apart
@@ -556,7 +560,8 @@ class RefResolver:
                     matched_part = part  # fallback on original part
             else:
                 continue
-            temp_prev_ref_parts = tuple(list(prev_ref_parts) + [matched_part])
+            matched_parts = list(matched_part.part_pair) if isinstance(matched_part, RawRefPartPair) else [matched_part]
+            temp_prev_ref_parts = tuple(list(prev_ref_parts) + matched_parts)
             if LEAF_TRIE_ENTRY in temp_title_trie:
                 for node in temp_title_trie[LEAF_TRIE_ENTRY]:
                     try:
@@ -565,17 +570,25 @@ class RefResolver:
                         continue
                     part_and_node_matches = [RefPartAndNodeMatch(temp_prev_ref_parts, node, True)]
                     matches += [ResolvedRef(temp_raw_ref, part_and_node_matches, ref, _thoroughness=self._thoroughness)]
-            temp_ref_parts = [temp_part for temp_part in ref_parts if temp_part != part]
+            used_parts = set(part.part_pair) if isinstance(part, RawRefPartPair) else {part}
+            temp_ref_parts = [temp_part for temp_part in ref_parts if temp_part not in used_parts]
             matches += self._get_unrefined_ref_part_matches_recursive(temp_raw_ref, temp_title_trie, ref_parts=temp_ref_parts, prev_ref_parts=temp_prev_ref_parts)
 
         return ResolvedRefPruner.prune_unrefined_ref_part_matches(matches)
 
-    def refine_ref_part_matches(self, book_context_ref: Optional[text.Ref], matches: List[ResolvedRef]) -> List[ResolvedRef]:
+    def refine_ref_part_matches(self, book_context_ref: Optional[text.Ref], matches: List[ResolvedRef], keep_disqualified: bool = False) -> List[ResolvedRef]:
         temp_matches = []
-        refs_matched = {match.ref.normal() for match in matches}
+        refs_matched = {match.ref.normal() for match in matches if match.ref is not None}
         for unrefined_match in matches:
             unused_parts = list(set(unrefined_match.raw_entity.parts_to_match) - set(unrefined_match.resolved_parts))
             context_free_matches = self._get_refined_ref_part_matches_recursive(unrefined_match, unused_parts)
+
+            if unrefined_match.ref is None:
+                # Non-referenceable intermediate node (e.g. an AltStructNode matched by a lone
+                # term like זח"ב). It can't be a final ref or anchor context; it's only useful as
+                # a stepping stone into its children, which the recursion above already refined.
+                temp_matches += [match for match in context_free_matches if match.ref is not None]
+                continue
 
             # context
             # if unrefined_match already used context, make sure it continues to use it
@@ -592,6 +605,8 @@ class RefResolver:
                 # BUT did get refined more when considering context
                 context_free_matches = list(filter(lambda x: not (x.num_resolved(include={ContextPart}) > 0 and x.ref.normal() in refs_matched), context_free_matches))
             temp_matches += context_free_matches + context_full_matches
+        if keep_disqualified:
+            return ResolvedRefPruner.prune_refined_ref_part_matches_for_debug(self._thoroughness, temp_matches)
         return ResolvedRefPruner.prune_refined_ref_part_matches(self._thoroughness, temp_matches)
 
     @staticmethod
@@ -643,20 +658,29 @@ class RefResolver:
         term_contexts = []
         curr_node = node
         while curr_node is not None and (include_root or not curr_node.is_root()):
-            term_contexts += RefResolver._get_term_contexts(curr_node)
+            term_contexts += RefResolver._get_node_term_contexts(curr_node)
             curr_node = curr_node.parent
         return term_contexts
+
+    @staticmethod
+    def _get_node_term_contexts(node: schema.SchemaNode) -> List[TermContext]:
+        """
+        Return the TermContexts contributed by `node`'s own (shortest) match template, without
+        looking at ancestors.
+        """
+        match_templates = list(node.get_match_templates())
+        if len(match_templates) == 0:
+            return []
+        # not clear which match_template to choose. shortest has advantage of adding minimum context to search
+        shortest_template = min(match_templates, key=lambda x: len(list(x.terms)))
+        return [TermContext(term) for term in shortest_template.terms]
 
     @staticmethod
     def _get_term_contexts(node: schema.SchemaNode) -> List[TermContext]:
         term_contexts = []
         recursion_depth = 0
         while True:
-            match_templates = list(node.get_match_templates())
-            if len(match_templates) != 0:
-                # not clear which match_template to choose. shortest has advantage of adding minimum context to search
-                shortest_template = min(match_templates, key=lambda x: len(list(x.terms)))
-                term_contexts.extend([TermContext(term) for term in shortest_template.terms])
+            term_contexts.extend(RefResolver._get_node_term_contexts(node))
             if node.parent is None:
                 break
             node = node.parent
@@ -712,6 +736,10 @@ class RefResolver:
 
     def _get_refined_ref_part_matches_recursive(self, match: ResolvedRef, ref_parts: List[RawRefPart]) -> List[ResolvedRef]:
         fully_refined = []
+        for temp_match in self._get_refined_matches_for_numbered_parts_in_matched_range(match, ref_parts):
+            temp_ref_parts = list(set(ref_parts) - set(temp_match.resolved_parts))
+            fully_refined += self._get_refined_ref_part_matches_recursive(temp_match, temp_ref_parts)
+
         children = match.get_node_children()
         part_pairs = self._get_named_part_pairs(ref_parts)
         for part in (ref_parts + part_pairs):
@@ -725,6 +753,52 @@ class RefResolver:
             # original match is better than no matches
             return [match]
         return fully_refined
+
+    def _get_refined_matches_for_numbered_parts_in_matched_range(self, match: ResolvedRef, ref_parts: List[RawRefPart]) -> List[ResolvedRef]:
+        """
+        If a named part matched an alt-structure range, allow explicit numbered
+        parts to refine within that range. This lets refs like "Tosafot, Perek
+        Haya Koreh, 13b, DH ..." use both the perek title and daf/amud.
+        """
+        if match.ref is None or not match.ref.is_range():
+            return []
+        input_parts = set(match.raw_entity.parts_to_match)
+        numbered_parts = [
+            part for part in ref_parts
+            if part.type == RefPartType.NUMBERED and part in input_parts and not part.is_context
+        ]
+        if len(numbered_parts) == 0:
+            return []
+        if not any(part.type == RefPartType.DH and part in input_parts and not part.is_context for part in ref_parts):
+            return []
+
+        containing_node = self._get_containing_named_node(match.ref)
+        node_seed = RefPartAndNodeMatch(tuple(), containing_node, True)
+        node_match = match.clone(
+            ref_part_and_node_matches=match.ref_part_and_node_matches + [node_seed],
+            ref=containing_node.ref(),
+        )
+        refined_matches = self._get_refined_ref_part_matches_recursive(node_match, numbered_parts)
+        return [
+            refined_match.clone(ref_part_and_node_matches=[
+                part_match for part_match in refined_match.ref_part_and_node_matches
+                if part_match is not node_seed
+            ])
+            for refined_match in refined_matches
+            if refined_match.ref is not None
+            and not refined_match.ref.is_range()
+            and match.ref.contains(refined_match.ref)
+            and any(part in refined_match.resolved_parts for part in numbered_parts)
+        ]
+
+    @staticmethod
+    def _get_containing_named_node(ref: text.Ref) -> NamedReferenceableBookNode:
+        """
+        Return the named node whose children should be traversed to re-match
+        numbered parts inside `ref`'s range.
+        """
+        containing_titled_node = ref.index if ref.index_node.parent is None else ref.index_node.parent
+        return NamedReferenceableBookNode(containing_titled_node)
 
 
 class ResolvedRefPruner:
@@ -884,19 +958,31 @@ class ResolvedRefPruner:
 
     @staticmethod
     def is_match_correct(match: ResolvedRef) -> bool:
+        return ResolvedRefPruner.get_disqualification_reason(match) is None
+
+    @staticmethod
+    def get_disqualification_reason(match: ResolvedRef) -> Optional[str]:
         # make sure no explicit sections matched before context sections
         if not ResolvedRefPruner.context_parts_before_or_between_explicit_parts(match):
-            return False
+            return "Context parts appeared after explicit parts without an explicit ibid marker."
         if ResolvedRefPruner.do_explicit_sections_match_before_context_sections(match):
-            return False
+            return "Explicit section parts matched before context section parts."
         if not ResolvedRefPruner.matched_all_explicit_sections(match):
-            return False
+            resolved_explicit = set(match.get_resolved_parts(exclude={ContextPart}))
+            missed = [part.text for part in match.raw_entity.parts_to_match if not part.is_context and part not in resolved_explicit]
+            missed_str = ", ".join(missed) if missed else "unknown"
+            return f"Did not match all explicit sections. Missed ref parts: {missed_str}."
         if ResolvedRefPruner.is_single_part_that_cant_match_out_of_order(match):
-            return False
+            return "Only one non-out-of-order part matched, which is treated as too ambiguous."
         if ResolvedRefPruner.non_named_part_matched_node_with_other_part_out_of_order(match):
-            return False
+            return "A non-title ref part matched a node out of the input order."
+        return None
 
-        return True
+    @staticmethod
+    def annotate_disqualified_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+        for resolved_ref in resolved_refs:
+            resolved_ref.disqualification_reason = ResolvedRefPruner.get_disqualification_reason(resolved_ref)
+        return resolved_refs
 
     @staticmethod
     def remove_superfluous_matches(thoroughness: ResolutionThoroughness, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
@@ -916,9 +1002,11 @@ class ResolvedRefPruner:
 
     @staticmethod
     def remove_incorrect_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+        ResolvedRefPruner.annotate_disqualified_matches(resolved_refs)
         temp_resolved_refs = list(filter(ResolvedRefPruner.is_match_correct, resolved_refs))
         if len(temp_resolved_refs) == 0:
             temp_resolved_refs = ResolvedRefPruner._merge_subset_matches(resolved_refs)
+            ResolvedRefPruner.annotate_disqualified_matches(temp_resolved_refs)
             temp_resolved_refs = list(filter(ResolvedRefPruner.is_match_correct, temp_resolved_refs))
         return temp_resolved_refs
 
@@ -956,6 +1044,47 @@ class ResolvedRefPruner:
         resolved_refs = ResolvedRefPruner.remove_superfluous_matches(thoroughness, resolved_refs)
 
         return resolved_refs
+
+    @staticmethod
+    def prune_refined_ref_part_matches_for_debug(thoroughness, resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:
+        """
+        Return the same candidate space as normal pruning, but keep candidates that failed correctness checks
+        annotated with the reason. Later preference pruning is applied only to valid candidates.
+        """
+        annotated_refs = ResolvedRefPruner.annotate_disqualified_matches(resolved_refs)
+        valid_refs = list(filter(lambda x: x.disqualification_reason is None, annotated_refs))
+        if len(valid_refs) == 0:
+            merged_refs = ResolvedRefPruner._merge_subset_matches(resolved_refs)
+            annotated_refs = ResolvedRefPruner.annotate_disqualified_matches(merged_refs)
+            valid_refs = list(filter(lambda x: x.disqualification_reason is None, annotated_refs))
+        if len(valid_refs) == 0:
+            return annotated_refs
+
+        context_free_matches = ResolvedRefPruner.get_context_free_matches(valid_refs)
+        if len(context_free_matches) > 0:
+            valid_refs = context_free_matches
+
+        valid_refs = ResolvedRefPruner.get_top_matches_by_order_key(valid_refs)
+        valid_refs = ResolvedRefPruner.remove_superfluous_matches(thoroughness, valid_refs)
+        valid_set = set(id(match) for match in valid_refs)
+        for match in annotated_refs:
+            if match.disqualification_reason is not None or id(match) in valid_set:
+                continue
+            # A match that passed correctness checks but didn't survive preference pruning was
+            # dropped for one of three reasons. `remove_superfluous_matches` unconditionally
+            # discards matches with no ref at all (e.g. one that only reached a non-addressable
+            # intermediate node like an AltStructNode -- AltStructNode.ref() is always None,
+            # since the alt-structure itself isn't a location, only its leaves are) as well as
+            # matches whose ref points to a non-existent (empty) segment. Neither of those lost
+            # to a competing match, so labeling them "pruned in favor of a higher-priority
+            # parsing" would be misleading when nothing else actually won.
+            if match.ref is None:
+                match.disqualification_reason = "Matched a non-addressable intermediate node (e.g. an AltStructNode) with no concrete ref."
+            elif match.ref.is_empty():
+                match.disqualification_reason = "Resolved ref does not exist (empty segment)."
+            else:
+                match.disqualification_reason = "Valid match pruned in favor of a higher-priority parsing."
+        return annotated_refs
 
     @staticmethod
     def _merge_subset_matches(resolved_refs: List[ResolvedRef]) -> List[ResolvedRef]:

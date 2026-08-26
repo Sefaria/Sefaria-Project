@@ -2,7 +2,7 @@
 > Sources: `sefaria/helper/crm/crm_mediator.py`, `salesforce.py`, `nationbuilder.py`, `crm_connection_manager.py`, `crm_info_store.py`, `crm_factory.py`, `dummy_crm.py`, `tasks.py`
 
 ## Purpose
-Pluggable CRM layer that syncs Sefaria app users, newsletter subscriptions, and sustainer status with an external CRM. Salesforce is the live backend; NationBuilder is deprecated; `DummyConnectionManager` is used in dev and for unconfigured deployments. A separate Celery task handles chatbot-experiment opt-in webhooks that bypass the mediator and post directly to a Salesforce Apex webhook URL.
+Pluggable CRM layer that syncs Sefaria app users, newsletter subscriptions, and sustainer status with an external CRM. Salesforce is the live backend; NationBuilder is deprecated; `DummyConnectionManager` is used in dev and for unconfigured deployments. A separate Celery task handles chatbot (Library Assistant) opt-in/opt-out webhooks that bypass the mediator and post directly to a Salesforce Apex webhook URL.
 
 ## Key Components
 
@@ -13,7 +13,7 @@ Pluggable CRM layer that syncs Sefaria app users, newsletter subscriptions, and 
 - **`NationbuilderConnectionManager`** (`nationbuilder.py`) — Deprecated. Emits `DeprecationWarning` on import. Uses `rauth` OAuth2 against `{SLUG}.nationbuilder.com`. Kept for reference but never instantiated by the factory.
 - **`DummyConnectionManager`** (`dummy_crm.py`) — No-op returning `True` for every mutation. Returns two hardcoded fake lists from `get_available_lists`.
 - **`CrmInfoStore`** (`crm_info_store.py`) — Static methods that read/write CRM IDs on `UserProfile` (field name depends on CRM type: `nationbuilder_id` vs `sf_app_user_id`) and manage the `is_sustainer` flag in the `profiles` collection.
-- **`tasks.py`** — Celery task `crm.send_chatbot_opt_in_webhook`. Separate path from the mediator: posts `{id, data: {email, optIn}}` to a hardcoded Salesforce Apex webhook URL with one retry.
+- **`tasks.py`** — Celery task `crm.send_chatbot_opt_in_webhook`. Separate path from the mediator: posts `{id, data: {email, optIn, interfaceLanguage}}` to a hardcoded Salesforce Apex webhook URL with one retry. **Currently deactivated** via `CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED` — comms has no use for the opt-in signal while the Library Assistant is on by default; the code is kept as a working reference and reactivates by flipping the flag.
 
 ## Non-Obvious Patterns
 
@@ -30,7 +30,7 @@ Pluggable CRM layer that syncs Sefaria app users, newsletter subscriptions, and 
 
 - `CrmMediator` is the single entry point from Django views/signals. Callers include the user registration flow and profile email update flow.
 - `CrmInfoStore` is coupled to `sefaria.model.user_profile.UserProfile` and directly queries `db.profiles`.
-- `tasks.py` is invoked via `dispatch_chatbot_opt_in_webhook(email, opt_in)` from chatbot opt-in toggle views; it does not go through `CrmMediator`.
+- `tasks.py` is invoked via `dispatch_chatbot_opt_in_webhook(email, opt_in, interface_language)`; the only caller is the experiments-whitelist write path (`_set_user_experiments` in `reader/models.py`), and the deactivation flag makes even that a no-op. It does not go through `CrmMediator`.
 - `CrmFactory` reads `django.conf.settings.CRM_TYPE`. Salesforce auth additionally needs `SALESFORCE_BASE_URL`, `SALESFORCE_CLIENT_ID`, `SALESFORCE_CLIENT_SECRET`.
 
 ## Common Tasks
@@ -39,4 +39,4 @@ Pluggable CRM layer that syncs Sefaria app users, newsletter subscriptions, and 
 - **Debug why a user isn't in Salesforce:** check `settings.CRM_TYPE == "SALESFORCE"`; check OAuth creds; remember exceptions are swallowed — enable logging before the `except` in `SalesforceConnectionManager.add_user_to_crm`.
 - **Add a new mailing list:** managed in Salesforce metadata (`AC_to_SF_List_Mapping__mdt`). No code change needed; `get_available_lists` picks them up.
 - **Test locally:** set `CRM_TYPE = "NONE"` (or leave unset) — everything becomes a no-op via `DummyConnectionManager`.
-- **Fire a chatbot opt-in event:** call `dispatch_chatbot_opt_in_webhook(email, opt_in)` from `sefaria.helper.crm.tasks`.
+- **Fire a chatbot opt-in event:** flip `CHATBOT_OPT_IN_WEBHOOK_DEACTIVATED` to `False` in `tasks.py` and call `dispatch_chatbot_opt_in_webhook(email, opt_in, interface_language)`.

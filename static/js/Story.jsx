@@ -154,11 +154,13 @@ StorySheetList.propTypes = {
     toggleSignUpModal: PropTypes.func
 };
 
+// Guard Sefaria.index() with ?.: it is undefined when the source's text was deleted from the
+// library, and the unguarded .primary_category access throws and blanks the topic page (sc-38063).
 const TopicStoryDescBlock = ({title, tref}) =>
     (
       <div className="topicStoryDescBlock">
             <StoryTitleBlock en={title.en} he={title.he}></StoryTitleBlock>
-        <div>{Sefaria._(Sefaria.index(Sefaria.parseRef(tref).index).primary_category).toUpperCase()}</div>
+        <div>{Sefaria._(Sefaria.index(Sefaria.parseRef(tref).index)?.primary_category || "").toUpperCase()}</div>
       </div>
 )
 

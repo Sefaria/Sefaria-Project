@@ -28,7 +28,7 @@ class NoteListing extends Component {
     $(".addToSourceSheetModal").position({my: "center center-40", at: "center center", of: window});
   }
   deleteNote() {
-    if (!confirm(Sefaria._("Are you sure you want to delete this note?"))) { return; }
+    if (!confirm(Sefaria._("common.are_you_sure_you_want_to_delete_this"))) { return; }
     const resolve = this.props.onDeleteNote || (()=>{});
     Sefaria.deleteNote(this.props.data._id).then(resolve);
   }
@@ -55,22 +55,24 @@ class NoteListing extends Component {
   render() {
     const noteLink = this.getNoteLink(this.props.data.ref);
     var data = this.props.data;
-    return (<div className="noteListing">
-              <div className="actionButtons">
-                <img src="/static/icons/circled-x.svg" onClick={this.deleteNote} alt={Sefaria._("Delete note")} />
-              </div>
-              {noteLink}
-              <span className="noteText"><Note text={data.text}/></span>
-              {this.state.showSheetModal &&
-                <div>
-                  <AddToSourceSheetWindow
-                    srefs={[data.ref]}
-                    note={data.text}
-                    close={this.hideSheetModal} />
-                  <div className="mask" onClick={this.hideSheetModal}></div>
-                </div>
-              }
-            </div>);
+    return (
+      <div className="noteListing">
+        <div className="actionButtons">
+          <img src="/static/icons/circled-x.svg" onClick={this.deleteNote} alt={Sefaria._("note_listing.delete_note")} />
+        </div>
+        {noteLink}
+        <span className="noteText"><Note text={data.text}/></span>
+        {this.state.showSheetModal &&
+          <div>
+            <AddToSourceSheetWindow
+              srefs={[data.ref]}
+              note={data.text}
+              close={this.hideSheetModal} />
+            <div className="mask" onClick={this.hideSheetModal}></div>
+          </div>
+        }
+      </div>
+    );
   }
 }
 NoteListing.propTypes = {

@@ -7,6 +7,7 @@ ORM-touching code is mocked at the SemanticTextChunk.objects boundary.
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+from django.test import override_settings
 import pytest
 
 from semantic_search.embedder import embed_query, l2_normalize_vector
@@ -17,7 +18,7 @@ from semantic_search.linked_refs import (
     get_mean_std_linked_ref_enhancements,
 )
 from semantic_search.router import SemanticSearchRouter
-from semantic_search.search import semantic_search
+from semantic_search.search import semantic_search, semantic_search_by_embedding
 from semantic_search.models import SemanticTextChunk
 
 
@@ -81,6 +82,10 @@ class TestSearchByEmbeddingFilters:
     def test_known_field_passes_through(self):
         kwargs = self._run({"language": "en"})
         assert kwargs == {"language": "en"}
+
+    def test_ref_in_filter_passes_through(self):
+        kwargs = self._run({"ref__in": ["Genesis 1:1", "Genesis 1:2"]})
+        assert kwargs == {"ref__in": ["Genesis 1:1", "Genesis 1:2"]}
 
     def test_unknown_field_is_dropped(self):
         kwargs = self._run({"bad__inject": "x"})
@@ -475,6 +480,7 @@ class TestEmbedQuery:
 # ---------------------------------------------------------------------------
 
 class TestSemanticSearch:
+    @override_settings(GEMINI_API_KEY="test-key")
     @patch("semantic_search.search.SemanticTextChunk")
     @patch("semantic_search.search.embed_query")
     def test_calls_embed_query_then_search_by_embedding(self, mock_embed, mock_chunk_cls):
@@ -487,6 +493,7 @@ class TestSemanticSearch:
             [0.5] * 1536, limit=10, filters=None
         )
 
+    @override_settings(GEMINI_API_KEY="test-key")
     @patch("semantic_search.search.SemanticTextChunk")
     @patch("semantic_search.search.embed_query")
     def test_forwards_filters_and_limit(self, mock_embed, mock_chunk_cls):
@@ -497,6 +504,7 @@ class TestSemanticSearch:
             [0.1] * 1536, limit=5, filters={"language": "en"}
         )
 
+    @override_settings(GEMINI_API_KEY="test-key")
     @patch("semantic_search.search.SemanticTextChunk")
     @patch("semantic_search.search.embed_query")
     def test_returns_search_results(self, mock_embed, mock_chunk_cls):
@@ -504,3 +512,13 @@ class TestSemanticSearch:
         expected = [MagicMock()]
         mock_chunk_cls.return_value.search_by_embedding.return_value = expected
         assert semantic_search("query") == expected
+
+    @patch("semantic_search.search.SemanticTextChunk")
+    def test_search_by_embedding_uses_existing_embedding(self, mock_chunk_cls):
+        embedding = [0.25] * 1536
+        expected = [MagicMock()]
+        mock_chunk_cls.return_value.search_by_embedding.return_value = expected
+        assert semantic_search_by_embedding(embedding, filters={"ref": "Genesis 1"}, limit=2) == expected
+        mock_chunk_cls.return_value.search_by_embedding.assert_called_once_with(
+            embedding, limit=2, filters={"ref": "Genesis 1"}
+        )

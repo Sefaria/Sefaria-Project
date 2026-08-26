@@ -2,6 +2,12 @@
 
 @import "breakpoints";
 
+$header-height: 60px;
+
+:root {
+  --header-height: #{$header-height};
+}
+
 $exclude-flex: ( //Elements excluded from the general rules of flex and align to center
   ".dropdownLinks-menu",
   ".autocomplete-dropdown",
@@ -23,7 +29,7 @@ $not-selector: "";
 .headerInner {
   position: absolute;
   width: 100%;
-  height: 60px;
+  height: $header-height;
   z-index: var(--z-header);
   box-sizing: border-box;
   padding: 0 30px;

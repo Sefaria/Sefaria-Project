@@ -160,7 +160,7 @@ class AboutBox extends Component {
       detailSection = (
         <div className="detailsSection sans-serif">
           <h2 className="aboutHeader">
-            <InterfaceText>About This Text</InterfaceText>
+            <InterfaceText>about_box.about_this_text</InterfaceText>
           </h2>
           <a href={bookPageUrl} className="aboutTitle serif">
             <ContentText text={{en: d.title, he:d.heTitle}}/>

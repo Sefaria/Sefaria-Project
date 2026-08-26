@@ -27,7 +27,7 @@ const TranslationsPage = ({translationsSlug}) => {
                 return uncategorized;
             },{}) : {})
     }, [translations])
-    const tabs = [{id: "texts", title: {en: "Texts", he: Sefaria._("Texts", "Header")}}];
+    const tabs = [{id: "texts", title: {en: "Texts", he: Sefaria._("header.texts")}}];
     const sortFx = (a, b) => {
       if(a["order"] && b["order"]) {
         return a['order'][0] - b['order'][0];
@@ -36,7 +36,7 @@ const TranslationsPage = ({translationsSlug}) => {
       }
     }
     return (
-        <div className="readerNavMenu noLangToggleInHebrew" key="0">
+      <div className="readerNavMenu noLangToggleInHebrew" key="0">
         <div className="content">
           <div className="sidebarLayout">
             <div className="contentInner">
@@ -55,35 +55,37 @@ const TranslationsPage = ({translationsSlug}) => {
                   ><> {translations ?  Sefaria.toc.filter(w => Object.keys(translations).includes(w.category))
                   .map(w => w.category)
                   .map(corpus => {
-                return (<div key={corpus} className="translationsPage">
-                  <h2><InterfaceText>{corpus}</InterfaceText></h2>
+                return (
+                  <div key={corpus} className="translationsPage">
+                    <h2><InterfaceText>{corpus}</InterfaceText></h2>
                     {prioritized[corpus] ?
                         <ul>
                             {prioritized[corpus].sort(sortFx).map(x => <li key={x.title} className="bullet languageItem">
                                 <a href={x.url}><InterfaceText>{x.title}</InterfaceText></a></li>)}
                         </ul> :
                         null }
-                  {Sefaria.tocObjectByCategories([corpus]).contents.filter(x => Object.keys(translations[corpus]).includes(x.category)).map(x => {
-                    return (<details key={x.category} open={translationsSlug !== "en"}><summary><InterfaceText>{x.category}</InterfaceText></summary>
-                    <ul>
-                      {translations[corpus][x.category].sort(sortFx).map((y, i) => {
-                        return (<li key={i+y.title} className="bullet languageItem"><a href={y.url}><InterfaceText>{y.title}</InterfaceText></a></li>)
-                      })}
-                    </ul>
-                    </details>)
-                  })}
-                  {
-                    uncategorized[corpus] && uncategorized[corpus].length > 0?
-                    <details open={translationsSlug !== "en"}><summary><InterfaceText>Uncategorized</InterfaceText></summary>
-                    <ul>
-                      {uncategorized[corpus].sort(sortFx).map((y, i) => {
-                        return (<li key={i+y.title} className="bullet languageItem"><a href={y.url}>{y.title}</a></li>)
-                      })}
-                    </ul>
-                    </details>
-                    : null
-                  }       
-                </div>)
+                    {Sefaria.tocObjectByCategories([corpus]).contents.filter(x => Object.keys(translations[corpus]).includes(x.category)).map(x => {
+                      return (<details key={x.category} open={translationsSlug !== "en"}><summary><InterfaceText>{x.category}</InterfaceText></summary>
+                      <ul>
+                        {translations[corpus][x.category].sort(sortFx).map((y, i) => {
+                          return (<li key={i+y.title} className="bullet languageItem"><a href={y.url}><InterfaceText>{y.title}</InterfaceText></a></li>)
+                        })}
+                      </ul>
+                      </details>)
+                    })}
+                    {
+                      uncategorized[corpus] && uncategorized[corpus].length > 0?
+                      <details open={translationsSlug !== "en"}><summary><InterfaceText>translations_page.uncategorized</InterfaceText></summary>
+                      <ul>
+                        {uncategorized[corpus].sort(sortFx).map((y, i) => {
+                          return (<li key={i+y.title} className="bullet languageItem"><a href={y.url}>{y.title}</a></li>)
+                        })}
+                      </ul>
+                      </details>
+                      : null
+                    }
+                  </div>
+                );
               }) : null}
               </>
               </TabView>}
@@ -92,7 +94,7 @@ const TranslationsPage = ({translationsSlug}) => {
           </div>
         </div>
       </div>
-    )
+    );
 }
 
 export default TranslationsPage

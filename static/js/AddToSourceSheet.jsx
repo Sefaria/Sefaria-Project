@@ -163,7 +163,7 @@ class AddToSourceSheetBox extends Component {
   }
 
   normalize(text){
-    return(text.replaceAll(/(<br\/>)+/g, ' ').replace(/\u2009/g, ' ').replace(/<[^>]*>/g, ''));
+    return (text.replaceAll(/(<br\/>)+/g, ' ').replace(/\u2009/g, ' ').replace(/<[^>]*>/g, ''));
   }
 
   async postToSheet(source) {
@@ -412,7 +412,7 @@ const isSelected = this.state.selectedSheet?.id === sheet.id;
               {sheetsList}
             </div>
             <div className="newSheet noselect">
-              <input className="newSheetInput noselect" placeholder={Sefaria._("Name New Sheet")} aria-label={Sefaria._("Name New Sheet")} type="text"/>
+              <input className="newSheetInput noselect" placeholder={Sefaria._("add_to_source_sheet.name_new_sheet")} aria-label={Sefaria._("add_to_source_sheet.name_new_sheet")} type="text"/>
               <Button 
                 size="small"
                 className="fillWidth noselect" 
@@ -430,7 +430,8 @@ const isSelected = this.state.selectedSheet?.id === sheet.id;
           <InterfaceText text={{en: "Add to Sheet", he: "הוספה לדף המקורות"}} />
         </Button>
         {!this.props.hideGDocAdvert && <GDocAdvertBox/>}
-      </div>);
+      </div>
+    );
   }
 }
 AddToSourceSheetBox.propTypes = {
@@ -495,22 +496,24 @@ class AddToSourceSheetWindow extends Component {
   render () {
     var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
 
-    return (<div className="addToSourceSheetModal">
-      <div className="sourceSheetBoxTitle">
-        <img src="/static/icons/circled-x.svg" className="closeButton" aria-hidden="true" alt={Sefaria._("Close")} onClick={this.close}/>
-        {Sefaria._uid ? null : <span>
-            In order to add this source to a sheet, please <a href={"/login" + nextParam}>log in.</a>
-        </span>}
-        <div className="clearFix"></div>
+    return (
+      <div className="addToSourceSheetModal">
+        <div className="sourceSheetBoxTitle">
+          <img src="/static/icons/circled-x.svg" className="closeButton" aria-hidden="true" alt={Sefaria._("common.close")} onClick={this.close}/>
+          {Sefaria._uid ? null : <span>
+              In order to add this source to a sheet, please <a href={"/login" + nextParam}>log in.</a>
+          </span>}
+          <div className="clearFix"></div>
+        </div>
+        {Sefaria._uid ?
+          <AddToSourceSheetBox
+            srefs = {this.props.srefs}
+            en = {this.props.en}
+            he = {this.props.he}
+            note = {this.props.note}
+          /> : null }
       </div>
-      {Sefaria._uid ?
-        <AddToSourceSheetBox
-          srefs = {this.props.srefs}
-          en = {this.props.en}
-          he = {this.props.he}
-          note = {this.props.note}
-        /> : null }
-      </div>);
+    );
   }
 }
 AddToSourceSheetWindow.propTypes = {

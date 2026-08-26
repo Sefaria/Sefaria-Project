@@ -2,6 +2,18 @@
  * Constant variables for E2E tests
  */
 
+import { LANGUAGES } from './globals';
+
+// AuthPage (static/js/auth/AuthPage.jsx) labels shared by every page object
+// that has to click through ChooseView before an email/password form exists
+// (LoginPage, SignUpPage) — both /login and /register land there first.
+export const AUTH_LABELS = {
+  CONTINUE_WITH_EMAIL: {
+    [LANGUAGES.EN]: 'Continue with Email',
+    [LANGUAGES.HE]: 'המשך עם דוא״ל',
+  },
+} as const;
+
 // Interface for save state objects
 export interface SaveState {
   text: RegExp;
@@ -53,7 +65,29 @@ export const SaveStates: Record<string, SaveState> = {
 const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
 const SANDBOX_DOMAIN_IL = process.env.SANDBOX_URL_IL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
 
-export const MODULE_URLS = {
+// Local dev servers (localhost / 127.0.0.1) have no www./voices. subdomains or
+// TLS — use the URL as-is for the Library module and a voices./chiburim.
+// sub-host for Voices (Chromium resolves *.localhost to 127.0.0.1).
+// Keep this in sync with the same derivation in ../playwright.config.ts.
+const isLocalSandbox = /^(https?:\/\/)?(localhost|127\.0\.0\.1)/.test(process.env.SANDBOX_URL ?? '')
+const localBase = (raw: string | undefined, voicesHost?: string) => {
+  const u = new URL((raw ?? '').match(/^https?:\/\//) ? raw! : `http://${raw}`)
+  const host = voicesHost ? `${voicesHost}.${u.host}` : u.host
+  return `${u.protocol}//${host}`
+}
+
+export const MODULE_URLS = isLocalSandbox ? {
+  EN : {
+    LIBRARY: localBase(process.env.SANDBOX_URL),
+    VOICES:  localBase(process.env.SANDBOX_URL, 'voices')
+  },
+  HE : {
+    LIBRARY: localBase(process.env.SANDBOX_URL_IL),
+    // Locally there is no chiburim. host (it isn't in ALLOWED_HOSTS): Hebrew
+    // Voices is the voices. host with the interfaceLang=hebrew cookie.
+    VOICES:  localBase(process.env.SANDBOX_URL_IL, 'voices')
+  }
+} as const : {
   EN : {
     LIBRARY: `https://www.${SANDBOX_DOMAIN}`,
     VOICES:  `https://voices.${SANDBOX_DOMAIN}`
@@ -285,6 +319,25 @@ export const MOBILE_PAGE_URLS = {
   ABOUT: /\/mobile-about-menu/,
   MORE_FROM_SEFARIA: /\/products(\/|$|\?)/,
 } as const;
+
+/**
+ * Library search-results URL for a query, optionally deep-linked to a results tab.
+ *
+ * `search_tab` (not `tab`) selects sources/books/authors/topics — on a search URL
+ * `tab` already means the text-vs-sheet search type. See `get_search_params` in
+ * reader/views.py:1066.
+ */
+export const librarySearchUrl = (query: string, searchTab?: string) =>
+  `${MODULE_URLS.EN.LIBRARY}/search?q=${encodeURIComponent(query)}`
+  + (searchTab ? `&search_tab=${encodeURIComponent(searchTab)}` : '');
+
+/**
+ * The Voices "Sheets With <ref>" results page — the destination of the Resource
+ * Panel's Sheets button (`createSheetsWithRefURL`, ConnectionsPanel.jsx:655).
+ * Lives on Voices, not Library, which is why it takes its own base URL.
+ */
+export const sheetsWithRefUrl = (ref: string) =>
+  `${MODULE_URLS.EN.VOICES}/sheets-with-ref/${encodeURIComponent(ref)}`;
 
 export const SEARCH_DROPDOWN = {
   CONTAINER: '.autocomplete-dropdown',

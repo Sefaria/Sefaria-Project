@@ -68,7 +68,7 @@ ADMINS = (
 )
 ADMIN_PATH = 'somethingsomething' #This will be the path to the admin site, locally it can also be 'admin'
 
-PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
+PINNED_IPCOUNTRY = "IL" # Sets request.country_code when no cf-ipcountry header is present; drives parashat hashavua diaspora/Israel schedule and location-targeted Strapi banners/modals.
 
 MONGO_REPLICASET_NAME = None # If the below is a list, this should be set to something other than None. 
 # This can be either a string of one mongo host server or a list of `host:port` string pairs. So either e.g "localhost" of ["localhost:27017","localhost2:27017" ]
@@ -179,6 +179,9 @@ SEARCH_URL = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'
+SEARCH_INDEX_NAME_TOPIC = 'topic'  # topics and authors (authors are a subtype of topic) - powers /api/entity-search
+SEARCH_INDEX_NAME_BOOK = 'book'  # Index (book) records - powers /api/entity-search
+SEARCH_INDEX_NAME_CATEGORY = 'category'  # searchable TOC categories - powers category results on the Books tab
 
 # Node Server
 USE_NODE = False
@@ -253,6 +256,14 @@ GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = ""
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
 GPU_SERVER_URL = 'http://localhost:5000'
+
+# SSO (Google + Apple Sign In via django-allauth)
+GOOGLE_SSO_CLIENT_ID = ""
+APPLE_SSO_CLIENT_ID = "org.sefaria.web.signin"
+APPLE_SSO_IOS_BUNDLE_ID = "org.sefaria.sefariaApp"
+APPLE_SSO_TEAM_ID = ""
+APPLE_SSO_KEY_ID = ""
+APPLE_SSO_PRIVATE_KEY = ""
 
 # Simple JWT
 SIMPLE_JWT = {

@@ -1,13 +1,26 @@
+from contextlib import contextmanager
+from copy import deepcopy
 from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, TermContext
 from sefaria.model.linker.referenceable_book_node import DiburHamatchilNodeSet, NumberedReferenceableBookNode
 from sefaria.model.linker.ref_resolver import ResolvedRef, RefResolver, IbidHistory
 from sefaria.model.linker.linker import LinkedDoc
+from sefaria.model.linker.linker_entity_recognizer import LinkerEntityRecognizer
 from .linker_test_utils import *
 from sefaria.model import schema
+from sefaria.model.text import TextChunk
 from sefaria.settings import ENABLE_LINKER
-from sefaria.model.marked_up_text_chunk import LinkerOutput
-from sefaria.system.exceptions import IndexSchemaError
-from sefaria.helper.linker.tasks import _extract_debug_spans
+from sefaria.model.marked_up_text_chunk import LinkerOutput, MarkedUpTextChunk, MUTCSpanType
+from sefaria.model.link import Link
+from sefaria.system.exceptions import IndexSchemaError, InputError
+from sefaria.helper.linker.tasks import (
+    _extract_debug_spans, _merge_deleted_spans, _linked_trefs_from_mutc_spans,
+    _apply_non_segment_resolution, _apply_ambiguous_resolution,
+)
+from sefaria.helper.linker.disambiguator import (
+    NonSegmentResolutionPayload, NonSegmentResolutionResult,
+    AmbiguousResolutionPayload, AmbiguousResolutionResult,
+)
+from sefaria.helper.linker_resource_panel_admin import _span_matches, parse_linker_citation
 
 
 def _seed_non_unique_terms(term_defs):
@@ -54,6 +67,190 @@ def test_resolved_raw_ref_clone():
     rrr = ResolvedRef(raw_ref, [], [index.nodes], Ref("Berakhot"))
     rrr_clone = rrr.clone(ref=Ref("Genesis"))
     assert rrr_clone.ref == Ref("Genesis")
+
+
+def test_debug_pruning_keeps_disqualified_reason():
+    raw_ref, context_ref, lang, _ = create_raw_ref_data(["#13"], context_tref="Zevachim 55b:3", lang="en")
+    linker = library.get_linker(lang)
+    ref_resolver = linker._ref_resolver
+    ref_resolver.set_thoroughness(ResolutionThoroughness.HIGH)
+    resolved = ref_resolver.resolve_raw_ref(context_ref, raw_ref, keep_disqualified=True)
+    resolved_refs = resolved.resolved_raw_refs if resolved and resolved.is_ambiguous else [resolved]
+    assert any(rr and rr.disqualification_reason for rr in resolved_refs)
+
+
+def test_parse_linker_citation_response_shape():
+    response = parse_linker_citation({
+        "parts": [
+            {"text": "Job", "type": "NAMED"},
+            {"text": "III", "type": "NUMBERED"},
+            {"text": "5", "type": "NUMBERED"},
+        ],
+        "lang": "en",
+    })
+    assert response["ok"] is True
+    assert response["input"]["parts"][0]["type"] == "NAMED"
+    assert any(parsing["ref"] == "Job 3:5" and parsing["valid"] for parsing in response["parsings"])
+
+
+def test_parse_linker_citation_ranged_ref():
+    # A ranged citation arrives from the frontend already flattened into NUMBERED sections,
+    # a RANGE_SYMBOL, and NUMBERED toSections; RawRef._group_ranged_parts regroups it server-side.
+    response = parse_linker_citation({
+        "parts": [
+            {"text": "Genesis", "type": "NAMED"},
+            {"text": "1", "type": "NUMBERED"},
+            {"text": "1", "type": "NUMBERED"},
+            {"text": "-", "type": "RANGE_SYMBOL"},
+            {"text": "1", "type": "NUMBERED"},
+            {"text": "2", "type": "NUMBERED"},
+        ],
+        "lang": "en",
+    })
+    assert response["ok"] is True
+    assert any(parsing["ref"] == "Genesis 1:1-2" and parsing["valid"] for parsing in response["parsings"])
+
+
+def test_parse_linker_citation_missing_parts_raises_input_error():
+    with pytest.raises(InputError):
+        parse_linker_citation({"lang": "en"})
+
+
+def test_deleted_spans_are_not_counted_as_added_links():
+    new_spans = [
+        {"charRange": [0, 8], "text": "אבות פ\"ג", "type": "citation", "ref": "Pirkei Avot 3"},
+        {"charRange": [20, 28], "text": "סוטה יד", "type": "citation", "ref": "Sotah 14a"},
+    ]
+    existing_spans = [
+        {"charRange": [0, 8], "text": "אבות פ\"ג", "type": "citation", "ref": "Pirkei Avot 3", "deleted": True},
+    ]
+    merged_spans = _merge_deleted_spans(new_spans, existing_spans)
+
+    assert any(span.get("deleted") and span.get("ref") == "Pirkei Avot 3" for span in merged_spans)
+    assert _linked_trefs_from_mutc_spans(merged_spans) == ["Sotah 14a"]
+
+
+def test_merge_deleted_spans_dedupes_repeated_deleted_spans():
+    # The same deleted citation can appear in more than one source (MUTC + LinkerOutput). It must
+    # not accumulate duplicate entries when merged.
+    new_spans = [
+        {"charRange": [20, 28], "text": "סוטה יד", "type": "citation", "ref": "Sotah 14a"},
+    ]
+    deleted_span = {"charRange": [0, 8], "text": "אבות פ\"ג", "type": "citation", "ref": "Pirkei Avot 3", "deleted": True}
+    existing_spans = [deleted_span, dict(deleted_span)]  # duplicated across sources
+    merged_spans = _merge_deleted_spans(new_spans, existing_spans)
+
+    deleted = [span for span in merged_spans if span.get("deleted") and span.get("ref") == "Pirkei Avot 3"]
+    assert len(deleted) == 1
+    assert _linked_trefs_from_mutc_spans(merged_spans) == ["Sotah 14a"]
+
+
+def test_merge_deleted_spans_blocks_resolved_ref_for_deleted_citation_occurrence():
+    new_spans = [
+        {"charRange": [0, 8], "text": "אבות פ\"ג", "type": "citation", "ref": "Pirkei Avot 3:1"},
+        {"charRange": [20, 28], "text": "סוטה יד", "type": "citation", "ref": "Sotah 14a"},
+    ]
+    existing_spans = [
+        {"charRange": [0, 8], "text": "אבות פ\"ג", "type": "citation", "ref": "Pirkei Avot 3", "deleted": True},
+    ]
+    merged_spans = _merge_deleted_spans(new_spans, existing_spans)
+
+    assert any(span.get("deleted") and span.get("ref") == "Pirkei Avot 3" for span in merged_spans)
+    assert not any(span.get("ref") == "Pirkei Avot 3:1" for span in merged_spans)
+    assert _linked_trefs_from_mutc_spans(merged_spans) == ["Sotah 14a"]
+
+
+@contextmanager
+def _seeded_linker_output_spans(query: dict, spans: list[dict]):
+    """
+    Temporarily point a LinkerOutput's spans at `spans` for a test, restoring whatever was
+    there before (or deleting the doc, if none existed) on exit. `query` may target a ref that
+    already has real linker debug data in the DB, so this must not clobber it.
+    """
+    existing = LinkerOutput().load(query)
+    original_spans = deepcopy(existing.spans) if existing else None
+    obj = existing if existing else LinkerOutput({**query, "spans": spans})
+    obj.spans = spans
+    obj.save()
+    try:
+        yield
+    finally:
+        if original_spans is not None:
+            obj.spans = original_spans
+            obj.save()
+        else:
+            obj.delete()
+
+
+def test_apply_non_segment_resolution_skips_deleted_citation():
+    # run_disambiguator's synchronous path (_apply_non_segment_resolution) must not resurrect
+    # a citation an admin already marked deleted, matching the async cauldron path's behavior.
+    query = {"ref": "Genesis 1:1", "versionTitle": "Tanakh: The Holy Scriptures, published by JPS", "language": "en"}
+    resolved_ref = "Genesis 1:2"
+    deleted_span = {
+        "charRange": [0, 1],
+        "text": "x",
+        "type": MUTCSpanType.CITATION.value,
+        "ref": resolved_ref,
+        "deleted": True,
+        "ambiguous": False,
+        "failed": False,
+    }
+
+    with _seeded_linker_output_spans(query, [deleted_span]):
+        payload = NonSegmentResolutionPayload(
+            **query, charRange=[0, 1], text="x",
+            resolved_non_segment_ref=resolved_ref,
+        )
+        result = NonSegmentResolutionResult(resolved_ref=resolved_ref, method="test")
+
+        _apply_non_segment_resolution(payload, result)
+
+        assert MarkedUpTextChunk().load(query) is None
+        assert Link().load({"refs": {"$all": [query["ref"], resolved_ref]}}) is None
+
+
+def test_apply_ambiguous_resolution_skips_deleted_citation():
+    query = {"ref": "Genesis 1:1", "versionTitle": "Tanakh: The Holy Scriptures, published by JPS", "language": "en"}
+    resolved_ref = "Genesis 1:2"
+    deleted_span = {
+        "charRange": [0, 1],
+        "text": "x",
+        "type": MUTCSpanType.CITATION.value,
+        "ref": resolved_ref,
+        "deleted": True,
+        "ambiguous": False,
+        "failed": False,
+    }
+
+    with _seeded_linker_output_spans(query, [deleted_span]):
+        payload = AmbiguousResolutionPayload(
+            **query, charRange=[0, 1], text="x",
+            ambiguous_refs=["Genesis 1:2", "Genesis 1:3"],
+        )
+        result = AmbiguousResolutionResult(resolved_ref=resolved_ref, method="test")
+
+        _apply_ambiguous_resolution(payload, result)
+
+        assert MarkedUpTextChunk().load(query) is None
+        assert Link().load({"refs": {"$all": [query["ref"], resolved_ref]}}) is None
+
+
+def test_linker_admin_delete_span_matches_disambiguated_ref_alias():
+    payload = {
+        "charRange": [0, 8],
+        "text": "אבות פ\"ג",
+        "targetRefs": {"Pirkei Avot 3"},
+    }
+    span = {
+        "charRange": [0, 8],
+        "text": "אבות פ\"ג",
+        "type": "citation",
+        "ref": "Pirkei Avot 3:1",
+        "llm_resolved_ref_non_segment": "Pirkei Avot 3",
+    }
+
+    assert _span_matches(span, payload)
 
 
 
@@ -148,12 +345,12 @@ def test_multiple_ambiguities():
     [crrd(["@רש\"י", "@פרק כל כנויי נזירות", "@בנזיר", "*ד\"ה כל כינויי נזירות"]), ("Rashi on Nazir 2a:1:1",)],  # rashi perek dibur hamatchil
 
     # Numbered alt structs
-    [crrd(["#פרק קמא", "@בפסחים"]), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
-    [crrd(['#פ"ק', '@בפסחים']), ("Pesachim 2a:1-21a:7", "Mishnah Pesachim 1")],  # numbered talmud perek
-    [crrd(["#פרק ה", "@בפסחים"]), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5")],  # numbered talmud perek
-    [crrd(['#פ"ה', '@בפסחים']), ("Pesachim 58a:1-65b:9", "Mishnah Pesachim 5", "Pesachim 85")],  # numbered talmud perek
+    [crrd(["#פרק קמא", "@בפסחים"]), ("Mishnah Pesachim 1", "Pesachim 2a:1-21a:7")],  # numbered talmud perek
+    [crrd(['#פ"ק', '@בפסחים']), ("Mishnah Pesachim 1",)],  # numbered talmud perek
+    [crrd(["#פרק ה", "@בפסחים"]), ("Mishnah Pesachim 5", "Pesachim 58a:1-65b:9")],  # numbered talmud perek
+    [crrd(['#פ"ה', '@בפסחים']), ("Mishnah Pesachim 5", "Pesachim 85")],  # numbered talmud perek
     [crrd(["#פרק בתרא", "@בפסחים"]), ("Mishnah Pesachim 10", "Pesachim 99b:1-121b:3")],  # numbered talmud perek
-    [crrd(['@מגמ\'', '#דרפ\"ו', '@דנדה']), ("Niddah 48a:11-54b:9",)],  # prefixes in front of perek name
+    [crrd(['@מגמ\'', '@דפרק כל היד', '@דנדה']), ["Niddah 13a:1-21a:3"]],  # prefixes in front of perek name
 
     # Using addressTypes of alt structs
     [crrd(["@JT", "@Bikkurim", "#Chapter 2"], lang="en"), ("Jerusalem Talmud Bikkurim 2",)],
@@ -173,6 +370,9 @@ def test_multiple_ambiguities():
     [crrd(["@רש\"י", "#דף ב עמוד א", "@בסוכה", "*ד\"ה סוכה ורבי"]), ("Rashi on Sukkah 2a:1:1",)], # rashi dibur hamatchil
     [crrd(["@רש\"י", "@בראשית", "#פרק א", "#פסוק א", "*ד\"ה בראשית"]), ("Rashi on Genesis 1:1:1", "Rashi on Genesis 1:1:2")],
     [crrd(["@תוספות", "@ברכות", '#י"ג ע"א', '''*ד"ה 'עד כאן\'''']), ("Tosafot on Berakhot 13a:36:1",)],
+    [crrd(["@התוס'", "@בפ' היה קורא", "#י\"ג ב", "*ד\"ה שואל"]), ("Tosafot on Berakhot 13b:29:1",)],
+    [crrd(["@התוס'", "@בפ' היה קורא", "#י\"ג", "#ב", "*ד\"ה שואל"]), ("Tosafot on Berakhot 13b:29:1",)],
+    [crrd(["@התוס'", "@בפ' היה", "@קורא", "#י\"ג", "#ב", "*ד\"ה שואל"]), ("Tosafot on Berakhot 13b:29:1",)],
 
     # Ranged refs
     [crrd(['@ספר בראשית', '#פרק יג', '#פסוק א', '^עד', '#פרק יד', '#פסוק ד']), ("Genesis 13:1-14:4",)],
@@ -237,7 +437,7 @@ def test_multiple_ambiguities():
     # Superfluous information
     [crrd(['@Vayikra', '@Leviticus', '#1'], lang='en'), ("Leviticus 1",)],
     [crrd(['@תוספות', '#פרק קמא', '@דברכות', '#דף ב']), ['Tosafot on Berakhot 2']],
-    [crrd(["#ובפ\"ק", "@דסוטה", "#ה'", "#א'"]), ("Sotah 5a",)],  # used to match Mishneh Torah Sotah instead of Bavli
+    [crrd(["#ובפ\"ק", "@דסוטה", "#ה'", "#א'"]), tuple()],  # used to match Mishneh Torah Sotah instead of Bavli
     [crrd(["#ובפ\"ק", "@דסוטה", "@ה'", "#א'"]), tuple()],  # used to match Mishneh Torah Sotah. Hey is marked as named part so it won't match anything including Bavli
 
     # Passage nodes
@@ -291,6 +491,10 @@ def test_multiple_ambiguities():
     [crrd(['@זוה"ק', '#ח"א','@לך לך', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
     [crrd(['@זוה"ק', '#ח"א', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
     [crrd(['@זוה"ק', '@לך לך', '#דף פג:']), ['Zohar, Lech Lecha 17.152-18.165']],
+    # A lone term matching an intermediate AltStructNode (here a Zohar volume, whose ref() is
+    # None) used to crash the unrefined-match pruner. It should instead descend through the
+    # volume's (optional) parsha/sub-section structure and refine the daf to a concrete ref.
+    [crrd(['@זח"ב', '#צה.']), ['Zohar, Mishpatim 3:14-23']],
 
     [crrd(['@זהר חדש', '@בראשית']), ['Zohar Chadash, Bereshit']],
     [crrd(['@מסכת', '@סופרים', '#ב', '#ג']), ['Tractate Soferim 2:3']],
@@ -375,7 +579,43 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
     assert len(matched_orefs) == len(expected_trefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), matched_orefs):
         assert matched_oref == Ref(expected_tref)
-        
+
+
+def _mock_full_pipeline_ner_response(input_str, expected_pretty_texts, expected_part_strs_list):
+    entities = []
+    search_start = 0
+    for pretty_text, expected_part_strs in zip(expected_pretty_texts, expected_part_strs_list):
+        span_text = pretty_text
+        entity_start = input_str.find(span_text, search_start)
+        if entity_start < 0 and pretty_text.endswith(")"):
+            span_text = f"{pretty_text[:-1]}:)"
+            entity_start = input_str.find(span_text, search_start)
+        if entity_start < 0:
+            entity_start = input_str.find(expected_part_strs[0], search_start)
+            span_text = None
+        assert entity_start >= 0
+        part_search_start = entity_start
+        parts = []
+        for i, part_str in enumerate(expected_part_strs):
+            absolute_part_start = input_str.find(part_str, part_search_start)
+            assert absolute_part_start >= 0
+            absolute_part_end = absolute_part_start + len(part_str)
+            part_search_start = absolute_part_end
+            part_start = absolute_part_start - entity_start
+            assert part_start >= 0
+            part_end = part_start + len(part_str)
+            if part_str.startswith(("ד\"ה", "s.v.")) or (i == len(expected_part_strs) - 1 and len(expected_part_strs) >= 4):
+                label = "DH"
+            elif any(c.isdigit() for c in part_str) or part_str.startswith("דף") or any(amud in part_str for amud in ("ע\"א", "ע\"ב", "ע״א", "ע״ב")):
+                label = "number"
+            else:
+                label = "title"
+            parts.append({"range": [part_start, part_end], "label": label})
+        entity_end = entity_start + (len(span_text) if span_text is not None else parts[-1]["range"][1])
+        search_start = entity_end
+        entities.append({"range": [entity_start, entity_end], "label": "Citation", "parts": parts})
+    return {"entities": entities}
+
 
 @pytest.mark.parametrize(('context_tref', 'input_str', 'lang', 'expected_trefs', 'expected_pretty_texts', 'expected_part_strs_list'), [
     ["Berakhot 2a", 'It says in the Talmud, "Don\'t steal" which implies it\'s bad to steal.', 'en', tuple(), tuple(), tuple()],  # Don't match Talmud using Berakhot 2a as ibid context
@@ -384,12 +624,15 @@ def test_resolve_raw_ref(resolver_data, expected_trefs):
     [None, """שם אלא ביתך ל"ל. ע' מנחות מד ע"א תד"ה טלית:""", 'he', ("Tosafot on Menachot 44a:12:1",), ['מנחות מד ע"א תד"ה טלית'], [['מנחות', 'מד ע"א', 'תד"ה','טלית']]],
     [None, """גמ' במה מחנכין. עי' מנחות דף עח ע"א תוס' ד"ה אחת:""", 'he',("Tosafot on Menachot 78a:10:1",), ['''מנחות דף עח ע"א תוס' ד"ה אחת'''], [['מנחות', 'דף עח ע"א', "תוס'", "ד\"ה אחת"]]],
     [None, """cf. Ex. 9:6,12:8""", 'en', ("Exodus 9:6", "Exodus 12:8"), ['Ex. 9:6', '12:8'], [['Ex.', '9', '6'], ['12', '8']]],
-    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר'], [['רש"י', 'תמורה', 'כח ע"ב', 'ד"ה נעבד']]],
+    ["Gilyon HaShas on Berakhot 25b:1", 'רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר. זה רש"י מאוד יפה.', 'he', ("Rashi on Temurah 28b:4:2",), ['רש"י תמורה כח ע"ב ד"ה נעבד שהוא מותר.'], [['רש"י', 'תמורה', 'כח ע"ב', 'ד"ה נעבד']]],
     [None, "See Genesis 1:1. It says in the Torah, \"Don't steal\". It also says in 1:3 \"Let there be light\".", "en", ("Genesis 1:1", "Genesis 1:3"), ("Genesis 1:1", "1:3"), [["Genesis", "1", "1"], ["1", "3"]]],
 ])
-def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_trefs, expected_pretty_texts, expected_part_strs_list):
+def test_full_pipeline_ref_resolver(monkeypatch, context_tref, input_str, lang, expected_trefs, expected_pretty_texts, expected_part_strs_list):
     context_oref = context_tref and Ref(context_tref)
     linker = library.get_linker(lang)
+    normalized_input_str = linker.get_ner().normalizer.normalize(input_str)
+    mock_result = _mock_full_pipeline_ner_response(normalized_input_str, expected_pretty_texts, expected_part_strs_list)
+    monkeypatch.setattr(LinkerEntityRecognizer, "_bulk_recognize_entities_api_request", lambda _self, _inputs: {"results": [mock_result]})
     doc = linker.link_by_paragraph(input_str, context_oref, type_filter='citation')
     resolved = doc.resolved_refs
     resolved_orefs = sorted(reduce(lambda a, b: a + b, [[match.ref] if not match.is_ambiguous else [inner_match.ref for inner_match in match.resolved_raw_refs] for match in resolved], []), key=lambda x: x.normal())
@@ -397,7 +640,7 @@ def test_full_pipeline_ref_resolver(context_tref, input_str, lang, expected_tref
         print(f"Found {len(resolved_orefs)} refs instead of {len(expected_trefs)}")
         for matched_oref in resolved_orefs:
             print("-", matched_oref.normal())
-    assert len(resolved) == len(expected_trefs)
+    assert len(resolved_orefs) == len(expected_trefs)
     for expected_tref, matched_oref in zip(sorted(expected_trefs, key=lambda x: x), resolved_orefs):
         assert matched_oref == Ref(expected_tref)
     for match, expected_pretty_text, expected_part_strs in zip(resolved, expected_pretty_texts, expected_part_strs_list):
@@ -590,7 +833,7 @@ def test_group_ranged_parts(raw_ref_params, expected_section_slices):
 
 @pytest.mark.parametrize(('context_tref', 'match_title', 'common_title', 'expected_sec_cons'), [
     ['Gilyon HaShas on Berakhot 12b:1', 'Tosafot on Berakhot', 'Berakhot', (('Talmud', 'Daf', 24),)],
-    ['Berakhot 2a:1', 'Berakhot', 'Berakhot', (('Talmud', 'Daf', 3),)]  # skip "Line" address which isn't referenceable
+    ['Berakhot 2a:1', 'Berakhot', 'Berakhot', (('Talmud', 'Daf', 3), ('Integer', 'Line', 1))]
 ])
 def test_get_section_contexts(context_tref, match_title, common_title, expected_sec_cons):
     context_ref = Ref(context_tref)
@@ -684,9 +927,15 @@ def test_linker_output_validate(resolver_data, is_ambiguous):
     spans = _extract_debug_spans(doc)
     for span in spans:
         assert span['ambiguous'] == is_ambiguous
-    assert LinkerOutput({
+    validation_text = TextChunk(Ref("Genesis 1:1"), lang="en", vtitle="Tanakh: The Holy Scriptures, published by JPS").text
+    validation_spans = [span | {"charRange": [0, len(validation_text)], "text": validation_text} for span in spans]
+    pkey_data = {
         "ref": "Genesis 1:1",
         "versionTitle": "Tanakh: The Holy Scriptures, published by JPS",
         "language": "en",
-        "spans": spans
-    })._validate()
+        "spans": validation_spans
+    }
+    existing = LinkerOutput().load({key: pkey_data[key] for key in LinkerOutput.pkeys})
+    if existing:
+        pkey_data["_id"] = existing._id
+    assert LinkerOutput(pkey_data)._validate()

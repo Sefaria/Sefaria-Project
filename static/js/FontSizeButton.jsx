@@ -7,12 +7,12 @@ function FontSizeButtons() {
     const {setOption} = useContext(ReaderPanelContext);
     return (
         <div className="font-size-line">
-            <button onClick={()=>setOption('fontSize', 'smaller')} className="font-size-button" aria-label={Sefaria._("Decrease font size")}>
-                <img src="/static/icons/reduce_font.svg" alt={Sefaria._("Decrease font size")}/>
+            <button onClick={()=>setOption('fontSize', 'smaller')} className="font-size-button" aria-label={Sefaria._("font_size_button.decrease_font_size")}>
+                <img src="/static/icons/reduce_font.svg" alt={Sefaria._("font_size_button.decrease_font_size")}/>
             </button>
-            <InterfaceText>Font Size</InterfaceText>
-            <button onClick={()=>setOption('fontSize', 'larger')} className="font-size-button" aria-label={Sefaria._("Increase font size")}>
-                <img src="/static/icons/enlarge_font.svg" alt={Sefaria._("Increase font size")}/>
+            <InterfaceText>font_size_button.font_size</InterfaceText>
+            <button onClick={()=>setOption('fontSize', 'larger')} className="font-size-button" aria-label={Sefaria._("font_size_button.increase_font_size")}>
+                <img src="/static/icons/enlarge_font.svg" alt={Sefaria._("font_size_button.increase_font_size")}/>
             </button>
         </div>
     );

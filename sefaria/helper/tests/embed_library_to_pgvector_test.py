@@ -13,6 +13,12 @@ from types import SimpleNamespace
 from sefaria.model import *
 import sefaria.helper.vector.embed_library_to_pgvector as pgv
 
+import pytest
+
+# Temporarily disabled: these tests depend on the pgvector/vector_db integration
+# which is not yet provisioned in CI. Re-enable once pgvector is reachable.
+pytestmark = pytest.mark.skip(reason="pgvector/vector_db integration not provisioned in CI; disabled until resolved")
+
 
 class TestTimePeriodToDict:
     def test_none_returns_none(self):
