@@ -100,6 +100,8 @@
 .linkerEditorSuggestion.highlighted { background: #eef2fb; }
 .linkerEditorSuggestion .termSlug { font-weight: 600; font-size: 13px; }
 .linkerEditorSuggestion .termTitles { font-size: 12px; color: #777; }
+/* "Add as a new term" fallback suggestion, offered when a search comes back empty. */
+.termCreateSuggestion { font-size: 13px; font-style: italic; color: #1a5c9e; }
 
 /* Tree */
 .linkerEditorIndexTitleRow { display: flex; align-items: baseline; flex-wrap: wrap; gap: 12px; margin: 0 0 16px; }
@@ -132,7 +134,10 @@
 }
 .expandToggle { cursor: pointer; width: 14px; color: #888; user-select: none; }
 .expandToggle.placeholder { cursor: default; }
+.schemaNodeTitleGroup { display: inline-flex; flex-direction: column; line-height: 1.25; }
 .schemaNodeTitle { font-weight: 600; }
+/* Hebrew title, shown smaller directly under the primary (English) title. */
+.schemaNodeTitleHe { font-size: 11px; font-weight: normal; color: #777; }
 .schemaNodeKey { font-size: 12px; color: #999; }
 .schemaNodeStructName {
   font-size: 11px;
