@@ -200,3 +200,106 @@ describe('SearchPage entity-fetch failures', () => {
         expect(recordApiResult).not.toHaveBeenCalled();
     });
 });
+
+
+describe('SearchPage tab-change reporting', () => {
+    // A tab change reaches SearchPage as a props change either way: a click goes through
+    // setTab() first, while the back/forward button restores panel state directly. Only the
+    // click used to be reported, so browsing back to a tab was silent.
+    const makePage = (tab = 'books') => {
+        const props = { query: 'rambam', tab, compare: false, searchInBook: false,
+                        setTab: jest.fn(), totalResults: { getValue: () => 42 } };
+        const page = new SearchPage(props);
+        page.props = props;
+        page.setState = jest.fn();
+        page.state = { ...page.state, entityData: { book: {total: 13}, author: {total: 3}, topic: {total: 0} } };
+        return page;
+    };
+
+    // Drive one props change the way React does: swap props, then run componentDidUpdate.
+    const changeTabProp = (page, nextTab) => {
+        const prevProps = page.props;
+        page.props = { ...prevProps, tab: nextTab };
+        page.componentDidUpdate(prevProps);
+    };
+
+    let elementClicked, setCurrentTab;
+    beforeEach(() => {
+        elementClicked = jest.spyOn(SearchAnalytics, 'elementClicked').mockImplementation(() => {});
+        setCurrentTab = jest.spyOn(SearchAnalytics, 'setCurrentTab').mockImplementation(() => {});
+    });
+    afterEach(() => { elementClicked.mockRestore(); setCurrentTab.mockRestore(); });
+
+    test('going back to a tab is reported -- the bug this fixes', () => {
+        const page = makePage('authors');
+        changeTabProp(page, 'books');          // browser Back, no setTab() involved
+
+        expect(elementClicked).toHaveBeenCalledTimes(1);
+        expect(elementClicked).toHaveBeenCalledWith(expect.objectContaining({
+            elementType: 'tab',
+            elementValue: 'Books',
+            count: 13,
+        }));
+    });
+
+    test('the event is emitted before the current tab moves on, so `tab` is the one being left', () => {
+        // elementClicked reads the current tab live; reporting after setCurrentTab would
+        // relabel the event with the destination and lose the transition.
+        const page = makePage('authors');
+        const order = [];
+        elementClicked.mockImplementation(() => order.push('elementClicked'));
+        setCurrentTab.mockImplementation(() => order.push('setCurrentTab'));
+
+        changeTabProp(page, 'books');
+
+        expect(order).toEqual(['elementClicked', 'setCurrentTab']);
+    });
+
+    test('a click is reported once, not twice', () => {
+        // setTab() reports, then the same move arrives as a props change. Without the
+        // marker, componentDidUpdate would report it a second time.
+        const page = makePage('authors');
+        page.setTab('books');
+        expect(elementClicked).toHaveBeenCalledTimes(1);
+
+        changeTabProp(page, 'books');          // the props change setTab caused
+        expect(elementClicked).toHaveBeenCalledTimes(1);
+    });
+
+    test("TabView's programmatic default tab on mount is not reported", () => {
+        // TabView.componentDidMount calls setTab(tab, true). Not a user action.
+        const page = makePage('sources');
+        page.setTab('sources', true);
+        changeTabProp(page, 'sources');
+
+        expect(elementClicked).not.toHaveBeenCalled();
+    });
+
+    test('a click followed by a back is reported twice, once each', () => {
+        const page = makePage('books');
+        page.setTab('authors');                // click
+        changeTabProp(page, 'authors');
+        changeTabProp(page, 'books');          // Back
+
+        expect(elementClicked.mock.calls.map(([a]) => a.elementValue)).toEqual(['Authors', 'Books']);
+    });
+
+    test('clicking the tab already on screen does not swallow the next back report', () => {
+        // That click calls setTab() without changing props.tab, leaving the marker set. It
+        // must not suppress a later, unrelated history change.
+        const page = makePage('books');
+        page.setTab('books');                  // no props change follows
+        elementClicked.mockClear();
+
+        changeTabProp(page, 'authors');        // Back
+        expect(elementClicked).toHaveBeenCalledWith(expect.objectContaining({ elementValue: 'Authors' }));
+    });
+
+    test('stays silent in a compare panel', () => {
+        const page = makePage('authors');
+        page.props = { ...page.props, compare: true };
+        changeTabProp(page, 'books');
+
+        expect(elementClicked).not.toHaveBeenCalled();
+    });
+});

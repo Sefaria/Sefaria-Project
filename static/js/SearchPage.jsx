@@ -404,6 +404,29 @@ class SearchPage extends Component {
     SearchAnalytics.setCurrentTab(this.activeTab());
   }
 
+  // Raw (unformatted) result count shown on each tab; sources' count lives in props, the
+  // entity tabs' counts in state.
+  rawTabCounts() {
+    return {
+      sources: this.props.totalResults?.getValue(),
+      books:   this.state.entityData.book?.total,
+      authors: this.state.entityData.author?.total,
+      topics:  this.state.entityData.topic?.total,
+    };
+  }
+
+  // Report a move to `tab`. Must run BEFORE reportActiveTabToAnalytics(), because
+  // elementClicked reads the current tab live and sends it as `tab` -- the tab being left,
+  // which pairs with element_value naming the destination.
+  reportTabChange(tab) {
+    if (this.props.compare || this.props.searchInBook) { return; }
+    SearchAnalytics.elementClicked({
+      elementType: 'tab',
+      elementValue: tabLabel(tab),
+      count: this.rawTabCounts()[tab],
+    });
+  }
+
   componentDidMount() {
     this.reportActiveTabToAnalytics();
     this.fetchEntityResults();
@@ -416,7 +439,19 @@ class SearchPage extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.tab !== this.props.tab) { this.reportActiveTabToAnalytics(); }
+    if (prevProps.tab !== this.props.tab) {
+      // A tab change that did not come through setTab() came from history -- the back or
+      // forward button restoring panel state (ReaderApp.handlePopState). The user changed
+      // tabs just as deliberately as with a click, so report it the same way; only the
+      // mechanism differs. The marker is cleared here rather than on every update so that
+      // clicking the tab already on screen -- which calls setTab() without changing
+      // props.tab -- cannot leave it stale in a way that swallows a later report.
+      if (this._reportedTabTransition !== this.activeTab()) {
+        this.reportTabChange(this.activeTab());
+      }
+      this._reportedTabTransition = null;
+      this.reportActiveTabToAnalytics();
+    }
     if (prevProps.query !== this.props.query) {
       // A new query invalidates the category selections and their counts — both describe the
       // previous result set — so rebuild the filter tree unselected before refetching.
@@ -528,19 +563,16 @@ class SearchPage extends Component {
   setTab(tab, replaceHistory) {
     // The active tab lives in panel state (this.props.tab) so it is serialized
     // into the URL and history; back/forward restores it via handlePopState.
+    //
+    // Record the destination whether or not it gets reported below: componentDidUpdate
+    // reports any tab change it did not already see here, and reads this marker to avoid
+    // double-reporting the move that is about to arrive as a props change.
+    this._reportedTabTransition = tab;
     // replaceHistory is only passed (as true) by TabView's programmatic
     // default-tab call on mount (Misc.jsx TabView.componentDidMount) -- that's
     // not a user click, so don't report it. User clicks omit the argument.
-    if (!this.props.compare && !replaceHistory) {
-      // Raw (unformatted) count shown on the clicked tab; sources' count lives
-      // in props, the entity tabs' counts in state.
-      const tabCounts = {
-        sources: this.props.totalResults?.getValue(),
-        books:   this.state.entityData.book?.total,
-        authors: this.state.entityData.author?.total,
-        topics:  this.state.entityData.topic?.total,
-      };
-      SearchAnalytics.elementClicked({elementType: 'tab', elementValue: tabLabel(tab), count: tabCounts[tab]});
+    if (!replaceHistory) {
+      this.reportTabChange(tab);
     }
     this.setState({mobileFiltersOpen: false});
     this.props.setTab(tab, replaceHistory);
