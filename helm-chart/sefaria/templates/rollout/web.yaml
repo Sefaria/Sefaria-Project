@@ -205,8 +205,10 @@ spec:
           # shifts its traffic onto the remaining pods, which then slow down and fail their
           # own probes. Readiness (below) is deliberately left at the default so a slow pod is
           # still pulled out of the Service — liveness should only fire for a genuinely dead
-          # process, not a busy one.
-          failureThreshold: 6
+          # process, not a busy one. 60s x 7 = 420s, which matches the --timeout 420 this
+          # container already passes to gunicorn: the kubelet should not kill a worker before
+          # gunicorn's own timeout would have recycled it.
+          failureThreshold: 7
         readinessProbe:
           httpGet:
             path: /healthz
