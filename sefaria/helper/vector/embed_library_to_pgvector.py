@@ -332,10 +332,16 @@ def chunk_ref_from_segments(source_segment_refs: list):
 @dataclass
 class ChunkAndVector:
     """A built `ChunkMetadata` row paired with the text/embedding that will become its
-    `Vector` row once the chunk has been upserted and has a real `.id`."""
+    `Vector` row once the chunk has been upserted and has a real `.id`.
+
+    `section_hash_update`, if set, is `(section_ref, version_title, language, text_hash)` for
+    the unit this chunk came from - the flush callback only writes it to `section_text_cache`
+    once this chunk (and its sibling vector) have actually been upserted, so a "text unchanged"
+    marker is never persisted ahead of - or independent from - the data it describes."""
     chunk: ChunkMetadata
     text: str
     embedding: list
+    section_hash_update: Optional[tuple[str, str, str, str]] = None
 
 
 class UpsertBuffer:
@@ -372,16 +378,30 @@ class UpsertBuffer:
 
 
 def _flush_chunk_and_vector_batch(batch: list[ChunkAndVector], chunk_store: ChunkMetadata,
-                                  vector_store: Vector) -> None:
+                                  vector_store: Vector, section_cache_store: SectionTextCache) -> None:
     """Flush callback for `full`-mode's UpsertBuffer: chunk metadata first (surrogate `id`
     populated in-place via RETURNING on bulk_create/update_conflicts), then vectors, which
-    need that id for their chunk_metadata_id FK."""
+    need that id for their chunk_metadata_id FK. section_text_cache hashes for this batch's
+    units are written last, only after both upserts succeed - if either raises, this function
+    exits via the exception before any hash update happens, so a unit whose chunk/vector
+    upsert failed never gets marked "text unchanged" (which would otherwise cause it to be
+    silently skipped forever on every future run)."""
     chunk_store.upsert([b.chunk for b in batch])
     vector_store.upsert([
         Vector(chunk_metadata=b.chunk, embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID,
                text=b.text, embedding=b.embedding)
         for b in batch
     ])
+    hash_updates = {
+        (section_ref, vtitle, lang): section_hash
+        for b in batch if b.section_hash_update is not None
+        for section_ref, vtitle, lang, section_hash in [b.section_hash_update]
+    }
+    if hash_updates:
+        section_cache_store.upsert([
+            SectionTextCache(section_ref=ref, version_title=vtitle, language=lang, section_text_hash=h)
+            for (ref, vtitle, lang), h in hash_updates.items()
+        ])
 
 
 def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedder: GeminiEmbedder,
@@ -520,7 +540,8 @@ def compute_current_unit_hashes(indexes, known_section_refs: set) -> dict:
 
 
 def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_for_version,
-                   chunk_store: ChunkMetadata, buffer: UpsertBuffer, changed_units: set, version_pbar=None):
+                   chunk_store: ChunkMetadata, buffer: UpsertBuffer, changed_units: set,
+                   current_hashes: dict, version_pbar=None):
     """
     Core per-index loop shared by section-based and passage-based processing.
 
@@ -533,6 +554,13 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
     section_text_cache. A unit already in pgvector (`already_done`) is only skipped if its text
     also hasn't changed; otherwise a text edit would be silently skipped forever by the resume
     check alone.
+
+    `current_hashes` is the full {(unit_ref_normal, version_title, language): text_hash} map
+    computed up front (a superset of `changed_units`, which is just its keys filtered by "differs
+    from last run"). A successfully-built unit's hash is attached to its ChunkAndVector items as
+    `section_hash_update` (see that dataclass) rather than written to section_text_cache here -
+    the flush callback only persists it once the unit's chunk/vector rows are actually upserted,
+    so a failed or not-yet-flushed unit never gets marked "text unchanged".
     """
     index_context = get_index_context(index)
 
@@ -558,6 +586,10 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
                     else:
                         built = build_chunk_data(unit_ref, lang, vtitle, index.title, thread_local.embedder,
                                                  chunk_result, index_context, version_context)
+                        section_hash = current_hashes.get((unit_normal, vtitle, lang))
+                        if section_hash is not None:
+                            for b in built:
+                                b.section_hash_update = (unit_normal, vtitle, lang, section_hash)
                         buffer.add(built)
                         result_tracker.increment("sections_embedded")
                         result_tracker.increment("chunks_written", len(built))
@@ -571,7 +603,7 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
 
 
 def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: ChunkMetadata,
-                  buffer: UpsertBuffer, changed_units: set, version_pbar=None):
+                  buffer: UpsertBuffer, changed_units: set, current_hashes: dict, version_pbar=None):
     if is_passage_based(index):
         passages = get_passages_for_index(index)
         if not passages:
@@ -591,8 +623,8 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: 
                 ]
 
             _process_index(index, chunker, result_tracker, get_units_for_version,
-                           chunk_store=chunk_store, buffer=buffer,
-                           changed_units=changed_units, version_pbar=version_pbar)
+                           chunk_store=chunk_store, buffer=buffer, changed_units=changed_units,
+                           current_hashes=current_hashes, version_pbar=version_pbar)
             return
 
     section_refs = index.all_section_refs()
@@ -605,8 +637,8 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: 
         return [(ref, segment_records_by_section.get(ref.normal(), [])) for ref in section_refs]
 
     _process_index(index, chunker, result_tracker, get_units_for_version,
-                   chunk_store=chunk_store, buffer=buffer,
-                   changed_units=changed_units, version_pbar=version_pbar)
+                   chunk_store=chunk_store, buffer=buffer, changed_units=changed_units,
+                   current_hashes=current_hashes, version_pbar=version_pbar)
 
 
 def build_refreshed_chunk_metadata(existing_row: ChunkMetadata, index_context: dict,
@@ -738,6 +770,7 @@ def main():
         logger.info(f"--limit-indexes set: processing only {len(all_indexes)} index(es)")
 
     changed_units = set()
+    current_hashes = {}
     if full_mode:
         section_cache_store = SectionTextCache()
         cached_hashes = section_cache_store.all_hashes()
@@ -749,20 +782,17 @@ def main():
         changed_units = {key for key, h in current_hashes.items() if cached_hashes.get(key) != h}
         logger.info(f"Text-hash pre-pass: {len(current_hashes)} units hashed, "
                     f"{len(changed_units)} changed or new since last run")
-
-        section_cache_store.upsert([
-            SectionTextCache(
-                section_ref=section_ref,
-                version_title=vtitle,
-                language=lang,
-                section_text_hash=current_hashes[(section_ref, vtitle, lang)],
-            )
-            for section_ref, vtitle, lang in changed_units
-        ])
+        # section_text_cache is NOT written here. Writing every changed unit's hash up front,
+        # before that unit has actually been re-chunked/re-embedded, would mark a unit "text
+        # unchanged" even if its embedding attempt later fails - silently skipping it forever on
+        # every future run. Instead each unit's hash rides along on its ChunkAndVector items
+        # (see `section_hash_update`) and is only persisted by the flush callback once that
+        # unit's chunk/vector rows have actually been upserted.
 
     if full_mode:
         buffer = UpsertBuffer(args.buffer_size,
-                              lambda batch: _flush_chunk_and_vector_batch(batch, chunk_store, vector_store))
+                              lambda batch: _flush_chunk_and_vector_batch(batch, chunk_store, vector_store,
+                                                                          section_cache_store))
     else:
         buffer = UpsertBuffer(args.buffer_size, chunk_store.upsert)
 
@@ -775,7 +805,7 @@ def main():
             try:
                 if full_mode:
                     process_index(index, thread_local.chunker, result, chunk_store, buffer,
-                                  changed_units, version_pbar)
+                                  changed_units, current_hashes, version_pbar)
                 else:
                     process_index_metadata_only(index, result, chunk_store, buffer, version_pbar)
             except Exception as e:
