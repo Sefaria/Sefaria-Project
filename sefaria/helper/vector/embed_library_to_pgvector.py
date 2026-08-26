@@ -13,7 +13,7 @@ refs are already present in pgvector are skipped, so a restart does not re-embed
 (and re-bill Gemini for) already-completed work.
 
 Change-detected - at startup, every section/passage's current text is hashed and compared
-against `section_text_cache` (a separate pgvector table, keyed on section/passage ref +
+against `section_text_hash` (a separate pgvector table, keyed on section/passage ref +
 version + language). Units whose hash hasn't changed since the last run are skipped even on a
 deliberate re-run (not just a crash restart), so a periodic re-index doesn't re-run the
 chunker/embedder over the whole library every time - only over sections whose text actually
@@ -43,7 +43,7 @@ from sefaria.model import *
 from sefaria.search import setup_logging
 from semantic_search.embedder import GeminiEmbedder
 from semantic_search.models import (
-    ChunkMetadata, Vector, SectionTextCache, DEFAULT_CHUNKING_SCHEME_ID, DEFAULT_EMBEDDING_MODEL_ID,
+    ChunkMetadata, Vector, SectionTextHash, DEFAULT_CHUNKING_SCHEME_ID, DEFAULT_EMBEDDING_MODEL_ID,
 )
 
 import tqdm as _tqdm_module
@@ -335,7 +335,7 @@ class ChunkAndVector:
     `Vector` row once the chunk has been upserted and has a real `.id`.
 
     `section_hash_update`, if set, is `(section_ref, version_title, language, text_hash)` for
-    the unit this chunk came from - the flush callback only writes it to `section_text_cache`
+    the unit this chunk came from - the flush callback only writes it to `section_text_hash`
     once this chunk (and its sibling vector) have actually been upserted, so a "text unchanged"
     marker is never persisted ahead of - or independent from - the data it describes."""
     chunk: ChunkMetadata
@@ -378,10 +378,10 @@ class UpsertBuffer:
 
 
 def _flush_chunk_and_vector_batch(batch: list[ChunkAndVector], chunk_store: ChunkMetadata,
-                                  vector_store: Vector, section_cache_store: SectionTextCache) -> None:
+                                  vector_store: Vector, section_hash_store: SectionTextHash) -> None:
     """Flush callback for `full`-mode's UpsertBuffer: chunk metadata first (surrogate `id`
     populated in-place via RETURNING on bulk_create/update_conflicts), then vectors, which
-    need that id for their chunk_metadata_id FK. section_text_cache hashes for this batch's
+    need that id for their chunk_metadata_id FK. section_text_hash hashes for this batch's
     units are written last, only after both upserts succeed - if either raises, this function
     exits via the exception before any hash update happens, so a unit whose chunk/vector
     upsert failed never gets marked "text unchanged" (which would otherwise cause it to be
@@ -398,8 +398,8 @@ def _flush_chunk_and_vector_batch(batch: list[ChunkAndVector], chunk_store: Chun
         for section_ref, vtitle, lang, section_hash in [b.section_hash_update]
     }
     if hash_updates:
-        section_cache_store.upsert([
-            SectionTextCache(section_ref=ref, version_title=vtitle, language=lang, section_text_hash=h)
+        section_hash_store.upsert([
+            SectionTextHash(section_ref=ref, version_title=vtitle, language=lang, section_text_hash=h)
             for (ref, vtitle, lang), h in hash_updates.items()
         ])
 
@@ -464,8 +464,12 @@ def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedde
     return built
 
 
-def hash_section_text(text: str) -> str:
-    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+def hash_section_text(section_ref: str, text: str) -> str:
+    """Ref is part of the hash (not just the dict/DB key it's looked up by) so that a ref
+    change alone - e.g. a section renumbering that leaves the text untouched - still produces
+    a different hash and is treated as changed, rather than depending on key-lookup misses to
+    catch it."""
+    return hashlib.sha256(f"{section_ref}\n{text}".encode("utf-8")).hexdigest()
 
 
 def resolve_section_ref(tref: str, known_section_refs: set) -> Optional[str]:
@@ -513,11 +517,13 @@ def collect_all_section_refs(indexes) -> set:
 
 def compute_current_unit_hashes(indexes, known_section_refs: set) -> dict:
     """
-    {(unit_ref_normal, version_title, language): sha256(unit_text)} for every (index, version,
-    unit) currently in the library, where unit_ref is the same resume key `chunk_store` already
-    tracks via chunked_from_ref - a passage full_ref for passage-based indexes, a section ref
-    otherwise. Used to detect, before running the chunker/embedder, which units' text actually
-    changed since the last run.
+    {(unit_ref_normal, version_title, language): sha256(unit_ref + unit_text)} for every
+    (index, version, unit) currently in the library, where unit_ref is the same resume key
+    `chunk_store` already tracks via chunked_from_ref - a passage full_ref for passage-based
+    indexes, a section ref otherwise. The ref is folded into the hash itself (see
+    hash_section_text) so a ref change (e.g. a section renumbering) is caught even when the
+    text underneath it hasn't changed. Used to detect, before running the chunker/embedder,
+    which units actually changed since the last run.
     """
     hashes = {}
     for index in indexes:
@@ -532,10 +538,10 @@ def compute_current_unit_hashes(indexes, known_section_refs: set) -> dict:
                     )
                     if text:
                         unit_normal = Ref(passage.full_ref).normal()
-                        hashes[(unit_normal, vtitle, lang)] = hash_section_text(text)
+                        hashes[(unit_normal, vtitle, lang)] = hash_section_text(unit_normal, text)
             else:
                 for section_ref, text in collect_section_texts_by_ref(version, known_section_refs).items():
-                    hashes[(section_ref, vtitle, lang)] = hash_section_text(text)
+                    hashes[(section_ref, vtitle, lang)] = hash_section_text(section_ref, text)
     return hashes
 
 
@@ -551,14 +557,14 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
 
     `changed_units` is the set of (unit_ref_normal, version_title, language) keys whose text
     hash (see compute_current_unit_hashes) differs from - or is absent from - the last run's
-    section_text_cache. A unit already in pgvector (`already_done`) is only skipped if its text
+    section_text_hash. A unit already in pgvector (`already_done`) is only skipped if its text
     also hasn't changed; otherwise a text edit would be silently skipped forever by the resume
     check alone.
 
     `current_hashes` is the full {(unit_ref_normal, version_title, language): text_hash} map
     computed up front (a superset of `changed_units`, which is just its keys filtered by "differs
     from last run"). A successfully-built unit's hash is attached to its ChunkAndVector items as
-    `section_hash_update` (see that dataclass) rather than written to section_text_cache here -
+    `section_hash_update` (see that dataclass) rather than written to section_text_hash here -
     the flush callback only persists it once the unit's chunk/vector rows are actually upserted,
     so a failed or not-yet-flushed unit never gets marked "text unchanged".
     """
@@ -686,7 +692,7 @@ def process_index_metadata_only(index, result_tracker: EmbeddingResult, chunk_st
     """`metadata-only`-mode per-index loop: for every Version of `index`, fetch existing
     chunk_metadata rows for (index_title, version_title, language), recompute their
     metadata-derived fields, and feed refreshed rows into `buffer`. No chunking/embedding,
-    no section_text_cache/resume check - every version with existing rows is refreshed
+    no section_text_hash/resume check - every version with existing rows is refreshed
     every run; versions with none are skipped (nothing to refresh, never creates new
     chunks)."""
     index_context = get_index_context(index)
@@ -772,8 +778,8 @@ def main():
     changed_units = set()
     current_hashes = {}
     if full_mode:
-        section_cache_store = SectionTextCache()
-        cached_hashes = section_cache_store.all_hashes()
+        section_hash_store = SectionTextHash()
+        cached_hashes = section_hash_store.all_hashes()
         logger.info(f"Loaded {len(cached_hashes)} cached section text hashes")
 
         logger.info("Computing current section/passage text hashes for change detection...")
@@ -782,7 +788,7 @@ def main():
         changed_units = {key for key, h in current_hashes.items() if cached_hashes.get(key) != h}
         logger.info(f"Text-hash pre-pass: {len(current_hashes)} units hashed, "
                     f"{len(changed_units)} changed or new since last run")
-        # section_text_cache is NOT written here. Writing every changed unit's hash up front,
+        # section_text_hash is NOT written here. Writing every changed unit's hash up front,
         # before that unit has actually been re-chunked/re-embedded, would mark a unit "text
         # unchanged" even if its embedding attempt later fails - silently skipping it forever on
         # every future run. Instead each unit's hash rides along on its ChunkAndVector items
@@ -792,7 +798,7 @@ def main():
     if full_mode:
         buffer = UpsertBuffer(args.buffer_size,
                               lambda batch: _flush_chunk_and_vector_batch(batch, chunk_store, vector_store,
-                                                                          section_cache_store))
+                                                                          section_hash_store))
     else:
         buffer = UpsertBuffer(args.buffer_size, chunk_store.upsert)
 

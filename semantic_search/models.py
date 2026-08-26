@@ -211,7 +211,7 @@ _VECTOR_UPSERT_UPDATE_FIELDS = [
 ]
 
 
-class SectionTextCache(models.Model):
+class SectionTextHash(models.Model):
     """Last-seen text hash per (section/passage ref, version, language), independent of
     `chunk_metadata`/`vectors` (no chunking_scheme_id/embedding_model_id) - only the
     underlying text invalidates a row, so it stays valid across chunker or embedding-model
@@ -229,13 +229,13 @@ class SectionTextCache(models.Model):
 
     class Meta:
         managed = False
-        db_table = 'section_text_cache'
+        db_table = 'section_text_hash'
         app_label = 'semantic_search'
 
-    def upsert(self, rows: list['SectionTextCache']) -> None:
+    def upsert(self, rows: list['SectionTextHash']) -> None:
         if not rows:
             return
-        SectionTextCache.objects.bulk_create(
+        SectionTextHash.objects.bulk_create(
             rows,
             update_conflicts=True,
             unique_fields=self._UNIQUE_FIELDS,
@@ -246,5 +246,5 @@ class SectionTextCache(models.Model):
         """{(section_ref, version_title, language): section_text_hash} for the whole table."""
         return {
             (row.section_ref, row.version_title, row.language): row.section_text_hash
-            for row in SectionTextCache.objects.all()
+            for row in SectionTextHash.objects.all()
         }

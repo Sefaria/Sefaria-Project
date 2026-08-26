@@ -126,10 +126,13 @@ class TestGetChunkContext:
 
 class TestHashSectionText:
     def test_deterministic(self):
-        assert pgv.hash_section_text("hello") == pgv.hash_section_text("hello")
+        assert pgv.hash_section_text("Genesis 1", "hello") == pgv.hash_section_text("Genesis 1", "hello")
 
     def test_distinguishes_different_text(self):
-        assert pgv.hash_section_text("hello") != pgv.hash_section_text("hello ")
+        assert pgv.hash_section_text("Genesis 1", "hello") != pgv.hash_section_text("Genesis 1", "hello ")
+
+    def test_distinguishes_different_ref(self):
+        assert pgv.hash_section_text("Genesis 1", "hello") != pgv.hash_section_text("Genesis 2", "hello")
 
 
 class TestResolveSectionRef:
