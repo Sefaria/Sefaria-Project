@@ -475,15 +475,53 @@ def enqueue_rebuild_linker_resolvers(langs) -> str:
 # NonUniqueTerm read / search
 # ---------------------------------------------------------------------------
 
+def _term_match_rank(term: NonUniqueTerm, q_lower: str) -> int:
+    """
+    Best (lowest) match quality of `q_lower` against this term, weighted toward what the
+    autosuggest actually displays (the primary en/he titles and the slug) rather than every
+    title indiscriminately. Otherwise a term whose *primary* title is merely a substring
+    match (e.g. "קרבן פסח") can outrank a different term whose primary title is the true
+    exact match (e.g. "פסח"), just because the first term also happens to carry some
+    unrelated alt title ("פסח" as shorthand) that's an exact match on its own.
+
+    0 = exact match on a primary title or the slug
+    1 = prefix match on a primary title or the slug
+    2 = exact or prefix match on an alt (non-primary) title
+    3 = substring match anywhere (the fallback; the query that produced `term` already
+        guarantees at least this much)
+    """
+    primary_strings = [term.slug, term.get_primary_title("en"), term.get_primary_title("he")]
+    primary_lower = [(s or "").lower() for s in primary_strings]
+    if q_lower in primary_lower:
+        return 0
+    if any(s.startswith(q_lower) for s in primary_lower):
+        return 1
+    alt_strings = [t.get("text", "") for t in (term.titles or []) if not t.get("primary")]
+    for s in alt_strings:
+        s_lower = (s or "").lower()
+        if s_lower == q_lower or s_lower.startswith(q_lower):
+            return 2
+    return 3
+
+
 def search_non_unique_terms(q: str, limit: int = 20) -> List[dict]:
-    """Search NonUniqueTerms by title text or slug (case-insensitive) for autocomplete."""
+    """
+    Search NonUniqueTerms by title text or slug (case-insensitive) for autocomplete.
+    Mongo's $regex carries no relevance signal, so ranking exact/prefix matches first is
+    done here in Python: pull a candidate pool a bit larger than `limit` in whatever
+    (~natural) order Mongo returns, rank each by match quality, then truncate.
+    """
     q = get_linker_normalizer("he").normalize(q or "").strip()
     if not q:
         return []
+    q_lower = q.lower()
     regex = {"$regex": re.escape(q), "$options": "i"}
     query = {"$or": [{"titles.text": regex}, {"slug": regex}]}
+    candidate_pool = max(limit * 5, 100)
+    candidates = list(NonUniqueTermSet(query, limit=candidate_pool))
+    candidates.sort(key=lambda term: _term_match_rank(term, q_lower))
     results = []
-    for term in NonUniqueTermSet(query, limit=limit):
+    for term in candidates[:limit]:
         results.append({
             "slug": term.slug,
             "primary_en": term.get_primary_title("en"),
