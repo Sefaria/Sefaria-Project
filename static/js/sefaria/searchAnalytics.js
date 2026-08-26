@@ -43,6 +43,7 @@
  * with the compare panel, sidebar search, and Voices search -- all out of
  * scope) can call in unconditionally.
  */
+import { makeUuid } from '../auth/utils';
 
 // The four API calls whose return "completes" a query. These keys are also the
 // keys of the result_counts JSON sent with search_query_executed.
@@ -151,7 +152,7 @@ const SearchAnalytics = {
         // just starts fresh; the old flow simply has no search_flow_ended.
         const source = this._nextFlowSource || 'unknown';
         this._nextFlowSource = null;  // one-shot: later flows need a new hint
-        this._flow = { flowId: crypto.randomUUID() };
+        this._flow = { flowId: makeUuid() };
         this._query = null;
         this._fireEvent('search_flow_started', {
             flow_id: this._flow.flowId,
@@ -169,7 +170,7 @@ const SearchAnalytics = {
     startQuery: function(searchText) {
         if (!this._flow) { return; }
         this._query = {
-            searchId: crypto.randomUUID(),
+            searchId: makeUuid(),
             searchText: searchText,
             // Snapshotted here rather than read when the event fires: `tab` on
             // search_query_executed is the tab the results are shown in, i.e.

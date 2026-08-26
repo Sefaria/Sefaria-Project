@@ -1,7 +1,8 @@
 import SearchAnalytics, { resultLinkAnalyticsAttrs, initialFlowSource, tabLabel } from '../searchAnalytics';
 
-// The module reads the global `gtag` (GA4) and `crypto.randomUUID` at call
-// time, so both are replaced with deterministic mocks.
+// The module reads the global `gtag` (GA4) at call time, and generates ids via
+// makeUuid(), which reads `window.crypto.randomUUID`. Both are replaced with
+// deterministic mocks (in jsdom `global` is `window`).
 let uuidCounter;
 
 beforeEach(() => {

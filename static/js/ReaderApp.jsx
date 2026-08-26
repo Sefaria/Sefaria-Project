@@ -1212,8 +1212,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         // Any in-app navigation away from the search page ends its analytics
         // flow. Result clicks don't reach here (SearchResultCard handles them
         // and ends the flow itself), so this exit is an abandonment. No-ops
-        // when no search flow is active.
-        SearchAnalytics.endFlow('abandoned');
+        // when no search flow is active. Guarded on lastOpenURLNavigatedInApp
+        // so links openURL merely opened in a new tab -- and cancelled
+        // unsaved-changes prompts -- leave the flow running: the search page
+        // is still on screen and the user can keep searching.
+        if (this.lastOpenURLNavigatedInApp()) {
+          SearchAnalytics.endFlow('abandoned');
+        }
         e.preventDefault();
       }
       return
@@ -1224,8 +1229,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const isTranslationsPage = !!(linkTarget.closest(".translationsPage"));
     const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget, signupSource);
     if (handled) {
-      // See the mobile branch above -- ends any active search analytics flow.
-      SearchAnalytics.endFlow('abandoned');
+      // See the mobile branch above -- ends any active search analytics flow,
+      // but only when this page actually navigated somewhere.
+      if (this.lastOpenURLNavigatedInApp()) {
+        SearchAnalytics.endFlow('abandoned');
+      }
       e.preventDefault();
     }
   }
@@ -1314,9 +1322,15 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
 
   openURL(href, replace=true, overrideContentLang=false, moduleTarget=null, signupSource=null) {
+    // Records whether this call actually navigated the current page somewhere else in the
+    // app, as opposed to being "handled" by opening a new tab or by the user cancelling.
+    // Callers that need to know (see handleInAppLinkClick) read it via
+    // lastOpenURLNavigatedInApp(); openURL's own return value stays a plain "handled?".
+    this._lastOpenURLNavigatedInApp = false;
+
     if (this.shouldAlertBeforeCloseEditor()) {
       if (!this.alertUnsavedChangesConfirmed()) {
-        return true;
+        return true;   // user cancelled -- current page is unchanged
       }
     }
 
@@ -1333,15 +1347,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     // TODO generalize to any domain of current deploy.
     if (!Sefaria.isSefariaURL(url) || (!!moduleTarget && moduleTarget !== Sefaria.activeModule)) {
       window.open(url, '_blank')
-      return true;
+      return true;   // new tab -- current page is unchanged
     }
     const path = decodeURI(url.pathname);
     if (Sefaria.activeModule === Sefaria.VOICES_MODULE) {
       if (this._aboutSidebarPaths.has(path)) {
         window.open(Sefaria.util.fullURL(path, Sefaria.LIBRARY_MODULE), '_blank', 'noopener,noreferrer');
-        return true;
+        return true;   // new tab -- current page is unchanged
       }
     }
+    // Everything below either navigates this page within the app or returns false.
+    this._lastOpenURLNavigatedInApp = true;
     const params = url.searchParams;
     if(overrideContentLang && params.get('lang')) {
       let lang = params.get("lang")
@@ -1427,9 +1443,19 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       const options = {showHighlight: ref.indexOf("-") !== -1};   // showHighlight when ref is ranged
       openPanel(Sefaria.humanRef(ref), currVersions, options);
     } else {
+      this._lastOpenURLNavigatedInApp = false;
       return false
     }
     return true;
+  }
+  /**
+   * True if the most recent openURL() call navigated this page somewhere else in the app.
+   * False when openURL returned true only because it opened a new tab (external link,
+   * cross-module link) or because the user cancelled out of an unsaved-changes prompt --
+   * in those cases the current page is still on screen.
+   */
+  lastOpenURLNavigatedInApp() {
+    return !!this._lastOpenURLNavigatedInApp;
   }
   unsetTextHighlight(n) {
     this.setPanelState(n, { textHighlights: null });
