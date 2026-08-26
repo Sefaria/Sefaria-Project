@@ -711,6 +711,46 @@ def test_search_non_unique_terms_ranks_exact_and_prefix_matches_first(monkeypatc
     assert [r["slug"] for r in results] == ["bavli", "bavli-extra", "unrelated-slug"]
 
 
+def test_search_non_unique_terms_ranks_primary_title_over_unrelated_alt_title_match(monkeypatch):
+    # Regression for a real-world case: searching "פסח" put "קרבן פסח" (Korban Pesach)
+    # above the "פסח" (Pesach) term itself, because Korban Pesach also carries an
+    # unrelated alt title that's an exact-match shorthand ("פסח"). A term's own alt
+    # title being an exact match shouldn't outrank a different term whose *primary*
+    # title is the true exact match.
+    class FakeTerm:
+        def __init__(self, slug, en, he, titles):
+            self.slug = slug
+            self._en = en
+            self._he = he
+            self.titles = titles
+
+        def get_primary_title(self, lang):
+            return self._en if lang == "en" else self._he
+
+    pesach = FakeTerm("pesach", "Pesach", "פסח", [
+        {"lang": "en", "text": "Pesach", "primary": True},
+        {"lang": "he", "text": "פסח", "primary": True},
+    ])
+    paschal_offering = FakeTerm("paschal-offering", "Paschal Offering", "קרבן פסח", [
+        {"lang": "en", "text": "Paschal Offering", "primary": True},
+        {"lang": "he", "text": "קרבן פסח", "primary": True},
+        {"lang": "he", "text": "פסח", "primary": False},
+    ])
+
+    class FakeNonUniqueTermSet:
+        def __init__(self, query, limit=None):
+            pass
+
+        def __iter__(self):
+            # Natural order puts the alt-title collision first, as observed in prod.
+            return iter([paschal_offering, pesach])
+
+    monkeypatch.setattr(le, "NonUniqueTermSet", FakeNonUniqueTermSet)
+
+    results = le.search_non_unique_terms("פסח", 5)
+    assert [r["slug"] for r in results] == ["pesach", "paschal-offering"]
+
+
 def test_create_non_unique_term():
     from sefaria.model.schema import NonUniqueTerm
     detail = None

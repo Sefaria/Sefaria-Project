@@ -477,19 +477,31 @@ def enqueue_rebuild_linker_resolvers(langs) -> str:
 
 def _term_match_rank(term: NonUniqueTerm, q_lower: str) -> int:
     """
-    Best (lowest) match quality of `q_lower` against any of the term's titles or its slug:
-    0 = exact match, 1 = prefix match, 2 = match anywhere else (substring). The query that
-    produced `term` already guarantees at least a substring match, so 2 is the fallback.
+    Best (lowest) match quality of `q_lower` against this term, weighted toward what the
+    autosuggest actually displays (the primary en/he titles and the slug) rather than every
+    title indiscriminately. Otherwise a term whose *primary* title is merely a substring
+    match (e.g. "קרבן פסח") can outrank a different term whose primary title is the true
+    exact match (e.g. "פסח"), just because the first term also happens to carry some
+    unrelated alt title ("פסח" as shorthand) that's an exact match on its own.
+
+    0 = exact match on a primary title or the slug
+    1 = prefix match on a primary title or the slug
+    2 = exact or prefix match on an alt (non-primary) title
+    3 = substring match anywhere (the fallback; the query that produced `term` already
+        guarantees at least this much)
     """
-    strings = [term.slug] + [t.get("text", "") for t in (term.titles or [])]
-    best = 2
-    for s in strings:
+    primary_strings = [term.slug, term.get_primary_title("en"), term.get_primary_title("he")]
+    primary_lower = [(s or "").lower() for s in primary_strings]
+    if q_lower in primary_lower:
+        return 0
+    if any(s.startswith(q_lower) for s in primary_lower):
+        return 1
+    alt_strings = [t.get("text", "") for t in (term.titles or []) if not t.get("primary")]
+    for s in alt_strings:
         s_lower = (s or "").lower()
-        if s_lower == q_lower:
-            return 0
-        if best > 1 and s_lower.startswith(q_lower):
-            best = 1
-    return best
+        if s_lower == q_lower or s_lower.startswith(q_lower):
+            return 2
+    return 3
 
 
 def search_non_unique_terms(q: str, limit: int = 20) -> List[dict]:
