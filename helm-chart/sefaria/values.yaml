@@ -434,7 +434,7 @@ cronJobs:
     enabled: false
   embedLibraryToPgvector:
     enabled: false
-    schedule: "0 5 * * 0"
+    schedule: "0 5 * * 0"  # weekly, Sunday 5am - full chunk+embed pass (patot + Gemini)
     threads: 10
     resources:
       requests:
@@ -445,6 +445,19 @@ cronJobs:
         cpu: "4"
     activeDeadlineSeconds: 21600  # 6h safety cap so a stuck run doesn't block next week's trigger
     ttlSecondsAfterFinished: 432000  # 5 days, matches the one-off Job
+  embedLibraryToPgvectorMetadata:
+    enabled: false
+    schedule: "0 5 1 * *"  # monthly, 1st at 5am - metadata-only refresh, no chunking/embedding
+    threads: 10
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "1"
+      limits:
+        memory: "4Gi"
+        cpu: "2"
+    activeDeadlineSeconds: 21600
+    ttlSecondsAfterFinished: 432000
   indexFromQueue:
     enabled: false
   metrics:

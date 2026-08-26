@@ -1,29 +1,29 @@
-{{- if .Values.cronJobs.embedLibraryToPgvector.enabled }}
+{{- if .Values.cronJobs.embedLibraryToPgvectorMetadata.enabled }}
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ .Values.deployEnv }}-embed-library-to-pgvector
+  name: {{ .Values.deployEnv }}-embed-library-to-pgvector-metadata
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   concurrencyPolicy: Forbid
-  schedule: {{ .Values.cronJobs.embedLibraryToPgvector.schedule | quote }}
+  schedule: {{ .Values.cronJobs.embedLibraryToPgvectorMetadata.schedule | quote }}
   jobTemplate:
     spec:
       backoffLimit: 1
-      activeDeadlineSeconds: {{ .Values.cronJobs.embedLibraryToPgvector.activeDeadlineSeconds }}
-      ttlSecondsAfterFinished: {{ .Values.cronJobs.embedLibraryToPgvector.ttlSecondsAfterFinished }}
+      activeDeadlineSeconds: {{ .Values.cronJobs.embedLibraryToPgvectorMetadata.activeDeadlineSeconds }}
+      ttlSecondsAfterFinished: {{ .Values.cronJobs.embedLibraryToPgvectorMetadata.ttlSecondsAfterFinished }}
       template:
         spec:
           restartPolicy: Never
           containers:
-          - name: embed-library-to-pgvector
+          - name: embed-library-to-pgvector-metadata
             image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             command: ["bash"]
             args: [
               "-c",
-              "pip install 'patot[chunking] @ git+https://github.com/Sefaria/patot.git' && /app/run /app/sefaria/helper/vector/embed_library_to_pgvector.py --mode=full --threads={{ .Values.cronJobs.embedLibraryToPgvector.threads }}"
+              "/app/run /app/sefaria/helper/vector/embed_library_to_pgvector.py --mode=metadata-only --threads={{ .Values.cronJobs.embedLibraryToPgvectorMetadata.threads }}"
             ]
             env:
             - name: REDIS_HOST
@@ -35,8 +35,6 @@ spec:
             envFrom:
             - secretRef:
                 name: {{ template "sefaria.secrets.pgvectorPassword" . }}
-            - secretRef:
-                name: {{ template "sefaria.secrets.geminiApiKey" . }}
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
                 optional: true
@@ -50,7 +48,7 @@ spec:
                 name: local-settings
                 subPath: local_settings.py
                 readOnly: true
-            resources: {{ toYaml .Values.cronJobs.embedLibraryToPgvector.resources | nindent 14 }}
+            resources: {{ toYaml .Values.cronJobs.embedLibraryToPgvectorMetadata.resources | nindent 14 }}
           volumes:
           - name: local-settings
             configMap:

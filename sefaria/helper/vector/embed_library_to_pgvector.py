@@ -90,6 +90,8 @@ class EmbeddingResult:
         self.chunks_written = 0
         self.sections_skipped_resume = 0
         self.sections_skipped_empty = 0
+        self.chunks_metadata_refreshed = 0
+        self.versions_skipped_no_existing_chunks = 0
         self.failures = []
 
     def increment(self, field: str, n: int = 1):
@@ -125,6 +127,8 @@ class EmbeddingResult:
             f"Chunks written: {self.chunks_written}",
             f"Sections skipped (already done): {self.sections_skipped_resume}",
             f"Sections skipped (empty): {self.sections_skipped_empty}",
+            f"Chunk metadata refreshed: {self.chunks_metadata_refreshed}",
+            f"Versions skipped (no existing chunks): {self.versions_skipped_no_existing_chunks}",
             f"Failures: {len(self.failures)}",
         ]
         if self.failures:
@@ -156,6 +160,23 @@ def parse_args() -> argparse.Namespace:
         help="Skip indexes with more than N versions (debug flag to avoid high-version bottlenecks).",
     )
     parser.add_argument("--debug", action="store_true", help="Enable debug logging.")
+    parser.add_argument(
+        "--mode", choices=["full", "metadata-only"], default="full",
+        help="'full' (default): chunk+embed via patot/Gemini, gated by resume-skip and "
+             "text-hash change detection (today's behavior). 'metadata-only': skip "
+             "chunking/embedding entirely (no patot, no Gemini, no GEMINI_API_KEY "
+             "required) and instead refresh the metadata-derived fields on chunk_metadata "
+             "rows that already exist in Postgres, for every index/version that has any - "
+             "no hash pre-pass, no resume-skip; every existing chunk is refreshed every run.",
+    )
+    parser.add_argument(
+        "--buffer-size", type=int,
+        default=int(os.environ.get("EMBED_BUFFER_SIZE", 500)),
+        help="Rows accumulated in memory before a single bulk upsert flush (defaults to "
+             "EMBED_BUFFER_SIZE env var, or 500). In --mode=full this counts "
+             "ChunkAndVector pairs (chunk_metadata + vector rows flushed together); in "
+             "--mode=metadata-only it counts ChunkMetadata rows alone.",
+    )
     return parser.parse_args()
 
 
@@ -317,6 +338,52 @@ class ChunkAndVector:
     embedding: list
 
 
+class UpsertBuffer:
+    """Thread-safe accumulate-then-flush buffer. Worker threads call add(items); once the
+    accumulated size reaches batch_size, the buffer is atomically swapped out under a lock
+    and flush_fn(batch) runs *outside* the lock, so a slow DB round-trip never blocks other
+    threads' concurrent add() calls. Call flush_remaining() once, after all producer
+    threads have finished, to flush whatever didn't reach the threshold."""
+
+    def __init__(self, batch_size: int, flush_fn):
+        self._batch_size = batch_size
+        self._flush_fn = flush_fn
+        self._lock = threading.Lock()
+        self._buffer: list = []
+
+    def add(self, items: list) -> None:
+        if not items:
+            return
+        to_flush = None
+        with self._lock:
+            self._buffer.extend(items)
+            if len(self._buffer) >= self._batch_size:
+                to_flush, self._buffer = self._buffer, []
+        if to_flush:
+            self._flush_fn(to_flush)
+
+    def flush_remaining(self) -> None:
+        to_flush = None
+        with self._lock:
+            if self._buffer:
+                to_flush, self._buffer = self._buffer, []
+        if to_flush:
+            self._flush_fn(to_flush)
+
+
+def _flush_chunk_and_vector_batch(batch: list[ChunkAndVector], chunk_store: ChunkMetadata,
+                                  vector_store: Vector) -> None:
+    """Flush callback for `full`-mode's UpsertBuffer: chunk metadata first (surrogate `id`
+    populated in-place via RETURNING on bulk_create/update_conflicts), then vectors, which
+    need that id for their chunk_metadata_id FK."""
+    chunk_store.upsert([b.chunk for b in batch])
+    vector_store.upsert([
+        Vector(chunk_metadata=b.chunk, embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID,
+               text=b.text, embedding=b.embedding)
+        for b in batch
+    ])
+
+
 def build_chunk_data(unit_ref, lang: str, vtitle: str, index_title: str, embedder: GeminiEmbedder,
                      result, index_context: dict, version_context: dict) -> list[ChunkAndVector]:
     unit_normal = unit_ref.normal()
@@ -453,7 +520,7 @@ def compute_current_unit_hashes(indexes, known_section_refs: set) -> dict:
 
 
 def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_for_version,
-                   chunk_store: ChunkMetadata, vector_store: Vector, changed_units: set, version_pbar=None):
+                   chunk_store: ChunkMetadata, buffer: UpsertBuffer, changed_units: set, version_pbar=None):
     """
     Core per-index loop shared by section-based and passage-based processing.
 
@@ -491,15 +558,7 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
                     else:
                         built = build_chunk_data(unit_ref, lang, vtitle, index.title, thread_local.embedder,
                                                  chunk_result, index_context, version_context)
-                        # chunk metadata first (surrogate `id` populated in-place via RETURNING on
-                        # bulk_create/update_conflicts), then vectors, which need that id for
-                        # their chunk_metadata_id FK.
-                        chunk_store.upsert([b.chunk for b in built])
-                        vector_store.upsert([
-                            Vector(chunk_metadata=b.chunk, embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID,
-                                   text=b.text, embedding=b.embedding)
-                            for b in built
-                        ])
+                        buffer.add(built)
                         result_tracker.increment("sections_embedded")
                         result_tracker.increment("chunks_written", len(built))
                         logger.debug(f"Embedded {unit_normal} ({lang}/{vtitle}): {len(built)} chunk(s)")
@@ -511,8 +570,8 @@ def _process_index(index, chunker, result_tracker: EmbeddingResult, get_units_fo
             version_pbar.set_postfix(index=index.title[:30], lang=lang)
 
 
-def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: ChunkMetadata, vector_store: Vector,
-                  changed_units: set, version_pbar=None):
+def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: ChunkMetadata,
+                  buffer: UpsertBuffer, changed_units: set, version_pbar=None):
     if is_passage_based(index):
         passages = get_passages_for_index(index)
         if not passages:
@@ -532,7 +591,7 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: 
                 ]
 
             _process_index(index, chunker, result_tracker, get_units_for_version,
-                           chunk_store=chunk_store, vector_store=vector_store,
+                           chunk_store=chunk_store, buffer=buffer,
                            changed_units=changed_units, version_pbar=version_pbar)
             return
 
@@ -546,8 +605,81 @@ def process_index(index, chunker, result_tracker: EmbeddingResult, chunk_store: 
         return [(ref, segment_records_by_section.get(ref.normal(), [])) for ref in section_refs]
 
     _process_index(index, chunker, result_tracker, get_units_for_version,
-                   chunk_store=chunk_store, vector_store=vector_store,
+                   chunk_store=chunk_store, buffer=buffer,
                    changed_units=changed_units, version_pbar=version_pbar)
+
+
+def build_refreshed_chunk_metadata(existing_row: ChunkMetadata, index_context: dict,
+                                   version_context: dict) -> ChunkMetadata:
+    """Brand-new ChunkMetadata instance (id left unset - bulk_create/update_conflicts only
+    excludes the pk column from the INSERT when pk is unset on every passed-in instance;
+    reusing an already-persisted instance here would make Django include an explicit id in
+    the INSERT, colliding with the PRIMARY KEY constraint since the ON CONFLICT target is
+    the ref/version_title/language/chunk_ordinal/chunking_scheme_id unique constraint, not
+    the pk) for existing_row: recomputes metadata-derived fields via
+    get_chunk_context(Ref(existing_row.ref)) plus the passed-in index/version context, and
+    copies every unique-key + chunking-provenance field through unchanged. Raises on a bad
+    ref/lookup - caller catches per-row so one bad ref doesn't abort the batch."""
+    chunk_ref = Ref(existing_row.ref)
+    chunk_context = get_chunk_context(chunk_ref)
+    return ChunkMetadata(
+        index_title=existing_row.index_title,
+        version_title=existing_row.version_title,
+        language=existing_row.language,
+        ref=existing_row.ref,
+        url=chunk_ref.url(),
+        chunked_from_ref=existing_row.chunked_from_ref,
+        direction=version_context["direction"],
+        chunk_ordinal=existing_row.chunk_ordinal,
+        chunking_scheme_id=existing_row.chunking_scheme_id,
+        primary_category=index_context["primary_category"],
+        all_categories=index_context["all_categories"],
+        is_primary=version_context["is_primary"],
+        is_source=version_context["is_source"],
+        composition_date=index_context["composition_date"],
+        composition_place=index_context["composition_place"],
+        era_name=index_context["era_name"],
+        pagerank=chunk_context["pagerank"],
+        author_names=index_context["author_names"],
+        author_slugs=index_context["author_slugs"],
+        associated_topic_names=chunk_context["associated_topic_names"],
+        associated_topic_slugs=chunk_context["associated_topic_slugs"],
+        linked_refs=chunk_context["linked_refs"],
+        chunker_metadata=existing_row.chunker_metadata,
+    )
+
+
+def process_index_metadata_only(index, result_tracker: EmbeddingResult, chunk_store: ChunkMetadata,
+                                buffer: UpsertBuffer, version_pbar=None) -> None:
+    """`metadata-only`-mode per-index loop: for every Version of `index`, fetch existing
+    chunk_metadata rows for (index_title, version_title, language), recompute their
+    metadata-derived fields, and feed refreshed rows into `buffer`. No chunking/embedding,
+    no section_text_cache/resume check - every version with existing rows is refreshed
+    every run; versions with none are skipped (nothing to refresh, never creates new
+    chunks)."""
+    index_context = get_index_context(index)
+
+    for version in VersionSet({"title": index.title}):
+        lang, vtitle = version.language, version.versionTitle
+        version_context = get_version_context(version)
+
+        existing_rows = chunk_store.filter(index_title=index.title, version_title=vtitle, language=lang)
+        if not existing_rows:
+            result_tracker.increment("versions_skipped_no_existing_chunks")
+        else:
+            refreshed = []
+            for row in existing_rows:
+                try:
+                    refreshed.append(build_refreshed_chunk_metadata(row, index_context, version_context))
+                except Exception as e:
+                    result_tracker.record_failure(index.title, lang, vtitle, row.ref, e)
+            if refreshed:
+                buffer.add(refreshed)
+                result_tracker.increment("chunks_metadata_refreshed", len(refreshed))
+
+        if version_pbar is not None:
+            version_pbar.update(1)
+            version_pbar.set_postfix(index=index.title[:30], lang=lang)
 
 
 def thread_init(api_key: str, config):
@@ -559,16 +691,28 @@ def thread_init(api_key: str, config):
 def main():
     args = parse_args()
     setup_logging(args.debug)
+    full_mode = args.mode == "full"
 
-    if PatotChunker is None:
-        raise SystemExit(
-            "patot[chunking] extras are not installed (transformers/semantic-chunkers/semantic-router "
-            "missing) - PatotChunker is unavailable. See requirements.txt for the patot dependency."
+    api_key = None
+    config = None
+    if full_mode:
+        if PatotChunker is None:
+            raise SystemExit(
+                "patot[chunking] extras are not installed (transformers/semantic-chunkers/semantic-router "
+                "missing) - PatotChunker is unavailable. See requirements.txt for the patot dependency."
+            )
+
+        api_key = django_settings.GEMINI_API_KEY
+        if not api_key:
+            raise SystemExit("GEMINI_API_KEY is not set in Django settings.")
+
+        config = ChunkerConfig(
+            debug=False,
+            embedding_cache_enabled=True,
+            embedding_cache_path="/tmp/patot/embedding_cache.sqlite",
+            runtime_analytics=ChunkingRuntimeAnalytics(),
+            extract_html_footnotes_to_segments=False,
         )
-
-    api_key = django_settings.GEMINI_API_KEY
-    if not api_key:
-        raise SystemExit("GEMINI_API_KEY is not set in Django settings.")
 
     result = EmbeddingResult()
     chunk_store = ChunkMetadata()
@@ -576,16 +720,8 @@ def main():
 
     logger.info(SEPARATOR_LINE)
     logger.info("EMBED LIBRARY TO PGVECTOR")
-    logger.info(f"threads={args.threads}")
+    logger.info(f"mode={args.mode} threads={args.threads} buffer_size={args.buffer_size}")
     logger.info(SEPARATOR_LINE)
-
-    config = ChunkerConfig(
-        debug=False,
-        embedding_cache_enabled=True,
-        embedding_cache_path="/tmp/patot/embedding_cache.sqlite",
-        runtime_analytics=ChunkingRuntimeAnalytics(),
-        extract_html_footnotes_to_segments=False,
-    )
 
     all_indexes = library.all_index_records()
     logger.info(f"Total indexes: {len(all_indexes)}")
@@ -601,26 +737,34 @@ def main():
         all_indexes = all_indexes[:args.limit_indexes]
         logger.info(f"--limit-indexes set: processing only {len(all_indexes)} index(es)")
 
-    section_cache_store = SectionTextCache()
-    cached_hashes = section_cache_store.all_hashes()
-    logger.info(f"Loaded {len(cached_hashes)} cached section text hashes")
+    changed_units = set()
+    if full_mode:
+        section_cache_store = SectionTextCache()
+        cached_hashes = section_cache_store.all_hashes()
+        logger.info(f"Loaded {len(cached_hashes)} cached section text hashes")
 
-    logger.info("Computing current section/passage text hashes for change detection...")
-    known_section_refs = collect_all_section_refs(all_indexes)
-    current_hashes = compute_current_unit_hashes(all_indexes, known_section_refs)
-    changed_units = {key for key, h in current_hashes.items() if cached_hashes.get(key) != h}
-    logger.info(f"Text-hash pre-pass: {len(current_hashes)} units hashed, "
-                f"{len(changed_units)} changed or new since last run")
+        logger.info("Computing current section/passage text hashes for change detection...")
+        known_section_refs = collect_all_section_refs(all_indexes)
+        current_hashes = compute_current_unit_hashes(all_indexes, known_section_refs)
+        changed_units = {key for key, h in current_hashes.items() if cached_hashes.get(key) != h}
+        logger.info(f"Text-hash pre-pass: {len(current_hashes)} units hashed, "
+                    f"{len(changed_units)} changed or new since last run")
 
-    section_cache_store.upsert([
-        SectionTextCache(
-            section_ref=section_ref,
-            version_title=vtitle,
-            language=lang,
-            section_text_hash=current_hashes[(section_ref, vtitle, lang)],
-        )
-        for section_ref, vtitle, lang in changed_units
-    ])
+        section_cache_store.upsert([
+            SectionTextCache(
+                section_ref=section_ref,
+                version_title=vtitle,
+                language=lang,
+                section_text_hash=current_hashes[(section_ref, vtitle, lang)],
+            )
+            for section_ref, vtitle, lang in changed_units
+        ])
+
+    if full_mode:
+        buffer = UpsertBuffer(args.buffer_size,
+                              lambda batch: _flush_chunk_and_vector_batch(batch, chunk_store, vector_store))
+    else:
+        buffer = UpsertBuffer(args.buffer_size, chunk_store.upsert)
 
     total_versions = sum(VersionSet({"title": idx.title}).count() for idx in all_indexes)
     logger.info(f"Total versions: {total_versions}")
@@ -629,17 +773,21 @@ def main():
         def run_index(index):
             logger.info(f"Processing index: {index.title}")
             try:
-                process_index(index, thread_local.chunker, result, chunk_store, vector_store,
-                              changed_units, version_pbar)
+                if full_mode:
+                    process_index(index, thread_local.chunker, result, chunk_store, buffer,
+                                  changed_units, version_pbar)
+                else:
+                    process_index_metadata_only(index, result, chunk_store, buffer, version_pbar)
             except Exception as e:
                 result.record_failure(index.title, "-", "-", "-", e)
             result.increment("indexes_processed")
 
-        with ThreadPoolExecutor(
-            max_workers=args.threads,
-            initializer=thread_init,
-            initargs=(api_key, config),
-        ) as executor:
+        executor_kwargs = {"max_workers": args.threads}
+        if full_mode:
+            executor_kwargs["initializer"] = thread_init
+            executor_kwargs["initargs"] = (api_key, config)
+
+        with ThreadPoolExecutor(**executor_kwargs) as executor:
             futures = [executor.submit(run_index, index) for index in all_indexes]
             completed = 0
             for future in as_completed(futures):
@@ -647,10 +795,14 @@ def main():
                 completed += 1
                 if completed % 10 == 0:
                     logger.info(result.get_summary())
-                    logger.info(f"Analytics: {config.runtime_analytics.snapshot()}")
+                    if full_mode:
+                        logger.info(f"Analytics: {config.runtime_analytics.snapshot()}")
+
+    buffer.flush_remaining()
 
     logger.info(result.get_summary())
-    logger.info(f"Final analytics: {config.runtime_analytics.snapshot()}")
+    if full_mode:
+        logger.info(f"Final analytics: {config.runtime_analytics.snapshot()}")
 
     if not result.is_success():
         sys.exit(1)
