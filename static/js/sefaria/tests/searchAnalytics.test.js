@@ -364,3 +364,36 @@ describe('tab', () => {
         expect(executed[1].tab).toBe('Authors');
     });
 });
+
+describe('id generation where crypto.randomUUID is unavailable', () => {
+    // startFlow() runs in componentDidMount, before _executeAllQueries(). A bare
+    // crypto.randomUUID() throws in non-secure contexts and on older Safari, which would
+    // blank the entire search page rather than merely losing an analytics event -- hence
+    // the guarded makeUuid() helper.
+    const withoutRandomUUID = (fn) => {
+        const real = global.crypto;
+        global.crypto = {};          // present, but no randomUUID -- the risky combination
+        try { fn(); } finally { global.crypto = real; }
+    };
+
+    test('startFlow still works and still emits a flow_id', () => {
+        withoutRandomUUID(() => {
+            expect(() => SearchAnalytics.startFlow()).not.toThrow();
+        });
+        const [[name, params]] = firedEvents();
+        expect(name).toBe('search_flow_started');
+        expect(typeof params.flow_id).toBe('string');
+        expect(params.flow_id.length).toBeGreaterThan(0);
+    });
+
+    test('a flow and its query get distinct ids', () => {
+        withoutRandomUUID(() => {
+            SearchAnalytics.startFlow();
+            SearchAnalytics.startQuery('moses');
+            reportAllApis();
+        });
+        const [[, started], [, executed]] = firedEvents();
+        expect(executed.search_id).toEqual(expect.any(String));
+        expect(executed.search_id).not.toBe(started.flow_id);
+    });
+});
