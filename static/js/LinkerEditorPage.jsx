@@ -27,6 +27,17 @@ const nodePrimaryTitle = (node) => {
   return node.title || node.sharedTitle || node.key || node.wholeRef || '(untitled)';
 };
 
+// Companion Hebrew title, shown smaller underneath the primary (English) title.
+// A default node has no titles of its own, so there's nothing to show here.
+const nodePrimaryHebrewTitle = (node) => {
+  if (node.default) { return null; }
+  const titles = node.titles || [];
+  const primaryHe = titles.find(t => t.lang === 'he' && t.primary);
+  if (primaryHe) { return primaryHe.text; }
+  const anyHe = titles.find(t => t.lang === 'he');
+  return anyHe ? anyHe.text : null;
+};
+
 const pathString = (keyPath) => keyPath.join('.');
 
 // A NonUniqueTerm badge shows its primary English title (falling back to primary
@@ -133,18 +144,30 @@ const DIBUR_HAMATCHIL_PROPS = new Set(['isSegmentLevelDiburHamatchil', 'diburHam
 // NonUniqueTerm autocomplete (used by the MatchTemplate editor)
 // ---------------------------------------------------------------------------
 
-const TermAutocomplete = ({ onSelect, placeholder, clearOnSelect=false, autoFocus=false }) => {
+// A sentinel suggestion offered whenever a search comes back empty, letting the user
+// jump straight to creating the typed text as a new NonUniqueTerm.
+const CREATE_TERM_ITEM = (text) => ({ __create__: true, name: text, slug: text });
+
+const TermAutocomplete = ({ onSelect, placeholder, clearOnSelect=false, autoFocus=false, onCreateTerm }) => {
   let clearInput = null;
   const selectTerm = (term) => {
     if (!term) { return; }
+    if (term.__create__) {
+      if (onCreateTerm) { onCreateTerm(term.name); }
+      if (clearOnSelect && clearInput) { clearInput(); }
+      return;
+    }
     onSelect(term);
     if (clearOnSelect && clearInput) { clearInput(); }
   };
   const getSuggestions = async (inputValue) => {
-    if (!inputValue || inputValue.trim().length < 1) { return []; }
+    const trimmed = (inputValue || '').trim();
+    if (!trimmed) { return []; }
     try {
-      const d = await editorApi.searchTerms(inputValue.trim());
-      return (d.terms || []).map(t => ({ ...t, name: t.slug }));
+      const d = await editorApi.searchTerms(trimmed);
+      const terms = (d.terms || []).map(t => ({ ...t, name: t.slug }));
+      if (!terms.length && onCreateTerm) { return [CREATE_TERM_ITEM(trimmed)]; }
+      return terms;
     } catch (e) { return []; }
   };
   const renderInput = (highlightedIndex, highlightedSuggestion, getInputProps, setInputValue) => {
@@ -155,14 +178,24 @@ const TermAutocomplete = ({ onSelect, placeholder, clearOnSelect=false, autoFocu
   };
   const renderItems = (suggestions, highlightedIndex, getItemProps) => (
     suggestions.map((item, index) => (
-      <div
-        key={item.slug}
-        {...getItemProps({ item, index })}
-        className={'linkerEditorSuggestion' + (highlightedIndex === index ? ' highlighted' : '')}
-      >
-        <span className="termSlug">{item.slug}</span>
-        <span className="termTitles">{item.primary_en}{item.primary_he ? ` · ${item.primary_he}` : ''}</span>
-      </div>
+      item.__create__ ? (
+        <div
+          key="__create__"
+          {...getItemProps({ item, index })}
+          className={'linkerEditorSuggestion linkerEditorSuggestionCreate' + (highlightedIndex === index ? ' highlighted' : '')}
+        >
+          <span className="termCreateSuggestion">+ {Sefaria._('Add')} “{item.slug}” {Sefaria._('as a new term')}</span>
+        </div>
+      ) : (
+        <div
+          key={item.slug}
+          {...getItemProps({ item, index })}
+          className={'linkerEditorSuggestion' + (highlightedIndex === index ? ' highlighted' : '')}
+        >
+          <span className="termSlug">{item.slug}</span>
+          <span className="termTitles">{item.primary_en}{item.primary_he ? ` · ${item.primary_he}` : ''}</span>
+        </div>
+      )
     ))
   );
   return (
@@ -188,7 +221,7 @@ const TermAutocomplete = ({ onSelect, placeholder, clearOnSelect=false, autoFocu
 // MatchTemplate editor within a node card
 // ---------------------------------------------------------------------------
 
-const MatchTemplateRow = ({ template, title, keyPath, termTitles, onTermClick, onChanged }) => {
+const MatchTemplateRow = ({ template, title, keyPath, termTitles, onTermClick, onChanged, onCreateTerm }) => {
   const [addingTerm, setAddingTerm] = useState(false);
   const [busy, setBusy] = useState(false);
   const path = pathString(keyPath);
@@ -229,7 +262,7 @@ const MatchTemplateRow = ({ template, title, keyPath, termTitles, onTermClick, o
       </div>
       <div className="matchTemplateActions">
         {addingTerm
-          ? <TermAutocomplete onSelect={addTermToTemplate} placeholder={Sefaria._('Add term…')} />
+          ? <TermAutocomplete onSelect={addTermToTemplate} placeholder={Sefaria._('Add term…')} autoFocus={true} onCreateTerm={onCreateTerm} />
           : <button className="linkerEditorBtn small" onClick={() => setAddingTerm(true)}>+ {Sefaria._('term')}</button>}
         <button className="linkerEditorBtn small danger" onClick={removeTemplate} title={Sefaria._('Delete')}>×</button>
       </div>
@@ -237,7 +270,7 @@ const MatchTemplateRow = ({ template, title, keyPath, termTitles, onTermClick, o
   );
 };
 
-const AddMatchTemplateForm = ({ title, keyPath, termTitles, onChanged }) => {
+const AddMatchTemplateForm = ({ title, keyPath, termTitles, onChanged, onCreateTerm }) => {
   const [open, setOpen] = useState(false);
   const [slugs, setSlugs] = useState([]);
   // Titles for slugs picked here that aren't yet in the index-wide termTitles map.
@@ -277,7 +310,7 @@ const AddMatchTemplateForm = ({ title, keyPath, termTitles, onChanged }) => {
           </TermBadge>
         ))}
       </div>
-      <TermAutocomplete autoFocus={true} clearOnSelect={true} onSelect={addSlug} />
+      <TermAutocomplete autoFocus={true} clearOnSelect={true} onSelect={addSlug} onCreateTerm={onCreateTerm} />
       <label className="scopeSelect">
         {Sefaria._('scope')}:
         <select value={scope} onChange={e => setScope(e.target.value)}>
@@ -650,6 +683,7 @@ const SchemaNodeCard = ({
   addressTypeOptions,
   termTitles,
   onTermClick,
+  onCreateTerm,
   onChanged,
   onDhChanged,
   altStructRootEntries=[],
@@ -676,7 +710,10 @@ const SchemaNodeCard = ({
         {hasChildren && !forceExpanded
           ? <span className="expandToggle" onClick={() => toggleExpand(path)}>{expanded ? '▾' : '▸'}</span>
           : <span className="expandToggle placeholder" />}
-        <span className="schemaNodeTitle">{nodePrimaryTitle(node)}</span>
+        <span className="schemaNodeTitleGroup">
+          <span className="schemaNodeTitle">{nodePrimaryTitle(node)}</span>
+          {nodePrimaryHebrewTitle(node) && <span className="schemaNodeTitleHe" dir="rtl">{nodePrimaryHebrewTitle(node)}</span>}
+        </span>
         {ancestorCrumbs.length > 0 && (
           <span className="schemaNodePath">
             (
@@ -706,9 +743,10 @@ const SchemaNodeCard = ({
                 termTitles={termTitles}
                 onTermClick={onTermClick}
                 onChanged={onChanged}
+                onCreateTerm={onCreateTerm}
               />
             ))}
-            {!isDefault && <AddMatchTemplateForm title={title} keyPath={keyPath} termTitles={termTitles} onChanged={onChanged} />}
+            {!isDefault && <AddMatchTemplateForm title={title} keyPath={keyPath} termTitles={termTitles} onChanged={onChanged} onCreateTerm={onCreateTerm} />}
           </div>
         )}
 
@@ -744,6 +782,7 @@ const SchemaNodeCard = ({
               addressTypeOptions={addressTypeOptions}
               termTitles={termTitles}
               onTermClick={onTermClick}
+              onCreateTerm={onCreateTerm}
               onChanged={onChanged}
               onDhChanged={onDhChanged}
               collapseBranchBodyWhenCollapsed={collapseBranchBodyWhenCollapsed}
@@ -768,6 +807,7 @@ const SchemaNodeCard = ({
               addressTypeOptions={addressTypeOptions}
               termTitles={termTitles}
               onTermClick={onTermClick}
+              onCreateTerm={onCreateTerm}
               onChanged={onChanged}
               onDhChanged={onDhChanged}
               jumpToPath={jumpToPath}
@@ -779,7 +819,7 @@ const SchemaNodeCard = ({
   );
 };
 
-const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand, addressTypeOptions, termTitles, onTermClick, onChanged, onDhChanged, jumpToPath }) => {
+const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand, addressTypeOptions, termTitles, onTermClick, onCreateTerm, onChanged, onDhChanged, jumpToPath }) => {
   const path = pathString(['__alt__', structName]);
   const expanded = expandedPaths.has(path);
 
@@ -806,6 +846,7 @@ const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand,
               addressTypeOptions={addressTypeOptions}
               termTitles={termTitles}
               onTermClick={onTermClick}
+              onCreateTerm={onCreateTerm}
               onChanged={onChanged}
               onDhChanged={onDhChanged}
               collapseBranchBodyWhenCollapsed={true}
@@ -825,7 +866,7 @@ const AltStructGroup = ({ structName, nodes, title, expandedPaths, toggleExpand,
 // NonUniqueTerm detail panel (bottom slide-up)
 // ---------------------------------------------------------------------------
 
-const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, onJump, onChanged }) => {
+const TermDetailPanel = ({ slug, createMode, initialTitle, onCreateTerm, refreshToken, onClose, onCreated, onJump, onChanged }) => {
   const [detail, setDetail] = useState(null);
   const [error, setError] = useState(null);
   const [newTitle, setNewTitle] = useState('');
@@ -845,6 +886,14 @@ const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, o
     editorApi.termDetail(slug).then(setDetail, e => setError(e.message || String(e)));
   }, [slug, createMode, refreshToken]);
 
+  // Entering create mode (including re-entering it from an "Add as new term" autosuggest
+  // elsewhere on the page) seeds whichever language field matches what was already typed.
+  useEffect(() => {
+    if (!createMode) { return; }
+    setNewEn(initialTitle && initialTitle.lang === 'en' ? initialTitle.text : '');
+    setNewHe(initialTitle && initialTitle.lang === 'he' ? initialTitle.text : '');
+  }, [createMode, initialTitle]);
+
   const handlePanelKeyDown = (e) => {
     if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
   };
@@ -862,6 +911,13 @@ const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, o
       setError(e.message || String(e));
     }
     setCreating(false);
+  };
+
+  const handleCreateKeyDown = (e) => {
+    if (e.key === 'Enter' && !creating && (newEn.trim() || newHe.trim())) {
+      e.preventDefault();
+      createTerm();
+    }
   };
 
   const addTitles = async () => {
@@ -925,6 +981,7 @@ const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, o
               className="linkerEditorTermInput"
               value={newEn}
               onChange={e => setNewEn(e.target.value)}
+              onKeyDown={handleCreateKeyDown}
               placeholder={Sefaria._('Primary English title')}
               autoFocus
             />
@@ -932,6 +989,7 @@ const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, o
               className="linkerEditorTermInput"
               value={newHe}
               onChange={e => setNewHe(e.target.value)}
+              onKeyDown={handleCreateKeyDown}
               placeholder={Sefaria._('Primary Hebrew title')}
               dir="rtl"
             />
@@ -979,6 +1037,7 @@ const TermDetailPanel = ({ slug, createMode, refreshToken, onClose, onCreated, o
                   onSelect={setSwapTarget}
                   placeholder={Sefaria._('Swap to term…')}
                   autoFocus={true}
+                  onCreateTerm={onCreateTerm}
                 />
                 {swapTarget && <span className="termSwapTarget">{swapTarget.slug}</span>}
                 <button
@@ -1101,6 +1160,9 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
   const [addressTypeOptions, setAddressTypeOptions] = useState([]);
   const [termSlug, setTermSlug] = useState(null);
   const [addingTerm, setAddingTerm] = useState(false);
+  // Prefilled title (language + typed text) for the next time the Add New Term drawer
+  // opens, set when it's opened from a "no matches — add as new term" autosuggest.
+  const [createPrefill, setCreatePrefill] = useState(null);
   const [searchingTerm, setSearchingTerm] = useState(false);
   const [termTitles, setTermTitles] = useState({});
   const [refreshToken, setRefreshToken] = useState(0);
@@ -1113,9 +1175,16 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
 
   const markDhDirty = useCallback(() => { setDhDirty(true); setDhMsg(null); }, []);
 
-  const openTerm = useCallback((slug) => { setAddingTerm(false); setSearchingTerm(false); setTermSlug(slug); }, []);
-  const closeTermDrawer = useCallback(() => { setTermSlug(null); setAddingTerm(false); }, []);
+  const openTerm = useCallback((slug) => { setAddingTerm(false); setSearchingTerm(false); setCreatePrefill(null); setTermSlug(slug); }, []);
+  const closeTermDrawer = useCallback(() => { setTermSlug(null); setAddingTerm(false); setCreatePrefill(null); }, []);
   const openSearchedTerm = useCallback((term) => { openTerm(term.slug); }, [openTerm]);
+  // Opened from a term autosuggest box with no matches — jumps straight to the Add New
+  // Term drawer with whatever was typed pre-filled into the matching language field.
+  const openCreateTerm = useCallback((text) => {
+    setTermSlug(null); setSearchingTerm(false);
+    setCreatePrefill({ lang: detectTitleLang(text), text });
+    setAddingTerm(true);
+  }, []);
 
   useEffect(() => {
     editorApi.addressTypes().then(d => setAddressTypeOptions(d.address_types || []));
@@ -1268,7 +1337,7 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
             <h1><InterfaceText>Linker Editor</InterfaceText></h1>
             <div className="linkerEditorTopActions">
               {title && <button className="linkerEditorBtn" onClick={leaveIndex}>{Sefaria._('New search')}</button>}
-              <button className="linkerEditorBtn" onClick={() => { setTermSlug(null); setAddingTerm(true); }}>{Sefaria._('Add New Term')}</button>
+              <button className="linkerEditorBtn" onClick={() => { setTermSlug(null); setCreatePrefill(null); setAddingTerm(true); }}>{Sefaria._('Add New Term')}</button>
               <button className="linkerEditorBtn" onClick={() => setSearchingTerm(!searchingTerm)}>{Sefaria._('Search Term')}</button>
               {searchingTerm && (
                 <div className="linkerEditorHeaderTermSearch">
@@ -1276,6 +1345,7 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
                     onSelect={openSearchedTerm}
                     placeholder={Sefaria._('Search terms…')}
                     autoFocus={true}
+                    onCreateTerm={openCreateTerm}
                   />
                 </div>
               )}
@@ -1343,6 +1413,7 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
                   addressTypeOptions={addressTypeOptions}
                   termTitles={termTitles}
                   onTermClick={openTerm}
+                  onCreateTerm={openCreateTerm}
                   onChanged={reload}
                   onDhChanged={markDhDirty}
                   altStructRootEntries={altStructRootEntries}
@@ -1357,6 +1428,8 @@ const LinkerEditorPage = ({ initialBook, onBookChange }) => {
             <TermDetailPanel
               slug={termSlug}
               createMode={addingTerm}
+              initialTitle={createPrefill}
+              onCreateTerm={openCreateTerm}
               refreshToken={refreshToken}
               onClose={closeTermDrawer}
               onCreated={openTerm}

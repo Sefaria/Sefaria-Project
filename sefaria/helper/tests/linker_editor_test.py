@@ -647,6 +647,7 @@ def test_search_non_unique_terms_normalizes_query(monkeypatch):
 
     class FakeTerm:
         slug = "__le_test_term__"
+        titles = [{"lang": "en", "text": "Hagigah ha Something"}]
 
         def get_primary_title(self, lang):
             return "Primary" if lang == "en" else "עיקרי"
@@ -666,17 +667,48 @@ def test_search_non_unique_terms_normalizes_query(monkeypatch):
         "primary_he": "עיקרי",
     }]
     regex = {"$regex": le.re.escape("Hagigah ha"), "$options": "i"}
+    # The candidate pool fetched from Mongo is wider than `limit` — ranking happens in
+    # Python afterward, over this larger pool, before truncating back down to `limit`.
     assert captured[0] == (
         {"$or": [{"titles.text": regex}, {"slug": regex}]},
-        7,
+        max(7 * 5, 100),
     )
 
     le.search_non_unique_terms("בְּרֵאשִׁ֑ית", 5)
     regex = {"$regex": le.re.escape("בראשית"), "$options": "i"}
     assert captured[1] == (
         {"$or": [{"titles.text": regex}, {"slug": regex}]},
-        5,
+        max(5 * 5, 100),
     )
+
+
+def test_search_non_unique_terms_ranks_exact_and_prefix_matches_first(monkeypatch):
+    # Substring hit buried in an unrelated title, plus a slug that's an exact match
+    # and a title that's a prefix match — Mongo's natural order returns them in the
+    # "wrong" order here (substring hit first) to confirm the ranking step reorders them.
+    class FakeTerm:
+        def __init__(self, slug, titles):
+            self.slug = slug
+            self.titles = titles
+
+        def get_primary_title(self, lang):
+            return self.slug
+
+    substring_hit = FakeTerm("unrelated-slug", [{"lang": "en", "text": "Some Bavli Reference"}])
+    prefix_hit = FakeTerm("bavli-extra", [{"lang": "en", "text": "Bavli Extra"}])
+    exact_hit = FakeTerm("bavli", [{"lang": "en", "text": "Bavli"}])
+
+    class FakeNonUniqueTermSet:
+        def __init__(self, query, limit=None):
+            pass
+
+        def __iter__(self):
+            return iter([substring_hit, prefix_hit, exact_hit])
+
+    monkeypatch.setattr(le, "NonUniqueTermSet", FakeNonUniqueTermSet)
+
+    results = le.search_non_unique_terms("bavli", 5)
+    assert [r["slug"] for r in results] == ["bavli", "bavli-extra", "unrelated-slug"]
 
 
 def test_create_non_unique_term():

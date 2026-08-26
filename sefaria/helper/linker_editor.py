@@ -475,15 +475,41 @@ def enqueue_rebuild_linker_resolvers(langs) -> str:
 # NonUniqueTerm read / search
 # ---------------------------------------------------------------------------
 
+def _term_match_rank(term: NonUniqueTerm, q_lower: str) -> int:
+    """
+    Best (lowest) match quality of `q_lower` against any of the term's titles or its slug:
+    0 = exact match, 1 = prefix match, 2 = match anywhere else (substring). The query that
+    produced `term` already guarantees at least a substring match, so 2 is the fallback.
+    """
+    strings = [term.slug] + [t.get("text", "") for t in (term.titles or [])]
+    best = 2
+    for s in strings:
+        s_lower = (s or "").lower()
+        if s_lower == q_lower:
+            return 0
+        if best > 1 and s_lower.startswith(q_lower):
+            best = 1
+    return best
+
+
 def search_non_unique_terms(q: str, limit: int = 20) -> List[dict]:
-    """Search NonUniqueTerms by title text or slug (case-insensitive) for autocomplete."""
+    """
+    Search NonUniqueTerms by title text or slug (case-insensitive) for autocomplete.
+    Mongo's $regex carries no relevance signal, so ranking exact/prefix matches first is
+    done here in Python: pull a candidate pool a bit larger than `limit` in whatever
+    (~natural) order Mongo returns, rank each by match quality, then truncate.
+    """
     q = get_linker_normalizer("he").normalize(q or "").strip()
     if not q:
         return []
+    q_lower = q.lower()
     regex = {"$regex": re.escape(q), "$options": "i"}
     query = {"$or": [{"titles.text": regex}, {"slug": regex}]}
+    candidate_pool = max(limit * 5, 100)
+    candidates = list(NonUniqueTermSet(query, limit=candidate_pool))
+    candidates.sort(key=lambda term: _term_match_rank(term, q_lower))
     results = []
-    for term in NonUniqueTermSet(query, limit=limit):
+    for term in candidates[:limit]:
         results.append({
             "slug": term.slug,
             "primary_en": term.get_primary_title("en"),
