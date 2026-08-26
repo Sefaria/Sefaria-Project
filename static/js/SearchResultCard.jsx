@@ -198,6 +198,16 @@ function SearchResultCard({
     if (openURL(linkHref)) { e.preventDefault(); }
   };
 
+  // Middle-click opens the link in a new tab natively. Browsers dispatch `auxclick` rather
+  // than `click` for non-primary mouse buttons, so neither handleLinkClick nor
+  // handleSubLinkClick above ever runs for this gesture -- this is its only chance to be
+  // reported. Like a modified click it leaves the user on the search page, so it reports the
+  // click WITHOUT ending the flow, and the browser is left alone to open the tab.
+  const handleAuxClick = (elementValue) => (e) => {
+    if (e.button !== 1) { return; }   // 1 == middle; back/forward buttons aren't link clicks
+    fireResultClickAnalytics(elementValue, false);
+  };
+
   const handleCardKeyDown = (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
@@ -256,13 +266,15 @@ function SearchResultCard({
               getCrumbLinkProps={(crumb) => ({
                 ...linkAnalyticsAttrs(crumb.label),
                 onClick: handleSubLinkClick(crumb.label, crumb.href),
+                onAuxClick: handleAuxClick(crumb.label),
               })}
             />
           )}
           <div className="searchResultCard-header">
             <a href={href} className="searchResultCard-titleLink"
                {...linkAnalyticsAttrs(tref ?? name)}
-               onClick={handleLinkClick(ownResult)}>
+               onClick={handleLinkClick(ownResult)}
+               onAuxClick={handleAuxClick(tref ?? name)}>
               <div className="searchResultCard-titleRow">
                 <span className="searchResultCard-name">
                   <InterfaceText text={{ en: name, he: hebrewName }} />
@@ -289,7 +301,8 @@ function SearchResultCard({
                     {secondaryAuthorHref ? (
                       <a href={secondaryAuthorHref}
                          {...linkAnalyticsAttrs(secondaryAuthor)}
-                         onClick={handleSubLinkClick(secondaryAuthor, secondaryAuthorHref)}>
+                         onClick={handleSubLinkClick(secondaryAuthor, secondaryAuthorHref)}
+                         onAuxClick={handleAuxClick(secondaryAuthor)}>
                         <InterfaceText text={{ en: secondaryAuthor, he: hebrewSecondaryAuthor }} />
                       </a>
                     ) : (
@@ -342,6 +355,7 @@ function SearchResultCard({
                       className="searchResultCard-versionItem"
                       {...linkAnalyticsAttrs(tref ?? name)}
                       onClick={handleLinkClick(v)}
+                      onAuxClick={handleAuxClick(tref ?? name)}
                     >
                       <div
                         className={`searchResultCard-snippet${v.snippetLang === 'he' ? ' he' : ' en'}`}

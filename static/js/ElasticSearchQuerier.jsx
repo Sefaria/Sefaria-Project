@@ -390,13 +390,20 @@ class ElasticSearchQuerier extends Component {
       const runningNextPageQuery = Sefaria.search.execute_query(args);
       this.updateRunningQuery(runningNextPageQuery, false);
     }
-    _handleError(jqXHR, textStatus, errorThrown) {
+    /**
+     * Called when the sources query fails. Receives the rejection value from
+     * Sefaria.search.execute_query, which bundles jQuery's three $.ajax error arguments
+     * into one object. `message` is not one of them -- it is there so that a plain Error
+     * (a bug thrown inside the query rather than a failed request) still names itself
+     * instead of being reported as 'unknown error'.
+     */
+    _handleError({textStatus, errorThrown, message} = {}) {
       if (textStatus === "abort") {
         // Abort is immediately followed by new query, above.  Worried there would be a race if we call updateCurrentQuery(null) from here
         //this.updateCurrentQuery(null);
         return;
       }
-      SearchAnalytics.recordApiResult('sources', null, errorThrown || textStatus || 'unknown error');
+      SearchAnalytics.recordApiResult('sources', null, errorThrown || textStatus || message || 'unknown error');
       this.setState({error: true});
       this.updateRunningQuery(null);
     }
