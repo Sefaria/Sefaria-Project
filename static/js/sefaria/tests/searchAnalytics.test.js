@@ -333,6 +333,46 @@ describe('tab', () => {
         expect(tabs).toEqual(['Sources', 'Topics']);
     });
 
+    test('a history restore that changes query and tab together attributes the query to the new tab', () => {
+        // The browser restores one history entry holding BOTH a different query and a
+        // different tab, so React applies them in a single update. ElasticSearchQuerier
+        // runs first (render phase) and passes the incoming tab explicitly; SearchPage
+        // reports the tab move and updates the current tab afterwards (commit phase).
+        SearchAnalytics.setCurrentTab('sources');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('first');
+        reportAllApis();
+
+        SearchAnalytics.startQuery('restored', 'topics');           // parent, render phase
+        SearchAnalytics.elementClicked({elementType: 'tab', elementValue: 'Topics', count: 2});
+        SearchAnalytics.setCurrentTab('topics');                    // child, commit phase
+        reportAllApis();
+
+        const executed = firedEvents().filter(([name]) => name === 'search_query_executed');
+        const [click] = firedEvents().filter(([name]) => name === 'search_element_clicked');
+        // The restored query belongs to the tab it is displayed in...
+        expect(executed[1][1].tab).toBe('Topics');
+        // ...while the tab move still reads as "went from Sources to Topics".
+        expect(click[1].tab).toBe('Sources');
+        expect(click[1].element_value).toBe('Topics');
+    });
+
+    test('an invalid tabOverride is still stored, and omitting it keeps the current tab', () => {
+        SearchAnalytics.setCurrentTab('books');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('no override');
+        reportAllApis();
+        expect(SearchAnalytics._currentTab).toBe('Books');  // override never writes _currentTab
+
+        SearchAnalytics.startQuery('with override', 'topics');
+        reportAllApis();
+        expect(SearchAnalytics._currentTab).toBe('Books');
+
+        const tabs = firedEvents().filter(([name]) => name === 'search_query_executed')
+                                  .map(([, params]) => params.tab);
+        expect(tabs).toEqual(['Books', 'Topics']);
+    });
+
     test('element clicks report the tab live, including result clicks', () => {
         SearchAnalytics.setCurrentTab('topics');
         SearchAnalytics.startFlow();

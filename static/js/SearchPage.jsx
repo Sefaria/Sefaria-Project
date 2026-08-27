@@ -102,7 +102,9 @@ const ENTITY_TABS = [
   {id: "topics",  type: "topic",  title: "common.topics",  sortOptions: "topics"},
 ];
 
-const ALL_TAB_IDS = ["sources", ...ENTITY_TABS.map(t => t.id)];
+// Exported so ElasticSearchQuerier can apply the same invalid-tab fallback as activeTab()
+// when it reads `tab` straight from props for analytics.
+export const ALL_TAB_IDS = ["sources", ...ENTITY_TABS.map(t => t.id)];
 
 const emptyEntityData  = () => Object.fromEntries(ENTITY_TABS.map(t => [t.type, null]));
 const defaultEntitySort = () => Object.fromEntries(ENTITY_TABS.map(t => [t.type, 'relevance']));

@@ -166,8 +166,19 @@ const SearchAnalytics = {
      * once all four APIs report in via recordApiResult; if the user refines
      * the query before that happens, the superseded query's event simply never
      * fires (per spec).
+     *
+     * `tabOverride` (a tab id) names the tab this query's results will be shown
+     * in, for the one case where _currentTab is not yet it: the browser restoring
+     * a history entry whose query AND tab both differ from what is on screen.
+     * That arrives as a single React update, and the caller
+     * (ElasticSearchQuerier.componentWillReceiveProps) runs in the render phase,
+     * before SearchPage.componentDidUpdate has had a chance to setCurrentTab.
+     *
+     * It deliberately does NOT write _currentTab. elementClicked reads that live
+     * and, for a tab move, must still see the tab being LEFT -- SearchPage reports
+     * the move before updating it. Overriding only this snapshot keeps both correct.
      */
-    startQuery: function(searchText) {
+    startQuery: function(searchText, tabOverride) {
         if (!this._flow) { return; }
         this._query = {
             searchId: makeUuid(),
@@ -178,7 +189,7 @@ const SearchAnalytics = {
             // all four APIs return, and the user can switch tabs while waiting;
             // that switch is a search_element_clicked, and must not retroactively
             // relabel which tab this query was run from.
-            tab: this._currentTab,
+            tab: tabOverride === undefined ? this._currentTab : tabLabel(tabOverride),
             pending: new Set(QUERY_APIS),
             counts: {},
             error: null,

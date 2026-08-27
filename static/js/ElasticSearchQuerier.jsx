@@ -11,7 +11,7 @@ import {LoadingMessage} from "./Misc";
 import PropTypes from "prop-types";
 import React from "react";
 import {SearchResultList} from "./SearchResultList";
-import SearchPage from "./SearchPage";
+import SearchPage, {ALL_TAB_IDS} from "./SearchPage";
 import SearchInVoicesPage from "./SearchInVoicesPage";
 import SearchAnalytics from "./sefaria/searchAnalytics";
 
@@ -201,6 +201,11 @@ class ElasticSearchQuerier extends Component {
         return !this.props.compare && !this.props.searchInBook &&
             Sefaria.activeModule !== Sefaria.VOICES_MODULE;
     }
+    // The tab the given props will actually display, matching SearchPage.activeTab():
+    // `tab` comes from panel state and so from the URL, where it can be absent or garbage.
+    _analyticsTab(props) {
+        return ALL_TAB_IDS.includes(props.tab) ? props.tab : "sources";
+    }
     componentWillReceiveProps(newProps) {
         let state = {
             hits: [],
@@ -209,7 +214,11 @@ class ElasticSearchQuerier extends Component {
         };
         if (this.props.query !== newProps.query) {
             // New query text within the same visit: same flow_id, new search_id.
-            SearchAnalytics.startQuery(newProps.query);
+            // Pass the tab explicitly rather than letting startQuery read the tab
+            // SearchAnalytics currently holds: the browser can restore a history
+            // entry whose query and tab both changed in one update, and this runs
+            // before SearchPage.componentDidUpdate reports the new tab.
+            SearchAnalytics.startQuery(newProps.query, this._analyticsTab(newProps));
             this.setState(state, () => {
                 this._executeAllQueries(newProps);
                 if (!this.props.searchInBook) {
