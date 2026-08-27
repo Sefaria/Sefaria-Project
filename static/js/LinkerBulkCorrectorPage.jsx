@@ -420,6 +420,7 @@ const LinkerBulkCorrectorPage = () => {
         state: data.status || data.state,
         current: data.meta?.current ?? data.current ?? bulkTask.current,
         total: data.meta?.total ?? data.total ?? bulkTask.total,
+        skipped: data.meta?.skipped ?? data.result?.skipped ?? bulkTask.skipped,
       });
     }, 1500);
     return () => clearInterval(timer);
@@ -498,7 +499,7 @@ const LinkerBulkCorrectorPage = () => {
           <button type="button" className="button" onClick={reparseDataset} disabled={loading}>Re-parse Results</button>
         </div>
         {error ? <div className="lbcError">{error}</div> : null}
-        {bulkTask ? <div className="lbcTask">Re-parse: {bulkTask.current || 0} / {bulkTask.total || '?'} ({bulkTask.state})</div> : null}
+        {bulkTask ? <div className="lbcTask">Re-parse: {bulkTask.current || 0} / {bulkTask.total || '?'} ({bulkTask.state}){bulkTask.skipped ? `, skipped ${bulkTask.skipped}` : ''}</div> : null}
         <ResultDetails item={item} onReparse={reparseCurrent} reparsing={reparsing} />
       </main>
       <nav className="lbcNavOverlay">

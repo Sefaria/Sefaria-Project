@@ -536,14 +536,41 @@ def bulk_reparse_dataset(dataset: dict, user_id: Optional[int] = None, task=None
     dataset = parse_dataset_definition(dataset)
     items = _filtered_items(_full_grouped_items(dataset), dataset)
     total = len(items)
+    skipped = []
     if task:
-        task.update_state(state="PROGRESS", meta={"current": 0, "total": total})
+        task.update_state(state="PROGRESS", meta={"current": 0, "total": total, "skipped": 0})
 
     for i, item in enumerate(items, start=1):
-        parse_result = linker_resource_panel_admin.parse_linker_citation(_parts_payload_from_item(item))
-        persist_citation_resolution(item.ref, item.versionTitle, item.language, list(item.charRange), parse_result)
+        try:
+            parse_result = linker_resource_panel_admin.parse_linker_citation(_parts_payload_from_item(item))
+            persist_citation_resolution(item.ref, item.versionTitle, item.language, list(item.charRange), parse_result)
+        except InputError as e:
+            skipped.append({
+                "ref": item.ref,
+                "versionTitle": item.versionTitle,
+                "language": item.language,
+                "charRange": list(item.charRange),
+                "error": str(e),
+            })
         if task:
-            task.update_state(state="PROGRESS", meta={"current": i, "total": total})
+            task.update_state(state="PROGRESS", meta={
+                "current": i,
+                "total": total,
+                "skipped": len(skipped),
+                "skippedSample": skipped[:10],
+            })
 
-    log_linker_editor_action(user_id, "bulk_reparse_dataset", {"dataset": dataset, "total": total}, index_title=dataset["bookTitle"])
-    return {"ok": True, "current": total, "total": total, "dataset": dataset}
+    log_linker_editor_action(
+        user_id,
+        "bulk_reparse_dataset",
+        {"dataset": dataset, "total": total, "skipped": len(skipped), "skippedSample": skipped[:10]},
+        index_title=dataset["bookTitle"],
+    )
+    return {
+        "ok": True,
+        "current": total,
+        "total": total,
+        "skipped": len(skipped),
+        "skippedSample": skipped[:10],
+        "dataset": dataset,
+    }
