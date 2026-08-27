@@ -195,14 +195,21 @@ varnish:
   resources:
     requests:
       # must be in megabibytes, because we pass it into the malloc definition
-      memory: "25Mi"
+      memory: "700Mi"
       cpu: "10m"
     limits:
-      memory: "300Mi"
+      memory: "1024Mi"
       cpu: "100m"
   tuning:
-    # malloc should be ~75% of the memory request.
-    malloc: "250m"
+    # malloc should be ~75% of the memory request. Previously 250m against a 300Mi limit
+    # (~50-64Mi headroom) is the likely reason varnish's own pod kept OOM-restarting under
+    # load, flushing its in-memory cache each time. 512m against 1024Mi limit keeps the
+    # ~75% convention and leaves ~500Mi of real headroom for connection state, thread
+    # stacks, and the ban list. NOTE: prod and preprod already override these three keys
+    # (envs/prod/helmrelease.yaml, envs/preprod/helmrelease.yaml -> 17Gi/18Gi/14440m) and
+    # are unaffected by this default; this change only takes effect for staging/dev/
+    # cauldrons/local, which inherit the chart default.
+    malloc: "512m"
     nuke_limit: "400"
     # Threading
     # http://book.varnish-software.com/4.0/chapters/Tuning.html#details-of-threading-parameters
