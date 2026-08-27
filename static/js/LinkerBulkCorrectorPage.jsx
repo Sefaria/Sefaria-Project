@@ -169,9 +169,58 @@ const LinkerPairings = ({pairings, contextType}) => {
 };
 
 const ResultDetails = ({item, onReparse, reparsing}) => {
+  const [datasetAction, setDatasetAction] = useState(null);
+  const [datasetReason, setDatasetReason] = useState('');
+  const [datasetBusy, setDatasetBusy] = useState(false);
+  const [datasetMessage, setDatasetMessage] = useState(null);
+  const [datasetError, setDatasetError] = useState(null);
+
+  useEffect(() => {
+    setDatasetAction(null);
+    setDatasetReason('');
+    setDatasetMessage(null);
+    setDatasetError(null);
+  }, [resultKey(item)]);
+
   if (!item) {
     return <div className="lbcEmpty">Search for a book to load citations.</div>;
   }
+
+  const openDatasetAction = (action) => {
+    setDatasetAction(action);
+    setDatasetReason('');
+    setDatasetMessage(null);
+    setDatasetError(null);
+  };
+
+  const submitDatasetExample = async () => {
+    const reason = datasetReason.trim();
+    if (!datasetAction || !reason) { return; }
+    setDatasetBusy(true);
+    setDatasetMessage(null);
+    setDatasetError(null);
+    try {
+      const isRefPart = datasetAction === 'ref-part';
+      const result = await apiPost(
+        isRefPart ? '/_api/linker-admin/dataset/ref-part' : '/_api/linker-admin/dataset/ref',
+        {
+          ref: item.ref,
+          lang: item.language,
+          versionTitle: item.versionTitle,
+          reason,
+          ...(isRefPart ? {charRange: item.charRange} : {}),
+        },
+      );
+      setDatasetMessage(`Saved ${isRefPart ? 'Ref Part' : 'Ref'} dataset example (${result.numEntities} labels)`);
+      setDatasetAction(null);
+      setDatasetReason('');
+    } catch (e) {
+      setDatasetError(e.message || String(e));
+    } finally {
+      setDatasetBusy(false);
+    }
+  };
+
   return (
     <div className="lbcResult">
       <div className="lbcResultHeader">
@@ -180,10 +229,39 @@ const ResultDetails = ({item, onReparse, reparsing}) => {
           <SmallMeta item={item} />
         </div>
         <div className={`lbcStatus ${item.status}`}>{item.status}</div>
-        <button type="button" className="button small" onClick={onReparse} disabled={reparsing}>
-          {reparsing ? 'Re-parsing' : 'Re-parse'}
-        </button>
+        <div className="lbcResultActions">
+          <button type="button" className="button small" onClick={onReparse} disabled={reparsing}>
+            {reparsing ? 'Re-parsing' : 'Re-parse'}
+          </button>
+          <button type="button" className="button small" onClick={() => openDatasetAction('ref')} disabled={datasetBusy}>
+            + Ref Dataset
+          </button>
+          <button type="button" className="button small" onClick={() => openDatasetAction('ref-part')} disabled={datasetBusy}>
+            + Ref Part Dataset
+          </button>
+          {datasetAction ? (
+            <div className="lbcDatasetReason">
+              <input
+                type="text"
+                placeholder="Reason"
+                value={datasetReason}
+                onChange={event => setDatasetReason(event.target.value)}
+                onKeyDown={event => {
+                  if (event.key === 'Enter' && datasetReason.trim()) {
+                    submitDatasetExample();
+                  }
+                }}
+                autoFocus
+              />
+              <button type="button" className="button small" onClick={submitDatasetExample} disabled={datasetBusy || !datasetReason.trim()}>
+                Save
+              </button>
+            </div>
+          ) : null}
+        </div>
       </div>
+      {datasetMessage ? <div className="linkerAdminMessage">{datasetMessage}</div> : null}
+      {datasetError ? <div className="lbcError">{datasetError}</div> : null}
       <div className="lbcSnippet" dangerouslySetInnerHTML={{__html: item.snippet?.html || ''}} />
       <div className="lbcColumns">
         <section>

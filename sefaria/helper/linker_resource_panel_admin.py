@@ -384,7 +384,7 @@ def parse_linker_citations_batch(payloads: list[dict]) -> list[dict]:
 # ---------------------------------------------------------------------------
 
 def _upsert_dataset_example(example_type: str, text: str, entities: list, ref: str, lang: str,
-                            version_title: str, user_id: Optional[int]) -> dict:
+                            version_title: str, user_id: Optional[int], reason: Optional[str] = None) -> dict:
     """
     Store (or overwrite) one gold training example. Uniqueness is (type, ref, text) so
     re-clicking a button refreshes the labels rather than creating duplicates.
@@ -399,6 +399,11 @@ def _upsert_dataset_example(example_type: str, text: str, entities: list, ref: s
     example.labels = {"entities": entities}
     example.added_by = user_id
     example.added_at = int(time.time())
+    reason = reason.strip() if isinstance(reason, str) else None
+    if reason:
+        example.reason = reason
+    elif hasattr(example, "reason"):
+        delattr(example, "reason")
     example.save()
     return {
         "ok": True,
@@ -450,7 +455,7 @@ def add_ref_dataset_example(payload: dict, user_id: Optional[int]) -> dict:
         entities.append([norm_start, norm_end, label])
 
     entities.sort(key=lambda e: (e[0], e[1]))
-    return _upsert_dataset_example("ref", normalized_text, entities, ref, lang, version_title, user_id)
+    return _upsert_dataset_example("ref", normalized_text, entities, ref, lang, version_title, user_id, payload.get("reason"))
 
 
 def _expand_ref_parts(span: dict) -> list:
@@ -568,4 +573,4 @@ def add_ref_part_dataset_example(payload: dict, user_id: Optional[int]) -> dict:
     normalizer = get_linker_normalizer(lang)
     normalized_citation = normalizer.normalize(span["text"])
     entities = _locate_ref_part_entities(normalized_citation, span, normalizer, lang)
-    return _upsert_dataset_example("ref part", normalized_citation, entities, ref, lang, version_title, user_id)
+    return _upsert_dataset_example("ref part", normalized_citation, entities, ref, lang, version_title, user_id, payload.get("reason"))

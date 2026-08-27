@@ -185,9 +185,9 @@
 
 .lbcResultHeader {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto minmax(360px, auto);
   gap: 14px;
-  align-items: center;
+  align-items: start;
   margin-bottom: 18px;
 }
 
@@ -217,6 +217,28 @@
 .lbcStatus.ambiguous {
   background: #f3ead4;
   color: #6b4c10;
+}
+
+.lbcResultActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.lbcDatasetReason {
+  display: flex;
+  gap: 8px;
+  flex-basis: 100%;
+  justify-content: flex-end;
+}
+
+.lbcDatasetReason input {
+  min-height: 30px;
+  min-width: 220px;
+  border: 1px solid #cfc8bc;
+  border-radius: 4px;
+  padding: 0 9px;
 }
 
 .lbcSnippet {
