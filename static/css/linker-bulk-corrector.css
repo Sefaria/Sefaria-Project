@@ -83,7 +83,8 @@
 .lbcSearch {
   display: grid;
   grid-template-columns: minmax(160px, 1.4fr) minmax(160px, 1.4fr) 110px auto auto auto;
-  gap: 10px;
+  column-gap: 18px;
+  row-gap: 10px;
   align-items: center;
   margin-bottom: 20px;
 }

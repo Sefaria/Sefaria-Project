@@ -76,11 +76,19 @@ const IndexTitleAutocomplete = ({value, onChange}) => {
       onChange((item.name || '').trim());
     }
   };
-  const renderInput = (highlightedIndex, highlightedSuggestion, getInputProps) => {
+  const renderInput = (highlightedIndex, highlightedSuggestion, getInputProps, setInputValue, suggestions) => {
     const inputProps = getInputProps({
       className: 'lbcSearchInput',
       placeholder: 'Book title',
       defaultValue: value || '',
+      onKeyDown: (event) => {
+        if (event.key !== 'Enter') { return; }
+        const item = highlightedSuggestion || suggestions[0];
+        if (!item) { return; }
+        event.preventDefault();
+        setInputValue(item.name);
+        select(item);
+      },
     });
     const originalOnChange = inputProps.onChange;
     return (
@@ -111,13 +119,6 @@ const IndexTitleAutocomplete = ({value, onChange}) => {
       renderInput={renderInput}
       renderItems={renderItems}
       onSelectedItemChange={({selectedItem}) => { if (selectedItem) { select(selectedItem); } }}
-      onEnter={({event, highlightedSuggestion, suggestions}) => {
-        const item = highlightedSuggestion || suggestions[0];
-        if (!item) { return false; }
-        event.preventDefault();
-        select(item);
-        return true;
-      }}
     />
   );
 };
