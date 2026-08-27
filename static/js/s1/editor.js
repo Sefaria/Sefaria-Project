@@ -48,10 +48,25 @@ sjs.ratySettings = { // for text review ratings
 
 
 //  Initialize everything
+function populateLanguageSelect() {
+	// Fill the #language select from Sefaria.ISOMap -- the single source of truth for the
+	// closed list of known ISO language codes, same one used elsewhere in the client (e.g.
+	// NavSidebar's language links).
+	var $select = $("#language");
+	var codes = Object.keys(Sefaria.ISOMap).sort();
+	for (var i = 0; i < codes.length; i++) {
+		var code = codes[i];
+		$select.append($("<option>").attr("value", code).text(Sefaria.ISOMap[code].name));
+	}
+}
+
+
 sjs.Init.all = function() {
-	
+
 	// Init caches of jquery elements
 	sjs.Init._$();
+
+	populateLanguageSelect();
 
 	// Bind functions to dom elements
 	sjs.Init.handlers();
@@ -89,7 +104,8 @@ sjs.Init.all = function() {
 			break;
 		case "edit":
 			if(!sjs.langMode){
-				sjs.langMode = sjs.current.text.length ? 'en' : 'he';
+				const editedVersion = (sjs.current.versions || []).find(v => v.isEdited);
+				sjs.langMode = editedVersion?.direction === "rtl" ? 'he' : 'en';
 			}
 			sjs.editText(sjs.current);
 			break;
@@ -3497,12 +3513,13 @@ sjs.showNewText = function () {
 	}	
 	$("#editTitle").text(title);
 
-	// Compare Text
+	// Compare Text -- always the primary version, as a reference to translate from/compare against
 	if (!("compareText" in sjs.editing)) {
-		sjs.editing.compareText = sjs.editing.he;
-		sjs.editing.compareLang = "he";
-		$(".compareTitle").text(sjs.editing.heVersionTitle);
-		$(".compareSource").attr("href", sjs.editing.heVersionSource);
+		const primary = (sjs.editing.versions || []).find(v => v.isPrimary);
+		sjs.editing.compareText = primary?.text ?? null;
+		sjs.editing.compareLang = primary?.direction === "rtl" ? "he" : "en";
+		$(".compareTitle").text(primary?.versionTitle ?? "");
+		$(".compareSource").attr("href", primary?.versionSource ?? "");
 	}
 	sjs.makeCompareText();
 
@@ -3519,13 +3536,21 @@ sjs.showNewText = function () {
 		$("#newVersion").bind("textchange", checkTextDirection);
 	}
 
-	// Language Toggle
-	$("#language").val(sjs.langMode)
+	// Language Toggle -- prefer the edited version's real language (set by sjs.editText).
+	// Brand-new versions (no edited-version data) default to English/ltr rather than
+	// sjs.langMode, which reflects unrelated reader-viewing state, not the new version's
+	// intended language.
+	$("#language").val(sjs.editing.actualLanguage || "en")
+		.unbind();
+
+	// Direction Toggle
+	$("#direction").val(sjs.editing.direction || "ltr")
 		.unbind()
 		.change(updateTextDirection);
-	
+
 	// Special handing of Original Translation // Sefara Community Translation
-	sjs.editing.sct = (sjs.current.versionTitle === "Sefaria Community Translation" ? sjs.current.text : null);
+	const sctVersion = (sjs.current.versions || []).find(v => v.versionTitle === "Sefaria Community Translation");
+	sjs.editing.sct = sctVersion?.text ?? null;
 	$("#textTypeForm input").unbind().click(function() {
 		if ($(this).val() === "copy") { 
 		// Click on "Copied Text" Radio
@@ -3616,39 +3641,46 @@ sjs.editText = function(data) {
 	if (!sjs._uid) {
 		return sjs.loginPrompt();
 	}
-	if ((sjs.langMode === 'en' && "sources" in data) || 
-		(sjs.langMode === 'he' && "heSources" in data)) {
-		sjs.alert.message("You are viewing a page that includes mutliple text versions. To edit, please first select a single version in the About Text panel.");
-		return;
-	}
 
 	sjs.editing = clone(data);
 
-	if (sjs.langMode === 'en') {
-		var pad = data.he ? Math.max(data.he.length - data.text.length, 0) : 0;
-	} else if (sjs.langMode === 'he') {
-		$("body").addClass("hebrew");
-		sjs.editing.versionTitle  = data.heVersionTitle;
-		sjs.editing.versionSource = data.heVersionSource;
-		sjs.editing.text = data.he;
-		var pad = data.text ? Math.max(data.text.length - data.he.length, 0) : 0;
-	} else if (sjs.langMode === 'bi') {
-		sjs.alert.message("Select a language to edit first with the language toggle in the upper right.");
+	const primary = (data.versions || []).find(v => v.isPrimary);
+	const edited = (data.versions || []).find(v => v.isEdited) ?? primary;
+	if (!edited) {
+		console.log("sjs.editText: no version found to edit");
 		return;
-	} else {
+	}
+
+	if (!['en', 'he', 'bi'].includes(sjs.langMode)) {
 		console.log("sjs.editText called with unknown value for sjs.langMode");
 		return;
 	}
-
-	// If we know there are missing pieces of the text (compared to other lang)
-	// pad with empty lines.
-	for (var i = 0; i < pad; i++) {
-		sjs.editing.text.push("");
+	if (sjs.langMode === 'bi') {
+		sjs.alert.message("Select a language to edit first with the language toggle in the upper right.");
+		return;
 	}
+	if (sjs.langMode === 'he') {
+		$("body").addClass("hebrew");
+	}
+
+	sjs.editing.versionTitle = edited.versionTitle;
+	sjs.editing.versionSource = edited.versionSource;
+	sjs.editing.text = [...(edited.text ?? [])];
+	// The edited version's real language/direction -- sjs.langMode only carries the binary
+	// he/en bucket (e.g. Yiddish, also rtl, would collapse to "he"), so showNewText() needs
+	// these to preselect the actual language rather than the bucket.
+	sjs.editing.actualLanguage = edited.actualLanguage;
+	sjs.editing.direction = edited.direction;
+
+	// If we know there are missing pieces of the text (compared to the primary)
+	// pad with empty lines.
+	const otherLength = primary !== edited ? (primary?.text ?? []).length : 0;
+	const pad = Math.max(otherLength - sjs.editing.text.length, 0);
+	sjs.editing.text.push(...Array(pad).fill(""));
 
 	sjs.showNewText();
 
-	var text = sjs.makePlainText(sjs.editing.text);
+	const text = sjs.makePlainText(sjs.editing.text);
 	sjs._$newVersion.val(text).trigger("autosize").trigger('keyup');
 	if (sjs.langMode === 'he') {
 		$("#newVersion").css("direction", "rtl");
@@ -4083,35 +4115,39 @@ sjs.updateSourcesCount = function() {
 
 
 function checkTextDirection() {
-	// Check if the text is (mostly) Hebrew, update text direction
-	// and language setting accordingly
-	var text = $(this).val();
+	// Check if the text is (mostly) Hebrew, update text direction accordingly. Only flips
+	// #language along with it when the detected direction actually disagrees with what's
+	// currently shown -- avoids clobbering an intentionally-picked language (e.g. French)
+	// that happens to share the same direction as English.
+	const text = $(this).val();
 	if (text === "") { return; }
-	
-	if (isHebrew(text)) {
+
+	const detectedDirection = isHebrew(text) ? "rtl" : "ltr";
+	if (detectedDirection === "rtl") {
 		$(this).css("direction", "rtl");
-		$("#language").val("he");
 		$(this).parent().find(".textSyncNumbers").addClass("hebrew");
-	} else {	
+	} else {
 		$(this).css("direction", "ltr");
-		$("#language").val("en");
 		$(this).parent().find(".textSyncNumbers").removeClass("hebrew");
+	}
+
+	if (detectedDirection !== $("#direction").val()) {
+		$("#direction").val(detectedDirection);
+		$("#language").val(detectedDirection === "rtl" ? "he" : "en");
 	}
 }
 
 
 function updateTextDirection() {
-	// Manually update the text direction when a user 
-	// manually changes the language dropdown
+	// Manually update the text direction when a user
+	// manually changes the direction dropdown
 	var val = $(this).val();
 
-	if (val === "he") {
+	if (val === "rtl") {
 		$("#newVersion").css("direction", "rtl");
-		$("#language").val("he");
 		$(".textSyncNumbers").addClass("hebrew");
-	} else if (val === "en") {
+	} else if (val === "ltr") {
 		$("#newVersion").css("direction", "ltr");
-		$("#language").val("en");
 		$(".textSyncNumbers").removeClass("hebrew");
 	}
 }
@@ -4130,15 +4166,21 @@ function readNewVersion() {
 	if ($("#originalRadio").prop("checked")) {
 		version["versionTitle"] = "Sefaria Community Translation";
 		version["versionSource"] = "https://www.sefaria.org";
+		// SCT is English by definition -- don't trust the language/direction pickers, which
+		// aren't reset when switching to this radio and may carry over a stale selection.
+		version["language"] = "en";
+		version["direction"] = "ltr";
 	} else {
 		version["versionTitle"] = $("#versionTitle").val();
 		var source = $("#versionSource").val();
 		if (source.indexOf(".") > -1 &&
-		    source.indexOf(" ") === -1 && 
+		    source.indexOf(" ") === -1 &&
 		    !source.match(/https?:\/\//)) {
 			source = source ? "http://" + source : source;
-		} 
+		}
 		version["versionSource"] = source;
+		version["language"] = $("#language").val();
+		version["direction"] = $("#direction").val();
 	}
 
 	var text = $("#newVersion").val();
@@ -4156,7 +4198,6 @@ function readNewVersion() {
 	}
 
 	version["text"] = verses;
-	version["language"] = $("#language").val();
 
 	return version;
 	

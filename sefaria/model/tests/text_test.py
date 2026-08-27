@@ -4,6 +4,7 @@ from copy import deepcopy
 import pytest
 
 import sefaria.model as model
+from sefaria.model.legacy_text import LegacyTextChunk
 from sefaria.system.exceptions import InputError
 from sefaria.system.testing import test_uid
 
@@ -594,7 +595,7 @@ def test_version_word_count():
 def test_version_walk_thru_contents():
     def action(segment_str, tref, heTref, version):
         r = model.Ref(tref)
-        tc = model.TextChunk(r, lang=version.language, vtitle=version.versionTitle)
+        tc = LegacyTextChunk(r, lang=version.language, vtitle=version.versionTitle)
         assert tc.text == segment_str
         assert tref == r.normal()
         assert heTref == r.he_normal()
@@ -875,6 +876,6 @@ class TestVersionActualLanguage:
                          ])
 
 def test_remove_html(text_with_html, text_without_html):
-    assert model.TextChunk.remove_html(text_with_html) == text_without_html
+    assert LegacyTextChunk.remove_html(text_with_html) == text_without_html
 
 

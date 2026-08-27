@@ -5,7 +5,7 @@ from sefaria.model.linker.linker import LinkedDoc
 from sefaria.model.linker.linker_entity_recognizer import LinkerEntityRecognizer
 from .linker_test_utils import *
 from sefaria.model import schema
-from sefaria.model.text import TextChunk
+from sefaria.model.legacy_text import LegacyTextChunk
 from sefaria.settings import ENABLE_LINKER
 from sefaria.model.marked_up_text_chunk import LinkerOutput
 from sefaria.system.exceptions import IndexSchemaError
@@ -728,7 +728,7 @@ def test_linker_output_validate(resolver_data, is_ambiguous):
     spans = _extract_debug_spans(doc)
     for span in spans:
         assert span['ambiguous'] == is_ambiguous
-    validation_text = TextChunk(Ref("Genesis 1:1"), lang="en", vtitle="Tanakh: The Holy Scriptures, published by JPS").text
+    validation_text = LegacyTextChunk(Ref("Genesis 1:1"), lang="en", vtitle="Tanakh: The Holy Scriptures, published by JPS").text
     validation_spans = [span | {"charRange": [0, len(validation_text)], "text": validation_text} for span in spans]
     pkey_data = {
         "ref": "Genesis 1:1",

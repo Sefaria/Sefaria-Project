@@ -2,6 +2,7 @@ import pytest
 import re
 from sefaria.search import TextIndexer as TI
 from sefaria.model import *
+from sefaria.model.legacy_text import LegacyTextChunk
 from sefaria.utils.hebrew import strip_cantillation
 
 def test_make_text_index_document():
@@ -12,7 +13,7 @@ def test_make_text_index_document():
     version = [v for v in oref.versionset() if v.versionTitle == vtitle][0]
     lang = version.language
     priority = version.priority
-    content = TextChunk(oref, lang, vtitle=vtitle).ja().flatten_to_string()
+    content = LegacyTextChunk(oref, lang, vtitle=vtitle).ja().flatten_to_string()
     index = TI.curr_index = oref.index
     categories = index.categories
     heVtitle = version.versionTitleInHebrew

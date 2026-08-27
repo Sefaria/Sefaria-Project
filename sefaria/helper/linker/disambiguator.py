@@ -29,6 +29,7 @@ from langsmith import traceable
 from sefaria.model.text import Ref
 from sefaria.model.schema import AddressType
 from sefaria.helper.normalization import NormalizerComposer, NormalizerFactory
+from sefaria.constants.model import get_direction_from_legacy_lang
 from sefaria.utils.hebrew import get_prefixless_inds
 
 logger = structlog.get_logger(__name__)
@@ -295,17 +296,19 @@ def _format_citing_passage_label(
 
 
 def _get_ref_text(ref_str: str, lang: str = None, vtitle: str = None) -> Optional[str]:
-    """Get text for a reference, falling back to the other language."""
+    """Get text for a reference, falling back to the other direction. Matched by direction, not
+    real language, so a candidate always has some text to score against."""
     try:
         oref = Ref(ref_str)
         if vtitle:
             vtitle = unescape(vtitle)
         primary = lang or "en"
-        text = oref.text(primary, vtitle=vtitle).as_string()
+        direction = get_direction_from_legacy_lang(primary)
+        text = oref.text(direction=direction, vtitle=vtitle).as_string()
         if text:
             return text
-        fallback = "he" if primary == "en" else "en"
-        return oref.text(fallback).as_string()
+        fallback_direction = "ltr" if direction == "rtl" else "rtl"
+        return oref.text(direction=fallback_direction).as_string()
     except Exception as e:
         logger.debug(f"Could not get text for {ref_str}: {e}")
         return None

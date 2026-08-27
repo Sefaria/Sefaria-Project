@@ -33,6 +33,7 @@ if __name__ == "__main__":
 		vtitle = args.version
 		uid = args.uid
 		lang = args.language
+		direction = "rtl" if lang == "he" else "ltr"
 		title = args.title
 		csvfile = open('./data/temp/find_replace_'+lang+'.csv')
 		reader = csv.reader(csvfile)
@@ -44,6 +45,6 @@ if __name__ == "__main__":
 
 	
 		for count in range(len(find_strings)):
-			find_and_replace_in_text(title, vtitle, lang, find_strings[count], replace_strings[count], uid)
+			find_and_replace_in_text(title, vtitle, direction, find_strings[count], replace_strings[count], uid)
 	
   	

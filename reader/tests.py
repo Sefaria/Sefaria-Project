@@ -19,8 +19,9 @@ from django.contrib.auth.models import User
 
 import sefaria.utils.testing_utils as tutils
 
-from sefaria.model import library, Index, IndexSet, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, \
-    VersionStateSet, TextChunk, Category, UserHistory, UserHistorySet, WebPage
+from sefaria.model import library, Index, IndexSet, Version, VersionSet, LinkSet, NoteSet, HistorySet, Ref, VersionState, \
+    VersionStateSet, Category, UserHistory, UserHistorySet, WebPage
+from sefaria.model.legacy_text import LegacyTextChunk
 from sefaria.system.database import db
 import sefaria.system.cache as scache
 import random as rand
@@ -265,6 +266,91 @@ class ApiTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue(len(data) > 20)
+
+
+class EditTextViewTest(SefariaTestCase):
+    """
+    Regression coverage for edit_text()'s response shape -- the isPrimary/isEdited version
+    flags and position-metadata overrides that editor.js depends on. Uses a throwaway
+    synthetic index so real books' existing versions can't interfere.
+    """
+
+    TITLE = "EditView Test Book"
+    EN_VTITLE = "EditView English Test"
+    HE_VTITLE = "EditView Hebrew Test"
+
+    def setUp(self):
+        try:
+            Index().load({"title": self.TITLE}).delete()
+        except Exception:
+            pass
+
+        self.idx = Index({
+            "title": self.TITLE,
+            "categories": ["Liturgy"],
+            "schema": {
+                "titles": [
+                    {"lang": "en", "text": self.TITLE, "primary": True},
+                    {"lang": "he", "text": "ספר בדיקה לעריכה", "primary": True},
+                ],
+                "nodeType": "JaggedArrayNode",
+                "depth": 2,
+                "sectionNames": ["Chapter", "Verse"],
+                "addressTypes": ["Integer", "Integer"],
+                "key": self.TITLE,
+            },
+        })
+        self.idx.save()
+
+        # Created first -- becomes primary automatically (no isPrimary given, and it's the
+        # first version for this title).
+        chunk = Ref(f"{self.TITLE} 1:1").text(direction="rtl", lang="he", vtitle=self.HE_VTITLE)
+        chunk.text = "Primary content"
+        chunk.save()
+
+        chunk = Ref(f"{self.TITLE} 1:1").text(direction="ltr", lang="en", vtitle=self.EN_VTITLE)
+        chunk.text = "Specific version content"
+        chunk.save()
+
+    def tearDown(self):
+        Version().load({"title": self.TITLE, "versionTitle": self.HE_VTITLE}).delete()
+        Version().load({"title": self.TITLE, "versionTitle": self.EN_VTITLE}).delete()
+        self.idx.delete()
+
+    def _get_init_json(self, url):
+        response = c.get(url)
+        self.assertEqual(200, response.status_code)
+        html = response.content.decode()
+        idx = html.index("current: ") + len("current: ")
+        data, _ = json.JSONDecoder().raw_decode(html, idx)
+        return data
+
+    def test_edit_text_flags_specific_version_and_primary(self):
+        ref_part = f"{self.TITLE} 1:1".replace(" ", "_")
+        url = f"/edit/{ref_part}/english/{self.EN_VTITLE.replace(' ', '_')}"
+        data = self._get_init_json(url)
+
+        self.assertEqual(data["edit_version"], self.EN_VTITLE)
+        edited = next(v for v in data["versions"] if v.get("isEdited"))
+        self.assertEqual(edited["versionTitle"], self.EN_VTITLE)
+        self.assertEqual(edited["languageFamilyName"], "english")
+
+        primary = next(v for v in data["versions"] if v.get("isPrimary"))
+        self.assertEqual(primary["versionTitle"], self.HE_VTITLE)
+        self.assertNotEqual(primary["versionTitle"], edited["versionTitle"])
+
+        # position metadata must come from the originally-requested ref, not the
+        # zoomed-out-for-content ref the adapter actually fetched
+        self.assertEqual(data["sections"], [1, 1])
+        self.assertEqual(data["toSections"], [1, 1])
+
+    def test_edit_text_with_no_specific_version_has_only_primary(self):
+        ref_part = f"{self.TITLE} 1:1".replace(" ", "_")
+        data = self._get_init_json(f"/edit/{ref_part}")
+
+        self.assertIsNone(data.get("edit_version"))
+        self.assertFalse(any(v.get("isEdited") for v in data["versions"]))
+        self.assertTrue(any(v.get("isPrimary") for v in data["versions"]))
 
 
 class LoginTest(SefariaTestCase):
@@ -918,7 +1004,7 @@ class PostTextTest(SefariaTestCase):
         data = json.loads(response.content)
         self.assertTrue("error" not in data)
         subref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1.2.3")
-        assert TextChunk(subref, "en", "test_default_node").text == "Ber Flam"
+        assert LegacyTextChunk(subref, "en", "test_default_node").text == "Ber Flam"
 
 
 class PostCategory(SefariaTestCase):

@@ -26,6 +26,7 @@ from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags, strip_markdown
+from sefaria.constants.model import get_direction_from_legacy_lang
 from .settings import SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET
 from .settings import SEARCH_INDEX_NAME_TOPIC, SEARCH_INDEX_NAME_BOOK, SEARCH_INDEX_NAME_CATEGORY
 # Aliased on import: this module already defines an unrelated `get_search_categories(oref,
@@ -1117,7 +1118,8 @@ class TextIndexer(object):
             if v.versionTitle == version_title:
                 version_priority = priority
                 hebrew_version_title = getattr(v, 'versionTitleInHebrew', None)
-        content = TextChunk(oref, lang, vtitle=version_title).ja().flatten_to_string()
+        direction = get_direction_from_legacy_lang(lang)
+        content = TextChunk(oref, direction=direction, vtitle=version_title).ja().flatten_to_string()
         categories = cls.curr_index.categories
         tref = oref.normal()
         doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories, hebrew_version_title, language_family_name, is_primary)

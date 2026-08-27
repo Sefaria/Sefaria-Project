@@ -26,7 +26,8 @@ from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
 from sefaria.helper import library_assistant
 from sefaria.utils.util import get_redirect_to_help_center
-from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY, \
+    get_direction_from_legacy_lang, get_legacy_lang_from_direction
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
@@ -1510,10 +1511,14 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
 
 @ensure_csrf_cookie
 @sanitize_get_params
-def edit_text(request, ref=None, lang=None, version=None):
+def edit_text(request, ref=None, language_family_name=None, version=None):
     """
     Opens a view directly to adding, editing or translating a given text.
+    `language_family_name` (e.g. "english", "yiddish"), when given together with `version`,
+    identifies the exact existing version being edited.
     """
+    if version:
+        version = version.replace("_", " ")
     if ref is not None:
         try:
             oref = Ref(ref)
@@ -1522,12 +1527,41 @@ def edit_text(request, ref=None, lang=None, version=None):
                 initJSON = json.dumps({"mode": "add new", "newTitle": oref.normal()})
                 mode = "Add"
             else:
-                # Pull a particular section to edit
-                #text = get_text(ref, lang=lang, version=version)
-                text = TextFamily(Ref(ref), lang=lang, version=version).contents()
+                # Pull a particular section to edit: the specific named version (if any) plus the
+                # primary, for comparison/translating-from. If nothing's being edited yet (add/new
+                # flow), only the primary is needed.
+                if language_family_name and version:
+                    versions_params = [[language_family_name, version], [TextRequestAdapter.PRIMARY, '']]
+                else:
+                    versions_params = [[TextRequestAdapter.PRIMARY, '']]
+                # Zoom out to section level, matching TextFamily's old default (pad then context_ref
+                # level=1) -- editor.js expects a full section's worth of array data, with sections/
+                # toSections telling it which entry within that array is actually selected.
+                fetch_oref = oref.padded_ref().context_ref()
+                adapter = TextRequestAdapter(fetch_oref, versions_params, fill_in_missing_segments=False)
+                text = adapter.get_versions_for_query()
+                # Position within that array must come from the original, unzoomed ref -- the
+                # zoomed adapter has no way to know it, since it was never given that ref at all.
+                text['sections'] = oref.sections[:]
+                text['toSections'] = oref.toSections[:]
+                text['sectionRef'] = oref.section_ref().normal()
+                text['heSectionRef'] = oref.section_ref().he_normal()
+
+                # Sent as-is (real field names, incl. the full versions list) -- editor.js looks up
+                # the primary itself (isPrimary), and reads the specific one straight off the flag
+                # below, rather than the server pre-sorting them into a legacy en/he pair.
+                edited = next((v for v in text['versions']
+                               if version and v['languageFamilyName'] == language_family_name and v['versionTitle'] == version), None)
+                if edited:
+                    edited['isEdited'] = True
+
                 text["mode"] = request.path.split("/")[1]
                 mode = text["mode"].capitalize()
-                text["edit_lang"] = lang if lang is not None else request.contentLang
+                # sjs.langMode (the legacy en/he/bi toggle used throughout editor.js) is derived
+                # from the edited version's actual direction, not the family name string, so this
+                # also works correctly for non-English/Hebrew languages (e.g. Yiddish is rtl, so
+                # it must map to "he" here even though its family name isn't "hebrew").
+                text["edit_lang"] = get_legacy_lang_from_direction(edited['direction']) if edited else request.contentLang
                 text["edit_version"] = version
                 initJSON = json.dumps(text)
         except Exception as e:
@@ -1730,6 +1764,10 @@ def texts_api(request, tref):
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
+            # Legacy v1 texts API (superseded internally by the v3 TextRequestAdapter-backed API),
+            # kept live for external API consumers. Not called by our own client. Candidate for
+            # future deprecation.
+            from sefaria.model.legacy_text import TextFamily
             text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
                                       commentary=commentary, context=context, pad=pad, alts=alts,
                                       wrapLinks=wrapLinks, stripItags=stripItags,
@@ -1814,14 +1852,19 @@ def texts_api(request, tref):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             t = json.loads(j)
-            tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API", skip_links=skip_links, count_after=count_after)
-            return jsonResponse({"status": "ok"})
+            # This legacy endpoint's `language` is always literally "en"/"he" -- callers that
+            # predate the `direction` field (e.g. scripts/pull_text_from_server.py) can still be
+            # served correctly by deriving it, rather than failing on a missing new version.
+            direction = t.get("direction") or get_direction_from_legacy_lang(t["language"])
+            chunk = tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], direction=direction, method="API", skip_links=skip_links, count_after=count_after)
+            return jsonResponse({"status": "ok", "versionTitle": chunk.vtitle})
         else:
             @csrf_protect
             def protected_post(request):
                 t = json.loads(j)
-                tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t.get("versionSource", None), skip_links=skip_links, count_after=count_after)
-                return jsonResponse({"status": "ok"})
+                direction = t.get("direction") or get_direction_from_legacy_lang(t["language"])
+                chunk = tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t.get("versionSource", None), direction=direction, skip_links=skip_links, count_after=count_after)
+                return jsonResponse({"status": "ok", "versionTitle": chunk.vtitle})
             return protected_post(request)
 
     if request.method == "DELETE":
@@ -1944,14 +1987,10 @@ def social_image_api(request, tref):
         ref = Ref(tref)
         ref_str = ref.normal() if lang == "en" else ref.he_normal()
 
-        tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
-
-        he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
-        en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
-
-        text = en if lang == "en" else he
-        text = ' '.join(text)
-        cat = tf["primary_category"]
+        direction = get_direction_from_legacy_lang(lang)
+        chunk = ref.padded_ref().text(direction=direction, vtitle=version)
+        text = ' '.join(chunk.strip_itags(s) for s in chunk.ja().flatten_to_array())
+        cat = ref.primary_category
 
     except:
         text = None
@@ -1980,10 +2019,13 @@ def old_recent_redirect(request):
 
 @catch_error_as_json
 def parashat_hashavua_api(request):
+    # Documented as broken: consistent 504 timeouts during endpoint capture on 2026-05-05
+    # (see docs/decisions/documented_endpoints.md). No known caller in the current client or
+    # mobile app. Not actively maintained.
+    from sefaria.model.legacy_text import TextFamily
     callback = request.GET.get("callback", None)
     p = get_parasha(datetime.now(), request.diaspora)
     p["date"] = p["date"].isoformat()
-    #p.update(get_text(p["ref"]))
     p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
 
@@ -2307,12 +2349,13 @@ def text_preview_api(request, title):
     response['node_title'] = oref.index_node.full_title()
 
     def get_preview(prev_oref):
-        text = TextFamily(prev_oref, pad=False, commentary=False)
+        en_text = prev_oref.text(direction="ltr").text
+        he_text = prev_oref.text(direction="rtl").text
 
         if prev_oref.index_node.depth == 1:
             # Give deeper previews for texts with depth 1 (boring to look at otherwise)
-            text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
-        preview = text_preview(text.text, text.he) if (text.text or text.he) else []
+            en_text, he_text = [[i] for i in en_text], [[i] for i in he_text]
+        preview = text_preview(en_text, he_text) if (en_text or he_text) else []
         return preview if isinstance(preview, list) else [preview]
 
     if not oref.index_node.has_children():

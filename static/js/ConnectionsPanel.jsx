@@ -1028,9 +1028,9 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
     const editText = canEditText && textsData ? function () {
       const isTranslation = masterPanelLanguage === 'english';
       const versionType = isTranslation ? 'translation' : 'primary';
-      const langCode = textsData[`${versionType}Direction`] === 'ltr' ? 'en': 'he';
+      const langFamily = textsData[`${versionType}Lang`];
       const versionTitle = isTranslation ? textsData.versionTitle : textsData.heVersionTitle;
-      const refString = `${srefs[0]}/${encodeURIComponent(langCode)}/${encodeURIComponent(versionTitle)}`;
+      const refString = `${srefs[0]}/${encodeURIComponent(langFamily)}/${encodeURIComponent(versionTitle)}`;
 
       let path = "/edit/" + refString;
       let currentPath = Sefaria.util.currentPath();

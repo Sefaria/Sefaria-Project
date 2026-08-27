@@ -16,18 +16,22 @@ if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
 
-def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
+def modify_text(user, oref, vtitle, lang, text, vsource=None, direction=None, **kwargs):
     """
     Updates a chunk of text, identified by oref, versionTitle, and lang, and records history.
+    `lang` is the real ISO language code. `direction` ("rtl"/"ltr") is required whenever this
+    call creates a brand-new version -- it's the caller's job to supply it (e.g. legacy en/he
+    callers can compute it trivially); this function doesn't special-case any particular language.
     :param user:
     :param oref:
     :param vtitle:
     :param lang:
     :param text:
     :param vsource:
+    :param direction:
     :return:
     """
-    chunk = model.TextChunk(oref, lang, vtitle)
+    chunk = model.TextChunk(oref, actual_lang=lang, vtitle=vtitle, direction=direction)
     if getattr(chunk.version(), "status", "") == "locked" and not model.user_profile.is_user_staff(user):
         raise InputError("This text has been locked against further edits.")
     action = kwargs.get("type") or "edit" if chunk.text else "add"

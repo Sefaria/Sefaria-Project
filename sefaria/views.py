@@ -648,7 +648,11 @@ def bundle_many_texts(refs, use_text_family=False, as_sized_string=False, min_ch
             oref = model.Ref(tref)
             lang = "he" if has_hebrew(tref) else "en"
             if use_text_family:
-                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
+                # Legacy: only reached via ?useTextFamily=1, which we don't send ourselves anymore --
+                # kept for templates/js/linker.v2.js, an old embed script possibly still live on
+                # third-party sites we don't control.
+                from sefaria.model.legacy_text import TextFamily
+                text_fam = TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
                                             lang="he", version=hebrew_version,
                                             lang2="en", version2=english_version)
                 he = text_fam.he
@@ -663,8 +667,11 @@ def bundle_many_texts(refs, use_text_family=False, as_sized_string=False, min_ch
                     'url': oref.url()
                 }
             else:
-                he_tc = model.TextChunk(oref, "he", vtitle=hebrew_version)
-                en_tc = model.TextChunk(oref, "en", actual_lang=translation_language_preference, vtitle=english_version)
+                # Keyed by direction, not real language -- TopicPage.jsx's source/translation
+                # toggle works on the old en/he-as-ltr/rtl dichotomy, not genuine isSource matching.
+                he_tc = oref.text(direction="rtl", vtitle=hebrew_version)
+                en_tc = oref.text(translation_language_preference, vtitle=english_version) if translation_language_preference \
+                    else oref.text(direction="ltr", vtitle=english_version)
                 if hebrew_version and he_tc.is_empty():
                   raise NoVersionFoundError(f"{oref.normal()} does not have the Hebrew version: {hebrew_version}")
                 if english_version and en_tc.is_empty():
