@@ -1407,6 +1407,13 @@ def linker_editor(request):
     return menu_page(request, props, page="linkerEditor", title=title)
 
 
+@ensure_csrf_cookie
+@staff_member_required
+def linker_bulk_corrector(request):
+    title = _("Linker Bulk Corrector")
+    return menu_page(request, page="linkerBulkCorrector", title=title)
+
+
 def canonical_url(request):
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return None

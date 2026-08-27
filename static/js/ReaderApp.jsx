@@ -646,6 +646,11 @@ class ReaderApp extends Component {
               hist.url += "&book=" + encodeURIComponent(state.linkerEditorBook);
             }
             break;
+          case "linkerBulkCorrector":
+            hist.title = Sefaria._("Linker Bulk Corrector");
+            hist.url = "linker-bulk-corrector";
+            hist.mode = "linkerBulkCorrector";
+            break;
           case "user_stats":
             hist.title = Sefaria.getPageTitle("user_stats.torah_tracker");
             hist.url = "torahtracker";
@@ -1415,6 +1420,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     } else if (path === "/linker-editor") {
       this.showLinkerEditor(params.get("book"));
 
+    } else if (path === "/linker-bulk-corrector") {
+      this.showLinkerBulkCorrector();
+
     } else if (path.match(/^\/sheets\/\d+/)) {
       openPanel("Sheet " + path.replace(/^\/sheets\//, ''));
 
@@ -2068,6 +2076,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   showLinkerEditor(book) {
     this.setSinglePanelState({menuOpen: "linkerEditor", linkerEditorBook: book || null});
+  }
+  showLinkerBulkCorrector() {
+    this.setSinglePanelState({menuOpen: "linkerBulkCorrector"});
   }
   showCollections() {
     this.setSinglePanelState({menuOpen: "collectionsPublic"});

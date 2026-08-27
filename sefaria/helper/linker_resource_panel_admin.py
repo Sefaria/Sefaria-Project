@@ -321,6 +321,19 @@ def parse_linker_citation_sync(payload: dict, timeout: int = 20) -> dict:
         raise InputError("Linker parse timed out; the task queue may be busy. Try again in a moment.")
 
 
+def parse_linker_citations_batch_sync(payloads: list[dict], timeout: int = 60) -> list[dict]:
+    if not isinstance(payloads, list):
+        raise InputError("payloads must be a list")
+    from celery.exceptions import TimeoutError as CeleryTimeoutError
+    from sefaria.helper.linker.tasks import parse_linker_citations_batch_task
+    from sefaria.celery_setup.config import CeleryQueue
+    async_result = parse_linker_citations_batch_task.apply_async(args=(payloads,), queue=CeleryQueue.TASKS.value)
+    try:
+        return async_result.get(timeout=timeout)
+    except CeleryTimeoutError:
+        raise InputError("Linker parse timed out; the task queue may be busy. Try again in a moment.")
+
+
 def parse_linker_citation(payload: dict) -> dict:
     """
     Runs on a Celery worker (see parse_linker_citation_task in helper.linker.tasks) — never
@@ -358,6 +371,12 @@ def parse_linker_citation(payload: dict) -> dict:
         },
         "parsings": [_serialize_resolved_ref(resolved_ref) for resolved_ref in resolved_refs],
     }
+
+
+def parse_linker_citations_batch(payloads: list[dict]) -> list[dict]:
+    if not isinstance(payloads, list):
+        raise InputError("payloads must be a list")
+    return [parse_linker_citation(payload) for payload in payloads]
 
 
 # ---------------------------------------------------------------------------

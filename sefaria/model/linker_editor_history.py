@@ -28,6 +28,7 @@ ACTIONS = (
     "add_non_unique_term_titles",
     "delete_non_unique_term",
     "swap_non_unique_term_usages",
+    "bulk_reparse_dataset",
 )
 
 
