@@ -29,7 +29,9 @@ def resolve_default_version(versions, vtitle=None):
         for v in versions:
             if v.versionTitle == vtitle:
                 return v
-    return max(versions, key=lambda v: getattr(v, 'priority', 0))
+    # priority can be an explicit None (Version._normalize()'s float() parse failure), not just
+    # missing -- `or 0` catches that too, since getattr's default only covers missing.
+    return max(versions, key=lambda v: getattr(v, 'priority', 0) or 0)
 
 
 class TextRequestAdapter:
