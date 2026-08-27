@@ -105,7 +105,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
         # '/.well-known/' covers the canonical apple-app-site-association location. Apple's
         # CDN won't follow a redirect when fetching that file, so a language bounce there
         # silently breaks universal links for the whole domain.
-        excluded = ('/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/",
+        excluded = ('/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/_api/", "/interface/",
                     "/accounts/", "/_allauth/", "/apple-app-site-association", "/.well-known/",
                     settings.STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
@@ -453,6 +453,7 @@ class ModuleMiddleware(MiddlewareURLMixin):
     excluded_url_prefixes = {
         '/linker.js',
         '/api/',
+        '/_api/',
         '/apple-app-site-association',
         '/static/',
     }
