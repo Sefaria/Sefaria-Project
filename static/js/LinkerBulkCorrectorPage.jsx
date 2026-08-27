@@ -6,6 +6,21 @@ import { GeneralAutocomplete } from './GeneralAutocomplete';
 const STORAGE_KEY = 'linkerBulkCorrectorState';
 const HISTORY_KEY = 'linkerBulkCorrectorHistory';
 const STATUS_OPTIONS = ['unparsed', 'ambiguous', 'parsed'];
+const LINKER_PART_COLORS = {
+  NAMED: "#dbeafe",
+  NUMBERED: "#dcfce7",
+  DH: "#fef3c7",
+  RANGE: "#fce7f3",
+  RANGE_SYMBOL: "#ede9fe",
+  IBID: "#e0f2fe",
+  RELATIVE: "#ffedd5",
+  NON_CTS: "#f3f4f6",
+};
+const CONTEXT_PART_CLASSES = ["ContextPart", "TermContext", "SectionContext"];
+const CONTEXT_TYPE_LABELS = {
+  CURRENT_BOOK: "curr. book",
+  IBID: "ibid",
+};
 
 const defaultDataset = {
   type: 'book',
@@ -107,16 +122,50 @@ const IndexTitleAutocomplete = ({value, onChange}) => {
   );
 };
 
-const Pairings = ({pairings}) => (
-  <div className="lbcPairings">
-    {(pairings || []).map((pairing, i) => (
-      <div className="lbcPairing" key={i}>
-        <div>{pairing.ref || pairing.node?.ref || 'No ref'}</div>
-        <div className="lbcMeta">{(pairing.parts || []).map(part => `${part.text}:${part.type}`).join(', ')}</div>
-      </div>
-    ))}
-  </div>
-);
+const matchedPartCount = (parsing) => (parsing.pairings || []).reduce((n, pairing) => n + (pairing.parts?.length || 0), 0);
+
+const LinkerPartChip = ({part, contextType}) => {
+  const contextLabel = contextType && CONTEXT_PART_CLASSES.includes(part.class)
+    ? (CONTEXT_TYPE_LABELS[contextType] || contextType)
+    : null;
+  return (
+    <span className="linkerAdminPartChip" style={{backgroundColor: LINKER_PART_COLORS[part.type] || "#f3f4f6"}}>
+      <span className="linkerAdminPartText">{part.text}</span>
+      <span className="linkerAdminPartType">{part.type}</span>
+      {contextLabel ? <span className="linkerAdminPartContext">from {contextLabel}</span> : null}
+    </span>
+  );
+};
+
+const LinkerPairings = ({pairings, contextType}) => {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="linkerAdminPairings">
+      <button className="linkerAdminDisclosure" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <img
+          src="/static/icons/chevron-down.svg"
+          className={classNames("linkerAdminDisclosureChevron", {open})}
+          alt=""
+          aria-hidden={true}
+        />
+        Ref Part / Node Pairings
+      </button>
+      {open ? (pairings || []).map((pairing, i) => {
+        const pairingRef = pairing.ref || pairing.node?.ref;
+        return (
+          <div className="linkerAdminPairing" key={i}>
+            <div>{(pairing.parts || []).map((part, j) => <LinkerPartChip key={j} part={part} contextType={contextType} />)}</div>
+            <div className="linkerAdminNode">
+              {pairingRef
+                ? <a className="linkerAdminRefValue" href={`/${Sefaria.normRef(pairingRef)}`} target="_blank">{pairingRef}</a>
+                : (pairing.node?.key || "No node")}
+            </div>
+          </div>
+        );
+      }) : null}
+    </div>
+  );
+};
 
 const ResultDetails = ({item, onReparse, reparsing}) => {
   if (!item) {
@@ -138,24 +187,26 @@ const ResultDetails = ({item, onReparse, reparsing}) => {
       <div className="lbcColumns">
         <section>
           <h3>Ref Parts</h3>
-          {(item.refParts || []).map((part, i) => (
-            <div className="lbcPart" key={i}>
-              <span>{part.text}</span>
-              <span>{part.type}</span>
-            </div>
-          ))}
+          <div className="linkerAdminParts">
+            {(item.refParts || []).map((part, i) => <LinkerPartChip key={i} part={part} />)}
+          </div>
         </section>
         <section>
           <h3>Options Considered</h3>
-          {(item.parsings || []).map((parsing, i) => (
-            <div className={classNames('lbcParsing', {invalid: !parsing.valid})} key={i}>
-              <div className="lbcParsingTop">
-                <strong>{parsing.ref || 'No ref'}</strong>
-                <span>{parsing.valid ? 'valid' : parsing.disqualificationReason || 'invalid'}</span>
-              </div>
-              <Pairings pairings={parsing.pairings} />
-            </div>
-          ))}
+          <div className="linkerAdminParsingList">
+            {(item.parsings || [])
+              .map((parsing, i) => ({parsing, i}))
+              .sort((a, b) => (a.parsing.valid === b.parsing.valid)
+                ? (matchedPartCount(b.parsing) - matchedPartCount(a.parsing))
+                : (a.parsing.valid ? -1 : 1))
+              .map(({parsing, i}) => (
+                <div className={classNames("linkerAdminParsing", {valid: parsing.valid, invalid: !parsing.valid})} key={`${resultKey(item)}-${i}`}>
+                  <div className="linkerAdminParsingRef">{parsing.ref || "No Ref"}</div>
+                  {!parsing.valid ? <div className="linkerAdminInvalidReason">{parsing.disqualificationReason}</div> : null}
+                  <LinkerPairings pairings={parsing.pairings || []} contextType={parsing.contextType} />
+                </div>
+              ))}
+          </div>
         </section>
       </div>
     </div>
