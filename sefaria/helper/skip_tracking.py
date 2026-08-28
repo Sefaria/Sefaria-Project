@@ -324,8 +324,10 @@ def bad_record_guard(log):
     `exceptions=` to narrow further (e.g. KeyError).
 
     Skipping is bounded, not unlimited. If a skip crosses a breaker threshold the guard posts
-    the build summary and re-raises the original exception, aborting the build — so a code bug
-    that breaks every record still fails loudly, just with the offending records named first.
+    the build summary and raises BuildDegradationError (chaining the original exception as
+    __cause__), aborting the build — so a code bug that breaks every record still fails loudly,
+    just with the offending records named first. BuildDegradationError rather than the original
+    because the original is itself a BAD_RECORD_EXCEPTION, and these guards nest.
 
     Usage:
         skip_bad_record = bad_record_guard(logger)   # once, at module top
@@ -345,8 +347,19 @@ def bad_record_guard(log):
             getattr(log, level)("[pathway:{}] {}: skipping {!r}: {}".format(pathway, operation, record, e))
             if tripped:
                 _trip_breaker(log, tripped, pathway, operation, error_type, detail)
-                # Bare re-raise: the original exception and its traceback are the diagnosis
-                # for a signature trip ("'Topic' object has no attribute 'slug'" names the
-                # broken code directly), which a wrapper exception would bury.
-                raise
+                # Deliberately NOT a bare re-raise. The original exception is in
+                # BAD_RECORD_EXCEPTIONS, so an enclosing guard would catch it, record it as
+                # one more ordinary skip, and continue — the trip would be swallowed instead
+                # of aborting the build, and _trip_breaker() has already zeroed the counters,
+                # so the climb to the threshold would restart from scratch. Not hypothetical:
+                # TocNode.serialize() and get_topic_toc_json_recursive() each guard a call
+                # that re-enters the same guard, and a rename — the signature breaker's whole
+                # reason to exist — is exactly what breaks every node of a recursive walk.
+                # BuildDegradationError is outside the tuple, so it escapes every nested guard.
+                # `from e` chains the original as __cause__, so the diagnosis ("'Topic' object
+                # has no attribute 'slug'") and its traceback still print — chained, not buried.
+                raise BuildDegradationError(
+                    "[pathway:{}] {}: aborting build after {} breaker trip".format(
+                        pathway, operation, tripped)
+                ) from e
     return skip_bad_record

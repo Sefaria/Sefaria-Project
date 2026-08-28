@@ -218,14 +218,16 @@ class TestBreakers:
     discriminate on volume rather than on type.
     """
 
-    def test_repeated_signature_aborts_with_the_original_exception(self, mock_notify):
+    def test_repeated_signature_aborts_with_build_degradation_error(self, mock_notify):
         """A rename raises one byte-identical message per record. That must abort the build,
-        and abort with the original exception — its message names the broken code."""
+        and abort with BuildDegradationError — which is outside BAD_RECORD_EXCEPTIONS and so
+        cannot be caught by an enclosing guard. The original exception, whose message names
+        the broken code, is chained as __cause__ rather than discarded."""
         log = MagicMock()
         skip_bad_record = bad_record_guard(log)
         seen = 0
         with thresholds(signature=3):
-            with pytest.raises(AttributeError, match="no attribute 'slug'"):
+            with pytest.raises(BuildDegradationError, match="signature breaker trip") as exc_info:
                 for i in range(50):
                     with skip_bad_record("startup", "topic mapping", record="topic{}".format(i)):
                         seen += 1
@@ -233,8 +235,39 @@ class TestBreakers:
 
         # Aborted ON the 3rd record, not after draining all 50.
         assert seen == 3
+        # The diagnosis survives the wrapper.
+        cause = exc_info.value.__cause__
+        assert isinstance(cause, AttributeError)
+        assert "no attribute 'slug'" in str(cause)
         log.error.assert_called_once()
         assert "ABORTING BUILD" in log.error.call_args[0][0]
+
+    def test_a_trip_escapes_an_enclosing_guard(self, mock_notify):
+        """The guards nest: TocNode.serialize() and get_topic_toc_json_recursive() each wrap
+        a call that re-enters the same guard. If a trip re-raised the ORIGINAL exception, the
+        enclosing guard would catch it (it is in BAD_RECORD_EXCEPTIONS), log it as one more
+        ordinary skip, and carry on — and since _trip_breaker() also zeroes the counters, the
+        climb to the threshold would restart, so a rename would post to Slack every N records
+        and still serve a half-built library. Raising BuildDegradationError is what stops it."""
+        log = MagicMock()
+        skip_bad_record = bad_record_guard(log)
+        inner_calls = 0
+        with thresholds(signature=3):
+            with pytest.raises(BuildDegradationError):
+                # Outer guard, standing in for the parent node in a recursive walk.
+                with skip_bad_record("startup", "TocTree.serialize node", record="parent"):
+                    for i in range(50):
+                        # Inner guard, standing in for the children of that node.
+                        with skip_bad_record("startup", "TocTree.serialize node",
+                                             record="child{}".format(i)):
+                            inner_calls += 1
+                            raise AttributeError("'Topic' object has no attribute 'slug'")
+
+        # Stopped at the threshold instead of grinding through all 50 children.
+        assert inner_calls == 3
+        # And the outer guard did NOT swallow the trip into a fresh skip: the log was reset
+        # by the trip and nothing was recorded after it.
+        assert get_skip_counts() == {}
 
     def test_varied_messages_do_not_trip_the_signature_breaker(self, mock_notify):
         """Genuine corruption produces varied messages; each signature stays at 1. This is
@@ -252,12 +285,13 @@ class TestBreakers:
         skip_bad_record = bad_record_guard(MagicMock())
         seen = 0
         with thresholds(signature=3, volume=10):
-            with pytest.raises(InputError):
+            with pytest.raises(BuildDegradationError, match="volume breaker trip") as exc_info:
                 for i in range(50):
                     with skip_bad_record("startup", "TocTree index", record="idx{}".format(i)):
                         seen += 1
                         raise InputError("record {} is broken in its own way".format(i))
         assert seen == 10
+        assert isinstance(exc_info.value.__cause__, InputError)
 
     def test_breakers_count_per_site_not_globally(self, mock_notify):
         """Both counters are keyed by site, so unrelated degradation across many sites does
@@ -277,7 +311,7 @@ class TestBreakers:
         exception that happens to surface says nothing about the other records."""
         skip_bad_record = bad_record_guard(MagicMock())
         with thresholds(volume=3):
-            with pytest.raises(InputError):
+            with pytest.raises(BuildDegradationError):
                 for i in range(10):
                     with skip_bad_record("startup", "TocTree index", record="idx{}".format(i)):
                         raise InputError("broken {}".format(i))
@@ -296,7 +330,7 @@ class TestBreakers:
                 for i in range(10):
                     with skip_bad_record("startup", "op", record=i):
                         raise InputError("broken {}".format(i))
-            except InputError:
+            except BuildDegradationError:
                 pass
             finally:
                 signal_and_reset_skip_counts("startup")

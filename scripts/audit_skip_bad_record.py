@@ -35,12 +35,14 @@ WHAT THIS IS FOR
 SAFETY
     * Refuses to run unless MONGO_HOST resolves to localhost/127.0.0.1. There is no
       override flag; point it somewhere else and it exits non-zero.
-    * Never mutates or deletes an existing document. Everything it writes is synthetic,
-      so cleanup is a delete, not a restore-from-snapshot that can be lost mid-run.
+    * Never mutates real data, and everything it writes is synthetic -- so cleanup is a
+      delete, not a restore-from-snapshot that can be lost mid-run.
     * Every insert is journalled to disk before the build runs, so even a hard kill
-      leaves an exact list of what to remove; `--clean` replays it. Synthetic documents
-      are additionally named `ZZAudit*` / `zzaudit-*` so leftovers stay identifiable by
-      hand if the journal is lost.
+      leaves an exact list of what to remove; `--clean` replays it. If the journal itself
+      is lost, `purge()` falls back to deleting documents named `ZZAudit*` / `zzaudit-*`.
+      That fallback is by name, not by ownership, so it would also delete a pre-existing
+      document with such a name -- acceptable only because nothing in the corpus is named
+      that and the script refuses to run against anything but a local, disposable Mongo.
     * Cleans up per case in a finally block, and again via atexit.
     * Slack is patched out for the whole run; nothing reaches #engineering-signal.
 
@@ -589,7 +591,11 @@ BREAKER_CASES = [
          count=SIGNATURE_BREAKER_THRESHOLD + 2,
          trigger=_topic_toc,
          operation="get_topic_toc_json_recursive top-level topic",
-         error_type="AttributeError"),
+         # A trip aborts with BuildDegradationError, NOT the original exception: the original
+         # is in BAD_RECORD_EXCEPTIONS, and the guards nest, so re-raising it would let an
+         # enclosing guard swallow the abort. The original is chained as __cause__.
+         error_type="BuildDegradationError",
+         cause_type="AttributeError"),
 ]
 
 
@@ -620,6 +626,15 @@ def run_breaker_case(c, notify, index, total):
     elif not error_type_matches(type(raised).__name__, c["error_type"]):
         problems.append("aborted with {}, expected {}".format(
             type(raised).__name__, c["error_type"]))
+    elif c.get("cause_type"):
+        # The wrapper must not lose the diagnosis: the exception that actually broke the
+        # record is chained as __cause__, and its message is what names the broken code.
+        cause = raised.__cause__
+        if cause is None:
+            problems.append("aborted without chaining the original {}".format(c["cause_type"]))
+        elif not error_type_matches(type(cause).__name__, c["cause_type"]):
+            problems.append("chained cause is {}, expected {}".format(
+                type(cause).__name__, c["cause_type"]))
 
     # The summary must reach Slack BEFORE the abort, or the skip log is lost with it.
     if not notify.call_count:
