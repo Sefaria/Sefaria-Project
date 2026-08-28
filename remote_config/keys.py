@@ -5,6 +5,10 @@ CLIENT_REMOTE_CONFIG_JSON = "feature.client.remote_config_json"
 EXPIRE_LEGACY_COOKIES = "feature.cookies.expire_legacy"
 SENTRY_CONFIG_JSON = "feature.sentry.config"
 
+SEARCH_ENTITY_FIELD_BOOSTS_TOPIC = "feature.search.entity_field_boosts.topic"
+SEARCH_ENTITY_FIELD_BOOSTS_AUTHOR = "feature.search.entity_field_boosts.author"
+SEARCH_ENTITY_FIELD_BOOSTS_BOOK = "feature.search.entity_field_boosts.book"
+
 # Chatbot configuration
 CHATBOT_MAX_INPUT_CHARS = "feature.chatbot.max_input_chars"
 CHATBOT_MAX_PROMPTS = "feature.chatbot.max_prompts"
