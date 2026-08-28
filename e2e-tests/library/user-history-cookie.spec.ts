@@ -35,6 +35,14 @@ test.describe('Library — logged-out user_history cookie', () => {
     ).toBe(true);
     expect(await pm.onUserHistoryCookie().isLoggedOut()).toBe(true);
 
+    // Independent ceiling. Every assertion below compares the cookie against the
+    // app's own `MAX_ANON_HISTORY_BYTES`, which would keep passing if someone
+    // raised that constant to 50000 — so pin the constant itself here, once.
+    expect(
+      await pm.onUserHistoryCookie().maxHistoryBytes(),
+      'MAX_ANON_HISTORY_BYTES raised above 3000 — re-check the nginx 8kB header budget'
+    ).toBeLessThanOrEqual(3000);
+
     await pm.onUserHistoryCookie().clearHistoryCookie();
   });
 
@@ -48,9 +56,9 @@ test.describe('Library — logged-out user_history cookie', () => {
     const budget = await pm.onUserHistoryCookie().maxHistoryBytes();
 
     // Upper bound is the contract: the trim must never let the value exceed the
-    // budget. Lower bound proves the cookie actually filled up — a trim bug that
-    // dropped everything would also satisfy "under 3kB".
-    expect(bytes).toBeLessThan(3000);
+    // budget. It is allowed to land exactly on it, so this is `<=`, not `<`.
+    // Lower bound proves the cookie actually filled up — a trim bug that dropped
+    // everything would also satisfy "under 3kB".
     expect(bytes).toBeLessThanOrEqual(budget);
     expect(bytes).toBeGreaterThan(2000);
   });
@@ -65,10 +73,11 @@ test.describe('Library — logged-out user_history cookie', () => {
     await pm.onUserHistoryCookie().saveHistoryEntries(20);
     const bytesAfter40 = await pm.onUserHistoryCookie().cookieBytes();
     const countAfter40 = await pm.onUserHistoryCookie().cookieEntryCount();
+    const budget = await pm.onUserHistoryCookie().maxHistoryBytes();
 
     // Saving twice as much must not store twice as much: the cookie is capped,
     // so entries are evicted rather than accumulated.
-    expect(bytesAfter40).toBeLessThan(3000);
+    expect(bytesAfter40).toBeLessThanOrEqual(budget);
     expect(countAfter40).toBeLessThanOrEqual(countAfter20 + 1);
     expect(bytesAfter20).toBeGreaterThan(2000);
   });
