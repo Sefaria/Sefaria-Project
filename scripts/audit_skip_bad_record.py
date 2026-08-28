@@ -580,34 +580,91 @@ LOG_SKIP_CASES = [
 # without the post inside the breaker the skip log — the whole diagnosis — is discarded.
 # ---------------------------------------------------------------------------
 
+def _repeat_doc(collection, doc):
+    """Breaker seeder: `count` identical copies of one document, all at one guard site."""
+    def seed(count):
+        return [(collection, dict(doc)) for _ in range(count)]
+    return seed
+
+
+def _broken_children_of_one_parent(parent_slug, child_prefix):
+    """Breaker seeder for a guard site reached RECURSIVELY.
+
+    B1 trips at the top-level topic loop, which is not nested inside another guard, so it
+    passes whether or not a trip can escape one. This seeder puts the trip one level down:
+    a valid top-level parent whose `count` children are each corrupt in the same way. The
+    top-level walk enters the parent inside a `topic TOC child` guard, and the parent's own
+    children then trip the breaker inside an identical `topic TOC child` guard — so the
+    abort must escape a guard that catches the very exception family it was raised from.
+
+    That is the shape that was broken: with a bare re-raise the parent's guard caught the
+    trip, recorded it as one ordinary skip, and the build finished "successfully" with a
+    truncated topic ToC. See the comment on BREAKER_CASES.
+
+    `titles` as a string rather than a list is the S10 corruption: TitleGroup iterates it
+    character by character, so every child raises the byte-identical "'str' object has no
+    attribute 'get'" — the record-independent message a real rename produces, which is
+    exactly what the signature breaker keys on.
+    """
+    def seed(count):
+        docs = [("topics", dict(_topic_doc(parent_slug), isTopLevelDisplay=True))]
+        for i in range(count):
+            slug = "{}{}".format(child_prefix, i)
+            docs.append(("topics", _topic_doc(slug, titles="notalist")))
+            docs.append(("topic_links", {"class": "intraTopic", "linkType": "displays-under",
+                                         "fromTopic": slug, "toTopic": parent_slug,
+                                         "dataSource": "sefaria"}))
+        return docs
+    return seed
+
+
+# A trip aborts with BuildDegradationError, NOT the original exception: the original is in
+# BAD_RECORD_EXCEPTIONS and the guards nest, so re-raising it would let an enclosing guard
+# swallow the abort. The original is chained as __cause__ so the diagnosis is not lost.
 BREAKER_CASES = [
     dict(site="B1",
          corruption="{} top-level topics all missing `slug`".format(SIGNATURE_BREAKER_THRESHOLD + 2),
          detail=("one identical AttributeError per record, the shape a renamed attribute "
-                 "produces"),
-         collection="topics",
-         doc={"isTopLevelDisplay": True,
-              "titles": [{"text": "ZZAuditBreaker", "lang": "en", "primary": True}]},
+                 "produces. Guard site is NOT nested — see B2"),
+         collections=("topics",),
+         seed=_repeat_doc("topics",
+                          {"isTopLevelDisplay": True,
+                           "titles": [{"text": "ZZAuditBreaker", "lang": "en", "primary": True}]}),
          count=SIGNATURE_BREAKER_THRESHOLD + 2,
          trigger=_topic_toc,
          operation="get_topic_toc_json_recursive top-level topic",
-         # A trip aborts with BuildDegradationError, NOT the original exception: the original
-         # is in BAD_RECORD_EXCEPTIONS, and the guards nest, so re-raising it would let an
-         # enclosing guard swallow the abort. The original is chained as __cause__.
+         error_type="BuildDegradationError",
+         cause_type="AttributeError"),
+
+    dict(site="B2",
+         corruption="{} sibling child topics all with a string `titles`, one level down"
+                    .format(SIGNATURE_BREAKER_THRESHOLD + 2),
+         detail=("the trip happens INSIDE a `topic TOC child` guard and must escape the "
+                 "identical guard wrapping the recursion into the parent. A bare re-raise "
+                 "is swallowed here and the build completes with a truncated ToC"),
+         collections=("topics", "topic_links"),
+         seed=_broken_children_of_one_parent("zzaudit-breaker-parent", "zzaudit-breaker-child-"),
+         count=SIGNATURE_BREAKER_THRESHOLD + 2,
+         trigger=_topic_toc,
+         operation="topic TOC child",
          error_type="BuildDegradationError",
          cause_type="AttributeError"),
 ]
 
 
 def run_breaker_case(c, notify, index, total):
-    """Seed `count` identical bad records, run the builder, and assert the build aborted."""
+    """Seed the case's documents, run the builder, and assert the build aborted.
+
+    `seed(count)` returns the (collection, doc) pairs to insert — `count` copies of one bad
+    record for a flat site, or a whole parent/children/links fixture for a recursive one.
+    """
     print("[{:>2}/{}] {} {}".format(index, total, c["site"], c["corruption"]))
     reset_skip_counts()
     notify.reset_mock()
     raised = None
     try:
-        for _ in range(c["count"]):
-            insert(c["collection"], dict(c["doc"]))
+        for collection, doc in c["seed"](c["count"]):
+            insert(collection, doc)
         try:
             c["trigger"]()
         except BaseException as e:                  # noqa: BLE001 -- classifying, not handling
@@ -659,7 +716,7 @@ def run_breaker_case(c, notify, index, total):
 
 ALL_CASES = CASES + LOG_SKIP_CASES
 TOUCHED_COLLECTIONS = ({coll for c in ALL_CASES for coll, _ in c["docs"]}
-                       | {c["collection"] for c in BREAKER_CASES})
+                       | {coll for c in BREAKER_CASES for coll in c["collections"]})
 
 
 # ---------------------------------------------------------------------------
