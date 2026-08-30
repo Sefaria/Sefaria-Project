@@ -11,6 +11,37 @@ var INBROWSER = (typeof document !== 'undefined');
 class Util {
 
     /**
+     * Returns the English/Hebrew title to show above `segment`, if it begins a new parasha
+     * (or, when aliyot are shown, a new aliyah). Returns null otherwise.
+     * With aliyot on, every aliyah header also names its parasha, e.g. "Noach: Second".
+     * Pure (reads only its arguments) so it can be unit-tested in isolation.
+     * @param {Object} data - the text API response for the section
+     * @param {Object} segment - a single segment (may carry an `alt` parasha/aliyah marker)
+     * @param {boolean} includeAliyot - whether the reader's Aliyot display option is on
+     * @returns {?{en: string, he: string, parashaTitle: boolean}}
+     */
+    static parashahHeader(data, segment, includeAliyot = false) {
+        if (!data) { return null; }
+        if ("alts" in data && data.alts.length && ((data.categories[1] == "Torah" && !data["isDependant"]) || data.categories[2] == "Onkelos")) {
+            const alt = segment.alt;
+            if (alt != null) {
+                if (includeAliyot && alt.aliyah_en) {
+                    return {
+                        "en": `${alt.parasha_en}: ${alt.aliyah_en}`,
+                        "he": `${alt.parasha_he}: ${alt.aliyah_he}`,
+                        "parashaTitle": false, // styled as an aliyah header (see .parashahHeader.aliyah)
+                    };
+                }
+                if ("whole" in alt) {
+                    // Aliyot off: show just the parasha name at its start.
+                    return {"en": alt["en"][0], "he": alt["he"][0], "parashaTitle": true};
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Method to scroll into view port, if it's outside the viewport
      * From: https://medium.com/@makk.bit/scroll-into-view-if-needed-10a96e0bdb61
      * @param {Object} target - DOM Element
@@ -836,7 +867,7 @@ class Util {
      * @returns {string|null} - The cookie domain (e.g., ".sefaria.org") or null if no domain should be set
      */
     static getCookieDomain() {
-        const hostnames = Array.from(Sefaria.getDomainHostnames());
+        const hostnames = Array.from(Sefaria.getCurrentLangHostnames());
 
         // Skip domain setting for local development.
         // IP addresses don't have subdomain support.
@@ -1245,6 +1276,16 @@ class Util {
           vars[key] = decodeURIComponent(value);
       });
       return vars;
+    }
+    static setLinkerAdminUrlParams(searchParams, {debug = true} = {}) {
+      // Put the reader into the Linker Admin sidebar, optionally toggling linker debug mode.
+      searchParams.set("with", "LinkerAdmin");
+      if (debug) {
+        searchParams.set("debug_mode", "linker");
+      } else {
+        searchParams.delete("debug_mode");
+      }
+      return searchParams;
     }
     static replaceUrlParam(paramName, paramValue){
       //TODO: This does not create the correct urls for multipanel views. It ends up just tacking on an extra "with" param on the end

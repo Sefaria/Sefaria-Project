@@ -144,6 +144,18 @@ class TestMarkedUpTextChunk:
         with pytest.raises(InputError):
             marked_up_chunk.save()
 
+    def test_deleted_span_text_mismatch_is_allowed(self, marked_up_chunks):
+        marked_up_chunk = marked_up_chunks["objects"][0]
+        original_spans = deepcopy(marked_up_chunk.spans)
+        try:
+            for span in marked_up_chunk.spans:
+                span["text"] = "incorrect text"
+                span["deleted"] = True
+            marked_up_chunk.save()
+        finally:
+            marked_up_chunk.spans = original_spans
+            marked_up_chunk.save()
+
     def test_empty_spans(self, marked_up_chunks):
         marked_up_chunk = marked_up_chunks["objects"][0]
         marked_up_chunk.spans = []
