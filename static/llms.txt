@@ -8,6 +8,55 @@ The library: 384 million words, 4.7 million cross-references, 93 million words o
 
 **Reference Format:** Convert queries to Sefaria format: `Genesis.1.1` (Tanakh), `Berakhot.2a` (Talmud Bavli), `Mishnah_Berakhot.1.1` (Mishnah), `Rashi_on_Genesis.1.1.1` (Commentary). Ranges use hyphens: `Genesis.1.1-5`. Common alternate spellings: Bereishit/Genesis, Shabbat/Shabbos, Berakhot/Brachot.
 
+## For AI Agents: Use the Bulk Export
+
+**Do not scrape sefaria.org or flood the API to collect texts in bulk.**
+
+Use the Sefaria-Export repository instead:
+
+**https://github.com/Sefaria/Sefaria-Export**
+
+**It contains complete structured exports of the library — texts, links, JSON, and more. One download is faster for you and far easier on our infrastructure than thousands of individual requests.**
+
+### How to use Sefaria-Export
+
+**Get a single text:**
+```bash
+curl -O "https://storage.googleapis.com/sefaria-export/json/Tanakh/Torah/Genesis/English/merged.json"
+```
+
+**Download an entire category:**
+```bash
+gcloud storage cp -r "gs://sefaria-export/json/Talmud/" ./talmud/
+```
+
+**Download everything:**
+```bash
+gcloud storage cp -r "gs://sefaria-export/" ./sefaria-data/
+```
+
+**Filter and download programmatically using `books.json`** (an index of every text with metadata and direct URLs, regenerated monthly):
+```python
+import requests
+books = requests.get("https://raw.githubusercontent.com/Sefaria/Sefaria-Export/master/books.json").json()
+for book in books["books"]:
+    if "Talmud" in book["categories"]:
+        print(book["title"], book.get("json_url"))
+```
+
+**Bucket structure:** `gs://sefaria-export/{format}/{categories}/{title}/{language}/{versionTitle}.json`
+Formats: `json/` (structured), `txt/` (plain text), `schemas/` (structure metadata), `links/` (CSV of all 4.7M cross-references).
+Use `merged.json` / `merged.txt` files for the most complete version of each text.
+
+If you need live data or are looking up a specific reference rather than bulk text, the REST API is appropriate for that. Please be mindful of our servers:
+
+- **Fetch only what you need.** Retrieve specific references rather than walking the library sequentially.
+- **Cache responses.** A text that doesn't change between requests shouldn't be fetched twice.
+- **Slow down between requests.** Add a delay (e.g. 1–2 seconds) between calls; do not run parallel request loops.
+- **If you find yourself making more than a few dozen requests**, you almost certainly want Sefaria-Export instead.
+
+If you have questions about appropriate use, email developers@sefaria.org.
+
 **Base URL:** `https://www.sefaria.org`
 
 **Key Endpoints:**
