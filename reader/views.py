@@ -4872,7 +4872,7 @@ def search_wrapper_api(request, es6_compat=False):
     @param es6_compat: True to return API response that's compatible with an Elasticsearch 6 compatible client
     @return:
     """
-    from sefaria.helper.search import get_elasticsearch_client
+    from sefaria.helper.search import get_elasticsearch_client_for_online_search
 
     if request.method == "POST":
         if "json" in request.POST:
@@ -4880,7 +4880,7 @@ def search_wrapper_api(request, es6_compat=False):
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
-        es_client = get_elasticsearch_client()
+        es_client = get_elasticsearch_client_for_online_search()
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()

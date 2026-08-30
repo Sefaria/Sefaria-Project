@@ -35,6 +35,15 @@ def run_reindex_init_all(debug=False):
 def run_reindex_finalize_all(debug=False, sheet_catch_up_timestamp=None, clear_queue=True):
     """
     Finalize text, rebuild sheets on the new index, finalize sheets, optional catch-up, clear queue.
+
+    The catch-up and queue-clear steps run AFTER both alias swaps above have already
+    committed the durable, expensive work. A failure in either step is caught and logged
+    rather than raised, so a transient hiccup here doesn't discard hours of already-completed
+    text/sheet reindexing and force a full re-run - matching the old cronjob's tolerance for
+    this specific step (it retried sheet catch-up with backoff and recorded failure rather
+    than raising). This is a cost argument, not a silence argument: unlike finding #7
+    (pagesheetrank, which runs before any expensive work and stays fail-loud by design), the
+    work being protected here is already done and would be wastefully repeated on a crash.
     """
     from sefaria.search import reindex_finalize, reindex_index_shard
 
@@ -42,6 +51,12 @@ def run_reindex_finalize_all(debug=False, sheet_catch_up_timestamp=None, clear_q
     reindex_index_shard("sheet", debug=debug)
     reindex_finalize("sheet", debug=debug)
     if sheet_catch_up_timestamp:
-        run_sheets_catch_up(sheet_catch_up_timestamp, debug=debug)
+        try:
+            run_sheets_catch_up(sheet_catch_up_timestamp, debug=debug)
+        except Exception as e:
+            logger.error(f"Sheet catch-up failed after alias swaps already committed - continuing, not re-raising: {e}")
     if clear_queue:
-        clear_index_queue()
+        try:
+            clear_index_queue()
+        except Exception as e:
+            logger.error(f"Clearing index queue failed after alias swaps already committed - continuing, not re-raising: {e}")

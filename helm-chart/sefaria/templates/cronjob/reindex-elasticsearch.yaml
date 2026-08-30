@@ -24,7 +24,7 @@ spec:
                     operator: In
                     values:
                     - mongo
-                topologyKey: kubernetes.io.hostname
+                topologyKey: kubernetes.io/hostname
           containers:
           - name: reindex-elastic-search
             image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"

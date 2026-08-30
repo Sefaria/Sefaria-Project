@@ -17,7 +17,7 @@ rules:
   # envFrom (names only), resolved by the kubelet, per the 2026-07-13 decision.
   - apiGroups: ["batch"]
     resources: ["jobs"]
-    verbs: ["create", "get", "delete"]
+    verbs: ["create", "delete"]
   - apiGroups: ["batch"]
     resources: ["jobs/status"]
     verbs: ["get"]

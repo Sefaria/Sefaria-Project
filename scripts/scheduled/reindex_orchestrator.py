@@ -18,7 +18,7 @@ MONGO_POD_ANTI_AFFINITY = {
                         {"key": "app", "operator": "In", "values": ["mongo"]}
                     ]
                 },
-                "topologyKey": "kubernetes.io.hostname",
+                "topologyKey": "kubernetes.io/hostname",
             }
         ]
     }
@@ -115,6 +115,12 @@ def build_shard_job_manifest(
         "command": command,
         "env": (env or []) + [{"name": "SHARD_COUNT", "value": str(shard_count)}],
         "resources": resources,
+        # Shard pods have zero Kubernetes RBAC (unlike the orchestrator) - see
+        # automountServiceAccountToken below. allowPrivilegeEscalation is safe to disable
+        # unconditionally (reindexing needs no elevated privileges); runAsNonRoot is
+        # deliberately NOT set here since the base image's default user isn't verified from
+        # this chart, and setting it wrong would fail every shard pod at startup.
+        "securityContext": {"allowPrivilegeEscalation": False},
     }
     if env_from:
         container["envFrom"] = env_from
@@ -124,6 +130,12 @@ def build_shard_job_manifest(
     pod_spec = {
         "restartPolicy": "Never",
         "containers": [container],
+        # Explicit, not emergent: shard pods have no Kube-API access at all (no
+        # serviceAccountName override means they'd already get "default" with no Role
+        # bound to it, but stating it plus disabling the token mount makes the property
+        # verifiable by reading the manifest, not by tracing the absence of a field).
+        "serviceAccountName": "default",
+        "automountServiceAccountToken": False,
     }
     if volumes:
         pod_spec["volumes"] = volumes
@@ -142,9 +154,12 @@ def build_shard_job_manifest(
         },
     }
     if active_deadline_seconds is not None:
-        # Bounds a wedged shard - observed on a live cluster spinning at ~500m CPU with zero
-        # bulk writes and zero log output for hours with no crash. Without this the shard Job
-        # (and the orchestrator's barrier behind it) waits forever.
+        # Bounds the whole Indexed Job (all shards, cumulative since Job creation) - there is
+        # no per-index deadline in the Job API, so a retried index shares the original clock
+        # rather than getting a fresh window. Exists because a wedged shard was observed on a
+        # live cluster spinning at ~500m CPU with zero bulk writes and zero log output for
+        # hours with no crash. Without this the Job (and the orchestrator's barrier behind it)
+        # waits forever.
         spec["activeDeadlineSeconds"] = active_deadline_seconds
 
     return {
@@ -225,14 +240,25 @@ def run_barrier_loop(
 
 
 def parse_shard_resources():
-    """Parse SHARD_RESOURCES JSON env var into a Kubernetes resources dict."""
+    """Parse SHARD_RESOURCES JSON env var into a Kubernetes resources dict.
+    Validates shape, not just that the env var is set: `json.loads("{}")` returns `{}`,
+    which is falsy but not None, so a bare `is None` check downstream would let an empty
+    or malformed dict through and launch shard pods with no memory limit at all - the
+    hazard SHARD_RESOURCES exists to prevent. Requires requests.memory and limits.memory
+    specifically, since those are the fields build_shard_job_manifest's caller relies on."""
     raw = os.environ.get("SHARD_RESOURCES")
     if not raw:
         return None
     try:
-        return json.loads(raw)
+        parsed = json.loads(raw)
     except json.JSONDecodeError as e:
         raise RuntimeError(f"Could not parse SHARD_RESOURCES: {e}") from e
+    if not isinstance(parsed, dict) or not parsed.get("requests", {}).get("memory") or not parsed.get("limits", {}).get("memory"):
+        raise RuntimeError(
+            f"SHARD_RESOURCES is malformed - must be a dict with requests.memory and "
+            f"limits.memory set (got: {parsed!r})"
+        )
+    return parsed
 
 
 def main():
@@ -255,6 +281,8 @@ def main():
     config.load_incluster_config()
     namespace = os.environ["K8S_NAMESPACE"]
     shard_count = int(os.environ.get("SHARD_COUNT", "8"))
+    if not (1 <= shard_count <= 64):
+        raise RuntimeError(f"SHARD_COUNT must be between 1 and 64 (a Helm/config error, not attacker input) - got: {shard_count}")
     image = os.environ["SHARD_JOB_IMAGE"]
     job_name = os.environ.get("SHARD_JOB_NAME", "reindex-shard")
     debug = os.environ.get("REINDEX_DEBUG", "").lower() in ("1", "true", "yes")
@@ -334,10 +362,28 @@ def main():
         active_deadline_seconds=shard_active_deadline_seconds,
     )
 
-    # Delete stale job before init so a failed prior run does not block recreate
+    # Delete stale job before init so a failed prior run does not block recreate.
+    # propagation_policy="Background" returns as soon as deletion is *accepted*, not once
+    # the object is actually gone, so poll for real absence rather than a fixed sleep - a
+    # fixed sleep either races create_namespaced_job into a 409 if deletion takes longer,
+    # or wastes time if it finishes sooner. In practice update_pagesheetrank() and
+    # run_reindex_init_all() below (which can take a long time) also happen before create,
+    # so this poll is a bounded backstop, not the only thing standing between delete and
+    # create.
     try:
         batch.delete_namespaced_job(job_name, namespace, propagation_policy="Background")
-        time.sleep(10)
+        deleted = False
+        for _ in range(30):  # 30 x 2s = 60s bound
+            try:
+                batch.read_namespaced_job(job_name, namespace)
+                time.sleep(2)
+            except client.exceptions.ApiException as exc:
+                if exc.status == 404:
+                    deleted = True
+                    break
+                raise
+        if not deleted:
+            logger.warning(f"Stale shard job deletion did not confirm within 60s, proceeding anyway - job_name: {job_name}")
     except client.exceptions.ApiException as exc:
         if exc.status != 404:
             logger.error(f"Failed to delete stale shard job - status: {exc.status}, reason: {exc.reason}")

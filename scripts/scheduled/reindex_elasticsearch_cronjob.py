@@ -90,8 +90,13 @@ class ReindexingResult:
             logger.warning(f"Failed to add warning - message_preview: {message[:50]}, error: {str(e)}")
     
     def is_success(self) -> bool:
-        """Return True if no critical failures occurred."""
-        return len(self.steps_failed) == 0
+        """Return True if no critical failures occurred. A real per-version indexing
+        failure (self.failed_text_versions) fails the run, matching this PR's fail-loud
+        philosophy elsewhere - a shard that silently under-indexed content must not report
+        success to the orchestrator's barrier. self.skipped_text_versions is intentionally
+        excluded from this check: it is only ever populated for the two hardcoded
+        excluded_from_search() titles, a deliberate exclusion, not a failure."""
+        return len(self.steps_failed) == 0 and len(self.failed_text_versions) == 0
     
     def get_summary(self) -> str:
         """Generate a human-readable summary and finalize timings."""
@@ -442,8 +447,9 @@ def main(argv=None):
             logger.warning(f"Failed to log final index states - error: {str(e)}")
     
     if result.is_success():
-        if result.failed_text_versions or result.skipped_text_versions:
-            logger.info("Reindexing completed with some failures (see summary above).")
+        if result.skipped_text_versions:
+            # failed_text_versions can't reach here - is_success() is False when it's non-empty.
+            logger.info("Reindexing completed successfully, with some intentionally-excluded versions skipped (see summary above).")
         else:
             logger.info(SEPARATOR_LINE)
             logger.info("Reindexing completed successfully!")

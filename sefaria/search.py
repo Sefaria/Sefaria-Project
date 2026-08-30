@@ -1067,7 +1067,7 @@ class TextIndexer(object):
         ]
 
     @classmethod
-    def _index_size_map(cls):
+    def _index_size_map(cls, tries=0):
         """Real per-title size proxy: for each VersionState, sum the available section counts
         (across "he" and "en") reported across all LEAF schema nodes. This tracks how much text
         index_all actually has to load and index per title, which is what drives per-shard
@@ -1077,15 +1077,25 @@ class TextIndexer(object):
         node IS a leaf, so get_leaf_nodes() naturally returns just that node and the simple case
         is unaffected. Returns {title: weight}, weight always >= 1.
         Individual VersionStates can fail (e.g. orphaned VersionStates left behind after their
-        Index was deleted) - those are counted and reported in one aggregated warning after the
-        loop, not logged per-failure, since a shard-count x per-VersionState-failure log would
-        spam the logs. If the whole computation raises, or the resulting map ends up empty or
-        uniform (every weight identical - the degenerate case that silently broke balancing
-        before), a WARNING is logged that shard balancing is DEGRADED and shards may be
-        unbalanced/OOM. On total failure, {} is returned rather than pretending balancing
-        succeeded."""
+        Index was deleted). A title whose weight can't be computed is deliberately NOT given
+        the minimum weight (1) - an unknown-size title assigned the smallest possible weight is
+        exactly backwards, since a large/complex text is a plausible reason weight computation
+        failed in the first place, and the snake assignment would then cluster several such
+        titles onto one shard with no warning until it OOMs. Instead, failed titles are given
+        the largest weight seen among titles that DID compute successfully (a conservative
+        "assume it's heavy" default), applied in a second pass once that max is known. Each
+        failure is logged individually by title (not just an aggregated count) so an operator
+        can see which titles to investigate. If the whole computation raises, or the resulting
+        map ends up empty or uniform (every weight identical - the degenerate case that
+        silently broke balancing before), a WARNING is logged that shard balancing is DEGRADED
+        and shards may be unbalanced/OOM. On total failure, {} is returned rather than
+        pretending balancing succeeded. A dead Mongo socket (AutoReconnect) mid-scan is
+        retried like get_all_versions, rather than falling straight into the generic
+        except-and-degrade path below - restarting the scan from scratch is safe since this
+        method is a pure read with no side effects, and the alternative (a transient socket
+        blip degrading shard balancing for an entire multi-hour run) is worse than a retry."""
         sizes = {}
-        failed = 0
+        failed_titles = []
         try:
             for vs in VersionStateSet():
                 title = getattr(vs, "title", None)
@@ -1101,15 +1111,27 @@ class TextIndexer(object):
                             counts = sn.get_available_counts(lang)
                             if counts:
                                 weight += sum(x for x in counts if isinstance(x, int))
-                except Exception:
-                    failed += 1
+                except Exception as e:
+                    logger.warning(f"Could not compute index weight for title, will use conservative fallback - title: {title}, error: {e}")
+                    failed_titles.append(title)
                     continue
                 sizes[title] = max(weight, 1)
+        except pymongo.errors.AutoReconnect as e:
+            if tries < MAX_RETRY_ATTEMPTS:
+                if tries % 10 == 0:
+                    logger.warning(f"MongoDB AutoReconnect while building index size map, retrying - attempt: {tries}")
+                pytime.sleep(RETRY_SLEEP_SECONDS)
+                return cls._index_size_map(tries=tries + 1)
+            logger.warning(f"Failed to build index size map from VersionStates after max retries - shard balancing is DEGRADED, shards may be unbalanced/OOM: {e}")
+            return {}
         except Exception as e:
             logger.warning(f"Failed to build index size map from VersionStates - shard balancing is DEGRADED, shards may be unbalanced/OOM: {e}")
             return {}
-        if failed:
-            logger.warning(f"Skipped {failed} VersionState(s) while building index size map (likely orphaned VersionStates with no matching Index)")
+        if failed_titles:
+            fallback_weight = max(sizes.values()) if sizes else 1
+            for title in failed_titles:
+                sizes[title] = fallback_weight
+            logger.warning(f"Skipped {len(failed_titles)} VersionState(s) while building index size map (likely orphaned VersionStates with no matching Index) - assigned conservative fallback weight {fallback_weight}: {failed_titles}")
         if not sizes:
             logger.warning("Index size map is empty - shard balancing is DEGRADED, shards may be unbalanced/OOM")
         elif len(set(sizes.values())) == 1:
@@ -1179,9 +1201,22 @@ class TextIndexer(object):
             # every shard would hold the whole corpus in RAM just to discard most of it.
             size_map = cls._index_size_map()
             keys = set()
-            for v in db.texts.find({}, {"title": 1, "versionTitle": 1, "language": 1}):
-                if (v.get("title"), v.get("versionTitle"), v.get("language")) in cls.version_priority_map:
-                    keys.add((v.get("title"), v.get("language")))
+            # A dead Mongo socket (AutoReconnect) mid-cursor is retried by restarting the
+            # whole metadata-only scan (cheap, no text loaded) rather than crashing the shard -
+            # same budget/pattern as get_all_versions and _index_size_map above.
+            for attempt in range(MAX_RETRY_ATTEMPTS + 1):
+                try:
+                    for v in db.texts.find({}, {"title": 1, "versionTitle": 1, "language": 1}):
+                        if (v.get("title"), v.get("versionTitle"), v.get("language")) in cls.version_priority_map:
+                            keys.add((v.get("title"), v.get("language")))
+                    break
+                except pymongo.errors.AutoReconnect as e:
+                    keys.clear()
+                    if attempt >= MAX_RETRY_ATTEMPTS:
+                        raise
+                    if attempt % 10 == 0:
+                        logger.warning(f"MongoDB AutoReconnect while scanning db.texts for shard key metadata, retrying - attempt: {attempt}")
+                    pytime.sleep(RETRY_SLEEP_SECONDS)
             selected_keys = cls._select_shard_keys(keys, shard_index, shard_count, size_map)
             titles = sorted({t for (t, l) in selected_keys})
 

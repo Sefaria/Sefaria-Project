@@ -15,7 +15,9 @@ def load_cronjob():
     return cronjob
 
 
-def test_shard_mode_exits_zero_but_warns_when_failed_versions_present(monkeypatch):
+def test_shard_mode_exits_nonzero_and_warns_when_failed_versions_present(monkeypatch):
+    """A shard with real per-version indexing failures must fail loud (non-zero exit),
+    not report success to the orchestrator's barrier while silently under-indexing."""
     mod = load_cronjob()
     monkeypatch.setattr(mod, "check_elasticsearch_connection", lambda: True)
     monkeypatch.setattr(mod, "setup_logging", lambda debug: None)
@@ -37,8 +39,26 @@ def test_shard_mode_exits_zero_but_warns_when_failed_versions_present(monkeypatc
 
     with pytest.raises(SystemExit) as exc:
         mod.main(["--mode", "shard", "--shard-index", "0", "--shard-count", "4"])
-    assert exc.value.code == 0
+    assert exc.value.code == 1
     assert any("failed" in w.lower() for w in warnings_issued)
+
+
+def test_shard_mode_exits_zero_when_only_skipped_versions_present(monkeypatch):
+    """skipped_text_versions is only ever populated for deliberate excluded_from_search()
+    exclusions - it must not fail the shard, unlike a real failed_text_versions entry."""
+    mod = load_cronjob()
+    monkeypatch.setattr(mod, "check_elasticsearch_connection", lambda: True)
+    monkeypatch.setattr(mod, "setup_logging", lambda debug: None)
+    monkeypatch.setattr(
+        "sefaria.search.reindex_index_shard",
+        lambda *a, **k: None,
+    )
+    monkeypatch.setattr(mod.TextIndexer, "_failed_versions", [])
+    monkeypatch.setattr(mod.TextIndexer, "_skipped_versions", [{"title": "Excluded Text"}])
+
+    with pytest.raises(SystemExit) as exc:
+        mod.main(["--mode", "shard", "--shard-index", "0", "--shard-count", "4"])
+    assert exc.value.code == 0
 
 
 def test_shard_mode_exits_zero_when_no_failures(monkeypatch):

@@ -133,6 +133,25 @@ def test_build_shard_job_manifest_minimal():
     assert "volumes" not in manifest["spec"]["template"]["spec"]
 
 
+def test_build_shard_job_manifest_hardens_shard_pod_identity():
+    """Shard pods have zero Kube-API access - this must be explicit in the manifest,
+    not merely emergent from omitting a field (SEC-004)."""
+    spec.loader.exec_module(orch)
+    manifest = orch.build_shard_job_manifest(
+        name="test-job",
+        namespace="default",
+        image="my-image:latest",
+        shard_count=4,
+        command=["python", "run.py"],
+        resources={"requests": {"memory": "8Gi"}, "limits": {"memory": "12Gi"}},
+    )
+    pod_spec = manifest["spec"]["template"]["spec"]
+    assert pod_spec["serviceAccountName"] == "default"
+    assert pod_spec["automountServiceAccountToken"] is False
+    container = pod_spec["containers"][0]
+    assert container["securityContext"]["allowPrivilegeEscalation"] is False
+
+
 def test_build_shard_job_manifest_fails_without_resources():
     spec.loader.exec_module(orch)
     with pytest.raises(ValueError):
@@ -332,3 +351,35 @@ def test_run_barrier_loop_gives_up_once_timeout_elapses_and_never_returns_comple
     assert incomplete == [6, 7]
     # Gave up without ever sleeping again past the deadline check
     assert sleeps == []
+
+
+def test_parse_shard_resources_returns_none_when_unset(monkeypatch):
+    spec.loader.exec_module(orch)
+    monkeypatch.delenv("SHARD_RESOURCES", raising=False)
+    assert orch.parse_shard_resources() is None
+
+
+def test_parse_shard_resources_rejects_empty_dict(monkeypatch):
+    """json.loads("{}") is falsy but not None - a bare `is None` check would let this
+    through and launch shard pods with no memory limit at all."""
+    spec.loader.exec_module(orch)
+    monkeypatch.setenv("SHARD_RESOURCES", "{}")
+    with pytest.raises(RuntimeError, match="malformed"):
+        orch.parse_shard_resources()
+
+
+def test_parse_shard_resources_rejects_missing_memory_keys(monkeypatch):
+    spec.loader.exec_module(orch)
+    monkeypatch.setenv("SHARD_RESOURCES", '{"requests": {"cpu": "1"}, "limits": {"cpu": "2"}}')
+    with pytest.raises(RuntimeError, match="malformed"):
+        orch.parse_shard_resources()
+
+
+def test_parse_shard_resources_accepts_valid_shape(monkeypatch):
+    spec.loader.exec_module(orch)
+    monkeypatch.setenv(
+        "SHARD_RESOURCES",
+        '{"requests": {"memory": "4Gi"}, "limits": {"memory": "8Gi"}}',
+    )
+    result = orch.parse_shard_resources()
+    assert result == {"requests": {"memory": "4Gi"}, "limits": {"memory": "8Gi"}}
