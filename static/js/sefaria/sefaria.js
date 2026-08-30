@@ -520,15 +520,56 @@ Sefaria = extend(Sefaria, {
 
     return result;
   },
-  getDomainHostnames: function() {
-    // Returns a Set of all hostnames of current language from domainModules.
-    const hostnames = new Set();
-    for (const moduleUrl of Object.values(Sefaria.domainModules[Sefaria._getShortInterfaceLang()])) {
-      const url = new URL(moduleUrl);
-      hostnames.add(url.hostname);
-    }
+  /* The three hostname getters below all read Sefaria.domainModules, which maps
+     interface language -> module -> that module's URL. For example:
+       { en: { library: "https://www.sefaria.org",    voices: "https://voices.sefaria.org"    },
+         he: { library: "https://www.sefaria.org.il", voices: "https://voices.sefaria.org.il" } }
+     They differ only in which slice of that map they read:
 
+                                           languages:              modules:
+       getCurrentLangHostnames()           just the current one    all of them
+       getAllHostnames()                   all of them             all of them
+       getCurrentModuleHostnames(module)   all of them             just the one passed in
+
+     Rule of thumb: use getCurrentLangHostnames when you are building or checking something the
+     reader will see in their own language (a cookie domain, a link you are about to render), and
+     one of the language-spanning two when you are reacting to a URL you did not create -- a link
+     inside sheet content can point at the Hebrew domain while the interface language is English,
+     and vice versa, and it is still ours.
+     All three return a Set of hostnames (no scheme, no path), so callers check with .has(). */
+  _hostnamesFromModuleURLs: function(moduleUrls) {
+    // Shared inner loop for the three getters: turns a list of module URL strings into a Set of
+    // their hostnames. One unparseable URL is logged and skipped rather than throwing, so a bad
+    // entry in domainModules can't break every caller.
+    const hostnames = new Set();
+    for (const moduleUrl of moduleUrls) {
+      try {
+        hostnames.add(new URL(moduleUrl).hostname);
+      } catch (e) {
+        console.error('Error creating URL:', e);
+      }
+    }
     return hostnames;
+  },
+  getCurrentLangHostnames: function() {
+    // Every module, current interface language only.
+    // example (interface language English) -> Set { "www.sefaria.org", "voices.sefaria.org" }
+    const langModules = Sefaria.domainModules?.[Sefaria._getShortInterfaceLang()] || {};
+    return Sefaria._hostnamesFromModuleURLs(Object.values(langModules));
+  },
+  getAllHostnames: function() {
+    // Every module, every interface language -- i.e. every hostname this deploy answers on.
+    // example -> Set { "www.sefaria.org", "voices.sefaria.org", "www.sefaria.org.il", "voices.sefaria.org.il" }
+    const allModuleUrls = Object.values(Sefaria.domainModules || {}).flatMap(langModules => Object.values(langModules || {}));
+    return Sefaria._hostnamesFromModuleURLs(allModuleUrls);
+  },
+  getCurrentModuleHostnames: function(module) {
+    // One module, every interface language. Languages that don't configure the module are skipped.
+    // example: module = "voices" -> Set { "voices.sefaria.org", "voices.sefaria.org.il" }
+    const moduleUrls = Object.values(Sefaria.domainModules || {})
+        .map(langModules => langModules?.[module])
+        .filter(moduleUrl => !!moduleUrl);
+    return Sefaria._hostnamesFromModuleURLs(moduleUrls);
   },
   getModuleURL: function(module=null) {
     // returns a URL object with the href of the module's subdomain.
@@ -549,7 +590,7 @@ Sefaria = extend(Sefaria, {
   },
   isSefariaURL: function(url) {
     // Check if URL's hostname matches any of our domain hostnames
-    const hostnames = this.getDomainHostnames();
+    const hostnames = this.getCurrentLangHostnames();
     return hostnames.has(url.hostname);
   },
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null, transLangPref=null) {
@@ -624,13 +665,13 @@ Sefaria = extend(Sefaria, {
   _buildLinkerOutputMap: function(linker_output = []) {
       const getKey = (ref, language, charRange) => `${ref}|${language}|${charRange.join('-')}`;
       for (let linkerOutput of linker_output) {
-          const {ref, language} = linkerOutput;
+          const {ref, language, versionTitle} = linkerOutput;
           // reset arrays to keep track of ambiguous spans
           for (let span of linkerOutput.spans) {
               Sefaria._linkerOutputMap[getKey(ref, language, span.charRange)] = [];
           }
           for (let span of linkerOutput.spans) {
-              Sefaria._linkerOutputMap[getKey(ref, language, span.charRange)].push(span);
+              Sefaria._linkerOutputMap[getKey(ref, language, span.charRange)].push({...span, refContext: ref, language, versionTitle});
           }
       }
   },
@@ -681,7 +722,7 @@ Sefaria = extend(Sefaria, {
       return testStr;
   },
   _getLinkerTestStringForParts(refParts, refPartTypes, rangeSections, rangeToSections) {
-      const partTypeSymbolMap = {"NAMED": "@", "NUMBERED": "#", "DH": "*", "RANGE_SYMBOL": "^", "IBID": "&", "RELATIVE": "<"}
+      const partTypeSymbolMap = {"NAMED": "@", "NUMBERED": "#", "DH": "*", "RANGE_SYMBOL": "^", "IBID": "&", "RELATIVE": "<", "NON_CTS": "~"}
       let testStr = "";
       for (let i = 0; i < refParts.length; i++) {
           const part = refParts[i];
@@ -694,7 +735,7 @@ Sefaria = extend(Sefaria, {
               testStr += Sefaria._getLinkerTestStringForParts(rangeToSections, Array(rangeToSections.length).fill("NUMBERED"));
           } else {
               const symbol = partTypeSymbolMap[type] || "?";
-              testStr += `"${symbol}${part.replace('"', '\\"')}"`;
+              testStr += JSON.stringify(`${symbol}${part}`);
           }
           if (i < refParts.length - 1) {
               testStr += ", ";
@@ -2833,6 +2874,27 @@ _media: {},
               callback();
           });
   },
+  // Max encoded length of the `user_history` cookie value, for logged out users.
+  // The cookie shares two budgets it does not control: the browser's ~4kB
+  // per-cookie limit, and the ~8kB request-header buffer that nginx allows for
+  // every cookie on the domain combined (sessionid, csrftoken, _ga,
+  // version_preferences_by_corpus, ...). Overrunning the latter is a 400 from the
+  // edge before Django is reached, so leave most of it to the other cookies.
+  MAX_ANON_HISTORY_BYTES: 3000,
+  _trimUserHistoryForCookie: function(items) {
+    // `items` is newest first; keep the longest leading run that fits the budget.
+    // Measured URL-encoded, since that is how the value is written to the cookie
+    // and a Hebrew `he_ref` costs six characters per letter once encoded.
+    const trimmed = [];
+    for (const item of items) {
+      trimmed.push(item);
+      if (encodeURIComponent(JSON.stringify(trimmed)).length > Sefaria.MAX_ANON_HISTORY_BYTES) {
+        trimmed.pop();
+        break;
+      }
+    }
+    return trimmed;
+  },
   saveUserHistory: function(history_item) {
     // history_item contains:
     // `ref`, `book`, `versions`, `sheet_title`, `sheet_owner``
@@ -2862,20 +2924,9 @@ _media: {},
         const cookie = Sefaria._inBrowser ? $.cookie : Sefaria.util.cookie;
         const user_history_cookie = cookie("user_history");
         const user_history = !!user_history_cookie ? JSON.parse(user_history_cookie) : [];
-        cookie("user_history", JSON.stringify(new_hist_array.concat(user_history)), {path: "/"});
-        Sefaria.userHistory.items = new_hist_array.concat(user_history);
-
-        if (Sefaria._inBrowser) {
-          // check if we've reached the cookie size limit
-          const cookie_hist = JSON.parse(cookie("user_history"));
-          if (cookie_hist.length < (user_history.length + new_hist_array.length)) {
-            // save failed silently. resave by popping old history
-            if (new_hist_array.length < user_history.length) {
-              new_hist_array = new_hist_array.concat(user_history.slice(0, -new_hist_array.length));
-            }
-            cookie("user_history", JSON.stringify(new_hist_array), {path: "/"});
-          }
-        }
+        const trimmed = Sefaria._trimUserHistoryForCookie(new_hist_array.concat(user_history));
+        cookie("user_history", JSON.stringify(trimmed), {path: "/"});
+        Sefaria.userHistory.items = trimmed;
       });
     }
     Sefaria.last_place = history_item_array.filter(x=>!x.secondary).concat(Sefaria.last_place);  // while technically we should remove dup. books, this list is only used on client
@@ -3542,34 +3593,43 @@ _media: {},
    * @returns {Promise}
    */
   pollTask(taskId, { interval = 3000, onProgress } = {}) {
+    // Schedules each poll only after the previous one settles (rather than on a fixed
+    // setInterval clock), so a slow/loaded server doesn't get a pile-up of overlapping
+    // in-flight polls for the same task.
     return new Promise((resolve, reject) => {
-      const handle = setInterval(async () => {
+      const poll = async () => {
         try {
           const resp = await fetch("/api/async/" + taskId);
-          if (!resp.ok) {
-            clearInterval(handle);
-            const err = new Error("Network error polling task " + taskId);
-            err.isNetworkError = true;
-            reject(err);
-            return;
-          }
           const data = await resp.json();
-          if (!data.ready) {
-            if (onProgress && data.meta) onProgress(data.meta);
+          if (!resp.ok) {
+            if (data && data.state) {
+              // A well-formed task-status payload came back with a failure state (e.g. FAILURE) --
+              // this is a real task failure, not a network/connectivity problem, even if the
+              // server-side exception had no message.
+              reject(new Error(data.error || `Task ${taskId} failed (state: ${data.state})`));
+            } else {
+              const error = new Error(data.error || "Network error polling task " + taskId);
+              error.isNetworkError = true;
+              reject(error);
+            }
             return;
           }
-          clearInterval(handle);
+          if (!data.ready) {
+            if (onProgress) onProgress(data.meta || { state: data.state });
+            setTimeout(poll, interval);
+            return;
+          }
           if (data.error) {
             reject(new Error(data.error));
           } else {
             resolve(data.result);
           }
         } catch (e) {
-          clearInterval(handle);
           e.isNetworkError = true;
           reject(e);
         }
-      }, interval);
+      };
+      setTimeout(poll, interval);
     });
   },
   calendarRef: function(calendarTitle) {

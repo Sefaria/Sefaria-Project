@@ -37,6 +37,8 @@ from .place import Place, PlaceSet
 from .garden import Garden, GardenStop, GardenStopRelation, GardenSet, GardenStopSet, GardenStopRelationSet
 from .category import Category, CategorySet
 from .passage import Passage, PassageSet
+from .linker_dataset_example import LinkerDatasetExample, LinkerDatasetExampleSet
+from .linker_editor_history import LinkerEditorHistory, LinkerEditorHistorySet, log_linker_editor_action
 from .ref_data import RefData, RefDataSet
 from .webpage import WebPage, WebPageSet
 from .webpage_text import WebPageText, WebPageTextSet
