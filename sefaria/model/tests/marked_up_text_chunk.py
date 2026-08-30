@@ -1,8 +1,9 @@
 from copy import deepcopy
+from types import SimpleNamespace
 
 import pytest
 from sefaria.system.database import db as mongo_db
-from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
+from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, process_version_title_change
 from sefaria.system.exceptions import DuplicateRecordError, InputError
 from sefaria.model.text import Ref
 pytestmark = pytest.mark.django_db
@@ -139,10 +140,14 @@ class TestMarkedUpTextChunk:
 
     def test_incorrect_text_span(self, marked_up_chunks):
         marked_up_chunk = marked_up_chunks["objects"][0]
-        for span in marked_up_chunk.spans:
-            span["text"] = "incorrect text"
-        with pytest.raises(InputError):
-            marked_up_chunk.save()
+        original_spans = deepcopy(marked_up_chunk.spans)
+        try:
+            for span in marked_up_chunk.spans:
+                span["text"] = "incorrect text"
+            with pytest.raises(InputError):
+                marked_up_chunk.save()
+        finally:
+            marked_up_chunk.spans = original_spans
 
     def test_deleted_span_text_mismatch_is_allowed(self, marked_up_chunks):
         marked_up_chunk = marked_up_chunks["objects"][0]
@@ -170,3 +175,57 @@ class TestMarkedUpTextChunk:
         invalid_language_payload["language"] = "fr"
         with pytest.raises(InputError):
             MarkedUpTextChunk(invalid_language_payload).save()
+
+    def test_process_version_title_change_updates_mutc_and_linker_output_only_in_scope(self):
+        old_title = "Old Shared Version Title"
+        new_title = "New Shared Version Title"
+        target_ref = "Genesis 1:1"
+        other_ref = "Exodus 1:1"
+        collections = [
+            mongo_db.marked_up_text_chunks,
+            mongo_db.linker_output,
+        ]
+        cleanup_query = {
+            "versionTitle": {"$in": [old_title, new_title]},
+            "ref": {"$in": [target_ref, other_ref]},
+        }
+        for collection in collections:
+            collection.delete_many(cleanup_query)
+
+        try:
+            base_doc = {
+                "versionTitle": old_title,
+                "spans": [{"charRange": [0, 1], "text": "x", "type": "citation", "ref": "Exodus 1:1"}],
+            }
+            for collection in collections:
+                collection.insert_many([
+                    {**base_doc, "ref": target_ref, "language": "en"},
+                    {**base_doc, "ref": target_ref, "language": "he"},
+                    {**base_doc, "ref": other_ref, "language": "en"},
+                ])
+
+            process_version_title_change(
+                SimpleNamespace(title="Genesis", language="en"),
+                old=old_title,
+                new=new_title,
+            )
+
+            for collection in collections:
+                assert collection.count_documents({
+                    "ref": target_ref,
+                    "language": "en",
+                    "versionTitle": new_title,
+                }) == 1
+                assert collection.count_documents({
+                    "ref": target_ref,
+                    "language": "he",
+                    "versionTitle": old_title,
+                }) == 1
+                assert collection.count_documents({
+                    "ref": other_ref,
+                    "language": "en",
+                    "versionTitle": old_title,
+                }) == 1
+        finally:
+            for collection in collections:
+                collection.delete_many(cleanup_query)
