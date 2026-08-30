@@ -1217,9 +1217,7 @@ class TextIndexer(object):
         indexed_categories = get_search_categories(oref, categories)
 
         tp = cls.best_time_period
-        start = getattr(tp, 'start', None)
-        end = getattr(tp, 'end', None)
-        comp_start_date = int(start if start is not None else (end if end is not None else 3000))
+        comp_start_date = int(_comp_date_from_time_period(tp))
         ref_data = RefData().load({"ref": tref})
         pagesheetrank = ref_data.pagesheetrank if ref_data is not None else RefData.DEFAULT_PAGESHEETRANK
 
@@ -1438,6 +1436,24 @@ def _as_year_int(value):
         return None
 
 
+def _comp_date_from_time_period(tp, default=3000):
+    """
+    The single sortable year for a TimePeriod: `start`, falling back to `end`, or
+    `default` when neither is usable. `tp` may itself be None (no best time period),
+    in which case this also returns `default`.
+
+    Note the `is not None` check rather than truthiness, mirroring `_author_sort_year`:
+    year 0 is a real value, so it must survive the fallback rather than read as missing.
+    """
+    start = getattr(tp, 'start', None)
+    if start is not None:
+        return start
+    end = getattr(tp, 'end', None)
+    if end is not None:
+        return end
+    return default
+
+
 def _author_sort_year(topic):
     """
     The single year an author sorts by: `deathYear`, falling back to `birthYear`, or
@@ -1590,9 +1606,11 @@ def make_book_index_document(index, author_name_cache=None):
         variants.append(collective_en)
 
     # compDate is stored in Mongo as a list of ints; collapse to one sortable int.
-    # Mirror the text index: prefer end year, else start, else 3000 (sorts undated last).
+    # Mirrors the text index's comp_date (see _comp_date_from_time_period), except a
+    # missing time period stays None here so the sparse field is omitted rather than
+    # defaulted to 3000.
     tp = index.best_time_period()
-    comp_date = int(getattr(tp, 'end', None) or getattr(tp, 'start', 3000)) if tp else None
+    comp_date = int(_comp_date_from_time_period(tp)) if tp is not None else None
 
     author_slugs = getattr(index, 'authors', None) or []
     author_names = _resolve_author_names(author_slugs, author_name_cache)
