@@ -54,7 +54,7 @@ spec:
             - name: LOCAL_SETTINGS_FILE_CONFIGMAP
               value: "local-settings-file-{{ .Values.deployEnv }}"
             - name: SEARCH_HOST
-              value: "elasticsearch-1b-es-http.elasticsearch.svc"
+              value: "{{ .Values.nginx.SEARCH_HOST }}"
             - name: SEARCH_PORT
               value: "9200"
             - name: SEARCH_PATH
