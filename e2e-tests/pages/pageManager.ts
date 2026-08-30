@@ -22,8 +22,11 @@ import { ResourcePanelPage } from "./resourcePanelPage"
 import { MobileHamburgerPage } from "./mobileHamburgerPage"
 import { VoicesTopicPage } from "./voicesTopicPage"
 import { LibraryTopicPage } from "./libraryTopicPage"
+import { ReaderScrollPage } from "./readerScrollPage"
+import { MobileSurfacesPage } from "./mobileSurfacesPage"
 import { VoicesBookmarksPage } from "./voicesBookmarksPage"
 import { InterfaceStringsPage } from "./interfaceStringsPage"
+import { UserHistoryCookiePage } from "./userHistoryCookiePage"
 import { LinkExplorerPage } from "./linkExplorerPage"
 
 
@@ -50,8 +53,11 @@ export class PageManager {
     private readonly mobileHamburgerPage: MobileHamburgerPage
     private readonly voicesTopicPage: VoicesTopicPage
     private readonly libraryTopicPage: LibraryTopicPage
+    private readonly readerScrollPage: ReaderScrollPage
+    private readonly mobileSurfacesPage: MobileSurfacesPage
     private readonly voicesBookmarksPage: VoicesBookmarksPage
     private readonly interfaceStringsPage: InterfaceStringsPage
+    private readonly userHistoryCookiePage: UserHistoryCookiePage
     private readonly linkExplorerPage: LinkExplorerPage
 
 
@@ -79,8 +85,11 @@ export class PageManager {
         this.mobileHamburgerPage = new MobileHamburgerPage(page, language)
         this.voicesTopicPage = new VoicesTopicPage(page, language)
         this.libraryTopicPage = new LibraryTopicPage(page, language)
+        this.readerScrollPage = new ReaderScrollPage(page, language)
+        this.mobileSurfacesPage = new MobileSurfacesPage(page, language)
         this.voicesBookmarksPage = new VoicesBookmarksPage(page, language)
         this.interfaceStringsPage = new InterfaceStringsPage(page, language)
+        this.userHistoryCookiePage = new UserHistoryCookiePage(page, language)
         this.linkExplorerPage = new LinkExplorerPage(page, language)
 
     }
@@ -170,6 +179,14 @@ export class PageManager {
         return this.libraryTopicPage
     }
 
+    onReaderScroll() {
+        return this.readerScrollPage
+    }
+
+    onMobileSurfaces() {
+        return this.mobileSurfacesPage
+    }
+
     onVoicesBookmarks() {
         return this.voicesBookmarksPage
     }
@@ -178,6 +195,9 @@ export class PageManager {
         return this.interfaceStringsPage
     }
 
+    onUserHistoryCookie() {
+        return this.userHistoryCookiePage
+    }
     onLinkExplorer() {
         return this.linkExplorerPage
     }
