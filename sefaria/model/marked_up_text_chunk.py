@@ -195,7 +195,9 @@ class MarkedUpTextChunkSet(AbstractMongoSet):
 
 class LinkerOutput(MarkedUpTextChunk):
     """
-    Track linker resolutions for debugging purposes.
+    Stores the full linker output for a text segment/version/language, including
+    failed, ambiguous, and successful resolutions. Used by linker debug mode and
+    downstream workflows such as disambiguation and admin review.
     """
     collection = "linker_output"
     criteria_field = "ref"
@@ -393,6 +395,22 @@ def process_index_delete(indx, **kwargs):
     pattern = prepare_index_regex_for_dependency_process(indx)
     MarkedUpTextChunkSet({"ref": {"$regex": pattern}}).delete()
     LinkerOutputSet({"ref": {"$regex": pattern}}).delete()
+
+
+def process_version_title_change(ver, **kwargs):
+    report_progress("Cascading Marked Up Text Chunk version title from {} to {}".format(kwargs['old'], kwargs['new']))
+
+    patterns = Ref(ver.title).regex(as_list=True)
+    query = {
+        "$and": [
+            {"versionTitle": kwargs["old"]},
+            {"language": ver.language},
+            {"$or": [{"ref": {"$regex": pattern}} for pattern in patterns]},
+        ]
+    }
+    update = {"$set": {"versionTitle": kwargs["new"]}}
+    db.marked_up_text_chunks.update_many(query, update)
+    db.linker_output.update_many(query, update)
 
 
 def process_category_path_change(category, **kwargs):
