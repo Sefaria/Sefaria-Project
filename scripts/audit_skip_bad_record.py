@@ -32,6 +32,29 @@ WHAT THIS IS FOR
     Rerun this after any change to BAD_RECORD_EXCEPTIONS, to the guards, or to the
     breakers; the script exits non-zero if any case stops behaving as its table predicts.
 
+SITE IDS  (what "S1" means)
+    A "guard site" is one `with skip_bad_record(...)` or `log_skip(...)` block in the
+    codebase -- one specific place that can swallow a bad record. Each one gets a short id
+    so it can be selected and grouped:
+
+        S1 .. S20   the twenty guard sites under audit, numbered in the order they appear
+                    in CASES / LOG_SKIP_CASES below.
+        B1, B2      the two breaker cases. These are not guard sites: they seed systemic
+                    damage and assert the build ABORTS rather than skips.
+
+    These ids are invented by this script and exist nowhere else -- grepping sefaria/ for
+    "S1" will find nothing. What identifies the real code is the `operation` string sitting
+    next to the id in each case (e.g. S1 is "TocTree vstate record", the guard at
+    sefaria/model/category.py:223), and that string is also what skip_tracking records at
+    runtime and prints in its Slack summaries. The id is just a stable handle for it, since
+    several cases share one site -- one guard is usually worth corrupting several ways.
+
+    The ids are what `--only` selects on and what the report groups its rows by:
+
+        --only S1 S3   run just those two guard sites
+        --only B1      run just the first breaker case
+        --list         print every id with the operation it stands for
+
 SAFETY
     * Refuses to run unless MONGO_HOST resolves to localhost/127.0.0.1. There is no
       override flag; point it somewhere else and it exits non-zero.
@@ -52,10 +75,12 @@ USAGE
     ./run audit_skip_bad_record.py --only S1 S3     # run only certain sites
     ./run audit_skip_bad_record.py --only B1        # just the breaker case
     ./run audit_skip_bad_record.py --clean          # purge leftovers from a hard kill
+    ./run audit_skip_bad_record.py --log-level WARNING   # only the cases that misbehaved
 """
 import argparse
 import atexit
 import json
+import logging
 import os
 import sys
 import tempfile
@@ -74,6 +99,35 @@ from sefaria.helper import skip_tracking
 from sefaria.helper.skip_tracking import (reset_skip_counts, get_skip_records,
                                           SIGNATURE_BREAKER_THRESHOLD)
 
+# ---------------------------------------------------------------------------
+# Logging
+#
+# Everything this script emits goes through this logger rather than bare print(), so the
+# run can be quieted, redirected to a file, or captured by a caller. The formatter is
+# deliberately bare: the report below is a fixed-width table meant for human eyes, and a
+# timestamp/level prefix on every line would break its columns. The level carries the
+# meaning instead --
+#     INFO     progress lines and the full report (the default)
+#     WARNING  something needs attention: a case that behaved differently than predicted,
+#              or the harness itself failing to clean up. `--log-level WARNING` therefore
+#              gives you only what went wrong, without the table.
+#     ERROR    the run cannot proceed at all.
+# propagate = False keeps Django's own LOGGING config (sefaria/settings.py:251) from
+# additionally routing these lines to log/sefaria.log or printing each one twice.
+# ---------------------------------------------------------------------------
+
+logger = logging.getLogger("audit_skip_bad_record")
+
+
+def setup_logging(level):
+    """Send this script's output to stdout, unadorned. Called once, from main()."""
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    logger.handlers = [handler]
+    logger.setLevel(level)
+    logger.propagate = False
+
+
 # Outcome codes, ordered worst-first for the report summary.
 CAUGHT, WRONG_SITE, PROPAGATED, NO_EFFECT = "CAUGHT", "WRONG_SITE", "PROPAGATED", "NO_EFFECT"
 BROKE, NO_BREAK = "BROKE", "NO_BREAK"   # outcomes for the breaker cases below
@@ -90,12 +144,12 @@ def assert_local_mongo():
     local = {"localhost", "127.0.0.1", "::1", "mongo", None}
     bad = [h for h in hosts if h not in local]
     if bad:
-        sys.exit(
-            "REFUSING TO RUN: MONGO_HOST is {!r}.\n"
+        logger.error(
+            "REFUSING TO RUN: MONGO_HOST is %r.\n"
             "This script writes malformed documents and is only ever safe against a\n"
-            "local, disposable Mongo. Point MONGO_HOST at localhost and re-run.".format(host)
-        )
-    print("Mongo host {!r}, db {!r} -- local, proceeding.".format(host, settings.SEFARIA_DB))
+            "local, disposable Mongo. Point MONGO_HOST at localhost and re-run.", host)
+        sys.exit(1)
+    logger.info("Mongo host %r, db %r -- local, proceeding.", host, settings.SEFARIA_DB)
 
 
 # ---------------------------------------------------------------------------
@@ -137,7 +191,7 @@ def cleanup():
         try:
             db[collection].delete_one({"_id": _id})
         except Exception as e:  # never let cleanup mask the real failure
-            print("  ! cleanup failed for {}/{}: {}".format(collection, _id, e))
+            logger.warning("  ! cleanup failed for %s/%s: %s", collection, _id, e)
 
 
 atexit.register(cleanup)
@@ -165,7 +219,7 @@ def purge(collections):
                 total += db[collection].delete_many(
                     {field: {"$regex": "^" + prefix}}).deleted_count
 
-    print("Purged {} leftover audit document(s).".format(total))
+    logger.info("Purged %d leftover audit document(s).", total)
     return total
 
 
@@ -278,11 +332,24 @@ def restore_library_baseline():
 # Each case: a synthetic bad document, the builder that reaches the guard, and what the
 # guard is expected to do. `outside_guard=True` marks a propagation the guard could not have
 # caught at any breadth, because the raise happens outside its `with` block.
+#
+# The leading "S<n>" is this script's id for the guard site under test -- see SITE IDS in
+# the module docstring. Cases sharing an id are different corruptions of the same guard;
+# the `# -- category.py:223` comment heading each group names the source line that id
+# stands for.
 # ---------------------------------------------------------------------------
 
 def case(site, operation, corruption, collection, doc, trigger, expect,
          error_type=None, outside_guard=False, note=None, extra_docs=None, skip=None):
     """One audit case.
+
+    `site` is this script's own short id for the guard site under test (S1..S20 -- see SITE
+    IDS in the module docstring). It is a label invented here; it appears nowhere in
+    sefaria/. `operation` is what actually identifies the guard -- it is the exact string
+    that guard passes to skip_tracking, so it is also what shows up in the skip records and
+    the Slack summary, and it is what run_case() matches on to decide whether the skip came
+    from the site under test or some other one. `corruption` is the one-line human
+    description of what is wrong with the seeded document.
 
     `outside_guard=True` marks a propagation caused by catch PLACEMENT rather than catch
     breadth: the exception is raised while the `for rec in SomeSet()` iterator instantiates
@@ -658,7 +725,7 @@ def run_breaker_case(c, notify, index, total):
     `seed(count)` returns the (collection, doc) pairs to insert — `count` copies of one bad
     record for a flat site, or a whole parent/children/links fixture for a recursive one.
     """
-    print("[{:>2}/{}] {} {}".format(index, total, c["site"], c["corruption"]))
+    logger.info("[%2d/%d] %s %s", index, total, c["site"], c["corruption"])
     reset_skip_counts()
     notify.reset_mock()
     raised = None
@@ -674,7 +741,7 @@ def run_breaker_case(c, notify, index, total):
         try:
             restore_library_baseline()
         except Exception as e:
-            print("  ! baseline restore failed: {}".format(e))
+            logger.warning("  ! baseline restore failed: %s", e)
         reset_skip_counts()
 
     problems = []
@@ -707,7 +774,8 @@ def run_breaker_case(c, notify, index, total):
     outcome = NO_BREAK if problems else BROKE
     detail = "; ".join(problems) if problems else "aborted at {} skips, summary posted".format(
         SIGNATURE_BREAKER_THRESHOLD)
-    print("      -> {} ({})".format(outcome, detail))
+    logger.log(logging.WARNING if problems else logging.INFO,
+               "      -> %s (%s)", outcome, detail)
     return dict(site=c["site"], operation=c["operation"], corruption=c["corruption"],
                 outcome=outcome, detail=detail, matched=not problems, expect=BROKE,
                 error_type=c["error_type"], outside_guard=False, note=c["detail"], skip=None,
@@ -767,9 +835,9 @@ def escape_point(exc):
 
 def run_case(c, index, total):
     """Seed the bad document(s), run the builder, classify what the guard did, clean up."""
-    print("[{:>2}/{}] {} {} -- {}".format(index, total, c["site"], c["operation"], c["corruption"]))
+    logger.info("[%2d/%d] %s %s -- %s", index, total, c["site"], c["operation"], c["corruption"])
     if c["skip"]:
-        print("      -> SKIPPED ({})".format(c["skip"]))
+        logger.info("      -> SKIPPED (%s)", c["skip"])
         return dict(c, outcome="SKIPPED", detail=c["skip"], matched=True, escaped_at="")
 
     reset_skip_counts()
@@ -799,7 +867,7 @@ def run_case(c, index, total):
             try:
                 restore_library_baseline()
             except Exception as e:
-                print("  ! baseline restore failed: {}".format(e))
+                logger.warning("  ! baseline restore failed: %s", e)
         reset_skip_counts()
 
     ours = [r for r in records if r.operation == c["operation"]]
@@ -820,42 +888,46 @@ def run_case(c, index, total):
         detail = "no error, no skip"
 
     matched = outcome == c["expect"]
-    print("      -> {} ({}){}{}".format(
-        outcome, detail,
-        "  escaped at " + escaped_at if escaped_at else "",
-        "" if matched else "  !! EXPECTED " + c["expect"]))
+    logger.log(logging.INFO if matched else logging.WARNING,
+               "      -> %s (%s)%s%s", outcome, detail,
+               "  escaped at " + escaped_at if escaped_at else "",
+               "" if matched else "  !! EXPECTED " + c["expect"])
     return dict(c, outcome=outcome, detail=detail, matched=matched, escaped_at=escaped_at)
 
 
 def report(results):
-    """Print the audit table: one row per case, grouped by guard site."""
+    """Log the audit table: one row per case, grouped by guard site.
+
+    The table is INFO and the mismatches at the end are WARNING, so `--log-level WARNING`
+    reduces a run to just the cases that behaved differently than the table predicts.
+    """
     by_outcome = {}
     for r in results:
         by_outcome.setdefault(r["outcome"], []).append(r)
 
-    print("\n" + "=" * 100)
-    print("SKIP_BAD_RECORD AUDIT -- {} cases across {} guard sites".format(
-        len(results), len({r["site"] for r in results})))
-    print("Breaker thresholds: signature={}, volume={}".format(
-        SIGNATURE_BREAKER_THRESHOLD, skip_tracking.VOLUME_BREAKER_THRESHOLD))
-    print("=" * 100)
+    logger.info("\n" + "=" * 100)
+    logger.info("SKIP_BAD_RECORD AUDIT -- %d cases across %d guard sites",
+                len(results), len({r["site"] for r in results}))
+    logger.info("Breaker thresholds: signature=%s, volume=%s",
+                SIGNATURE_BREAKER_THRESHOLD, skip_tracking.VOLUME_BREAKER_THRESHOLD)
+    logger.info("=" * 100)
 
     width = max(len(r["corruption"]) for r in results)
     current = None
     for r in results:
         if r["site"] != current:
             current = r["site"]
-            print("\n{}  {}".format(r["site"], r["operation"]))
+            logger.info("\n%s  %s", r["site"], r["operation"])
         flag = "ok " if r["matched"] else "DIFF"
         design = "  [outside guard]" if r["outside_guard"] and r["outcome"] == PROPAGATED else ""
-        print("  {} {:<12} {:<{w}}  {}{}".format(
+        logger.info("  {} {:<12} {:<{w}}  {}{}".format(
             flag, r["outcome"], r["corruption"], r["detail"], design, w=width))
         if r.get("escaped_at"):
-            print("       escaped at: {}".format(r["escaped_at"]))
+            logger.info("       escaped at: %s", r["escaped_at"])
         if r["note"]:
-            print("       note: {}".format(r["note"]))
+            logger.info("       note: %s", r["note"])
 
-    print("\n" + "-" * 100)
+    logger.info("\n" + "-" * 100)
     for outcome in (CAUGHT, PROPAGATED, WRONG_SITE, NO_EFFECT, "SKIPPED", BROKE, NO_BREAK):
         rows = by_outcome.get(outcome, [])
         if not rows:
@@ -865,13 +937,14 @@ def report(results):
             unexpected = [r for r in rows if not r["outside_guard"]]
             extra = "  ({} outside the guard, {} inside)".format(
                 len(rows) - len(unexpected), len(unexpected))
-        print("{:<12} {:>3}{}".format(outcome, len(rows), extra))
+        logger.info("{:<12} {:>3}{}".format(outcome, len(rows), extra))
 
     surprises = [r for r in results if not r["matched"]]
-    print("\n{} case(s) behaved differently than predicted:".format(len(surprises)))
+    logger.log(logging.WARNING if surprises else logging.INFO,
+               "\n%d case(s) behaved differently than predicted:", len(surprises))
     for r in surprises:
-        print("  {} {} -- expected {}, got {} ({})".format(
-            r["site"], r["corruption"], r["expect"], r["outcome"], r["detail"]))
+        logger.warning("  %s %s -- expected %s, got %s (%s)",
+                       r["site"], r["corruption"], r["expect"], r["outcome"], r["detail"])
     return surprises
 
 
@@ -880,16 +953,21 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--list", action="store_true", help="print the case table and exit")
     ap.add_argument("--clean", action="store_true", help="purge leftover _skip_audit docs and exit")
-    ap.add_argument("--only", nargs="+", metavar="SITE", help="run only these site ids (e.g. S1 S3)")
+    ap.add_argument("--only", nargs="+", metavar="SITE",
+                    help="run only these site ids, e.g. S1 S3 (see SITE IDS above; "
+                         "--list prints every id)")
+    ap.add_argument("--log-level", default="INFO",
+                    choices=("DEBUG", "INFO", "WARNING", "ERROR"),
+                    help="INFO (default) prints progress and the full report; WARNING "
+                         "prints only cases that behaved differently than predicted")
     args = ap.parse_args()
+    setup_logging(args.log_level)
 
     if args.list:
-        for c in ALL_CASES:
-            print("{:<5} {:<45} {}".format(c["site"], c["operation"], c["corruption"]))
-        for c in BREAKER_CASES:
-            print("{:<5} {:<45} {}".format(c["site"], c["operation"], c["corruption"]))
-        print("\n{} corruption cases across {} sites, plus {} breaker case(s).".format(
-            len(ALL_CASES), len({c["site"] for c in ALL_CASES}), len(BREAKER_CASES)))
+        for c in ALL_CASES + BREAKER_CASES:
+            logger.info("{:<5} {:<45} {}".format(c["site"], c["operation"], c["corruption"]))
+        logger.info("\n%d corruption cases across %d sites, plus %d breaker case(s).",
+                    len(ALL_CASES), len({c["site"] for c in ALL_CASES}), len(BREAKER_CASES))
         return 0
 
     assert_local_mongo()
@@ -900,11 +978,12 @@ def main():
 
     cases = [c for c in ALL_CASES if not args.only or c["site"] in args.only]
     if not cases and not [c for c in BREAKER_CASES if not args.only or c["site"] in args.only]:
-        sys.exit("No cases matched --only {}".format(args.only))
+        logger.error("No cases matched --only %s", args.only)
+        sys.exit(1)
 
     # Clear anything a previous hard kill left behind, so stale docs can't skew results.
     purge(TOUCHED_COLLECTIONS)
-    print("\nEstablishing clean library baseline...")
+    logger.info("\nEstablishing clean library baseline...")
     restore_library_baseline()
 
     breaker_cases = [c for c in BREAKER_CASES if not args.only or c["site"] in args.only]
@@ -916,14 +995,14 @@ def main():
             try:
                 results.append(run_case(c, i, total))
             except Exception:
-                traceback.print_exc()
+                logger.exception("harness error while running %s", c["site"])
                 results.append(dict(c, outcome="HARNESS_ERROR", detail="see traceback",
                                     matched=False))
         for j, c in enumerate(breaker_cases, len(cases) + 1):
             try:
                 results.append(run_breaker_case(c, notify, j, total))
             except Exception:
-                traceback.print_exc()
+                logger.exception("harness error while running %s", c["site"])
                 results.append(dict(c, operation=c["operation"], outcome="HARNESS_ERROR",
                                     detail="see traceback", matched=False, expect=BROKE,
                                     outside_guard=False, note=None, skip=None, escaped_at=""))
