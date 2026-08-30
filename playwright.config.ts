@@ -117,6 +117,24 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // Strapi content tests (banners/modals/sidebar ads). HAR-driven and deliberately
+    // Strapi-ON: these specs bypass goToPageWithLang (which suppresses Strapi) and replay
+    // e2e-tests/fixtures/strapi-content.har via routeFromHAR. Kept as a standalone project,
+    // like chrome-newsletter, so the fixtures/clock machinery stays isolated from the
+    // PageManager suites. See e2e-tests/tests/strapi.fixtures.js.
+    {
+      name: 'chrome-strapi',
+      testDir: './e2e-tests/tests',
+      testMatch: /strapi-.*\.spec\.js/,
+      use: {
+        ...devices['Desktop Chrome'],
+        // No baseURL override: inherit the global `use.baseURL` (= SANDBOX_URL verbatim), like
+        // chrome-newsletter. The MODULE_URLS defined in this file always build
+        // `https://www.<domain>`, which is correct for a remote sandbox but breaks a local one
+        // (`https://www.localhost:8000` → ERR_SSL_PROTOCOL_ERROR). Recording happens against a
+        // local Django + Strapi, so the raw SANDBOX_URL is what this suite needs.
+      },
+    },
     // Sanity = TAG-scoped, not folder-scoped. Scans the whole tree and runs
     // every test tagged `@sanity`, wherever it lives — the release-gate set is
     // defined by the tag, not by any folder. (The Sanity/ folder is now docs
