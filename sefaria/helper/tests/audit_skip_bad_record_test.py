@@ -5,32 +5,30 @@ Audit every skip_bad_record / log_skip guard site by feeding it real bad data.
 WHAT THIS IS FOR
     The guards added in PR #3442 make the library-cache build survive one corrupt DB
     record: the record is logged, recorded in sefaria.helper.skip_tracking, and skipped,
-    instead of aborting startup / reset_cache / reset_toc. sefaria/helper/tests/
-    skip_tracking_test.py proves the *mechanism* works, but it does so with MagicMock
-    loggers and hand-raised exceptions -- it never touches a single real guard site.
+    instead of aborting startup / reset_cache / reset_toc. skip_tracking_test.py (next to
+    this file) proves the *mechanism* works, but it does so with MagicMock loggers and
+    hand-raised exceptions -- it never touches a single real guard site.
 
-    This script closes that gap from the other end. For each guard site it inserts a
-    genuinely malformed document into a LOCAL Mongo, runs the narrowest build function
-    that reaches that site, and reports what actually happened:
+    This file closes that gap from the other end. For each guard site it inserts a
+    genuinely malformed document into Mongo, runs the narrowest build function that
+    reaches that site, and asserts what actually happened:
 
         CAUGHT      the guard fired and recorded the skip, with the expected error type
         WRONG_SITE  a skip was recorded, but by some other guard than the one under test
         PROPAGATED  the exception escaped the guard entirely (the build would abort)
         NO_EFFECT   the bad record caused no error and no skip (corruption was benign)
 
-    PROPAGATED is not automatically a bug. A case labelled `outside guard` escaped because
-    the exception is raised where no `with` block is in scope -- typically while the
-    `for rec in SomeSet()` iterator instantiates the record -- so no exception tuple could
-    have caught it, however wide. Those are fixable only by moving the guard. A PROPAGATED
-    case NOT labelled that way is a genuine breadth gap: the guard was in scope and let the
-    exception through.
+    Every case declares which of the four it expects, and fails if it gets another. So
+    PROPAGATED is not automatically a failure. A case marked `outside_guard` escaped
+    because the exception is raised where no `with` block is in scope -- typically while
+    the `for rec in SomeSet()` iterator instantiates the record -- so no exception tuple
+    could have caught it, however wide. Those are fixable only by moving the guard. A
+    PROPAGATED case NOT marked that way would be a genuine breadth gap, and no case
+    expects one.
 
-    A separate section (site "B1") exercises the skip-tracking breakers, which the 38
+    test_breaker_aborts_the_build exercises the skip-tracking breakers, which the
     corruption cases cannot: each of those seeds one bad record, and the breakers only
     engage when degradation is systemic. See BREAKER_CASES.
-
-    Rerun this after any change to BAD_RECORD_EXCEPTIONS, to the guards, or to the
-    breakers; the script exits non-zero if any case stops behaving as its table predicts.
 
 SITE IDS  (what "S1" means)
     A "guard site" is one `with skip_bad_record(...)` or `log_skip(...)` block in the
@@ -42,90 +40,77 @@ SITE IDS  (what "S1" means)
         B1, B2      the two breaker cases. These are not guard sites: they seed systemic
                     damage and assert the build ABORTS rather than skips.
 
-    These ids are invented by this script and exist nowhere else -- grepping sefaria/ for
+    These ids are invented by this file and exist nowhere else -- grepping sefaria/ for
     "S1" will find nothing. What identifies the real code is the `operation` string sitting
     next to the id in each case (e.g. S1 is "TocTree vstate record", the guard at
     sefaria/model/category.py:223), and that string is also what skip_tracking records at
     runtime and prints in its Slack summaries. The id is just a stable handle for it, since
     several cases share one site -- one guard is usually worth corrupting several ways.
 
-    The ids are what `--only` selects on and what the report groups its rows by:
+    Each id is the leading part of its pytest test id, so `-k` selects on it:
 
-        --only S1 S3   run just those two guard sites
-        --only B1      run just the first breaker case
-        --list         print every id with the operation it stands for
+        pytest sefaria/helper/tests/audit_skip_bad_record_test.py -k "S1 or S3"
+        pytest sefaria/helper/tests/audit_skip_bad_record_test.py -k B1
+        pytest sefaria/helper/tests/audit_skip_bad_record_test.py --collect-only -q
 
-SAFETY
-    * Refuses to run unless MONGO_HOST resolves to localhost/127.0.0.1. There is no
-      override flag; point it somewhere else and it exits non-zero.
-    * Never mutates real data, and everything it writes is synthetic -- so cleanup is a
-      delete, not a restore-from-snapshot that can be lost mid-run.
-    * Every insert is journalled to disk before the build runs, so even a hard kill
-      leaves an exact list of what to remove; `--clean` replays it. If the journal itself
-      is lost, `purge()` falls back to deleting documents named `ZZAudit*` / `zzaudit-*`.
-      That fallback is by name, not by ownership, so it would also delete a pre-existing
-      document with such a name -- acceptable only because nothing in the corpus is named
-      that and the script refuses to run against anything but a local, disposable Mongo.
-    * Cleans up per case in a finally block, and again via atexit.
+WHERE THIS RUNS
+    These tests WRITE malformed documents into whatever Mongo the settings point at, so
+    _audit_mongo_host_is_disposable() refuses to let them run anywhere but a Mongo that is
+    known-disposable: a developer's local instance, or the per-commit ephemeral sandbox CI
+    stands up (MONGO_HOST is `<deployEnv>-mongo` and DEPLOY_ENV is `sandbox-<sha>`, see
+    helm-chart/sefaria/templates/rollout/web.yaml and .github/workflows/continuous.yaml).
+    Anywhere else -- including an unset MONGO_HOST, which inside a pod means the shared
+    cluster Mongo -- the whole module SKIPS with a loud reason rather than writing. Check
+    for that skip in the CI log before assuming these ran.
+
+    Other safety properties:
+    * Everything written is synthetic, so cleanup is a delete, not a restore-from-snapshot
+      that can be lost mid-run.
+    * Every insert is journalled to disk before the build runs, so even a hard kill leaves
+      an exact list of what to remove; the session fixture replays the journal on the next
+      run. If the journal itself is lost, purge() falls back to deleting documents named
+      `ZZAudit*` / `zzaudit-*`. That fallback is by name, not by ownership, so it would
+      also delete a pre-existing document with such a name -- acceptable only because
+      nothing in the corpus is named that and these tests refuse to run against anything
+      but a disposable Mongo.
+    * Cleans up per case in a finally block, again in the session fixture, and again via
+      atexit.
     * Slack is patched out for the whole run; nothing reaches #engineering-signal.
 
-USAGE
-    ./run audit_skip_bad_record.py                  # run every case, print the report
-    ./run audit_skip_bad_record.py --list           # show the case table, touch nothing
-    ./run audit_skip_bad_record.py --only S1 S3     # run only certain sites
-    ./run audit_skip_bad_record.py --only B1        # just the breaker case
-    ./run audit_skip_bad_record.py --clean          # purge leftovers from a hard kill
-    ./run audit_skip_bad_record.py --log-level WARNING   # only the cases that misbehaved
+COST
+    Roughly 40 cases, each running a real library builder, several of which rebuild the
+    entire in-memory index map. This is minutes, not seconds. If it ever needs to come out
+    of the default CI run, add `@pytest.mark.deep` to the two test functions -- CI's filter
+    is `-m "not deep and not failing"` (build/ci/createJobFromRollout.sh).
 """
-import argparse
 import atexit
 import json
 import logging
 import os
-import sys
+import re
 import tempfile
 import traceback
-from contextlib import contextmanager
 from unittest.mock import patch
 
-import django
-
-django.setup()
+import pytest
 
 from django.conf import settings
 
 from sefaria.system.database import db
-from sefaria.helper import skip_tracking
 from sefaria.helper.skip_tracking import (reset_skip_counts, get_skip_records,
                                           SIGNATURE_BREAKER_THRESHOLD)
 
 # ---------------------------------------------------------------------------
 # Logging
 #
-# Everything this script emits goes through this logger rather than bare print(), so the
-# run can be quieted, redirected to a file, or captured by a caller. The formatter is
-# deliberately bare: the report below is a fixed-width table meant for human eyes, and a
-# timestamp/level prefix on every line would break its columns. The level carries the
-# meaning instead --
-#     INFO     progress lines and the full report (the default)
-#     WARNING  something needs attention: a case that behaved differently than predicted,
-#              or the harness itself failing to clean up. `--log-level WARNING` therefore
-#              gives you only what went wrong, without the table.
-#     ERROR    the run cannot proceed at all.
-# propagate = False keeps Django's own LOGGING config (sefaria/settings.py:251) from
-# additionally routing these lines to log/sefaria.log or printing each one twice.
+# The per-case progress lines below go through this logger rather than bare print(), so
+# pytest can capture them and replay them under a failing test. The formatter is left
+# alone and propagate is left on, so pytest's own logging plugin handles them: they are
+# hidden on a pass and shown in the captured-log section on a failure. To watch them live:
+#     pytest ... --log-cli-level=INFO
 # ---------------------------------------------------------------------------
 
-logger = logging.getLogger("audit_skip_bad_record")
-
-
-def setup_logging(level):
-    """Send this script's output to stdout, unadorned. Called once, from main()."""
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(logging.Formatter("%(message)s"))
-    logger.handlers = [handler]
-    logger.setLevel(level)
-    logger.propagate = False
+logger = logging.getLogger(__name__)
 
 
 # Outcome codes, ordered worst-first for the report summary.
@@ -137,19 +122,39 @@ BROKE, NO_BREAK = "BROKE", "NO_BREAK"   # outcomes for the breaker cases below
 # Safety
 # ---------------------------------------------------------------------------
 
-def assert_local_mongo():
-    """Hard-fail unless Mongo is local. Deliberately has no override flag."""
+# Hosts these tests may write malformed documents to. Anything not matching is refused.
+#
+# `None` is deliberately NOT allowed. It means MONGO_HOST is unset, which on a developer
+# machine barely happens (sefaria/local_settings.py sets it) but inside a deployed pod
+# means "fall through to the shared cluster Mongo" -- precisely the case this guard exists
+# to stop.
+DISPOSABLE_MONGO_HOSTS = {"localhost", "127.0.0.1", "::1", "mongo"}
+
+# CI stands up a fresh sandbox per commit and tears it down after; its Mongo service is
+# named `<deployEnv>-mongo` where deployEnv is `sandbox-<short sha>`. Deliberately narrow:
+# this admits the ephemeral per-commit sandbox and nothing else -- not `staging-mongo`,
+# not `production-mongo`.
+EPHEMERAL_MONGO_HOST = re.compile(r"^sandbox-[0-9a-f]{4,40}-mongo$")
+
+
+def _audit_mongo_host_is_disposable():
+    """Return None if it is safe to write here, or the reason it is not."""
     host = getattr(settings, "MONGO_HOST", None)
     hosts = host if isinstance(host, (list, tuple)) else [host]
-    local = {"localhost", "127.0.0.1", "::1", "mongo", None}
-    bad = [h for h in hosts if h not in local]
+    bad = [h for h in hosts
+           if h not in DISPOSABLE_MONGO_HOSTS
+           and not (isinstance(h, str) and EPHEMERAL_MONGO_HOST.match(h))]
     if bad:
-        logger.error(
-            "REFUSING TO RUN: MONGO_HOST is %r.\n"
-            "This script writes malformed documents and is only ever safe against a\n"
-            "local, disposable Mongo. Point MONGO_HOST at localhost and re-run.", host)
-        sys.exit(1)
-    logger.info("Mongo host %r, db %r -- local, proceeding.", host, settings.SEFARIA_DB)
+        return ("MONGO_HOST is {!r}, which is not a known-disposable Mongo. These tests "
+                "write malformed documents and only ever run against a local instance or "
+                "CI's per-commit sandbox.".format(host))
+    return None
+
+
+# Evaluated once at import. A skipif mark (rather than a fixture) so an unsafe host skips
+# every test in the file with the reason attached, before any fixture can write anything.
+_UNSAFE_MONGO = _audit_mongo_host_is_disposable()
+pytestmark = pytest.mark.skipif(_UNSAFE_MONGO is not None, reason=_UNSAFE_MONGO or "")
 
 
 # ---------------------------------------------------------------------------
@@ -333,7 +338,7 @@ def restore_library_baseline():
 # guard is expected to do. `outside_guard=True` marks a propagation the guard could not have
 # caught at any breadth, because the raise happens outside its `with` block.
 #
-# The leading "S<n>" is this script's id for the guard site under test -- see SITE IDS in
+# The leading "S<n>" is this file's id for the guard site under test -- see SITE IDS in
 # the module docstring. Cases sharing an id are different corruptions of the same guard;
 # the `# -- category.py:223` comment heading each group names the source line that id
 # stands for.
@@ -343,7 +348,7 @@ def case(site, operation, corruption, collection, doc, trigger, expect,
          error_type=None, outside_guard=False, note=None, extra_docs=None, skip=None):
     """One audit case.
 
-    `site` is this script's own short id for the guard site under test (S1..S20 -- see SITE
+    `site` is this file's own short id for the guard site under test (S1..S20 -- see SITE
     IDS in the module docstring). It is a label invented here; it appears nowhere in
     sefaria/. `operation` is what actually identifies the guard -- it is the exact string
     that guard passes to skip_tracking, so it is also what shows up in the skip records and
@@ -358,8 +363,8 @@ def case(site, operation, corruption, collection, doc, trigger, expect,
 
     `extra_docs` seeds additional documents the corruption needs in order to be REACHED --
     e.g. a bad child topic is only visited if an IntraTopicLink makes it a child of
-    something. `skip` marks a case that cannot run under this script's constraints, with
-    the reason; it is reported rather than silently dropped.
+    something. `skip` marks a case that cannot run under this file's constraints, with the
+    reason; the test reports it via pytest.skip() rather than dropping it silently.
     """
     docs = [(collection, doc)] + list(extra_docs or [])
     return dict(site=site, operation=operation, corruption=corruption, collection=collection,
@@ -636,11 +641,11 @@ LOG_SKIP_CASES = [
 # ---------------------------------------------------------------------------
 # Breaker cases
 #
-# The 38 cases above seed ONE bad record each, so none of them can exercise the stopping
-# rule that makes a widened BAD_RECORD_EXCEPTIONS safe. These seed many identical bad
-# records instead, and assert the build aborts rather than logging its way through the
-# whole collection. Unit tests in sefaria/helper/tests/skip_tracking_test.py cover the
-# same mechanism with mocks; these run it against real builders and a real Mongo.
+# The corruption cases above seed ONE bad record each, so none of them can exercise the
+# stopping rule that makes a widened BAD_RECORD_EXCEPTIONS safe. These seed many identical
+# bad records instead, and assert the build aborts rather than logging its way through the
+# whole collection. Unit tests in skip_tracking_test.py, next to this file, cover the same
+# mechanism with mocks; these run it against real builders and a real Mongo.
 #
 # They also verify the abort path posts its summary. That is not incidental: the pathway's
 # own signal_and_reset_skip_counts() call runs AFTER the build, so an abort skips it, and
@@ -719,13 +724,13 @@ BREAKER_CASES = [
 ]
 
 
-def run_breaker_case(c, notify, index, total):
+def run_breaker_case(c, notify):
     """Seed the case's documents, run the builder, and assert the build aborted.
 
     `seed(count)` returns the (collection, doc) pairs to insert — `count` copies of one bad
     record for a flat site, or a whole parent/children/links fixture for a recursive one.
     """
-    logger.info("[%2d/%d] %s %s", index, total, c["site"], c["corruption"])
+    logger.info("%s %s", c["site"], c["corruption"])
     reset_skip_counts()
     notify.reset_mock()
     raised = None
@@ -791,13 +796,6 @@ TOUCHED_COLLECTIONS = ({coll for c in ALL_CASES for coll, _ in c["docs"]}
 # Runner
 # ---------------------------------------------------------------------------
 
-@contextmanager
-def slack_muted():
-    """No audit run may post to #engineering-signal."""
-    with patch("sefaria.helper.skip_tracking.notify_engineering_signal") as m:
-        yield m
-
-
 def _exception_named(name):
     """Resolve an exception class name to the class, for subclass-aware comparison."""
     import builtins
@@ -833,13 +831,14 @@ def escape_point(exc):
     return "{}:{} in {}()".format(f.filename.split("/sefaria/")[-1], f.lineno, f.name)
 
 
-def run_case(c, index, total):
-    """Seed the bad document(s), run the builder, classify what the guard did, clean up."""
-    logger.info("[%2d/%d] %s %s -- %s", index, total, c["site"], c["operation"], c["corruption"])
-    if c["skip"]:
-        logger.info("      -> SKIPPED (%s)", c["skip"])
-        return dict(c, outcome="SKIPPED", detail=c["skip"], matched=True, escaped_at="")
+def run_case(c):
+    """Seed the bad document(s), run the builder, classify what the guard did, clean up.
 
+    Returns the case dict with `outcome`, `detail`, `matched` and `escaped_at` filled in;
+    the caller asserts on it. Cases carrying a `skip` reason never reach here -- the test
+    calls pytest.skip() on them first.
+    """
+    logger.info("%s %s -- %s", c["site"], c["operation"], c["corruption"])
     reset_skip_counts()
     raised = None
     try:
@@ -895,122 +894,103 @@ def run_case(c, index, total):
     return dict(c, outcome=outcome, detail=detail, matched=matched, escaped_at=escaped_at)
 
 
-def report(results):
-    """Log the audit table: one row per case, grouped by guard site.
+# ---------------------------------------------------------------------------
+# Fixtures
+# ---------------------------------------------------------------------------
 
-    The table is INFO and the mismatches at the end are WARNING, so `--log-level WARNING`
-    reduces a run to just the cases that behaved differently than the table predicts.
+@pytest.fixture(scope="module", autouse=True)
+def _audit_session():
+    """Bracket the whole file: clear leftovers, get a clean baseline, tidy up after.
+
+    The opening purge() matters as much as the closing one. A previous run killed mid-case
+    leaves synthetic documents behind, and a stale bad record sitting in Mongo while a
+    later case runs turns that case's result into an artefact of the leftover rather than
+    of the corruption under test.
     """
-    by_outcome = {}
-    for r in results:
-        by_outcome.setdefault(r["outcome"], []).append(r)
-
-    logger.info("\n" + "=" * 100)
-    logger.info("SKIP_BAD_RECORD AUDIT -- %d cases across %d guard sites",
-                len(results), len({r["site"] for r in results}))
-    logger.info("Breaker thresholds: signature=%s, volume=%s",
-                SIGNATURE_BREAKER_THRESHOLD, skip_tracking.VOLUME_BREAKER_THRESHOLD)
-    logger.info("=" * 100)
-
-    width = max(len(r["corruption"]) for r in results)
-    current = None
-    for r in results:
-        if r["site"] != current:
-            current = r["site"]
-            logger.info("\n%s  %s", r["site"], r["operation"])
-        flag = "ok " if r["matched"] else "DIFF"
-        design = "  [outside guard]" if r["outside_guard"] and r["outcome"] == PROPAGATED else ""
-        logger.info("  {} {:<12} {:<{w}}  {}{}".format(
-            flag, r["outcome"], r["corruption"], r["detail"], design, w=width))
-        if r.get("escaped_at"):
-            logger.info("       escaped at: %s", r["escaped_at"])
-        if r["note"]:
-            logger.info("       note: %s", r["note"])
-
-    logger.info("\n" + "-" * 100)
-    for outcome in (CAUGHT, PROPAGATED, WRONG_SITE, NO_EFFECT, "SKIPPED", BROKE, NO_BREAK):
-        rows = by_outcome.get(outcome, [])
-        if not rows:
-            continue
-        extra = ""
-        if outcome == PROPAGATED:
-            unexpected = [r for r in rows if not r["outside_guard"]]
-            extra = "  ({} outside the guard, {} inside)".format(
-                len(rows) - len(unexpected), len(unexpected))
-        logger.info("{:<12} {:>3}{}".format(outcome, len(rows), extra))
-
-    surprises = [r for r in results if not r["matched"]]
-    logger.log(logging.WARNING if surprises else logging.INFO,
-               "\n%d case(s) behaved differently than predicted:", len(surprises))
-    for r in surprises:
-        logger.warning("  %s %s -- expected %s, got %s (%s)",
-                       r["site"], r["corruption"], r["expect"], r["outcome"], r["detail"])
-    return surprises
-
-
-def main():
-    ap = argparse.ArgumentParser(description=__doc__,
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--list", action="store_true", help="print the case table and exit")
-    ap.add_argument("--clean", action="store_true", help="purge leftover _skip_audit docs and exit")
-    ap.add_argument("--only", nargs="+", metavar="SITE",
-                    help="run only these site ids, e.g. S1 S3 (see SITE IDS above; "
-                         "--list prints every id)")
-    ap.add_argument("--log-level", default="INFO",
-                    choices=("DEBUG", "INFO", "WARNING", "ERROR"),
-                    help="INFO (default) prints progress and the full report; WARNING "
-                         "prints only cases that behaved differently than predicted")
-    args = ap.parse_args()
-    setup_logging(args.log_level)
-
-    if args.list:
-        for c in ALL_CASES + BREAKER_CASES:
-            logger.info("{:<5} {:<45} {}".format(c["site"], c["operation"], c["corruption"]))
-        logger.info("\n%d corruption cases across %d sites, plus %d breaker case(s).",
-                    len(ALL_CASES), len({c["site"] for c in ALL_CASES}), len(BREAKER_CASES))
-        return 0
-
-    assert_local_mongo()
-
-    if args.clean:
-        purge(TOUCHED_COLLECTIONS)
-        return 0
-
-    cases = [c for c in ALL_CASES if not args.only or c["site"] in args.only]
-    if not cases and not [c for c in BREAKER_CASES if not args.only or c["site"] in args.only]:
-        logger.error("No cases matched --only %s", args.only)
-        sys.exit(1)
-
-    # Clear anything a previous hard kill left behind, so stale docs can't skew results.
     purge(TOUCHED_COLLECTIONS)
-    logger.info("\nEstablishing clean library baseline...")
+    logger.info("Establishing clean library baseline...")
+    restore_library_baseline()
+    yield
+    cleanup()
+    purge(TOUCHED_COLLECTIONS)
     restore_library_baseline()
 
-    breaker_cases = [c for c in BREAKER_CASES if not args.only or c["site"] in args.only]
-    total = len(cases) + len(breaker_cases)
 
-    results = []
-    with slack_muted() as notify:
-        for i, c in enumerate(cases, 1):
-            try:
-                results.append(run_case(c, i, total))
-            except Exception:
-                logger.exception("harness error while running %s", c["site"])
-                results.append(dict(c, outcome="HARNESS_ERROR", detail="see traceback",
-                                    matched=False))
-        for j, c in enumerate(breaker_cases, len(cases) + 1):
-            try:
-                results.append(run_breaker_case(c, notify, j, total))
-            except Exception:
-                logger.exception("harness error while running %s", c["site"])
-                results.append(dict(c, operation=c["operation"], outcome="HARNESS_ERROR",
-                                    detail="see traceback", matched=False, expect=BROKE,
-                                    outside_guard=False, note=None, skip=None, escaped_at=""))
+@pytest.fixture(autouse=True)
+def muted_slack():
+    """No audit case may post to #engineering-signal.
 
-    purge(TOUCHED_COLLECTIONS)
-    surprises = report(results)
-    return 1 if surprises else 0
+    Autouse, so it covers the corruption cases too -- any of them could in principle trip
+    a breaker and try to post. The breaker tests additionally request it by name, because
+    for them the mock is the assertion: the summary has to reach Slack *before* the abort.
+    """
+    with patch("sefaria.helper.skip_tracking.notify_engineering_signal") as m:
+        yield m
 
 
-if __name__ == "__main__":
-    sys.exit(main())
+def _case_id(c):
+    """Test id: the site id first, so `-k S1` selects every corruption of that guard."""
+    slug = re.sub(r"[^a-z0-9]+", "-", c["corruption"].lower()).strip("-")
+    return "{}-{}".format(c["site"], slug[:60])
+
+
+def _failure_message(r):
+    """The diagnosis for one failing case, in the shape the old report table printed it.
+
+    `escaped at` is the field worth reading first on a PROPAGATED failure: it is the
+    deepest sefaria frame in the traceback, which distinguishes "the guard's exception
+    tuple was too narrow" (fixable by widening) from "the exception was raised somewhere
+    the guard does not wrap at all" (fixable only by moving the guard).
+    """
+    lines = [
+        "",
+        "{} {}".format(r["site"], r["operation"]),
+        "  corruption: {}".format(r["corruption"]),
+        "  expected:   {}".format(r["expect"]),
+        "  got:        {}  ({})".format(r["outcome"], r["detail"]),
+    ]
+    if r.get("escaped_at"):
+        lines.append("  escaped at: {}".format(r["escaped_at"]))
+    if r.get("outside_guard"):
+        lines.append("  marked `outside guard`: the raise happens where no with-block is "
+                     "in scope, so no exception tuple could have caught it")
+    if r.get("note"):
+        lines.append("  note: {}".format(r["note"]))
+    return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("audit_case", ALL_CASES, ids=_case_id)
+def test_guard_site_handles_bad_record(audit_case):
+    """Seed one malformed document, run the builder that reaches the guard, check the guard.
+
+    The assertion is against the case's own `expect`, not against CAUGHT: several cases
+    legitimately expect NO_EFFECT (the corruption degrades silently rather than raising) or
+    PROPAGATED (the raise happens outside any with-block). What this test defends is that
+    each guard site keeps behaving the way the table says it behaves -- so widening
+    BAD_RECORD_EXCEPTIONS, moving a guard, or changing a builder shows up here as a
+    specific case flipping, with the escape point named.
+    """
+    if audit_case["skip"]:
+        pytest.skip(audit_case["skip"])
+    result = run_case(audit_case)
+    assert result["outcome"] == audit_case["expect"], _failure_message(result)
+
+
+@pytest.mark.parametrize("audit_case", BREAKER_CASES, ids=lambda c: c["site"])
+def test_breaker_aborts_the_build(audit_case, muted_slack):
+    """Seed systemic damage and check the build ABORTS instead of logging its way through.
+
+    Three things have to hold, and run_breaker_case() collects all three before failing so
+    one run tells you every way it went wrong:
+      - the build raises BuildDegradationError rather than completing;
+      - the original exception is chained as __cause__, so the diagnosis survives;
+      - the skip summary reaches Slack BEFORE the abort. The pathway's own
+        signal_and_reset_skip_counts() runs after the build, so an abort skips it -- if the
+        breaker does not post, the whole skip log is discarded with the exception.
+    """
+    result = run_breaker_case(audit_case, muted_slack)
+    assert result["matched"], _failure_message(result)

@@ -144,8 +144,9 @@ class BuildDegradationError(Exception):
 #      AttributeError on the Python object ("'Topic' object has no attribute 'slug'"), not
 #      as KeyError. That is the single most common real corruption shape, and excluding it
 #      meant the guards missed most of what they were written to survive. An audit of 38
-#      real corruptions across 21 guard sites (scripts/audit_skip_bad_record.py) measured
-#      coverage rising from 9 to 23 CAUGHT when these two were added.
+#      real corruptions across 21 guard sites (sefaria/helper/tests/
+#      audit_skip_bad_record_test.py) measured coverage rising from 9 to 23 CAUGHT when
+#      these two were added.
 #
 #   2. The failure mode that motivated the exclusion is now blocked by a better mechanism.
 #      Bad data and a broken refactor raise the SAME exception class and differ only in
