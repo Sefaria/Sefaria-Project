@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
+import SearchAnalytics, { resultLinkAnalyticsAttrs } from './sefaria/searchAnalytics';
 import { InterfaceText } from './Misc';
 import BreadcrumbPath from './BreadcrumbPath';
 
@@ -89,6 +90,7 @@ function SearchResultCard({
   openURL,
   query,
   accentColor,
+  analyticsPosition,
   // Sources-mode specific props
   snippet,
   snippetLang,
@@ -100,6 +102,26 @@ function SearchResultCard({
 }) {
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [pressRef, isPressed] = usePressState();
+
+  // Reports a click anywhere on this card as a search_element_clicked (type 'result') GA4
+  // event, and — for clicks that navigate the current window — ends the search flow with
+  // reason 'clicked_result'. Must fire from the card itself: entity cards navigate via
+  // window.location.href and every link here stops propagation, so none of these paths
+  // reaches ReaderApp's central link handler. Only cards given an analyticsPosition (the
+  // main search page) report; compare-panel and sidebar-search cards stay silent.
+  //
+  // `elementValue` names what was clicked — the result's ref for the card and its title,
+  // the category or author name for the links inside it.
+  const fireResultClickAnalytics = (elementValue, endsFlow = true) => {
+    if (analyticsPosition) {
+      SearchAnalytics.resultClicked(elementValue, analyticsPosition, endsFlow);
+    }
+  };
+
+  // Stamped on every link in the card so that a modified click — which ReaderApp kills at
+  // the document capture phase, before any React handler runs — can still be attributed to
+  // this result. See SearchAnalytics.reportModifiedResultLinkClick.
+  const linkAnalyticsAttrs = (elementValue) => resultLinkAnalyticsAttrs(elementValue, analyticsPosition);
 
   // The single click path for every clickable part of the card. Opening a result has to
   // carry two things the ref alone can't: which version matched, and which words to
@@ -137,6 +159,7 @@ function SearchResultCard({
 
   const handleCardClick = () => {
     if (window.getSelection && window.getSelection().toString()) return;
+    fireResultClickAnalytics(tref ?? name);
     openResult(ownResult);
   };
 
@@ -145,9 +168,15 @@ function SearchResultCard({
   // differently depending on where you click.
   const handleLinkClick = (target) => (e) => {
     e.stopPropagation();  // the card's own onClick would fire too, opening the wrong version
+    // A modified click opens a new tab or window and leaves the user on the search page, so
+    // it reports the click but must not end the flow. Inside ReaderApp these clicks never
+    // get here at all (ReaderApp reports them itself, see linkAnalyticsAttrs above); the
+    // check keeps the card correct on its own, e.g. in Storybook.
+    const opensNewTab = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
+    fireResultClickAnalytics(tref ?? name, !opensNewTab);
     // Modified clicks, and cards with no in-app handler at all, fall through to the browser;
     // the href already points at the matched version with the query highlighted.
-    if ((!onResultClick && !openURL) || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if ((!onResultClick && !openURL) || opensNewTab) return;
     e.preventDefault();
     openResult(target);
   };
@@ -155,10 +184,28 @@ function SearchResultCard({
   // Links to somewhere other than the result itself (the author under a book title, the
   // breadcrumb categories). They never open a result, so they don't go through openResult —
   // they just need the same "don't reload the page" treatment as the title link.
-  const handleSubLinkClick = (linkHref) => (e) => {
+  //
+  // These links lead away from search in the current window, so each is a result click that
+  // ends the flow. `elementValue` names what was clicked for analytics (the category or
+  // author name); `linkHref` is where it goes. A modified click opens a new tab and leaves
+  // the user on the search page, so it reports the click without ending the flow — the same
+  // split handleLinkClick makes.
+  const handleSubLinkClick = (elementValue, linkHref) => (e) => {
     e.stopPropagation();  // otherwise the card's onClick opens the result instead
-    if (!openURL || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const opensNewTab = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
+    fireResultClickAnalytics(elementValue, !opensNewTab);
+    if (!openURL || opensNewTab) return;
     if (openURL(linkHref)) { e.preventDefault(); }
+  };
+
+  // Middle-click opens the link in a new tab natively. Browsers dispatch `auxclick` rather
+  // than `click` for non-primary mouse buttons, so neither handleLinkClick nor
+  // handleSubLinkClick above ever runs for this gesture -- this is its only chance to be
+  // reported. Like a modified click it leaves the user on the search page, so it reports the
+  // click WITHOUT ending the flow, and the browser is left alone to open the tab.
+  const handleAuxClick = (elementValue) => (e) => {
+    if (e.button !== 1) { return; }   // 1 == middle; back/forward buttons aren't link clicks
+    fireResultClickAnalytics(elementValue, false);
   };
 
   const handleCardKeyDown = (e) => {
@@ -214,10 +261,20 @@ function SearchResultCard({
         )}
         <div className="searchResultCard-body">
           {crumbs && crumbs.length > 0 && (
-            <BreadcrumbPath crumbs={crumbs} onCrumbClick={handleSubLinkClick} />
+            <BreadcrumbPath
+              crumbs={crumbs}
+              getCrumbLinkProps={(crumb) => ({
+                ...linkAnalyticsAttrs(crumb.label),
+                onClick: handleSubLinkClick(crumb.label, crumb.href),
+                onAuxClick: handleAuxClick(crumb.label),
+              })}
+            />
           )}
           <div className="searchResultCard-header">
-            <a href={href} className="searchResultCard-titleLink" onClick={handleLinkClick(ownResult)}>
+            <a href={href} className="searchResultCard-titleLink"
+               {...linkAnalyticsAttrs(tref ?? name)}
+               onClick={handleLinkClick(ownResult)}
+               onAuxClick={handleAuxClick(tref ?? name)}>
               <div className="searchResultCard-titleRow">
                 <span className="searchResultCard-name">
                   <InterfaceText text={{ en: name, he: hebrewName }} />
@@ -242,7 +299,10 @@ function SearchResultCard({
                 {secondaryAuthor && (
                   <span className="searchResultCard-secondary-author">
                     {secondaryAuthorHref ? (
-                      <a href={secondaryAuthorHref} onClick={handleSubLinkClick(secondaryAuthorHref)}>
+                      <a href={secondaryAuthorHref}
+                         {...linkAnalyticsAttrs(secondaryAuthor)}
+                         onClick={handleSubLinkClick(secondaryAuthor, secondaryAuthorHref)}
+                         onAuxClick={handleAuxClick(secondaryAuthor)}>
                         <InterfaceText text={{ en: secondaryAuthor, he: hebrewSecondaryAuthor }} />
                       </a>
                     ) : (
@@ -293,7 +353,9 @@ function SearchResultCard({
                       key={i}
                       href={v.href}
                       className="searchResultCard-versionItem"
+                      {...linkAnalyticsAttrs(tref ?? name)}
                       onClick={handleLinkClick(v)}
+                      onAuxClick={handleAuxClick(tref ?? name)}
                     >
                       <div
                         className={`searchResultCard-snippet${v.snippetLang === 'he' ? ' he' : ' en'}`}
@@ -353,6 +415,7 @@ SearchResultCard.propTypes = {
   openURL:              PropTypes.func,
   query:                PropTypes.string,
   accentColor:          PropTypes.string,   // explicit override; skips palette lookup
+  analyticsPosition:    PropTypes.number,   // 1-based rank; presence opts the card into search analytics
   // Sources mode
   snippet:              PropTypes.string,
   snippetLang:          PropTypes.oneOf(['en', 'he']),
