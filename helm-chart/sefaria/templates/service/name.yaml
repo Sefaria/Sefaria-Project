@@ -1,0 +1,15 @@
+{{- if .Values.nameService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: name-{{ .Values.deployEnv }}
+  labels:
+    app: name-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: name
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: "name-{{ .Values.deployEnv }}"
+{{- end }}
