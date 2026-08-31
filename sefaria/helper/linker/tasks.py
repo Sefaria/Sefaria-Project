@@ -695,10 +695,10 @@ def _extract_resolved_spans(resolved_refs):
     for resolved_ref in resolved_refs:
         if resolved_ref.is_ambiguous or resolved_ref.resolution_failed:
             continue
-        entity = resolved_ref.raw_entity
+        pretty_span = resolved_ref.pretty_span
         spans.append({
-            "charRange": entity.char_indices,
-            "text": entity.text,
+            "charRange": pretty_span.range,
+            "text": pretty_span.text,
             "type": MUTCSpanType.CITATION.value,
             "ref": resolved_ref.ref.normal(),
         })
