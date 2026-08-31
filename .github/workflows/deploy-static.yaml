@@ -14,6 +14,7 @@ jobs:
     outputs:
       app_changed: ${{ steps.changes.outputs.app_changed }}
       chart_changed: ${{ steps.changes.outputs.chart_changed }}
+      env_changed: ${{ steps.changes.outputs.env_changed }}
       env: ${{ steps.env.outputs.env }}
       env_file: ${{ steps.env.outputs.env_file }}
     steps:
@@ -54,17 +55,23 @@ jobs:
 
           app_changed=false
           chart_changed=false
+          env_changed=false
 
           while IFS= read -r file; do
             if [[ "$file" == helm-chart/* ]]; then
               chart_changed=true
-            elif [[ "$file" != envs/* ]]; then
+            elif [[ "$file" == envs/* ]]; then
+              # HelmRelease value edits carry no app or chart version bump of their
+              # own, but still need a release tag for Flux to pick them up.
+              env_changed=true
+            else
               app_changed=true
             fi
           done <<< "$changed"
 
           echo "app_changed=$app_changed" >> $GITHUB_OUTPUT
           echo "chart_changed=$chart_changed" >> $GITHUB_OUTPUT
+          echo "env_changed=$env_changed" >> $GITHUB_OUTPUT
 
   release-chart:
     needs: detect
@@ -218,6 +225,7 @@ jobs:
     env:
       ENV_NAME: ${{ needs.detect.outputs.env }}
       ENV_FILE: ${{ needs.detect.outputs.env_file }}
+      ENV_CHANGED: ${{ needs.detect.outputs.env_changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -262,16 +270,45 @@ jobs:
         run: |
           APP_VERSION="${{ steps.app.outputs.version }}"
           CHART_VERSION="${{ steps.chart.outputs.version }}"
-          RELEASE_TAG="${ENV_NAME}/${APP_VERSION}+chart.${CHART_VERSION}"
+
+          # A commit that only edits envs/<env>/helmrelease.yaml bumps neither the app
+          # nor the chart version, so the (app, chart) pair alone cannot name a fresh
+          # deploy: the base tag already exists and `git tag` would fail. Suffix a
+          # deploy counter so the tag stays unique. The infrastructure repo treats the
+          # tag as an opaque ref (it only checks the "<env>/" prefix and that the
+          # remainder starts with a digit), so the suffix is safe downstream.
+          BASE_TAG="${ENV_NAME}/${APP_VERSION}+chart.${CHART_VERSION}"
+          RELEASE_TAG="$BASE_TAG"
+          if git rev-parse -q --verify "refs/tags/${BASE_TAG}" >/dev/null; then
+            n=2
+            while git rev-parse -q --verify "refs/tags/${BASE_TAG}.env.${n}" >/dev/null; do
+              n=$((n + 1))
+            done
+            RELEASE_TAG="${BASE_TAG}.env.${n}"
+          fi
+          echo "Release tag: ${RELEASE_TAG} (env_changed=${ENV_CHANGED})"
 
           mkdir -p helm-chart/promotions promotions
           echo "${CHART_VERSION}" > helm-chart/promotions/${ENV_NAME}
           echo "${APP_VERSION}" > promotions/${ENV_NAME}
 
           git add "$ENV_FILE" helm-chart/promotions/${ENV_NAME} promotions/${ENV_NAME}
-          git commit -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION} [skip ci]"
+
+          # On an env-only change the write-back above is a no-op and there is nothing
+          # to commit; tag the env commit itself rather than failing on an empty commit.
+          if git diff --cached --quiet; then
+            echo "No version write-back needed — tagging ${GITHUB_REF_NAME} as-is."
+          else
+            git commit -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION} [skip ci]"
+          fi
+
           git tag -a "${RELEASE_TAG}" -m "deploy(${ENV_NAME}): app=${APP_VERSION} chart=${CHART_VERSION}"
-          git push origin "${GITHUB_REF_NAME}" --follow-tags
+
+          # Branch and tag are pushed as separate, explicit refspecs. The release tag
+          # is what Flux pins to, so publishing it must not depend on the branch push
+          # having anything to carry — on an env-only change there is no new commit.
+          git push origin "${GITHUB_REF_NAME}"
+          git push origin "refs/tags/${RELEASE_TAG}"
 
           echo "release_tag=${RELEASE_TAG}" >> $GITHUB_OUTPUT
 
