@@ -43,6 +43,20 @@ class LegacyTextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
     A chunk of text corresponding to the provided :class:`Ref`, language, and optional version name.
     If it is possible to get a more complete text by merging multiple versions, a merged result will be returned.
 
+    Superseded by the real-language TextChunk in sefaria/model/text.py. The one reason this class
+    (and TextFamily, which is built on it) still needs to exist is the legacy v1 texts_api GET,
+    which external third-party API consumers call directly -- not used by our own client, but a
+    real, must-keep dependency.
+
+    Everything else that still technically routes to this class is not real, maintained product
+    surface -- just not yet removed, and a candidate for deletion rather than migration:
+    - bulktext_api's ?useTextFamily=1 branch (technically reachable via the linker.v2.js embed
+      widget, not something actively maintained).
+    - Garden's visual-garden pages (/garden/*) -- an essentially abandoned feature.
+    - parashat_hashavua_api, additionally documented broken (504 timeouts).
+    - sheets.py's rebuild_sheet_nodes and refine_ref_by_text: dead code, no live caller sends the
+      rebuildNodes flag that reaches the former, and the latter's only caller is Garden, above.
+
     :param oref: :class:`Ref`
     :param lang: "he" or "en". "he" means all rtl languages and "en" means all ltr languages
     :param vtitle: optional. Title of the version desired.
