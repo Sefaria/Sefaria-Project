@@ -197,6 +197,11 @@ def ensure_indices(active_db=None):
         ('user_story', [[("uid", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]],{}),
         ('user_story', [[("timestamp", pymongo.DESCENDING)]],{}),
         ('passage', ["ref_list"],{}),
+        # update_pagesheetrank() upserts one UpdateOne({"ref": ...}) per tref into
+        # ref_data. Unindexed, each upsert is a COLLSCAN of the whole collection
+        # (~1.27M docs, ~434ms each), so the weekly reindex dies on NetworkTimeout
+        # long before it reaches Elasticsearch.
+        ('ref_data', ["ref"],{}),
         ('user_history', ["uid"],{}),
         ('user_history', ["sheet_id"],{}),
         ('user_history', ["datetime"],{}),

@@ -311,10 +311,46 @@ def update_pagesheetrank():
         temp_sheetrank_scaled = (1.0 + sheetrank[tref] / 5) ** 2 if tref in sheetrank else RefData.DEFAULT_SHEETRANK
         pagesheetrank[tref] = temp_pagerank_scaled * temp_sheetrank_scaled
     from pymongo import UpdateOne
-    result = db.ref_data.bulk_write([
-        UpdateOne({"ref": tref}, {"$set": {"pagesheetrank": psr}}, upsert=True) for tref, psr in
-        list(pagesheetrank.items())
-    ])
+    _bulk_write_pagesheetranks(pagesheetrank)
+
+
+# Chunk size for the ref_data upserts. One bulk_write of every tref (~1.27M ops)
+# is a single logical operation whose socket reads blow past socketTimeoutMS
+# (300s) and die with NetworkTimeout, losing the whole run's work. Batching
+# bounds each round trip, emits progress, and makes a partial run resumable.
+PAGESHEETRANK_WRITE_BATCH_SIZE = 10000
+
+
+def _bulk_write_pagesheetranks(pagesheetrank, batch_size=None):
+    """Upsert pagesheetrank values into ref_data in bounded batches.
+
+    Requires the ref_data.ref index (registered in sefaria.system.database
+    .ensure_indices) — without it each upsert is a full collection scan and no
+    batch size is small enough to finish.
+    """
+    from pymongo import UpdateOne
+
+    batch_size = batch_size or PAGESHEETRANK_WRITE_BATCH_SIZE
+    items = list(pagesheetrank.items())
+    total = len(items)
+    modified = upserted = 0
+
+    for start in range(0, total, batch_size):
+        chunk = items[start:start + batch_size]
+        result = db.ref_data.bulk_write(
+            [
+                UpdateOne({"ref": tref}, {"$set": {"pagesheetrank": psr}}, upsert=True)
+                for tref, psr in chunk
+            ],
+            # order does not matter here; unordered lets the server parallelize
+            # and keeps one bad document from aborting the rest of the batch
+            ordered=False,
+        )
+        modified += result.modified_count
+        upserted += len(result.upserted_ids or {})
+        print("ref_data upsert {}/{}".format(min(start + batch_size, total), total))
+
+    return {"modified": modified, "upserted": upserted, "total": total}
 
 
 def cat_bonus(num_cats):
