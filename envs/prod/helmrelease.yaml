@@ -66,6 +66,7 @@ spec:
         schoolLookup:
           ref: school-lookup-data-production
     nameService:
+      enabled: true
       replicaCount: 2
     redis:
       containerImage:
