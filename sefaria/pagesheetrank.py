@@ -7,7 +7,7 @@ import numpy
 import random
 import json
 import time
-from pymongo.errors import AutoReconnect
+from pymongo.errors import AutoReconnect, OperationFailure
 from collections import defaultdict, OrderedDict
 from sefaria.model import *
 from sefaria.system.exceptions import InputError, NoVersionFoundError
@@ -392,7 +392,43 @@ def calculate_pagerank():
     return pagerank_dict
 
 
+def _ensure_ref_data_index():
+    """Guarantee the ref_data.ref index exists before doing any expensive work.
+
+    The final bulk upsert matches on {"ref": tref} ~1.27M times. Unindexed,
+    each match is a COLLSCAN of the whole collection (measured: 1,273,527 docs
+    examined, 434ms for a single lookup), so the run dies on NetworkTimeout
+    after ~12h having thrown away everything it computed.
+
+    Registering ref_data in sefaria.system.database.ensure_indices() documents
+    the requirement but does NOT satisfy it: ensure_indices()'s only caller is
+    a one-off migration script, so nothing in app startup, the Helm chart, or
+    any cron ever runs it. (`manage.py migrate` on the web pod is Django and
+    Postgres; it does not touch Mongo indexes.) Rather than depend on someone
+    having run a manual command in every environment, the job creates the index
+    itself. create_index is idempotent and costs nothing once it exists.
+
+    Deliberately called before the graph walk, not next to the write: failing
+    here costs seconds, failing at the write costs the whole run.
+
+    The index must stay non-unique -- ref_data currently holds ~1,385
+    duplicated refs, so a unique index could not build.
+    """
+    try:
+        db.ref_data.create_index("ref")
+    except OperationFailure:
+        # a restricted database user may be unable to create indexes; that is
+        # only survivable if the index is already there
+        have_ref_index = any(
+            spec.get("key") and spec["key"][0][0] == "ref"
+            for spec in db.ref_data.index_information().values()
+        )
+        if not have_ref_index:
+            raise
+
+
 def update_pagesheetrank():
+    _ensure_ref_data_index()
     pagerank = calculate_pagerank()
     sheetrank = calculate_sheetrank()
     pagesheetrank = {}
