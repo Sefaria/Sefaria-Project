@@ -26,6 +26,7 @@ import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
 import LinkerEditorPage from './LinkerEditorPage';
+import LinkerBulkCorrectorPage from './LinkerBulkCorrectorPage';
 import PublicCollectionsPage from './PublicCollectionsPage';
 import TranslationsPage from './TranslationsPage';
 import { TextColumnBannerChooser } from './TextColumnBanner';
@@ -1107,6 +1108,13 @@ class ReaderPanel extends Component {
           interfaceLang={this.props.interfaceLang}
           initialBook={this.state.linkerEditorBook}
           onBookChange={this.setLinkerEditorBook.bind(this)}
+        />
+      );
+
+    } else if (this.state.menuOpen === "linkerBulkCorrector") {
+      menu = (
+        <LinkerBulkCorrectorPage
+          interfaceLang={this.props.interfaceLang}
         />
       );
 

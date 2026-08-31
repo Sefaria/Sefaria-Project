@@ -7,6 +7,7 @@ import sourcesheets.views as sheets_views
 import remote_config.views as remote_config_views
 import api.views as api_views
 import api.linker_admin_views as linker_api_views
+import api.linker_bulk_corrector_views as linker_bulk_corrector_views
 import sefaria.views as sefaria_views
 import sefaria.gauth.views as gauth_views
 import guides.views as guides_views
@@ -131,6 +132,12 @@ shared_patterns = [
     path('_api/linker-admin/segment/rerun', linker_api_views.LinkerAdminRerunSegmentView.as_view()),
     path('_api/linker-admin/dataset/ref', linker_api_views.LinkerAdminAddRefDatasetView.as_view()),
     path('_api/linker-admin/dataset/ref-part', linker_api_views.LinkerAdminAddRefPartDatasetView.as_view()),
+
+    # Linker bulk corrector (staff-only): search/navigate/re-parse stored linker citation spans.
+    path('_api/linker-bulk-corrector/search', linker_bulk_corrector_views.LinkerBulkCorrectorSearchView.as_view()),
+    path('_api/linker-bulk-corrector/navigate', linker_bulk_corrector_views.LinkerBulkCorrectorNavigateView.as_view()),
+    path('_api/linker-bulk-corrector/citation/reparse', linker_bulk_corrector_views.LinkerBulkCorrectorReparseCitationView.as_view()),
+    path('_api/linker-bulk-corrector/reparse-dataset', linker_bulk_corrector_views.LinkerBulkCorrectorReparseDatasetView.as_view()),
 
     path('api/ref/<str:tref>', api_views.RefView.as_view()),
     re_path(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),

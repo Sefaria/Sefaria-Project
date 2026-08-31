@@ -166,6 +166,8 @@ def ensure_indices(active_db=None):
         ('sheets', [[("views", pymongo.DESCENDING)]],{}),
         ('sheets', ["categories"], {}),
         ('links', [[("owner", pymongo.ASCENDING), ("date_modified", pymongo.DESCENDING)]], {}),
+        ('marked_up_text_chunks', [[("ref", pymongo.ASCENDING), ("versionTitle", pymongo.ASCENDING), ("language", pymongo.ASCENDING)]], {}),
+        ('linker_output', [[("ref", pymongo.ASCENDING), ("versionTitle", pymongo.ASCENDING), ("language", pymongo.ASCENDING)]], {}),
         ('texts', ["title"],{}),
         ('texts', [[("priority", pymongo.DESCENDING), ("_id", pymongo.ASCENDING)]],{}),
         ('texts', [[("versionTitle", pymongo.ASCENDING), ("language", pymongo.ASCENDING)]],{}),

@@ -30,6 +30,7 @@ class LinkerDatasetExample(AbstractMongoRecord):
         "versionTitle",
         "added_by",
         "added_at",
+        "reason",
     ]
 
     attr_schemas = {
@@ -40,6 +41,7 @@ class LinkerDatasetExample(AbstractMongoRecord):
         "versionTitle": {"type": "string", "required": False},
         "added_by": {"type": "integer", "required": False, "nullable": True},
         "added_at": {"type": "integer", "required": False},
+        "reason": {"type": "string", "required": False},
         "labels": {
             "type": "dict",
             "required": True,

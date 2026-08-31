@@ -24,6 +24,7 @@ urlpatterns = [
     re_path(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
     re_path(r'^modtools/?$', reader_views.modtools),
     re_path(r'^linker-editor/?$', reader_views.linker_editor),
+    re_path(r'^linker-bulk-corrector/?$', reader_views.linker_bulk_corrector),
     path('modtools/upload_text', sefaria_views.modtools_upload_workflowy),
     path('modtools/links', sefaria_views.links_upload_api),
     path('modtools/links/<path:tref1>/<path:tref2>', sefaria_views.get_csv_links_by_refs_api),
