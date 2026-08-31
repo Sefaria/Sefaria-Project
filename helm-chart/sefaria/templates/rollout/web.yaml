@@ -198,6 +198,17 @@ spec:
           # initialDelaySeconds: 120
           periodSeconds: 60
           timeoutSeconds: 60
+          # /healthz is served by the same gunicorn workers as real traffic, so it queues
+          # behind them. Without an explicit threshold this defaults to 3, meaning ~3 minutes
+          # of a slow-but-alive app is enough for the kubelet to kill the container. Killing a
+          # slow pod makes things worse: the restart re-imports the whole application and
+          # shifts its traffic onto the remaining pods, which then slow down and fail their
+          # own probes. Readiness (below) is deliberately left at the default so a slow pod is
+          # still pulled out of the Service — liveness should only fire for a genuinely dead
+          # process, not a busy one. 60s x 7 = 420s, which matches the --timeout 420 this
+          # container already passes to gunicorn: the kubelet should not kill a worker before
+          # gunicorn's own timeout would have recycled it.
+          failureThreshold: 7
         readinessProbe:
           httpGet:
             path: /healthz

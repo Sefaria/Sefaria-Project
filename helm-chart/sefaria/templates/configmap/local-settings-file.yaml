@@ -195,7 +195,10 @@ data:
     SEARCH_INDEX_ON_SAVE = True
     SEARCH_INDEX_NAME_TEXT = os.getenv("SEARCH_INDEX_NAME_TEXT", "text")  # name of the ElasticSearch index to use
     SEARCH_INDEX_NAME_SHEET = os.getenv("SEARCH_INDEX_NAME_SHEET", "sheet")
-
+    SEARCH_INDEX_NAME_TOPIC = os.getenv("SEARCH_INDEX_NAME_TOPIC", "topic")
+    SEARCH_INDEX_NAME_BOOK = os.getenv("SEARCH_INDEX_NAME_BOOK", "book")
+    SEARCH_INDEX_NAME_CATEGORY = os.getenv("SEARCH_INDEX_NAME_CATEGORY", "category")
+    
     USE_NODE = True
     NODE_HOST = "http://{}:3000".format(nodejsHost)
     NODE_TIMEOUT = 5
@@ -395,6 +398,7 @@ data:
 
     WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
     WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
+    POWERED_BY_FORMSTACK_HMAC_SECRET = os.getenv("POWERED_BY_FORMSTACK_HMAC_SECRET")
 
     GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
     SEMANTIC_SEARCH_API_TOKEN = os.getenv("SEMANTIC_SEARCH_API_TOKEN", "")

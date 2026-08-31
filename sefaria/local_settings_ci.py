@@ -82,6 +82,9 @@ SEARCH_URL = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'
+SEARCH_INDEX_NAME_TOPIC = 'topic'  # topics and authors (authors are a subtype of topic)
+SEARCH_INDEX_NAME_BOOK = 'book'  # Index (book) records
+SEARCH_INDEX_NAME_CATEGORY = 'category'  # searchable TOC categories (see sefaria.model.autospell.get_search_categories)
 
 # Node Server
 USE_NODE = False
@@ -231,6 +234,8 @@ structlog.configure(
 
 WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
 WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
+
+POWERED_BY_FORMSTACK_HMAC_SECRET = os.getenv("POWERED_BY_FORMSTACK_HMAC_SECRET")
 
 GEMINI_API_KEY = ""
 SEMANTIC_SEARCH_API_TOKEN = ""

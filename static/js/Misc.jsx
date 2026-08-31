@@ -10,9 +10,7 @@ import PropTypes from 'prop-types';
 import Component from 'react-class';
 import { usePaginatedDisplay } from './Hooks';
 import {AdContext, StrapiDataContext} from './context';
-import {matchesCountryTarget} from './sefaria/strapiTargeting';
-import {INTERFACE_LANG_TO_LOCALE} from './sefaria/strapiLocalization';
-import {getViewerCountryCandidates} from './sefaria/countryCandidates';
+import {ContentType, isEligible, isPathExcluded, buildViewerContext} from './sefaria/strapiSelection';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import {ContentText} from "./ContentText";
@@ -2138,10 +2136,6 @@ const InterruptingMessage = ({
     localStorage.setItem("modal_" + modalName, "true");
   };
 
-  const hasModalBeenInteractedWith = (modalName) => {
-    return JSON.parse(localStorage.getItem("modal_" + modalName));
-  };
-
   const trackModalInteraction = (modalName, eventDescription) => {
     gtag("event", "modal_interacted_with_" + eventDescription, {
       campaignID: modalName,
@@ -2159,58 +2153,22 @@ const InterruptingMessage = ({
     sa_event("modal_viewed", { campaignID: strapi.modal.internalModalName });
   };
 
-  const shouldShow = () => {
-    if (!strapi.modal) return false;
-    if (!strapi.modal.locales.includes(INTERFACE_LANG_TO_LOCALE[Sefaria.interfaceLang])) return false;
-    if (
-      hasModalBeenInteractedWith(
-        strapi.modal.internalModalName
-      )
-    )
-      return false;
-    if (!matchesCountryTarget(strapi.modal.countriesToTarget, getViewerCountryCandidates())) return false;
-
-    let shouldShowModal = false;
-
-    if (
-      (Sefaria._uid && strapi.modal.showTo === "logged_in_only") ||
-      (!Sefaria._uid && strapi.modal.showTo === "logged_out_only")
-    )
-      shouldShowModal = true;
-    else if (strapi.modal.showTo == "both_logged_in_and_logged_out") {
-      let noUserKindIsSet = ![
-        strapi.modal.showToReturningVisitors,
-        strapi.modal.showToNewVisitors,
-        strapi.modal.showToSustainers,
-        strapi.modal.showToNonSustainers,
-      ].some((p) => p);
-      if (
-        Sefaria._uid &&
-        ((Sefaria.is_sustainer && strapi.modal.showToSustainers) ||
-          (!Sefaria.is_sustainer && strapi.modal.showToNonSustainers))
-      )
-        shouldShowModal = true;
-      else if (
-        (Sefaria.isReturningVisitor() && strapi.modal.showToReturningVisitors) ||
-        (Sefaria.isNewVisitor() && strapi.modal.showToNewVisitors)
-      )
-        shouldShowModal = true;
-      else if (noUserKindIsSet) 
-        shouldShowModal = true;
-    }
-    if (!shouldShowModal) return false;
-    const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
-    // Don't show the modal on pages where the button link goes to since you're already there
-    if (strapi.modal.buttonURL) {
-      if (strapi.modal.buttonURL.en) {
-        excludedPaths.push(new URL(strapi.modal.buttonURL.en).pathname);
-      }
-      if (strapi.modal.buttonURL.he) {
-        excludedPaths.push(new URL(strapi.modal.buttonURL.he).pathname);
-      }
-    }
-    return excludedPaths.indexOf(window.location.pathname) === -1;
-  };
+  // Runs only in the useEffect below (mount + strapi.modal change), so it gates whether the
+  // reveal timer is ARMED — an already-visible modal is never re-evaluated. Selection
+  // (context.js) already ran every viewer gate, so today this re-check is DEFENSE IN DEPTH, not
+  // load-bearing: the component mounts key-less at the ReaderApp root (ReaderApp.jsx:2461), so
+  // it only ever remounts on a full page load — where selection has re-run with the dismissal
+  // gate anyway, and where a cross-tab dismissal is likewise caught by selection itself. The
+  // re-check is what keeps dismissed-stays-dismissed standing the day that changes: a key, a
+  // conditional wrapper, or a move into the panel tree would reset hasInteractedWithModal on an
+  // in-page remount while the dismissed document is still the selected one. No real flow can
+  // exercise that today (see the remount note in strapi-dismissal-lifecycle.spec.js). The path
+  // guard stays display-only on purpose: it depends on the page the viewer is on now, and
+  // selection is deliberately page-independent (see strapiSelection.js).
+  const shouldShow = () =>
+    Boolean(strapi.modal) &&
+    isEligible(strapi.modal, buildViewerContext(), ContentType.MODAL) &&
+    !isPathExcluded(strapi.modal, window.location.pathname);
 
   const closeModal = (eventDescription) => {
     if (onClose) onClose();
@@ -2321,10 +2279,6 @@ const Banner = ({ onClose }) => {
     localStorage.setItem("banner_" + bannerName, "true");
   };
 
-  const hasBannerBeenInteractedWith = (bannerName) => {
-    return JSON.parse(localStorage.getItem("banner_" + bannerName));
-  };
-
   const trackBannerInteraction = (bannerName, eventDescription) => {
     gtag("event", "banner_interacted_with_" + eventDescription, {
       campaignID: bannerName,
@@ -2341,55 +2295,22 @@ const Banner = ({ onClose }) => {
     sa_event("banner_viewed", { campaign_id: strapi.banner.internalBannerName });
   };
 
-  const shouldShow = () => {
-    if (!strapi.banner) return false;
-    if (!strapi.banner.locales.includes(INTERFACE_LANG_TO_LOCALE[Sefaria.interfaceLang])) return false;
-    if (Sefaria.experiments) return false;
-    if (hasBannerBeenInteractedWith(strapi.banner.internalBannerName))
-      return false;
-    if (!matchesCountryTarget(strapi.banner.countriesToTarget, getViewerCountryCandidates())) return false;
-
-    let shouldShowBanner = false;
-
-    if (
-      (Sefaria._uid && strapi.banner.showTo === "logged_in_only") ||
-      (!Sefaria._uid && strapi.banner.showTo === "logged_out_only")
-    )
-      shouldShowBanner = true;
-    else if (strapi.banner.showTo == "both_logged_in_and_logged_out") {
-      let noUserKindIsSet = ![
-        strapi.banner.showToReturningVisitors,
-        strapi.banner.showToNewVisitors,
-        strapi.banner.showToSustainers,
-        strapi.banner.showToNonSustainers,
-      ].some((p) => p);
-      if (
-        Sefaria._uid &&
-        ((Sefaria.is_sustainer && strapi.banner.showToSustainers) ||
-          (!Sefaria.is_sustainer && strapi.banner.showToNonSustainers))
-      )
-        shouldShowBanner = true;
-      else if (
-        (Sefaria.isReturningVisitor() && strapi.banner.showToReturningVisitors) ||
-        (Sefaria.isNewVisitor() && strapi.banner.showToNewVisitors)
-      )
-        shouldShowBanner = true;
-      else if (noUserKindIsSet) 
-        shouldShowBanner = true;
-    }
-    if (!shouldShowBanner) return false;
-    const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
-    // Don't show the banner on pages where the button link goes to since you're already there
-    if (strapi.banner.buttonURL) {
-      if (strapi.banner.buttonURL.en) {
-        excludedPaths.push(new URL(strapi.banner.buttonURL.en).pathname);
-      }
-      if (strapi.banner.buttonURL.he) {
-        excludedPaths.push(new URL(strapi.banner.buttonURL.he).pathname);
-      }
-    }
-    return excludedPaths.indexOf(window.location.pathname) === -1;
-  };
+  // Runs only in the useEffect below (mount + strapi.banner change), so it gates whether the
+  // reveal timer is ARMED — an already-visible banner is never re-evaluated. Selection
+  // (context.js) already ran every viewer gate, so today this re-check is DEFENSE IN DEPTH, not
+  // load-bearing: the component mounts key-less at the ReaderApp root (ReaderApp.jsx:2462), so
+  // it only ever remounts on a full page load — where selection has re-run with the dismissal
+  // gate anyway, and where a cross-tab dismissal is likewise caught by selection itself. The
+  // re-check is what keeps dismissed-stays-dismissed standing the day that changes: a key, a
+  // conditional wrapper, or a move into the panel tree would reset hasInteractedWithBanner on an
+  // in-page remount while the dismissed document is still the selected one. No real flow can
+  // exercise that today (see the remount note in strapi-dismissal-lifecycle.spec.js). The path
+  // guard stays display-only on purpose: it depends on the page the viewer is on now, and
+  // selection is deliberately page-independent (see strapiSelection.js).
+  const shouldShow = () =>
+    Boolean(strapi.banner) &&
+    isEligible(strapi.banner, buildViewerContext(), ContentType.BANNER) &&
+    !isPathExcluded(strapi.banner, window.location.pathname);
 
   const closeBanner = (eventDescription) => {
     if (onClose) onClose();
