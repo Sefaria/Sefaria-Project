@@ -17,8 +17,8 @@ from sefaria.utils.hebrew import hebrew_term
 logger = structlog.get_logger(__name__)
 
 
-def subref(ref: text.Ref, section: int):
-    if ref.index_node.addressTypes[len(ref.sections)-1] == "Talmud":
+def subref(ref: text.Ref, section: int, is_amud: bool = False):
+    if is_amud:
         return _talmud_subref(ref, section)
     elif ref.index.categories == ['Tanakh', 'Torah']:
         return _parsha_subref(ref, section)
@@ -27,6 +27,14 @@ def subref(ref: text.Ref, section: int):
 
 
 def _talmud_subref(ref: text.Ref, section: int):
+    """
+    Refine a Talmud daf ref by amud, merging `section` into the existing daf address.
+    `section` must be 1 (amud aleph) or 2 (amud bet).
+    """
+    if section not in (1, 2):
+        raise InputError(f"Talmud amud value must be 1 (aleph) or 2 (bet), got {section}")
+    if len(ref.sections) == 0 or ref.index_node.addressTypes[len(ref.sections)-1] != "Talmud":
+        raise InputError(f"Can't apply amud to a ref that doesn't already have a Talmud daf set: {ref}")
     d = ref._core_dict()
     d['sections'][-1] += (section-1)
     d['toSections'] = d['sections'][:]
@@ -263,10 +271,14 @@ class NumberedReferenceableBookNode(IndexNodeReferenceableBookNode):
         possible_subrefs = []
         can_match_out_of_order_list = []
         for sec, toSec, addr_class in zip(possible_sections, possible_to_sections, addr_classes):
+            # Only the dedicated Amud node (inserted once per Talmud Daf, see insert_amud_node_values) may merge
+            # into the ref's existing section via _talmud_subref; every other address type appends a new section.
+            # This is what makes it structurally impossible to apply an amud merge more than once per ref chain.
+            is_amud = issubclass(addr_class, schema.AddressAmud)
             try:
-                refined_ref = subref(initial_ref, sec)
+                refined_ref = subref(initial_ref, sec, is_amud)
                 if toSec != sec:
-                    to_ref = subref(initial_ref, toSec)
+                    to_ref = subref(initial_ref, toSec, is_amud)
                     refined_ref = refined_ref.to(to_ref)
                 possible_subrefs += [refined_ref]
                 can_match_out_of_order_list += [addr_class.can_match_out_of_order(lang, section_str)]
