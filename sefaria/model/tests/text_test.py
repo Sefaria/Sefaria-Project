@@ -557,11 +557,16 @@ def test_index_rename_migrates_versions():
     }).save()
 
     # Insert raw to skip Version._validate during setup and include a non-primary version.
+    # actualLanguage/languageFamilyName are set explicitly since raw insert skips
+    # Version._normalize(), which would otherwise backfill them from language --
+    # Ref.text(lang=...) below matches on both.
     db.texts.insert_many([
         {"title": old, "versionTitle": "Secondary TEST", "versionSource": "blabla",
-         "language": "en", "isPrimary": False, "direction": "ltr", "chapter": chapter},
+         "language": "en", "actualLanguage": "en", "languageFamilyName": "english",
+         "isPrimary": False, "direction": "ltr", "chapter": chapter},
         {"title": old, "versionTitle": "Primary TEST", "versionSource": "blabla",
-         "language": "he", "isPrimary": True, "direction": "rtl", "chapter": chapter},
+         "language": "he", "actualLanguage": "he", "languageFamilyName": "hebrew",
+         "isPrimary": True, "direction": "rtl", "chapter": chapter},
     ])
 
     try:
