@@ -1,18 +1,26 @@
 # Strapi specs (`e2e-tests/tests/`)
 
 Playwright specs that drive `/api/strapi/graphql-cache` deterministically instead of depending on
-live Strapi content. There are two ways to supply the payload, and both are in use:
+live Strapi content. **Every spec routes synthetically** (`routeWithStrapiPayload`, matching the
+URL glob alone); the historical recorded/synthetic split ended 2026-08-31:
 
-| | Payload source | Reach for it when |
+| | Payload source | Status |
 | --- | --- | --- |
-| **Recorded** (`routeWithStrapiHarFixture`) | a committed `.har` captured from real Strapi | the question is "does Sefaria behave correctly against a payload Strapi really produced". Following the pattern the newsletter sign-up PR introduced. |
-| **Synthetic** (`routeWithStrapiPayload`) | a payload built in code by the factory | the state is a permutation, an unpublishable field value, or a response Strapi would never send |
+| **Synthetic** (`routeWithStrapiPayload`) | a payload built in code by the factory | the only routing in use — permutations, unpublishable field values, responses Strapi would never send, AND the fourteen recorded scenarios, now served from byte-equal replicas in [`strapi.scenario-payloads.js`](strapi.scenario-payloads.js) |
+| **Recorded** (`.har` files) | committed captures from real Strapi | **frozen reference** — never replayed, never re-recorded. They document real response structure and anchor two guards: the factory schema contract and the per-scenario fidelity proof |
 
 Recording came first, deliberately: fourteen real states were captured before any abstraction was
-extracted, so the factory is shaped by observed variation rather than by a guess. The recordings
-now do double duty — they are still the behavioural fixtures, and they are also the **schema the
-factory is held to** by [`strapi-payload-contract.spec.js`](strapi-payload-contract.spec.js). See
-[Synthetic payloads](#synthetic-payloads) for which to pick.
+extracted, so the factory is shaped by observed variation rather than by a guess. The move off HAR
+replay happened because `routeFromHAR` matches on the GraphQL POST body, so ANY change to the query
+in `static/js/context.js` — even one added field — invalidated all fourteen recordings at once. The
+recordings still hold the factory honest two ways:
+
+- [`strapi-payload-contract.spec.js`](strapi-payload-contract.spec.js) — the factory's field set
+  equals what the recordings contain (minus `FIELDS_ADDED_SINCE_RECORDING`, the declared list of
+  query fields added after the freeze — and a companion test fails if a declared addition ever
+  appears in a recording, so the list can't rot);
+- [`strapi-scenario-payload-fidelity.spec.js`](strapi-scenario-payload-fidelity.spec.js) — each
+  scenario replica in `strapi.scenario-payloads.js` deep-equals its recording's response body.
 
 These specs intentionally sit **outside** the `PageManager` / `goToPageWithLang` conventions in
 [`../CLAUDE.md`](../CLAUDE.md). The standard entry helpers call `installOverlaySuppression()`,
@@ -24,7 +32,9 @@ use a bare `page.goto` plus a Strapi route, keeping Strapi **on**.
 
 | File | Role |
 | --- | --- |
-| [`../support/strapi-har-fixture.js`](../support/strapi-har-fixture.js) | `routeWithStrapiHarFixture(context, name)` — record/replay wrapper over `routeFromHAR`, matching `**/api/strapi/**`. |
+| [`../support/strapi-har-fixture.js`](../support/strapi-har-fixture.js) | RETIRED record/replay wrapper over `routeFromHAR` — no spec imports it since the 2026-08-31 migration; kept as reference for how the recordings were made. |
+| [`strapi.scenario-payloads.js`](strapi.scenario-payloads.js) | `SCENARIO_PAYLOADS` — factory-built, byte-equal replicas of the fourteen recordings, attached to `SCENARIOS.<name>.payload`. |
+| [`strapi-scenario-payload-fidelity.spec.js`](strapi-scenario-payload-fidelity.spec.js) | Proves each replica deep-equals its recording. Needs no server. |
 | [`../support/strapi-payload-factory.js`](../support/strapi-payload-factory.js) | Builds a synthetic response body: `banner`/`modal`/`sidebarAd` document builders, `strapiPayload`, `targetCountries`, and the `daysFromNow`/`hoursFromNow` helpers measured from `SYNTHETIC_NOW`. Pure — no Playwright import. |
 | [`../support/strapi-payload-fixture.js`](../support/strapi-payload-fixture.js) | `routeWithStrapiPayload(context, payload, {status, rawBody})` plus `expectStrapiServed` — fulfils the endpoint from a built payload, matching the URL glob alone. |
 | [`strapi.fixtures.js`](strapi.fixtures.js) | The `SCENARIOS` map (one entry per recorded Strapi state) plus the setup helpers: `prepareStrapiPage`, `useInterfaceLanguage`, `advanceUntilVisible`, `advanceBy`, `waitForTimerArmed`. |
@@ -52,7 +62,7 @@ use a bare `page.goto` plus a Strapi route, keeping Strapi **on**.
 | [`strapi-sidebar-ad-hebrew.spec.js`](strapi-sidebar-ad-hebrew.spec.js) | The same ad published only in Hebrew: keyword targeting under Hebrew UI, and absent under English UI. |
 | [`strapi-sidebar-ad-date-states.spec.js`](strapi-sidebar-ad-date-states.spec.js) | Three ads — expired, active, future — all delivered, only the active one displayed. |
 | [`strapi-sidebar-ad-bilingual.spec.js`](strapi-sidebar-ad-bilingual.spec.js) | Both locales published: exactly one ad renders per interface, carrying that locale's copy. |
-| `../fixtures/strapi-*.har` | One self-contained recording per scenario (bodies embedded, no sidecars). |
+| `../fixtures/strapi-*.har` | One self-contained FROZEN recording per scenario (bodies embedded, no sidecars). Reference + oracle only; never replayed or re-recorded. |
 | `*.template.js` | Early scaffolding from before any content was recorded, kept only for reference. Every state it anticipated is now covered by a real spec, so these are candidates for deletion. Not collected by any project. |
 
 ## Recorded scenarios

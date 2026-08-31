@@ -1,44 +1,42 @@
 import { expect } from '@playwright/test';
 import { LANGUAGES, t } from '../globals';
+import { SCENARIO_PAYLOADS } from './strapi.scenario-payloads.js';
 
 /**
  * Recorded Strapi scenarios + setup helpers for the Strapi Playwright specs.
  *
  * ONE SCENARIO PER REPRESENTATIVE STRAPI STATE.
- * Each entry below pairs a recorded .har with the clock it was recorded under and a description
- * of what that recording contains. A spec picks a scenario; it never hardcodes content.
+ * Each entry below pairs a synthetic `payload` (a factory-built replica of the recorded .har it
+ * names) with the clock the original was recorded under and a description of what it contains.
+ * A spec picks a scenario; it never hardcodes content.
  *
- * Adding a scenario:
- *   1. Publish the state in local Strapi (only that state — see "Isolate the state" below).
- *   2. Add an entry here with a new `har` name and the `pinnedNow` you want to record under.
- *   3. Write the spec against `SCENARIOS.<name>`.
- *   4. Record:  RECORD_HAR=1 ./node_modules/.bin/playwright test --project=chrome-strapi \
- *                 --workers=1 e2e-tests/tests/<your-spec>.spec.js
- *   5. Fill in `expected` from what you published, and commit the .har.
+ * ROUTED SYNTHETICALLY, ANCHORED TO RECORDINGS (decision 2026-08-31). Specs serve
+ * `scenario.payload` via routeWithStrapiPayload; nothing replays the .har files anymore, because
+ * routeFromHAR matches on the GraphQL POST body and every query change invalidated all fourteen
+ * recordings at once. The .har files stay committed, FROZEN, in two jobs: reference documents of
+ * real Strapi response structure, and the schema oracle for strapi-payload-contract.spec.js.
+ * strapi-scenario-payload-fidelity.spec.js proves each `payload` equals its recording, so the
+ * scenarios below still describe payloads Strapi really produced.
  *
- * Isolate the state: one GraphQL call returns banners + modals + sidebar ads together, so a
- * recording captures everything published at that moment. Keep unrelated content unpublished
- * while recording, or the fixture carries noise that later scenarios have to work around.
+ * Adding a scenario: build its payload with the factory in strapi.scenario-payloads.js (or
+ * inline, for states no editor would publish), add an entry here with `payload` and `pinnedNow`,
+ * and fill in `expected` from what the payload contains. No Strapi publishing, no recording.
+ * The `har` key exists only on the fourteen original recorded scenarios and marks which
+ * recording the payload replicates — new scenarios don't get one.
  *
- * WHY RECORDED RATHER THAN SYNTHESIZED (for now): we are deliberately collecting real recordings
- * across the different content patterns first. Once the variation is visible, the plan is to
- * extract a payload factory and drive most permutations synthetically (fulfilling the route from
- * generated JSON, with dates computed relative to now), keeping a recording or two as contract
- * fixtures. `routeWithStrapiHarFixture(context, scenario.har)` is the seam that swap happens at —
- * specs written against SCENARIOS should not need to change.
+ * The clock note below predates the migration but still matters: `pinnedNow` must sit inside the
+ * scenario's content windows, because context.js re-checks the date window client-side.
  */
 
 /**
- * Why the clock is pinned per scenario:
- *   1. the client derives start_date/end_date from `new Date()` and sends them as query params,
- *      and routeFromHAR matches on the full URL — so record and replay must agree;
- *   2. context.js re-checks the date window client-side before surfacing a banner/modal, so the
- *      pinned moment has to sit inside the recorded content's active window.
+ * Why the clock is pinned per scenario: context.js re-checks the date window client-side before
+ * surfacing a banner/modal, so the pinned moment has to sit inside the scenario content's active
+ * window. (It used to matter for request matching too — routeFromHAR matched on the full URL,
+ * including the date params derived from `new Date()` — but synthetic routes match the URL glob
+ * alone, so only the client-side window check remains.)
  *
  * The clock is *installed* (see prepareStrapiPage), so timers are faked too and each surface's
  * showDelay only elapses when a test advances the clock.
- *
- * Changing a scenario's pinnedNow invalidates its recording.
  */
 export const SCENARIOS = {
   /**
@@ -54,6 +52,7 @@ export const SCENARIOS = {
    */
   publishedModal: {
     har: 'strapi-modal-published',
+    payload: SCENARIO_PAYLOADS.publishedModal,
     pinnedNow: '2026-08-04T16:00:00.000Z',
     expected: {
       modal: {
@@ -98,6 +97,7 @@ export const SCENARIOS = {
    */
   publishedModalHebrewOnly: {
     har: 'strapi-modal-hebrew-only',
+    payload: SCENARIO_PAYLOADS.publishedModalHebrewOnly,
     pinnedNow: '2026-08-04T16:00:00.000Z',
     /**
      * The library home. '/' 302-redirects here, so this is the same page without the extra hop —
@@ -148,6 +148,7 @@ export const SCENARIOS = {
    */
   publishedModalBothLocales: {
     har: 'strapi-modal-both-locales',
+    payload: SCENARIO_PAYLOADS.publishedModalBothLocales,
     pinnedNow: '2026-08-04T16:00:00.000Z',
     // Neither locale's buttonURL pathname ('/campaign/779365/donate', '/give/451346') collides
     // with this path, so shouldShow()'s excluded-paths list does not suppress the modal here.
@@ -225,6 +226,7 @@ export const SCENARIOS = {
    */
   publishedSidebarAd: {
     har: 'strapi-sidebar-ad-published',
+    payload: SCENARIO_PAYLOADS.publishedSidebarAd,
     pinnedNow: '2026-08-05T16:00:00.000Z',
     expected: {
       sidebarAd: {
@@ -271,6 +273,7 @@ export const SCENARIOS = {
    */
   publishedSidebarAdHebrewOnly: {
     har: 'strapi-sidebar-ad-hebrew-only',
+    payload: SCENARIO_PAYLOADS.publishedSidebarAdHebrewOnly,
     pinnedNow: '2026-08-05T16:00:00.000Z',
     expected: {
       sidebarAd: {
@@ -315,6 +318,7 @@ export const SCENARIOS = {
    */
   publishedSidebarAdBothLocales: {
     har: 'strapi-sidebar-ad-both-locales',
+    payload: SCENARIO_PAYLOADS.publishedSidebarAdBothLocales,
     pinnedNow: '2026-08-05T16:00:00.000Z',
     expected: {
       sidebarAd: {
@@ -374,6 +378,7 @@ export const SCENARIOS = {
    */
   modalCountryTargeted: {
     har: 'strapi-modal-country-targeted',
+    payload: SCENARIO_PAYLOADS.modalCountryTargeted,
     pinnedNow: '2026-08-04T16:00:00.000Z',
     pagePath: '/texts',
     viewerCountries: {
@@ -432,6 +437,7 @@ export const SCENARIOS = {
    */
   bannerCountryTargeted: {
     har: 'strapi-banner-country-targeted',
+    payload: SCENARIO_PAYLOADS.bannerCountryTargeted,
     pinnedNow: '2026-08-06T16:00:00.000Z',
     /** Sent as the `cf-ipcountry` header; see the spec for why that, and not `timezoneId`. */
     viewerCountries: {
@@ -488,6 +494,7 @@ export const SCENARIOS = {
    */
   bannerExpired: {
     har: 'strapi-banner-expired',
+    payload: SCENARIO_PAYLOADS.bannerExpired,
     pinnedNow: '2026-08-07T16:00:00.000Z',
     // Passes the banner's exclude-list, so expiry is the only reason it can be withheld.
     viewerCountry: 'GB',
@@ -533,6 +540,7 @@ export const SCENARIOS = {
    */
   bannerNotYetStarted: {
     har: 'strapi-banner-future',
+    payload: SCENARIO_PAYLOADS.bannerNotYetStarted,
     // Same instant as bannerExpired on purpose: the pair differs only in where the content's
     // window sits relative to it.
     pinnedNow: '2026-08-07T16:00:00.000Z',
@@ -586,6 +594,7 @@ export const SCENARIOS = {
    */
   sidebarAdDateStates: {
     har: 'strapi-sidebar-ad-date-states',
+    payload: SCENARIO_PAYLOADS.sidebarAdDateStates,
     pinnedNow: '2026-08-08T16:00:00.000Z',
     pagePath: '/',
     expected: {
@@ -615,6 +624,7 @@ export const SCENARIOS = {
    */
   publishedBanner: {
     har: 'strapi-banner-published',
+    payload: SCENARIO_PAYLOADS.publishedBanner,
     pinnedNow: '2026-08-05T16:00:00.000Z',
     expected: {
       banner: {
@@ -657,6 +667,7 @@ export const SCENARIOS = {
    */
   publishedBannerHebrewOnly: {
     har: 'strapi-banner-hebrew-only',
+    payload: SCENARIO_PAYLOADS.publishedBannerHebrewOnly,
     pinnedNow: '2026-08-05T16:00:00.000Z',
     expected: {
       banner: {
@@ -698,6 +709,7 @@ export const SCENARIOS = {
    */
   publishedBannerBothLocales: {
     har: 'strapi-banner-both-locales',
+    payload: SCENARIO_PAYLOADS.publishedBannerBothLocales,
     pinnedNow: '2026-08-05T16:00:00.000Z',
     expected: {
       banner: {

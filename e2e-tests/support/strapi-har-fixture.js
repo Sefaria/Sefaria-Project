@@ -1,3 +1,16 @@
+/**
+ * RETIRED (2026-08-31) — kept as reference, not imported by any spec.
+ *
+ * Every scenario spec now routes through `routeWithStrapiPayload` with a byte-equal synthetic
+ * replica of its recording (see ../tests/strapi.scenario-payloads.js and the fidelity spec that
+ * proves the equality). HAR replay was dropped because `routeFromHAR` matches on the GraphQL POST
+ * body, so any change to the query in static/js/context.js invalidated all fourteen recordings at
+ * once, and re-recording meant reconstructing each scenario's Strapi publish state.
+ *
+ * This module documents how the recordings were made and how replay coped with per-sandbox
+ * origins; the .har files themselves stay committed, frozen, as the factory's schema oracle.
+ */
+
 import { existsSync, readFileSync, unlinkSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import path from 'path';

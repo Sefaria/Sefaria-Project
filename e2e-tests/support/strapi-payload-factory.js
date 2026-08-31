@@ -178,6 +178,21 @@ const FIELD_DEFAULTS = {
 const fieldNames = (contentType) => Object.keys(FIELD_DEFAULTS[contentType]);
 
 /**
+ * Query fields added AFTER the recordings were captured.
+ *
+ * The .har files are frozen reference documents — they are never re-recorded (decision
+ * 2026-08-31), so when the GraphQL query in static/js/context.js gains a field, the factory
+ * gains it in FIELD_DEFAULTS and the field's name is ALSO declared here. Two guards consume
+ * this list:
+ *   - strapi-payload-contract.spec.js allows a factory field to be absent from the recordings
+ *     only if it is listed here, and FAILS if a listed field ever shows up in a recording —
+ *     so the list can't quietly rot into a blanket exemption;
+ *   - strapi.scenario-payloads.js strips these fields so each scenario replica keeps matching
+ *     its recording byte for byte.
+ */
+const FIELDS_ADDED_SINCE_RECORDING = [];
+
+/**
  * Per-document identifiers that MUST be unique, with the consequence of a collision.
  *
  * None of these fail loudly when duplicated, which is why they are generated rather than defaulted
@@ -338,6 +353,7 @@ export {
   FIELD_DEFAULTS,
   WINDOW_FIELDS,
   SYNTHETIC_NOW,
+  FIELDS_ADDED_SINCE_RECORDING,
   fieldNames,
   daysFromNow,
   hoursFromNow,

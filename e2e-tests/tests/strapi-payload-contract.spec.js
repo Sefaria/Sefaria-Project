@@ -21,10 +21,11 @@
  * NO SERVER NEEDED. This spec reads files from disk and never navigates, unlike every other spec
  * in this suite.
  *
- * WHEN THIS FAILS, IT IS USUALLY NOT THE FACTORY THAT IS WRONG. A newly added query field shows up
- * here first, because the recordings are re-recorded before the factory is updated. Read the diff
- * as "the shape moved, catch the factory up" — and remember the same query change also invalidates
- * every .har's POST-body match, so a re-record is due regardless.
+ * THE RECORDINGS ARE FROZEN (decision 2026-08-31): no spec replays them and they are never
+ * re-recorded. When the GraphQL query gains a field, declare it in FIELDS_ADDED_SINCE_RECORDING
+ * (in the factory) alongside its FIELD_DEFAULTS entry; the recorded-rows check below subtracts
+ * those declared additions, and a companion test fails if a declared addition ever appears in a
+ * recording — so the exemption list can't quietly grow stale or paper over a real mismatch.
  */
 
 import { test, expect } from '@playwright/test';
@@ -33,12 +34,23 @@ import path from 'path';
 import {
   SUPPORTED_LOCALES,
   ALIAS_FOR,
+  FIELDS_ADDED_SINCE_RECORDING,
   fieldNames,
   banner,
   modal,
   sidebarAd,
   strapiPayload,
 } from '../support/strapi-payload-factory.js';
+
+/**
+ * The field set a RECORDING is expected to carry: the factory's current set minus the fields
+ * declared as added after the recordings were captured. The recordings are frozen (never
+ * re-recorded — see FIELDS_ADDED_SINCE_RECORDING in the factory), so this, not `fieldNames`
+ * itself, is the oracle comparison for recorded rows. The factory's own output is still held
+ * to the FULL current set below.
+ */
+const recordedFieldNames = (contentType) =>
+  fieldNames(contentType).filter((field) => !FIELDS_ADDED_SINCE_RECORDING.includes(field));
 
 const FIXTURES_DIR = path.join(__dirname, '../fixtures');
 
@@ -117,13 +129,26 @@ test.describe('Strapi payload contract — the factory matches real recorded res
     }),
   );
 
-  test('every recorded row carries exactly the fields the factory emits', () => {
+  test('every recorded row carries exactly the fields the factory emits, minus declared additions', () => {
     // One test over every row of every recording rather than one per fixture: a field added to the
     // query shows up in all of them at once, and a single failure listing the offending row is
-    // easier to read than fourteen identical ones.
+    // easier to read than fourteen identical ones. Post-recording additions are subtracted — the
+    // recordings are frozen, so they can never carry a field added after they were captured.
     recordedRows.forEach(({ row, contentType, where }) =>
       expect(Object.keys(row).sort(), `${where} (${contentType})`).toEqual(
-        [...fieldNames(contentType)].sort(),
+        [...recordedFieldNames(contentType)].sort(),
+      ),
+    );
+  });
+
+  test('no declared post-recording field actually appears in a recording', () => {
+    // Keeps FIELDS_ADDED_SINCE_RECORDING honest. If a listed field shows up in a recording, the
+    // recording DOES know about it and the exemption is a lie — someone either re-recorded (which
+    // the frozen-recordings decision forbids) or listed a field that predates the recordings to
+    // paper over a factory mismatch. Either way the list must shrink, not the contract loosen.
+    recordedRows.forEach(({ row, where }) =>
+      FIELDS_ADDED_SINCE_RECORDING.forEach((field) =>
+        expect(field in row, `${where} unexpectedly carries post-recording field "${field}"`).toBe(false),
       ),
     );
   });

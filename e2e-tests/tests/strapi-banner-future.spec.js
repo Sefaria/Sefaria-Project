@@ -26,11 +26,11 @@
  *   installOverlaySuppression(), which short-circuits /api/strapi/graphql-cache with an empty
  *   payload and marks every modal_/banner_ localStorage key as already-seen — i.e. it suppresses
  *   exactly what this spec asserts on (see e2e-tests/CLAUDE.md §3). So it intentionally uses a
- *   bare page.goto plus routeFromHAR, keeping Strapi ON.
+ *   bare page.goto plus a synthetic Strapi route, keeping Strapi ON.
  */
 
 import { test, expect } from '@playwright/test';
-import { routeWithStrapiHarFixture, expectStrapiServedFromHar } from '../support/strapi-har-fixture.js';
+import { routeWithStrapiPayload, expectStrapiServed } from '../support/strapi-payload-fixture.js';
 import {
   SCENARIOS,
   prepareStrapiPage,
@@ -46,12 +46,12 @@ const expected = scenario.expected;
 test.describe('Strapi Banner — future date window', () => {
   test.use({ extraHTTPHeaders: { 'cf-ipcountry': scenario.viewerCountry } });
 
-  let har;
+  let served;
   /** The Strapi payload as the page actually received it. */
   let payload;
 
   test.beforeEach(async ({ page, context }) => {
-    har = await routeWithStrapiHarFixture(context, scenario.har);
+    served = await routeWithStrapiPayload(context, scenario.payload);
     await prepareStrapiPage(page, scenario);
 
     payload = null;
@@ -62,7 +62,7 @@ test.describe('Strapi Banner — future date window', () => {
   });
 
   test.afterEach(() => {
-    expectStrapiServedFromHar(har);
+    expectStrapiServed(served);
   });
 
   test('is delivered in the payload but not yet displayed', async ({ page }) => {
