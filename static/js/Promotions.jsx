@@ -1,6 +1,7 @@
 import React, {useState, useContext, useEffect, useRef} from "react";
 import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
 import { buildInAppAdsFromSidebarAds } from "./sefaria/sidebarAds";
+import { adMatchesPageTypes } from "./sefaria/pageTypes";
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
 import Util from "./sefaria/util";
@@ -8,11 +9,21 @@ import {EnglishText, HebrewText, InterfaceText, OnInView} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import { NewsletterSignUpForm } from "./NewsletterSignUpForm";
 
-const Promotions = () => {
+// pageTypeOverride: a PAGE_TYPE value supplied by a page that knows its own type better than
+// panel state can. Today only TopicPage passes it — author-vs-topic is decided by fetched topic
+// data that lives in TopicPage's state, and TopicPage mounts this component only after that data
+// has loaded, so the classification can never refine underneath a rendered ad (no flash of an ad
+// that stops matching). Everywhere else the prop is absent and context.pageTypes (classified
+// synchronously from panel state in ReaderApp.getUserContext) is the whole answer.
+const Promotions = ({ pageTypeOverride }) => {
   const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds); // local cache
   const [matchingAds, setMatchingAds] = useState(null); // match the ads to what comes from Strapi
   const context = useContext(AdContext);
   const strapi = useContext(StrapiDataContext);
+  // context.pageTypes may be absent: AdContext defaults to {} before the provider mounts.
+  const activePageTypes = pageTypeOverride
+    ? [...(context.pageTypes || []), pageTypeOverride]
+    : context.pageTypes || [];
   useEffect(() => {
     if (strapi.dataFromStrapiHasBeenReceived) {
       // Guard against unexpected Strapi payload shapes so a processing error here so the code can never unmount the whole React tree
@@ -44,7 +55,9 @@ const Promotions = () => {
     if (inAppAds) {
       setMatchingAds(getCurrentMatchingAds());
     }
-  }, [context, inAppAds]);
+    // pageTypeOverride is a real matching input, so it belongs in the deps for the same reason
+    // strapiData does in the effect above: depend on the actual inputs, not proxies for them.
+  }, [context, inAppAds, pageTypeOverride]);
 
 
   function showToUser(ad) {
@@ -78,6 +91,10 @@ const Promotions = () => {
         ad.trigger.interfaceLang === context.interfaceLang &&
         context.dt >= ad.trigger.startTimeDate &&
         context.dt <= ad.trigger.endTimeDate &&
+        // The page-type gate ANDs with everything else: an all_pages ad passes everywhere (the
+        // pre-feature behavior), a typed ad needs the current page's kind among activePageTypes.
+        // The keyword expression below is untouched — page type narrows, keywords narrow further.
+        adMatchesPageTypes(ad.trigger.pageType, activePageTypes) &&
         (context.keywordTargets.some((kw) =>
           ad.trigger.keywordTargets.includes(kw)
         ) ||

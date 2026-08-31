@@ -1522,7 +1522,10 @@ def index_sheets_by_timestamp(request):
 
 # Change this whenever the GraphQL query/response shape changes in a way that is not backwards compatible (e.g. the Strapi v4 -> v5 flattening)
 # It's part of the cache key so queries from a newly deployed frontend cannot collide with payloads cached under the previous schema
-STRAPI_SCHEMA_VERSION = "v5"
+# v6: sidebar ads gained `pageType` (page-type targeting). Note the key does NOT include the query
+# body, so the client's legacy-Strapi retry (context.js) shares this slot — safe, because a cached
+# legacy payload merely lacks `pageType`, which the client defaults to "no restriction".
+STRAPI_SCHEMA_VERSION = "v6"
 
 @csrf_exempt
 def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:

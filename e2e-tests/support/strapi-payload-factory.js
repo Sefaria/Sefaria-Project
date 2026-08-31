@@ -163,6 +163,10 @@ const FIELD_DEFAULTS = {
     // everywhere. Page keyword targets come from the open refs, so an INCLUDE rule would make an
     // ad depend on which text is open — rarely what a test means to vary.
     keywords: '!nowhere',
+    // Same match-everywhere principle as `keywords` above: all_pages passes the page-type gate on
+    // every page, so which page a spec navigates to never silently decides whether the default ad
+    // is eligible. Specs testing the gate itself override this with a concrete PAGE_TYPE value.
+    pageType: 'all_pages',
     showTo: 'all',
     debug: false,
     hasBlueBackground: false,
@@ -190,7 +194,9 @@ const fieldNames = (contentType) => Object.keys(FIELD_DEFAULTS[contentType]);
  *   - strapi.scenario-payloads.js strips these fields so each scenario replica keeps matching
  *     its recording byte for byte.
  */
-const FIELDS_ADDED_SINCE_RECORDING = [];
+const FIELDS_ADDED_SINCE_RECORDING = [
+  'pageType', // sidebar-ad page-type targeting, added 2026-08-31 — recordings predate it
+];
 
 /**
  * Per-document identifiers that MUST be unique, with the consequence of a collision.

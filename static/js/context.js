@@ -85,33 +85,49 @@ const modalFields = `
             updatedAt
 `;
 
-const sidebarAdFields = `
-            documentId
-            buttonAboveOrBelow
-            title
-            bodyText
-            buttonText
-            buttonURL
-            buttonIcon {
-              url
-              alternativeText
-            }
-            createdAt
-            debug
-            endTime
-            hasBlueBackground
-            internalCampaignId
-            keywords
-            locale
-            publishedAt
-            showTo
-            startTime
-            updatedAt
-            isNewsletterSubscriptionInputForm
-            newsletterMailingLists {
-              newsletterName
-            }
-`;
+// Sidebar-ad fields as a LIST rather than a template string like bannerFields/modalFields above:
+// the legacy-Strapi fallback (see getStrapiData) needs a second selection with `pageType`
+// removed, and deriving both selections from one list keeps them from drifting apart.
+const SIDEBAR_AD_FIELD_LIST = [
+  "documentId",
+  "buttonAboveOrBelow",
+  "title",
+  "bodyText",
+  "buttonText",
+  "buttonURL",
+  "buttonIcon {\n              url\n              alternativeText\n            }",
+  "createdAt",
+  "debug",
+  "endTime",
+  "hasBlueBackground",
+  "internalCampaignId",
+  "keywords",
+  "locale",
+  "pageType",
+  "publishedAt",
+  "showTo",
+  "startTime",
+  "updatedAt",
+  "isNewsletterSubscriptionInputForm",
+  "newsletterMailingLists {\n              newsletterName\n            }",
+];
+
+// `pageType` is newer than some deployed Strapi environments. Querying a field the schema lacks
+// makes GraphQL reject the WHOLE query — every banner, modal, and ad would go dark, not just the
+// new feature — so getStrapiData retries once without it and the missing field then defaults to
+// "no page-type restriction" downstream (normalizePageType in sefaria/pageTypes.js).
+const FIELDS_UNKNOWN_TO_LEGACY_STRAPI = ["pageType"];
+
+// Stable console prefix (same pattern as SKIPPED_ROWS_LOG) so tests — and anyone reading a
+// production console — can identify a legacy-Strapi retry without matching the whole message.
+const LEGACY_STRAPI_RETRY_LOG = "Strapi rejected the full query; retrying without post-freeze fields:";
+
+const buildFieldsSelection = (fieldList) => `\n            ${fieldList.join("\n            ")}\n`;
+
+const sidebarAdFields = buildFieldsSelection(SIDEBAR_AD_FIELD_LIST);
+const legacySidebarAdFields = buildFieldsSelection(
+  SIDEBAR_AD_FIELD_LIST.filter((field) => !FIELDS_UNKNOWN_TO_LEGACY_STRAPI.includes(field)),
+);
 
 // Emits one aliased query field per supported locale (e.g. `en_banners`, `he_banners`), so adding a locale to SUPPORTED_LOCALES fans out to every content type automatically.
 // The `en_banners:` before the real `banners` field is a GraphQL alias:
@@ -155,7 +171,9 @@ function StrapiDataProvider({ children }) {
         // The GraphQL query fetches, per content type, every document whose WHOLE date window fits
         // inside this ±14-day envelope around now (so a window can span four weeks at most). All
         // overlapping documents arrive; which ONE a viewer sees is decided below by chooseContent.
-        const query = `
+        // A function of the sidebar-ad fields selection because the legacy-Strapi fallback below
+        // re-issues the same query with the post-freeze fields stripped.
+        const buildQuery = (sidebarAdFieldsSelection) => `
         query {
           ${buildLocalizedQueryBlock(
             "banners",
@@ -179,7 +197,7 @@ function StrapiDataProvider({ children }) {
               startTime: { gte: "${startDate}" }
               and: [{ endTime: { lte: "${endDate}" } }]
             }`,
-            sidebarAdFields,
+            sidebarAdFieldsSelection,
           )}
         }
         `;
@@ -188,18 +206,36 @@ function StrapiDataProvider({ children }) {
         url.searchParams.append("start_date", startDate.split("T")[0]); // Only use date part
         url.searchParams.append("end_date", endDate.split("T")[0]);
 
-        const result = fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "text/plain",
-          },
-          body: query,
-        })
-          .then((response) => {
+        const fetchStrapiQuery = (graphqlQuery) =>
+          fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "text/plain",
+            },
+            body: graphqlQuery,
+          }).then((response) => {
             if (!response.ok) {
               throw new Error(`HTTP Error: ${response.statusText}`);
             }
             return response.json();
+          });
+
+        const result = fetchStrapiQuery(buildQuery(sidebarAdFields))
+          .then((result) => {
+            if (result?.data && !result.errors) return result;
+            // LEGACY-STRAPI FALLBACK. A Strapi environment whose sidebar-ad content type predates
+            // `pageType` rejects the whole query ({errors: [...], data: null} inside a 200), which
+            // would black out every promo surface — banners and modals included — over one field.
+            // Retry ONCE with the legacy field selection; rows arriving without `pageType` then
+            // normalize to "no page-type restriction" (sefaria/pageTypes.js), i.e. exact
+            // pre-feature behavior. The retry is deliberately unconditional on the error's text —
+            // matching GraphQL message wording across Strapi versions is brittle, and a retry that
+            // also fails lands in the same guard below either way. Logged loudly (not swallowed)
+            // so a mis-deployed environment is visible in the console, not just quietly degraded.
+            console.error(
+              `${LEGACY_STRAPI_RETRY_LOG} ${JSON.stringify(result?.errors ?? null).slice(0, 300)}`,
+            );
+            return fetchStrapiQuery(buildQuery(legacySidebarAdFields));
           })
           .then((result) => {
             // GraphQL reports failures INSIDE a 200 response ({errors: [...], data: null}), and
@@ -209,6 +245,8 @@ function StrapiDataProvider({ children }) {
             // would wipe every viewer's dismissal state, re-showing dismissed campaigns the
             // moment the error clears. A REAL nothing-published response still carries a data
             // OBJECT (with empty per-locale arrays), so it passes this check and proceeds.
+            // By this point the legacy retry above has already had its one chance, so an error
+            // here — from either attempt — is terminal for this fetch.
             if (!result?.data || result.errors) {
               throw new Error(
                 "Strapi response carried no data" +

@@ -11,6 +11,7 @@ import EditCollectionPage from './EditCollectionPage';
 import SearchState from './sefaria/searchState';
 import SearchAnalytics from './sefaria/searchAnalytics';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
+import { classifyPanels } from './sefaria/pageTypes';
 import {
   ContestLandingPage,
   PBSC2020LandingPage,
@@ -2372,7 +2373,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       isLoggedIn: Sefaria._uid,
       interfaceLang: Sefaria.interfaceLang,
       dt: Sefaria.util.epoch_time(new Date())*1000,
-      keywordTargets: refs ? deDupedTriggers : []
+      keywordTargets: refs ? deDupedTriggers : [],
+      // The KINDS of page open across all panels (a union, like keywordTargets above), for
+      // sidebar ads that target a page type rather than a keyword. A topic panel showing a
+      // specific topic classifies to nothing here — whether it's an author page needs fetched
+      // topic data, so TopicPage supplies the answer via Promotions' pageTypeOverride prop.
+      pageTypes: classifyPanels(this.state.panels)
     };
     return context
   }

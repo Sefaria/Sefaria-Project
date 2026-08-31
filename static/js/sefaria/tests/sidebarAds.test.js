@@ -64,6 +64,33 @@ describe("buildInAppAdsFromSidebarAds", function () {
     expect(withoutLists.newsletterMailingLists).toEqual([]);
   });
 
+  it("preserves inner spaces in multi-word keywords", function () {
+    // The lever for targeting a specific collection TOC: category-derived context keywords are
+    // lowercased category names WITH spaces ("covenant and conversation"), and a Strapi editor
+    // types the same thing into the comma-separated keywords field. Only commas split; spaces
+    // inside an entry are content.
+    const [ad] = buildInAppAdsFromSidebarAds([
+      makeSidebarAd({ locales: ["en"], keywords: "Covenant and Conversation, !skip" }),
+    ]);
+
+    expect(ad.trigger.keywordTargets).toEqual(["covenant and conversation"]);
+    expect(ad.trigger.excludeKeywordTargets).toEqual(["skip"]);
+  });
+
+  it("defaults trigger.pageType to all_pages when the document predates the field", function () {
+    // makeSidebarAd carries no pageType, exactly like a Strapi document created before the field
+    // existed (or fetched via the legacy-Strapi retry) — such ads must keep behaving as before.
+    const [ad] = buildInAppAdsFromSidebarAds([makeSidebarAd({ locales: ["en"] })]);
+    expect(ad.trigger.pageType).toBe("all_pages");
+  });
+
+  it("carries the Strapi pageType value onto the trigger when present", function () {
+    const [ad] = buildInAppAdsFromSidebarAds([
+      makeSidebarAd({ locales: ["en"], pageType: "book_toc" }),
+    ]);
+    expect(ad.trigger.pageType).toBe("book_toc");
+  });
+
   it("flattens multiple sidebar ads, each contributing their own locale-ads, into a single array", function () {
     const ads = buildInAppAdsFromSidebarAds([
       makeSidebarAd({ internalCampaignId: "camp-1", locales: ["en"] }),
