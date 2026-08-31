@@ -825,3 +825,22 @@ class TestWebSessionRedirectMiddleware:
         result = self._middleware().process_response(request, response)
 
         assert result is response
+
+    @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
+    def test_external_redirect_target_is_not_marked_even_with_sefaria_referer(self):
+        # /wiki -> https://developers.sefaria.org/... (sites/sefaria/urls.py) is a real
+        # example: a sefaria-referred request whose redirect target isn't a sefaria domain.
+        request = RequestFactory().get('/wiki', HTTP_REFERER='https://www.sefaria.org/texts')
+        result = self._middleware().process_response(
+            request, HttpResponseRedirect('https://developers.sefaria.org/docs/welcome')
+        )
+
+        assert 'no_applink' not in result['Location']
+
+    def test_external_redirect_target_is_not_marked_from_oauth_path_either(self):
+        request = RequestFactory().get('/accounts/google/login/callback/')
+        result = self._middleware().process_response(
+            request, HttpResponseRedirect('https://example.com/')
+        )
+
+        assert 'no_applink' not in result['Location']

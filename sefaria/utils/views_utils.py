@@ -39,4 +39,6 @@ NO_APPLINK_PARAM = "no_applink"
 
 
 def mark_no_applink(url):
+    if NO_APPLINK_PARAM in dict(parse_qsl(urlparse(url).query)):
+        return url
     return add_query_param(url, NO_APPLINK_PARAM, "1")

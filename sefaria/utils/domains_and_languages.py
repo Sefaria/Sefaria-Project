@@ -59,6 +59,15 @@ def current_domain_lang(request):
     return short_to_long_lang_code(matched_langs[0])
 
 
+def _known_domain_hostnames():
+    domain_modules = getattr(settings, 'DOMAIN_MODULES', None) or {}
+    return {
+        urlparse(url).hostname
+        for modules in domain_modules.values()
+        for url in modules.values()
+    }
+
+
 def referer_is_sefaria_domain(request):
     """
     True if the request's Referer is one of this site's own domains (settings.DOMAIN_MODULES).
@@ -69,14 +78,18 @@ def referer_is_sefaria_domain(request):
     referer = request.META.get("HTTP_REFERER")
     if not referer:
         return False
-    referer_hostname = urlparse(referer).hostname
-    domain_modules = getattr(settings, 'DOMAIN_MODULES', None) or {}
-    known_hostnames = {
-        urlparse(url).hostname
-        for modules in domain_modules.values()
-        for url in modules.values()
-    }
-    return referer_hostname in known_hostnames
+    return urlparse(referer).hostname in _known_domain_hostnames()
+
+
+def redirect_target_is_sefaria_domain(location):
+    """
+    True if a redirect Location is relative (same site) or an absolute URL pointing at a
+    known sefaria domain. False for anything else (e.g. /wiki -> developers.sefaria.org),
+    so no_applink never gets attached to a redirect that has nothing to do with Universal
+    Links in the first place.
+    """
+    hostname = urlparse(location).hostname
+    return hostname is None or hostname in _known_domain_hostnames()
 
 
 def get_redirect_domain_for_language(request, target_lang):
