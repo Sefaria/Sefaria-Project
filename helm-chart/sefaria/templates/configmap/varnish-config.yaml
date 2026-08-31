@@ -13,10 +13,19 @@ data:
   sefaria.vcl: |-
     vcl 4.0;
 
+    probe web_probe {
+        .url = "/healthz";
+        .timeout = 30s;
+        .interval = 10s;
+        .window = 5;
+        .threshold = 2;
+    }
+
     backend default {
         .host = "web-{{ $.Values.deployEnv }}-{{ $v }}";
         .port = "80";
-        .first_byte_timeout = 900s;
+        .first_byte_timeout = {{ $.Values.varnish.tuning.first_byte_timeout }}s;
+        .probe = web_probe;
     }
 
     sub vcl_recv {
