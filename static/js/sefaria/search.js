@@ -52,7 +52,9 @@ class Search {
                     this.cache(cacheKey, data);
                     resolve(data)
                 },
-                error: reject
+                // A Promise can only reject with one value, so bundle all three of jQuery's
+                // error arguments rather than silently dropping two of them.
+                error: (jqXHR, textStatus, errorThrown) => reject({jqXHR, textStatus, errorThrown})
             }));
         }).then(x => {
             if (args.type === "sheet") {
@@ -132,7 +134,7 @@ class Search {
                             this.cache(cacheKey, data);
                             resolve(data);
                         },
-                        error: reject
+                        error: (jqXHR, textStatus, errorThrown) => reject({jqXHR, textStatus, errorThrown})
                     }));
                 }
 
@@ -207,7 +209,7 @@ class Search {
                             this.cache(cacheKey, data);
                             resolve(data)
                         },
-                        error: reject
+                        error: (jqXHR, textStatus, errorThrown) => reject({jqXHR, textStatus, errorThrown})
                     }));
                 }
                 else {
@@ -324,7 +326,7 @@ class Search {
          sort_type: See SearchState.metadataByType for possible sort types
          exact: if query is exact
          success: callback on success
-         error: callback on error
+         error: callback on failure; receives one object, {jqXHR, textStatus, errorThrown}
          */
         if (!args.query) {
             return;
@@ -346,6 +348,14 @@ class Search {
         this.queryAborter = queryAborter;
 
         const updateAggreagations = (args.aggregationsToUpdate.length > 0);
+
+        /* args.error is wired up as the *second* argument to .then() below rather than as a
+         * trailing .catch(), on purpose: that way it only sees failures of the query itself.
+         * An exception thrown by args.success() -- a render bug, say -- would otherwise be
+         * reported as a search failure, which it isn't. The trailing .catch() logs those.
+         * args.error is optional: .then(fn, undefined) just lets the rejection fall through
+         * to that same .catch(). */
+
         if (this.queryDictaFlag) {
             Promise.all([
                 this.sefariaQuery(args, updateAggreagations, queryAborter),
@@ -368,7 +378,7 @@ class Search {
                         args.success(cacheResult);
                     }
                 }
-            }).catch(x => console.log(x));
+            }, args.error).catch(x => console.log(x));
         }
         else {
             this.sefariaQuery(args, updateAggreagations, queryAborter)
@@ -380,7 +390,8 @@ class Search {
                         this._cacheQuery(args, this.sefariaQueryQueue);
                         args.success(this.sefariaQueryQueue);
                     }
-                })
+                }, args.error)
+                .catch(x => console.log(x));
         }
 
         return queryAborter;

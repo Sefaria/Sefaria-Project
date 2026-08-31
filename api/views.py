@@ -16,6 +16,15 @@ from .api_warnings import *
 logger = logging.getLogger(__name__)
 
 
+class StaffRequiredMixin:
+    """Mixin for CBVs that must reject non-staff users with a JSON 403."""
+
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.is_staff:
+            return jsonResponse({"error": "Staff only."}, status=403)
+        return super().dispatch(request, *args, **kwargs)
+
+
 class Text(View):
 
     RETURN_FORMATS = ['default', 'wrap_all_entities', 'text_only', 'strip_only_footnotes']
@@ -165,6 +174,18 @@ class RefView(View):
             return_object['navigation_refs']['last_subref'] = subrefs[-1].normal()
 
         return jsonResponse(return_object)
+
+
+def _load_json_body(request, empty_as_object=False):
+    """Parse a JSON request body, returning (data, error_response)."""
+    try:
+        raw_body = (request.body or b"{}") if empty_as_object else request.body
+        body = json.loads(raw_body)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return None, jsonResponse({"error": "Invalid JSON body."}, status=400)
+    if not isinstance(body, dict):
+        return None, jsonResponse({"error": "JSON body must be an object."}, status=400)
+    return body, None
 
 
 class KnnSearch(View):
@@ -363,13 +384,9 @@ class KnnSearch(View):
         if not expected or token != expected:
             return jsonResponse({"error": "Unauthorized"}, status=401)
 
-        try:
-            body = json.loads(request.body)
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            return jsonResponse({"error": "Invalid JSON body"}, status=400)
-
-        if not isinstance(body, dict):
-            return jsonResponse({"error": "JSON body must be an object"}, status=400)
+        body, err = _load_json_body(request)
+        if err:
+            return err
         query = body.get("query", "").strip()
         if not query:
             return jsonResponse({"error": "Missing or empty 'query'"}, status=400)
@@ -433,3 +450,4 @@ class KnnSearch(View):
             })
 
         return jsonResponse(response)
+

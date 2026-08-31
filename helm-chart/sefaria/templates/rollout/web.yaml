@@ -104,6 +104,12 @@ spec:
             value: web
           - name: APP_VERSION
             value: "{{ .Values.web.containerImage.tag }}"
+          {{- if .Values.nameService.enabled }}
+          # completion endpoints are routed to the name service; web pods skip
+          # autocompleter builds and stop gating readiness on them
+          - name: DISABLE_AUTOCOMPLETER
+            value: "true"
+          {{- end }}
           {{- if .Values.datadog.enabled }}
           - name: DD_LOGS_INJECTION
             value: "true"

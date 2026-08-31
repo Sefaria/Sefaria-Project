@@ -211,7 +211,12 @@ def ensure_indices(active_db=None):
         ('vstate', ["flags.enComplete"], {}),
         ('guide', ["expanded_refs"], {}),
         ('topics', ["parasha"], {}),
-        ('webpages_text', ["url"], {})
+        ('webpages_text', ["url"], {}),
+        ('linker_editor_history', ["uid"], {}),
+        ('linker_editor_history', ["action"], {}),
+        ('linker_editor_history', ["index_title"], {}),
+        ('linker_editor_history', ["slug"], {}),
+        ('linker_editor_history', ["created"], {}),
     ]
 
     for col, args, kwargs in indices:

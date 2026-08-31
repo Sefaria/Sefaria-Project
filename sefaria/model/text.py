@@ -459,8 +459,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
                 if getattr(n, "refs", None):
                     for i, r in enumerate(n.refs):
-                        # hack to skip Rishon, skip empty refs
-                        if i == 0 or not r:
+                        # skip empty refs
+                        if not r:
                             continue
                         subRef = Ref(r)
                         subRefStart = subRef.starting_ref()
@@ -471,8 +471,20 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                                 val = alts_ja.get_element(indxs) or val
                             except IndexError:
                                 pass
-                            val["en"] += [n.sectionString([i + 1], "en", title=False)]
-                            val["he"] += [n.sectionString([i + 1], "he", title=False)]
+                            # i == 0 is Rishon, the first aliyah, which coincides with the
+                            # parasha start. Keep it out of the en/he title lists (that slot
+                            # already shows the parasha name), but still record its aliyah
+                            # metadata below so the reader can render "Parashat X: First".
+                            if i != 0:
+                                val["en"] += [n.sectionString([i + 1], "en", title=False)]
+                                val["he"] += [n.sectionString([i + 1], "he", title=False)]
+                            # Attach the aliyah and its containing parasha to every aliyah
+                            # entry, so the reader can show the parasha on each aliyah even in
+                            # chapters that begin mid-parasha (where no "whole" marker exists).
+                            val["aliyah_en"] = n.sectionString([i + 1], "en", title=False)
+                            val["aliyah_he"] = n.sectionString([i + 1], "he", title=False)
+                            val["parasha_en"] = n.primary_title("en")
+                            val["parasha_he"] = n.primary_title("he")
                             alts_ja.set_element(indxs, val)
                         elif subRefStart.follows(oref):
                             break
@@ -3224,13 +3236,17 @@ class Ref(object, metaclass=RefCacheType):
         :return: list of all segment level refs under this Ref.  
         """
         supported_classes = (JaggedArrayNode, DictionaryEntryNode, SheetNode)
-        assert self.index_node is not None
+        if self.index_node is None:
+            raise InputError(f"all_segment_refs() failed for {self}: no index_node")
         if not isinstance(self.index_node, supported_classes):
             # search for default node child
             for child in self.index_node.children:
                 if child.is_default():
                     return child.ref().all_segment_refs()
-            assert isinstance(self.index_node, supported_classes)
+            raise InputError(
+                f"all_segment_refs() doesn't support {self}: its node ({type(self.index_node).__name__}) "
+                f"is not one of {[c.__name__ for c in supported_classes]} and has no default child."
+            )
 
         if self.is_range():
             input_refs = self.range_list()
@@ -3772,10 +3788,17 @@ class Ref(object, metaclass=RefCacheType):
                 return bool(len(text) and all(text))
             except NoVersionFoundError:
                 return False
-        else:
+        elif isinstance(self.index_node, JaggedArrayNode):
             sja = self.get_state_ja(lang)
             subarray = sja.subarray_with_ref(self)
             return subarray.is_full()
+        else:
+            # A ref to a whole branching/structural node (e.g. a named, directly
+            # referenceable node covering several JaggedArrayNode leaves, like a Sifra
+            # parsha) has no availableTexts JaggedArray of its own in VersionState -
+            # only the rolled-up per-language completeness _aggregate_structure_state
+            # computes from its leaves.
+            return bool(self.get_state_node(hint=[(lang, "textComplete")]).var(lang, "textComplete"))
 
     def is_text_translated(self):
         """
@@ -4891,7 +4914,7 @@ class Ref(object, metaclass=RefCacheType):
                 continue
             try:
                 expanded_set |= {r.normal() for r in oref.all_segment_refs()}
-            except AssertionError:
+            except InputError:
                 continue
         return list(expanded_set)
 
@@ -5017,7 +5040,6 @@ class Library(object):
         self._full_auto_completer_is_ready = False
         self._lexicon_auto_completer_is_ready = False
         self._cross_lexicon_auto_completer_is_ready = False
-        self._topic_auto_completer_is_ready = False
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
             self.get_simple_term_mapping() # this will implicitly call self.build_term_mappings() but also make sure its cached.
@@ -5384,10 +5406,15 @@ class Library(object):
         Builds full auto completer across people, topics, categories, parasha, users, and collections
         for each of the languages in the library.
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
+        No-op when DISABLE_AUTOCOMPLETER is set: this process neither builds nor serves
+        completers; the name service owns completion traffic when deployed.
         """
+        if DISABLE_AUTOCOMPLETER:
+            logger.warning("DISABLE_AUTOCOMPLETER is set; skipping full auto completer build.")
+            return
         from .autospell import AutoCompleter
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
         }
 
         for lang in self.langs:
@@ -5398,8 +5425,12 @@ class Library(object):
         """
         Sets lexicon autocompleter for each lexicon in LexiconSet using a LexiconTrie
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
-
+        No-op when DISABLE_AUTOCOMPLETER is set: this process neither builds nor serves
+        completers; the name service owns completion traffic when deployed.
         """
+        if DISABLE_AUTOCOMPLETER:
+            logger.warning("DISABLE_AUTOCOMPLETER is set; skipping lexicon auto completer build.")
+            return
         from .autospell import LexiconTrie
         from .lexicon import LexiconSet
         self._lexicon_auto_completer = {
@@ -5411,7 +5442,12 @@ class Library(object):
         """
         Builds the cross lexicon auto completer excluding titles
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
+        No-op when DISABLE_AUTOCOMPLETER is set: this process neither builds nor serves
+        completers; the name service owns completion traffic when deployed.
         """
+        if DISABLE_AUTOCOMPLETER:
+            logger.warning("DISABLE_AUTOCOMPLETER is set; skipping cross lexicon auto completer build.")
+            return
         from .autospell import AutoCompleter
         self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
         self._cross_lexicon_auto_completer_is_ready = True
@@ -5423,6 +5459,8 @@ class Library(object):
         it rebuilds before returning, emitting warnings to the logger.
         """
         if self._cross_lexicon_auto_completer is None:
+            if DISABLE_AUTOCOMPLETER:
+                raise RuntimeError("The autocompleter is disabled on this server (DISABLE_AUTOCOMPLETER). Completion endpoints are served by the name service when deployed (helm nameService.enabled / create-cauldron.sh -N).")
             logger.warning("Failed to load cross lexicon auto completer, rebuilding.")
             self.build_cross_lexicon_auto_completer()  # I worry that these could pile up.
             logger.warning("Built cross lexicon auto completer.")
@@ -5439,6 +5477,13 @@ class Library(object):
         try:
             return self._lexicon_auto_completer[lexicon]
         except KeyError:
+            if self._lexicon_auto_completer_is_ready:
+                # The tries are built; this key is simply not a lexicon.  Rebuilding
+                # would let any request with a bogus lexicon name trigger a
+                # multi-minute build.
+                raise InputError("There is no lexicon autocompleter for {}.".format(lexicon))
+            if DISABLE_AUTOCOMPLETER:
+                raise RuntimeError("The autocompleter is disabled on this server (DISABLE_AUTOCOMPLETER). Completion endpoints are served by the name service when deployed (helm nameService.enabled / create-cauldron.sh -N).")
             logger.warning("Failed to load {} auto completer, rebuilding.".format(lexicon))
             self.build_lexicon_auto_completers()  # I worry that these could pile up.
             logger.warning("Built {} auto completer.".format(lexicon))
@@ -5448,6 +5493,8 @@ class Library(object):
         try:
             return self._full_auto_completer[lang]
         except KeyError:
+            if DISABLE_AUTOCOMPLETER:
+                raise RuntimeError("The autocompleter is disabled on this server (DISABLE_AUTOCOMPLETER). Completion endpoints are served by the name service when deployed (helm nameService.enabled / create-cauldron.sh -N).")
             logger.warning("Failed to load full {} auto completer, rebuilding.".format(lang))
             self.build_full_auto_completer()  # I worry that these could pile up.
             logger.warning("Built full {} auto completer.".format(lang))
@@ -5601,6 +5648,15 @@ class Library(object):
         new_index = Index().load({"title": index_object_title})
         assert new_index, "No Index record found for {}: {}".format(index_object.__class__.__name__, index_object_title)
         self.add_index_record_to_cache(new_index, rebuild=True)
+
+    def refresh_non_unique_term_in_cache(self, slug: str):
+        """
+        Drop `slug` from NonUniqueTerm's process-level `.init()` cache so the next lookup
+        re-reads it from Mongo -- otherwise an edit (e.g. via the linker editor) stays
+        invisible to this process, including on a RefResolver rebuild.
+        """
+        from sefaria.model.schema import NonUniqueTerm
+        NonUniqueTerm._init_cache.pop(slug, None)
 
     # todo: the for_js path here does not appear to be in use.
     # todo: Rename, as method not gauraunteed to return all titles
@@ -5786,6 +5842,20 @@ class Library(object):
         if not linker or rebuild:
             linker = self.build_linker(lang)
         return linker
+
+    def rebuild_linker_resolvers(self, langs=("en", "he")):
+        """
+        Rebuild only the linker components affected by linker-editor metadata:
+        RefResolver and CategoryResolver. If a linker for a language has not been
+        initialized in this process, build the full linker once.
+        """
+        for lang in langs:
+            linker = self._linker_by_lang.get(lang)
+            if not linker:
+                self.build_linker(lang)
+                continue
+            linker._ref_resolver = self._build_ref_resolver(lang)
+            linker._cat_resolver = self._build_category_resolver(lang)
 
     def build_linker(self, lang: str):
         from sefaria.model.linker.linker import Linker
