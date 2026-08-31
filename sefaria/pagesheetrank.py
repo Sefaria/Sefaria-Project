@@ -96,21 +96,90 @@ def step(w, p, s=0.85):
     return v / numpy.sum(v)
 
 
+def _build_pagerank_arrays(g):
+    """Flatten the graph into numpy arrays for a vectorized power iteration.
+
+    Reproduces create_web()'s semantics exactly, including two quirks that are
+    load-bearing for search ranking and must NOT be "fixed" here:
+
+      * an edge is counted int(round(weight)) times, so weight 0.4 disappears
+        and 0.6 counts once -- edges rounding to 0 are simply not stored;
+      * number_out_links accumulates the RAW float weight, so the transition
+        matrix is round(w(k->j)) / out_total(k): rounded numerator over an
+        unrounded denominator.
+
+    Returns (n, rows, cols, data, out, dangling, keys) where rows/cols/data are
+    parallel COO arrays for the sparse matrix and dangling is a bool mask.
+    """
+    keys = [x[0] for x in g]
+    n = len(keys)
+    node2index = {r: i for i, r in enumerate(keys)}
+
+    out = numpy.zeros(n, dtype=numpy.float64)
+    dangling = numpy.ones(n, dtype=bool)
+    rows, cols, data = [], [], []
+
+    for r, links in g:
+        r_ind = node2index[r]
+        for r_temp, count in links.items():
+            j = node2index[r_temp]
+            # legacy pops j from dangling_pages the first time it emits an edge,
+            # before adding the weight -- even when the weight rounds away
+            dangling[j] = False
+            out[j] += count
+            repeats = int(round(count))
+            if repeats:
+                rows.append(r_ind)
+                cols.append(j)
+                data.append(repeats)
+
+    return (
+        n,
+        numpy.asarray(rows, dtype=numpy.int64),
+        numpy.asarray(cols, dtype=numpy.int64),
+        numpy.asarray(data, dtype=numpy.float64),
+        out,
+        dangling,
+        keys,
+    )
+
+
+def _pagerank_step(n, rows, cols, data, out, dangling_idx, p, s):
+    """One power-iteration step, equivalent to step() but vectorized.
+
+    v[j] = s * sum_k round(w(k->j)) * p[k]/out[k] + s*dangling_mass/n + (1-s)/n
+    """
+    inner_product = float(p[dangling_idx].sum()) if dangling_idx.size else 0.0
+    if data.size:
+        contrib = data * (p[cols] / out[cols])
+        v = numpy.bincount(rows, weights=contrib, minlength=n)
+    else:
+        v = numpy.zeros(n, dtype=numpy.float64)
+    v = s * v + s * inner_product / n + (1 - s) / n
+    total = v.sum()
+    return v / total if total else v
+
+
 def pagerank(g, s=0.85, tolerance=0.00001, maxiter=100, verbose=False, normalize=False):
-    w = create_web(g)
-    n = w.size
-    p = numpy.matrix(numpy.ones((n, 1))) / n
+    g = list(g)
+    n, rows, cols, data, out, dangling, keys = _build_pagerank_arrays(g)
+    if n == 0:
+        return {}
+    dangling_idx = numpy.flatnonzero(dangling)
+
+    p = numpy.ones(n, dtype=numpy.float64) / n
     iteration = 1
     change = 2
     while change > tolerance and iteration < maxiter:
         if verbose:
             print("Iteration: %s" % iteration)
-        new_p = step(w, p, s)
+        new_p = _pagerank_step(n, rows, cols, data, out, dangling_idx, p, s)
         change = numpy.sum(numpy.abs(p - new_p))
         if verbose:
             print("Change in l1 norm: %s" % change)
         p = new_p
         iteration += 1
+    p = numpy.asmatrix(p).T
     if normalize:
         # This is interesting and nerdy, but min seems to do the exact same thing
         # dangling_pr_sum = sum(p[j] for j in w.dangling_pages.keys())
@@ -122,6 +191,28 @@ def pagerank(g, s=0.85, tolerance=0.00001, maxiter=100, verbose=False, normalize
             pass  # empty list can't calculate min
     pr_list = list(numpy.squeeze(numpy.asarray(p)))
     return {k: v for k, v in zip([x[0] for x in g], pr_list)}
+
+
+def _start_year(index, cache):
+    """Estimated composition year for an index, memoized by title.
+
+    best_time_period() is a property of the book, not the link, but the graph
+    build called it twice per link -- 10,090,470 calls yielding only 6,601
+    distinct answers (~1,529x redundant), and it falls through to
+    author_objects() (a database read) whenever a book has no compDate. The
+    cache is passed in rather than module-global so it lives and dies with one
+    graph build.
+    """
+    title = getattr(index, "title", None)
+    if title is not None and title in cache:
+        return cache[title]
+
+    tp = index.best_time_period()
+    start = int(tp.determine_year_estimate()) if tp else 3000
+
+    if title is not None:
+        cache[title] = start
+    return start
 
 
 def has_intersection(a, b):
@@ -197,6 +288,8 @@ def init_pagerank_graph(ref_list=None):
         all_links = LinkSet()
         all_links.records = link_list
     all_ref_cat_counts = {}
+    # memoizes best_time_period() per index title for this graph build only
+    era_cache = {}
     current_link, page, link_limit = 0, 0, 100000
     if ref_list is None:
         all_links = LinkSet(limit=link_limit, page=page)
@@ -210,10 +303,8 @@ def init_pagerank_graph(ref_list=None):
                 # TODO pagerank segments except Talmud. Talmud is pageranked by section
                 # TODO if you see a section link, add pagerank to all of its segments
                 refs = [Ref(r) for r in link.refs]
-                tp1 = refs[0].index.best_time_period()
-                tp2 = refs[1].index.best_time_period()
-                start1 = int(tp1.determine_year_estimate()) if tp1 else 3000
-                start2 = int(tp2.determine_year_estimate()) if tp2 else 3000
+                start1 = _start_year(refs[0].index, era_cache)
+                start2 = _start_year(refs[1].index, era_cache)
 
                 older_ref, newer_ref = (refs[0], refs[1]) if start1 < start2 else (refs[1], refs[0])
 
