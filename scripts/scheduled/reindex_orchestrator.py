@@ -150,6 +150,23 @@ def build_shard_job_manifest(
         "maxFailedIndexes": 0,
         "ttlSecondsAfterFinished": 86400,
         "template": {
+            "metadata": {
+                "annotations": {
+                    # Without this the cluster autoscaler will consolidate a shard pod off
+                    # its node mid-run. Observed on the dev cluster 2026-08-31: the
+                    # orchestrator pod was killed by "ScaleDown / deleting pod for node
+                    # scale down" 30 minutes in, restarting from zero and burning one of
+                    # only two attempts. A shard holds no checkpoint, so an eviction throws
+                    # away everything that shard has indexed. Cauldrons run on the
+                    # `preemptable` node pool where consolidation is routine.
+                    #
+                    # This does NOT protect against GCP reclaiming a preemptible VM — that
+                    # is a node-level event no pod annotation can veto. It only stops the
+                    # autoscaler's own voluntary eviction, which is the failure actually
+                    # observed.
+                    "cluster-autoscaler.kubernetes.io/safe-to-evict": "false",
+                },
+            },
             "spec": pod_spec,
         },
     }

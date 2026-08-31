@@ -133,6 +133,29 @@ def test_build_shard_job_manifest_minimal():
     assert "volumes" not in manifest["spec"]["template"]["spec"]
 
 
+def test_build_shard_job_manifest_marks_pods_unsafe_to_evict():
+    """Shard pods must survive cluster-autoscaler scale-down.
+
+    Observed on the dev cluster 2026-08-31: the orchestrator pod was killed by
+    `ScaleDown / deleting pod for node scale down` after 30 minutes, restarting
+    the link walk from zero and consuming one of only two attempts. Shards run
+    even longer than the orchestrator and hold no checkpoint, so an eviction
+    discards the whole shard's work. Cauldrons run on the `preemptable` node
+    pool where consolidation is routine.
+    """
+    spec.loader.exec_module(orch)
+    manifest = orch.build_shard_job_manifest(
+        name="test-job",
+        namespace="default",
+        image="my-image:latest",
+        shard_count=4,
+        command=["python", "run.py"],
+        resources={"requests": {"memory": "8Gi"}, "limits": {"memory": "12Gi"}},
+    )
+    annotations = manifest["spec"]["template"]["metadata"]["annotations"]
+    assert annotations["cluster-autoscaler.kubernetes.io/safe-to-evict"] == "false"
+
+
 def test_build_shard_job_manifest_hardens_shard_pod_identity():
     """Shard pods have zero Kube-API access - this must be explicit in the manifest,
     not merely emergent from omitting a field (SEC-004)."""

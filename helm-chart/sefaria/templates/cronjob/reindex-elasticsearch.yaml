@@ -13,6 +13,19 @@ spec:
     spec:
       backoffLimit: 1  # one retry: an orchestrator crash mid-run gets a second attempt; init is idempotent
       template:
+        metadata:
+          annotations:
+            # The orchestrator runs for hours and holds no checkpoint, so a voluntary
+            # eviction restarts the whole link walk from zero. Observed 2026-08-31 on the
+            # dev cluster: "ScaleDown / deleting pod for node scale down" killed a run 30
+            # minutes in and consumed one of only two attempts (backoffLimit: 1). Cauldrons
+            # run on the `preemptable` node pool, where the autoscaler consolidates nodes
+            # routinely.
+            #
+            # This does NOT protect against GCP reclaiming a preemptible VM — that is a
+            # node-level event no annotation can veto. It only prevents the autoscaler's own
+            # voluntary eviction, which is the failure actually observed.
+            cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
         spec:
           serviceAccountName: {{ .Values.deployEnv }}-reindex-orchestrator
           affinity:
