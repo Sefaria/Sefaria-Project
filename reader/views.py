@@ -366,6 +366,7 @@ def base_props(request):
         "_debug_mode": request.GET.get("debug_mode", None),
         "appVersion": APP_VERSION,
     })
+    
     chatbot_version = request.session.get("chatbot_version")
     chatbot_version = chatbot_version if is_int(chatbot_version) else None
 
