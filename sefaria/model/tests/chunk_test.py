@@ -314,6 +314,213 @@ def test_save_reuses_existing_version_despite_stale_unsuffixed_vtitle():
         idx.delete()
 
 
+def _make_synthetic_index(title, he_title, depth, section_names):
+    try:
+        Index().load({"title": title}).delete()
+    except Exception:
+        pass
+    idx = Index({
+        "title": title,
+        "categories": ["Liturgy"],
+        "schema": {
+            "titles": [
+                {"lang": "en", "text": title, "primary": True},
+                {"lang": "he", "text": he_title, "primary": True},
+            ],
+            "nodeType": "JaggedArrayNode",
+            "depth": depth,
+            "sectionNames": section_names,
+            "addressTypes": ["Integer"] * depth,
+            "key": title,
+        },
+    })
+    idx.save()
+    return idx
+
+
+def test_new_chunk_verse_chapter_range_spanning_reads():
+    """
+    Read-path coverage for the new (real-language) TextChunk, mirroring the old
+    LegacyTextChunk verse/chapter/range/spanning tests -- segment reads return a string,
+    section reads return a list, ranges return a list of the right length, and refs spanning
+    multiple sections return a nested list. Synthetic depth-2 book, so this doesn't depend on
+    any real book's content.
+    """
+    title = "New Chunk Read Test Book"
+    idx = _make_synthetic_index(title, "ספר בדיקת קריאה", 2, ["Chapter", "Verse"])
+    try:
+        chapter1 = ["Alpha", "Beta", "Gamma"]
+        chapter2 = ["Delta", "Epsilon"]
+        for i, val in enumerate(chapter1, start=1):
+            c = Ref(f"{title} 1:{i}").text(direction="ltr", lang="en", vtitle="Read Test Version")
+            c.text = val
+            c.save()
+        for i, val in enumerate(chapter2, start=1):
+            c = Ref(f"{title} 2:{i}").text(direction="ltr", lang="en", vtitle="Read Test Version")
+            c.text = val
+            c.save()
+
+        verse = Ref(f"{title} 1:2").text(direction="ltr")
+        assert isinstance(verse.text, str)
+        assert verse.text == "Beta"
+
+        chapter = Ref(f"{title} 1").text(direction="ltr")
+        assert isinstance(chapter.text, list)
+        assert chapter.text == chapter1
+
+        rng = Ref(f"{title} 1:1-3").text(direction="ltr")
+        assert isinstance(rng.text, list)
+        assert rng.text == chapter1
+
+        span = Ref(f"{title} 1:2-2:2").text(direction="ltr")
+        assert isinstance(span.text, list)
+        assert len(span.text) == 2
+        assert span.text[0] == ["Beta", "Gamma"]
+        assert span.text[1] == ["Delta", "Epsilon"]
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
+
+
+def test_new_chunk_depth_1_read():
+    """Depth-1 books address individual segments directly at the top numeric level."""
+    title = "New Chunk Depth1 Test Book"
+    idx = _make_synthetic_index(title, "ספר בדיקת עומק אחד", 1, ["Line"])
+    try:
+        lines = ["First line", "Second line", "Third line"]
+        c = Ref(title).text(direction="ltr", lang="en", vtitle="Depth1 Test Version")
+        c.text = lines
+        c.save()
+
+        whole = Ref(title).text(direction="ltr")
+        assert isinstance(whole.text, list)
+        assert whole.text == lines
+
+        single = Ref(f"{title} 3").text(direction="ltr")
+        assert isinstance(single.text, str)
+        assert single.text == "Third line"
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
+
+
+def test_new_chunk_commentary_style_depth_3_read():
+    """
+    Nested (chapter>verse>comment) addressing consistency, mirroring the old
+    LegacyTextChunk commentary test: a single-comment read must equal the corresponding
+    position within a wider range read of the same content.
+    """
+    title = "New Chunk Depth3 Test Book"
+    idx = _make_synthetic_index(title, "ספר בדיקת עומק שלוש", 3, ["Chapter", "Verse", "Comment"])
+    try:
+        c = Ref(f"{title} 1:1:1").text(direction="ltr", lang="en", vtitle="Depth3 Test Version")
+        c.text = "First comment"
+        c.save()
+        c = Ref(f"{title} 1:1:2").text(direction="ltr", lang="en", vtitle="Depth3 Test Version")
+        c.text = "Second comment"
+        c.save()
+
+        verse = Ref(f"{title} 1:1:1").text(direction="ltr")
+        rng = Ref(f"{title} 1:1:1-2").text(direction="ltr")
+        assert verse.text == rng.text[0]
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
+
+
+def test_new_chunk_save_write_blank_extend_and_within_extent():
+    """
+    Save-path coverage for the new TextChunk, mirroring LegacyTextChunk's test_save: writing
+    to a blank version, writing beyond the current extent (implicitly padding), and writing
+    within the current extent, all correctly reflected on read-back.
+    """
+    title = "New Chunk Save Test Book"
+    idx = _make_synthetic_index(title, "ספר בדיקת שמירה", 2, ["Chapter", "Verse"])
+    vtitle = "Save Test Version"
+    try:
+        c = TextChunk(Ref(f"{title} 3:1"), vtitle=vtitle, direction="ltr", actual_lang="en")
+        c.text = "Here's a translation for the eras"
+        c.save()
+
+        # write beyond current extent
+        c = TextChunk(Ref(f"{title} 5:1"), vtitle=vtitle, direction="ltr", actual_lang="en")
+        c.text = "Here's another translation for the eras"
+        c.save()
+
+        # write within current extent
+        c = TextChunk(Ref(f"{title} 4:1"), vtitle=vtitle, direction="ltr", actual_lang="en")
+        c.text = "Here's yet another translation for the eras"
+        c.save()
+
+        whole = Ref(title).text(direction="ltr")
+        assert whole.text[2] == ["Here's a translation for the eras"]
+        assert whole.text[3] == ["Here's yet another translation for the eras"]
+        assert whole.text[4] == ["Here's another translation for the eras"]
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
+
+
+def test_new_chunk_save_sanitizes_html_and_trims_blank_overwrite():
+    """
+    Save-path coverage: dangerous HTML is stripped on save (matching LegacyTextChunk's
+    sanitization), and overwriting a whole chapter drops blank trailing entries rather than
+    saving them.
+    """
+    title = "New Chunk Sanitize Test Book"
+    idx = _make_synthetic_index(title, "ספר בדיקת חיטוי", 2, ["Chapter", "Verse"])
+    vtitle = "Sanitize Test Version"
+    try:
+        c = TextChunk(Ref(f"{title} 1:1"), vtitle=vtitle, direction="ltr", actual_lang="en")
+        c.text = 'Here\'s some text <a href="javascript:alert(8007)">Click me</a>'
+        c.save()
+
+        read_back = Ref(f"{title} 1:1").text(direction="ltr")
+        assert read_back.text == "Here's some text <a>Click me</a>"
+
+        # Overwrite whole chapter; blank trailing entries should not be saved.
+        c = Ref(f"{title} 1").text(direction="ltr", vtitle=vtitle)
+        c.text = ["Fee", "", "Fi", ""]
+        c.save()
+
+        whole = Ref(f"{title} 1").text(direction="ltr")
+        assert whole.text == ["Fee", "", "Fi"]
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
+
+
+def test_new_chunk_save_depth_3_commentary_style():
+    """Save-path coverage for a depth-3 (chapter>verse>comment) structure, matching
+    LegacyTextChunk's Rashi-on-Exodus-style save test."""
+    title = "New Chunk Save Depth3 Test Book"
+    idx = _make_synthetic_index(title, "ספר בדיקת שמירה עומק שלוש", 3, ["Chapter", "Verse", "Comment"])
+    vtitle = "Save Depth3 Test Version"
+    try:
+        c = TextChunk(Ref(f"{title} 2:3:1"), vtitle=vtitle, direction="ltr", actual_lang="en")
+        c.text = "Text for 2:3:1"
+        c.save()
+        c = TextChunk(Ref(f"{title} 2:3:2"), vtitle=vtitle, direction="ltr", actual_lang="en")
+        c.text = "Text for 2:3:2"
+        c.save()
+        c = TextChunk(Ref(f"{title} 3:4:3"), vtitle=vtitle, direction="ltr", actual_lang="en")
+        c.text = "Text for 3:4:3"
+        c.save()
+
+        whole = Ref(title).text(direction="ltr")
+        assert whole.text[1][2] == ["Text for 2:3:1", "Text for 2:3:2"]
+        assert whole.text[2][3] == ["", "", "Text for 3:4:3"]
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
+
+
 def test_text_family_alts():
     tf = TextFamily(Ref("Exodus 6"), commentary=False, alts=True)
     c = tf.contents()

@@ -22,7 +22,6 @@ from django_topics.models import Topic as DjangoTopic, TopicPool, PoolType
 import sefaria.model.dependencies as dependencies
 import sefaria.search as search_module
 from sefaria.model import Index, IndexSet, Version, Ref, VersionState, library
-from sefaria.model.legacy_text import LegacyTextChunk
 from sefaria.model.category import Category
 from sefaria.model.schema import Term
 from sefaria.model.topic import Topic, PersonTopic, AuthorTopic, TopicSet
@@ -189,13 +188,13 @@ def _make_book(title=TEST_BOOK, categories=("Liturgy",), authors=None):
         data["authors"] = list(authors)
     book = Index(data)
     book.save()
-    chunk = LegacyTextChunk(Ref(f"{title} 1"), "en", TEST_VTITLE)
+    chunk = Ref(f"{title} 1").text(direction="ltr", lang="en", vtitle=TEST_VTITLE)
     chunk.text = list(TEST_SEGMENTS)
     chunk.versionSource = "http://test.example.com"
     chunk.save()
-    # A raw LegacyTextChunk.save() doesn't refresh VersionState (production flows go
-    # through tracker, which does). all_segment_refs() — which the rename hooks
-    # iterate — reads the version state, so refresh it explicitly.
+    # A raw TextChunk.save() doesn't refresh VersionState (production flows go through
+    # tracker, which does). all_segment_refs() — which the rename hooks iterate — reads
+    # the version state, so refresh it explicitly.
     VersionState(title).refresh()
     return book
 
