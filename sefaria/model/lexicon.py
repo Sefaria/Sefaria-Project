@@ -375,6 +375,69 @@ class KovetzYesodotEntry(DictionaryEntry):
         return ['<br>'.join(strings)]
 
 
+class EncyclopediaTalmuditEntry(DictionaryEntry):
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
+    optional_attrs = DictionaryEntry.optional_attrs + ["volume", "chapter_list", "running_header"]
+
+    def headword_string(self):
+        return f'<big><b>{self.headword}</b></big>'
+
+    def as_strings(self, with_headword=True):
+        """Return one string per paragraph so each becomes its own segment.
+
+        Layout mirrors the print encyclopedia:
+          • segment 1: bold lemma + first definition paragraph
+          • next segment(s): any additional definition paragraphs (rare)
+          • next segment: the chapter list (הפרקים) — if present
+          • for each chapter: heading is bolded into the first paragraph;
+            subsequent paragraphs of that chapter become their own segments.
+        """
+        segments = []
+
+        # Segment 1: lemma + first definition paragraph (combined).
+        head = self.headword_string() if with_headword else ""
+        defn_paras = self.content.get("definition", []) or []
+        if defn_paras:
+            first = defn_paras[0]
+            if head:
+                # Splice the head inside the leading <p> tag if present.
+                if first.startswith("<p>"):
+                    first = "<p>" + head + " " + first[3:]
+                else:
+                    first = head + " " + first
+            segments.append(first)
+            segments.extend(defn_paras[1:])
+        elif head:
+            segments.append(head)
+
+        # Chapter list as a standalone segment.
+        chapter_list = self.content.get("הפרקים")
+        if chapter_list:
+            html = "".join(chapter_list) if isinstance(chapter_list, list) else chapter_list
+            segments.append(f'<small>הפרקים:</small> {html}')
+
+        # Each chapter: heading folded into its first paragraph; rest become own segments.
+        for key, value in self.content.items():
+            if key in ("definition", "הפרקים"):
+                continue
+            paras = value if isinstance(value, list) else [value]
+            paras = [p for p in paras if p]
+            if not paras:
+                # Heading-only (e.g. a top-level division header) — emit it as its own segment.
+                segments.append(f'<b>{key}</b>')
+                continue
+            heading_html = f'<b>{key}.</b> '
+            first = paras[0]
+            if first.startswith("<p>"):
+                first = "<p>" + heading_html + first[3:]
+            else:
+                first = heading_html + first
+            segments.append(first)
+            segments.extend(paras[1:])
+
+        return segments or [head or ""]
+
+
 class KrupnikEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
     optional_attrs = DictionaryEntry.optional_attrs + ['biblical', 'no_binyan_kal', 'emendation', 'used_in', 'equals', 'pos_list']
@@ -525,6 +588,7 @@ class LexiconEntrySubClassMapping(object):
         'BDB Aramaic Dictionary': BDBEntry,
         'Kovetz Yesodot VaChakirot': KovetzYesodotEntry,
         'Krupnik Dictionary': KrupnikEntry,
+        'Encyclopedia Talmudit': EncyclopediaTalmuditEntry,
     }
 
     @classmethod

@@ -1,5 +1,4 @@
 from contextlib import contextmanager
-from copy import deepcopy
 from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, TermContext
 from sefaria.model.linker.referenceable_book_node import DiburHamatchilNodeSet, NumberedReferenceableBookNode
 from sefaria.model.linker.ref_resolver import ResolvedRef, RefResolver, IbidHistory
