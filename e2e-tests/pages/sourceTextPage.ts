@@ -7,9 +7,126 @@ export class SourceTextPage extends HelperBase {
         super(page, language)
     }
 
+    /**
+     * The reader's display-settings ("Aa") toggle.
+     *
+     * Anchored on the class hardcoded in DisplaySettingsButton (Misc.jsx) rather than the
+     * accessible name: that name is `Sefaria._("common.text_display_options")`, which renders as
+     * "אפשרויות תצוגת טקסט" under a Hebrew interface. See CLAUDE.md §2 rule 15.
+     */
+    private get displaySettingsToggle() {
+        return this.page.locator('.readerOptionsTooltip').first()
+    }
+
+    private async openDisplaySettings() {
+        const menu = this.page.locator('.texts-properties-menu')
+        if (!(await menu.isVisible().catch(() => false))) {
+            await this.displaySettingsToggle.click()
+            await expect(menu).toBeVisible({ timeout: t(10000) })
+        }
+    }
+
+    private async closeDisplaySettings() {
+        const menu = this.page.locator('.texts-properties-menu')
+        if (await menu.isVisible().catch(() => false)) {
+            await this.displaySettingsToggle.click()
+            await expect(menu).toBeHidden({ timeout: t(10000) })
+        }
+    }
+
+    /**
+     * Pick Source / Translation / Source with Translation, using the SOURCE_LANGUAGES constants.
+     *
+     * The radios' accessible names are translated, but their `value` attributes are always the
+     * English keys — and the SOURCE_LANGUAGES regexes list the English spelling as one branch, so
+     * matching on `value` works from either interface language.
+     */
     async setContentLanguage(mode: RegExp) {
-        await this.page.getByRole('button', { name: 'Toggle Reader Menu Display Settings' }).click();
-        await this.page.getByRole('radio', { name: mode }).click();
+        await this.openDisplaySettings()
+        const radios = this.page.locator('.texts-properties-menu input[type="radio"][name^="languageOptions"]')
+        await expect(radios.first()).toBeVisible({ timeout: t(10000) })
+
+        const values = await radios.evaluateAll(
+            (els) => els.map(el => (el as HTMLInputElement).value))
+        const index = values.findIndex(v => mode.test(v))
+        if (index === -1) {
+            throw new Error(`No content-language option matching ${mode} — found: ${values.join(', ')}`)
+        }
+
+        // The <input> sits behind its styled <label>, so click the label the user actually sees.
+        await radios.nth(index).locator('..').click()
+        await expect(radios.nth(index)).toBeChecked({ timeout: t(10000) })
+        await this.closeDisplaySettings()
+    }
+
+    /**
+     * Choose the bilingual layout. Only meaningful while the content language is
+     * "Source with Translation".
+     *
+     * Anchored on the input's `value` for the same reason as above: these radios take their
+     * accessible name from a visible <span class="int-en"> label ("Show RTL Text Right of LTR
+     * Text"), which changes under a Hebrew interface.
+     */
+    async setBiLayout(layout: 'stacked' | 'heLeft' | 'heRight') {
+        await this.openDisplaySettings()
+        const radio = this.page.locator(
+            `.texts-properties-menu .layout-options input[type="radio"][value="${layout}"]`).first()
+        await expect(radio).toBeVisible({ timeout: t(10000) })
+        await radio.locator('..').click()
+        await expect(radio).toBeChecked({ timeout: t(10000) })
+        await this.closeDisplaySettings()
+    }
+
+    /**
+     * Read the resolved layout of one segment's source/translation spans in a single round trip.
+     * Returned widths are rounded CSS pixels; `segmentWidth` is the width of the segment's own
+     * text container, so callers can assert "spans the full column" without hardcoding a pixel
+     * value that varies with viewport.
+     *
+     * One atomic evaluate rather than a sequence of locator reads — see CLAUDE.md §2 rule 20(b).
+     */
+    async getSegmentSpanLayout(ref: string) {
+        return await this.page.evaluate((segRef: string) => {
+            const seg = document.querySelector(`.basetext .segment[data-ref="${segRef}"]`)
+            if (!seg) return null
+            const read = (sel: string) => {
+                const el = seg.querySelector(`:scope > p > .contentSpan.${sel}`)
+                if (!el) return null
+                const cs = window.getComputedStyle(el)
+                return {
+                    display: cs.display,
+                    float: cs.float,
+                    width: Math.round(parseFloat(cs.width)),
+                    direction: cs.direction,
+                    className: el.className,
+                    hasInstruction: !!el.querySelector(':scope > i.instruction'),
+                }
+            }
+            return {
+                segmentWidth: Math.round(seg.getBoundingClientRect().width),
+                primary: read('primary'),
+                translation: read('translation'),
+            }
+        }, ref)
+    }
+
+    /**
+     * Whether a segment's instruction rubric is actually rendered to the reader.
+     * Uses offsetParent + rect rather than :visible so a `display:none` ancestor counts as hidden.
+     */
+    async isInstructionRendered(ref: string) {
+        return await this.page.evaluate((segRef: string) => {
+            const seg = document.querySelector(`.basetext .segment[data-ref="${segRef}"]`)
+            if (!seg) return null
+            const instr = seg.querySelector('i.instruction')
+            if (!instr) return { present: false, rendered: false, height: 0 }
+            const rect = (instr as HTMLElement).getBoundingClientRect()
+            return {
+                present: true,
+                rendered: (instr as HTMLElement).offsetParent !== null && rect.height > 0,
+                height: Math.round(rect.height),
+            }
+        }, ref)
     }
 
     // Refactored from utils.ts: changeLanguageOfText
