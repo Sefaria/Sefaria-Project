@@ -1,7 +1,7 @@
 /**
  * RETIRED (2026-08-31) — kept as reference, not imported by any spec.
  *
- * Every scenario spec now routes through `routeWithStrapiPayload` with a byte-equal synthetic
+ * Every scenario spec now routes through `routeWithStrapiPayload` with a deep-equal synthetic
  * replica of its recording (see ../tests/strapi.scenario-payloads.js and the fidelity spec that
  * proves the equality). HAR replay was dropped because `routeFromHAR` matches on the GraphQL POST
  * body, so any change to the query in static/js/context.js invalidated all fourteen recordings at

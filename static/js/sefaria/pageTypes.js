@@ -50,6 +50,13 @@ const PAGE_TYPE = Object.freeze({
   VOICES_HOME: "voices_home",
 });
 
+// Stable console prefix (SKIPPED_ROWS_LOG pattern) so vocabulary drift between the Strapi
+// enumeration and this module is findable in a console or a test, instead of surfacing months
+// later as "why did that campaign get zero impressions".
+const UNKNOWN_PAGE_TYPE_LOG = "Unknown sidebar-ad pageType from Strapi (ad will match no page):";
+
+const KNOWN_PAGE_TYPES = new Set(Object.values(PAGE_TYPE));
+
 // Strapi value -> internal value.
 //
 // Absence (null/undefined/"") means the document predates the field, or came from a Strapi
@@ -57,8 +64,14 @@ const PAGE_TYPE = Object.freeze({
 // i.e. unrestricted. An UNKNOWN string is passed through UNCHANGED, on purpose: it can never equal
 // anything classifyPanel produces, so a typo'd or future value fails CLOSED (the ad shows nowhere)
 // rather than leaking onto every page. Normalizing unknowns to all_pages would turn a typo in the
-// CMS into a site-wide campaign.
-const normalizePageType = (rawPageType) => rawPageType || PAGE_TYPE.ALL_PAGES;
+// CMS into a site-wide campaign. The warn keeps the failure VISIBLE while staying closed: without
+// it, a renamed CMS option would be indistinguishable from "no campaign running".
+const normalizePageType = (rawPageType) => {
+  if (rawPageType && !KNOWN_PAGE_TYPES.has(rawPageType)) {
+    console.warn(`${UNKNOWN_PAGE_TYPE_LOG} "${rawPageType}"`);
+  }
+  return rawPageType || PAGE_TYPE.ALL_PAGES;
+};
 
 // The menuOpen values that map 1:1 onto a page type, with no further discrimination needed.
 // menuOpen names come from ReaderPanel.jsx's render branches; see classifyPanel for the values

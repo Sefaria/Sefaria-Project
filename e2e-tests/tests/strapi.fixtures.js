@@ -580,8 +580,10 @@ export const SCENARIOS = {
    *   sidebar ad   → Promotions  `.filter()` — rejects each inactive ad
    *
    * EVERY OTHER GATE IS NEUTRALISED so the date is the only differentiator:
-   *   - identical `keywords: '!everywhere'` — an exclude-only rule, so the matcher's second clause
-   *     is true on any page lacking that keyword and all three are eligible everywhere;
+   *   - identical `keywords: '!everywhere'` (frozen recorded data). Under the strict keyword
+   *     semantics (2026-09-01) an exclusion-only rule matches only KEYWORD-BEARING pages, which
+   *     is why pagePath is a topic category page and no longer '/': the category page carries
+   *     keywords, none of them 'everywhere', so all three ads pass the keyword gate there;
    *   - identical showTo ('all'), debug (true), and locale (en);
    *   - distinct titles, which is how the test tells them apart — nothing else about them differs,
    *     and internalCampaignId never reaches the DOM.
@@ -596,7 +598,9 @@ export const SCENARIOS = {
     har: 'strapi-sidebar-ad-date-states',
     payload: SCENARIO_PAYLOADS.sidebarAdDateStates,
     pinnedNow: '2026-08-08T16:00:00.000Z',
-    pagePath: '/',
+    // A keyword-bearing page (see the keywords note above). Same no-pool-gate route family as
+    // the other sidebar-ad scenarios, so it renders on a stock sandbox.
+    pagePath: '/topics/category/prayer',
     expected: {
       // Keyed by the rendered <h3>, which is the only distinguishing text.
       ads: {

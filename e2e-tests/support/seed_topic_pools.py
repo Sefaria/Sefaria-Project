@@ -9,10 +9,11 @@ navigate to /topics/category/<slug>, which has no pool gate.)
 
 The Strapi page-type specs (strapi-sidebar-ad-page-type.spec.js) need real topic pages — an
 author (samson-raphael-hirsch: Mongo `subclass: "author"`, no portal), a plain topic
-(shabbat), and a portal author (jonathan-sacks: `portal_slug` "sacks", which classifies
-EXCLUSIVELY as portal_page — see the PORTAL_PAGE note in static/js/sefaria/pageTypes.js) —
-so this script places all three into the pools both modules read. Idempotent: re-running
-changes nothing. It touches only local Postgres; Mongo is never written.
+(shabbat), and BOTH portal topics (jonathan-sacks and adin-steinsaltz — portal topics
+classify EXCLUSIVELY as portal_page; see the PORTAL_PAGE note in
+static/js/sefaria/pageTypes.js) — so this script places all four into the pools both modules
+read. Idempotent: re-running changes nothing. Local Postgres only; Mongo is only READ (to
+validate slugs), never written.
 
 Run from the repo root, then RESTART the Django server:
     .venv/bin/python e2e-tests/support/seed_topic_pools.py
@@ -48,9 +49,27 @@ POOL_NAMES = ["library", "sheets"]
 TOPIC_SLUGS = ["jonathan-sacks", "adin-steinsaltz", "samson-raphael-hirsch", "shabbat"]
 
 
+def assert_topic_exists_in_mongo(slug):
+    """Fail loudly on a slug Mongo doesn't know.
+
+    Without this, get_or_create would happily create a phantom pool row for a typo'd slug and
+    print "created" — the script would LOOK successful while the page keeps 404ing (the pool gate
+    passes but the topic itself doesn't exist), which is exactly the kind of trustworthy-looking
+    false success a prerequisite script must not produce.
+    """
+    from sefaria.model.topic import Topic
+
+    if Topic.init(slug) is None:
+        raise SystemExit(
+            f"'{slug}' is not a topic in the local Mongo database — check TOPIC_SLUGS for a typo "
+            f"(nothing was written for this slug)."
+        )
+
+
 def seed():
     pools = [TopicPool.objects.get_or_create(name=name)[0] for name in POOL_NAMES]
     for slug in TOPIC_SLUGS:
+        assert_topic_exists_in_mongo(slug)
         topic, created = DjangoTopic.objects.get_or_create(slug=slug)
         topic.pools.add(*pools)  # add() is idempotent
         print(f"{'created' if created else 'exists '} {slug} -> pools {POOL_NAMES}")

@@ -6,7 +6,7 @@ URL glob alone); the historical recorded/synthetic split ended 2026-08-31:
 
 | | Payload source | Status |
 | --- | --- | --- |
-| **Synthetic** (`routeWithStrapiPayload`) | a payload built in code by the factory | the only routing in use — permutations, unpublishable field values, responses Strapi would never send, AND the fourteen recorded scenarios, now served from byte-equal replicas in [`strapi.scenario-payloads.js`](strapi.scenario-payloads.js) |
+| **Synthetic** (`routeWithStrapiPayload`) | a payload built in code by the factory | the only routing in use — permutations, unpublishable field values, responses Strapi would never send, AND the fourteen recorded scenarios, now served from deep-equal replicas in [`strapi.scenario-payloads.js`](strapi.scenario-payloads.js) |
 | **Recorded** (`.har` files) | committed captures from real Strapi | **frozen reference** — never replayed, never re-recorded. They document real response structure and anchor two guards: the factory schema contract and the per-scenario fidelity proof |
 
 Recording came first, deliberately: fourteen real states were captured before any abstraction was
@@ -33,8 +33,8 @@ use a bare `page.goto` plus a Strapi route, keeping Strapi **on**.
 | File | Role |
 | --- | --- |
 | [`../support/strapi-har-fixture.js`](../support/strapi-har-fixture.js) | RETIRED record/replay wrapper over `routeFromHAR` — no spec imports it since the 2026-08-31 migration; kept as reference for how the recordings were made. |
-| [`strapi.scenario-payloads.js`](strapi.scenario-payloads.js) | `SCENARIO_PAYLOADS` — factory-built, byte-equal replicas of the fourteen recordings, attached to `SCENARIOS.<name>.payload`. |
-| [`strapi-scenario-payload-fidelity.spec.js`](strapi-scenario-payload-fidelity.spec.js) | Proves each replica deep-equals its recording. Needs no server. |
+| [`strapi.scenario-payloads.js`](strapi.scenario-payloads.js) | `SCENARIO_PAYLOADS` — factory-built, deep-equal replicas of the fourteen recordings, attached to `SCENARIOS.<name>.payload`. |
+| [`strapi-scenario-payload-fidelity.spec.js`](strapi-scenario-payload-fidelity.spec.js) | Proves each replica deep-equals its recording (toEqual — structural equality). Needs no server. |
 | [`../support/strapi-payload-factory.js`](../support/strapi-payload-factory.js) | Builds a synthetic response body: `banner`/`modal`/`sidebarAd` document builders, `strapiPayload`, `targetCountries`, and the `daysFromNow`/`hoursFromNow` helpers measured from `SYNTHETIC_NOW`. Pure — no Playwright import. |
 | [`../support/strapi-payload-fixture.js`](../support/strapi-payload-fixture.js) | `routeWithStrapiPayload(context, payload, {status, rawBody})` plus `expectStrapiServed` — fulfils the endpoint from a built payload, matching the URL glob alone. |
 | [`strapi.fixtures.js`](strapi.fixtures.js) | The `SCENARIOS` map (one entry per recorded Strapi state) plus the setup helpers: `prepareStrapiPage`, `useInterfaceLanguage`, `advanceUntilVisible`, `advanceBy`, `waitForTimerArmed`. |
@@ -484,59 +484,44 @@ it fails.
 
 ## Scenarios
 
-`strapi.fixtures.js` holds one entry per representative Strapi state — a recorded `.har`, the
-`pinnedNow` it was recorded under, and a description of what it contains. Specs read
-`SCENARIOS.<name>`; they never hardcode content.
+`strapi.fixtures.js` holds one entry per representative Strapi state — a synthetic `payload`
+(built by `strapi.scenario-payloads.js`), the `pinnedNow` the original recording was captured
+under, and a description of what it contains. Specs read `SCENARIOS.<name>`; they never hardcode
+content. The fourteen original entries also carry a `har` name pointing at the frozen recording
+their payload replicates — the fidelity spec proves each replica deep-equals its recording.
 
 To add a state:
 
-1. Publish it in local Strapi — **and only it**. One GraphQL call returns banners, modals and
-   sidebar ads together, so a recording captures everything published at that moment. Leave
-   unrelated content unpublished or the fixture carries noise later scenarios work around.
-2. Add a `SCENARIOS` entry with a new `har` name and a `pinnedNow` inside the content's window.
-3. Write the spec against that scenario.
-4. Record (below), fill in `expected`, commit the single `.har`.
+1. Build its payload with the factory — in `strapi.scenario-payloads.js` for a reusable scenario,
+   or inline in the spec for a one-off. No Strapi publishing, no recording.
+2. Add a `SCENARIOS` entry with `payload` and a `pinnedNow` inside the content's window (the
+   client re-checks date windows, so the pinned moment must sit inside them).
+3. Write the spec against that scenario and fill in `expected` from what the payload contains.
 
-Recordings are `updateContent: 'embed'` + `updateMode: 'minimal'`, so each scenario is **one
-self-contained file** — no SHA-named sidecars to forget, and the payload is readable in review and
-diffable. That last property matters: these recordings are the raw material for the payload
-factory we intend to extract once the range of content patterns is visible (see below).
+New scenarios do not get a `har` key — that marks the frozen recordings only.
 
-## Recording
+## The frozen recordings (history — nothing records or replays anymore)
 
-Requires the local Django server **and** a Strapi instance configured (`STRAPI_LOCATION` /
-`STRAPI_PORT` in `sefaria/local_settings.py`, which makes `STRAPI_INSTANCE` truthy in
-`templates/base.html`; without it the client never fires the fetch).
+The fourteen `.har` files in `e2e-tests/fixtures/` are real captured Strapi responses from the
+recording era (mid-2026). They are FROZEN: no spec replays them, `RECORD_HAR` no longer drives
+any workflow, and they are never re-recorded. They keep two jobs:
 
-```bash
-RECORD_HAR=1 ./node_modules/.bin/playwright test --project=chrome-strapi --workers=1 \
-  e2e-tests/tests/strapi-modal.spec.js
-```
+- **Reference** — each documents a response Strapi really produced, readable and diffable.
+- **Schema oracle** — the contract spec holds the factory's field set to what they contain
+  (minus fields declared in `FIELDS_ADDED_SINCE_RECORDING`, each of which must NOT appear in any
+  recording — the companion test enforces that, so the exemption list cannot rot).
 
-`update: true` rewrites the HAR on every context close, so record **one spec at a time** rather
-than the whole suite.
+Why replay was retired (2026-08-31): `routeFromHAR` matched on the GraphQL POST body, so any
+change to the query in `static/js/context.js` — even one added field — invalidated all fourteen
+recordings at once, and re-recording meant reconstructing each scenario's Strapi publish state by
+hand. The synthetic route matches the URL glob alone and survives query changes. The retired
+record/replay machinery is preserved, documented, in `../support/strapi-har-fixture.js`.
 
-> ⚠️ **The Django cache is keyed on the date range only.**
-> `sefaria/views.py` builds `strapi_graphql_{SCHEMA_VERSION}_{start_date}_{end_date}` — **the
-> GraphQL query body is not part of the key**. The cache exists to spare Strapi excessive API
-> calls, and Strapi flushes it by webhook whenever content changes, so *content* edits are picked
-> up immediately and re-recording after publishing something is safe.
->
-> The residual trap is a **query change without a content change**: add a field to the query in
-> `context.js`, re-record under the same `pinnedNow`, and you are handed the previous payload
-> shaped by the old query — no webhook fires, because nothing was published. Move `pinnedNow` to a
-> different day (which changes the key) or flush the cache by hand.
->
-> Giving each new scenario its own `pinnedNow` sidesteps this for free, and is why
-> `bannerCountryTargeted` sits a day after the other banner scenarios.
-
-> ⚠️ **Re-recording a spec whose content is no longer published will silently overwrite its fixture
-> with an empty payload.** The *live instance* is in one state at any given moment, but the
-> committed recordings span several. (Strapi is perfectly capable of publishing many entries at
-> once — `strapi-sidebar-ad-date-states.har` holds three — the constraint is temporal, not a limit
-> on what can be published.) Only ever record the spec whose state is currently published, which is
-> why `strapi-banner-hebrew.spec.js` is a separate file from `strapi-banner.spec.js` rather than
-> another `describe` inside it.
+> The Django cache key (`sefaria/views.py`) is `strapi_graphql_{SCHEMA_VERSION}_{start_date}_{end_date}_{query_hash}`.
+> The query hash was added with the pageType feature so different query shapes — e.g. a stale
+> browser bundle during a deploy window — can never poison the slot up-to-date clients read.
+> Browser specs are unaffected (they intercept before Django), but Python-side cache tests key
+> off this.
 
 ## Synthetic payloads
 
@@ -604,15 +589,14 @@ it as well. Instances already in the suite:
 When writing a new absence assertion, ask: what counter, log line, or captured artifact would the
 bug have to touch? Assert that too, or the absence proves nothing.
 
-### Which to reach for
+### Scenario payloads vs. inline payloads
 
-| Use | For |
-| --- | --- |
-| **Recorded** | the response *shape* (a real payload, really produced), and locale/targeting/date behaviour on content an editor plausibly publishes |
-| **Synthetic** | permutations (several items, specific order), unpublishable field values, error and malformed responses, and precise timing |
-
-Keep at least one recording per content type committed — the contract spec's coverage guard fails
-if a content type is never exercised, because the field-set check would then go quietly vacuous.
+Everything is synthetic now; the choice is only where the payload lives. Use a
+`strapi.scenario-payloads.js` scenario when the state is reusable or replicates a recording; build
+inline in the spec for one-off permutations, unpublishable field values, and error or malformed
+responses. Keep at least one recording per content type committed — the contract spec's coverage
+guard fails if a content type is never exercised, because the field-set check would then go
+quietly vacuous.
 
 ### What the recordings have taught us about the shape
 
@@ -661,76 +645,39 @@ exist to satisfy them:
   as the endpoint does, stays correct for all three; one that models "a document with translations"
   would bake in the banner/modal view and misrepresent ads.
 
-## Running (replay)
+## Running
 
 ```bash
 ./node_modules/.bin/playwright test --project=chrome-strapi
 ```
 
-Replay still needs the Django server running — it serves the page HTML and every other Sefaria
-API. Only `/api/strapi/**` is intercepted.
+The Django server must be running — it serves the page HTML and every other Sefaria API. Only
+`/api/strapi/**` is intercepted.
 
 ## Hermetic with respect to Strapi
 
-**These specs never call the live Strapi backend in replay mode.** The recorded payload *is* the
-test input: it encodes a representative content state, and the spec asserts how Sefaria's frontend
-and Django layer behave given that state. Consulting live Strapi would change what is under test
-and make results depend on whatever happens to be published that day.
-
-There are exactly two modes, with no silent third one:
-
-| Mode | Strapi traffic |
-| --- | --- |
-| Replay (default), request matches the HAR | Served from the fixture |
-| Replay, request **misses** the HAR | **Blocked** (aborted) + reported — never forwarded |
-| `.har` file missing | Throws immediately, telling you to record |
-| `RECORD_HAR=1` | Passes through to the real backend, by design |
+**These specs never call the live Strapi backend.** The synthetic payload *is* the test input: it
+encodes a content state, and the spec asserts how Sefaria's frontend and Django layer behave given
+that state. Consulting live Strapi would change what is under test and make results depend on
+whatever happens to be published that day. `routeWithStrapiPayload` fulfils every `/api/strapi/**`
+request from the payload, so nothing can fall through to a live backend.
 
 Whether the Django cache layer talks to Strapi correctly is a *separate* concern, covered by
-VCR.py-style tests on the Python side rather than by these browser specs.
+Python-side tests rather than by these browser specs.
 
-Proof it holds: unpublish the modal in Strapi and re-run — the spec still passes, because it is
-asserting on the recording, not on live content.
+### The payload-served guard
 
-### Stale-fixture guard
+With a synthetic route the payload always matches, so the remaining hazard is the OPPOSITE of the
+recording era's stale-fixture miss: a page that never requests Strapi at all (`STRAPI_INSTANCE`
+unset server-side, overlay suppression from the standard entry helpers, a navigation that never
+completed). Every one of those makes an absence assertion pass while testing nothing. That is what
+`expectStrapiServed(handle)` catches — call it from `test.afterEach`, and keep it when editing
+specs.
 
-A blocked request on its own would surface only as a generic "element not visible", which is
-indistinguishable from the feature genuinely being broken. So `routeWithStrapiHarFixture`
-registers a guard route *before* `routeFromHAR` (Playwright evaluates routes most-recently-added
-first, so `routeFromHAR` gets first refusal and the guard only sees requests it declined). The
-guard records the unmatched URL and aborts it; `expectStrapiServedFromHar(har)` in `afterEach`
-then fails with an explicit message naming the URL and the likely cause:
+### Verifying the *content* comes from the synthetic payload
 
-```
-Error: Strapi request(s) did not match the HAR fixture and were BLOCKED (these specs never call
-live Strapi), so the page received no Strapi data:
-  - http://localhost:8000/api/strapi/graphql-cache?start_date=2026-07-22&end_date=2026-08-19
-  * the GraphQL query in static/js/context.js changed (a field added or removed) …
-  * the scenario's pinnedNow changed …
-  * the spec is pointing at a different scenario than the one that was recorded.
-```
-
-The first cause is the likeliest: `routeFromHAR` matches on the POST body as well as the URL, so
-adding or removing a field in the `context.js` GraphQL query invalidates **every** scenario at
-once. That cost is one of the main reasons to move most permutations onto a payload factory,
-which matches on the URL glob alone. Clock drift is a non-issue — each scenario pins a constant.
-
-The guard is inert while recording. Bootstrapping a new spec against a real backend is done by
-running it in record mode — the only supported way to reach live Strapi.
-
-### Verifying the *content* is coming from the HAR
-
-The guard proves the request was *matched*. To additionally confirm the recorded bytes are what
-the page renders, patch a sentinel into the recorded response body and re-run — the test must
-**fail**, showing the sentinel:
-
-```bash
-python3 - <<'PY'
-import json
-p='e2e-tests/fixtures/1a355a73ae00f52c32c7e07f6c48727f305159a8.json'
-d=json.load(open(p)); d['data']['en_modals'][0]['modalText']='SENTINEL'
-open(p,'w').write(json.dumps(d,separators=(',',':')))
-PY
-```
-
-Restore the file afterwards (`git checkout` it).
+Paranoia check when bootstrapping a spec: change a value in the payload (a title, a body string)
+to a sentinel and re-run — the assertion should now fail on the sentinel. For a scenario payload,
+make the edit in `strapi.scenario-payloads.js` (the fidelity spec will flag the divergence from
+the recording, which is exactly the reminder to revert). If the spec passes unchanged, it is
+reading something other than your payload.

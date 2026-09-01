@@ -12,9 +12,11 @@
  *   sidebar ad   → Promotions  `.filter()` — rejects each inactive ad
  *
  * WHAT MAKES THE ASSERTION MEAN SOMETHING. All three ads are identical apart from their titles and
- * windows: same `keywords: '!everywhere'` (an exclude-only rule, so all three are eligible on any
- * page), same showTo, same debug flag, same locale. The date is therefore the only thing that can
- * separate them, and if the filter were ignored all three would render. The active ad is its own
+ * windows: same `keywords: '!everywhere'` (frozen recorded data — under the strict 2026-09-01
+ * semantics an exclusion-only rule matches keyword-BEARING pages only, which is why the scenario
+ * navigates a topic category page rather than '/'), same showTo, same debug flag, same locale.
+ * The date is therefore the only thing that can separate them, and if the filter were ignored all
+ * three would render. The active ad is its own
  * positive control — it proves the payload arrived and rendering works, in the same assertion pass
  * that shows the other two are absent.
  *

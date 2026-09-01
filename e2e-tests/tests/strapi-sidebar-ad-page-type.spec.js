@@ -15,9 +15,9 @@
  *   4. The page-type + multi-word-keyword conjunction on a real collection TOC — the flagship
  *      scenario: "collection TOCs" are structurally plain categories, so a specific collection
  *      is targeted with pageType `category_toc` AND a keyword like "covenant and conversation".
- *   5. Author vs topic pages, including the no-flash guarantee during client-side navigation.
- *   6. Legacy-Strapi degradation: a Strapi without the field rejects the full query; the client
- *      retries once without it and every surface keeps working.
+ *   5. Author vs topic vs portal pages, including the no-flash guarantee while topic data loads.
+ *   6. Schema mismatch: a Strapi without the field rejects the full query; there is NO fallback —
+ *      every promo surface stays dark and the mismatch is named in the console.
  *
  * LOCAL PREREQUISITES (beyond the usual sandbox + STRAPI_LOCATION configured server-side):
  *   - MongoDB with the standard local dump (real category/book/topic pages are navigated).
@@ -37,7 +37,7 @@
 import { test, expect } from '@playwright/test';
 import { routeWithStrapiPayload, expectStrapiServed } from '../support/strapi-payload-fixture.js';
 import { strapiPayload, sidebarAd, SYNTHETIC_NOW } from '../support/strapi-payload-factory.js';
-import { prepareStrapiPage, waitForStrapiResponse } from './strapi.fixtures.js';
+import { prepareStrapiPage, waitForStrapiResponse, strapiResponseCount } from './strapi.fixtures.js';
 
 /** Every Strapi surface arrives through this endpoint (same glob as strapi-payload-fixture.js). */
 const STRAPI_URL_GLOB = '**/api/strapi/**';
@@ -72,10 +72,11 @@ const SHOWS_ON = [
   // must not land on a sponsor-branded page. See the PORTAL_PAGE note in pageTypes.js.
   { pageType: 'author_page', path: '/topics/samson-raphael-hirsch', anchor: '.sideColumn', seededTopic: true },
   // The portal ad slot sits in PortalNavSideBar, appended after the sponsor's own modules.
-  // Both rows below because these are the ONLY two portals in existence ('sacks' and
+  // Both rows below because these are the only two portals as of 2026-09 ('sacks' and
   // 'steinsaltz', both in the standard local dump): one row proves the slot, the pair proves
-  // it isn't an accident of one portal's module configuration — the two portals publish
-  // different entry sets, so each exercises a differently-shaped sponsor sidebar.
+  // it isn't an accident of one portal's module configuration — as recorded in the dump, sacks
+  // publishes only an About block while steinsaltz publishes all four sponsor modules, so each
+  // exercises a differently-shaped sponsor sidebar.
   { pageType: 'portal_page', path: '/topics/jonathan-sacks', seededTopic: true },
   { pageType: 'portal_page', path: '/topics/adin-steinsaltz', seededTopic: true },
   { pageType: 'topic_category_toc', path: '/topics/category/prayer' },
@@ -86,28 +87,50 @@ const SHOWS_ON = [
   { pageType: 'collection_page', path: `${VOICES_URL}/collections/romemu-nyc`, voicesHost: true },
   { pageType: 'public_collections', path: `${VOICES_URL}/collections`, voicesHost: true },
   { pageType: 'voices_home', path: `${VOICES_URL}/`, voicesHost: true },
-  // `user_library` and `notifications` live in the authenticated describe at the bottom —
-  // /notifications 302s to login and /texts/saved renders a logged-out signup wall (no
-  // NavSidebar), so neither can join this anonymous matrix.
+  // `user_library` and `notifications` have their own tests in the authenticated describe at
+  // the bottom — /notifications and /saved both 302 to the login page for anonymous visitors,
+  // so neither can join this anonymous matrix.
 ];
 
-/** Skip (named, not silent) when a local prerequisite for this row is missing. */
+/**
+ * Skip (named, not silent) when a local prerequisite for this row is missing.
+ *
+ * The three causes are deliberately kept apart, because each has a different fix and conflating
+ * them sends people down the wrong path (a timeout is not an unseeded pool; a 404 in seeded CI
+ * is a real regression wearing a prerequisite's clothes):
+ *   - no response at all  -> the host never answered (down, or an unmapped voices hostname);
+ *   - 404 on a topic row  -> the pool gate — run the seed script AND restart the server;
+ *   - anything else       -> run the test; if the page is truly broken, the test should FAIL.
+ */
 async function skipUnlessPageAvailable(row, request) {
   // request.get resolves relative paths against the project baseURL; absolute voices URLs pass
-  // through untouched. A network-level failure (unmapped host) resolves to null, not a throw.
+  // through untouched. A network-level failure (unmapped host, timeout) resolves to null.
   const response = await request.get(row.path).catch(() => null);
-  if (row.seededTopic && (!response || response.status() === 404)) {
-    test.skip(true, `${row.path} 404s — seed the topic pools once: .venv/bin/python e2e-tests/support/seed_topic_pools.py`);
+  if (!response) {
+    test.skip(
+      true,
+      row.voicesHost
+        ? `${row.path} unreachable — add the voices host to /etc/hosts or set VOICES_SANDBOX_URL`
+        : `${row.path} did not answer — sandbox down or timing out (NOT a seeding problem)`,
+    );
   }
-  if (row.voicesHost && !response) {
-    test.skip(true, `${row.path} unreachable — add the voices host to /etc/hosts or set VOICES_SANDBOX_URL`);
+  if (row.seededTopic && response.status() === 404) {
+    test.skip(true, `${row.path} 404s — seed the topic pools once (.venv/bin/python e2e-tests/support/seed_topic_pools.py) and RESTART the Django server`);
   }
 }
 
 test.describe('Strapi Sidebar Ad — a page-type-targeted ad shows on its page', () => {
   let served;
 
-  test.afterEach(() => {
+  // Reset per test: without this, a test that skips before routing would hand afterEach either
+  // undefined (first test in a worker — the guard would throw, turning a legitimate skip into a
+  // failure) or the PREVIOUS test's handle (a vacuous pass on someone else's evidence).
+  test.beforeEach(() => {
+    served = undefined;
+  });
+
+  test.afterEach(({}, testInfo) => {
+    if (testInfo.status === 'skipped') return; // a skipped test served nothing, by definition
     expectStrapiServed(served);
   });
 
@@ -169,6 +192,37 @@ test.describe('Strapi Sidebar Ad — page-type gate boundaries', () => {
     await expect(promoTitled(page, 'Ad targeting homepage')).toHaveCount(0);
   });
 
+  test('matching is reactive: a homepage ad leaves on client-side navigation and returns on back', async ({ page, context }) => {
+    // Every other test in this file asserts on a cold page load — but this is a single-page app,
+    // and the whole mechanism (getUserContext re-classifying on panel-state change, the matching
+    // effect re-running) is only correct if matching REACTS to navigation without a reload. The
+    // suite's own history motivates this: the sidebar-ads effect-deps regression (8e96add79) was
+    // invisible on cold loads and only bit on exactly this kind of in-app transition.
+    served = await routeWithStrapiPayload(context, strapiPayload({ sidebarAds: [typedAd('homepage')] }));
+    await prepareStrapiPage(page, scenario);
+
+    await page.goto('/texts');
+    await expect(promoTitled(page, 'Ad targeting homepage')).toBeVisible();
+
+    // A real click on a category link — ReaderApp handles it client-side (no reload).
+    const responsesBeforeNavigation = await strapiResponseCount(page);
+    await page.locator('a[href="/texts/Tanakh"]').first().click();
+    await expect(page).toHaveURL(/\/texts\/Tanakh/);
+
+    // The page is now a category TOC, so the homepage-targeted ad must be gone. Anchors: the
+    // sidebar host is still rendered, and the Strapi counter proves this really was a client-side
+    // transition — a full reload would have fetched the payload again and made this a second
+    // cold-load test instead of the reactivity test it claims to be.
+    await expect(page.locator('.navSidebar')).toBeVisible();
+    await expect(promoTitled(page, 'Ad targeting homepage')).toHaveCount(0);
+    expect(await strapiResponseCount(page)).toBe(responsesBeforeNavigation);
+
+    // And back again: the same reactivity in reverse.
+    await page.goBack();
+    await expect(page).toHaveURL(/\/texts$/);
+    await expect(promoTitled(page, 'Ad targeting homepage')).toBeVisible();
+  });
+
   test('an unknown pageType value matches no page — fails closed', async ({ page, context }) => {
     // A CMS typo must show the ad NOWHERE (noticed and fixed), never EVERYWHERE (a silent
     // site-wide campaign) — the client passes unknown values through so they can't match.
@@ -207,8 +261,13 @@ test.describe('Strapi Sidebar Ad — page-type gate boundaries', () => {
 
     // …and on another category TOC the page type still matches but the keyword does not, so the
     // ad is withheld — proving the keyword narrows WITHIN the page type, not alongside it.
+    // The response counter is CUMULATIVE per page, so the baseline must be captured before the
+    // second navigation — waitForStrapiResponse's default baseline of 0 was already satisfied by
+    // the first page's fetch and would wait for nothing, letting the absence assertion run
+    // before this page's payload (and any ad) could possibly have rendered.
+    const responsesBeforeNavigation = await strapiResponseCount(page);
     await page.goto('/texts/Tanakh/Torah');
-    await waitForStrapiResponse(page);
+    await waitForStrapiResponse(page, responsesBeforeNavigation);
     await expect(page.locator('.navSidebar')).toBeVisible();
     await expect(promoTitled(page, 'Covenant and Conversation ad')).toHaveCount(0);
   });
@@ -217,19 +276,27 @@ test.describe('Strapi Sidebar Ad — page-type gate boundaries', () => {
 test.describe('Strapi Sidebar Ad — author pages vs topic pages', () => {
   let served;
 
+  test.beforeEach(() => {
+    served = undefined; // see the shows-up describe for why this reset matters
+  });
+
   // Both ads ride in one payload so each test proves selection BETWEEN them, not mere presence.
   const authorAndTopicAds = () =>
     strapiPayload({ sidebarAds: [typedAd('author_page'), typedAd('topic_page')] });
 
   const skipUnlessTopicsSeeded = async (request) => {
     const response = await request.get('/topics/shabbat').catch(() => null);
+    // Same three-way split as skipUnlessPageAvailable: an unreachable sandbox is NOT a seeding
+    // problem, and naming it as one would send someone to the wrong fix.
+    test.skip(!response, '/topics/shabbat did not answer — sandbox down or timing out (NOT a seeding problem)');
     test.skip(
-      !response || response.status() === 404,
-      '/topics/<slug> 404s — seed the topic pools once: .venv/bin/python e2e-tests/support/seed_topic_pools.py',
+      response?.status() === 404,
+      '/topics/<slug> 404s — seed the topic pools once (.venv/bin/python e2e-tests/support/seed_topic_pools.py) and RESTART the Django server',
     );
   };
 
-  test.afterEach(() => {
+  test.afterEach(({}, testInfo) => {
+    if (testInfo.status === 'skipped') return;
     expectStrapiServed(served);
   });
 
@@ -238,8 +305,9 @@ test.describe('Strapi Sidebar Ad — author pages vs topic pages', () => {
     served = await routeWithStrapiPayload(context, authorAndTopicAds());
     await prepareStrapiPage(page, scenario);
 
-    // samson-raphael-hirsch carries subclass "author" in Mongo and has no portal_slug (a
-    // portal page would render the sponsor sidebar, which has no ad slot — see pageTypes.js).
+    // samson-raphael-hirsch carries subclass "author" in Mongo and has no portal_slug (a portal
+    // topic would classify exclusively as portal_page — see pageTypes.js — so it could never
+    // prove the author_page path).
     await page.goto('/topics/samson-raphael-hirsch');
 
     await expect(promoTitled(page, 'Ad targeting author_page')).toBeVisible();
@@ -280,11 +348,14 @@ test.describe('Strapi Sidebar Ad — author pages vs topic pages', () => {
     served = await routeWithStrapiPayload(context, authorAndTopicAds());
     await prepareStrapiPage(page, scenario);
 
-    // The loading window is real even on a direct load: this sandbox serves topic pages with
-    // `topicData: null` in the server props, so TopicPage always fetches /api/v2/topics/<slug>
-    // client-side and sits in its loading state until the response lands. Holding that response
-    // makes the window observable instead of racing the assertion. (The v2 path matters — a
-    // '**/api/topics/**' glob would NOT match /api/v2/topics/ and would hold nothing.)
+    // The loading window is real even on a direct load: `_topic_page_data` in reader/views.py
+    // computes the topic payload and DISCARDS it (the function has no return statement), so
+    // server props carry `topicData: null` in every environment and TopicPage always fetches
+    // /api/v2/topics/<slug> client-side, sitting in its loading state until the response lands.
+    // Holding that response makes the window observable instead of racing the assertion. If that
+    // upstream missing return is ever fixed, the cache gets seeded server-side, no client fetch
+    // fires, and this held route holds nothing — revisit this test then. (The v2 path matters —
+    // a '**/api/topics/**' glob would NOT match /api/v2/topics/ and would hold nothing.)
     let releaseTopicResponse;
     const held = new Promise((resolve) => {
       releaseTopicResponse = resolve;
@@ -312,41 +383,29 @@ test.describe('Strapi Sidebar Ad — author pages vs topic pages', () => {
   });
 });
 
-test.describe('Strapi Sidebar Ad — legacy Strapi without the pageType field', () => {
-  // Keep in sync with LEGACY_STRAPI_RETRY_LOG in static/js/context.js — asserting the literal
-  // here pins the console contract a production operator would grep for.
-  const RETRY_LOG_PREFIX = 'Strapi rejected the full query; retrying without post-freeze fields:';
+test.describe('Strapi Sidebar Ad — a Strapi without the pageType field (schema mismatch)', () => {
+  // Kept in sync with the schema-mismatch hint in static/js/context.js — asserting the literal
+  // pins the console contract an operator would grep for during a mismatched deploy.
+  const SCHEMA_MISMATCH_HINT = 'LIKELY SCHEMA MISMATCH';
 
-  test('the client retries without the field and ads still render, logging the downgrade', async ({ page, context }) => {
-    // Play the part of an older Strapi: reject any query that mentions pageType the way GraphQL
-    // really does (errors inside a 200), serve the legacy shape otherwise. The legacy payload's
-    // rows must NOT carry pageType — that is the whole point — so it is stripped after building.
-    const payload = strapiPayload({ sidebarAds: [sidebarAd({ shared: { title: 'Legacy Strapi ad' } })] });
-    const legacyPayload = {
-      data: Object.fromEntries(
-        Object.entries(payload.data).map(([alias, rows]) => [
-          alias,
-          rows.map(({ pageType, ...rest }) => rest),
-        ]),
-      ),
-    };
-
-    const servedQueries = [];
+  test('nothing renders and the mismatch is named in the console — promotions stay dark, never degrade', async ({ page, context }) => {
+    // Play the part of an out-of-date Strapi: GraphQL rejects the WHOLE query when it asks for a
+    // field the schema lacks, and it reports that inside an HTTP 200 ({errors, data: null}).
+    // There is deliberately NO fallback (decision 2026-09-01): frontend and Strapi are always
+    // deployed compatibly, and a dark window during a deploy beats a degradation mechanism whose
+    // fallback responses could be cached and served to healthy clients. So the page must show NO
+    // promotions and must say WHY in the console.
+    const served = [];
     await context.route(STRAPI_URL_GLOB, async (route) => {
-      const query = route.request().postData() || '';
-      servedQueries.push(query);
-      if (query.includes('pageType')) {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            errors: [{ message: 'Cannot query field "pageType" on type "SidebarAd".' }],
-            data: null,
-          }),
-        });
-      } else {
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(legacyPayload) });
-      }
+      served.push(route.request().url());
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          errors: [{ message: 'Cannot query field \"pageType\" on type \"SidebarAd\".' }],
+          data: null,
+        }),
+      });
     });
 
     const consoleErrors = [];
@@ -357,15 +416,21 @@ test.describe('Strapi Sidebar Ad — legacy Strapi without the pageType field', 
     await prepareStrapiPage(page, scenario);
     await page.goto('/texts');
 
-    // The ad renders from the retried legacy query — the degradation is invisible to the viewer.
-    await expect(page.locator('.sidebarPromo', { hasText: 'Legacy Strapi ad' })).toBeVisible();
+    // Positive anchors first: the request actually happened and the page rendered its sidebar —
+    // otherwise "no promotions" would be true of a broken page too.
+    await expect(page.locator('.navSidebar')).toBeVisible();
+    expect(served.length).toBeGreaterThan(0);
 
-    // Both halves of the mechanism actually happened: two queries (full, then legacy)…
-    expect(servedQueries.some((query) => query.includes('pageType'))).toBe(true);
-    expect(servedQueries.some((query) => !query.includes('pageType'))).toBe(true);
-    // …and the downgrade was logged loudly, not swallowed (assert the handler's log line — the
-    // rendered ad alone would also be consistent with the retry never having been needed).
-    expect(consoleErrors.some((text) => text.startsWith(RETRY_LOG_PREFIX))).toBe(true);
+    // The failure is named, not swallowed: the terminal fetch handler logs the error with the
+    // schema-mismatch diagnosis (assert the handler's log line — an empty sidebar alone would
+    // also be consistent with, say, nothing being published).
+    await expect
+      .poll(() => consoleErrors.some((text) => text.includes(SCHEMA_MISMATCH_HINT)))
+      .toBe(true);
+
+    // And nothing rendered: no ads, and no banner/modal either — the whole promo layer is dark.
+    await expect(page.locator('.sidebarPromo')).toHaveCount(0);
+    await expect(page.locator('#interruptingMessageBox')).toHaveCount(0);
   });
 });
 
@@ -393,5 +458,19 @@ test.describe('Strapi Sidebar Ad — notifications page (authenticated)', () => 
     await page.goto('/notifications');
 
     await expect(promoTitled(page, 'Ad targeting notifications')).toBeVisible();
+  });
+
+  test('a user_library-targeted ad shows on the saved page', async ({ page, context }) => {
+    // /saved is the real saved-content route (it serves initialMenu "saved"; the similar-looking
+    // /texts/saved is just a category-path navigation page and renders the plain library menu).
+    // Anonymous visitors get a 302 to login, so this needs the real session. saved/history/notes
+    // all map to user_library through one component (UserHistoryPanel), so one page stands in
+    // for all three menus.
+    served = await routeWithStrapiPayload(context, strapiPayload({ sidebarAds: [typedAd('user_library')] }));
+    await prepareStrapiPage(page, scenario);
+
+    await page.goto('/saved');
+
+    await expect(promoTitled(page, 'Ad targeting user_library')).toBeVisible();
   });
 });

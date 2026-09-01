@@ -1,10 +1,11 @@
 /**
  * Synthetic replicas of the recorded Strapi scenarios.
  *
- * Each entry rebuilds, through the payload factory, the EXACT response body captured in the
- * .har file it names — same documents, same locales, same dates, same row order, byte for byte
- * (whitespace aside). `strapi-scenario-payload-fidelity.spec.js` holds every entry to its
- * recording, so these cannot drift from what Strapi really returned.
+ * Each entry rebuilds, through the payload factory, the response body captured in the .har file
+ * it names — same documents, same locales, same dates, same row order. Deep-equal, precisely:
+ * `strapi-scenario-payload-fidelity.spec.js` holds every entry to its recording with toEqual
+ * (structural equality — key order and byte encoding are not part of the claim), so these cannot
+ * drift from what Strapi really returned.
  *
  * WHY THE SPECS ROUTE THROUGH THESE RATHER THAN THE RECORDINGS (decision 2026-08-31):
  *   routeFromHAR matches on the GraphQL POST body, so ANY change to the query in
