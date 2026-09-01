@@ -1,28 +1,20 @@
 """
 Build-degradation tracking for the cache/library build pathways.
 
-The per-record loops that build the library cache at startup (and on reset_cache /
-reset_toc) wrap each record in a guard so that one corrupt/malformed DB record is
-logged-and-skipped rather than aborting the whole build (see the BAD_RECORD_EXCEPTIONS
-decision in sefaria.system.exceptions). That skip-and-continue behavior is otherwise
-silent degradation — a "silently incomplete library."
+Per-record loops in the library build wrap each record in a guard so one corrupt record is
+logged-and-skipped rather than aborting the whole build. This module records each skip, posts
+one Slack summary per build, and aborts the build when two breakers say the degradation is
+systemic rather than data-level.
 
-This module makes the degradation visible without spamming #engineering-signal once per
-bad record: each skip is recorded here (with as much context as was available at the site),
-and each monitored build pathway calls signal_and_reset_skip_counts() at the end to post a
-single Slack summary of everything it skipped, then clears the log.
+Every entry point that triggers a guarded build should wrap it in build_pathway(), which
+resets the counters on entry and posts the summary on exit. The breakers count within ONE
+build; counts leaking across builds make one bad record look like broken code.
 
-It also decides when degradation has gone too far to tolerate. Because BAD_RECORD_EXCEPTIONS
-includes AttributeError and TypeError — whose dominant cause is a code bug, not bad data —
-skipping cannot be unbounded, or a single renamed attribute would be logged once per record
-and quietly produce an incomplete library. Two breakers bound it: a SIGNATURE breaker that
-aborts when one error message repeats (broken code), and a VOLUME backstop that aborts on
-sheer skip count at one site (mass corruption of any cause). See the threshold constants
-below for why both are needed.
-
-Slack is the only outbound dependency (notify_engineering_signal); this module knows nothing
-about how the message is delivered.
+Rationale — why the breakers exist, why there are two, why the guard raises
+BuildDegradationError instead of re-raising, and the locking rules — lives in the wiki:
+wiki/meta/decision-2026-06-25-bad-record-exceptions-startup-guards.md
 """
+import itertools
 import threading
 import structlog
 from contextlib import contextmanager
@@ -33,74 +25,44 @@ from sefaria.helper.slack.send_message import notify_engineering_signal
 logger = structlog.get_logger(__name__)
 
 
-# One skipped record, with as much context as was available at the skip site:
-#   pathway     — the build trigger(s) that reach this site (e.g. "reset_toc,startup")
-#   operation   — the loop/site that skipped (e.g. "TocTree index")
-#   record      — identifier of the skipped record (title / _id / slug / path), or None
-#   level       — "warning" or "error"
-#   error_type  — exception class name for guard-caught skips; None for log_skip soft-skips
-#   detail      — str(e) for guard-caught skips; the detail message for log_skip soft-skips
+# One skipped record. error_type/detail are the exception for guard-caught skips;
+# error_type is None for log_skip() soft-skips.
 SkipRecord = namedtuple("SkipRecord", "pathway operation record level error_type detail")
 
 # Per-build log of records skipped by the guards below.
 skip_records = []
 
-# At most this many records are stored verbatim per (pathway, operation) group; further skips in
-# the same group are still counted (and surfaced as "… N more" in the summary) but not stored,
-# so a pathologically corrupt DB can't blow up memory or the Slack payload.
+# Records stored verbatim per (pathway, operation); further skips are counted but not stored.
 MAX_STORED_PER_GROUP = 10
 
-# True if any skip recorded since the last reset was error-level. Decides whether the
-# end-of-build summary posts as "error" vs "warning".
+# True if any skip since the last reset was error-level (sets the summary's severity).
 _skip_saw_error = False
 
-# Per (pathway, operation): total skips seen this build (including ones not stored verbatim).
+# Per (pathway, operation): total skips this build, including ones not stored verbatim.
 _skip_group_counts = defaultdict(int)
 
-# Per (pathway, operation, error_type, detail): how many times ONE error signature repeated.
-# Only guard-caught skips are counted here — see the breaker notes below.
-_skip_signature_counts = defaultdict(int)
+# Per (pathway, operation, error_type, detail): the set of DISTINCT records that produced ONE
+# error signature. Distinct records, not occurrences: the breaker's premise is "N different
+# records gave the same message, so the message does not depend on the record" — counting
+# occurrences would also trip on ONE bad record re-skipped by N successive rebuilds, which is
+# bad data, not broken code. Records without an identifier get a unique placeholder, so they
+# stay one-per-occurrence as before.
+_skip_signature_records = defaultdict(set)
+_no_record_seq = itertools.count()
 
-# --- Breakers -------------------------------------------------------------------------
-#
-# BAD_RECORD_EXCEPTIONS includes AttributeError and TypeError, whose dominant cause is an
-# ordinary code bug rather than bad data. Catching them without a stopping rule is exactly
-# the failure mode the narrow tuple was protecting against: a renamed attribute would log a
-# warning per record and silently build an incomplete library. These two thresholds are
-# that stopping rule, and widening the tuple is only safe while they exist.
-#
-# The insight is that bad data and a broken refactor raise the SAME exception class and
-# differ only in volume, so counting is the discriminator that the exception type never was.
-# Two counters, because "systemic" arrives in two shapes:
-#
-# SIGNATURE — the same error message repeating. Python builds AttributeError/TypeError
-#   messages from the type and attribute name, never from the record ("'Topic' object has
-#   no attribute 'slug'"), so a rename produces one byte-identical string on every record
-#   while genuine corruption produces varied ones. Deliberately NOT normalized: messages
-#   that embed record identity (InputError's "…for Index record: Berakhot") simply never
-#   repeat, so this breaker self-selects for the record-independent messages that indicate
-#   broken code. Threshold is scale-free — 10 identical failures means the same thing in a
-#   1,258-document loop and a 108,252-document one — which is why this, not the volume
-#   count, is the primary detector.
-#
-# VOLUME — sheer count at one site, regardless of cause. Catches mass corruption too varied
-#   to repeat (a half-finished migration damaging records in many different ways), which the
-#   signature breaker is structurally blind to. Deliberately blunt and set high: it is a
-#   "this library is too damaged to serve" backstop, not a detector.
-#
-# Set either to None to disable it.
-SIGNATURE_BREAKER_THRESHOLD = 10   # matches MAX_STORED_PER_GROUP, so the summary posted on
-                                   # a trip contains every example that caused it.
+# Breakers that bound skipping. SIGNATURE catches one error message repeating (broken code);
+# VOLUME is a blunt backstop on sheer count at one site (mass corruption). Set either to None
+# to disable. Signature threshold matches MAX_STORED_PER_GROUP so the summary posted on a trip
+# contains every example that caused it.
+SIGNATURE_BREAKER_THRESHOLD = 10
 VOLUME_BREAKER_THRESHOLD = 500
 
-# Guards all reads/writes of the shared skip state above. Builds are normally serialized
-# (startup runs before the process serves requests), but reset_cache/reset_toc are
-# staff-triggered views and gunicorn can run multiple threads per worker, so two builds —
-# or a build and its summary — can overlap in one process.
-#
-# Not reentrant, and deliberately never held across the Slack post — see the comment in
-# signal_and_reset_skip_counts().
+# Guards all reads/writes of the shared skip state above. NOT reentrant, and deliberately never
+# held across the Slack post or across _trip_breaker().
 _lock = threading.Lock()
+
+# Per-thread nesting depth of build_pathway(). Only the outermost block resets and summarizes.
+_pathway_depth = threading.local()
 
 
 def get_skip_records():
@@ -110,11 +72,7 @@ def get_skip_records():
 
 
 def get_skip_counts():
-    """Return a plain-dict tally derived from the skip log: {pathway: {operation: count}}.
-
-    Counts reflect every skip seen this build, including records dropped past
-    MAX_STORED_PER_GROUP.
-    """
+    """Return a tally derived from the skip log: {pathway: {operation: count}}."""
     with _lock:
         group_counts = dict(_skip_group_counts)
     counts = defaultdict(lambda: defaultdict(int))
@@ -125,21 +83,12 @@ def get_skip_counts():
 
 def _note_skip(pathway, operation, level, record=None, error_type=None, detail=None,
                count_signature=True):
-    """Record one skipped record and report whether a breaker just tripped.
+    """Record one skipped record; return the name of the breaker it tripped, or None.
 
-    Stores the record's context (bounded per group), keeps the running group count, keeps
-    the per-signature count, and remembers if the skip was error-level.
-
-    Returns None normally, or the name of the breaker whose threshold this skip crossed
-    ("signature" / "volume"). It only REPORTS the trip; the caller acts on it, because
-    responding means posting the build summary, and `_lock` is not reentrant — see
-    _trip_breaker().
-
-    `count_signature=False` records the skip against the volume count only. Used by
-    log_skip(): a soft skip is a known, handled condition rather than an exception
-    symptom, so a repeated one is not evidence of broken code the way a repeated
-    exception message is. Mass soft-skipping is still degradation, so it still counts
-    toward the volume backstop.
+    It only REPORTS the trip — the caller acts on it, because responding means posting the
+    summary and `_lock` is not reentrant. `count_signature=False` counts the skip toward the
+    volume backstop only (used by log_skip: a soft skip is a handled condition, not an
+    exception symptom, so repeats aren't evidence of broken code).
     """
     global _skip_saw_error
     key = (pathway, operation)
@@ -152,13 +101,17 @@ def _note_skip(pathway, operation, level, record=None, error_type=None, detail=N
             _skip_saw_error = True
 
         signature_count = 0
-        if count_signature:
-            signature_key = (pathway, operation, error_type, detail)
-            _skip_signature_counts[signature_key] += 1
-            signature_count = _skip_signature_counts[signature_key]
+        if count_signature and SIGNATURE_BREAKER_THRESHOLD:
+            seen = _skip_signature_records[(pathway, operation, error_type, detail)]
+            # Bounded like skip_records above: the breaker fires the moment the set reaches
+            # the threshold, so there is never a reason to grow it past that.
+            if len(seen) < SIGNATURE_BREAKER_THRESHOLD:
+                # repr() so any record type is hashable; a unique placeholder when there is
+                # no record, since nothing can be deduplicated then.
+                seen.add(repr(record) if record is not None else next(_no_record_seq))
+            signature_count = len(seen)
 
-    # Checked outside the lock: plain int comparisons against local copies, and the caller
-    # must not be holding the lock when it responds.
+    # Checked outside the lock: the caller must not hold it when it responds.
     if SIGNATURE_BREAKER_THRESHOLD and signature_count >= SIGNATURE_BREAKER_THRESHOLD:
         return "signature"
     if VOLUME_BREAKER_THRESHOLD and group_count >= VOLUME_BREAKER_THRESHOLD:
@@ -169,14 +122,9 @@ def _note_skip(pathway, operation, level, record=None, error_type=None, detail=N
 def _trip_breaker(log, breaker, pathway, operation, error_type=None, detail=None):
     """Post the build summary, then log why the build is about to abort.
 
-    The summary is posted HERE rather than left to the end of the pathway because a tripped
-    breaker aborts the build, and the pathway's own signal_and_reset_skip_counts() call sits
-    after the work it is summarizing — an abort would skip it and throw away the skip log.
-    That log is the whole diagnosis for a volume trip, where the exception that happens to
-    surface says nothing about the other 499 records.
-
-    Must be called with `_lock` released: signal_and_reset_skip_counts() acquires it, and
-    `_lock` is a plain, non-reentrant threading.Lock.
+    Posted here rather than at the end of the pathway because the abort would skip the
+    pathway's own signal_and_reset_skip_counts() call and throw away the skip log.
+    Must be called with `_lock` released.
     """
     reason = {
         "signature": ("one error signature repeated {} times, which indicates broken code "
@@ -192,17 +140,10 @@ def _trip_breaker(log, breaker, pathway, operation, error_type=None, detail=None
 
 
 def log_skip(log, pathway, operation, detail, level="warning", record=None):
-    """
-    Record one skipped/degraded record: store it in the skip log and log it locally
-    (via the bound logger, at `level`). Does NOT post to Slack per-record — the
-    accumulated log is surfaced once per build by signal_and_reset_skip_counts().
+    """Record one skipped/degraded record and log it locally, for soft-skip sites that aren't
+    wrapped in skip_bad_record (e.g. a record missing a required field rather than raising).
 
-    For soft-skip sites that aren't wrapped in skip_bad_record (e.g. a record missing a
-    required field rather than raising an exception).
-
-    Raises BuildDegradationError if this skip crosses the volume backstop — at that point
-    the build is producing a library too incomplete to serve, and there is no original
-    exception to re-raise. Soft skips do not feed the signature breaker (see _note_skip).
+    Raises BuildDegradationError if this skip crosses the volume backstop.
     """
     tripped = _note_skip(pathway, operation, level, record=record, detail=detail,
                          count_signature=False)
@@ -215,31 +156,15 @@ def log_skip(log, pathway, operation, detail, level="warning", record=None):
 
 
 def signal_and_reset_skip_counts(pathway):
-    """
-    Post a single #engineering-signal summary of everything skipped during a build, then
-    clear the log so the next build starts clean. Call once at the end of each monitored
-    build pathway (reset_cache, reset_toc, startup); `pathway` is the summary
-    header naming the triggering pathway.
+    """Post one #engineering-signal summary of everything skipped during a build, then clear
+    the log. Call once at the end of each monitored pathway (reset_cache, reset_toc, startup).
 
-    The summary groups skips by (pathway, operation) and, under each group, lists a bounded
-    sample of the actual records skipped and why (record id + error type/detail) so the
-    failures are diagnosable from Slack, not just countable.
-
-    No-op (besides the reset) when nothing was skipped. Severity is "error" if any skip
-    during the build was error-level, else "warning". Never raises — notify_engineering_signal
-    swallows its own failures.
+    No-op (besides the reset) when nothing was skipped. Severity is "error" if any skip was
+    error-level, else "warning". Never raises.
     """
-    # Snapshot and reset atomically, then format/log/post from the snapshot with the lock
-    # released. The split looks like it could be collapsed into one `with _lock:` block
-    # covering the whole function; it can't:
-    #
-    #   1. `_lock` is a plain threading.Lock, which is NOT reentrant. Anything reached from
-    #      notify_engineering_signal() that records a skip would call _note_skip() and block
-    #      on a lock this same thread already holds — a permanent hang, on the startup path.
-    #   2. It would hold the lock across a network call (up to the 3s Slack timeout),
-    #      stalling every other thread trying to record a skip.
-    #   3. Resetting after the post rather than before it would wipe skips recorded while
-    #      the summary was in flight; snapshotting first lets them land in the next summary.
+    # Snapshot and reset under the lock, then format/log/post with it released: `_lock` is not
+    # reentrant (a skip recorded during the Slack post would deadlock), the post is a network
+    # call, and resetting first lets skips recorded mid-post land in the next summary.
     with _lock:
         group_counts = dict(_skip_group_counts)
         records = list(skip_records)
@@ -250,18 +175,14 @@ def signal_and_reset_skip_counts(pathway):
         return
 
     total = sum(group_counts.values())
-    # Group the stored records by (pathway, operation), preserving their (bounded) detail.
     grouped = defaultdict(list)
     for rec in records:
         grouped[(rec.pathway, rec.operation)].append(rec)
 
-    # Groups, worst-offender first then alphabetical, for stable & scannable output.
+    # Worst-offender first, then alphabetical, for stable & scannable output.
     groups = sorted(group_counts.items(), key=lambda kv: (-kv[1], kv[0]))
 
     header = "*[{}]* skipped *{}* bad record(s)".format(pathway, total)
-
-    # Detail (B): a bold group header, bulleted records, with the site's own pathway
-    # noted only when it differs from the build pathway in the header.
     lines = [header]
     for (pw, operation), count in groups:
         lines.append("\n*{}* — {}".format(operation, count))
@@ -273,9 +194,7 @@ def signal_and_reset_skip_counts(pathway):
 
     message = "\n".join(lines)
     level = "error" if saw_error else "warning"
-    # Durable, queryable record of the aggregate (per-record lines were already logged at
-    # their skip sites). Structured fields, not the Slack-mrkdwn blob — logs shouldn't carry
-    # presentation. Logged unconditionally; Slack delivery below is best-effort.
+    # Structured aggregate for the logs; Slack delivery below is best-effort.
     getattr(logger, level)(
         "cache_build_skipped",
         pathway=pathway,
@@ -285,8 +204,38 @@ def signal_and_reset_skip_counts(pathway):
     notify_engineering_signal(message, level=level)
 
 
+@contextmanager
+def build_pathway(pathway):
+    """Mark a block as one monitored build: reset the skip counters on entry, post the summary
+    on exit (even if the build raises). The breakers count within ONE build, and the reset on
+    ENTRY is what guarantees that.
+
+    Joins rather than restarts: build methods call each other, so these blocks nest routinely
+    (`rebuild` -> `rebuild_toc` -> `get_toc_tree`). Only the OUTERMOST block resets and reports
+    — an inner one that reset would discard the outer build's log and post a partial summary.
+    Depth is per-thread; the counters it guards are shared.
+
+    Goes on the build METHOD, not its callers — a caller can forget. See the wiki page in the
+    module docstring for where it goes in each case, and why.
+
+    Usage:
+        with build_pathway("rebuild_toc"):
+            ...
+    """
+    depth = getattr(_pathway_depth, "value", 0)
+    _pathway_depth.value = depth + 1
+    try:
+        if depth == 0:
+            reset_skip_counts()
+        yield
+    finally:
+        _pathway_depth.value = depth
+        if depth == 0:
+            signal_and_reset_skip_counts(pathway)
+
+
 def _format_skip_record(rec):
-    """One-line '<record> — <error_type>: <detail>' rendering of a SkipRecord for the summary."""
+    """One-line '<record> — <error_type>: <detail>' rendering of a SkipRecord."""
     record = "{!r}".format(rec.record) if rec.record is not None else "<unknown>"
     if rec.error_type and rec.detail:
         return "{} — {}: {}".format(record, rec.error_type, rec.detail)
@@ -302,7 +251,7 @@ def _reset_skip_state():
     global _skip_saw_error
     skip_records.clear()
     _skip_group_counts.clear()
-    _skip_signature_counts.clear()
+    _skip_signature_records.clear()
     _skip_saw_error = False
 
 
@@ -313,21 +262,12 @@ def reset_skip_counts():
 
 
 def bad_record_guard(log):
-    """
-    Bind a module's structlog logger once and return a `with`-guard for per-record loops.
+    """Bind a module's structlog logger once and return a `with`-guard for per-record loops.
 
-    Inside the guard, a caught exception means: record it in the skip log, log it locally (via
-    the bound logger), and skip the record — instead of letting one corrupt record abort the
-    whole build. Slack is not posted per-record; signal_and_reset_skip_counts() posts one
-    summary per build. By default it catches BAD_RECORD_EXCEPTIONS only, so systemic failures
-    (Mongo connectivity, ImportError, NameError, ...) still propagate and abort loudly; pass
-    `exceptions=` to narrow further (e.g. KeyError).
-
-    Skipping is bounded, not unlimited. If a skip crosses a breaker threshold the guard posts
-    the build summary and raises BuildDegradationError (chaining the original exception as
-    __cause__), aborting the build — so a code bug that breaks every record still fails loudly,
-    just with the offending records named first. BuildDegradationError rather than the original
-    because the original is itself a BAD_RECORD_EXCEPTION, and these guards nest.
+    Inside the guard, a caught exception is recorded in the skip log, logged locally, and the
+    record skipped. Catches BAD_RECORD_EXCEPTIONS by default, so systemic failures (Mongo
+    connectivity, ImportError, ...) still propagate; pass `exceptions=` to narrow. If a skip
+    crosses a breaker threshold the guard posts the summary and raises BuildDegradationError.
 
     Usage:
         skip_bad_record = bad_record_guard(logger)   # once, at module top
@@ -343,21 +283,13 @@ def bad_record_guard(log):
             error_type, detail = type(e).__name__, str(e)
             tripped = _note_skip(pathway, operation, level, record=record,
                                  error_type=error_type, detail=detail)
-            # Local log only; the per-build summary is posted by signal_and_reset_skip_counts().
             getattr(log, level)("[pathway:{}] {}: skipping {!r}: {}".format(pathway, operation, record, e))
             if tripped:
                 _trip_breaker(log, tripped, pathway, operation, error_type, detail)
-                # Deliberately NOT a bare re-raise. The original exception is in
-                # BAD_RECORD_EXCEPTIONS, so an enclosing guard would catch it, record it as
-                # one more ordinary skip, and continue — the trip would be swallowed instead
-                # of aborting the build, and _trip_breaker() has already zeroed the counters,
-                # so the climb to the threshold would restart from scratch. Not hypothetical:
-                # TocNode.serialize() and get_topic_toc_json_recursive() each guard a call
-                # that re-enters the same guard, and a rename — the signature breaker's whole
-                # reason to exist — is exactly what breaks every node of a recursive walk.
-                # BuildDegradationError is outside the tuple, so it escapes every nested guard.
-                # `from e` chains the original as __cause__, so the diagnosis ("'Topic' object
-                # has no attribute 'slug'") and its traceback still print — chained, not buried.
+                # NOT a bare re-raise: the original is in BAD_RECORD_EXCEPTIONS, so an
+                # enclosing guard (these nest) would catch it and swallow the trip.
+                # BuildDegradationError escapes every nested guard; `from e` keeps the
+                # original diagnosis and traceback as __cause__.
                 raise BuildDegradationError(
                     "[pathway:{}] {}: aborting build after {} breaker trip".format(
                         pathway, operation, tripped)

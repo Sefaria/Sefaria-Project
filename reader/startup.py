@@ -28,11 +28,11 @@ def init_library_cache():
     from sefaria.system.multiserver.coordinator import server_coordinator
     from django.conf import settings
 
-    # The summary must post even if the build aborts partway — an unguarded bad record, or a
-    # skip-tracking breaker deciding the degradation is systemic. Without the finally, the
-    # abort skips the call below and throws away the skip log that explains what went wrong.
-    from sefaria.helper.skip_tracking import signal_and_reset_skip_counts
-    try:
+    # The individual builders below wrap themselves; this outer block groups them, so a boot
+    # that skipped records reports them once, as "startup", rather than once per builder. It
+    # also guarantees the summary posts if the build aborts partway.
+    from sefaria.helper.skip_tracking import build_pathway
+    with build_pathway("startup"):
         logger.info("Initializing topic pools cache")
         DjangoTopic.objects.build_slug_to_pools_cache()
 
@@ -60,8 +60,6 @@ def init_library_cache():
             library.build_linker('he')
             library.build_linker('en')
 
-    finally:
-        signal_and_reset_skip_counts("startup")
 
     if server_coordinator:
         server_coordinator.connect()

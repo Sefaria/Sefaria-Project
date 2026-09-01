@@ -31,7 +31,7 @@ import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
     NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError, ComplexBookLevelRefError
-from sefaria.helper.skip_tracking import log_skip, bad_record_guard
+from sefaria.helper.skip_tracking import log_skip, bad_record_guard, build_pathway
 skip_bad_record = bad_record_guard(logger)
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string
@@ -5083,18 +5083,19 @@ class Library(object):
         # TOC is handled separately since it can be edited in place
 
     def rebuild(self, include_toc = False, include_auto_complete=False):
-        self.get_simple_term_mapping_json(rebuild=True)
-        self._build_topic_mapping()
-        self._build_index_maps()
-        self._full_title_lists = {}
-        self._full_title_list_jsons = {}
-        self.reset_text_titles_cache()
-        self._title_regex_strings = {}
-        self._title_regexes = {}
-        Ref.clear_cache()
-        in_memory_cache.reset_all()
-        if include_toc:
-            self.rebuild_toc()
+        with build_pathway("rebuild"):
+            self.get_simple_term_mapping_json(rebuild=True)
+            self._build_topic_mapping()
+            self._build_index_maps()
+            self._full_title_lists = {}
+            self._full_title_list_jsons = {}
+            self.reset_text_titles_cache()
+            self._title_regex_strings = {}
+            self._title_regexes = {}
+            Ref.clear_cache()
+            in_memory_cache.reset_all()
+            if include_toc:
+                self.rebuild_toc()
 
     def rebuild_toc(self, skip_toc_tree=False):
         """
@@ -5106,24 +5107,30 @@ class Library(object):
 
         :param skip_toc_tree: Boolean
         """
-        if not skip_toc_tree:
-            self._toc_tree = self.get_toc_tree(rebuild=True)
-        self._toc_with_authors = None
-        scache.delete_shared_cache_elem('toc_with_authors')
-        self._toc = self.get_toc(rebuild=True)
-        self._toc_with_authors = self.get_toc_with_authors(rebuild=True)
-        self._toc_json = self.get_toc_json(rebuild=True)
-        self._topic_toc = self.get_topic_toc(rebuild=True)
-        self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
-        self._topic_toc_category_mapping = self.get_topic_toc_category_mapping(rebuild=True)
-        self._category_id_dict = None
-        scache.delete_template_cache("texts_list")
-        scache.delete_template_cache("texts_dashboard")
-        self._full_title_list_jsons = {}
+        with build_pathway("rebuild_toc"):
+            if not skip_toc_tree:
+                self._toc_tree = self.get_toc_tree(rebuild=True)
+            self._toc_with_authors = None
+            scache.delete_shared_cache_elem('toc_with_authors')
+            self._toc = self.get_toc(rebuild=True)
+            self._toc_with_authors = self.get_toc_with_authors(rebuild=True)
+            self._toc_json = self.get_toc_json(rebuild=True)
+            self._topic_toc = self.get_topic_toc(rebuild=True)
+            self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
+            self._topic_toc_category_mapping = self.get_topic_toc_category_mapping(rebuild=True)
+            self._category_id_dict = None
+            scache.delete_template_cache("texts_list")
+            scache.delete_template_cache("texts_dashboard")
+            self._full_title_list_jsons = {}
 
     def init_shared_cache(self, rebuild=False):
+        # Wrapped whole, not per getter: one logical build, so one summary.
+        with build_pathway("init_shared_cache"):
+            self._init_shared_cache(rebuild=rebuild)
+
+    def _init_shared_cache(self, rebuild=False):
         from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
-        
+
         self.get_toc(rebuild=rebuild)
         self.get_toc_with_authors(rebuild=rebuild)
         self.get_toc_json(rebuild=rebuild)
@@ -5213,7 +5220,9 @@ class Library(object):
         """
         if rebuild or not self._toc_tree:
             from sefaria.model.category import TocTree
-            self._toc_tree = TocTree(self, mobile=mobile)
+            # The building branch only — the cache-hit path is a hot read.
+            with build_pathway("get_toc_tree"):
+                self._toc_tree = TocTree(self, mobile=mobile)
         self._toc_tree_is_ready = True
         return self._toc_tree
 
@@ -5225,7 +5234,9 @@ class Library(object):
             if not rebuild:
                 self._topic_toc = scache.get_shared_cache_elem('topic_toc')
             if rebuild or not self._topic_toc:
-                self._topic_toc = self.get_topic_toc_json_recursive()
+                # The building branch only — the cache-hit path is a hot read.
+                with build_pathway("get_topic_toc"):
+                    self._topic_toc = self.get_topic_toc_json_recursive()
                 scache.set_shared_cache_elem('topic_toc', self._topic_toc)
                 self.set_last_cached_time()
         return self._topic_toc
@@ -5262,7 +5273,8 @@ class Library(object):
             # not abort the whole topic-ToC build.
             children = []
             for t in ts:
-                with skip_bad_record("reset_toc,startup", "get_topic_toc_json_recursive top-level topic"):
+                with skip_bad_record("reset_toc,startup", "get_topic_toc_json_recursive top-level topic",
+                                     record=getattr(t, "_id", None)):
                     children.append(t.slug)
             topic_json = {}
         else:
@@ -5325,7 +5337,9 @@ class Library(object):
             if not rebuild:
                 self._topic_toc_category_mapping = scache.get_shared_cache_elem('topic_toc_category_mapping')
             if rebuild or not self._topic_toc_category_mapping:
-                self._topic_toc_category_mapping = self.build_topic_toc_category_mapping()
+                # The building branch only — the cache-hit path is a hot read.
+                with build_pathway("get_topic_toc_category_mapping"):
+                    self._topic_toc_category_mapping = self.build_topic_toc_category_mapping()
                 scache.set_shared_cache_elem('topic_toc_category_mapping', self._topic_toc_category_mapping)
                 self.set_last_cached_time()
         return self._topic_toc_category_mapping
@@ -5409,13 +5423,14 @@ class Library(object):
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
         """
         from .autospell import AutoCompleter
-        self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
-        }
+        with build_pathway("build_full_auto_completer"):
+            self._full_auto_completer = {
+                lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
+            }
 
-        for lang in self.langs:
-            self._full_auto_completer[lang].set_other_lang_ac(self._full_auto_completer["he" if lang == "en" else "en"])
-        self._full_auto_completer_is_ready = True
+            for lang in self.langs:
+                self._full_auto_completer[lang].set_other_lang_ac(self._full_auto_completer["he" if lang == "en" else "en"])
+            self._full_auto_completer_is_ready = True
 
     def build_lexicon_auto_completers(self):
         """
@@ -5425,10 +5440,11 @@ class Library(object):
         """
         from .autospell import LexiconTrie
         from .lexicon import LexiconSet
-        self._lexicon_auto_completer = {
-            lexicon.name: LexiconTrie(lexicon.name) for lexicon in LexiconSet({'should_autocomplete': True})
-        }
-        self._lexicon_auto_completer_is_ready = True
+        with build_pathway("build_lexicon_auto_completers"):
+            self._lexicon_auto_completer = {
+                lexicon.name: LexiconTrie(lexicon.name) for lexicon in LexiconSet({'should_autocomplete': True})
+            }
+            self._lexicon_auto_completer_is_ready = True
 
     def build_cross_lexicon_auto_completer(self):
         """
@@ -5436,8 +5452,9 @@ class Library(object):
         Sets internal boolean to True upon successful completion to indicate auto completer is ready.
         """
         from .autospell import AutoCompleter
-        self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
-        self._cross_lexicon_auto_completer_is_ready = True
+        with build_pathway("build_cross_lexicon_auto_completer"):
+            self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
+            self._cross_lexicon_auto_completer_is_ready = True
 
 
     def cross_lexicon_auto_completer(self):
@@ -5838,11 +5855,12 @@ class Library(object):
 
         logger.info("Loading Spacy Model")
 
-        named_entity_resolver = self._build_named_entity_resolver(lang)
-        ref_resolver = self._build_ref_resolver(lang)
-        named_entity_recognizer = self._build_named_entity_recognizer(lang)
-        cat_resolver = self._build_category_resolver(lang)
-        self._linker_by_lang[lang] = Linker(named_entity_recognizer, ref_resolver, named_entity_resolver, cat_resolver)
+        with build_pathway("build_linker"):
+            named_entity_resolver = self._build_named_entity_resolver(lang)
+            ref_resolver = self._build_ref_resolver(lang)
+            named_entity_recognizer = self._build_named_entity_recognizer(lang)
+            cat_resolver = self._build_category_resolver(lang)
+            self._linker_by_lang[lang] = Linker(named_entity_recognizer, ref_resolver, named_entity_resolver, cat_resolver)
         return self._linker_by_lang[lang]
 
     @staticmethod

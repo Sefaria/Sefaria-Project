@@ -90,6 +90,7 @@ from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, 
     update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
     get_author_indexes
 from sefaria.helper.file import get_resized_file
+from sefaria.helper.skip_tracking import build_pathway
 from sefaria.image_generator import make_img_http_response, make_module_fallback_img_http_response, \
     make_static_img_http_response, normalize_social_image_module
 import sefaria.tracker as tracker
@@ -3624,10 +3625,11 @@ def add_new_topic_api(request):
             t.image = data["image"]
 
         t.save()
-        library.build_full_auto_completer()
-        library.get_topic_toc(rebuild=True)
-        library.get_topic_toc_json(rebuild=True)
-        library.get_topic_toc_category_mapping(rebuild=True)
+        with build_pathway("topic_admin"):
+            library.build_full_auto_completer()
+            library.get_topic_toc(rebuild=True)
+            library.get_topic_toc_json(rebuild=True)
+            library.get_topic_toc_category_mapping(rebuild=True)
 
 
         def protected_index_post(request):
@@ -3641,10 +3643,11 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
-            library.build_full_auto_completer()
-            library.get_topic_toc(rebuild=True)
-            library.get_topic_toc_json(rebuild=True)
-            library.get_topic_toc_category_mapping(rebuild=True)
+            with build_pathway("topic_admin"):
+                library.build_full_auto_completer()
+                library.get_topic_toc(rebuild=True)
+                library.get_topic_toc_json(rebuild=True)
+                library.get_topic_toc_category_mapping(rebuild=True)
             return jsonResponse({"status": "OK"})
         else:
             return jsonResponse({"error": "Topic {} doesn't exist".format(topic)})
@@ -3674,9 +3677,10 @@ def topics_api(request, topic, v2=False):
         topic = Topic().load({'slug': topic_data["origSlug"]})
         topic_data["manual"] = True
         author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
-        topic = update_topic(topic, **topic_data)
-        if author_status_changed:
-            library.build_full_auto_completer()
+        with build_pathway("topic_admin"):
+            topic = update_topic(topic, **topic_data)
+            if author_status_changed:
+                library.build_full_auto_completer()
 
         def protected_index_post(request):
             return jsonResponse(topic.contents())

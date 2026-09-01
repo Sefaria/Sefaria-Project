@@ -97,7 +97,7 @@ import pytest
 from django.conf import settings
 
 from sefaria.system.database import db
-from sefaria.helper.skip_tracking import (reset_skip_counts, get_skip_records,
+from sefaria.helper.skip_tracking import (reset_skip_counts, get_skip_records, build_pathway,
                                           SIGNATURE_BREAKER_THRESHOLD)
 
 # ---------------------------------------------------------------------------
@@ -918,13 +918,20 @@ def run_case(c):
         # case, not a harness error.
         needs_refresh = (any(coll == "index" for coll, _ in c["docs"])
                          and c["trigger"] not in POISONS_LIBRARY)
-        try:
-            if needs_refresh:
-                restore_library_baseline()
-            c["trigger"]()
-        except BaseException as e:                      # noqa: BLE001 -- classifying, not handling
-            raised = e
-        records = get_skip_records()
+        # build_pathway around the trigger, for two reasons. It is faithful: the builders
+        # below wrap themselves in one, so in production none of them ever runs bare, and a
+        # bare call here would measure a path that does not exist. And it is necessary: the
+        # OUTERMOST block owns the reset, so without one the builder's own block is outermost
+        # and clears the skip log on the way out -- before the read below, turning every
+        # caught record into a misleading NO_EFFECT. Reading inside the block is the point.
+        with build_pathway("audit"):
+            try:
+                if needs_refresh:
+                    restore_library_baseline()
+                c["trigger"]()
+            except BaseException as e:                  # noqa: BLE001 -- classifying, not handling
+                raised = e
+            records = get_skip_records()
     finally:
         cleanup()
         if c["trigger"] in POISONS_LIBRARY or raised is not None:

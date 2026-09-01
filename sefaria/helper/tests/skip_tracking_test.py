@@ -25,6 +25,7 @@ from sefaria.helper.skip_tracking import (
     get_skip_counts,
     signal_and_reset_skip_counts,
     reset_skip_counts,
+    build_pathway,
     MAX_STORED_PER_GROUP,
 )
 
@@ -357,6 +358,160 @@ class TestBreakers:
                 with skip_bad_record("startup", "op", record=i):
                     raise AttributeError("'Topic' object has no attribute 'slug'")
         assert get_skip_counts() == {"startup": {"op": 200}}
+
+
+class TestSignatureBreakerCountsDistinctRecords:
+    """The signature breaker's premise is "N DIFFERENT records produced the same message, so
+    the message cannot depend on the record — the code is broken." Counting occurrences only
+    approximates that, and the approximation fails whenever the same record is skipped more
+    than once: one bad record re-skipped by ten successive rebuilds is bad data, not broken
+    code, and must not abort anything."""
+
+    def test_one_record_skipped_repeatedly_never_trips(self, mock_notify):
+        """The topic-admin case: one corrupt topic, re-walked by every rebuild. Fifty skips of
+        the SAME record with a byte-identical message, and the breaker stays silent."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        with thresholds(signature=3, volume=500):
+            for _ in range(50):
+                with skip_bad_record("topic_admin", "topic TOC child", record="the-bad-topic"):
+                    raise AttributeError("'Topic' object has no attribute 'slug'")
+        assert get_skip_counts() == {"topic_admin": {"topic TOC child": 50}}
+
+    def test_distinct_records_still_trip(self, mock_notify):
+        """The rename case is unchanged: different records, same message, abort at N."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        seen = 0
+        with thresholds(signature=3, volume=500):
+            with pytest.raises(BuildDegradationError, match="signature breaker trip"):
+                for i in range(50):
+                    with skip_bad_record("startup", "topic mapping", record="topic{}".format(i)):
+                        seen += 1
+                        raise AttributeError("'Topic' object has no attribute 'slug'")
+        assert seen == 3
+
+    def test_repeats_of_one_record_do_not_help_distinct_ones_trip(self, mock_notify):
+        """Mixed: two distinct records against a threshold of 3, each skipped many times.
+        Occurrence counting would abort; distinct-record counting correctly does not."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        with thresholds(signature=3, volume=500):
+            for _ in range(20):
+                for record in ("topic-a", "topic-b"):
+                    with skip_bad_record("startup", "topic mapping", record=record):
+                        raise AttributeError("'Topic' object has no attribute 'slug'")
+        assert get_skip_counts() == {"startup": {"topic mapping": 40}}
+
+    def test_skips_with_no_record_still_count_per_occurrence(self, mock_notify):
+        """Nothing can be deduplicated without an identifier, so a guard that passes no
+        record keeps the old occurrence-counting behavior rather than silently never tripping."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        seen = 0
+        with thresholds(signature=3, volume=500):
+            with pytest.raises(BuildDegradationError, match="signature breaker trip"):
+                for _ in range(50):
+                    with skip_bad_record("startup", "topic mapping"):
+                        seen += 1
+                        raise AttributeError("'Topic' object has no attribute 'slug'")
+        assert seen == 3
+
+    def test_volume_backstop_still_counts_every_skip(self, mock_notify):
+        """Distinct-record counting is the signature breaker only. Mass re-skipping of one
+        record is still degradation, so the volume backstop still sees all of it."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        seen = 0
+        with thresholds(signature=3, volume=10):
+            with pytest.raises(BuildDegradationError, match="volume breaker trip"):
+                for _ in range(50):
+                    with skip_bad_record("startup", "topic mapping", record="the-bad-topic"):
+                        seen += 1
+                        raise AttributeError("'Topic' object has no attribute 'slug'")
+        assert seen == 10
+
+
+class TestBuildPathway:
+    """build_pathway() is what keeps the breakers counting within ONE build. Every rebuild
+    entry point wraps its work in it; the reset on ENTRY is what stops skips from an
+    unmonitored rebuild accumulating into the next build's counters."""
+
+    def test_resets_on_entry_so_earlier_skips_do_not_count(self, mock_notify):
+        """A build must not inherit counts from whatever ran before it in the process."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        with thresholds(signature=None, volume=None):
+            with skip_bad_record("stray", "op", record="r1"):
+                raise InputError("left over from an earlier rebuild")
+        assert get_skip_counts() == {"stray": {"op": 1}}
+
+        with build_pathway("reset_toc"):
+            assert get_skip_counts() == {}
+
+    def test_posts_the_summary_on_exit(self, mock_notify):
+        skip_bad_record = bad_record_guard(MagicMock())
+        with thresholds(signature=None, volume=None):
+            with build_pathway("reset_toc"):
+                with skip_bad_record("reset_toc", "TocTree index", record="Berakhot"):
+                    raise InputError("bad index")
+        assert mock_notify.call_count == 1
+        assert "[reset_toc]" in mock_notify.call_args[0][0]
+        assert get_skip_counts() == {}
+
+    def test_posts_the_summary_even_when_the_build_raises(self, mock_notify):
+        """An aborted rebuild still has to say what it skipped — that log is the diagnosis."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        with thresholds(signature=None, volume=None):
+            with pytest.raises(RuntimeError):
+                with build_pathway("reset_toc"):
+                    with skip_bad_record("reset_toc", "TocTree index", record="Berakhot"):
+                        raise InputError("bad index")
+                    raise RuntimeError("build blew up")
+        assert mock_notify.call_count == 1
+        assert "TocTree index" in mock_notify.call_args[0][0]
+
+    def test_nesting_lets_the_outermost_block_own_the_summary(self, mock_notify):
+        """rebuild_toc() wraps itself and is also reached from the reset_toc view, so blocks
+        nest routinely. An inner block must not reset the outer log or post a partial summary."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        with thresholds(signature=None, volume=None):
+            with build_pathway("reset_cache"):
+                with skip_bad_record("reset_cache", "outer op", record="r1"):
+                    raise InputError("outer")
+                with build_pathway("rebuild_toc"):
+                    with skip_bad_record("reset_cache", "inner op", record="r2"):
+                        raise InputError("inner")
+                # The inner block neither posted nor reset.
+                assert mock_notify.call_count == 0
+                assert get_skip_counts() == {"reset_cache": {"outer op": 1, "inner op": 1}}
+
+        assert mock_notify.call_count == 1
+        message = mock_notify.call_args[0][0]
+        assert "[reset_cache]" in message
+        assert "outer op" in message and "inner op" in message
+
+    def test_nesting_depth_is_restored_when_an_inner_block_raises(self, mock_notify):
+        """A raising inner block must not leave the depth counter stuck above zero — that
+        would silence the outer summary, and every later build in the process with it."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        with thresholds(signature=None, volume=None):
+            with build_pathway("outer"):
+                with pytest.raises(RuntimeError):
+                    with build_pathway("inner"):
+                        raise RuntimeError("boom")
+                with skip_bad_record("outer", "op", record="r1"):
+                    raise InputError("recorded after the inner block blew up")
+                assert mock_notify.call_count == 0
+        assert mock_notify.call_count == 1
+        assert "[outer]" in mock_notify.call_args[0][0]
+
+    def test_a_breaker_trip_inside_a_block_posts_exactly_one_summary(self, mock_notify):
+        """_trip_breaker() posts the summary itself, then build_pathway's exit runs against
+        the already-reset log — so the abort produces one message, not two."""
+        skip_bad_record = bad_record_guard(MagicMock())
+        with thresholds(signature=3, volume=500):
+            with pytest.raises(BuildDegradationError):
+                with build_pathway("reset_toc"):
+                    for i in range(50):
+                        with skip_bad_record("reset_toc", "topic mapping",
+                                             record="topic{}".format(i)):
+                            raise AttributeError("'Topic' object has no attribute 'slug'")
+        assert mock_notify.call_count == 1
 
 
 class TestThreadSafety:
