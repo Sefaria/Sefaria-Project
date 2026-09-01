@@ -1,3 +1,4 @@
+{{- if .Values.varnish.enabled }}
 {{ if .Values.varnish.monitoring.enabled }}
 apiVersion: integreatly.org/v1alpha1
 kind: GrafanaDashboard
@@ -13,3 +14,4 @@ spec:
     name: {{ .Values.deployEnv }}-varnish-grafana-dashboard
   json: ""
 {{ end }}
+{{- end }}

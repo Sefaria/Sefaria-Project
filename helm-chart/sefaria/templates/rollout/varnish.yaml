@@ -1,3 +1,4 @@
+{{- if .Values.varnish.enabled }}
 # apiVersion: apps/v1
 # kind: Deployment
 apiVersion: argoproj.io/v1alpha1
@@ -129,3 +130,4 @@ spec:
             name: {{ .Values.deployEnv }}-varnish-config-{{ .Release.Revision }}
         - emptyDir: {}
           name: workdir
+{{- end }}

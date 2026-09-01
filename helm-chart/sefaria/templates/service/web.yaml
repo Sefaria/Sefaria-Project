@@ -6,7 +6,7 @@ metadata:
   labels:
     app: web-{{ .Values.deployEnv }}
     deployEnv: "{{ .Values.deployEnv }}"
-    stackRole: varnish
+    stackRole: django
 spec:
   ports:
   - port: 80

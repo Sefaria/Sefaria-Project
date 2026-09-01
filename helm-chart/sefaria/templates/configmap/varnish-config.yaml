@@ -1,3 +1,4 @@
+{{- if .Values.varnish.enabled }}
 {{- range $k, $v := untilStep (int (sub .Release.Revision .Values.previousServicesCount)) (int (add .Release.Revision 1)) 1}}
 {{- if gt $v 0}}
 ---
@@ -138,3 +139,4 @@ data:
     }
 {{ end }}
 {{ end }}
+{{- end }}
