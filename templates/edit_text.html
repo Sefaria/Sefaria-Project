@@ -176,15 +176,10 @@
 
 				<div id="languageForm">
 					<span>Language:</span>
-					<!-- populated by populateLanguageSelect() in editor.js, from Sefaria.ISOMap -->
+					<!-- populated by populateLanguageSelect() in editor.js, from Sefaria.ISOMap.
+					     Direction is derived from the chosen language (Sefaria.ISOMap), not a
+					     separate control. -->
 					<select id="language"></select>
-				</div>
-				<div id="directionForm">
-					<span>Direction:</span>
-					<select id="direction">
-					  <option value="ltr">Left-to-right</option>
-					  <option value="rtl">Right-to-left</option>
-					</select>
 				</div>
 
 			</div>

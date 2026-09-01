@@ -3537,16 +3537,19 @@ sjs.showNewText = function () {
 	}
 
 	// Language Toggle -- prefer the edited version's real language (set by sjs.editText).
-	// Brand-new versions (no edited-version data) default to English/ltr rather than
-	// sjs.langMode, which reflects unrelated reader-viewing state, not the new version's
-	// intended language.
-	$("#language").val(sjs.editing.actualLanguage || "en")
-		.unbind();
-
-	// Direction Toggle
-	$("#direction").val(sjs.editing.direction || "ltr")
+	// Brand-new versions (no edited-version data) default to English rather than sjs.langMode,
+	// which reflects unrelated reader-viewing state, not the new version's intended language.
+	var initialLang = sjs.editing.actualLanguage || "en";
+	$("#language").val(initialLang)
 		.unbind()
-		.change(updateTextDirection);
+		.change(updateTextDirectionFromLanguage);
+
+	// Direction is derived from the language, not chosen separately in the UI -- an existing
+	// version keeps whatever direction it was already saved with (sjs.editing.direction); a new
+	// version gets its language's default (Sefaria.ISOMap).
+	var initialDirection = sjs.editing.direction || Sefaria.ISOMap[initialLang]?.defaultDirection || "ltr";
+	sjs._$newVersion.css("direction", initialDirection);
+	$(".textSyncNumbers").toggleClass("hebrew", initialDirection === "rtl");
 
 	// Special handing of Original Translation // Sefara Community Translation
 	const sctVersion = (sjs.current.versions || []).find(v => v.versionTitle === "Sefaria Community Translation");
@@ -4116,9 +4119,9 @@ sjs.updateSourcesCount = function() {
 
 function checkTextDirection() {
 	// Check if the text is (mostly) Hebrew, update text direction accordingly. Only flips
-	// #language along with it when the detected direction actually disagrees with what's
-	// currently shown -- avoids clobbering an intentionally-picked language (e.g. French)
-	// that happens to share the same direction as English.
+	// #language along with it when the detected direction actually disagrees with the current
+	// language's own default direction -- avoids clobbering an intentionally-picked language
+	// (e.g. French) that happens to share the same direction as English.
 	const text = $(this).val();
 	if (text === "") { return; }
 
@@ -4131,25 +4134,20 @@ function checkTextDirection() {
 		$(this).parent().find(".textSyncNumbers").removeClass("hebrew");
 	}
 
-	if (detectedDirection !== $("#direction").val()) {
-		$("#direction").val(detectedDirection);
+	const currentDirection = Sefaria.ISOMap[$("#language").val()]?.defaultDirection || "ltr";
+	if (detectedDirection !== currentDirection) {
 		$("#language").val(detectedDirection === "rtl" ? "he" : "en");
 	}
 }
 
 
-function updateTextDirection() {
-	// Manually update the text direction when a user
-	// manually changes the direction dropdown
-	var val = $(this).val();
-
-	if (val === "rtl") {
-		$("#newVersion").css("direction", "rtl");
-		$(".textSyncNumbers").addClass("hebrew");
-	} else if (val === "ltr") {
-		$("#newVersion").css("direction", "ltr");
-		$(".textSyncNumbers").removeClass("hebrew");
-	}
+function updateTextDirectionFromLanguage() {
+	// Update the text direction when the user changes the language dropdown -- derived from
+	// the language's default direction (Sefaria.ISOMap), since direction is no longer a
+	// separate control.
+	var direction = Sefaria.ISOMap[$(this).val()]?.defaultDirection || "ltr";
+	$("#newVersion").css("direction", direction);
+	$(".textSyncNumbers").toggleClass("hebrew", direction === "rtl");
 }
 
 function readNewVersion() {
@@ -4166,10 +4164,14 @@ function readNewVersion() {
 	if ($("#originalRadio").prop("checked")) {
 		version["versionTitle"] = "Sefaria Community Translation";
 		version["versionSource"] = "https://www.sefaria.org";
-		// SCT is English by definition -- don't trust the language/direction pickers, which
-		// aren't reset when switching to this radio and may carry over a stale selection.
+		// SCT is English by definition -- don't trust the language picker, which isn't reset
+		// when switching to this radio and may carry over a stale selection.
 		version["language"] = "en";
-		version["direction"] = "ltr";
+		if (!sjs.editing.direction) {
+			// Only send direction when creating a brand-new version -- an existing version
+			// keeps whatever direction it was already saved with.
+			version["direction"] = "ltr";
+		}
 	} else {
 		version["versionTitle"] = $("#versionTitle").val();
 		var source = $("#versionSource").val();
@@ -4180,7 +4182,9 @@ function readNewVersion() {
 		}
 		version["versionSource"] = source;
 		version["language"] = $("#language").val();
-		version["direction"] = $("#direction").val();
+		if (!sjs.editing.direction) {
+			version["direction"] = Sefaria.ISOMap[version["language"]]?.defaultDirection || "ltr";
+		}
 	}
 
 	var text = $("#newVersion").val();

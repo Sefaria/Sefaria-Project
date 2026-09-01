@@ -2299,8 +2299,7 @@ body.newText #addVersionHeaderRight {
 	border-radius: 4px;
 }
 
-#addVersionHeader.original #languageForm,
-#addVersionHeader.original #directionForm {
+#addVersionHeader.original #languageForm {
 	display: none;
 }
 
