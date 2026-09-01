@@ -1121,3 +1121,35 @@ def test_reindex_index_shard_still_rejects_unknown_type(monkeypatch):
 
     with pytest.raises(ValueError, match="Unknown index type"):
         search.reindex_index_shard("bogus")
+
+
+class TestSharedIndexGuardCoversEntities:
+    """The shared-alias guard must cover topic/book/category, not just text/sheet.
+
+    Entity indexes became reachable from a cauldron reindex once the orchestrator
+    started rebuilding them (run_reindex_entities). Unlike text/sheet, they are not
+    isolated per environment unless ISOLATE_SEARCH_INDEXES is on, so a cauldron with
+    its own text/sheet names can still point at the shared entity aliases. Since
+    reindex_finalize's alias swap does a wildcard `remove`, an unguarded entity
+    reindex on the shared dev cluster would strip those aliases from every cauldron.
+    """
+
+    @pytest.mark.parametrize("alias", ["text", "sheet", "topic", "book", "category"])
+    def test_rejects_every_shared_alias(self, alias, monkeypatch):
+        from sefaria import search
+        monkeypatch.delenv("REINDEX_ALLOW_SHARED_INDEX", raising=False)
+        with pytest.raises(ValueError, match="shared default index"):
+            search._assert_not_shared_index(alias, alias)
+
+    @pytest.mark.parametrize("alias", ["text-mycauldron", "esreindexv2_text", "topic-mycauldron"])
+    def test_allows_isolated_names(self, alias, monkeypatch):
+        from sefaria import search
+        monkeypatch.delenv("REINDEX_ALLOW_SHARED_INDEX", raising=False)
+        search._assert_not_shared_index(alias, "text")  # must not raise
+
+    @pytest.mark.parametrize("alias", ["text", "topic", "category"])
+    def test_explicit_opt_in_still_permits_prod(self, alias, monkeypatch):
+        """prod/preprod legitimately swap the shared aliases via allowSharedIndex: true."""
+        from sefaria import search
+        monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
+        search._assert_not_shared_index(alias, alias)  # must not raise

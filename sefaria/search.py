@@ -2474,12 +2474,18 @@ def _index_doc_count(index_name):
 
 def _assert_not_shared_index(alias, type):
     """
-    Refuse to operate on a shared/default index alias ("text" / "sheet") unless explicitly
-    allowed. The dev Elasticsearch cluster is shared across cauldrons, and both index creation
-    (reindex_init) and the alias swap (reindex_finalize -> _swap_alias_atomically, which does a
-    wildcard `remove`) are destructive to whatever else lives under that alias on a shared cluster.
+    Refuse to operate on a shared/default index alias unless explicitly allowed. The dev
+    Elasticsearch cluster is shared across cauldrons, and both index creation (reindex_init)
+    and the alias swap (reindex_finalize -> _swap_alias_atomically, which does a wildcard
+    `remove`) are destructive to whatever else lives under that alias on a shared cluster.
+
+    The entity aliases ('topic', 'book', 'category') are covered too. They became reachable
+    from a cauldron reindex once the orchestrator started rebuilding entity indices, and
+    unlike text/sheet they are NOT isolated per environment by default -- a cauldron that
+    has its own text/sheet names can still be pointing at the shared entity aliases, so
+    without this they would be the one destructive path left open.
     """
-    shared_index_names = ("text", "sheet")
+    shared_index_names = ("text", "sheet", "topic", "book", "category")
     allow_shared_index = os.environ.get("REINDEX_ALLOW_SHARED_INDEX", "").lower() in ("1", "true", "yes")
     if alias in shared_index_names and not allow_shared_index:
         raise ValueError(
