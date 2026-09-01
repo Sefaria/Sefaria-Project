@@ -1251,6 +1251,7 @@ def categorize_sheets(request):
 def sheet_spam_dashboard(request):
 
     from django.contrib.auth.models import User
+    from sefaria.spam import spam_text_clauses
 
     if request.method == 'POST':
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
@@ -1266,8 +1267,7 @@ def sheet_spam_dashboard(request):
 
         earliest_new_user_id = User.objects.filter(date_joined__gte=date).order_by('date_joined')[0].id
 
-        regex = r'.*(?!href=[\'"](\/|http(s)?:\/\/(www\.)?sefaria).+[\'"])(href).*'
-        sheets = db.sheets.find({"sources.ref": {"$exists": False}, "dateCreated": {"$gt": date.strftime("%Y-%m-%dT%H:%M:%S.%f")}, "owner": {"$gt": earliest_new_user_id}, "includedRefs": {"$size": 0}, "reviewed": {"$ne": True}, "$or": [{"sources.outsideText": {"$regex": regex}}, {"sources.comment": {"$regex": regex}}, {"sources.outsideBiText.en": {"$regex": regex}}, {"sources.outsideBiText.he": {"$regex": regex}}]})
+        sheets = db.sheets.find({"sources.ref": {"$exists": False}, "dateCreated": {"$gt": date.strftime("%Y-%m-%dT%H:%M:%S.%f")}, "owner": {"$gt": earliest_new_user_id}, "includedRefs": {"$size": 0}, "reviewed": {"$ne": True}, "$or": spam_text_clauses("sources.outsideText", "sources.comment", "sources.outsideBiText.en", "sources.outsideBiText.he")})
 
         sheets_list = []
 
@@ -1284,6 +1284,7 @@ def sheet_spam_dashboard(request):
 def profile_spam_dashboard(request):
 
     from django.contrib.auth.models import User
+    from sefaria.spam import SPAM_KEYWORDS_REGEX, spam_text_clauses, spam_name_user_ids
 
     if request.method == 'POST':
         return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
@@ -1299,10 +1300,6 @@ def profile_spam_dashboard(request):
 
         earliest_new_user_id = User.objects.filter(date_joined__gte=date).order_by('date_joined')[0].id
 
-        regex = r'.*(?!href=[\'"](\/|http(s)?:\/\/(www\.)?sefaria).+[\'"])(href).*'
-
-        spam_keywords_regex = r'(?i).*support.*|.*coin.*|.*helpline.*|.*base.*'
-
         users_to_check = db.profiles.find(
             {'$and': [
                 {"id": {"$gt": earliest_new_user_id}, "reviewed": {"$ne": True}, "settings.reading_history": {"$ne": False}},
@@ -1312,8 +1309,9 @@ def profile_spam_dashboard(request):
                     {'twitter': {"$ne": ""}},
                     {'youtube': {"$ne": ""}},
                     {'linkedin': {"$ne": ""}},
-                    {'bio': {"$regex": regex}},
-                    {'slug': {"$regex": spam_keywords_regex}}
+                    *spam_text_clauses('bio'),
+                    {'slug': {"$regex": SPAM_KEYWORDS_REGEX}},
+                    {'id': {"$in": spam_name_user_ids(earliest_new_user_id)}}
             ]
         }]})
 
