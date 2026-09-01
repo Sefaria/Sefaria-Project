@@ -1,6 +1,6 @@
 from django.test import TestCase
 
-from reader.conftest import create_test_user, purge_test_profiles
+from reader.conftest import create_test_user, make_keyless_profile, purge_test_profiles
 from sefaria.helper import library_assistant
 from sefaria.helper.library_assistant import SETTING_KEY
 from sefaria.model.user_profile import UserProfile
@@ -98,6 +98,7 @@ class EnableLibraryAssistantViewTest(TestCase):
 
     def test_cross_site_request_is_not_enabled(self):
         # A cross-site subresource load must not silently opt a logged-in user in.
+        make_keyless_profile(self.user)
         self.client.force_login(self.user)
         response = self.client.get(self.url, {"next": "/Genesis.1"}, HTTP_SEC_FETCH_SITE="cross-site")
 
