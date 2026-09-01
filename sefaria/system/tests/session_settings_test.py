@@ -72,10 +72,13 @@ def test_server_side_expiry_is_derived_from_the_same_setting():
     diverge, a valid-looking cookie can point at an already-dead session -- a
     399-day cookie riding on a 14-day server record logs the user out anyway.
     """
-    from django.contrib.sessions.backends.db import SessionStore
+    from importlib import import_module
 
-    assert SessionStore().get_expiry_age() == settings.SESSION_COOKIE_AGE
+    SessionStore = import_module(settings.SESSION_ENGINE).SessionStore
+    store = SessionStore()
+
+    assert store.get_expiry_age() == settings.SESSION_COOKIE_AGE
 
     expected = timezone.now() + timedelta(seconds=settings.SESSION_COOKIE_AGE)
-    drift = abs((SessionStore().get_expiry_date() - expected).total_seconds())
+    drift = abs((store.get_expiry_date() - expected).total_seconds())
     assert drift < 60
