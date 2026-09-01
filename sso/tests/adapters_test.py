@@ -14,6 +14,7 @@ from allauth.core.context import request_context
 from allauth.socialaccount.models import SocialAccount, SocialLogin
 from google.cloud.exceptions import GoogleCloudError
 
+from sefaria.helper.library_assistant import SETTING_KEY as LIBRARY_ASSISTANT_KEY
 from sso.adapters import SefariaSocialAccountAdapter, SefariaAccountAdapter, import_gravatar
 
 
@@ -225,7 +226,12 @@ class SaveUserTest(TestCase):
         profile = mock_profile_cls.return_value
         profile.assign_slug.assert_called_once()
         profile.join_invited_collections.assert_called_once()
-        profile.settings.__setitem__.assert_called_once_with('interface_language', 'english')
+        profile.settings.__setitem__.assert_any_call('interface_language', 'english')
+        # New SSO accounts must get the Library Assistant turned on, matching email
+        # registration (sefaria/views.py process_register_form). Without the key
+        # written here the account reads as "off" and gets shown the promo banner
+        # instead of the assistant itself.
+        profile.settings.__setitem__.assert_any_call(LIBRARY_ASSISTANT_KEY, True)
         mock_import_gravatar.assert_called_once_with(profile)
         self.assertEqual(profile.save.call_count, 2)
         mock_crm_cls.return_value.create_crm_user.assert_called_once_with(
