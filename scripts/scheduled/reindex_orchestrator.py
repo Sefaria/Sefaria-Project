@@ -286,6 +286,7 @@ def main():
     from kubernetes import client, config
     from sefaria.pagesheetrank import update_pagesheetrank
     from scripts.scheduled.reindex_pipeline import (
+        run_reindex_entities,
         run_reindex_finalize_all,
         run_reindex_init_all,
     )
@@ -450,6 +451,15 @@ def main():
         sheet_catch_up_timestamp=sheet_catch_up_timestamp,
         clear_queue=True,
     )
+
+    # Entity indices (topic, book, category) last, after the text/sheet aliases are
+    # durably swapped above -- matching index_all()'s ordering, so a failure here costs
+    # a re-run of entity indexing rather than the whole reindex. Not sharded: these
+    # corpora are thousands of documents, and index_entities() runs its own
+    # init -> index -> finalize cycle per type.
+    logger.info("Orchestrator: rebuilding entity indices")
+    run_reindex_entities(debug=debug)
+
     logger.info("Orchestrator: reindex complete")
 
 

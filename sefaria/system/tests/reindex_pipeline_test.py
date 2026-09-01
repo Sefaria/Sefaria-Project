@@ -16,6 +16,44 @@ def load_pipeline():
     return pipeline
 
 
+def test_run_reindex_entities_rebuilds_all_entity_types(monkeypatch):
+    """The orchestrator path must rebuild topic/book/category too.
+
+    #3510 (Multi-Entity Search Results) added these index types on master, where the
+    weekly CronJob entrypoint is reindex_elasticsearch_cronjob.py -> index_all() ->
+    index_entities(). This branch repoints the CronJob at reindex_orchestrator.py,
+    which never calls index_all() -- so without this helper the entity aliases would
+    silently keep pointing at stale indexes while the job still exits 0.
+    """
+    mod = load_pipeline()
+    calls = []
+    monkeypatch.setattr("sefaria.search.index_entities",
+                        lambda debug=False: calls.append(("entities", debug)))
+
+    mod.run_reindex_entities(debug=True)
+
+    assert calls == [("entities", True)]
+
+
+def test_run_reindex_entities_propagates_failure(monkeypatch):
+    """index_entities attempts every type then raises a summary; do not swallow it.
+
+    6b2de5392 deliberately made this raise so "a stale entity index is never silently
+    reported as a successful reindex". The catch-and-log convention elsewhere in this
+    module applies to catch-up/queue-clear, which are cheap re-runs of already-durable
+    work -- not to a whole entity corpus being stale.
+    """
+    mod = load_pipeline()
+
+    def boom(debug=False):
+        raise RuntimeError("Entity indexing failed for: topic, book")
+
+    monkeypatch.setattr("sefaria.search.index_entities", boom)
+
+    with pytest.raises(RuntimeError, match="topic, book"):
+        mod.run_reindex_entities()
+
+
 def test_run_reindex_finalize_all_runs_catch_up_and_clears_queue(monkeypatch):
     mod = load_pipeline()
     calls = []

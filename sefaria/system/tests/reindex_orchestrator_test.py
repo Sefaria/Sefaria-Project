@@ -133,6 +133,33 @@ def test_build_shard_job_manifest_minimal():
     assert "volumes" not in manifest["spec"]["template"]["spec"]
 
 
+def test_main_rebuilds_entities_after_the_text_sheet_cutover():
+    """Ordering is the point: entities run only after text/sheet are durably swapped.
+
+    Static check on main()'s call order, because main() itself imports kubernetes and
+    django and cannot be exercised here (see this module's docstring). Guards the gap
+    where the CronJob was repointed from index_all() -- the sole caller of
+    index_entities() -- to the orchestrator, which never invoked it.
+    """
+    import ast
+    import pathlib as _pathlib
+
+    src = _pathlib.Path("scripts/scheduled/reindex_orchestrator.py").read_text()
+    fn = next(n for n in ast.parse(src).body
+              if isinstance(n, ast.FunctionDef) and n.name == "main")
+    called = [n.func.id for n in ast.walk(fn)
+              if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)]
+
+    assert "run_reindex_entities" in called, (
+        "orchestrator main() must rebuild the entity indices; without it topic/book/"
+        "category aliases go stale silently while the job still exits 0"
+    )
+    assert called.index("run_reindex_finalize_all") < called.index("run_reindex_entities"), (
+        "entities must run AFTER the text/sheet alias swap, so an entity failure costs "
+        "a re-run of entity indexing rather than the whole reindex"
+    )
+
+
 def test_build_shard_job_manifest_marks_pods_unsafe_to_evict():
     """Shard pods must survive cluster-autoscaler scale-down.
 

@@ -32,6 +32,30 @@ def run_reindex_init_all(debug=False):
         reindex_init(index_type, debug=debug)
 
 
+def run_reindex_entities(debug=False):
+    """Rebuild the entity indices (topic, book, category) that power /api/entity-search.
+
+    Not part of REINDEX_TYPES: entity types are not sharded (their corpora are thousands
+    of documents against text's millions), and index_entities() drives the full
+    init -> index -> finalize cycle per type itself.
+
+    This exists because the two refactors met awkwardly. On master the weekly CronJob
+    entrypoint is reindex_elasticsearch_cronjob.py, whose index_all() calls
+    index_entities(); this branch repoints the CronJob at reindex_orchestrator.py, which
+    never calls index_all(). Without this helper the entity aliases keep pointing at
+    stale indexes and the job still exits 0 -- a silent degradation, not a loud break.
+
+    Deliberately not wrapped in try/except. index_entities() already attempts every type
+    before raising a combined summary, so a raise here means at least one entity corpus
+    is genuinely stale. The catch-and-log convention in run_reindex_finalize_all covers
+    cheap re-runs of already-durable work; a stale entity index is neither.
+    """
+    from sefaria.search import index_entities
+
+    logger.info(f"Running entity reindex (topic, book, category) - debug: {debug}")
+    return index_entities(debug=debug)
+
+
 def run_reindex_finalize_all(debug=False, sheet_catch_up_timestamp=None, clear_queue=True):
     """
     Finalize text, rebuild sheets on the new index, finalize sheets, optional catch-up, clear queue.
