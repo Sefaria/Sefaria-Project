@@ -2605,9 +2605,13 @@ def reindex_finalize(type, debug=False, min_doc_ratio=0.9):
     # alias strip, so re-check here too.
     _assert_not_shared_index(names['alias'], type)
 
-    # Drop any erroneous physical index named like the alias before swapping
+    # Drop any erroneous physical index named like the alias before swapping: an alias and a
+    # concrete index cannot share a name, so a stray index called e.g. 'topic' would make the
+    # `add` action in _swap_alias_atomically fail. exists() resolves alias names too, so confirm
+    # the name is NOT already our alias -- otherwise this fires on every single reindex and the
+    # DELETE 400s ("matches an alias, specify the corresponding concrete indices instead").
     logger.debug("Switching aliases after indexing")
-    if index_client.exists(index=names['alias']):
+    if index_client.exists(index=names['alias']) and not index_client.exists_alias(name=names['alias']):
         clear_index(names['alias'])
 
     _swap_alias_atomically(names)
