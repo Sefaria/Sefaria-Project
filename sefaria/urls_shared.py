@@ -97,6 +97,7 @@ shared_patterns = [
     path('api/notes/all', reader_views.all_notes_api),
     re_path(r'^api/notes/(?P<note_id_or_ref>.*)$', reader_views.notes_api),
     path('api/related/<path:tref>/websites', reader_views.websites_api),
+    path('api/related-by-passage/<path:tref>', reader_views.related_by_passage_poc_api),
     re_path(r'^api/related/(?P<tref>.*)$', reader_views.related_api),
     path('api/counts/links/<path:cat1>/<path:cat2>', reader_views.link_count_api),
     path('api/counts/words/<path:title>/<path:version>/<path:language>', reader_views.word_count_api),

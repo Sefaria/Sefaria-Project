@@ -497,7 +497,7 @@ class ReaderApp extends Component {
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL.
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open", 'Version Open',
-      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide", "LinkerAdmin"]);
+      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide", "LinkerAdmin", "ResearchPanelPOC"]);
     const addTab = (url) => {
       if (state.tab && state.menuOpen !== "search") {
         return  url + `&tab=${state.tab}`

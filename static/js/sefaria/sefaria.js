@@ -2294,6 +2294,31 @@ _media: {},
       return `${poolName}_${lang}`
     },
   _related: {},
+  _researchPanelPOC: {},
+  researchPanelPOC: function(ref, callback) {
+    ref = Sefaria.humanRef(ref);
+    if (!callback) {
+      return this._researchPanelPOC[ref] || null;
+    }
+    if (ref in this._researchPanelPOC) {
+      callback(this._researchPanelPOC[ref]);
+    } else {
+      this.researchPanelPOCApi(ref, callback);
+    }
+  },
+  researchPanelPOCApi: function(ref, callback) {
+    ref = Sefaria.humanRef(ref);
+    const url = Sefaria.apiHost + "/api/related-by-passage/" + Sefaria.normRef(ref);
+    return this._api(url, data => {
+      if (!data || data.error) {
+        if (callback) { callback(data); }
+        return data;
+      }
+      this._researchPanelPOC[ref] = data;
+      if (callback) { callback(data); }
+      return data;
+    });
+  },
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.
     // `ref` may be either a string or an array of consecutive ref strings.

@@ -8520,6 +8520,141 @@ But not to use a display block directive that might break continuous mode for ot
   text-decoration: underline;
 }
 
+.researchPanelPOC {
+  padding: 0 24px 24px;
+}
+.marginless .researchPanelPOC {
+  padding-top: 20px;
+}
+.researchPanelIntro {
+  color: var(--medium-grey);
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+.researchPanelEyebrow {
+  color: var(--dark-grey);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.researchPanelRef {
+  color: #000;
+  font-size: 18px;
+}
+.researchPanelTabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid #E5E5E5;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.researchPanelTab {
+  background: #fff;
+  border: 0;
+  border-inline-end: 1px solid #E5E5E5;
+  color: var(--dark-grey);
+  cursor: pointer;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 12px;
+  min-height: 38px;
+  padding: 6px 8px;
+}
+.researchPanelTab:last-child {
+  border-inline-end: 0;
+}
+.researchPanelTab.active {
+  background: #f7f7f7;
+  color: #000;
+  font-weight: 700;
+}
+.researchPanelCount,
+.researchPanelEmpty {
+  color: var(--medium-grey);
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+.researchPanelGroup {
+  border-top: 1px solid #E5E5E5;
+  padding: 16px 0 4px;
+}
+.researchPanelGroupTitle {
+  color: #000;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 12px;
+}
+.researchPanelGroupTitle span {
+  color: var(--medium-grey);
+  font-weight: 400;
+}
+.researchResourceItem {
+  border: 1px solid #E5E5E5;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  padding: 12px;
+}
+.researchResourceItem.quality-weak,
+.researchResourceItem.quality-off-topic,
+.researchResourceItem.quality-blocked {
+  background: #fafafa;
+}
+.researchResourceMeta,
+.researchResourceFooter,
+.researchResourceSubtitle,
+.researchResourceQuestion {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.researchResourceMeta,
+.researchResourceFooter {
+  align-items: center;
+  color: var(--medium-grey);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  gap: 6px;
+  line-height: 1.3;
+}
+.researchResourceMeta span,
+.researchResourceFooter span {
+  border: 1px solid #E5E5E5;
+  border-radius: 3px;
+  padding: 2px 5px;
+}
+.researchResourceTitle {
+  color: #000;
+  display: block;
+  font-size: 18px;
+  line-height: 1.25;
+  margin-top: 8px;
+  text-decoration: none;
+}
+.researchResourceTitle:hover {
+  text-decoration: underline;
+}
+.researchResourceSubtitle {
+  color: var(--dark-grey);
+  font-size: 13px;
+  margin-top: 4px;
+}
+.researchResourceQuestion {
+  color: #000;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-top: 8px;
+}
+.researchResourceSnippet {
+  color: var(--medium-grey);
+  font-size: 15px;
+  line-height: 1.45;
+  margin-top: 8px;
+}
+.researchResourceFooter {
+  margin-top: 10px;
+}
+
 .manuscriptImage {
   width: auto;
   max-height: 180px;
