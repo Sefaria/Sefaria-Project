@@ -207,13 +207,14 @@ export const SCENARIOS = {
    * module's pool — and pool membership lives in Postgres (django_topics), whose tables are empty
    * on a stock local sandbox, so every individual topic page 404s there. The category route has no
    * such gate: it renders, contributes `initialNavigationTopicCategory` to keywordTargets (the
-   * last fallback in getUserContext's chain), and its sidebar carries the ad via
-   * NavSidebar's unconditional `{type: "Promo"}` module. Its main content is empty without pool
-   * data, which does not affect the sidebar.
+   * last fallback in getUserContext's chain), and its sidebar carries the ad via the page's
+   * `{type: "Promo"}` module (opt-in per page — TopicCategory is one of the pages that has it).
+   * Its main content is empty without pool data, which does not affect the sidebar.
    *
-   * Note the matcher is an OR: an ad shows when a keyword matches, OR when it has any exclusions
-   * and none of them match. So this ad also shows on unrelated pages; 'social-issues' is the only
-   * place it is actively suppressed. The tests cover the three topics that make that concrete.
+   * Keyword matching (strict semantics, 2026-09-01): includes and exclusions must BOTH hold.
+   * This ad's includes ('prayer', 'beliefs') admit exactly those category pages; the exclusion
+   * ('!social-issues') would only matter on a page carrying both an include keyword and the
+   * excluded one. The tests cover the three topics that make the include/exclude split concrete.
    *
    * TWO ENVIRONMENT DEPENDENCIES, both from `debug: true` on this record:
    *   1. Promotions.showGivenDebugMode() hides a debug ad unless `context.isDebug`, which is the

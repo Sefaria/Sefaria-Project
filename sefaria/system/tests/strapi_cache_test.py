@@ -298,8 +298,16 @@ def test_strapi_graphql_error_response_not_cached(client):
     # Otherwise, a transient error or a query/schema mismatch would be served from the cache for the full TTL.
     from sefaria.system.cache import get_cache_elem
 
+    import hashlib
+
+    from sefaria.views import STRAPI_SCHEMA_VERSION
+
     query = get_sample_graphql_query("2023-01-01T00:00:00Z", "2023-01-31T23:59:59Z")
-    cache_key = "strapi_graphql_v5_2023-01-01_2023-01-31"
+    # The REAL key the view would cache under (version + dates + query-body hash). Checking an
+    # old-format literal here would let this test pass even if errors WERE cached — emptiness of
+    # a key nothing writes to proves nothing.
+    query_hash = hashlib.sha1(query.encode("utf-8")).hexdigest()[:12]
+    cache_key = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_2023-01-01_2023-01-31_{query_hash}"
 
     error_body = {"errors": [{"message": 'Cannot query field "documentId"'}]}
     mock_response = Mock()
@@ -407,11 +415,17 @@ def test_strapi_cache_invalidate_with_valid_webhook_auth(client):
             assert response.status_code == 200
 
 def test_cache_key_generation():
-    # Test that cache keys are generated consistently.
-    from sefaria.system.cache import get_cache_elem, set_cache_elem
+    # A Redis round-trip smoke on a key in the CURRENT format (version + dates + query hash).
+    # This does not re-derive the view's formula — the poisoning-prevention and error-path tests
+    # above exercise the real key through the view itself; this only proves set/get works for a
+    # key of the shape production writes.
+    import hashlib
 
-    # Test that same dates generate same cache key
-    cache_key = "strapi_graphql_v5_2023-01-01_2023-12-31"
+    from sefaria.system.cache import get_cache_elem, set_cache_elem
+    from sefaria.views import STRAPI_SCHEMA_VERSION
+
+    sample_hash = hashlib.sha1(b"sample query").hexdigest()[:12]
+    cache_key = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_2023-01-01_2023-12-31_{sample_hash}"
     test_data = {"test": "data"}
 
     # Set cache

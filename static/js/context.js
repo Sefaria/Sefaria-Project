@@ -86,8 +86,10 @@ const modalFields = `
 `;
 
 // Sidebar-ad fields as a LIST rather than a template string like bannerFields/modalFields above:
-// the legacy-Strapi fallback (see getStrapiData) needs a second selection with `pageType`
-// removed, and deriving both selections from one list keeps them from drifting apart.
+// one entry per field keeps additions reviewable line-by-line, and the e2e suite asserts the
+// assembled query actually names its fields (the synthetic Strapi route matches the URL alone,
+// so without that assertion a dropped field would leave every e2e test green — see
+// strapi-sidebar-ad-page-type.spec.js).
 const SIDEBAR_AD_FIELD_LIST = [
   "documentId",
   "buttonAboveOrBelow",

@@ -154,6 +154,28 @@ test.describe('Strapi Sidebar Ad — page-type gate boundaries', () => {
     expectStrapiServed(served);
   });
 
+  test("the client's real GraphQL query asks Strapi for the targeting fields", async ({ page, context }) => {
+    // The synthetic route matches the URL alone and serves a payload that carries `pageType` no
+    // matter what the client asked for — that immunity is what freed the suite from recording
+    // invalidation, but it also means REMOVING a field from the production query in context.js
+    // would leave every other test here green while real ads quietly lose their targeting
+    // (missing pageType normalizes to all_pages). This test closes that hole by asserting on the
+    // intercepted POST body — the actual query the production code sent.
+    served = await routeWithStrapiPayload(context, strapiPayload({ sidebarAds: [typedAd('homepage')] }));
+    await prepareStrapiPage(page, scenario);
+
+    await page.goto('/texts');
+    await waitForStrapiResponse(page);
+
+    expect(served.queries.length).toBeGreaterThan(0);
+    const query = served.queries[0];
+    // The load-bearing new field, plus two long-standing neighbors as canaries: if these
+    // disappear from the body, the query builder broke, not this test.
+    for (const field of ['pageType', 'keywords', 'startTime']) {
+      expect(query, `the GraphQL query no longer asks for "${field}"`).toContain(field);
+    }
+  });
+
   test('an ad with pageType null (a pre-field document) still shows — backward compatibility', async ({ page, context }) => {
     // Explicit null mimics a Strapi document created before the field existed, or one fetched
     // through the legacy retry; normalizePageType maps it to all_pages.
@@ -427,6 +449,11 @@ test.describe('Strapi Sidebar Ad — a Strapi without the pageType field (schema
     await expect
       .poll(() => consoleErrors.some((text) => text.includes(SCHEMA_MISMATCH_HINT)))
       .toBe(true);
+
+    // EXACTLY one query. This is what actually pins "there is NO fallback": the route errors
+    // every request, so if someone reintroduced a retry, the dark page and the logged error
+    // above would both still hold — only this count would catch the second attempt.
+    expect(served.length).toBe(1);
 
     // And nothing rendered: no ads, and no banner/modal either — the whole promo layer is dark.
     await expect(page.locator('.sidebarPromo')).toHaveCount(0);

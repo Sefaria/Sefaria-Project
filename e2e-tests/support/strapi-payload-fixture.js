@@ -38,9 +38,16 @@ export async function routeWithStrapiPayload(context, payload, options = {}) {
   const { status = 200, rawBody, contentType = 'application/json' } = options;
 
   const served = [];
+  const queries = [];
 
   await context.route(STRAPI_URL_GLOB, async (route) => {
     served.push(route.request().url());
+    // The POST body is the client's real GraphQL query. The route deliberately does NOT match on
+    // it (URL-glob immunity is what freed the suite from recording invalidation), which means no
+    // test fails just because the query changed — including a change that DROPS a field the
+    // payload still fakes. Recording the body lets a spec assert on the query directly and close
+    // that hole; see "the client's real query asks Strapi for..." in the page-type spec.
+    queries.push(route.request().postData() || '');
     await route.fulfill({
       status,
       contentType,
@@ -48,7 +55,7 @@ export async function routeWithStrapiPayload(context, payload, options = {}) {
     });
   });
 
-  return { served, synthetic: true };
+  return { served, queries, synthetic: true };
 }
 
 /**
