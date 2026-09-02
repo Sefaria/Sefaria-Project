@@ -49,10 +49,14 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, direction=None, **
         # "lang" field -- not yet migrated) all need that bucket, not the real ISO code. Derive
         # it the same way modify_bulk_text/modify_version already do via version.language.
         legacy_lang = get_legacy_lang_from_direction(chunk.full_version.direction)
+        # chunk.vtitle, not the pre-save `vtitle` argument -- Version._normalize() may have
+        # auto-suffixed a new non-en/he version's title (e.g. "Foo" -> "Foo [de]"), and
+        # chunk.save() already synced chunk.vtitle to match the version actually stored.
+        saved_vtitle = chunk.vtitle
 
-        _post_modify_changed_segments(user, action, oref, legacy_lang, vtitle, old_text, text, version_id, skip_links=skip_links, **kwargs)
+        _post_modify_changed_segments(user, action, oref, legacy_lang, saved_vtitle, old_text, text, version_id, skip_links=skip_links, **kwargs)
 
-        count_and_index(oref, legacy_lang, vtitle, to_count=count_after)
+        count_and_index(oref, legacy_lang, saved_vtitle, to_count=count_after)
 
     return chunk
 
