@@ -727,6 +727,57 @@ def make_panel_dicts(oref, primaryVersion, translationVersion, filter, versionFi
     return panels
 
 
+def make_lightweight_research_panel_poc_dicts(oref, primaryVersion, translationVersion, filter, versionFilter, multi_panel, **kwargs):
+    """
+    Build the initial reader state for the research-panel POC without embedding
+    full text payloads. Direct sandbox URLs can otherwise spend longer than the
+    public upstream timeout building initial text data before React hydrates.
+    """
+    section_ref = oref.first_available_section_ref()
+    oref = section_ref if section_ref else oref
+    refs = [oref.normal()] if not oref.is_spanning() else [r.normal() for r in oref.split_spanning_ref()]
+    highlighted_refs = [subref.normal() for subref in oref.range_list()] if oref.is_segment_level() or oref.is_range() else []
+    settings_override = {}
+    panel_display_language = kwargs.get("panelDisplayLanguage")
+    if panel_display_language:
+        settings_override["language"] = short_to_long_lang_code(panel_display_language)
+    aliyot_override = kwargs.get("aliyotOverride")
+    if aliyot_override:
+        settings_override["aliyotTorah"] = aliyot_override
+
+    def base_panel(mode):
+        panel = {
+            "mode": mode,
+            "ref": oref.normal(),
+            "refs": refs,
+            "currVersions": {"en": translationVersion, "he": primaryVersion},
+            "versionFilter": versionFilter,
+            "highlightedRefs": highlighted_refs or kwargs.get("highlightedRefs", []),
+            "showHighlight": kwargs.get("showHighlight", None),
+            "selectedWords": kwargs.get("selectedWords", None),
+            "sidebarSearchQuery": kwargs.get("sidebarSearchQuery", None),
+            "selectedNamedEntity": kwargs.get("selectedNamedEntity", None),
+            "selectedNamedEntityText": kwargs.get("selectedNamedEntityText", None),
+        }
+        if settings_override:
+            panel["settings"] = settings_override
+        return panel
+
+    text_panel = base_panel("Text")
+    connections_panel = base_panel("Connections")
+    connections_panel.update({
+        "connectionsMode": "ResearchPanelPOC",
+        "connectionsPanelDisplayLanguage": kwargs.get("connectionsPanelDisplayLanguage", None),
+    })
+
+    if multi_panel:
+        return [text_panel, connections_panel]
+
+    text_and_connections_panel = base_panel("TextAndConnections")
+    text_and_connections_panel["connectionsMode"] = "ResearchPanelPOC"
+    return [text_and_connections_panel]
+
+
 def _extract_version_params(request, key):
     params = request.GET.get(key, '|')
     params = params.replace("_", " ")
@@ -826,6 +877,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         filter = []
     elif filter:
         filter = filter.replace("_", " ").split("+")
+    is_research_panel_poc = filter == ["ResearchPanelPOC"]
 
     noindex = False
 
@@ -849,7 +901,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         kwargs["sidebarSearchQuery"] = request.GET.get("sbsq", None)
         kwargs["selectedNamedEntity"] = request.GET.get("namedEntity", None)
         kwargs["selectedNamedEntityText"] = request.GET.get("namedEntityText", None)
-        panels += make_panel_dicts(oref, primaryVersion, translationVersion, filter, versionFilter, multi_panel, **kwargs)
+        panel_builder = make_lightweight_research_panel_poc_dicts if is_research_panel_poc else make_panel_dicts
+        panels += panel_builder(oref, primaryVersion, translationVersion, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
         panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang",request.contentLang), "referer": request.path})
@@ -936,7 +989,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                     desc = enDesc or heDesc  # if no english, fall back on hebrew
 
                 desc = bleach.clean(desc, strip=True, tags=())
-                desc = desc[:160].rsplit(' ', 1)[0] + "..."  # truncate as close to 160 characters as possible while maintaining whole word. Append ellipses.
+                desc = desc[:160].rsplit(' ', 1)[0] + "..." if desc else _("Explore 3,000 years of Jewish texts in Hebrew and English translation.")  # truncate as close to 160 characters as possible while maintaining whole word. Append ellipses.
 
             except (IndexError, KeyError):
                 desc = _("Explore 3,000 years of Jewish texts in Hebrew and English translation.")
