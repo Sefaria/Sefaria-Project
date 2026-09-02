@@ -18,7 +18,7 @@ Use the Sefaria-Export repository instead:
 
 **It contains complete structured exports of the library — texts, links, JSON, and more. One download is faster for you and far easier on our infrastructure than thousands of individual requests.**
 
-### How to use Sefaria-Export
+The [README](https://github.com/Sefaria/Sefaria-Export#readme) has code examples and walkthroughs for each download type — single file, full category, everything at once, and programmatic filtering via `books.json`. Quick examples:
 
 **Get a single text:**
 ```bash
@@ -30,25 +30,7 @@ curl -O "https://storage.googleapis.com/sefaria-export/json/Tanakh/Torah/Genesis
 gcloud storage cp -r "gs://sefaria-export/json/Talmud/" ./talmud/
 ```
 
-**Download everything:**
-```bash
-gcloud storage cp -r "gs://sefaria-export/" ./sefaria-data/
-```
-
-**Filter and download programmatically using `books.json`** (an index of every text with metadata and direct URLs, regenerated monthly):
-```python
-import requests
-books = requests.get("https://raw.githubusercontent.com/Sefaria/Sefaria-Export/master/books.json").json()
-for book in books["books"]:
-    if "Talmud" in book["categories"]:
-        print(book["title"], book.get("json_url"))
-```
-
-**Bucket structure:** `gs://sefaria-export/{format}/{categories}/{title}/{language}/{versionTitle}.json`
-Formats: `json/` (structured), `txt/` (plain text), `schemas/` (structure metadata), `links/` (CSV of all 4.7M cross-references).
-Use `merged.json` / `merged.txt` files for the most complete version of each text.
-
-If you need live data or are looking up a specific reference rather than bulk text, the REST API is appropriate for that. Please be mindful of our servers:
+If you're responding to a dynamic user need or need up-to-date Sefaria data, use the REST API. If you want a large chunk of the library to bootstrap a project, use the Export. Please be mindful of our servers:
 
 - **Fetch only what you need.** Retrieve specific references rather than walking the library sequentially.
 - **Cache responses.** A text that doesn't change between requests shouldn't be fetched twice.
