@@ -207,7 +207,7 @@ spec:
         enabled: false
       reindexElasticSearch:
         enabled: false
-        allowSharedIndex: false
+        allowSharedIndex: true
       topicsIndexing:
         enabled: false
       trello:
