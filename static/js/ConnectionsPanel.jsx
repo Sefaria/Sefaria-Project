@@ -921,12 +921,14 @@ class ResearchPanelPOC extends Component {
     super(props);
     this.state = {
       activeTab: "segment",
+      selectedGuidedCluster: null,
       selectedRawCategory: null,
       selectedRawQuestion: null,
       data: null,
       isLoading: false,
       loadError: null,
     };
+    this.setGuidedCluster = this.setGuidedCluster.bind(this);
     this.setRawCategory = this.setRawCategory.bind(this);
     this.setRawQuestion = this.setRawQuestion.bind(this);
   }
@@ -961,7 +963,10 @@ class ResearchPanelPOC extends Component {
     });
   }
   setTab(activeTab) {
-    this.setState({ activeTab, selectedRawCategory: null, selectedRawQuestion: null });
+    this.setState({ activeTab, selectedGuidedCluster: null, selectedRawCategory: null, selectedRawQuestion: null });
+  }
+  setGuidedCluster(selectedGuidedCluster) {
+    this.setState({ selectedGuidedCluster });
   }
   setRawCategory(selectedRawCategory) {
     this.setState({ selectedRawCategory, selectedRawQuestion: null });
@@ -1006,7 +1011,13 @@ class ResearchPanelPOC extends Component {
         setSelectedQuestion={this.setRawQuestion}
         onTextClick={this.props.onTextClick}
       /> :
-      <ResearchClusterGroups groups={tabData.clusters || []} itemCount={tabData.count} onTextClick={this.props.onTextClick} />;
+      <ResearchClusterGroups
+        groups={tabData.clusters || []}
+        itemCount={tabData.count}
+        selectedCluster={this.state.selectedGuidedCluster}
+        setSelectedCluster={this.setGuidedCluster}
+        onTextClick={this.props.onTextClick}
+      />;
 
     return (
       <div className="researchPanelPOC">
@@ -1029,23 +1040,39 @@ ResearchPanelPOC.propTypes = {
   interfaceLang: PropTypes.string,
 };
 
-const ResearchClusterGroups = ({ groups, itemCount, onTextClick }) => {
+const ResearchClusterGroups = ({ groups, itemCount, selectedCluster, setSelectedCluster, onTextClick }) => {
   const nonEmptyGroups = groups.filter(group => group.items && group.items.length);
   if (!nonEmptyGroups.length) {
     return <div className="researchPanelEmpty sans-serif">No fixture resources for this ref.</div>;
   }
+  const selectedGroup = nonEmptyGroups.find(group => group.name === selectedCluster);
+  if (selectedGroup) {
+    return (
+      <div className="researchPanelGroups">
+        <button className="researchPanelCategoryBack sans-serif" onClick={() => setSelectedCluster(null)}>
+          <i className="fa fa-chevron-left" />
+          Questions
+        </button>
+        <ResearchQuestionGroup group={selectedGroup} onTextClick={onTextClick} />
+      </div>
+    );
+  }
   return (
     <div className="researchPanelGroups">
       <div className="researchPanelCount sans-serif">{itemCount} resources</div>
-      {nonEmptyGroups.map(group => (
-        <ResearchGroup title={group.name} count={group.count} items={group.items} onTextClick={onTextClick} showItemQuestion={false} key={group.name} />
-      ))}
+      <div className="researchPanelQuestionIndex">
+        {nonEmptyGroups.map(group => (
+          <ResearchQuestionButton group={group} onClick={() => setSelectedCluster(group.name)} key={group.name} />
+        ))}
+      </div>
     </div>
   );
 };
 ResearchClusterGroups.propTypes = {
   groups: PropTypes.array.isRequired,
   itemCount: PropTypes.number,
+  selectedCluster: PropTypes.string,
+  setSelectedCluster: PropTypes.func.isRequired,
   onTextClick: PropTypes.func,
 };
 
