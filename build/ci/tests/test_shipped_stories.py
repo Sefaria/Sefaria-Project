@@ -320,8 +320,8 @@ def test_get_commit_subjects_includes_merge_commits(monkeypatch):
 # --- release_date: chosen tag's creation timestamp ----------------------
 
 def test_tag_creator_date_iso_reads_creatordate(monkeypatch):
-    monkeypatch.setattr(ss, "run_git", lambda args: "2026-08-31T07:17:36+00:00\n")
-    assert ss.tag_creator_date_iso("prod/6.111.0-prod.4+chart.0.88.0-prod.1") == "2026-08-31T07:17:36+00:00"
+    monkeypatch.setattr(ss, "run_git", lambda args: "2026-08-31T07:17:36Z\n")
+    assert ss.tag_creator_date_iso("prod/6.111.0-prod.4+chart.0.88.0-prod.1") == "2026-08-31T07:17:36Z"
 
 
 def test_tag_creator_date_iso_returns_none_for_unresolvable_ref(monkeypatch):
@@ -539,7 +539,7 @@ def test_main_emits_release_date_from_chosen_tag(monkeypatch, tmp_path):
         if args[0] == "log":
             return "fix(sc-13): a change\n"
         if args[0] == "for-each-ref":
-            return "2026-08-31T07:17:36+00:00\n"
+            return "2026-08-31T07:17:36Z\n"
         raise AssertionError(f"unexpected git call: {args!r}")
 
     monkeypatch.setattr(ss, "run_git", _fake_run_git)
@@ -553,7 +553,7 @@ def test_main_emits_release_date_from_chosen_tag(monkeypatch, tmp_path):
     )
     ss.main()
     data = json.loads(out_path.read_text(encoding="utf-8"))
-    assert data["release_date"] == "2026-08-31T07:17:36+00:00"
+    assert data["release_date"] == "2026-08-31T07:17:36Z"
 
 
 # --- fetch_branches: a missing `gh` binary must not surface as a raw ------

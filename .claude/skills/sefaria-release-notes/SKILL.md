@@ -18,7 +18,7 @@ The JSON has this shape:
 {
   "version": "6.111.0-prod.2",
   "chart_version": "0.87.5-prod.1",
-  "release_date": "2026-08-31T07:17:36+00:00",
+  "release_date": "2026-08-31T07:17:36Z",
   "range": {"previous_tag": "...", "current_tag": "...", "spec": "PREV..CUR"},
   "commits": [{"subject": "...", "pr_number": "3644", "branch": "feature/sc-11111/x", "story_ids": ["11111"]}],
   "commits_without_story": ["subject", ...],
@@ -48,7 +48,7 @@ Categorise each story (and, for commits with no story, each commit) into one of 
 
 Items with no story and no clear user impact can be omitted or listed briefly under backend/infra.
 
-**Header date:** this runs AFTER the rollout is already confirmed healthy, so both files' headers describe something that already happened, not something upcoming. Format `release_date` (ISO 8601, e.g. `2026-08-31T07:17:36+00:00`) as a human-readable date (e.g. `Aug 31, 2026`) and use it in both files' headers — see `references/slack-format.md`. If `release_date` is `null`, omit the date line entirely rather than guessing or fabricating one. There is no sprint/date-range field in the JSON — do not invent one.
+**Header date:** this runs AFTER the rollout is already confirmed healthy, so both files' headers describe something that already happened, not something upcoming. Format `release_date` (ISO 8601, e.g. `2026-08-31T07:17:36Z`) as a human-readable date (e.g. `Aug 31, 2026`) and use it in both files' headers — see `references/slack-format.md`. If `release_date` is `null`, omit the date line entirely rather than guessing or fabricating one. There is no sprint/date-range field in the JSON — do not invent one.
 
 ## Phase 2 — Generate output files
 
