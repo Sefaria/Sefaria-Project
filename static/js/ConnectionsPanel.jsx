@@ -23,7 +23,8 @@ import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
 import $ from './sefaria/sefariaJquery';
 import SidebarSearch from './SidebarSearch';
-import TextList from './TextList'
+import TextList, { ConnectionButtons, OpenConnectionTabButton } from './TextList'
+import TextRange from './TextRange';
 import ConnectionsPanelHeader from './ConnectionsPanelHeader';
 import { AddToSourceSheetBox } from './AddToSourceSheet';
 import LexiconBox from './LexiconBox';
@@ -466,7 +467,11 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "ResearchPanelPOC") {
       content = (<ResearchPanelPOC
         srefs={this.props.srefs}
+        panelPosition={this.props.panelPosition}
         onTextClick={this.props.onTextClick}
+        onCitationClick={this.props.onCitationClick}
+        translationLanguagePreference={this.props.translationLanguagePreference}
+        filterRef={this.props.filterRef}
         interfaceLang={this.props.interfaceLang}
         key="ResearchPanelPOC" />);
 
@@ -1002,6 +1007,12 @@ class ResearchPanelPOC extends Component {
     }
     const data = this.state.data;
     const tabData = this.state.activeTab === "segment" ? data.segment : data.passageResults;
+    const textRangeProps = {
+      panelPosition: this.props.panelPosition,
+      onCitationClick: this.props.onCitationClick,
+      translationLanguagePreference: this.props.translationLanguagePreference,
+      filterRef: this.props.filterRef,
+    };
     const tabContent = this.state.activeTab === "categories" ?
       <ResearchCategoryGroups
         groups={data.rawCategories || []}
@@ -1010,6 +1021,7 @@ class ResearchPanelPOC extends Component {
         setSelectedCategory={this.setRawCategory}
         setSelectedQuestion={this.setRawQuestion}
         onTextClick={this.props.onTextClick}
+        textRangeProps={textRangeProps}
       /> :
       <ResearchClusterGroups
         groups={tabData.clusters || []}
@@ -1017,6 +1029,7 @@ class ResearchPanelPOC extends Component {
         selectedCluster={this.state.selectedGuidedCluster}
         setSelectedCluster={this.setGuidedCluster}
         onTextClick={this.props.onTextClick}
+        textRangeProps={textRangeProps}
       />;
 
     return (
@@ -1036,11 +1049,15 @@ class ResearchPanelPOC extends Component {
 }
 ResearchPanelPOC.propTypes = {
   srefs: PropTypes.array.isRequired,
+  panelPosition: PropTypes.number,
   onTextClick: PropTypes.func,
+  onCitationClick: PropTypes.func,
+  translationLanguagePreference: PropTypes.string,
+  filterRef: PropTypes.string,
   interfaceLang: PropTypes.string,
 };
 
-const ResearchClusterGroups = ({ groups, itemCount, selectedCluster, setSelectedCluster, onTextClick }) => {
+const ResearchClusterGroups = ({ groups, itemCount, selectedCluster, setSelectedCluster, onTextClick, textRangeProps }) => {
   const nonEmptyGroups = groups.filter(group => group.items && group.items.length);
   if (!nonEmptyGroups.length) {
     return <div className="researchPanelEmpty sans-serif">No fixture resources for this ref.</div>;
@@ -1053,7 +1070,7 @@ const ResearchClusterGroups = ({ groups, itemCount, selectedCluster, setSelected
           <i className="fa fa-chevron-left" />
           Questions
         </button>
-        <ResearchQuestionGroup group={selectedGroup} onTextClick={onTextClick} />
+        <ResearchQuestionGroup group={selectedGroup} onTextClick={onTextClick} textRangeProps={textRangeProps} />
       </div>
     );
   }
@@ -1074,6 +1091,7 @@ ResearchClusterGroups.propTypes = {
   selectedCluster: PropTypes.string,
   setSelectedCluster: PropTypes.func.isRequired,
   onTextClick: PropTypes.func,
+  textRangeProps: PropTypes.object,
 };
 
 const ResearchCategoryIconColors = {
@@ -1087,7 +1105,7 @@ const ResearchCategoryIconColors = {
   Other: "#777",
 };
 
-const ResearchCategoryGroups = ({ groups, selectedCategory, selectedQuestion, setSelectedCategory, setSelectedQuestion, onTextClick }) => {
+const ResearchCategoryGroups = ({ groups, selectedCategory, selectedQuestion, setSelectedCategory, setSelectedQuestion, onTextClick, textRangeProps }) => {
   const renderableGroups = groups.filter(group => (group.items && group.items.length) || (group.questionGroups && group.questionGroups.length));
   if (!renderableGroups.length) {
     return <div className="researchPanelEmpty sans-serif">No fixture categories for this ref.</div>;
@@ -1106,8 +1124,9 @@ const ResearchCategoryGroups = ({ groups, selectedCategory, selectedQuestion, se
             selectedQuestion={selectedQuestion}
             setSelectedQuestion={setSelectedQuestion}
             onTextClick={onTextClick}
+            textRangeProps={textRangeProps}
           /> :
-          <ResearchGroup title={selectedGroup.name} count={selectedGroup.count} items={selectedGroup.items} onTextClick={onTextClick} />}
+          <ResearchGroup title={selectedGroup.name} count={selectedGroup.count} items={selectedGroup.items} onTextClick={onTextClick} textRangeProps={textRangeProps} />}
       </div>
     );
   }
@@ -1126,6 +1145,7 @@ ResearchCategoryGroups.propTypes = {
   setSelectedCategory: PropTypes.func.isRequired,
   setSelectedQuestion: PropTypes.func.isRequired,
   onTextClick: PropTypes.func,
+  textRangeProps: PropTypes.object,
 };
 
 const ResearchCategoryButton = ({ group, onClick }) => {
@@ -1145,7 +1165,7 @@ ResearchCategoryButton.propTypes = {
   onClick: PropTypes.func.isRequired,
 };
 
-const ResearchCategoryWithQuestions = ({ group, selectedQuestion, setSelectedQuestion, onTextClick }) => {
+const ResearchCategoryWithQuestions = ({ group, selectedQuestion, setSelectedQuestion, onTextClick, textRangeProps }) => {
   const selectedQuestionGroup = group.questionGroups.find(questionGroup => questionGroup.name === selectedQuestion);
   if (selectedQuestionGroup) {
     return (
@@ -1154,7 +1174,7 @@ const ResearchCategoryWithQuestions = ({ group, selectedQuestion, setSelectedQue
           <i className="fa fa-chevron-left" />
           Questions
         </button>
-        <ResearchQuestionGroup group={selectedQuestionGroup} onTextClick={onTextClick} />
+        <ResearchQuestionGroup group={selectedQuestionGroup} onTextClick={onTextClick} textRangeProps={textRangeProps} />
       </section>
     );
   }
@@ -1174,6 +1194,7 @@ ResearchCategoryWithQuestions.propTypes = {
   selectedQuestion: PropTypes.string,
   setSelectedQuestion: PropTypes.func.isRequired,
   onTextClick: PropTypes.func,
+  textRangeProps: PropTypes.object,
 };
 
 const ResearchQuestionButton = ({ group, onClick }) => (
@@ -1187,21 +1208,22 @@ ResearchQuestionButton.propTypes = {
   onClick: PropTypes.func.isRequired,
 };
 
-const ResearchQuestionGroup = ({ group, onTextClick }) => (
+const ResearchQuestionGroup = ({ group, onTextClick, textRangeProps }) => (
   <div className="researchPanelQuestionGroup">
     <h4 className="researchPanelQuestionGroupTitle sans-serif">{group.name} <span>{group.count}</span></h4>
-    {group.items.slice(0, 8).map(item => <ResearchResourceItem item={item} onTextClick={onTextClick} showQuestion={false} key={`${item.resourceType}-${item.id}`} />)}
+    {group.items.slice(0, 8).map(item => <ResearchResourceItem item={item} onTextClick={onTextClick} showQuestion={false} textRangeProps={textRangeProps} key={`${item.resourceType}-${item.id}`} />)}
   </div>
 );
 ResearchQuestionGroup.propTypes = {
   group: PropTypes.object.isRequired,
   onTextClick: PropTypes.func,
+  textRangeProps: PropTypes.object,
 };
 
-const ResearchGroup = ({ title, count, items, onTextClick, showItemQuestion=true }) => (
+const ResearchGroup = ({ title, count, items, onTextClick, showItemQuestion=true, textRangeProps }) => (
   <section className="researchPanelGroup">
     <h3 className="researchPanelGroupTitle sans-serif">{title} <span>{count}</span></h3>
-    {items.slice(0, 12).map(item => <ResearchResourceItem item={item} onTextClick={onTextClick} showQuestion={showItemQuestion} key={`${item.resourceType}-${item.id}`} />)}
+    {items.slice(0, 12).map(item => <ResearchResourceItem item={item} onTextClick={onTextClick} showQuestion={showItemQuestion} textRangeProps={textRangeProps} key={`${item.resourceType}-${item.id}`} />)}
   </section>
 );
 ResearchGroup.propTypes = {
@@ -1210,13 +1232,16 @@ ResearchGroup.propTypes = {
   items: PropTypes.array.isRequired,
   onTextClick: PropTypes.func,
   showItemQuestion: PropTypes.bool,
+  textRangeProps: PropTypes.object,
 };
 
-const ResearchResourceItem = ({ item, onTextClick, showQuestion=true }) => {
+const ResearchResourceItem = ({ item, onTextClick, showQuestion=true, textRangeProps={} }) => {
   const qualityClass = `quality-${item.quality || "unknown"}`;
   const href = item.url || (item.sourceRef ? `/${Sefaria.normRef(item.sourceRef)}` : null);
+  const canOpenSourceInPanel = !!item.sourceRef && !!onTextClick;
+  const showInlineSource = item.resourceType === "text-link" && !!item.sourceRef;
   const openSource = e => {
-    if (!item.sourceRef || !onTextClick) { return; }
+    if (!canOpenSourceInPanel) { return; }
     e.preventDefault();
     onTextClick([item.sourceRef]);
   };
@@ -1227,7 +1252,19 @@ const ResearchResourceItem = ({ item, onTextClick, showQuestion=true }) => {
         <span className="researchResourcePurpose">{item.primaryPurpose}</span>
         <span className="researchResourceQuality">{item.quality}</span>
       </div>
-      {href ?
+      {showInlineSource ?
+        <div className="researchResourceTextRange textListTextRangeBox">
+          <TextRange
+            panelPosition={textRangeProps.panelPosition}
+            sref={item.sourceRef}
+            basetext={false}
+            onRangeClick={onTextClick}
+            onCitationClick={textRangeProps.onCitationClick}
+            translationLanguagePreference={textRangeProps.translationLanguagePreference}
+            filterRef={textRangeProps.filterRef}
+          />
+        </div> :
+        href ?
         <a className="researchResourceTitle" href={href} target={item.url ? "_blank" : undefined} rel={item.url ? "noopener noreferrer" : undefined} onClick={openSource}>{item.title}</a> :
         <div className="researchResourceTitle">{item.title}</div>}
       {item.subtitle ? <div className="researchResourceSubtitle sans-serif">{item.subtitle}</div> : null}
@@ -1239,6 +1276,10 @@ const ResearchResourceItem = ({ item, onTextClick, showQuestion=true }) => {
         {item.deterministicSnippetAvailable ? <span>deterministic snippet</span> : null}
         {item.needsHumanReview ? <span>review</span> : null}
       </div>
+      {canOpenSourceInPanel ?
+        <ConnectionButtons>
+          <OpenConnectionTabButton srefs={[item.sourceRef]} openInTabCallback={onTextClick} />
+        </ConnectionButtons> : null}
     </div>
   );
 };
@@ -1246,6 +1287,7 @@ ResearchResourceItem.propTypes = {
   item: PropTypes.object.isRequired,
   onTextClick: PropTypes.func,
   showQuestion: PropTypes.bool,
+  textRangeProps: PropTypes.object,
 };
 
 class WebPagesList extends Component {
