@@ -211,7 +211,9 @@ def pagerank(g, s=0.85, tolerance=0.00001, maxiter=100, verbose=False, normalize
             p /= p.min()
         except ValueError:
             pass  # empty list can't calculate min
-    pr_list = list(numpy.squeeze(numpy.asarray(p)))
+    # reshape(-1), not squeeze(): squeeze on a 1x1 matrix yields a 0-d array,
+    # which list() cannot iterate. Identical for every n >= 2.
+    pr_list = list(numpy.asarray(p).reshape(-1))
     return {k: v for k, v in zip([x[0] for x in g], pr_list)}
 
 

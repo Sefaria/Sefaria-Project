@@ -163,3 +163,15 @@ def test_start_year_caches_per_title_not_globally():
     assert psr._start_year(FakeIndex("A", 100), cache) == 100
     assert psr._start_year(FakeIndex("B", 900), cache) == 900
     assert len(cache) == 2
+
+
+def test_single_node_graph_does_not_raise():
+    """A one-node graph squeezes to a 0-d array, which list() cannot iterate.
+
+    Guards the reshape(-1) in pagerank(); numpy.squeeze() raised
+    "TypeError: iteration over a 0-d array" here. The empty graph was already
+    handled by the n == 0 early return, so this was the one degenerate size
+    left uncovered.
+    """
+    assert psr.pagerank([("only", {})]) == {"only": 1.0}
+    assert psr.pagerank([("only", {"only": 2.0})]) == {"only": 1.0}
