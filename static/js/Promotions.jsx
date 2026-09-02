@@ -5,7 +5,7 @@ import { adMatchesPageTypes } from "./sefaria/pageTypes";
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
 import Util from "./sefaria/util";
-import {EnglishText, HebrewText, InterfaceText, OnInView} from "./Misc";
+import {EnglishText, HebrewText, InterfaceText, OnInView, replaceNewLinesWithLinebreaks} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import { NewsletterSignUpForm } from "./NewsletterSignUpForm";
 
@@ -192,6 +192,23 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
     const isHebrew = context.interfaceLang === "hebrew";
     const getLanguageClass = () => (isHebrew ? "int-he" : "int-en");
 
+    // The body renders MARKDOWN, matching banners and modals (their body text flows through the
+    // same InterfaceText markdown path with the same Strapi newline handling; the title stays
+    // plain, like a banner/modal header). One difference from those surfaces: each sidebar-ad
+    // object is single-language — one ad per locale, and matching already guarantees the ad's
+    // language equals the interface language — so the {en}/{he} object InterfaceText expects is
+    // built from whichever language this ad is.
+    function getBodyText() {
+      const bodyByLanguage = isHebrew ? { he: matchingAd.bodyText } : { en: matchingAd.bodyText };
+      return (
+        <p className={getLanguageClass() + " line-break"}>
+          <InterfaceText
+            markdown={replaceNewLinesWithLinebreaks(bodyByLanguage, { mode: "strapi" })}
+          />
+        </p>
+      );
+    }
+
     return (
       <OnInView onVisible={() => trackSidebarAdImpression(matchingAd)}>
         <div className={classes}>
@@ -199,7 +216,7 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
           {matchingAd.buttonLocation === "below" ? (
             matchingAd.isNewsletterSubscriptionInputForm ? (
               <>
-                <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+                {getBodyText()}
                 <NewsletterSignUpForm
                   context={"Sidebar Ad: " + context.keywordTargets.toString()}
                   includeEducatorOption={false}
@@ -208,7 +225,7 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
               </>
             ) : (
               <>
-                <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+                {getBodyText()}
                 {getButton()}
               </>
             )
@@ -219,12 +236,12 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
                 includeEducatorOption={false}
                 additionalNewsletterMailingLists={matchingAd.newsletterMailingLists}
               />
-              <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+              {getBodyText()}
             </>
           ) : (
             <>
               {getButton()}
-              <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+              {getBodyText()}
             </>
           )}
         </div>
