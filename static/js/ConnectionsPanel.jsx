@@ -921,6 +921,7 @@ class ResearchPanelPOC extends Component {
     super(props);
     this.state = {
       activeTab: "segment",
+      selectedRawCategory: null,
       data: null,
       isLoading: false,
       loadError: null,
@@ -957,7 +958,10 @@ class ResearchPanelPOC extends Component {
     });
   }
   setTab(activeTab) {
-    this.setState({ activeTab });
+    this.setState({ activeTab, selectedRawCategory: null });
+  }
+  setRawCategory(selectedRawCategory) {
+    this.setState({ selectedRawCategory });
   }
   renderTabButton(tabKey) {
     const active = this.state.activeTab === tabKey;
@@ -988,7 +992,12 @@ class ResearchPanelPOC extends Component {
     const data = this.state.data;
     const tabData = this.state.activeTab === "segment" ? data.segment : data.passageResults;
     const tabContent = this.state.activeTab === "categories" ?
-      <ResearchCategoryGroups groups={data.rawCategories || []} onTextClick={this.props.onTextClick} /> :
+      <ResearchCategoryGroups
+        groups={data.rawCategories || []}
+        selectedCategory={this.state.selectedRawCategory}
+        setSelectedCategory={this.setRawCategory}
+        onTextClick={this.props.onTextClick}
+      /> :
       <ResearchClusterGroups groups={tabData.clusters || []} itemCount={tabData.count} onTextClick={this.props.onTextClick} />;
 
     return (
@@ -1032,21 +1041,91 @@ ResearchClusterGroups.propTypes = {
   onTextClick: PropTypes.func,
 };
 
-const ResearchCategoryGroups = ({ groups, onTextClick }) => {
-  const nonEmptyGroups = groups.filter(group => group.items && group.items.length);
-  if (!nonEmptyGroups.length) {
+const ResearchCategoryIconColors = {
+  Explanatory: "#5577B9",
+  Linguistic: "#A88D45",
+  Parallel: "#5C946E",
+  Proof: "#8A4E56",
+  Stylistic: "#6D6A75",
+  Footnote: "#7B6F9E",
+  "Base Text": "#4F7D8A",
+  Other: "#777",
+};
+
+const ResearchCategoryGroups = ({ groups, selectedCategory, setSelectedCategory, onTextClick }) => {
+  const renderableGroups = groups.filter(group => (group.items && group.items.length) || (group.questionGroups && group.questionGroups.length));
+  if (!renderableGroups.length) {
     return <div className="researchPanelEmpty sans-serif">No fixture categories for this ref.</div>;
   }
+  const selectedGroup = renderableGroups.find(group => group.name === selectedCategory);
+  if (selectedGroup) {
+    return (
+      <div className="researchPanelGroups">
+        <button className="researchPanelCategoryBack sans-serif" onClick={() => setSelectedCategory(null)}>
+          <i className="fa fa-chevron-left" />
+          Categories
+        </button>
+        {selectedGroup.questionGroups && selectedGroup.questionGroups.length ?
+          <ResearchCategoryWithQuestions group={selectedGroup} onTextClick={onTextClick} /> :
+          <ResearchGroup title={selectedGroup.name} count={selectedGroup.count} items={selectedGroup.items} onTextClick={onTextClick} />}
+      </div>
+    );
+  }
   return (
-    <div className="researchPanelGroups">
-      {nonEmptyGroups.map(group => (
-        <ResearchGroup title={group.name} count={group.count} items={group.items} onTextClick={onTextClick} key={group.name} />
+    <div className="researchPanelCategoryIndex">
+      {renderableGroups.map(group => (
+        <ResearchCategoryButton group={group} onClick={() => setSelectedCategory(group.name)} key={group.name} />
       ))}
     </div>
   );
 };
 ResearchCategoryGroups.propTypes = {
   groups: PropTypes.array.isRequired,
+  selectedCategory: PropTypes.string,
+  setSelectedCategory: PropTypes.func.isRequired,
+  onTextClick: PropTypes.func,
+};
+
+const ResearchCategoryButton = ({ group, onClick }) => {
+  const color = ResearchCategoryIconColors[group.name] || ResearchCategoryIconColors.Other;
+  return (
+    <button className="researchPanelCategoryButton" onClick={onClick}>
+      <span className="researchPanelCategoryText">
+        <span className="researchPanelCategoryName">{group.name}</span>
+        <span className="researchPanelCategoryCount">({group.count})</span>
+      </span>
+      <i className="fa fa-book researchPanelCategoryIcon" style={{ color }} />
+    </button>
+  );
+};
+ResearchCategoryButton.propTypes = {
+  group: PropTypes.object.isRequired,
+  onClick: PropTypes.func.isRequired,
+};
+
+const ResearchCategoryWithQuestions = ({ group, onTextClick }) => (
+  <section className="researchPanelGroup">
+    <h3 className="researchPanelGroupTitle sans-serif">{group.name} <span>{group.count}</span></h3>
+    <div className="researchPanelNestedGroups">
+      {group.questionGroups.map(questionGroup => (
+        <ResearchQuestionGroup group={questionGroup} onTextClick={onTextClick} key={questionGroup.name} />
+      ))}
+    </div>
+  </section>
+);
+ResearchCategoryWithQuestions.propTypes = {
+  group: PropTypes.object.isRequired,
+  onTextClick: PropTypes.func,
+};
+
+const ResearchQuestionGroup = ({ group, onTextClick }) => (
+  <div className="researchPanelQuestionGroup">
+    <h4 className="researchPanelQuestionGroupTitle sans-serif">{group.name} <span>{group.count}</span></h4>
+    {group.items.slice(0, 8).map(item => <ResearchResourceItem item={item} onTextClick={onTextClick} key={`${item.resourceType}-${item.id}`} />)}
+  </div>
+);
+ResearchQuestionGroup.propTypes = {
+  group: PropTypes.object.isRequired,
   onTextClick: PropTypes.func,
 };
 

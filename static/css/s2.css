@@ -8574,6 +8574,67 @@ But not to use a display block directive that might break continuous mode for ot
   font-size: 13px;
   margin-bottom: 12px;
 }
+.researchPanelCategoryIndex {
+  padding: 8px 0 18px;
+}
+.researchPanelCategoryButton {
+  align-items: center;
+  background: #fff;
+  border: 0;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  font-family: "Adobe Garamond Pro", "sans-serif";
+  font-size: 24px;
+  justify-content: center;
+  line-height: 1;
+  margin: 0;
+  min-height: 54px;
+  padding: 8px 12px;
+  text-align: center;
+  width: 100%;
+}
+.researchPanelCategoryButton:hover,
+.researchPanelCategoryButton:focus {
+  background: #f7f7f7;
+  outline: 0;
+}
+.researchPanelCategoryText {
+  align-items: baseline;
+  display: inline-flex;
+  gap: 8px;
+  justify-content: flex-end;
+  min-width: 190px;
+}
+.researchPanelCategoryName {
+  font-weight: 700;
+}
+.researchPanelCategoryCount {
+  color: var(--medium-grey);
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 18px;
+  font-weight: 300;
+}
+.researchPanelCategoryIcon {
+  font-size: 21px;
+  margin-inline-start: 16px;
+  width: 24px;
+}
+.researchPanelCategoryBack {
+  align-items: center;
+  background: #fff;
+  border: 0;
+  color: var(--medium-grey);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 4px 0;
+}
+.researchPanelCategoryBack:hover {
+  color: #000;
+}
 .researchPanelGroup {
   border-top: 1px solid #E5E5E5;
   padding: 16px 0 4px;
@@ -8586,6 +8647,26 @@ But not to use a display block directive that might break continuous mode for ot
   margin: 0 0 12px;
 }
 .researchPanelGroupTitle span {
+  color: var(--medium-grey);
+  font-weight: 400;
+}
+.researchPanelNestedGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.researchPanelQuestionGroup {
+  border-inline-start: 3px solid #E5E5E5;
+  padding-inline-start: 12px;
+}
+.researchPanelQuestionGroupTitle {
+  color: var(--dark-grey);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0 0 8px;
+}
+.researchPanelQuestionGroupTitle span {
   color: var(--medium-grey);
   font-weight: 400;
 }

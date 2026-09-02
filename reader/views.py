@@ -2589,6 +2589,16 @@ def related_api(request, tref):
 
 
 RESEARCH_PANEL_POC_FIXTURE_PATH = Path(settings.BASE_DIR) / "data" / "research_panel_poc" / "nitzavim_candidates_1000.tagged.claude.json"
+RESEARCH_PANEL_POC_PURPOSE_ORDER = [
+    "Explanatory",
+    "Linguistic",
+    "Parallel",
+    "Proof",
+    "Stylistic",
+    "Footnote",
+    "Base Text",
+    "Other",
+]
 
 
 @lru_cache(maxsize=1)
@@ -2665,6 +2675,16 @@ def _research_panel_group_by(items, key):
     return [{"name": name, "count": len(group_items), "items": group_items} for name, group_items in grouped.items()]
 
 
+def _research_panel_raw_categories(items):
+    groups = _research_panel_group_by(items, "primaryPurpose")
+    for group in groups:
+        if group["name"] == "Explanatory":
+            group["questionGroups"] = _research_panel_group_by(group["items"], "clusterLabel")
+            group["items"] = []
+    groups.sort(key=lambda group: RESEARCH_PANEL_POC_PURPOSE_ORDER.index(group["name"]) if group["name"] in RESEARCH_PANEL_POC_PURPOSE_ORDER else len(RESEARCH_PANEL_POC_PURPOSE_ORDER))
+    return groups
+
+
 @catch_error_as_json
 def related_by_passage_poc_api(request, tref):
     """
@@ -2717,7 +2737,7 @@ def related_by_passage_poc_api(request, tref):
             "count": len(passage_items),
             "clusters": _research_panel_group_by(passage_items, "clusterLabel"),
         },
-        "rawCategories": _research_panel_group_by(passage_items or segment_items, "primaryPurpose"),
+        "rawCategories": _research_panel_raw_categories(passage_items or segment_items),
         "summary": {
             "fixturePath": str(RESEARCH_PANEL_POC_FIXTURE_PATH),
             "fixtureItemCount": len(fixture.get("items", [])),
