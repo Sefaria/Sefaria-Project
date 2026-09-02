@@ -1038,7 +1038,7 @@ const ResearchClusterGroups = ({ groups, itemCount, onTextClick }) => {
     <div className="researchPanelGroups">
       <div className="researchPanelCount sans-serif">{itemCount} resources</div>
       {nonEmptyGroups.map(group => (
-        <ResearchGroup title={group.name} count={group.count} items={group.items} onTextClick={onTextClick} key={group.name} />
+        <ResearchGroup title={group.name} count={group.count} items={group.items} onTextClick={onTextClick} showItemQuestion={false} key={group.name} />
       ))}
     </div>
   );
@@ -1171,10 +1171,10 @@ ResearchQuestionGroup.propTypes = {
   onTextClick: PropTypes.func,
 };
 
-const ResearchGroup = ({ title, count, items, onTextClick }) => (
+const ResearchGroup = ({ title, count, items, onTextClick, showItemQuestion=true }) => (
   <section className="researchPanelGroup">
     <h3 className="researchPanelGroupTitle sans-serif">{title} <span>{count}</span></h3>
-    {items.slice(0, 12).map(item => <ResearchResourceItem item={item} onTextClick={onTextClick} key={`${item.resourceType}-${item.id}`} />)}
+    {items.slice(0, 12).map(item => <ResearchResourceItem item={item} onTextClick={onTextClick} showQuestion={showItemQuestion} key={`${item.resourceType}-${item.id}`} />)}
   </section>
 );
 ResearchGroup.propTypes = {
@@ -1182,6 +1182,7 @@ ResearchGroup.propTypes = {
   count: PropTypes.number.isRequired,
   items: PropTypes.array.isRequired,
   onTextClick: PropTypes.func,
+  showItemQuestion: PropTypes.bool,
 };
 
 const ResearchResourceItem = ({ item, onTextClick, showQuestion=true }) => {
