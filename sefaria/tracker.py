@@ -11,6 +11,7 @@ logger = structlog.get_logger(__name__)
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
 from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
+from sefaria.constants.model import get_legacy_lang_from_direction
 from sefaria.settings import USE_VARNISH, CELERY_ENABLED
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -43,10 +44,15 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, direction=None, **
         skip_links = kwargs.pop('skip_links', False) or chunk.has_manually_wrapped_refs()
         count_after = kwargs.pop("count_after", 1)
         version_id = str(chunk.full_version._id)
+        # db.history, the legacy v1 texts_api URLs Varnish purges, and search indexing (still
+        # keyed by the legacy en/he bucket both for direction and for the stored/filterable
+        # "lang" field -- not yet migrated) all need that bucket, not the real ISO code. Derive
+        # it the same way modify_bulk_text/modify_version already do via version.language.
+        legacy_lang = get_legacy_lang_from_direction(chunk.full_version.direction)
 
-        _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, text, version_id, skip_links=skip_links, **kwargs)
+        _post_modify_changed_segments(user, action, oref, legacy_lang, vtitle, old_text, text, version_id, skip_links=skip_links, **kwargs)
 
-        count_and_index(oref, lang, vtitle, to_count=count_after)
+        count_and_index(oref, legacy_lang, vtitle, to_count=count_after)
 
     return chunk
 
