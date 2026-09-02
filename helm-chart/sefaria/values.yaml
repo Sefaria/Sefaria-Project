@@ -344,6 +344,14 @@ monitor:
       cpu: "100m"
 
 secrets:
+  ghDispatch:
+    # A reference to a secret containing GH_DISPATCH_TOKEN, the GitHub PAT
+    # rollout-complete.yaml's prod-only notify-github container uses to fire
+    # a repository_dispatch. Deliberately its OWN secret, separate from
+    # localSettings below: localSettings is mounted via envFrom into every
+    # web/task/monitor/cronjob pod, and a write-scoped GitHub token doesn't
+    # belong in that blast radius. See build/ci/README-prod-release-notes.md.
+    ref: gh-dispatch-token
   localSettings:
     # A reference to a secret containing the local settings
     ref: local-settings-secret

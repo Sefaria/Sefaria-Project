@@ -402,6 +402,52 @@ def test_empty_stories_does_not_warn_or_exit_nonzero(monkeypatch, tmp_path, caps
     assert "silent no-op" not in err
 
 
+def test_partial_skip_in_mixed_release_warns_but_exits_zero(monkeypatch, tmp_path, capsys):
+    """Finding #10: the OLD guard only fired when `transitioned` was empty,
+    so a mixed release -- some stories transition fine, others get skipped
+    for a different workflow/state -- produced no WARNING at all and exited
+    0. That's a silent no-op on the skipped stories specifically. The fix
+    must warn whenever skipped_detail is non-empty, but still exit 0 since
+    something DID move (this is not the "nothing happened" case)."""
+    monkeypatch.setenv("SHORTCUT_API_TOKEN", "fake-token-for-tests")
+
+    class _OKResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+        def read(self):
+            return b"{}"
+
+    monkeypatch.setattr(msd.urllib.request, "urlopen", lambda req, timeout=None: _OKResponse())
+
+    input_path = tmp_path / "shipped-stories.json"
+    # One story transitions cleanly; one is shipped but sits in a different
+    # workflow entirely and can't be touched by this run's ids.
+    input_path.write_text(
+        json.dumps({"stories": [STORY_DEPLOY_READY_1, STORY_DIFFERENT_WORKFLOW]}), encoding="utf-8"
+    )
+
+    monkeypatch.setattr(
+        "sys.argv",
+        ["mark_stories_deployed.py", "--input", str(input_path),
+         "--workflow-id", str(WORKFLOW_ID),
+         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
+    )
+    # Must return normally: a partial skip alongside a real transition is not
+    # the fatal "nothing happened" case, so this must not raise SystemExit.
+    msd.main()
+
+    captured = capsys.readouterr()
+    out = json.loads(captured.out)
+    assert out["counts"]["transitioned"] == 1
+    assert out["counts"]["skipped_different_workflow"] == 1
+    assert "WARNING" in captured.err
+    assert "55555" in captured.err
+
+
 def test_all_already_done_does_not_warn_or_exit_nonzero(monkeypatch, tmp_path, capsys):
     """Nothing transitioned, but the only 'skip' is already_done -- that IS
     the legitimately successful case (nothing needed moving) and must stay

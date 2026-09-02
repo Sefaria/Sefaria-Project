@@ -18,15 +18,20 @@ The JSON has this shape:
 {
   "version": "6.111.0-prod.2",
   "chart_version": "0.87.5-prod.1",
+  "release_date": "2026-08-31T07:17:36+00:00",
   "range": {"previous_tag": "...", "current_tag": "...", "spec": "PREV..CUR"},
   "commits": [{"subject": "...", "pr_number": "3644", "branch": "feature/sc-11111/x", "story_ids": ["11111"]}],
   "commits_without_story": ["subject", ...],
+  "reverted_commits": [{"subject": "Revert \"...\"", "suppressed_story_ids": ["11111"]}],
   "story_ids": ["11111", ...],
   "stories": [{"id": 11111, "name": "...", "description": "...", "url": "...", "workflow_state_id": 500000045, "story_type": "feature"}],
   "hydrated": true,
   "unresolved_story_ids": []
 }
 ```
+
+- **`release_date`** — ISO 8601 creation timestamp of the resolved current tag, or `null` if it couldn't be resolved (e.g. an explicit `--range` against a non-tag ref). This is the header date's only legitimate source — see "Header date" below.
+- **`reverted_commits`** — commits whose subject matched the `Revert "..."` / `revert:` / `revert(...)` convention, each with the story ids THAT REVERT COMMIT referenced. **Never list a story appearing here as shipped**, even if you spot it elsewhere while reading the JSON — `shipped_stories.py` has already excluded it (and, where the reverted original is also in this range, excluded that original's ids too) from `story_ids` / `stories` for exactly this reason, unless another independent, non-reverted commit also carries the same id.
 
 ## Phase 1 — Read and summarise
 
@@ -43,7 +48,7 @@ Categorise each story (and, for commits with no story, each commit) into one of 
 
 Items with no story and no clear user impact can be omitted or listed briefly under backend/infra.
 
-**Sprint line in headers:** use date range only (e.g. `Sprint: Jul 27–Aug 9`) if a date range is available. Do **not** include team names.
+**Header date:** this runs AFTER the rollout is already confirmed healthy, so both files' headers describe something that already happened, not something upcoming. Format `release_date` (ISO 8601, e.g. `2026-08-31T07:17:36+00:00`) as a human-readable date (e.g. `Aug 31, 2026`) and use it in both files' headers — see `references/slack-format.md`. If `release_date` is `null`, omit the date line entirely rather than guessing or fabricating one. There is no sprint/date-range field in the JSON — do not invent one.
 
 ## Phase 2 — Generate output files
 
@@ -74,6 +79,8 @@ The release announcement. Audience: non-engineers. Plain language, no PR numbers
 | `commits_without_story` is non-empty | List briefly under backend/infra in the tech file if there's any signal in the subject line; otherwise omit |
 | `hydrated` is `false` | Shortcut was never queried (no API token), so `stories` is empty by design — this is NOT a lookup failure. Title items from their commit subjects, still link each `story_ids` entry, and say the details were unavailable rather than reporting them as missing |
 | `unresolved_story_ids` is non-empty | Note in the tech file's summary line so a human can look them up manually; do not guess at their content |
+| `reverted_commits` is non-empty | Do not list any of these story ids as shipped in either file, even if they also appear in `story_ids`/`stories` for an unrelated reason (see the JSON shape note above) |
+| `release_date` is `null` | Omit the date line in both files' headers rather than guessing |
 | Version not found | Use `unknown` and flag it |
 | JSON file missing or unreadable | Stop and report the problem — do not fabricate a release |
 

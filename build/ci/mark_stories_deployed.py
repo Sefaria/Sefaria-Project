@@ -36,14 +36,17 @@ unresolved_story_ids echoed straight from the input file so stage 3 doesn't
 silently lose stories that shipped but that shipped_stories.py could not
 look up.
 
-If the input's "stories" list is non-empty, nothing was transitioned, and at
-least one story was skipped for a reason other than already being Done, that
-is a silent no-op — the exact failure mode this script exists to prevent.
-This script prints a WARNING to stderr naming those stories and, unless
---dry-run was passed, exits non-zero so an unattended run cannot look
-successful when it silently did nothing. (--dry-run never exits non-zero
-for this: it is a preview, and dry-run "transitioned" is inherently just a
-list of candidates, not evidence anything actually happened or failed to.)
+Whenever the input's "stories" list is non-empty and at least one story was
+skipped for a reason other than already being Done, this script prints a
+WARNING to stderr naming those stories -- even in a MIXED release where some
+other stories transitioned fine, so a partial skip is never invisible just
+because the run "worked". If, in addition, NOTHING was transitioned at all,
+that combination is a silent no-op -- the exact failure mode this script
+exists to prevent -- and, unless --dry-run was passed, the process exits
+non-zero so an unattended run can't look successful when it silently did
+nothing. (--dry-run never exits non-zero for this: it is a preview, and
+dry-run "transitioned" is inherently just a list of candidates, not evidence
+anything actually happened or failed to.)
 
 All ids shown in this file's docstring and comments (e.g. story id 22222)
 are placeholders, not real Shortcut story ids. The workflow and state ids
@@ -251,26 +254,36 @@ def main():
 
     print(json.dumps(summary, indent=2))
 
-    # Make silent no-ops impossible: `stories` was non-empty, nothing got
-    # transitioned, and at least one story was skipped for a reason other
-    # than already being Done. That combination is indistinguishable from
-    # "nothing needed moving" unless we say so explicitly.
-    silently_skipped = skipped_other_state or skipped_different_workflow
-    if stories and not transitioned and silently_skipped:
+    # Make silent skips impossible: any story skipped for a reason other than
+    # already being Done must be visible, whether or not anything else in
+    # this run transitioned. A MIXED release -- some stories transition
+    # fine, others get skipped for a different workflow/state -- used to
+    # produce no WARNING at all as long as `transitioned` was non-empty; that
+    # silently lost visibility into exactly the stories this script exists
+    # to flag. Only the "nothing happened at all" case is fatal.
+    if stories and skipped_detail:
         skipped_ids_and_context = [
             f"{d['id']} (workflow_id={d['workflow_id']}, workflow_state_id={d['workflow_state_id']}, "
             f"reason={d['reason']})"
             for d in skipped_detail
         ]
-        warn(
-            "Nothing was transitioned, but "
-            f"{len(silently_skipped)} shipped stor{'y was' if len(silently_skipped) == 1 else 'ies were'} "
-            f"skipped for a reason other than already being Done: {skipped_ids_and_context}. "
-            "This looks like a silent no-op — check --workflow-id/--from-state-id/--done-state-id "
-            "against the workflow these stories actually live in."
-        )
-        if not args.dry_run:
-            sys.exit(2)
+        if transitioned:
+            warn(
+                f"{len(skipped_detail)} shipped stor{'y was' if len(skipped_detail) == 1 else 'ies were'} "
+                f"skipped (not already Done) alongside {len(transitioned)} that DID transition: "
+                f"{skipped_ids_and_context}. Verify these are intentionally on a different "
+                "workflow/state before assuming they're covered."
+            )
+        else:
+            warn(
+                "Nothing was transitioned, but "
+                f"{len(skipped_detail)} shipped stor{'y was' if len(skipped_detail) == 1 else 'ies were'} "
+                f"skipped for a reason other than already being Done: {skipped_ids_and_context}. "
+                "This looks like a silent no-op — check --workflow-id/--from-state-id/--done-state-id "
+                "against the workflow these stories actually live in."
+            )
+            if not args.dry_run:
+                sys.exit(2)
 
 
 if __name__ == "__main__":

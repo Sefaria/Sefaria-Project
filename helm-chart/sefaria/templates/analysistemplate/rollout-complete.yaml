@@ -16,27 +16,23 @@ spec:
         job:
           spec:
             backoffLimit: 1
-            # Caps how long this Job's pod can run. This Job is the
-            # AnalysisRun's metric provider, and the AnalysisRun stays
-            # Running (blocking promotion) until the pod completes. Without
-            # this, a hung curl call (see --max-time/--connect-timeout
-            # below) would still leave the pod itself with no upper bound.
-            #
-            # Deliberately generous. Both curls are already capped at 30s
-            # each, so the real work finishes in well under a minute; this
-            # only has to survive a cold image pull on a fresh node. It is a
-            # backstop against a pathological hang, NOT a routine timeout —
-            # the distinction matters because exceeding it terminates the Job
-            # as Failed, which fails this post-promotion AnalysisRun and
-            # aborts the promotion. Aborting a promotion over a Slack
-            # notification would be a bad trade, so the deadline is set far
-            # above anything a healthy run can reach.
-            activeDeadlineSeconds: 600
+            # No activeDeadlineSeconds here (deliberately -- see history
+            # below). This Job is the AnalysisRun's metric provider, and the
+            # AnalysisRun stays Running (blocking promotion) until the pod
+            # completes; a Job deadline that gets exceeded turns the Job
+            # Failed -> this AnalysisRun Failed -> blueGreen abort, which can
+            # roll a healthy prod rollout back over nothing worse than a slow
+            # Slack notification. Master never had this deadline. Both curls
+            # below are already bounded per-call by --max-time/--connect-
+            # timeout, and each container's own `|| /bin/true` guarantees the
+            # pod still exits 0 even if a call hangs past those limits or
+            # fails outright -- that's the real backstop, without the
+            # rollback blast radius of a Job-level deadline.
             template:
               spec:
                 containers:
                   - name: completion-message
-                    image: curlimages/curl
+                    image: curlimages/curl:8.11.1
                     command: [ "sh"]
                     args:
                       - -c
@@ -69,33 +65,41 @@ spec:
                             name: {{ .Values.secrets.localSettings.ref }}
                             key: SLACK_URL
                             optional: true
-                  {{- if eq .Values.deployEnv "prod" }}
-                  # Prod-only: relay the confirmed-healthy rollout to Sefaria-Project so a
-                  # GitHub Actions workflow can generate and post full release notes. Fires
-                  # only after Argo's own post-promotion analysis reaches this point, so it
-                  # carries the same health guarantee as the Slack ping above. A missing or
-                  # failing token/call must never fail the rollout itself.
+                  {{- if eq .Values.deployEnv "production" }}
+                  # Prod-only (deployEnv "production" -- the prod HelmRelease sets
+                  # deployEnv: production, not "prod"): relay the confirmed-healthy
+                  # rollout to Sefaria-Project so a GitHub Actions workflow can generate
+                  # and post full release notes. Fires only after Argo's own
+                  # post-promotion analysis reaches this point, so it carries the same
+                  # health guarantee as the Slack ping above. A missing or failing
+                  # token/call must never fail the rollout itself.
                   #
                   # `version` is the load-bearing field in this payload: the receiving
                   # workflow derives the shipped commit range purely from prod/* git tags
-                  # using this value (see .github/workflows/prod-release-notes.yaml), rather
-                  # than from any PR. The version arg below may arrive with a leading "v"
-                  # (e.g. v6.111.0-prod.1) — that workflow strips it; this template does not.
+                  # using this value (see .github/workflows/prod-release-notes.yaml).
+                  # $VERSION is stripped of a leading "v" (e.g. v6.111.0-prod.1) right
+                  # here before it goes into the payload, so repository_dispatch and
+                  # workflow_dispatch always carry the same bare-version shape -- that's
+                  # what lets the workflow's `concurrency.group` (keyed on the raw
+                  # trigger value, evaluated before any step can normalize it) actually
+                  # dedupe the two trigger paths for the same release. The workflow's own
+                  # Resolve step still tolerates a leading "v" too, as a defensive
+                  # fallback -- see .github/workflows/prod-release-notes.yaml.
                   #
                   # -sS -f plus --max-time/--connect-timeout: curl exits 0 on
                   # HTTP 401/403 by default, so without -f the `|| /bin/true`
                   # fallback would never fire for the most likely failure — a
                   # missing or bad dispatch token (GH_DISPATCH_TOKEN is
                   # optional, so absent is a live case). Without a timeout, a
-                  # hung call to the GitHub API leaves this Job incomplete,
-                  # which stalls the AnalysisRun that depends on it — see the
-                  # Job-level activeDeadlineSeconds above as the backstop.
+                  # hung call to the GitHub API would otherwise leave this
+                  # container hanging past what a healthy rollout needs.
                   - name: notify-github
-                    image: curlimages/curl
+                    image: curlimages/curl:8.11.1
                     command: [ "sh" ]
                     args:
                       - -c
                       - >
+                        VERSION="${VERSION#v}";
                         curl
                         -sS
                         -f
@@ -121,10 +125,14 @@ spec:
                         value: "{{`{{args.version}}`}}" # {{`...`}}
                       - name: CHART_VERSION
                         value: "{{`{{args.chartVersion}}`}}"
+                      # Deliberately NOT secrets.localSettings.ref: that secret is
+                      # mounted via envFrom into every web/task/monitor/cronjob pod, and
+                      # a GitHub PAT with write access to Sefaria-Project doesn't belong
+                      # in that blast radius. See README-prod-release-notes.md.
                       - name: GH_DISPATCH_TOKEN
                         valueFrom:
                           secretKeyRef:
-                            name: {{ .Values.secrets.localSettings.ref }}
+                            name: {{ .Values.secrets.ghDispatch.ref }}
                             key: GH_DISPATCH_TOKEN
                             optional: true
                   {{- end }}

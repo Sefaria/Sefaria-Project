@@ -55,6 +55,15 @@ def test_extract_story_ids_unions_multiple_matches_in_one_string():
     assert ss.extract_story_ids(text) == {"11111", "22222"}
 
 
+def test_extract_story_ids_feature_slash_underscore_form_no_trailing_boundary():
+    """Regression guard for finding #12: pattern 1 (generic `sc[-_](digits)`
+    with a TRAILING boundary) stops matching once a word character follows
+    the digits directly with no separator. The `feature/sc...` pattern has
+    no such trailing anchor, so this shape is real added coverage, not dead
+    code. (id kept short/fake per repo convention -- not a real Shortcut id.)"""
+    assert ss.extract_story_ids("feature/sc_66_underscore_style") == {"66"}
+
+
 # --- PR number extraction ----------------------------------------------
 
 @pytest.mark.parametrize(
@@ -75,6 +84,23 @@ def test_extract_pr_number(text, expected):
     assert ss.extract_pr_number(text) == expected
 
 
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        # Real (non-squash) merge commits from `git log` never get the
+        # `(#NNN)` parenthesized form -- GitHub writes them as bare
+        # "Merge pull request #N from <owner>/<branch>". This is the ONLY
+        # place the PR number appears for a merge-commit PR (finding #3).
+        ("Merge pull request #3646 from Sefaria/hotfix/fix-thing", "3646"),
+        ("Merge pull request #77 from Sefaria/bug/some-branch-name", "77"),
+        # The parenthesized form still wins when both are present.
+        ("Merge pull request #1 from Sefaria/x (#2)", "2"),
+    ],
+)
+def test_extract_pr_number_bare_merge_commit_form(text, expected):
+    assert ss.extract_pr_number(text) == expected
+
+
 # --- Noise filtering ------------------------------------------------------
 
 @pytest.mark.parametrize(
@@ -89,6 +115,10 @@ def test_extract_pr_number(text, expected):
         "deploy(demo1): app=1.0.0 [skip ci]",
         "Merge pull request #123 from Sefaria/some-branch",
         "Merge branch 'preprod' into 'prod'",
+        # A plain branch-sync merge, distinct from "Merge branch": must not
+        # pollute commits_without_story now that merge commits are walked
+        # for ID/PR extraction (finding #3).
+        "Merge remote-tracking branch 'origin/prod' into 'preprod'",
         "some real change [skip ci]",
     ],
 )
@@ -158,8 +188,10 @@ def test_split_range_spec_empty_side_exits():
 # --- --version range resolution ----------------------------------------
 
 def _fake_run_git(tag_responses):
-    """Build a stand-in for ss.run_git that answers `tag --list <glob>` calls
-    from a dict of {glob: [tag, ...]} and errors on anything unexpected."""
+    """Build a stand-in for ss.run_git that answers `tag --list <glob> [...]`
+    calls from a dict of {glob: [tag, ...]} (only the glob at args[2] is
+    checked; a trailing --sort=-creatordate is ignored) and errors on
+    anything unexpected."""
 
     def _run_git(args):
         assert args[0] == "tag" and args[1] == "--list"
@@ -171,59 +203,96 @@ def _fake_run_git(tag_responses):
     return _run_git
 
 
+# Ordered as `git tag --list 'prod/*' --sort=-creatordate` would return them:
+# newest first. Includes a chart-only-rollout case (three prod/6.100.0-prod.1
+# tags, one per chart bump) matching real repo history.
 ALL_PROD_TAGS = [
     "prod/6.111.0-prod.2+chart.0.87.5-prod.1",
     "prod/6.111.0-prod.1+chart.0.87.4-prod.1",
+    "prod/6.100.0-prod.1+chart.0.85.8-prod.3",
+    "prod/6.100.0-prod.1+chart.0.85.8-prod.2",
+    "prod/6.100.0-prod.1+chart.0.85.8-prod.1",
     "prod/6.110.10-prod.3+chart.0.87.3-prod.1",
 ]
 
 
+def _fake_all_prod_tags(tags=ALL_PROD_TAGS):
+    return _fake_run_git({"prod/*": tags})
+
+
 def test_resolve_range_from_version_success(monkeypatch):
-    monkeypatch.setattr(ss, "run_git", _fake_run_git({
-        "prod/6.111.0-prod.2+*": ["prod/6.111.0-prod.2+chart.0.87.5-prod.1"],
-        "prod/*": ALL_PROD_TAGS,
-    }))
+    monkeypatch.setattr(ss, "run_git", _fake_all_prod_tags())
     prev, cur = ss.resolve_range_from_version("6.111.0-prod.2")
     assert cur == "prod/6.111.0-prod.2+chart.0.87.5-prod.1"
     assert prev == "prod/6.111.0-prod.1+chart.0.87.4-prod.1"
 
 
 def test_resolve_range_from_version_strips_leading_v(monkeypatch):
-    monkeypatch.setattr(ss, "run_git", _fake_run_git({
-        "prod/6.111.0-prod.2+*": ["prod/6.111.0-prod.2+chart.0.87.5-prod.1"],
-        "prod/*": ALL_PROD_TAGS,
-    }))
+    monkeypatch.setattr(ss, "run_git", _fake_all_prod_tags())
     prev, cur = ss.resolve_range_from_version("v6.111.0-prod.2")
     assert cur == "prod/6.111.0-prod.2+chart.0.87.5-prod.1"
 
 
 def test_resolve_range_from_version_zero_matches_exits(monkeypatch):
-    monkeypatch.setattr(ss, "run_git", _fake_run_git({
-        "prod/9.9.9-prod.1+*": [],
-    }))
+    monkeypatch.setattr(ss, "run_git", _fake_all_prod_tags())
     with pytest.raises(SystemExit):
         ss.resolve_range_from_version("9.9.9-prod.1")
 
 
-def test_resolve_range_from_version_multiple_matches_exits(monkeypatch):
-    monkeypatch.setattr(ss, "run_git", _fake_run_git({
-        "prod/6.111.0-prod.2+*": [
-            "prod/6.111.0-prod.2+chart.0.87.5-prod.1",
-            "prod/6.111.0-prod.2+chart.0.87.6-prod.1",
-        ],
-    }))
-    with pytest.raises(SystemExit):
-        ss.resolve_range_from_version("6.111.0-prod.2")
+def test_resolve_range_from_version_multiple_matches_picks_newest(monkeypatch):
+    """Finding #2: a chart-only rollout produces several prod/<app>+chart.*
+    tags for the SAME app version. This must no longer die() -- it must pick
+    the newest by creation date (all_tags is already sorted -creatordate, so
+    the first match in that order is newest) and log which one it chose."""
+    monkeypatch.setattr(ss, "run_git", _fake_all_prod_tags())
+    prev, cur = ss.resolve_range_from_version("6.100.0-prod.1")
+    assert cur == "prod/6.100.0-prod.1+chart.0.85.8-prod.3"
+    # "Previous tag" must be the tag immediately before the CHOSEN tag in
+    # that same creatordate ordering -- not some other chart-suffix sibling.
+    assert prev == "prod/6.100.0-prod.1+chart.0.85.8-prod.2"
+
+
+def test_resolve_range_from_version_multiple_matches_logs_choice(monkeypatch, capsys):
+    monkeypatch.setattr(ss, "run_git", _fake_all_prod_tags())
+    ss.resolve_range_from_version("6.100.0-prod.1")
+    err = capsys.readouterr().err
+    assert "0.85.8-prod.3" in err
 
 
 def test_resolve_range_from_version_oldest_tag_exits(monkeypatch):
     # cur resolves to the oldest tag in the full prod/* listing -> no previous tag
-    monkeypatch.setattr(ss, "run_git", _fake_run_git({
-        "prod/6.110.10-prod.3+*": ["prod/6.110.10-prod.3+chart.0.87.3-prod.1"],
-        "prod/*": ALL_PROD_TAGS,
-    }))
+    monkeypatch.setattr(ss, "run_git", _fake_all_prod_tags())
     with pytest.raises(SystemExit):
         ss.resolve_range_from_version("6.110.10-prod.3")
+
+
+# --- --version + --chart-version: exact tag selection -------------------
+
+def test_resolve_range_from_version_with_chart_version_selects_exact_tag(monkeypatch):
+    monkeypatch.setattr(ss, "run_git", _fake_all_prod_tags())
+    prev, cur = ss.resolve_range_from_version("6.100.0-prod.1", chart_version="0.85.8-prod.2")
+    assert cur == "prod/6.100.0-prod.1+chart.0.85.8-prod.2"
+    assert prev == "prod/6.100.0-prod.1+chart.0.85.8-prod.1"
+
+
+def test_resolve_range_from_version_with_chart_version_strips_leading_v(monkeypatch):
+    monkeypatch.setattr(ss, "run_git", _fake_all_prod_tags())
+    prev, cur = ss.resolve_range_from_version("6.100.0-prod.1", chart_version="v0.85.8-prod.2")
+    assert cur == "prod/6.100.0-prod.1+chart.0.85.8-prod.2"
+
+
+def test_resolve_range_from_version_with_unmatched_chart_version_falls_back_to_newest(monkeypatch, capsys):
+    """A --chart-version that doesn't exactly match any tag must NOT die() --
+    Argo's chartVersion arg and the tag suffix could drift out of sync, and
+    killing a healthy rollout's notes over a string mismatch is exactly the
+    failure mode finding #2 exists to remove. Fall back to newest-by-date
+    and warn, same as the no-chart-version multiple-match path."""
+    monkeypatch.setattr(ss, "run_git", _fake_all_prod_tags())
+    prev, cur = ss.resolve_range_from_version("6.100.0-prod.1", chart_version="9.9.9-nonexistent")
+    assert cur == "prod/6.100.0-prod.1+chart.0.85.8-prod.3"
+    assert prev == "prod/6.100.0-prod.1+chart.0.85.8-prod.2"
+    err = capsys.readouterr().err
+    assert "9.9.9-nonexistent" in err
 
 
 # --- get_commit_subjects filters blank lines ---------------------------
@@ -231,6 +300,35 @@ def test_resolve_range_from_version_oldest_tag_exits(monkeypatch):
 def test_get_commit_subjects_filters_blank_lines(monkeypatch):
     monkeypatch.setattr(ss, "run_git", lambda args: "subject one\n\nsubject two\n")
     assert ss.get_commit_subjects("a..b") == ["subject one", "subject two"]
+
+
+def test_get_commit_subjects_includes_merge_commits(monkeypatch):
+    """Finding #3: a merge-commit PR's own subject can be the ONLY place its
+    PR number and story code appear (no `(#N)` squash form, no matching
+    child commit). `--no-merges` must be gone from the git log call."""
+    captured = {}
+
+    def _fake_run_git(args):
+        captured["args"] = args
+        return "a subject\n"
+
+    monkeypatch.setattr(ss, "run_git", _fake_run_git)
+    ss.get_commit_subjects("a..b")
+    assert "--no-merges" not in captured["args"]
+
+
+# --- release_date: chosen tag's creation timestamp ----------------------
+
+def test_tag_creator_date_iso_reads_creatordate(monkeypatch):
+    monkeypatch.setattr(ss, "run_git", lambda args: "2026-08-31T07:17:36+00:00\n")
+    assert ss.tag_creator_date_iso("prod/6.111.0-prod.4+chart.0.88.0-prod.1") == "2026-08-31T07:17:36+00:00"
+
+
+def test_tag_creator_date_iso_returns_none_for_unresolvable_ref(monkeypatch):
+    """An explicit --range endpoint that isn't a real tag (e.g. a branch or
+    SHA) must degrade to None rather than raising or fabricating a date."""
+    monkeypatch.setattr(ss, "run_git", lambda args: "")
+    assert ss.tag_creator_date_iso("not-a-tag") is None
 
 
 # --- fetch_story: workflow_id capture ----------------------------------
@@ -286,11 +384,22 @@ def test_fetch_story_workflow_id_defaults_to_none_when_absent(monkeypatch):
 # --- main(): revert commits are suppressed from story_ids and reported --
 
 def _run_main_with_commits(monkeypatch, tmp_path, commit_subjects):
-    """Drive main() end-to-end for a --range invocation with no PR numbers
-    in play (so fetch_branches never shells out to `gh`) and no
-    SHORTCUT_API_TOKEN set (so hydration is skipped, matching the expected
-    no-token path). Returns the parsed output JSON."""
-    monkeypatch.setattr(ss, "run_git", lambda args: "\n".join(commit_subjects) + "\n")
+    """Drive main() end-to-end for a --range invocation. `fetch_pr_branch` is
+    stubbed directly (never shells out to `gh`, even for subjects that DO
+    carry a PR number, e.g. a bare "Merge pull request #N from ..." form --
+    see finding #3) and no SHORTCUT_API_TOKEN is set (so hydration is
+    skipped, matching the expected no-token path). Returns the parsed output
+    JSON."""
+
+    def _fake_run_git(args):
+        if args[0] == "log":
+            return "\n".join(commit_subjects) + "\n"
+        if args[0] == "for-each-ref":
+            return ""  # no resolvable tag date for a synthetic --range in these tests
+        raise AssertionError(f"unexpected git call in this test: {args!r}")
+
+    monkeypatch.setattr(ss, "run_git", _fake_run_git)
+    monkeypatch.setattr(ss, "fetch_pr_branch", lambda pr_number, repo: (pr_number, None))
     monkeypatch.delenv("SHORTCUT_API_TOKEN", raising=False)
 
     out_path = tmp_path / "shipped-stories.json"
@@ -346,6 +455,117 @@ def test_main_non_revert_commit_without_story_id_still_flagged(monkeypatch, tmp_
     ])
     assert data["commits_without_story"] == ["a completely unrelated commit with no story id"]
     assert data["reverted_commits"] == []
+
+
+# --- main(): merge commits are walked for ID/PR extraction (finding #3) --
+
+def test_main_extracts_story_and_pr_from_bare_merge_commit_subject(monkeypatch, tmp_path):
+    """Real-shaped case: a hotfix PR merged as a merge commit (not squashed)
+    whose bare 'Merge pull request #N from .../hotfix/sc-.../...' subject is
+    the ONLY place its PR number and story id appear -- no matching child
+    commit carries either. (ids kept short/fake per repo convention.)"""
+    data = _run_main_with_commits(monkeypatch, tmp_path, [
+        "Merge pull request #99 from Sefaria/hotfix/sc-13/fix-thing",
+        "fix: unrelated change with no story id at all",
+    ])
+    assert data["story_ids"] == ["13"]
+    assert data["commits_without_story"] == ["fix: unrelated change with no story id at all"]
+    merge_commit = next(c for c in data["commits"] if c["subject"].startswith("Merge pull request"))
+    assert merge_commit["pr_number"] == "99"
+    assert merge_commit["story_ids"] == ["13"]
+
+
+def test_main_plain_branch_sync_merges_do_not_pollute_commits_without_story(monkeypatch, tmp_path):
+    """Merge commits are now walked at all (finding #3), so the auto-generated
+    branch-sync merges that come along with them must still not show up as
+    commits needing manual attention."""
+    data = _run_main_with_commits(monkeypatch, tmp_path, [
+        "Merge branch 'preprod' into 'prod'",
+        "Merge remote-tracking branch 'origin/prod' into 'preprod'",
+    ])
+    assert data["commits_without_story"] == []
+    assert data["story_ids"] == []
+
+
+# --- main(): a reverted-and-still-in-range original is excluded (#7) -----
+
+def test_main_excludes_original_story_ids_when_reverted_in_same_range(monkeypatch, tmp_path):
+    """The revert's OWN suppression (existing behavior) only strips ids from
+    the revert commit itself. If the original commit it quotes is ALSO in
+    this range, that original's story ids must not silently keep shipping
+    just because the union happens on a different commit. (ids kept
+    short/fake per repo convention.)"""
+    data = _run_main_with_commits(monkeypatch, tmp_path, [
+        'Revert "fix(sc-13): correct the thing"',
+        "fix(sc-13): correct the thing",
+        "fix(sc-14): unrelated change",
+    ])
+    assert data["story_ids"] == ["14"]
+    assert data["reverted_commits"] == [
+        {"subject": 'Revert "fix(sc-13): correct the thing"', "suppressed_story_ids": ["13"]},
+    ]
+
+
+def test_main_keeps_story_id_if_another_non_reverted_commit_also_carries_it(monkeypatch, tmp_path):
+    """Same as above, but a SECOND, independent commit also references the
+    reverted story -- that id must still ship, since it's not exclusively
+    carried by the reverted original."""
+    data = _run_main_with_commits(monkeypatch, tmp_path, [
+        'Revert "fix(sc-13): correct the thing"',
+        "fix(sc-13): correct the thing",
+        "chore(sc-13): a second, independent commit touching the same story",
+    ])
+    assert data["story_ids"] == ["13"]
+
+
+def test_main_revert_quoting_a_subject_outside_this_range_does_not_crash(monkeypatch, tmp_path):
+    """The quoted original is a normal, expected case of NOT finding a match
+    in this range (it shipped in an earlier release) -- must behave exactly
+    like the existing no-match revert tests, not error."""
+    data = _run_main_with_commits(monkeypatch, tmp_path, [
+        'Revert "fix(sc-13): correct the thing"',
+        "fix(sc-14): unrelated change",
+    ])
+    assert data["story_ids"] == ["14"]
+    assert data["reverted_commits"] == [
+        {"subject": 'Revert "fix(sc-13): correct the thing"', "suppressed_story_ids": ["13"]},
+    ]
+
+
+# --- release_date is wired into main()'s output --------------------------
+
+def test_main_emits_release_date_from_chosen_tag(monkeypatch, tmp_path):
+    def _fake_run_git(args):
+        if args[0] == "log":
+            return "fix(sc-13): a change\n"
+        if args[0] == "for-each-ref":
+            return "2026-08-31T07:17:36+00:00\n"
+        raise AssertionError(f"unexpected git call: {args!r}")
+
+    monkeypatch.setattr(ss, "run_git", _fake_run_git)
+    monkeypatch.setattr(ss, "fetch_pr_branch", lambda pr_number, repo: (pr_number, None))
+    monkeypatch.delenv("SHORTCUT_API_TOKEN", raising=False)
+
+    out_path = tmp_path / "shipped-stories.json"
+    monkeypatch.setattr(
+        "sys.argv",
+        ["shipped_stories.py", "--range", "prev-tag..cur-tag", "--out", str(out_path)],
+    )
+    ss.main()
+    data = json.loads(out_path.read_text(encoding="utf-8"))
+    assert data["release_date"] == "2026-08-31T07:17:36+00:00"
+
+
+# --- fetch_branches: a missing `gh` binary must not surface as a raw ------
+# --- traceback (finding #11) ----------------------------------------------
+
+def test_fetch_branches_dies_clearly_when_gh_is_missing(monkeypatch):
+    def _raise_missing_gh(*args, **kwargs):
+        raise FileNotFoundError("[Errno 2] No such file or directory: 'gh'")
+
+    monkeypatch.setattr(ss.subprocess, "run", _raise_missing_gh)
+    with pytest.raises(SystemExit):
+        ss.fetch_branches(["99"], "Sefaria/Sefaria-Project")
 
 
 # --- post_to_slack.chunk_text --------------------------------------------

@@ -19,10 +19,13 @@
 
 ## Tech File Structure
 
+This runs AFTER the rollout is already confirmed healthy — headers describe
+something that already happened, not something upcoming.
+
 ```
-:rocket: *Upcoming Production Deploy — preprod → prod*
+:rocket: *Production Release — preprod → prod*
 *Release:* app `X.X.X` / chart `X.X.X`
-*Range:* ~N commits / N net feature PRs | Sprint: <start>–<end>
+*Deployed:* <release_date, formatted> | *Range:* ~N commits / N net feature PRs
 
 :large_green_circle: *User-Facing Fixes & Features*
 
@@ -41,6 +44,8 @@ PR <https://github.com/Sefaria/Sefaria-Project/pull/XXXX|#XXXX>
 [items using same bullet format]
 ```
 
+If `release_date` is `null`, drop the `*Deployed:* <date> | ` prefix and start the line with `*Range:*` instead — never fabricate a date.
+
 **Per-item format:**
 ```
 • <SC_URL|sc-XXXXX> — *Title*
@@ -56,9 +61,11 @@ Flag risk: append `:warning:` to the title line.
 
 ## Product File Structure (release announcement)
 
+This also runs AFTER the rollout is confirmed healthy — past tense, not "upcoming".
+
 ```
-*Upcoming Production Release — What's Shipping*
-<Date> | Sprint: <date range only — no team names>
+*Production Release — What Shipped*
+Deployed <release_date, formatted>
 
 <1–2 sentence overview: how many changes, any standout themes>
 
@@ -80,6 +87,8 @@ Flag risk: append `:warning:` to the title line.
 
 • *Area name.* What it means for reliability or performance in plain language.
 ```
+
+If `release_date` is `null`, drop the `Deployed <date>` line entirely rather than guessing.
 
 ---
 

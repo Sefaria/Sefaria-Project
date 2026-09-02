@@ -4,15 +4,18 @@ name: "Prod Release Notes"
 # helm-chart/sefaria/templates/analysistemplate/rollout-complete.yaml) confirms
 # Argo Rollouts' post-promotion analysis passed for prod — i.e. the new
 # revision's pods are up and its health checks are green. That job relays a
-# repository_dispatch here, carrying only the deployed `version`.
+# repository_dispatch here, carrying the deployed `version` and `chartVersion`.
 #
 # From there this workflow is a strict pipeline of deterministic scripts, with
 # exactly one step handed to an LLM:
 #   1. build/ci/shipped_stories.py resolves the prod/* tag range for that
-#      version, walks git log between the tags, and hydrates the Shortcut
-#      stories those commits reference.
+#      version (chartVersion disambiguates a chart-only rollout, where several
+#      tags share the same app version), walks git log between the tags, and
+#      hydrates the Shortcut stories those commits reference.
 #   2. build/ci/mark_stories_deployed.py moves each of those stories from
-#      Deploy Ready -> Done via the Shortcut API.
+#      Deploy Ready -> Done via the Shortcut API. A failure here (missing
+#      token, API error, nothing to move) is surfaced as a warning but never
+#      blocks steps 3-4 — see "Mark shipped stories as deployed" below.
 #   3. The sefaria-release-notes skill (.claude/skills/sefaria-release-notes/)
 #      reads that JSON and writes prose only — it does not talk to GitHub or
 #      Shortcut.
@@ -29,9 +32,19 @@ on:
   # past release (e.g. after fixing a bug in one of the scripts below).
   workflow_dispatch:
     inputs:
+      # rollout-complete.yaml strips a leading "v" before building the
+      # repository_dispatch payload, so `inputs.version` is expected bare
+      # too (e.g. 6.111.0-prod.2, not v6.111.0-prod.2) -- both so the
+      # concurrency group below dedupes correctly across the two trigger
+      # paths, and for consistency with the dispatch payload. The Resolve
+      # step still strips a leading "v" defensively if one sneaks in.
       version:
-        description: "Deployed prod version, e.g. 6.111.0-prod.2"
+        description: "Deployed prod version, e.g. 6.111.0-prod.2 (bare, no leading v)"
         required: true
+        type: string
+      chart_version:
+        description: "Chart version, e.g. 0.87.5-prod.1 (optional -- disambiguates a chart-only rollout of the same version)"
+        required: false
         type: string
       dry_run:
         description: "Run mark_stories_deployed.py with --dry-run (no Shortcut writes)"
@@ -43,6 +56,13 @@ on:
 # repository_dispatch for the same version, and a manual workflow_dispatch
 # re-run could race a real dispatch for that same version. Serialize on
 # version so duplicate runs queue instead of double-posting to Slack.
+#
+# This group key is built from the RAW trigger value, before the Resolve
+# step below can strip a leading "v" -- GitHub Actions expressions have no
+# string-replace function, so normalization has to happen at the source
+# instead (rollout-complete.yaml strips "v" in the dispatch payload) for
+# repository_dispatch and workflow_dispatch to actually dedupe against each
+# other for the same release.
 concurrency:
   group: prod-release-notes-${{ github.event.client_payload.version || inputs.version }}
   cancel-in-progress: false
@@ -67,17 +87,23 @@ jobs:
         id: resolve
         env:
           DISPATCH_VERSION: ${{ github.event.client_payload.version }}
+          DISPATCH_CHART_VERSION: ${{ github.event.client_payload.chartVersion }}
           INPUT_VERSION: ${{ inputs.version }}
+          INPUT_CHART_VERSION: ${{ inputs.chart_version }}
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             RAW_VERSION="$INPUT_VERSION"
+            CHART_VERSION="$INPUT_CHART_VERSION"
           else
             RAW_VERSION="$DISPATCH_VERSION"
+            CHART_VERSION="$DISPATCH_CHART_VERSION"
           fi
 
-          # rollout-complete.yaml's `version` arg may arrive with a leading
-          # "v" (e.g. v6.111.0-prod.1); strip it here so the tag-range
-          # resolution in shipped_stories.py gets a bare version.
+          # rollout-complete.yaml's `version` arg is expected bare (it strips
+          # a leading "v" before building the dispatch payload -- see the
+          # concurrency.group comment above), but this strip stays as a
+          # defensive fallback in case a leading "v" ever sneaks in (e.g. a
+          # manual workflow_dispatch typo).
           VERSION="${RAW_VERSION#v}"
 
           if [[ -z "$VERSION" ]]; then
@@ -86,7 +112,8 @@ jobs:
           fi
 
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "Resolved version: ${VERSION}"
+          echo "chart_version=${CHART_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: ${VERSION} (chart: ${CHART_VERSION:-none})"
 
       - name: Determine shipped stories
         id: shipped
@@ -94,10 +121,23 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SHORTCUT_API_TOKEN: ${{ secrets.SHORTCUT_API_TOKEN }}
           VERSION: ${{ steps.resolve.outputs.version }}
+          CHART_VERSION: ${{ steps.resolve.outputs.chart_version }}
         run: |
-          python3 build/ci/shipped_stories.py --version "$VERSION" --out shipped-stories.json
+          ARGS=(--version "$VERSION" --out shipped-stories.json)
+          if [[ -n "$CHART_VERSION" ]]; then
+            ARGS+=(--chart-version "$CHART_VERSION")
+          fi
+          python3 build/ci/shipped_stories.py "${ARGS[@]}"
 
       - name: Mark shipped stories as deployed
+        id: mark_deployed
+        # A Shortcut bookkeeping failure (missing token, API error, or the
+        # silent-no-op guard's sys.exit(2)) must never skip release-notes
+        # generation and Slack posting for an otherwise healthy rollout --
+        # moving stories to Done and announcing the release are independent
+        # concerns. continue-on-error surfaces the failure via
+        # steps.mark_deployed.outcome below instead of failing the job.
+        continue-on-error: true
         env:
           SHORTCUT_API_TOKEN: ${{ secrets.SHORTCUT_API_TOKEN }}
           EVENT_NAME: ${{ github.event_name }}
@@ -108,6 +148,21 @@ jobs:
             ARGS+=(--dry-run)
           fi
           python3 build/ci/mark_stories_deployed.py "${ARGS[@]}"
+
+      - name: Warn if Shortcut bookkeeping failed
+        if: steps.mark_deployed.outcome == 'failure'
+        run: |
+          echo "::warning::mark_stories_deployed.py failed -- shipped Shortcut stories were NOT moved Deploy Ready -> Done for this release. Release notes generation is continuing anyway. Check this run's 'Mark shipped stories as deployed' step and move the affected stories manually."
+
+      - name: Alert Slack if Shortcut bookkeeping failed
+        if: steps.mark_deployed.outcome == 'failure'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+        run: |
+          curl -s -X POST -H 'Content-type: application/json' \
+            --data "{\"text\": \":warning: Prod release notes for version ${VERSION:-unknown}: mark_stories_deployed.py failed -- shipped Shortcut stories were NOT moved Deploy Ready -> Done. Release notes generation is continuing. Check the workflow run and move the affected stories manually.\"}" \
+            "$SLACK_WEBHOOK_URL" || true
 
       - name: Set up Node
         uses: actions/setup-node@v4
