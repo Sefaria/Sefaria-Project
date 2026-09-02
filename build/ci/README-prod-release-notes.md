@@ -86,45 +86,8 @@ Add these under repo Settings → Secrets and variables → Actions:
 | `SHORTCUT_API_TOKEN` | `shipped_stories.py` story hydration and `mark_stories_deployed.py` state transitions | Shortcut → Settings → API Tokens. Not the same as the OAuth MCP connection used interactively. |
 | `SLACK_PRODUCT_WEBHOOK` | Non-technical release announcement | A second Slack incoming webhook, pointed at whichever channel should get `release-announcement-product-slack.txt`. Until this is set, that post step is a guarded no-op (won't fail the workflow). |
 
-Already exist and are reused as-is: `SLACK_DEPLOY_WEBHOOK`, `GITHUB_TOKEN`.
-
-### `ANTHROPIC_API_KEY` — misspelled secret, do not "fix" it
-
-The Anthropic API key secret **already exists in this repo's settings**, but
-under the name `ANTHOPIC_API_KEY` — misspelled at creation time, missing the
-`R`. There is no secret named `ANTHROPIC_API_KEY`.
-
-`.github/workflows/prod-release-notes.yaml`'s "Generate release notes" step
-deliberately maps the correctly-spelled env var Claude Code expects from the
-misspelled secret name that actually exists:
-
-```yaml
-env:
-  ANTHROPIC_API_KEY: ${{ secrets.ANTHOPIC_API_KEY }}
-```
-
-**Do not change the right-hand side to `secrets.ANTHROPIC_API_KEY`.** That
-secret does not exist; GitHub silently resolves an undefined secret
-reference to an empty string, so `claude -p` would authenticate with an
-empty key, fail, and (before the fail-fast guard was added) surface as an
-opaque auth error rather than naming its own cause. The step now checks
-`ANTHROPIC_API_KEY` for emptiness before running `claude -p` and exits with
-an actionable error naming the exact secret to set if it's missing.
-
-The clean long-term fix is to add a correctly-spelled `ANTHROPIC_API_KEY`
-secret in repo settings and drop the misspelled one — but that's a
-one-time manual change to Settings → Secrets and variables → Actions, not
-something this workflow file can do on its own, so the mapping stays until
-someone does that.
-
-**Known adjacent bug, not fixed here:** `.github/workflows/manual-promotion.yaml:82`
-has the same bug in the other direction — it references
-`secrets.ANTHROPIC_API_KEY` (the correctly-spelled, non-existent name)
-directly. Because that workflow treats the key as optional and silently
-falls back when it's empty, `generate-promotion-pr.sh`'s Claude-generated
-summary has almost certainly never actually run. Fixing that is out of
-scope for this change; flagging it here so the same root cause isn't
-mistaken for two unrelated issues.
+Already exist and are reused as-is: `SLACK_DEPLOY_WEBHOOK`, `GITHUB_TOKEN`,
+`ANTHROPIC_API_KEY`.
 
 ## Worth verifying, not something this session could check
 

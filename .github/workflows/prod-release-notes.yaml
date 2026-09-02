@@ -175,19 +175,10 @@ jobs:
       - name: Generate release notes (headless Claude Code)
         id: generate
         env:
-          # The secret in this repo's settings is named `ANTHOPIC_API_KEY`
-          # (misspelled at creation — missing the `R`). This mapping is
-          # deliberate, not a typo: it exposes the correctly-spelled env var
-          # Claude Code expects while reading from the misspelled secret
-          # name that actually exists. Do NOT "fix" this by changing the
-          # right-hand side to secrets.ANTHROPIC_API_KEY — that secret does
-          # not exist and the step will silently authenticate with an empty
-          # key. See build/ci/README-prod-release-notes.md for the full
-          # story, including the same bug in manual-promotion.yaml.
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHOPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
           if [[ -z "$ANTHROPIC_API_KEY" ]]; then
-            echo "ERROR: ANTHROPIC_API_KEY is empty. This step reads it from the secret named 'ANTHOPIC_API_KEY' (misspelled, missing the R — see build/ci/README-prod-release-notes.md). Set that secret under repo Settings -> Secrets and variables -> Actions." >&2
+            echo "ERROR: ANTHROPIC_API_KEY is empty. Set that secret under repo Settings -> Secrets and variables -> Actions." >&2
             exit 1
           fi
 
