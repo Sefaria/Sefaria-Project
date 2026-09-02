@@ -11,6 +11,7 @@ sys._called_from_test = True
 from copy import deepcopy
 from pprint import pprint
 import json
+import re
 
 from django.test import TestCase
 from django.test.client import Client
@@ -1074,6 +1075,63 @@ class PostTextExistingVersionDirectionTest(SefariaTestCase):
         versions = VersionSet({"title": self.TITLE, "versionTitle": real_vtitle})
         self.assertEqual(1, len(versions))
         self.assertEqual("rtl", versions[0].direction)
+
+
+class EditTextSectionsPaddingTest(SefariaTestCase):
+    """
+    Regression coverage for edit_text's `text['sections']`/`text['toSections']`. These need to be
+    at least section-level long (sectionNames length - 1) for editor.js's postUrl-building loop --
+    only possible to fall short at depth >= 3, when the ref reaching this view specifies fewer
+    than that many levels (e.g. only the top level of a three-level book). Using the raw,
+    unpadded ref for these left them one element too short in that case; oref.padded_ref()
+    (without the further context_ref() zoom used for the actual content fetch) pads up to the
+    required length while still leaving an already-deeper ref's full precision untouched.
+    """
+
+    TITLE = "Edit Text Sections Padding Test Book"
+
+    def setUp(self):
+        self.make_test_user()
+        try:
+            Index().load({"title": self.TITLE}).delete()
+        except Exception:
+            pass
+        index = {
+            "title": self.TITLE,
+            "titleVariants": [self.TITLE],
+            "heTitle": "ספר בדיקת עריכה",
+            "sectionNames": ["Part", "Chapter", "Line"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/" + self.TITLE.replace(" ", "_"), {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code, response.content)
+        chunk = Ref(f"{self.TITLE} 1:1:1").text(direction="ltr", lang="en", vtitle="Sections Padding Test Version")
+        chunk.text = "hello"
+        chunk.save()
+
+    def tearDown(self):
+        VersionSet({"title": self.TITLE}).delete()
+        IndexSet({"title": self.TITLE}).delete()
+
+    def _get_sections_and_to_sections(self, ref):
+        response = c.get("/edit/" + ref.replace(" ", "_"))
+        self.assertEqual(200, response.status_code, response.content)
+        html = response.content.decode("utf-8")
+        sections = json.loads(re.search(r'"sections":\s*(\[[^\]]*\])', html).group(1))
+        to_sections = json.loads(re.search(r'"toSections":\s*(\[[^\]]*\])', html).group(1))
+        return sections, to_sections
+
+    def test_ref_coarser_than_section_level_gets_padded(self):
+        # Only "Part" specified -- coarser than section-level (Part+Chapter) for this depth-3 book.
+        sections, to_sections = self._get_sections_and_to_sections(f"{self.TITLE} 1")
+        self.assertEqual([1, 1], sections)
+        self.assertEqual([1, 1], to_sections)
+
+    def test_segment_level_ref_keeps_full_precision(self):
+        # Already at segment level -- must stay exactly as given, not get zoomed/truncated.
+        sections, to_sections = self._get_sections_and_to_sections(f"{self.TITLE} 1:1:1")
+        self.assertEqual([1, 1, 1], sections)
+        self.assertEqual([1, 1, 1], to_sections)
 
 
 class PostCategory(SefariaTestCase):

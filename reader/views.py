@@ -1546,13 +1546,18 @@ def edit_text(request, ref=None, language_family_name=None, version=None):
                 # Zoom out to section level, matching TextFamily's old default (pad then context_ref
                 # level=1) -- editor.js expects a full section's worth of array data, with sections/
                 # toSections telling it which entry within that array is actually selected.
-                fetch_oref = oref.padded_ref().context_ref()
+                padded_oref = oref.padded_ref()
+                fetch_oref = padded_oref.context_ref()
                 adapter = TextRequestAdapter(fetch_oref, versions_params, fill_in_missing_segments=False)
                 text = adapter.get_versions_for_query()
-                # Position within that array must come from the original, unzoomed ref -- the
-                # zoomed adapter has no way to know it, since it was never given that ref at all.
-                text['sections'] = oref.sections[:]
-                text['toSections'] = oref.toSections[:]
+                # Position within that array must come from the padded (not further zoomed) ref,
+                # not the raw original one: padded_ref() leaves an already segment-level ref
+                # untouched (preserving the precise position context_ref()'s truncation would
+                # lose), but still pads a coarser-than-section-level ref (only possible at depth
+                # >= 3) up to the section-level length editor.js's postUrl-building loop requires
+                # -- the original ref alone could be shorter than that.
+                text['sections'] = padded_oref.sections[:]
+                text['toSections'] = padded_oref.toSections[:]
                 text['sectionRef'] = oref.section_ref().normal()
                 text['heSectionRef'] = oref.section_ref().he_normal()
 
