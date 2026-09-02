@@ -1861,17 +1861,20 @@ def texts_api(request, tref):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             t = json.loads(j)
-            # This legacy endpoint's `language` is always literally "en"/"he" -- callers that
-            # predate the `direction` field (e.g. scripts/pull_text_from_server.py) can still be
-            # served correctly by deriving it, rather than failing on a missing new version.
-            direction = t.get("direction") or get_direction_from_legacy_lang(t["language"])
+            # Only derive direction from the legacy en/he bucket when `language` really is that
+            # bucket (callers that predate the `direction` field, e.g.
+            # scripts/pull_text_from_server.py). A caller sending a real ISO code (e.g. our own
+            # editor, or any future caller) must send direction itself -- guessing one from a
+            # real language via the binary en/he mapping would silently be wrong for any
+            # non-Hebrew rtl language.
+            direction = t.get("direction") or (get_direction_from_legacy_lang(t["language"]) if t["language"] in ("en", "he") else None)
             chunk = tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], direction=direction, method="API", skip_links=skip_links, count_after=count_after)
             return jsonResponse({"status": "ok", "versionTitle": chunk.vtitle})
         else:
             @csrf_protect
             def protected_post(request):
                 t = json.loads(j)
-                direction = t.get("direction") or get_direction_from_legacy_lang(t["language"])
+                direction = t.get("direction") or (get_direction_from_legacy_lang(t["language"]) if t["language"] in ("en", "he") else None)
                 chunk = tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t.get("versionSource", None), direction=direction, skip_links=skip_links, count_after=count_after)
                 return jsonResponse({"status": "ok", "versionTitle": chunk.vtitle})
             return protected_post(request)

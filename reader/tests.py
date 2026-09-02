@@ -1007,6 +1007,75 @@ class PostTextTest(SefariaTestCase):
         assert LegacyTextChunk(subref, "en", "test_default_node").text == "Ber Flam"
 
 
+class PostTextExistingVersionDirectionTest(SefariaTestCase):
+    """
+    Regression coverage for the legacy texts_api POST's direction fallback. It only derives a
+    direction from `language` via the legacy en/he mapping when `language` really is that binary
+    bucket -- a caller (e.g. the editor, when editing an existing version) sending a real ISO
+    code like "yi" with no `direction` must not have one silently guessed (get_direction_from_
+    legacy_lang only special-cases "he", so "yi" would wrongly resolve to "ltr" and never match
+    the real rtl version, creating a duplicate instead of updating it).
+    """
+
+    TITLE = "Post Text Direction Test Book"
+
+    def setUp(self):
+        self.make_test_user()
+        try:
+            Index().load({"title": self.TITLE}).delete()
+        except Exception:
+            pass
+        index = {
+            "title": self.TITLE,
+            "titleVariants": [self.TITLE],
+            "heTitle": "ספר בדיקת כיוון",
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+        }
+        response = c.post("/api/index/" + self.TITLE.replace(" ", "_"), {'json': json.dumps(index)})
+        self.assertEqual(200, response.status_code, response.content)
+
+    def tearDown(self):
+        VersionSet({"title": self.TITLE}).delete()
+        IndexSet({"title": self.TITLE}).delete()
+
+    def test_editing_existing_rtl_non_hebrew_version_does_not_duplicate(self):
+        vtitle = "Direction Fallback Test Version"
+        book_url = self.TITLE.replace(" ", "_")
+
+        # Create a new Yiddish (rtl) version -- direction is required to create a new version.
+        response = c.post("/api/texts/" + book_url + ".1.1", {'json': json.dumps({
+            "text": "First segment",
+            "versionTitle": vtitle,
+            "versionSource": "http://foobar.com",
+            "language": "yi",
+            "direction": "rtl",
+        })})
+        self.assertEqual(200, response.status_code, response.content)
+        # versionTitle may have been auto-suffixed (e.g. "... [yi]") by Version._normalize() --
+        # a well-behaved caller reads it back from the response rather than assuming the
+        # literal string it sent.
+        real_vtitle = json.loads(response.content)["versionTitle"]
+
+        versions = VersionSet({"title": self.TITLE, "versionTitle": real_vtitle})
+        self.assertEqual(1, len(versions))
+        self.assertEqual("rtl", versions[0].direction)
+
+        # Edit a different segment of the same version, omitting `direction` entirely.
+        response = c.post("/api/texts/" + book_url + ".1.2", {'json': json.dumps({
+            "text": "Second segment",
+            "versionTitle": real_vtitle,
+            "versionSource": "http://foobar.com",
+            "language": "yi",
+        })})
+        self.assertEqual(200, response.status_code, response.content)
+
+        # Must still be exactly one version, still rtl -- not a second, wrongly-ltr duplicate.
+        versions = VersionSet({"title": self.TITLE, "versionTitle": real_vtitle})
+        self.assertEqual(1, len(versions))
+        self.assertEqual("rtl", versions[0].direction)
+
+
 class PostCategory(SefariaTestCase):
     """
     Tests posting text content to Texts API.

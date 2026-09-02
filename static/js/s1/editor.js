@@ -4167,11 +4167,9 @@ function readNewVersion() {
 		// SCT is English by definition -- don't trust the language picker, which isn't reset
 		// when switching to this radio and may carry over a stale selection.
 		version["language"] = "en";
-		if (!sjs.editing.direction) {
-			// Only send direction when creating a brand-new version -- an existing version
-			// keeps whatever direction it was already saved with.
-			version["direction"] = "ltr";
-		}
+		// sjs.editing.direction, when set, is the real direction read back from the existing
+		// version being edited -- always correct to resend, unlike guessing from the language.
+		version["direction"] = sjs.editing.direction || "ltr";
 	} else {
 		version["versionTitle"] = $("#versionTitle").val();
 		var source = $("#versionSource").val();
@@ -4182,9 +4180,9 @@ function readNewVersion() {
 		}
 		version["versionSource"] = source;
 		version["language"] = $("#language").val();
-		if (!sjs.editing.direction) {
-			version["direction"] = Sefaria.ISOMap[version["language"]]?.defaultDirection || "ltr";
-		}
+		// sjs.editing.direction, when set, is the real direction read back from the existing
+		// version being edited -- always correct to resend, unlike guessing from the language.
+		version["direction"] = sjs.editing.direction || Sefaria.ISOMap[version["language"]]?.defaultDirection || "ltr";
 	}
 
 	var text = $("#newVersion").val();
