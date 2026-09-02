@@ -3,6 +3,7 @@ import pytest
 
 from sefaria.model import *
 from sefaria.model.legacy_text import LegacyTextChunk, TextFamily
+from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 import re
 from sefaria.model.text import AbstractTextRecord
@@ -251,6 +252,69 @@ def test_sources_scoped_and_no_fake_attribution_for_depth_gt_2():
     finally:
         va.delete()
         vb.delete()
+        idx.delete()
+
+
+def test_normalize_does_not_suffix_existing_unsuffixed_version_on_unrelated_resave():
+    """
+    Version._normalize() runs on every save, not just on creation. Its "[xx]" auto-suffix for
+    non-en/he versions (see test_save_reuses_existing_version_despite_stale_unsuffixed_vtitle)
+    must only apply on creation -- versionTitle is part of the primary key, so suffixing it on an
+    unrelated resave of a pre-existing, already-unsuffixed version (e.g. real data saved before
+    this suffix logic existed, or any legacy version reached via a metadata-only edit) would be a
+    silent rename, firing the full pkey-change cascade for a field nobody touched.
+    """
+    title = "Normalize Resave Suffix Test Book"
+    try:
+        Index().load({"title": title}).delete()
+    except Exception:
+        pass
+
+    idx = Index({
+        "title": title,
+        "categories": ["Liturgy"],
+        "schema": {
+            "titles": [
+                {"lang": "en", "text": title, "primary": True},
+                {"lang": "he", "text": "ספר בדיקת שמירה חוזרת", "primary": True},
+            ],
+            "nodeType": "JaggedArrayNode",
+            "depth": 2,
+            "sectionNames": ["Chapter", "Verse"],
+            "addressTypes": ["Integer", "Integer"],
+            "key": title,
+        },
+    })
+    idx.save()
+
+    try:
+        # Simulate pre-existing legacy data: a non-en/he version saved without the "[xx]" suffix
+        # (bypassing Version.save()/_normalize() entirely, as real such data would predate it).
+        db.texts.insert_one({
+            "title": title,
+            "versionTitle": "Bare Title",
+            "versionSource": "http://example.com",
+            "language": "he",
+            "actualLanguage": "yi",
+            "languageFamilyName": "yiddish",
+            "isSource": False,
+            "isPrimary": True,
+            "direction": "rtl",
+            "chapter": [["First segment"]],
+        })
+
+        version = Version().load({"title": title, "versionTitle": "Bare Title"})
+        assert version is not None
+        version.versionSource = "http://example.org"  # unrelated metadata-only change
+        version.save()
+
+        assert version.versionTitle == "Bare Title"
+        reloaded = Version().load({"title": title, "versionTitle": "Bare Title"})
+        assert reloaded is not None
+        assert reloaded.versionSource == "http://example.org"
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
         idx.delete()
 
 

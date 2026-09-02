@@ -1431,11 +1431,15 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                 actualLanguage = languageCode.group(1)
         self.actualLanguage = actualLanguage or self.language
 
-        # Keep versionTitle unique within the legacy en/he `language` bucket for any non-en/he
+        # Keep versionTitle unique within the legacy en/he `language` bucket for any new non-en/he
         # version -- some legacy systems (db.history, some client version-grouping code) still
-        # key on that pair. No-op if the bracket's already there (e.g. just parsed above), or if
-        # versionTitle isn't set yet (missing-required-field errors belong to _validate(), next).
-        if self.actualLanguage not in ("en", "he") and versionTitle and not re.search(rf"\[{re.escape(self.actualLanguage)}\]$", versionTitle):
+        # key on that pair. Only on creation (self.is_new()): _normalize() runs on every save, not
+        # just creation, and versionTitle is part of the primary key, so suffixing it on an
+        # unrelated resave of an existing, already-unsuffixed version would be a silent rename,
+        # firing the full pkey-change cascade (reindex, history rewrite) for a metadata-only edit.
+        # No-op if the bracket's already there (e.g. just parsed above), or if versionTitle isn't
+        # set yet (missing-required-field errors belong to _validate(), next).
+        if self.is_new() and self.actualLanguage not in ("en", "he") and versionTitle and not re.search(rf"\[{re.escape(self.actualLanguage)}\]$", versionTitle):
             self.versionTitle = f"{versionTitle} [{self.actualLanguage}]"
 
         if not hasattr(self, 'languageFamilyName'):
