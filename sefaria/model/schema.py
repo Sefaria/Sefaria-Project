@@ -1818,6 +1818,7 @@ class DictionaryNode(VirtualNode):
 
     def _init_defaults(self):
         super(DictionaryNode, self)._init_defaults()
+        self._all_children_cache = None
 
     def validate(self):
         super(DictionaryNode, self).validate()
@@ -1835,9 +1836,17 @@ class DictionaryNode(VirtualNode):
             return None
 
     def all_children(self):
-        lexicon_entry_set = LexiconEntrySet({"parent_lexicon": self.lexiconName})
-        for lexicon_entry in lexicon_entry_set:
-            yield self.entry_class(self, lexicon_entry=lexicon_entry)
+        # A parent SchemaNode's own all_children() (see TreeNode.all_children / SchemaNode.all_children)
+        # expands every virtual descendant - including this one - each time it needs to place ANY
+        # sibling segment in tree order, not just entries of this dictionary. Left uncached, a large
+        # lexicon gets rebuilt (and every entry re-fetched from Mongo - entry_class construction issues
+        # its own lookup even when given a LexiconEntry) once per indexed segment instead of once per
+        # DictionaryNode instance, which is what turns a big dictionary reindex into an O(N) Mongo
+        # operation repeated N times.
+        if self._all_children_cache is None:
+            lexicon_entry_set = LexiconEntrySet({"parent_lexicon": self.lexiconName})
+            self._all_children_cache = [self.entry_class(self, lexicon_entry=lexicon_entry) for lexicon_entry in lexicon_entry_set]
+        return iter(self._all_children_cache)
 
     def serialize(self, **kwargs):
         """
