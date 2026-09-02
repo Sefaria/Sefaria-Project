@@ -73,7 +73,7 @@ from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
-    CHATBOT_API_BASE_URL, CELERY_ENABLED, APP_VERSION
+    CHATBOT_API_BASE_URL, CELERY_ENABLED, DISABLE_AUTOCOMPLETER, APP_VERSION
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -366,6 +366,7 @@ def base_props(request):
         "_debug_mode": request.GET.get("debug_mode", None),
         "appVersion": APP_VERSION,
     })
+    
     chatbot_version = request.session.get("chatbot_version")
     chatbot_version = chatbot_version if is_int(chatbot_version) else None
 
@@ -529,7 +530,7 @@ def old_versions_redirect(request, tref, lang, version):
 
 def get_connections_mode(filter):
     # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open", "Version Open", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide")
+    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open", "Version Open", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide", "LinkerAdmin")
     if filter[0] in sidebarModes:
         return filter[0], True
     elif filter[0].endswith(" ConnectionsList"):
@@ -643,6 +644,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
         "menuOpen": "search",
         "searchQuery": search_params["query"],
         "searchType": search_params["tab"],
+        "tab": search_params["search_tab"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -1073,6 +1075,9 @@ def get_search_params(get_dict, i=None):
     return {
         "query": urllib.parse.unquote(get_dict.get(get_param("q", i), "")),
         "tab": urllib.parse.unquote(get_dict.get(get_param("tab", i), "text")),
+        # `tab` is the text/sheet search type; `search_tab` is the active results tab
+        # on the search page (sources/books/authors/topics).
+        "search_tab": urllib.parse.unquote(get_dict.get(get_param("search_tab", i), "")) or None,
         "field": field,
         "sort": sort,
         "filters": filters,
@@ -1113,6 +1118,7 @@ def search(request):
     props={
         "initialMenu": "search",
         "initialQuery": search_params["query"],
+        "initialSearchTab": search_params["search_tab"],
         "initialSearchFilters": search_params["filters"],
         "initialSearchFilterAggTypes": search_params["filterAggTypes"],
         "initialSearchField": search_params["field"],
@@ -1391,6 +1397,15 @@ def notifications(request):
 def modtools(request):
     title = _("Moderator Tools")
     return menu_page(request, page="modtools", title=title)
+
+
+@ensure_csrf_cookie
+@staff_member_required
+@sanitize_get_params
+def linker_editor(request):
+    title = _("Linker Editor")
+    props = {"initialLinkerEditorBook": request.GET.get("book")}
+    return menu_page(request, props, page="linkerEditor", title=title)
 
 
 def canonical_url(request):
@@ -1981,17 +1996,6 @@ def parashat_hashavua_api(request):
     #p.update(get_text(p["ref"]))
     p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
-
-def find_holiday_in_hebcal_results(response):
-    for hebcal_holiday in json.loads(response.text)['items']:
-        if hebcal_holiday['category'] != 'holiday':
-            continue
-        for result in get_name_completions(hebcal_holiday['hebrew'], 10, False)['completion_objects']:
-            if result['type'] == 'Topic':
-                topic = Topic.init(result['key'])
-                if topic:
-                    return topic.contents()
-    return None
 
 @catch_error_as_json
 def table_of_contents_api(request):
@@ -3584,6 +3588,19 @@ def generate_topic_prompts_api(request, slug: str):
     return jsonResponse({"error": "This API only accepts POST requests."})
 
 
+def rebuild_full_auto_completer_across_servers():
+    """
+    Rebuilds the full auto completer locally and, when this server cannot serve
+    completion traffic itself (DISABLE_AUTOCOMPLETER), publishes the rebuild over
+    the multiserver channel so the name service picks it up.  When this server
+    holds its own completers the publish is skipped, preserving the historical
+    local-only rebuild semantics rather than triggering a fleet-wide build.
+    """
+    library.build_full_auto_completer()
+    if MULTISERVER_ENABLED and DISABLE_AUTOCOMPLETER:
+        server_coordinator.publish_event("library", "build_full_auto_completer")
+
+
 @staff_member_required
 def add_new_topic_api(request):
     if request.method == "POST":
@@ -3610,7 +3627,7 @@ def add_new_topic_api(request):
             t.image = data["image"]
 
         t.save()
-        library.build_full_auto_completer()
+        rebuild_full_auto_completer_across_servers()
         library.get_topic_toc(rebuild=True)
         library.get_topic_toc_json(rebuild=True)
         library.get_topic_toc_category_mapping(rebuild=True)
@@ -3627,7 +3644,7 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
-            library.build_full_auto_completer()
+            rebuild_full_auto_completer_across_servers()
             library.get_topic_toc(rebuild=True)
             library.get_topic_toc_json(rebuild=True)
             library.get_topic_toc_category_mapping(rebuild=True)
@@ -3662,7 +3679,7 @@ def topics_api(request, topic, v2=False):
         author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
         topic = update_topic(topic, **topic_data)
         if author_status_changed:
-            library.build_full_auto_completer()
+            rebuild_full_auto_completer_across_servers()
 
         def protected_index_post(request):
             return jsonResponse(topic.contents())
@@ -4877,6 +4894,91 @@ def search_wrapper_api(request, es6_compat=False):
             return jsonResponse(response_json, callback=request.GET.get("callback", None))
         return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
+
+@csrf_exempt
+def entity_search_api(request):
+    """
+    Entity search endpoint powering the Topics / Authors / Books tabs.
+
+    GET /api/entity-search?q=<query>&type=<topic|author|book>&sort=<relevance|alpha|year_asc|year_desc>
+                          &filter=<category path>&start=<offset>&size=<page size>
+
+    `start` (default 0) and `size` (default 20, capped at 100) page the results; the tab
+    fetches successive pages on scroll. `total` always reports the full match count.
+    Paging stops at Elasticsearch's result window (ENTITY_MAX_RESULT_WINDOW): a request
+    straddling the edge keeps its `start` and comes back short rather than being shifted
+    backward, so successive pages never overlap.
+
+    `topic` and `author` search the `topic` Elasticsearch index (filtered by subtype);
+    `book` searches the `book` index, or — when the query resolves to an author — returns
+    that author's works aggregated by category. Returns {"hits": [...], "total": N}.
+
+    A `book` response carries one extra key, `categoryCounts`: {category path -> number of
+    matching books}, e.g. {"Tanakh": 11, "Tanakh/Torah": 5}. These counts are computed by an
+    aggregation over the *entire* match set, so they are unaffected by `filter` and by how
+    many pages the client has fetched — that is what lets the Books sidebar show true
+    numbers and stay complete once a category is selected.
+
+    `sort` defaults to "relevance". "alpha" is A-Z on the English title; "year_asc"/
+    "year_desc" sort books by composition date and authors by birth year (topics have no
+    year, so they only accept relevance/alpha).
+
+    `filter` (books only, repeatable) restricts hits to books at or under a category path
+    (e.g. filter=Tanakh/Torah); multiple filters OR together. A filter always returns the
+    flat list — category rows collapse many books, so they carry no per-row path.
+    Explicit sorts keep the aggregation (rows are sorted in code by their own compDate).
+    """
+    from sefaria.helper.search import entity_search, ENTITY_TYPES, ENTITY_SORTS, ENTITY_MAX_RESULT_WINDOW
+
+    query = request.GET.get("q", "").strip()
+    entity_type = request.GET.get("type", "topic").strip()
+    sort = request.GET.get("sort", "relevance").strip()
+    category_paths = [f.strip() for f in request.GET.getlist("filter") if f.strip()]
+    callback = request.GET.get("callback", None)
+
+    if not query:
+        return jsonResponse({"error": "Missing required query parameter 'q'."}, callback=callback)
+    if entity_type not in ENTITY_TYPES:
+        return jsonResponse(
+            {"error": f"Invalid 'type' parameter '{entity_type}'. Must be one of {list(ENTITY_TYPES)}."},
+            callback=callback,
+        )
+    if sort not in ENTITY_SORTS[entity_type]:
+        return jsonResponse(
+            {"error": f"Invalid 'sort' parameter '{sort}' for type '{entity_type}'. Must be one of {list(ENTITY_SORTS[entity_type])}."},
+            callback=callback,
+        )
+    if category_paths and entity_type != "book":
+        return jsonResponse(
+            {"error": f"The 'filter' parameter is only supported for type 'book', not '{entity_type}'."},
+            callback=callback,
+        )
+
+    try:
+        size = max(1, min(int(request.GET.get("size", 20)), 100))
+    except (TypeError, ValueError):
+        size = 20
+
+    try:
+        start = max(0, min(int(request.GET.get("start", 0)), ENTITY_MAX_RESULT_WINDOW - 1))
+    except (TypeError, ValueError):
+        start = 0
+
+    # The result window is a ceiling on start+size, and the only way to honour it without
+    # corrupting the response is to shorten the final page. Clamping `start` backward to
+    # ENTITY_MAX_RESULT_WINDOW - size instead would silently re-serve rows the caller
+    # already has: start=9950&size=100 would become start=9900 and repeat 50 earlier hits
+    # as if they were new. `start` is capped at WINDOW - 1 above, so this stays >= 1.
+    size = min(size, ENTITY_MAX_RESULT_WINDOW - start)
+
+    try:
+        results = entity_search(query, entity_type, start=start, size=size, sort=sort, category_paths=category_paths)
+    except Exception as e:
+        logger.error(f"entity_search_api failed - q: {query}, type: {entity_type}, sort: {sort}, filter: {category_paths}, error: {e}", exc_info=True)
+        return jsonResponse({"error": "Error running entity search."}, callback=callback)
+
+    return jsonResponse(results, callback=callback)
+
 
 @csrf_exempt
 def search_path_filter(request, book_title):

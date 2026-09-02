@@ -137,10 +137,10 @@ describe("matchesCountryTarget", function () {
       expect(matchesCountryTarget({ countryMode: "exclude", countries }, new Set(["de"]))).toBe(true);
     });
 
-    it("matches when any one of several candidates escapes the list", function () {
-      // e.g. a Gibraltar visitor: candidate set is {gi, gb}, only gb is excluded -- gi still escapes
+    it("does not match when any one of several candidates is in the list", function () {
+      // e.g. a Gibraltar visitor: {gi, gb} is plausibly British, so exclude [GB] withholds it.
       const countries = [{ name: "United Kingdom", code: "GB" }];
-      expect(matchesCountryTarget({ countryMode: "exclude", countries }, new Set(["gi", "gb"]))).toBe(true);
+      expect(matchesCountryTarget({ countryMode: "exclude", countries }, new Set(["gi", "gb"]))).toBe(false);
     });
 
     it("does not match when every candidate is in the list", function () {

@@ -179,6 +179,9 @@ SEARCH_URL = "http://localhost:9200"
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'
+SEARCH_INDEX_NAME_TOPIC = 'topic'  # topics and authors (authors are a subtype of topic) - powers /api/entity-search
+SEARCH_INDEX_NAME_BOOK = 'book'  # Index (book) records - powers /api/entity-search
+SEARCH_INDEX_NAME_CATEGORY = 'category'  # searchable TOC categories - powers category results on the Books tab
 
 # Node Server
 USE_NODE = False
@@ -222,9 +225,15 @@ USE_VARNISH_ESI = False
 # Prevent modification of Index records
 DISABLE_INDEX_SAVE = False
 
-# Turns off search autocomplete suggestions, which are reinitialized on every server reload
-# which can be annoying for local development.
+# When True this process neither builds nor serves autocompleters: startup skips the
+# expensive build (which otherwise reruns on every server reload) and the completion
+# endpoints fail fast.  Completion traffic belongs to the name service when deployed.
 DISABLE_AUTOCOMPLETER = False
+
+# When True this process is a standalone name (autocomplete) service: every host serves
+# only the completion endpoints in sefaria/urls_name.py.  Deployed alongside web servers
+# that run with DISABLE_AUTOCOMPLETER = True.
+NAME_SERVICE = False
 
 # Turns on loading of machine learning models to run linker
 ENABLE_LINKER = False
@@ -355,6 +364,8 @@ if "pytest" in sys.modules:
 WEBHOOK_USERNAME = os.getenv("WEBHOOK_USERNAME")
 WEBHOOK_PASSWORD = os.getenv("WEBHOOK_PASSWORD")
 
+POWERED_BY_FORMSTACK_HMAC_SECRET = os.getenv("POWERED_BY_FORMSTACK_HMAC_SECRET")
+
 SESSION_SAVE_EVERY_REQUEST = True
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer' # this is the default anyway right now, but make sure
 
@@ -376,3 +387,4 @@ CHATBOT_USE_LOCAL_SCRIPT = True
 
 GEMINI_API_KEY = ""  # API key for Gemini embedding model (used by semantic search)
 SEMANTIC_SEARCH_API_TOKEN = ""  # Bearer token for the /api/knn-search endpoint
+SEMANTIC_SEARCH_TABLE_VERSION = "legacy"  # "legacy" uses library_chunks; "new" uses chunk_metadata + vectors

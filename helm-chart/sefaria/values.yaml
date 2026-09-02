@@ -148,6 +148,34 @@ web:
       # Reference to an existing secret in the cluster
       ref:
 
+nameService:
+  # Standalone autocomplete ("name") service.  Runs the web image with
+  # NAME_SERVICE=true, serving only /api/name and the other completion
+  # endpoints (see sefaria/urls_name.py); varnish routes those paths to it
+  # and web and task pods then run with DISABLE_AUTOCOMPLETER=true.
+  # Rebuild signals reach the name service over the multiserver Redis
+  # channel -- do not disable MULTISERVER_ENABLED while this is on, or
+  # topic edits and /admin/reset/ac will no longer refresh completions.
+  enabled: false
+  # key-pair values to load into name pod environment.  Takes precedence over global localsettings
+  localsettings:
+  replicaCount: 1
+  resources:
+    # Scale with gunicornThreadCount and replicaCount.  Do NOT scale with
+    # gunicornWorkerCount: each multiserver rebuild event is delivered to a
+    # single process per pod, so sibling workers would serve stale
+    # completions forever.  Threads share the rebuilt completers and keep
+    # health probes answering while a rebuild runs.
+    gunicornWorkerCount: 1
+    gunicornThreadCount: 4
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "200m"
+      limits:
+        memory: "4Gi"
+        cpu: "1000m"
+
 redis:
   containerImage:
     # Full path of the image registry inclusive of the image name
@@ -195,14 +223,21 @@ varnish:
   resources:
     requests:
       # must be in megabibytes, because we pass it into the malloc definition
-      memory: "25Mi"
+      memory: "700Mi"
       cpu: "10m"
     limits:
-      memory: "300Mi"
+      memory: "1024Mi"
       cpu: "100m"
   tuning:
-    # malloc should be ~75% of the memory request.
-    malloc: "250m"
+    # malloc should be ~75% of the memory request. Previously 250m against a 300Mi limit
+    # (~50-64Mi headroom) is the likely reason varnish's own pod kept OOM-restarting under
+    # load, flushing its in-memory cache each time. 512m against 1024Mi limit keeps the
+    # ~75% convention and leaves ~500Mi of real headroom for connection state, thread
+    # stacks, and the ban list. NOTE: prod and preprod already override these three keys
+    # (envs/prod/helmrelease.yaml, envs/preprod/helmrelease.yaml -> 17Gi/18Gi/14440m) and
+    # are unaffected by this default; this change only takes effect for staging/dev/
+    # cauldrons/local, which inherit the chart default.
+    malloc: "512m"
     nuke_limit: "400"
     # Threading
     # http://book.varnish-software.com/4.0/chapters/Tuning.html#details-of-threading-parameters
@@ -432,6 +467,32 @@ cronJobs:
     enabled: true
   dailyEmailNotifications:
     enabled: false
+  embedLibraryToPgvector:
+    enabled: false
+    schedule: "0 5 * * 0"  # weekly, Sunday 5am - full chunk+embed pass (patot + Gemini)
+    threads: 10
+    resources:
+      requests:
+        memory: "4Gi"
+        cpu: "2"
+      limits:
+        memory: "16Gi"
+        cpu: "4"
+    activeDeadlineSeconds: 21600  # 6h safety cap so a stuck run doesn't block next week's trigger
+    ttlSecondsAfterFinished: 432000  # 5 days, matches the one-off Job
+  embedLibraryToPgvectorMetadata:
+    enabled: false
+    schedule: "0 5 1 * *"  # monthly, 1st at 5am - metadata-only refresh, no chunking/embedding
+    threads: 10
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "1"
+      limits:
+        memory: "4Gi"
+        cpu: "2"
+    activeDeadlineSeconds: 21600
+    ttlSecondsAfterFinished: 432000
   indexFromQueue:
     enabled: false
   metrics:
@@ -465,6 +526,9 @@ localSettings:
   APSCHEDULER_NAME: "apscheduler-{{ .Values.deployEnv }}"
   SEARCH_INDEX_NAME_TEXT: "text"  # Override per cauldron for isolated indexes (e.g. "prod-sync_text")
   SEARCH_INDEX_NAME_SHEET: "sheet"  # Override per cauldron for isolated indexes (e.g. "prod-sync_sheet")
+  SEARCH_INDEX_NAME_TOPIC: "topic"  # Override per cauldron for isolated indexes (e.g. "prod-sync_topic")
+  SEARCH_INDEX_NAME_BOOK: "book"  # Override per cauldron for isolated indexes (e.g. "prod-sync_book")
+  SEARCH_INDEX_NAME_CATEGORY: "category"  # Override per cauldron for isolated indexes (e.g. "prod-sync_category")
   USE_CLOUDFLARE: false
   FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.cauldron.sefaria.org" in cauldrons
   OFFLINE: "False"
@@ -550,6 +614,12 @@ keda:
     apiVersion: apps/v1
     kind: Deployment
     maxReplicas: 1
+  nameService:
+    # Scales with the same traffic trigger as web/redis so the name pod sleeps
+    # and wakes with the rest of the stack (it needs redis at boot).  After an
+    # idle scale-to-zero, the first wake rebuilds the autocompleters, so
+    # completions return ~minutes after the rest of the site.
+    enabled: true
   # Splash page served by Envoy Gateway during cold-start (scale-from-zero).
   # Requires Envoy Gateway v1.1+ (BackendTrafficPolicy responseOverride).
   splash:

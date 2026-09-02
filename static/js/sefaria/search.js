@@ -52,7 +52,9 @@ class Search {
                     this.cache(cacheKey, data);
                     resolve(data)
                 },
-                error: reject
+                // A Promise can only reject with one value, so bundle all three of jQuery's
+                // error arguments rather than silently dropping two of them.
+                error: (jqXHR, textStatus, errorThrown) => reject({jqXHR, textStatus, errorThrown})
             }));
         }).then(x => {
             if (args.type === "sheet") {
@@ -132,7 +134,7 @@ class Search {
                             this.cache(cacheKey, data);
                             resolve(data);
                         },
-                        error: reject
+                        error: (jqXHR, textStatus, errorThrown) => reject({jqXHR, textStatus, errorThrown})
                     }));
                 }
 
@@ -207,7 +209,7 @@ class Search {
                             this.cache(cacheKey, data);
                             resolve(data)
                         },
-                        error: reject
+                        error: (jqXHR, textStatus, errorThrown) => reject({jqXHR, textStatus, errorThrown})
                     }));
                 }
                 else {
@@ -324,7 +326,7 @@ class Search {
          sort_type: See SearchState.metadataByType for possible sort types
          exact: if query is exact
          success: callback on success
-         error: callback on error
+         error: callback on failure; receives one object, {jqXHR, textStatus, errorThrown}
          */
         if (!args.query) {
             return;
@@ -346,6 +348,14 @@ class Search {
         this.queryAborter = queryAborter;
 
         const updateAggreagations = (args.aggregationsToUpdate.length > 0);
+
+        /* args.error is wired up as the *second* argument to .then() below rather than as a
+         * trailing .catch(), on purpose: that way it only sees failures of the query itself.
+         * An exception thrown by args.success() -- a render bug, say -- would otherwise be
+         * reported as a search failure, which it isn't. The trailing .catch() logs those.
+         * args.error is optional: .then(fn, undefined) just lets the rejection fall through
+         * to that same .catch(). */
+
         if (this.queryDictaFlag) {
             Promise.all([
                 this.sefariaQuery(args, updateAggreagations, queryAborter),
@@ -368,7 +378,7 @@ class Search {
                         args.success(cacheResult);
                     }
                 }
-            }).catch(x => console.log(x));
+            }, args.error).catch(x => console.log(x));
         }
         else {
             this.sefariaQuery(args, updateAggreagations, queryAborter)
@@ -380,7 +390,8 @@ class Search {
                         this._cacheQuery(args, this.sefariaQueryQueue);
                         args.success(this.sefariaQueryQueue);
                     }
-                })
+                }, args.error)
+                .catch(x => console.log(x));
         }
 
         return queryAborter;
@@ -571,6 +582,42 @@ class Search {
         );
       });
       return { availableFilters, registry: {}, orphans: [] };
+    }
+    entitySearch(query, type, start = 0, {sort = "relevance", categoryPaths = []} = {}) {
+        // Fetches one page of entity results (from `start`), so the tab panels can lazily
+        // load more on scroll. `total` reports the full match count so the count badges and
+        // "more to load" checks stay correct.
+        //
+        // `sort` and `categoryPaths` are applied by the API over the entire match set, not
+        // by the caller over the page it happens to hold — sorting the downloaded rows would
+        // only ever reorder those rows, so result #500 could never rise to the top on "A-Z".
+        // `categoryPaths` (Books tab only; the API rejects it for other types) are category
+        // paths like "Tanakh" or "Tanakh/Torah", OR'd together by the server.
+        //
+        // Both belong in the cache key alongside `start`: page 1 sorted by year and page 1
+        // sorted by relevance are different responses at the same offset, and caching them
+        // under one key would serve whichever arrived first for both.
+        //
+        // Sorted so the key depends on which categories are selected, not on the order they
+        // were clicked in.
+        const paths = [...categoryPaths].sort();
+        const cacheKey = `entitySearch|${type}|${query}|${start}|${sort}|${paths.join("|")}`;
+        let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&start=${start}&sort=${encodeURIComponent(sort)}`;
+        paths.forEach(path => { url += `&filter=${encodeURIComponent(path)}`; });
+        // Sefaria._cachedApiPromise is the shared helper for cached GETs: it returns the
+        // stored value on a hit, and on a miss fetches, caches under `key`, and de-duplicates
+        // concurrent requests for the same url. Promise.resolve() re-wraps its result because
+        // on the miss path it hands back a jQuery 2 Deferred, which has no .catch() for callers.
+        return Promise.resolve(Sefaria._cachedApiPromise({url, key: cacheKey, store: this._cache}))
+            .then(data => {
+                if (data.error) {
+                    // The helper caches whatever the API returned, so evict the error body —
+                    // otherwise one failed page would stick for the rest of the session.
+                    delete this._cache[cacheKey];
+                    throw new Error(data.error);
+                }
+                return data;
+            });
     }
 }
 
