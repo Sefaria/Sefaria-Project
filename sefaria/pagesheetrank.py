@@ -99,59 +99,81 @@ def step(w, p, s=0.85):
 def _build_pagerank_arrays(g):
     """Flatten the graph into numpy arrays for a vectorized power iteration.
 
+    `g` is a sequence of (ref1, {ref2: weight, ref3: weight}) pairs, e.g.
+
+        [("Genesis 1:1", {"Rashi on Genesis 1:1": 2.0,
+                          "Ramban on Genesis 1:1": 1.0}),
+         ("Exodus 2:3",  {"Rashi on Exodus 2:3": 1.0})]
+
+    Edges are directional and the direction is INBOUND: the inner refs link
+    *into* the outer ref. Above, Rashi on Genesis 1:1 cites Genesis 1:1 with
+    weight 2.0 and so confers rank on it -- not the other way round. That is
+    how init_pagerank_graph() builds the graph (`graph[older_ref][newer_ref]`,
+    the later commentary voting for the earlier text it quotes) and what the
+    legacy web object called the same structure: `in_links`. Consequences:
+    out-degree accrues on the INNER ref, and an outer ref whose dict is empty
+    has no outgoing edges and is dangling.
+
     Reproduces create_web()'s semantics exactly, including two quirks that are
     load-bearing for search ranking and must NOT be "fixed" here:
 
       * an edge is counted int(round(weight)) times, so weight 0.4 disappears
         and 0.6 counts once -- edges rounding to 0 are simply not stored;
       * number_out_links accumulates the RAW float weight, so the transition
-        matrix is round(w(k->j)) / out_total(k): rounded numerator over an
-        unrounded denominator.
+        matrix is round(w(ref2->ref1)) / out_total(ref2): rounded numerator
+        over an unrounded denominator.
 
-    Returns (n, rows, cols, data, out, dangling, keys) where rows/cols/data are
-    parallel COO arrays for the sparse matrix and dangling is a bool mask.
+    Returns (n, rows, cols, rounded_weights, out, dangling, keys) where
+    rows/cols/rounded_weights are parallel COO arrays for the sparse matrix
+    and dangling is a bool mask.
     """
     keys = [x[0] for x in g]
     n = len(keys)
-    node2index = {r: i for i, r in enumerate(keys)}
+    node2index = {ref: i for i, ref in enumerate(keys)}
 
     out = numpy.zeros(n, dtype=numpy.float64)
     dangling = numpy.ones(n, dtype=bool)
-    rows, cols, data = [], [], []
+    rows, cols, rounded_weights = [], [], []
 
-    for r, links in g:
-        r_ind = node2index[r]
-        for r_temp, count in links.items():
-            j = node2index[r_temp]
-            # legacy pops j from dangling_pages the first time it emits an edge,
-            # before adding the weight -- even when the weight rounds away
-            dangling[j] = False
-            out[j] += count
-            repeats = int(round(count))
-            if repeats:
-                rows.append(r_ind)
-                cols.append(j)
-                data.append(repeats)
+    for ref1, links in g:
+        ref1_index = node2index[ref1]
+        for ref2, weight in links.items():
+            ref2_index = node2index[ref2]
+            # ref2 now has an outgoing edge, so it is no longer dangling. That
+            # holds even when the weight rounds to 0 and no edge is stored
+            # below, so this must stay OUTSIDE the guard -- moving it in changes
+            # the ranks (see test_dangling_detection_matches_legacy).
+            dangling[ref2_index] = False
+            out[ref2_index] += weight
+            rounded_weight = int(round(weight))
+            if rounded_weight > 0:
+                rows.append(ref1_index)
+                cols.append(ref2_index)
+                rounded_weights.append(rounded_weight)
 
     return (
         n,
         numpy.asarray(rows, dtype=numpy.int64),
         numpy.asarray(cols, dtype=numpy.int64),
-        numpy.asarray(data, dtype=numpy.float64),
+        numpy.asarray(rounded_weights, dtype=numpy.float64),
         out,
         dangling,
         keys,
     )
 
 
-def _pagerank_step(n, rows, cols, data, out, dangling_idx, p, s):
+def _pagerank_step(n, rows, cols, rounded_weights, out, dangling_idx, p, s):
     """One power-iteration step, equivalent to step() but vectorized.
 
-    v[j] = s * sum_k round(w(k->j)) * p[k]/out[k] + s*dangling_mass/n + (1-s)/n
+    Each stored edge runs ref2 -> ref1 (see _build_pagerank_arrays), so rank
+    flows from cols to rows:
+
+    v[ref1] = s * sum_ref2 round(w(ref2->ref1)) * p[ref2]/out[ref2]
+              + s*dangling_mass/n + (1-s)/n
     """
     inner_product = float(p[dangling_idx].sum()) if dangling_idx.size else 0.0
-    if data.size:
-        contrib = data * (p[cols] / out[cols])
+    if rounded_weights.size:
+        contrib = rounded_weights * (p[cols] / out[cols])
         v = numpy.bincount(rows, weights=contrib, minlength=n)
     else:
         v = numpy.zeros(n, dtype=numpy.float64)
@@ -162,7 +184,7 @@ def _pagerank_step(n, rows, cols, data, out, dangling_idx, p, s):
 
 def pagerank(g, s=0.85, tolerance=0.00001, maxiter=100, verbose=False, normalize=False):
     g = list(g)
-    n, rows, cols, data, out, dangling, keys = _build_pagerank_arrays(g)
+    n, rows, cols, rounded_weights, out, dangling, keys = _build_pagerank_arrays(g)
     if n == 0:
         return {}
     dangling_idx = numpy.flatnonzero(dangling)
@@ -173,7 +195,7 @@ def pagerank(g, s=0.85, tolerance=0.00001, maxiter=100, verbose=False, normalize
     while change > tolerance and iteration < maxiter:
         if verbose:
             print("Iteration: %s" % iteration)
-        new_p = _pagerank_step(n, rows, cols, data, out, dangling_idx, p, s)
+        new_p = _pagerank_step(n, rows, cols, rounded_weights, out, dangling_idx, p, s)
         change = numpy.sum(numpy.abs(p - new_p))
         if verbose:
             print("Change in l1 norm: %s" % change)

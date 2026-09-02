@@ -89,12 +89,12 @@ def test_ranking_order_preserved():
 
 def test_quantization_is_preserved():
     """A 0.4 edge must vanish and a 0.6 edge must count once -- same as legacy."""
-    n, rows, cols, data, out, dangling, keys = psr._build_pagerank_arrays(
+    n, rows, cols, rounded_weights, out, dangling, keys = psr._build_pagerank_arrays(
         _graph({"a": {"b": 0.4, "c": 0.6}, "b": {}, "c": {}})
     )
-    # in g[r] = {r_temp: count}, r_temp links INTO r -- so out-degree accrues
+    # in g[ref1] = {ref2: weight}, ref2 links INTO ref1 -- so out-degree accrues
     # on the source (b, c), and only the 0.6 edge survives int(round()).
-    edges = {(int(r), int(c)): int(d) for r, c, d in zip(rows, cols, data)}
+    edges = {(int(r), int(c)): int(w) for r, c, w in zip(rows, cols, rounded_weights)}
     assert all(v > 0 for v in edges.values()), "zero-weight edges must not be stored"
     assert len(edges) == 1, "the 0.4 edge must vanish entirely"
     assert list(edges.values()) == [1], "the 0.6 edge must count exactly once"
@@ -109,7 +109,7 @@ def test_quantization_is_preserved():
 def test_dangling_detection_matches_legacy():
     g = _graph(DANGLING)
     w = psr.create_web(g)
-    n, rows, cols, data, out, dangling, keys = psr._build_pagerank_arrays(g)
+    n, rows, cols, rounded_weights, out, dangling, keys = psr._build_pagerank_arrays(g)
     legacy_dangling = set(w.dangling_pages.keys())
     new_dangling = {i for i in range(n) if dangling[i]}
     assert new_dangling == legacy_dangling
