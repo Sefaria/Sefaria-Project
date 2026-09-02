@@ -922,10 +922,13 @@ class ResearchPanelPOC extends Component {
     this.state = {
       activeTab: "segment",
       selectedRawCategory: null,
+      selectedRawQuestion: null,
       data: null,
       isLoading: false,
       loadError: null,
     };
+    this.setRawCategory = this.setRawCategory.bind(this);
+    this.setRawQuestion = this.setRawQuestion.bind(this);
   }
   componentDidMount() {
     this._isMounted = true;
@@ -958,10 +961,13 @@ class ResearchPanelPOC extends Component {
     });
   }
   setTab(activeTab) {
-    this.setState({ activeTab, selectedRawCategory: null });
+    this.setState({ activeTab, selectedRawCategory: null, selectedRawQuestion: null });
   }
   setRawCategory(selectedRawCategory) {
-    this.setState({ selectedRawCategory });
+    this.setState({ selectedRawCategory, selectedRawQuestion: null });
+  }
+  setRawQuestion(selectedRawQuestion) {
+    this.setState({ selectedRawQuestion });
   }
   renderTabButton(tabKey) {
     const active = this.state.activeTab === tabKey;
@@ -995,7 +1001,9 @@ class ResearchPanelPOC extends Component {
       <ResearchCategoryGroups
         groups={data.rawCategories || []}
         selectedCategory={this.state.selectedRawCategory}
+        selectedQuestion={this.state.selectedRawQuestion}
         setSelectedCategory={this.setRawCategory}
+        setSelectedQuestion={this.setRawQuestion}
         onTextClick={this.props.onTextClick}
       /> :
       <ResearchClusterGroups groups={tabData.clusters || []} itemCount={tabData.count} onTextClick={this.props.onTextClick} />;
@@ -1052,7 +1060,7 @@ const ResearchCategoryIconColors = {
   Other: "#777",
 };
 
-const ResearchCategoryGroups = ({ groups, selectedCategory, setSelectedCategory, onTextClick }) => {
+const ResearchCategoryGroups = ({ groups, selectedCategory, selectedQuestion, setSelectedCategory, setSelectedQuestion, onTextClick }) => {
   const renderableGroups = groups.filter(group => (group.items && group.items.length) || (group.questionGroups && group.questionGroups.length));
   if (!renderableGroups.length) {
     return <div className="researchPanelEmpty sans-serif">No fixture categories for this ref.</div>;
@@ -1066,7 +1074,12 @@ const ResearchCategoryGroups = ({ groups, selectedCategory, setSelectedCategory,
           Categories
         </button>
         {selectedGroup.questionGroups && selectedGroup.questionGroups.length ?
-          <ResearchCategoryWithQuestions group={selectedGroup} onTextClick={onTextClick} /> :
+          <ResearchCategoryWithQuestions
+            group={selectedGroup}
+            selectedQuestion={selectedQuestion}
+            setSelectedQuestion={setSelectedQuestion}
+            onTextClick={onTextClick}
+          /> :
           <ResearchGroup title={selectedGroup.name} count={selectedGroup.count} items={selectedGroup.items} onTextClick={onTextClick} />}
       </div>
     );
@@ -1082,7 +1095,9 @@ const ResearchCategoryGroups = ({ groups, selectedCategory, setSelectedCategory,
 ResearchCategoryGroups.propTypes = {
   groups: PropTypes.array.isRequired,
   selectedCategory: PropTypes.string,
+  selectedQuestion: PropTypes.string,
   setSelectedCategory: PropTypes.func.isRequired,
+  setSelectedQuestion: PropTypes.func.isRequired,
   onTextClick: PropTypes.func,
 };
 
@@ -1103,25 +1118,52 @@ ResearchCategoryButton.propTypes = {
   onClick: PropTypes.func.isRequired,
 };
 
-const ResearchCategoryWithQuestions = ({ group, onTextClick }) => (
-  <section className="researchPanelGroup">
-    <h3 className="researchPanelGroupTitle sans-serif">{group.name} <span>{group.count}</span></h3>
-    <div className="researchPanelNestedGroups">
-      {group.questionGroups.map(questionGroup => (
-        <ResearchQuestionGroup group={questionGroup} onTextClick={onTextClick} key={questionGroup.name} />
-      ))}
-    </div>
-  </section>
-);
+const ResearchCategoryWithQuestions = ({ group, selectedQuestion, setSelectedQuestion, onTextClick }) => {
+  const selectedQuestionGroup = group.questionGroups.find(questionGroup => questionGroup.name === selectedQuestion);
+  if (selectedQuestionGroup) {
+    return (
+      <section className="researchPanelGroup">
+        <button className="researchPanelCategoryBack sans-serif" onClick={() => setSelectedQuestion(null)}>
+          <i className="fa fa-chevron-left" />
+          Questions
+        </button>
+        <ResearchQuestionGroup group={selectedQuestionGroup} onTextClick={onTextClick} />
+      </section>
+    );
+  }
+  return (
+    <section className="researchPanelGroup">
+      <h3 className="researchPanelGroupTitle sans-serif">{group.name} <span>{group.count}</span></h3>
+      <div className="researchPanelQuestionIndex">
+        {group.questionGroups.map(questionGroup => (
+          <ResearchQuestionButton group={questionGroup} onClick={() => setSelectedQuestion(questionGroup.name)} key={questionGroup.name} />
+        ))}
+      </div>
+    </section>
+  );
+};
 ResearchCategoryWithQuestions.propTypes = {
   group: PropTypes.object.isRequired,
+  selectedQuestion: PropTypes.string,
+  setSelectedQuestion: PropTypes.func.isRequired,
   onTextClick: PropTypes.func,
+};
+
+const ResearchQuestionButton = ({ group, onClick }) => (
+  <button className="researchPanelQuestionButton" onClick={onClick}>
+    <span className="researchPanelQuestionButtonText">{group.name}</span>
+    <span className="researchPanelQuestionButtonCount">({group.count})</span>
+  </button>
+);
+ResearchQuestionButton.propTypes = {
+  group: PropTypes.object.isRequired,
+  onClick: PropTypes.func.isRequired,
 };
 
 const ResearchQuestionGroup = ({ group, onTextClick }) => (
   <div className="researchPanelQuestionGroup">
     <h4 className="researchPanelQuestionGroupTitle sans-serif">{group.name} <span>{group.count}</span></h4>
-    {group.items.slice(0, 8).map(item => <ResearchResourceItem item={item} onTextClick={onTextClick} key={`${item.resourceType}-${item.id}`} />)}
+    {group.items.slice(0, 8).map(item => <ResearchResourceItem item={item} onTextClick={onTextClick} showQuestion={false} key={`${item.resourceType}-${item.id}`} />)}
   </div>
 );
 ResearchQuestionGroup.propTypes = {
@@ -1142,7 +1184,7 @@ ResearchGroup.propTypes = {
   onTextClick: PropTypes.func,
 };
 
-const ResearchResourceItem = ({ item, onTextClick }) => {
+const ResearchResourceItem = ({ item, onTextClick, showQuestion=true }) => {
   const qualityClass = `quality-${item.quality || "unknown"}`;
   const href = item.url || (item.sourceRef ? `/${Sefaria.normRef(item.sourceRef)}` : null);
   const openSource = e => {
@@ -1161,7 +1203,7 @@ const ResearchResourceItem = ({ item, onTextClick }) => {
         <a className="researchResourceTitle" href={href} target={item.url ? "_blank" : undefined} rel={item.url ? "noopener noreferrer" : undefined} onClick={openSource}>{item.title}</a> :
         <div className="researchResourceTitle">{item.title}</div>}
       {item.subtitle ? <div className="researchResourceSubtitle sans-serif">{item.subtitle}</div> : null}
-      {item.questionsAnswered?.length ?
+      {showQuestion && item.questionsAnswered?.length ?
         <div className="researchResourceQuestion sans-serif">{item.questionsAnswered[0]}</div> : null}
       {item.snippet ? <div className="researchResourceSnippet">{item.snippet}</div> : null}
       <div className="researchResourceFooter sans-serif">
@@ -1175,6 +1217,7 @@ const ResearchResourceItem = ({ item, onTextClick }) => {
 ResearchResourceItem.propTypes = {
   item: PropTypes.object.isRequired,
   onTextClick: PropTypes.func,
+  showQuestion: PropTypes.bool,
 };
 
 class WebPagesList extends Component {

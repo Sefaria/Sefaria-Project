@@ -8655,6 +8655,40 @@ But not to use a display block directive that might break continuous mode for ot
   flex-direction: column;
   gap: 14px;
 }
+.researchPanelQuestionIndex {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.researchPanelQuestionButton {
+  align-items: baseline;
+  background: #fff;
+  border: 1px solid #E5E5E5;
+  border-radius: 4px;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  line-height: 1.35;
+  padding: 9px 10px;
+  text-align: start;
+  width: 100%;
+}
+.researchPanelQuestionButton:hover,
+.researchPanelQuestionButton:focus {
+  background: #f7f7f7;
+  outline: 0;
+}
+.researchPanelQuestionButtonText {
+  font-size: 13px;
+  font-weight: 700;
+}
+.researchPanelQuestionButtonCount {
+  color: var(--medium-grey);
+  flex: 0 0 auto;
+  font-size: 12px;
+}
 .researchPanelQuestionGroup {
   border-inline-start: 3px solid #E5E5E5;
   padding-inline-start: 12px;

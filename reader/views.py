@@ -2737,7 +2737,7 @@ def related_by_passage_poc_api(request, tref):
             "count": len(passage_items),
             "clusters": _research_panel_group_by(passage_items, "clusterLabel"),
         },
-        "rawCategories": _research_panel_raw_categories(passage_items or segment_items),
+        "rawCategories": _research_panel_raw_categories(segment_items),
         "summary": {
             "fixturePath": str(RESEARCH_PANEL_POC_FIXTURE_PATH),
             "fixtureItemCount": len(fixture.get("items", [])),
