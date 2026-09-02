@@ -19,7 +19,7 @@ name: "Prod Release Notes"
 #   3. The sefaria-release-notes skill (.claude/skills/sefaria-release-notes/)
 #      reads that JSON and writes prose only — it does not talk to GitHub or
 #      Shortcut.
-#   4. build/ci/post_to_slack.py posts both generated files to Slack.
+#   4. scripts/post_to_slack.py posts both generated files to Slack.
 #
 # Manual setup this depends on: see build/ci/README-prod-release-notes.md
 
@@ -203,7 +203,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
         run: |
-          python3 build/ci/post_to_slack.py --file release-notes-output/release-notes-tech-slack.txt
+          python3 scripts/post_to_slack.py --file release-notes-output/release-notes-tech-slack.txt
 
       - name: Post product notes to Slack
         if: steps.generate.outputs.generated == 'true'
@@ -223,7 +223,7 @@ jobs:
             echo "release-announcement-product-slack.txt missing or empty — the LLM wrote the tech notes but not the product notes. Skipping the product post (tech notes already posted)."
             exit 0
           fi
-          python3 build/ci/post_to_slack.py --file release-notes-output/release-announcement-product-slack.txt
+          python3 scripts/post_to_slack.py --file release-notes-output/release-announcement-product-slack.txt
 
       - name: Notify Slack on failure
         if: failure()

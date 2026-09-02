@@ -20,7 +20,7 @@ Argo post-promotion analysis (prod)
                                       logged and Slack-alerted but never
                                       blocks the two steps below.
   -> sefaria-release-notes skill   — reads the JSON, writes prose only
-  -> build/ci/post_to_slack.py     — posts both files to Slack
+  -> scripts/post_to_slack.py      — posts both files to Slack
 ```
 
 Only the release-notes generation step is an LLM. Deciding which stories a given deploy closed
@@ -47,7 +47,7 @@ itself, and it does not mutate any story.
   chart version, for disambiguating a chart-only rollout), runs
   `shipped_stories.py` and `mark_stories_deployed.py`, runs the
   `sefaria-release-notes` skill headlessly, and posts both output files to
-  Slack via `build/ci/post_to_slack.py`.
+  Slack via `scripts/post_to_slack.py`.
 - `.claude/skills/sefaria-release-notes/` — the skill, shipped in-repo,
   now takes a shipped-stories JSON file as its only input and only writes
   prose. It no longer talks to GitHub or Shortcut.
