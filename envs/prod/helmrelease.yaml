@@ -68,6 +68,14 @@ spec:
     nameService:
       enabled: true
       replicaCount: 2
+      resources:
+        resources:
+          requests:
+            memory: "3.4Gi"
+            cpu: "200m"
+          limits:
+            memory: "4Gi"
+            cpu: "1000m"
     redis:
       containerImage:
         imageRegistry: redis
@@ -122,11 +130,11 @@ spec:
       resources:
         requests:
           memory: "3Gi"
-          cpu: "500m"
+          cpu: "200m"
         limits:
           memory: "6Gi"
           cpu: "1000m"
-      replicaCount: 12
+      replicaCount: 5
       redis:
         url: ""
         port: "26379"
