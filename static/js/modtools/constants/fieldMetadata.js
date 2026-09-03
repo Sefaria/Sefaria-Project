@@ -181,6 +181,7 @@ export const VERSION_FIELD_METADATA = {
       { value: "CC-BY-SA", label: "CC-BY-SA" },
       { value: "CC-BY-NC", label: "CC-BY-NC" },
       { value: "CC-BY-NC-SA", label: "CC-BY-NC-SA" },
+      { value: "CC-BY-NC-ND", label: "CC-BY-NC-ND" },
       { value: "CC0", label: "CC0 (Public Domain)" },
       { value: "Public Domain", label: "Public Domain" },
       { value: "Copyright", label: "Copyright" }

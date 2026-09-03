@@ -379,6 +379,14 @@ monitor:
       cpu: "100m"
 
 secrets:
+  ghDispatch:
+    # A reference to a secret containing GH_DISPATCH_TOKEN, the GitHub PAT
+    # rollout-complete.yaml's prod-only notify-github container uses to fire
+    # a repository_dispatch. Deliberately its OWN secret, separate from
+    # localSettings below: localSettings is mounted via envFrom into every
+    # web/task/monitor/cronjob pod, and a write-scoped GitHub token doesn't
+    # belong in that blast radius. See build/ci/README-prod-release-notes.md.
+    ref: gh-dispatch-token
   localSettings:
     # A reference to a secret containing the local settings
     ref: local-settings-secret
@@ -503,8 +511,27 @@ cronJobs:
     enabled: false
   reindexElasticSearch:
     enabled: false
+    # Set true only for prod/preprod cronjobs that intentionally swap the shared "text"/"sheet"
+    # aliases. Cauldrons must never set this; use localSettings.ISOLATE_SEARCH_INDEXES instead.
+    allowSharedIndex: false
     SEARCH_HOST_ES6: ""
     SEARCH_HOST_ES8: ""
+    shardCount: 8
+    # Bounds a single shard's runtime. A wedged shard has been observed spinning at ~500m CPU
+    # with zero bulk writes and zero log output for hours with no crash - without a deadline
+    # it runs forever, and (with concurrencyPolicy: Forbid) blocks every future scheduled
+    # reindex too. Shards that completed took ~2-3h, so 6h is generous but bounded.
+    shardActiveDeadlineSeconds: 21600
+    orchestratorResources:
+      requests:
+        memory: "4Gi"
+      limits:
+        memory: "6Gi"
+    shardResources:
+      requests:
+        memory: "8Gi"
+      limits:
+        memory: "12Gi"
   topicsIndexing:
     enabled: false
   trello:
@@ -529,6 +556,11 @@ localSettings:
   SEARCH_INDEX_NAME_TOPIC: "topic"  # Override per cauldron for isolated indexes (e.g. "prod-sync_topic")
   SEARCH_INDEX_NAME_BOOK: "book"  # Override per cauldron for isolated indexes (e.g. "prod-sync_book")
   SEARCH_INDEX_NAME_CATEGORY: "category"  # Override per cauldron for isolated indexes (e.g. "prod-sync_category")
+  # When true, appends "-<deployEnv>" to the ES index base names above so a cauldron gets its own
+  # isolated indexes/alias on the shared dev Elasticsearch cluster instead of colliding with
+  # prod's "text"/"sheet" names. Cauldrons opt in via build/ci/sandbox-values.yaml.
+  # prod/preprod MUST leave this false.
+  ISOLATE_SEARCH_INDEXES: false
   USE_CLOUDFLARE: false
   FRONT_END_URL: "http://www.sefaria.org"  # Use "http://${ENV_NAME}.cauldron.sefaria.org" in cauldrons
   OFFLINE: "False"
