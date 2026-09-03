@@ -2641,7 +2641,10 @@ def related_api(request, tref):
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
-RESEARCH_PANEL_POC_FIXTURE_PATH = Path(settings.BASE_DIR) / "data" / "research_panel_poc" / "nitzavim_candidates_1000.tagged.claude.json"
+RESEARCH_PANEL_POC_FIXTURE_PATHS = [
+    Path(settings.BASE_DIR) / "data" / "research_panel_poc" / "nitzavim_candidates_1000.tagged.claude.json",
+    Path(settings.BASE_DIR) / "data" / "research_panel_poc" / "rosh_hashanah_16b_sugya_candidates_1000.tagged.claude.json",
+]
 RESEARCH_PANEL_POC_PURPOSE_ORDER = [
     "Explanatory",
     "Linguistic",
@@ -2655,9 +2658,42 @@ RESEARCH_PANEL_POC_PURPOSE_ORDER = [
 
 
 @lru_cache(maxsize=1)
-def _research_panel_poc_fixture():
-    with RESEARCH_PANEL_POC_FIXTURE_PATH.open(encoding="utf-8") as fin:
-        return json.load(fin)
+def _research_panel_poc_fixtures():
+    fixtures = []
+    for path in RESEARCH_PANEL_POC_FIXTURE_PATHS:
+        if not path.exists():
+            continue
+        with path.open(encoding="utf-8") as fin:
+            fixture = json.load(fin)
+        fixture["_fixturePath"] = str(path)
+        fixtures.append(fixture)
+    return fixtures
+
+
+def preload_research_panel_poc_fixtures():
+    return len(_research_panel_poc_fixtures())
+
+
+def _research_panel_poc_fixture_for_ref(oref, passage=None):
+    requested_refs = [oref.normal()]
+    if passage:
+        requested_refs.append(passage["ref"])
+    for fixture in _research_panel_poc_fixtures():
+        fixture_ref = fixture.get("ref")
+        if fixture_ref and any(_refs_overlap(fixture_ref, requested_ref) for requested_ref in requested_refs):
+            return fixture
+        fixture_passage_refs = {
+            item.get("passage", {}).get("ref")
+            for item in fixture.get("items", [])
+            if item.get("passage", {}).get("ref")
+        }
+        if any(_refs_overlap(fixture_passage_ref, requested_ref) for fixture_passage_ref in fixture_passage_refs for requested_ref in requested_refs):
+            return fixture
+    return None
+
+
+def _research_panel_poc_title(raw_title):
+    return (raw_title or "Research Panel").replace("_", " ").title()
 
 
 def _refs_overlap(ref_a, ref_b):
@@ -2741,13 +2777,12 @@ def _research_panel_raw_categories(items):
 @catch_error_as_json
 def related_by_passage_poc_api(request, tref):
     """
-    Fixture-backed research panel POC data for Nitzavim.
+    Fixture-backed research panel POC data.
 
     This endpoint deliberately reads local JSON instead of production models so
     the UI can be exercised without adding new collections for the POC.
     """
     oref = Ref(tref)
-    fixture = _research_panel_poc_fixture()
     passage = None
     try:
         passage_record = Passage.containing_segment(oref)
@@ -2759,6 +2794,23 @@ def related_by_passage_poc_api(request, tref):
             }
     except Exception:
         passage = None
+    fixture = _research_panel_poc_fixture_for_ref(oref, passage)
+    if not fixture:
+        response = {
+            "ref": oref.normal(),
+            "parsha": "Research Panel",
+            "passage": passage,
+            "segment": {"items": [], "count": 0, "clusters": []},
+            "passageResults": {"items": [], "count": 0, "clusters": []},
+            "rawCategories": [],
+            "summary": {
+                "fixturePath": None,
+                "fixtureItemCount": 0,
+                "segmentItemCount": 0,
+                "passageItemCount": 0,
+            },
+        }
+        return jsonResponse(response, callback=request.GET.get("callback", None))
 
     segment_items = []
     passage_items = []
@@ -2778,7 +2830,7 @@ def related_by_passage_poc_api(request, tref):
 
     response = {
         "ref": oref.normal(),
-        "parsha": fixture.get("parsha"),
+        "parsha": _research_panel_poc_title(fixture.get("parsha")),
         "passage": passage,
         "segment": {
             "items": segment_items,
@@ -2792,7 +2844,7 @@ def related_by_passage_poc_api(request, tref):
         },
         "rawCategories": _research_panel_raw_categories(segment_items),
         "summary": {
-            "fixturePath": str(RESEARCH_PANEL_POC_FIXTURE_PATH),
+            "fixturePath": fixture.get("_fixturePath"),
             "fixtureItemCount": len(fixture.get("items", [])),
             "segmentItemCount": len(segment_items),
             "passageItemCount": len(passage_items),

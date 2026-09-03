@@ -55,6 +55,13 @@ def init_library_cache():
         library.build_linker('he')
         library.build_linker('en')
 
+    try:
+        from reader.views import preload_research_panel_poc_fixtures
+        fixture_count = preload_research_panel_poc_fixtures()
+        logger.info("Preloaded research panel POC fixtures", fixture_count=fixture_count)
+    except Exception:
+        logger.exception("Failed to preload research panel POC fixtures")
+
     from sefaria.helper.skip_tracking import signal_and_reset_skip_counts
     signal_and_reset_skip_counts("startup")
 
