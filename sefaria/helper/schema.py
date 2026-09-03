@@ -529,12 +529,12 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
         assert isinstance(v, Version)
 
         if v.get_index() == index:
-            chunk = TextChunk(ja_node.ref(), lang=v.language, vtitle=v.versionTitle)
+            chunk = TextChunk(ja_node.ref(), lang=v.languageFamilyName, vtitle=v.versionTitle, direction=v.direction)
         else:
             library.refresh_index_record_in_cache(v.get_index())
             ref_name = ja_node.ref().normal()
             ref_name = ref_name.replace(index.title, v.get_index().title)
-            chunk = TextChunk(Ref(ref_name), lang=v.language, vtitle=v.versionTitle)
+            chunk = TextChunk(Ref(ref_name), lang=v.languageFamilyName, vtitle=v.versionTitle, direction=v.direction)
         ja = chunk.ja()
         if ja.get_depth() == 0:
             continue
@@ -930,7 +930,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             orig_ref = orig_ref.replace(orig_title, version.title)
             print(orig_ref)
             orRef = Ref(orig_ref)
-            tc = orRef.text(lang=version.language, vtitle=version.versionTitle)
+            tc = orRef.text(direction=version.direction, vtitle=version.versionTitle)
             ref_text = tc.text
 
             #this makes the destination mapping contain both the correct text/commentary title
@@ -947,7 +947,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             for i in range(implied_depth, desired_depth):
                 ref_text = [ref_text]
 
-            new_tc = dRef.text(lang=version.language, vtitle=version.versionTitle)
+            new_tc = dRef.text(direction=version.direction, vtitle=version.versionTitle)
             new_tc.versionSource = version.versionSource
             new_tc.text = ref_text
             new_tc.save()

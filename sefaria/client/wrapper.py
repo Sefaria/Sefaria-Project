@@ -13,6 +13,7 @@ from sefaria.system.exceptions import InputError, NoVersionFoundError
 from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.sheets import get_sheets_for_ref
 from sefaria.utils.hebrew import hebrew_term
+from sefaria.constants.model import get_direction_from_legacy_lang
 
 
 def format_link_object_for_client(link, with_text, ref, pos=None):
@@ -68,9 +69,10 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
             else float('{0}.{1:04d}'.format(*lsections[-2:])) if len(lsections) > 1 else 0
 
     if with_text:
-        text             = TextFamily(linkRef, context=0, commentary=False)
-        com["text"]      = text.text if isinstance(text.text, str) else JaggedTextArray(text.text).flatten_to_array()
-        com["he"]        = text.he if isinstance(text.he, str) else JaggedTextArray(text.he).flatten_to_array()
+        en_text          = linkRef.text(direction="ltr").text
+        he_text          = linkRef.text(direction="rtl").text
+        com["text"]      = en_text if isinstance(en_text, str) else JaggedTextArray(en_text).flatten_to_array()
+        com["he"]        = he_text if isinstance(he_text, str) else JaggedTextArray(he_text).flatten_to_array()
 
     # if the link is commentary, strip redundant info (e.g. "Rashi on Genesis 4:2" -> "Rashi")
     # this is now simpler, and there is explicit data on the index record for it.
@@ -226,32 +228,44 @@ def get_links(tref, with_text=True, with_sheet_links=False, categories=None):
                     top_nref = top_oref.normal()
                     if top_nref not in texts:
                         for lang in ("en", "he"):
-                            top_nref_tc = TextChunk(top_oref, lang)
-                            versionInfoMap = None if not top_nref_tc._versions else {
+                            direction = get_direction_from_legacy_lang(lang)
+                            top_nref_tc = top_oref.text(direction=direction)
+                            if not top_nref_tc._version_candidates and VersionSet({"title": top_oref.index.title}).count() == 0:
+                                raise NoVersionFoundError("No text record found for '{}'".format(top_oref.index.title))
+                            ja = top_nref_tc.ja()
+                            versionInfoMap = None if not top_nref_tc._version_candidates else {
                                 v.versionTitle: {
                                     'license': getattr(v, 'license', ''),
                                     'versionTitleInHebrew': getattr(v, 'versionTitleInHebrew', '')
-                                } for v in top_nref_tc._versions
+                                } for v in top_nref_tc._version_candidates
                             }
-                            if top_nref_tc.is_merged:
+                            real_sources = [s for s in top_nref_tc.sources if s] if top_nref_tc.sources is not None else None
+                            if real_sources is not None and len(set(real_sources)) > 1:
+                                # genuinely merged from multiple distinct versions
                                 version = top_nref_tc.sources
-                                license = [versionInfoMap[vtitle]['license'] for vtitle in version]
-                                versionTitleInHebrew = [versionInfoMap[vtitle]['versionTitleInHebrew'] for vtitle in version]
-                            elif top_nref_tc._versions:
-                                version_obj = top_nref_tc.version()
-                                version = version_obj.versionTitle
+                            elif real_sources:
+                                # one candidate supplied everything, among several candidates
+                                version = real_sources[0]
+                            elif top_nref_tc.sources is None and top_nref_tc._version_candidates:
+                                # no merge was needed: exactly one candidate existed
+                                version = top_nref_tc.version().versionTitle
+                            else:
+                                # no version exists in this language, or none had content here
+                                version = None
+
+                            if isinstance(version, list):
+                                license = [versionInfoMap[vtitle]['license'] if vtitle else None for vtitle in version]
+                                versionTitleInHebrew = [versionInfoMap[vtitle]['versionTitleInHebrew'] if vtitle else None for vtitle in version]
+                            elif version:
                                 license = versionInfoMap[version]['license']
                                 versionTitleInHebrew = versionInfoMap[version]['versionTitleInHebrew']
                             else:
-                                # version doesn't exist in this language
-                                version = None
                                 license = None
                                 versionTitleInHebrew = None
-                            version = top_nref_tc.sources if top_nref_tc.is_merged else (top_nref_tc.version().versionTitle if top_nref_tc._versions else None)
                             if top_nref not in texts:
                                 texts[top_nref] = {}
                             texts[top_nref][lang] = {
-                                'ja': top_nref_tc.ja(),
+                                'ja': ja,
                                 'version': version,
                                 'license': license,
                                 'versionTitleInHebrew': versionTitleInHebrew

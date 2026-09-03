@@ -20,21 +20,21 @@ import bleach
 import json
 import itertools
 from collections import defaultdict, OrderedDict
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 import re2 as re
 from . import abstract as abst
 from django_topics.models.topic import Topic as DjangoTopic
-from .schema import deserialize_tree, AltStructNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, AddressTalmud, Term, TermSet, TitleGroup, AddressType
+from .schema import deserialize_tree, AltStructNode, VirtualNode, DictionaryNode, JaggedArrayNode, TitledTreeNode, DictionaryEntryNode, SheetNode, Term, TermSet, TitleGroup, AddressType
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
 from sefaria.system.cache import in_memory_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
-    NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError, ComplexBookLevelRefError
+    DictionaryEntryNotFoundError, ComplexBookLevelRefError
 from sefaria.helper.skip_tracking import log_skip, bad_record_guard
 skip_bad_record = bad_record_guard(logger)
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
-from sefaria.utils.util import list_depth, truncate_string
+from sefaria.utils.util import list_depth, truncate_string, flatten_jagged_array
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER
 from sefaria.system.multiserver.coordinator import server_coordinator
@@ -1086,6 +1086,9 @@ class AbstractTextRecord(object):
         """ Returns the number of verses in this text """
         return self.ja().verse_count()
 
+    def is_empty(self):
+        return self.ja().is_empty()
+
     def ja(self, remove_html=False): #don't cache locally unless change is handled.  Pontential to cache on JA class level
         base_text = getattr(self, self.text_attr, None)
         if base_text and remove_html:
@@ -1327,7 +1330,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     collection = 'texts'
     content_attr = "chapter"
     track_pkeys = True
-    pkeys = ["title", "versionTitle"]
+    pkeys = ["title", "direction", "versionTitle"]
 
     required_attrs = [
         "language",
@@ -1423,10 +1426,21 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         actualLanguage = getattr(self, "actualLanguage", None)
         versionTitle = getattr(self, "versionTitle", None)
         if not actualLanguage and versionTitle:
-            languageCode = re.search(r"\[([a-z]{2})\]$", versionTitle)
+            languageCode = re.search(r"\[([a-z]{2,3})\]$", versionTitle)
             if languageCode and languageCode.group(1):
                 actualLanguage = languageCode.group(1)
         self.actualLanguage = actualLanguage or self.language
+
+        # Keep versionTitle unique within the legacy en/he `language` bucket for any new non-en/he
+        # version -- some legacy systems (db.history, some client version-grouping code) still
+        # key on that pair. Only on creation (self.is_new()): _normalize() runs on every save, not
+        # just creation, and versionTitle is part of the primary key, so suffixing it on an
+        # unrelated resave of an existing, already-unsuffixed version would be a silent rename,
+        # firing the full pkey-change cascade (reindex, history rewrite) for a metadata-only edit.
+        # No-op if the bracket's already there (e.g. just parsed above), or if versionTitle isn't
+        # set yet (missing-required-field errors belong to _validate(), next).
+        if self.is_new() and self.actualLanguage not in ("en", "he") and versionTitle and not re.search(rf"\[{re.escape(self.actualLanguage)}\]$", versionTitle):
+            self.versionTitle = f"{versionTitle} [{self.actualLanguage}]"
 
         if not hasattr(self, 'languageFamilyName'):
             self.languageFamilyName = constants.LANGUAGE_CODES.get(self.actualLanguage) or constants.LANGUAGE_CODES[self.language]
@@ -1676,10 +1690,7 @@ def merge_texts(text, sources):
             remove_nones = lambda x: x or []
             result, source = merge_texts(list(map(remove_nones, translations)), sources)
             results.append(result)
-            # NOTE - the below flattens the sources list, so downstream code can always expect
-            # a one dimensional list, but in so doing the mapping of source names to segments
-            # is lost for merged texts of depth > 2 (this mapping is not currenly used in general)
-            result_sources += source
+            result_sources.append(source)
         return [results, result_sources]
 
     if depth == 1:
@@ -1690,14 +1701,14 @@ def merge_texts(text, sources):
     text_sources = []
     for verses in merged:
         # Look for the first non empty version (which will be the oldest, or one with highest priority)
-        index, value = 0, ""
+        index, value = None, ""
         for i, version in enumerate(verses):
             if version:
                 index = i
                 value = version
                 break
         text.append(value)
-        text_sources.append(sources[index])
+        text_sources.append(sources[index] if index is not None else "")
 
     if depth == 1:
         # strings were earlier wrapped in lists, now unwrap
@@ -1705,548 +1716,177 @@ def merge_texts(text, sources):
     return [text, text_sources]
 
 
-class TextFamilyDelegator(type):
+class TextChunk(AbstractTextRecord):
     """
-    Metaclass to delegate virtual text records
-    """
-
-    def __call__(cls, *args, **kwargs):
-        if len(args) >= 1:
-            oref = args[0]
-        else:
-            oref = kwargs.get("oref")
-
-        if oref and oref.index_node.is_virtual:
-            return VirtualTextChunk(*args, **kwargs)
-        else:
-            return super(TextFamilyDelegator, cls).__call__(*args, **kwargs)
-
-
-class TextRange:
-    """
-    This class is planned to replace TextChunk, using real language rather than he/en
-    For now it's used by v3 texts api
-    It can be used for getting text, but not yet for saving
+    Selects text by real language (lang/actual_lang/direction) rather than the legacy he/en pair.
+    Used by the v3 texts api for getting text, and by the save flow for creating/updating versions.
+    It's a flexible, low-level version-selecting primitive: it builds the best query it can from
+    whatever identifying info (lang/actual_lang/vtitle/direction) it's given, rather than enforcing
+    what must be specified -- that policy belongs to callers (the v3 api adapter, the save view).
     The versions param is for better performance when the version(s) were already loaded from mongo
     """
+    text_attr = "text"
 
-    def __init__(self, oref, lang, vtitle, merge_versions=False, versions=None):
+    # -- construction --
+
+    def __init__(self, oref, lang=None, vtitle=None, direction=None, actual_lang=None, merge_versions=False, versions=None):
         if isinstance(oref.index_node, JaggedArrayNode) or isinstance(oref.index_node, DictionaryEntryNode): #text cannot be SchemaNode
             self.oref = oref
         elif oref.has_default_child(): #use default child:
             self.oref = oref.default_child_ref()
         else:
             raise ComplexBookLevelRefError(book_ref=oref.normal())
-        self.lang = lang
+        self.actual_lang = actual_lang
+        self.lang = lang or (constants.LANGUAGE_CODES.get(actual_lang) if actual_lang else None)
         self.vtitle = vtitle
+        self.direction = direction
         self.merge_versions = merge_versions
         self._text = None
+        self._original_text = None
         self.sources = None
+        self._ref_depth = len(self.oref.sections)
+        self.full_version = None
+        self.versionSource = None
+        self._saveable = self._compute_saveable()
+        self._condition_query = self._build_condition_query()
         self._set_versions(versions)
+
+    def _compute_saveable(self):
+        """
+        Saving requires an explicit vtitle plus enough to uniquely identify a version: direction
+        and/or lang/actual_lang. Either one alone, together with vtitle, is normally enough to
+        find at most one existing version -- and if it somehow isn't (the accepted, currently
+        zero-occurrence gap where a language family spans two directions), version() raises
+        rather than saving into the wrong one, so this doesn't risk a silent wrong-save. Whichever
+        of direction/lang isn't supplied gets backfilled from the found version in save(). A *new*
+        version additionally requires actual_lang (asserted separately, in save()), since there's
+        nothing to read it from yet.
+        """
+        return (
+            not self.merge_versions
+            and self.vtitle is not None
+            and (self.direction is not None or self.lang is not None)
+            and not self.oref.is_range()
+        )
+
+    def _build_condition_query(self):
+        condition_query = {'title': self.oref.index.title}
+        if self.lang:
+            condition_query['languageFamilyName'] = self.lang
+        if self.direction:
+            condition_query['direction'] = self.direction
+        if self.actual_lang:
+            condition_query['actualLanguage'] = self.actual_lang
+        if not self.merge_versions and self.vtitle:
+            condition_query['versionTitle'] = self.vtitle
+        if not self.lang and not self.direction and not self.vtitle:
+            condition_query['isPrimary'] = True
+        return condition_query
 
     def _set_versions(self, versions):
         if versions:
             self._validate_versions(versions)
-            self._versions = versions
+            self._version_candidates = versions
         else:
-            condition_query = self.oref.condition_query(self.lang) if self.merge_versions else \
-                {'title': self.oref.index.title, 'languageFamilyName': self.lang, 'versionTitle': self.vtitle}
-            self._versions = VersionSet(condition_query, proj=self.oref.part_projection())
+            self._version_candidates = VersionSet(self._condition_query, proj=self.oref.part_projection())
 
     def _validate_versions(self, versions):
         if not self.merge_versions and len(versions) > 1:
             raise InputError("Got many versions instead of one")
         for version in versions:
-            condition = version.title == self.oref.index.title and version.languageFamilyName == self.lang
-            if not self.merge_versions:
-                condition = condition and version.versionTitle == self.vtitle
-            if not condition:
-                raise InputError(f"Given version, {version}, is not matching to title, language or versionTitle")
+            for key, expected in self._condition_query.items():
+                if getattr(version, key, None) != expected:
+                    raise InputError(f"Given version, {version}, does not match {key}={expected}")
 
-    def _trim_text(self, text):
-        """
-        part_projection trims only the upper level of the jagged array. this function trims its lower levels and get rid of 1 element arrays wrappings
-        """
-        #TODO can we get the specific text directly from mongo?
-        text = copy.deepcopy(text)
-        for s, section in enumerate(self.oref.toSections[1:], 1): #start cut from end, for cutting from the start will change the indexes
-            subtext = reduce(lambda x, _: x[-1], range(s), text)
-            del subtext[section:]
-        for s, section in enumerate(self.oref.sections[1:], 1):
-            subtext = reduce(lambda x, _: x[0], range(s), text)
-            del subtext[:section-1]
-        matching_sections = itertools.takewhile(lambda pair: pair[0] == pair[1], zip(self.oref.sections, self.oref.toSections))
-        redundant_depth = len(list(matching_sections))
-        return reduce(lambda x, _: x[0], range(redundant_depth), text)
+    # -- reading text --
 
     @property
     def text(self):
         if self._text is None:
-            if self.merge_versions and len(self._versions) > 1:
-                merged_text, sources = self._versions.merge(self.oref.index_node, prioritized_vtitle=self.vtitle)
-                self._text = self._trim_text(merged_text)
-                if len(sources) > 1:
-                    self.sources = sources
+            if len(self._version_candidates) == 0:
+                computed = self._empty_text()
+            elif self.merge_versions and len(self._version_candidates) > 1:
+                merged_text, sources = self._version_candidates.merge(self.oref.index_node, prioritized_vtitle=self.vtitle)
+                computed = self._trim_text(merged_text)
+                # flat, one entry per leaf position: existing callers index into sources positionally
+                trimmed_sources = self._trim_text(sources)
+                self.sources = flatten_jagged_array(trimmed_sources) if isinstance(trimmed_sources, list) else [trimmed_sources]
             elif self.oref.index_node.is_virtual:
-                self._text = self.oref.index_node.get_text()
+                computed = self.oref.index_node.get_text()
             else:
-                self._text = self._trim_text(self._versions[0].content_node(self.oref.index_node)) #todo if there is no version it will fail
+                computed = self._trim_text(self._version_candidates[0].content_node(self.oref.index_node))
+            self._text = computed
+            if self._original_text is None:
+                self._original_text = computed
         return self._text
 
-
-class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
-    """
-    A chunk of text corresponding to the provided :class:`Ref`, language, and optional version name.
-    If it is possible to get a more complete text by merging multiple versions, a merged result will be returned.
-
-    :param oref: :class:`Ref`
-    :param lang: "he" or "en". "he" means all rtl languages and "en" means all ltr languages
-    :param vtitle: optional. Title of the version desired.
-    :param actual_lang: optional. if vtitle isn't specified, prefer to find a version with ISO language `actual_lang`. As opposed to `lang` which can only be "he" or "en", `actual_lang` can be any valid 2 letter ISO language code.
-    """
-
-    text_attr = "text"
-
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
-        """
-        :param oref:
-        :type oref: Ref
-        :param lang: "he" or "en"
-        :param vtitle:
-        :return:
-        """
-        if isinstance(oref.index_node, JaggedArrayNode):
-            self._oref = oref
-        else:
-            child_ref = oref.default_child_ref()
-            if child_ref == oref:
-                raise InputError("Can not get TextChunk at this level, please provide a more precise reference")
-            self._oref = child_ref
-        self._ref_depth = len(self._oref.sections)
-        self._versions = []
-        self._version_ids = None
-        self._saveable = False  # Can this TextChunk be saved?
-
-        self.lang = lang
-        self.is_merged = False
-        self.sources = []
-        self.text = self._original_text = self.empty_text()
-        self.vtitle = vtitle
-
-        self.full_version = None
-        self.versionSource = None  # handling of source is hacky
-
-        if lang and vtitle and not fallback_on_default_version:
-            self._saveable = True
-            v = Version().load({"title": self._oref.index.title, "language": lang, "versionTitle": vtitle}, self._oref.part_projection())
-            if exclude_copyrighted and v.is_copyrighted():
-                raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), vtitle, lang))
-            if v:
-                self._versions += [v]
-                try:
-                    self.text = self._original_text = self.trim_text(v.content_node(self._oref.index_node))
-                except TypeError:
-                    raise MissingKeyError(f'The version {vtitle} exists but has no key for the node {self._oref.index_node}')
-        elif lang:
-            if actual_lang is not None:
-                self._choose_version_by_lang(oref, lang, exclude_copyrighted, actual_lang, prioritized_vtitle=vtitle)
-            else:
-                self._choose_version_by_lang(oref, lang, exclude_copyrighted, prioritized_vtitle=vtitle)
-        else:
-            raise Exception("TextChunk requires a language.")
-
-    def _choose_version_by_lang(self, oref, lang: str, exclude_copyrighted: bool, actual_lang: str = None, prioritized_vtitle: str = None) -> None:
-        if prioritized_vtitle:
-            actual_lang = None
-        vset = VersionSet(self._oref.condition_query(lang, actual_lang), proj=self._oref.part_projection())
-        if len(vset) == 0:
-            if VersionSet({"title": self._oref.index.title}).count() == 0:
-                raise NoVersionFoundError("No text record found for '{}'".format(self._oref.index.title))
-            return
-        if len(vset) == 1:
-            v = vset[0]
-            if exclude_copyrighted and v.is_copyrighted():
-                raise InputError("Can not provision copyrighted text. {} ({}/{})".format(oref.normal(), v.versionTitle, v.language))
-            self._versions += [v]
-            self.text = self.trim_text(v.content_node(self._oref.index_node))
-            #todo: Should this instance, and the non-merge below, be made saveable?
-        else:  # multiple versions available, merge
-            if exclude_copyrighted:
-                vset.remove(Version.is_copyrighted)
-            merged_text, sources = vset.merge(self._oref.index_node, prioritized_vtitle=prioritized_vtitle)  #todo: For commentaries, this merges the whole chapter.  It may show up as merged, even if our part is not merged.
-            self.text = self.trim_text(merged_text)
-            if len(set(sources)) == 1:
-                for v in vset:
-                    if v.versionTitle == sources[0]:
-                        self._versions += [v]
-                        break
-            else:
-                self.sources = sources
-                self.is_merged = True
-                self._versions = vset.array()
-
-    def __str__(self):
-        args = "{}, {}".format(self._oref, self.lang)
-        if self.vtitle:
-            args += ", {}".format(self.vtitle)
-        return args
-
-    def __repr__(self):  # Wanted to use orig_tref, but repr can not include Unicode
-        args = "{}, {}".format(self._oref, self.lang)
-        if self.vtitle:
-            args += ", {}".format(self.vtitle)
-        return "{}({})".format(self.__class__.__name__, args)
-
-    def version_ids(self):
-        if self._version_ids is None:
-            if self._versions:
-                vtitle_query = [{'versionTitle': v.versionTitle} for v in self._versions]
-                query = {"title": self._oref.index.title, "$or": vtitle_query}
-                self._version_ids = VersionSet(query).distinct("_id")
-            else:
-                self._version_ids = []
-        return self._version_ids
-
-    def is_empty(self):
-        return self.ja().is_empty()
-
-    def ja(self, remove_html=False):
-        if remove_html:
-            return JaggedTextArray(AbstractTextRecord.remove_html(self.text))
-        else:
-            return JaggedTextArray(self.text)
-
-    def save(self, force_save=False):
-        """
-        For editing in place (i.e. self.text[3] = "Some text"), it is necessary to set force_save to True. This is
-        because by editing in place, both the self.text and the self._original_text fields will get changed,
-        causing the save to abort.
-        :param force_save: If set to True, will force a save even if no change was detected in the text.
-        :return:
-        """
-        assert self._saveable, "Tried to save a read-only text: {}".format(self._oref.normal())
-        assert not self._oref.is_range(), "Only non-range references can be saved: {}".format(self._oref.normal())
-        #may support simple ranges in the future.
-        #self._oref.is_range() and self._oref.range_index() == len(self._oref.sections) - 1
-        if not force_save:
-            if self.text == self._original_text:
-                logger.warning("Aborted save of {}. No change in text.".format(self._oref.normal()))
-                return False
-
-        self._validate()
-        self._sanitize()
-        self._trim_ending_whitespace()
-
-        if not self.version():
-            self.full_version = Version(
-                {
-                    "chapter": self._oref.index.nodes.create_skeleton(),
-                    "versionTitle": self.vtitle,
-                    "versionSource": self.versionSource,
-                    "language": self.lang,
-                    "title": self._oref.index.title
-                }
-            )
-        else:
-            self.full_version = Version().load({"title": self._oref.index.title, "language": self.lang, "versionTitle": self.vtitle})
-            assert self.full_version, "Failed to load Version record for {}, {}".format(self._oref.normal(), self.vtitle)
-            if self.versionSource:
-                self.full_version.versionSource = self.versionSource  # hack
-
-        content = self.full_version.sub_content(self._oref.index_node.version_address())
-        self._pad(content)
-        self.full_version.sub_content(self._oref.index_node.version_address(), [i - 1 for i in self._oref.sections], self.text)
-
-        self._check_available_text_pre_save()
-
-        self.full_version.save()
-        self._oref.recalibrate_next_prev_refs(len(self.text))
-        self._update_link_language_availability()
-
-        return self
-
-    def _pad(self, content):
-        """
-        Pads the passed content to the dimension of self._oref.
-        Acts on the input variable 'content' in place
-        Does not yet handle ranges
-        :param content:
-        :return:
-        """
-
-        for pos, val in enumerate(self._oref.sections):
-            # at pos == 0, parent_content == content
-            # at pos == 1, parent_content == chapter
-            # at pos == 2, parent_content == verse
-            # etc
-            parent_content = reduce(lambda a, i: a[i - 1], self._oref.sections[:pos], content)
-
-            # Pad out existing content to size of ref
-            if len(parent_content) < val:
-                for _ in range(len(parent_content), val):
-                    parent_content.append("" if pos == self._oref.index_node.depth - 1 else [])
-
-            # check for strings where arrays expected, except for last pass
-            if pos < self._ref_depth - 2 and isinstance(parent_content[val - 1], str):
-                parent_content[val - 1] = [parent_content[val - 1]]
-
-    def _check_available_text_pre_save(self):
-        """
-        Stores the availability of this text in before a save is made,
-        so that we can know if segments have been added or deleted overall.
-        """
-        self._available_text_pre_save = {}
-        langs_checked = [self.lang] # swtich to ["en", "he"] when global availability checks are needed
-        for lang in langs_checked:
-            try:
-                self._available_text_pre_save[lang] = self._oref.text(lang=lang).text
-            except NoVersionFoundError:
-                self._available_text_pre_save[lang] = []
-
-    def _check_available_segments_changed_post_save(self, lang=None):
-        """
-        Returns a list of tuples containing a Ref and a boolean availability
-        for each Ref that was either made available or unavailble for `lang`.
-        If `lang` is None, returns changed availability across all langauges.
-        """
-        if lang:
-            old_refs_available = self._text_to_ref_available(self._available_text_pre_save[self.lang])
-        else:
-            # Looking for availability of in all langauges, merge results of Hebrew and English
-            old_en_refs_available = self._text_to_ref_available(self._available_text_pre_save["en"])
-            old_he_refs_available = self._text_to_ref_available(self._available_text_pre_save["he"])
-            zipped = list(itertools.zip_longest(old_en_refs_available, old_he_refs_available))
-            old_refs_available = []
-            for item in zipped:
-                en, he = item[0], item[1]
-                ref = en[0] if en else he[0]
-                old_refs_available.append((ref, (en and en[1] or he and he[1])))
-
-        new_refs_available = self._text_to_ref_available(self.text)
-
-        changed = []
-        zipped = list(itertools.zip_longest(old_refs_available, new_refs_available))
-        for item in zipped:
-            old_text, new_text = item[0], item[1]
-            had_previously = old_text and old_text[1]
-            have_now = new_text and new_text[1]
-
-            if not had_previously and have_now:
-                changed.append(new_text)
-            elif had_previously and not have_now:
-                # Current save is deleting a line of text, but it could still be
-                # available in a different version for this language. Check again.
-                if lang:
-                    text_still_available = bool(old_text[0].text(lang=lang).text)
-                else:
-                    text_still_available = bool(old_text[0].text("en").text) or bool(old_text[0].text("he").text)
-                if not text_still_available:
-                    changed.append([old_text[0], False])
-
-        return changed
-
-    def _text_to_ref_available(self, text):
-        """Converts a JaggedArray of text to flat list of (Ref, bool) if text is availble"""
-        flat = JaggedArray(text).flatten_to_array_with_indices()
-        refs_available = []
-        for item in flat:
-            d = self._oref._core_dict()
-            d["sections"] = d["sections"] + item[0]
-            d["toSections"] = d["sections"]
-            ref = Ref(_obj=d)
-            available = bool(item[1])
-            refs_available += [[ref, available]]
-        return refs_available
-
-    def _update_link_language_availability(self):
-        """
-        Check if current save has changed the overall availabilty of text for refs
-        in this language, pass refs to update revelant links if so.
-        """
-        changed = self._check_available_segments_changed_post_save(lang=self.lang)
-
-        if len(changed):
-            from . import link
-            for change in changed:
-                link.update_link_language_availabiliy(change[0], self.lang, change[1])
-
-    def _validate(self):
-        """
-        validate that depth/breadth of the TextChunk.text matches depth/breadth of the Ref
-        :return:
-        """
-        posted_depth = 0 if isinstance(self.text, str) else list_depth(self.text)
-        ref_depth = self._oref.range_index() if self._oref.is_range() else self._ref_depth
-        implied_depth = ref_depth + posted_depth
-        if implied_depth != self._oref.index_node.depth:
-            raise InputError(
-                "Text Structure Mismatch. The stored depth of {} is {}, but the text posted to {} implies a depth of {}."
-                .format(self._oref.index_node.full_title(), self._oref.index_node.depth, self._oref.normal(), implied_depth)
-            )
-
-        #validate that length of the array matches length of the ref
-        #todo: double check for depth >= 3
-        if self._oref.is_spanning():
-            span_size = self._oref.span_size()
-            if posted_depth == 0: #possible?
-                raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {} sections, but the text posted is a string."
-                        .format(self._oref.normal(), span_size)
-                )
-            elif posted_depth == 1: #possible?
-                raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {} sections, but the text posted is a simple list."
-                        .format(self._oref.normal(), span_size)
-                )
-            else:
-                posted_length = len(self.text)
-                if posted_length != span_size:
-                    raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {} sections, but the text posted has {} elements."
-                        .format(self._oref.normal(), span_size, posted_length)
-                    )
-                #todo: validate last section size if provided
-
-        elif self._oref.is_range():
-            range_length = self._oref.range_size()
-            if posted_depth == 0:
-                raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {}, but the text posted is a string."
-                        .format(self._oref.normal(), range_length)
-                )
-            elif posted_depth == 1:
-                posted_length = len(self.text)
-                if posted_length != range_length:
-                    raise InputError(
-                        "Text Structure Mismatch. {} implies a length of {}, but the text posted has {} elements."
-                        .format(self._oref.normal(), range_length, posted_length)
-                    )
-            else:  # this should never happen.  The depth check should catch it.
-                raise InputError(
-                    "Text Structure Mismatch. {} implies an simple array of length {}, but the text posted has depth {}."
-                    .format(self._oref.normal(), range_length, posted_depth)
-                )
-
-    #maybe use JaggedArray.subarray()?
-    def trim_text(self, txt):
-        """
-        Trims a text loaded from Version record with self._oref.part_projection() to the specifications of self._oref
-        This works on simple Refs and range refs of unlimited depth and complexity.
-        (in place?)
-        :param txt:
-        :return: List|String depending on depth of Ref
-        """
-        range_index = self._oref.range_index()
-        sections = self._oref.sections
-        toSections = self._oref.toSections
-
-        if not sections:
-            pass
-        else:
-            for i in range(0, self._ref_depth):
-                if i == 0 == range_index:  # First level slice handled at DB level
-                    pass
-                elif range_index > i:  # Either not range, or range begins later.  Return simple value.
-                    if i == 0 and len(txt):   # We already sliced the first level w/ Ref.part_projection()
-                        txt = txt[0]
-                    elif len(txt) >= sections[i]:
-                        txt = txt[sections[i] - 1]
-                    else:
-                        return self.empty_text()
-                elif range_index == i:  # Range begins here
-                    start = sections[i] - 1
-                    end = toSections[i]
-                    txt = txt[start:end]
-                else:  # range_index < i, range continues here
-                    begin = end = txt
-                    for _ in range(range_index, i - 1):
-                        begin = begin[0]
-                        end = end[-1]
-                    begin[0] = begin[0][sections[i] - 1:]
-                    end[-1] = end[-1][:toSections[i]]
-
-        return txt
-
-    def empty_text(self):
-        """
-        :return: Either empty array or empty string, depending on depth of Ref
-        """
-        if not self._oref.is_range() and self._ref_depth == self._oref.index_node.depth:
-            return ""
-        else:
-            return []
+    @text.setter
+    def text(self, value):
+        self._text = value
 
     def version(self):
         """
-        Returns the Version record for this chunk
+        Returns the Version record this TextChunk is pointing to.
         :return Version:
-        :raises Exception: if the TextChunk is merged
+        :raises Exception: if this TextChunk is merged/multi-version
         """
-        if not self._versions:
+        if not self._version_candidates:
             return None
-        if len(self._versions) == 1:
-            return self._versions[0]
+        if len(self._version_candidates) == 1:
+            return self._version_candidates[0]
         else:
-            raise Exception("Called TextChunk.version() on merged TextChunk.")
+            raise Exception("Called TextChunk.version() on a merged/multi-version TextChunk.")
 
     def has_manually_wrapped_refs(self):
-        try:
-            return getattr(self.version(), 'hasManuallyWrappedRefs', False)
-        except:
-            # merged version
+        # Overrides AbstractTextRecord's stub (unconditional True) with a real per-version check --
+        # needed by tracker.modify_text's skip_links logic, since the base stub would silently
+        # disable the auto-linker for every save otherwise.
+        if len(self._version_candidates) != 1:
             return False
+        return getattr(self._version_candidates[0], 'hasManuallyWrappedRefs', False)
 
     def nonempty_segment_refs(self):
         """
-
         :return: list of segment refs with content in this TextChunk
         """
-        r = self._oref
+        r = self.oref
         ref_list = []
-
-
-        if r.is_range():
-            input_refs = r.range_list()
-        else:
-            input_refs = [r]
+        input_refs = r.range_list() if r.is_range() else [r]
         for temp_ref in input_refs:
-            temp_tc = temp_ref.text(lang=self.lang, vtitle=self.vtitle)
-            ja = temp_tc.ja()
+            ja = TextChunk(temp_ref, lang=self.lang, actual_lang=self.actual_lang, direction=self.direction, vtitle=self.vtitle, merge_versions=self.merge_versions).ja()
             jarray = ja.mask().array()
-
-            #TODO do I need to check if this ref exists for this version?
             if temp_ref.is_segment_level():
-                if jarray: #it's an int if ref is segment_level
+                if jarray:
                     ref_list.append(temp_ref)
             elif temp_ref.is_section_level():
                 ref_list += [temp_ref.subref(i + 1) for i, v in enumerate(jarray) if v]
-            else: # higher than section level
+            else:
                 ref_list += [temp_ref.subref([j + 1 for j in ne] + [i + 1])
                              for ne in ja.non_empty_sections()
                              for i, v in enumerate(ja.subarray(ne).mask().array()) if v]
-
         return ref_list
 
     def find_string(self, regex_str, cleaner=lambda x: x, strict=True):
         """
-        Regex search in TextChunk
+        Regex search in this TextChunk
         :param regex_str: regex string to search for
-        :param cleaner: f(str)->str. function to clean a semgent before searching
-        :param strict: if True, throws error if len(ind_list) != len(ref_list). o/w truncates longer array to length of shorter
+        :param cleaner: f(str)->str. function to clean a segment before searching
+        :param strict: if True, throws error if len(text_list) != len(ref_list). o/w truncates longer array to length of shorter
         :return: list[(Ref, Match, str)] - list of tuples. each tuple has a segment ref, match object for the match, and text for the segment
         """
         ref_list = self.nonempty_segment_refs()
         text_list = [x for x in self.ja().flatten_to_array() if len(x) > 0]
         if len(text_list) != len(ref_list):
+            msg = f"The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(text)={len(text_list)} {self.oref}"
             if strict:
-                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
+                raise ValueError(msg)
             else:
-                print("Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref)))
+                print("Warning: " + msg)
 
         matches = []
         for r, t in zip(ref_list, text_list):
             cleaned = cleaner(t)
-            for m in re.finditer(regex_str,cleaned):
+            for m in re.finditer(regex_str, cleaned):
                 matches += [(r, m, cleaned)]
 
         return matches
@@ -2261,22 +1901,22 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         :param ret_ja: True if you want to return the flattened ja
         :return: (list,list) - index_list (0 based index of start word of each segment ref as compared with the text chunk ref), ref_list
         """
-        #TODO there is a known error that this will fail if the text version you're using has fewer segments than the VersionState.
         ind_list = []
         ref_list = self.nonempty_segment_refs()
 
         total_len = 0
         text_list = self.ja().flatten_to_array()
-        for i,segment in enumerate(text_list):
+        for i, segment in enumerate(text_list):
             if len(segment) > 0:
                 ind_list.append(total_len)
                 total_len += len(tokenizer(segment))
 
         if len(ind_list) != len(ref_list):
+            msg = f"The number of refs doesn't match the number of starting words. len(refs)={len(ref_list)} len(inds)={len(ind_list)} {self.oref}"
             if strict:
-                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
+                raise ValueError(msg)
             else:
-                print("Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref)))
+                print("Warning: " + msg)
                 if len(ind_list) > len(ref_list):
                     ind_list = ind_list[:len(ref_list)]
                 else:
@@ -2287,338 +1927,216 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         else:
             return ind_list, ref_list, total_len
 
-
-class VirtualTextChunk(AbstractTextRecord):
-    """
-    Delegated from TextChunk
-    Should only arrive here if oref.index_node is virtual.
-    """
-
-    text_attr = "text"
-
-    def __init__(self, oref, lang="en", vtitle=None, exclude_copyrighted=False, actual_lang=None, fallback_on_default_version=False):
-
-        self._oref = oref
-        self._ref_depth = len(self._oref.sections)
-        self._saveable = False
-
-        self.lang = lang
-        self.is_merged = False
-        self.sources = []
-
-        if self._oref.index_node.parent and not self._oref.index_node.parent.supports_language(self.lang):
-            self.text = []
-            self._versions = []
-            return
-
-        try:
-            self.text = self._oref.index_node.get_text()  # <- This is where the magic happens
-        except:
-            self.text = []
-            self._versions = []
-            return
-
-        v = Version().load({
-            "title": self._oref.index_node.get_index_title(),
-            "versionTitle": self._oref.index_node.get_version_title(self.lang),
-            "language": self.lang
-        }, {"chapter": 0})    # Currently vtitle is thrown out.  There's only one version of each lexicon.
-        self._versions = [v] if v else []
-
-    def version(self):
-        return self._versions[0] if self._versions else None
-
-    def version_ids(self):
-        return [self._versions[0]._id] if self._versions else []
-
-    def has_manually_wrapped_refs(self):
-        return not getattr(self._oref.index_node.parent.lexicon, 'needsRefsWrapping', False)
-
-
-# This was built as a bridge between the object model and existing front end code, so has some hallmarks of that legacy.
-class TextFamily(object):
-    """
-    A text with its translations and optionally the commentary on it.
-
-    Can be instantiated with just the first argument.
-
-    :param oref: :class:`Ref`.  This is the only required argument.
-    :param int context: Default: 1. How many context levels up to go when getting commentary.  See :func:`Ref.context_ref`
-    :param bool commentary: Default: True. Include commentary?
-    :param version: optional. Name of version to use when getting text.
-    :param lang: None, "en" or "he".  Default: None.  If None, include both languages.
-    :param version2: optional. Additional name of version to use.
-    :param bool pad: Default: True.  Pads the provided ref before processing.  See :func:`Ref.padded_ref`
-    :param bool alts: Default: False.  Adds notes of where alternate structure elements begin
-    """
-
-    ## Attribute maps used for generating dict format ##
-    """
-    A bit of a naming conflict has arisen here. The TextFamily bundles two versions - one with English text and one
-    with Hebrew text. versionTitle refers to the English title of the English version, while heVersionTitle refers to
-    the English title of the Hebrew version.
-
-    Later on we decided to translate all of our versionTitles into Hebrew. To avoid direct conflict with the text api,
-    these got the names versionTitleInHebrew and versionNotesInHebrew.
-    """
-    text_attr_map = {
-        "en": "text",
-        "he": "he"
-    }
-
-    attr_map = {
-        "versionTitle": {
-            "en": "versionTitle",
-            "he": "heVersionTitle"
-        },
-        "versionTitleInHebrew": {
-            "en": "versionTitleInHebrew",
-            "he": "heVersionTitleInHebrew",
-        },
-        "shortVersionTitle": {
-            "en": "shortVersionTitle",
-            "he": "heShortVersionTitle",
-        },
-        "shortVersionTitleInHebrew": {
-            "en": "shortVersionTitleInHebrew",
-            "he": "heShortVersionTitleInHebrew",
-        },
-        "versionSource": {
-            "en": "versionSource",
-            "he": "heVersionSource"
-        },
-        "status": {
-            "en": "versionStatus",
-            "he": "heVersionStatus"
-        },
-        "versionNotes": {
-            "en": "versionNotes",
-            "he": "heVersionNotes"
-        },
-        "extendedNotes": {
-            "en": "extendedNotes",
-            "he": "heExtendedNotes"
-        },
-        "extendedNotesHebrew": {
-            "en": "extendedNotesHebrew",
-            "he": "heExtendedNotesHebrew"
-        },
-        "versionNotesInHebrew": {
-            "en": "versionNotesInHebrew",
-            "he": "heVersionNotesInHebrew",
-        },
-        "digitizedBySefaria": {
-            "en": "digitizedBySefaria",
-            "he": "heDigitizedBySefaria",
-            "default": False,
-        },
-        "license": {
-            "en": "license",
-            "he": "heLicense",
-            "default": "unknown"
-        },
-        "formatAsPoetry": { # Setup for Fox translation. Perhaps we want in other places as well?
-            "he": "formatHeAsPoetry",
-            "en": "formatEnAsPoetry",
-            "default": False,
-        }
-    }
-    sourceMap = {
-        "en": "sources",
-        "he": "heSources"
-    }
-
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None,
-                 version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False,
-                 translationLanguagePreference=None, fallbackOnDefaultVersion=False):
+    def _trim_text(self, text):
         """
-        :param oref:
-        :param context:
-        :param commentary:
-        :param version:
-        :param lang:
-        :param version2:
-        :param lang2:
-        :param pad:
-        :param alts: Adds notes of where alt elements begin
-        :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
-        :param stripItags: whether to strip inline commentator tags and inline footnotes from text
+        part_projection trims only the upper level of the jagged array. this function trims its lower levels and get rid of 1 element arrays wrappings
+        """
+        #TODO can we get the specific text directly from mongo?
+        text = copy.deepcopy(text)
+        # x[-1]/x[0] if x else [] -- content may run out early (e.g. a merged version, or one
+        # about to be created, doesn't reach this ref's position); trims to nothing there instead
+        # of crashing, rather than assuming every level is as deep as the ref requests.
+        for s, section in enumerate(self.oref.toSections[1:], 1): #start cut from end, for cutting from the start will change the indexes
+            subtext = reduce(lambda x, _: x[-1] if x else [], range(s), text)
+            del subtext[section:]
+        for s, section in enumerate(self.oref.sections[1:], 1):
+            subtext = reduce(lambda x, _: x[0] if x else [], range(s), text)
+            del subtext[:section-1]
+        matching_sections = itertools.takewhile(lambda pair: pair[0] == pair[1], zip(self.oref.sections, self.oref.toSections))
+        redundant_depth = len(list(matching_sections))
+        return reduce(lambda x, _: x[0] if x else [], range(redundant_depth), text)
+
+    def _empty_value_for_position(self, pos):
+        """What an empty placeholder looks like at section-index `pos` within this ref's node."""
+        return "" if pos == self.oref.index_node.depth - 1 else []
+
+    def _empty_text(self):
+        """
+        :return: Either empty array or empty string, depending on depth of Ref
+        """
+        if not self.oref.is_range() and self.oref.is_segment_level():
+            return ""
+        return []
+
+    # -- saving --
+
+    def save(self, force_save=False):
+        """
+        For editing in place (i.e. self.text[3] = "Some text"), it is necessary to set force_save to True. This is
+        because by editing in place, both the self.text and the self._original_text fields will get changed,
+        causing the save to abort.
+        :param force_save: If set to True, will force a save even if no change was detected in the text.
         :return:
         """
-        if pad:
-            oref = oref.padded_ref()
-        elif oref.has_default_child():
-            oref = oref.default_child_ref()
+        assert self._saveable, (
+            f"Tried to save a TextChunk that isn't saveable -- saving requires an explicit vtitle "
+            f"and lang/actual_lang, and a non-range ref: {self.oref.normal()}"
+        )
+        if not force_save:
+            if self.text == self._original_text:
+                logger.warning(f"Aborted save of {self.oref.normal()}. No change in text.")
+                return False
 
-        if version:
-            version = version.replace("_", " ")
-        if version2:
-            version2 = version2.replace("_", " ")
+        self._validate()
+        self._sanitize()
+        self._trim_ending_whitespace()
 
-        self.ref            = oref.normal()
-        self.heRef          = oref.he_normal()
-        self.isComplex      = oref.index.is_complex()
-        self.text           = None
-        self.he             = None
-        self._nonExistantVersions = {}
-        self._lang          = lang
-        self._original_oref = oref
-        self._context_oref  = None
-        self._chunks        = {}
-        self._inode         = oref.index_node
-        self._alts          = []
-
-        if not isinstance(oref.index_node, JaggedArrayNode) and not oref.index_node.is_virtual:
-            raise InputError("Unable to find text for that ref")
-
-        for i in range(0, context):
-            oref = oref.context_ref()
-        self._context_oref = oref
-
-        # processes "en" and "he" TextChunks, and puts the text in self.text and self.he, respectively.
-        for language, attr in list(self.text_attr_map.items()):
-            tc_kwargs = dict(oref=oref, lang=language, fallback_on_default_version=fallbackOnDefaultVersion)
-            if language == 'en': tc_kwargs['actual_lang'] = translationLanguagePreference
-            if language in {lang, lang2}:
-                curr_version = version if language == lang else version2
-                c = TextChunk(vtitle=curr_version, **tc_kwargs)
-                if len(c._versions) == 0:  # indicates `version` doesn't exist
-                    if tc_kwargs.get('actual_lang', False) and not curr_version:
-                        # actual_lang is only used if curr_version is not passed
-                        tc_kwargs.pop('actual_lang', None)
-                        c = TextChunk(vtitle=curr_version, **tc_kwargs)
-                    elif curr_version:
-                        self._nonExistantVersions[language] = curr_version
-            else:
-                c = TextChunk(**tc_kwargs)
-            self._chunks[language] = c
-            text_modification_funcs = []
-            if stripItags:
-                text_modification_funcs += [lambda s, secs: c.strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
-            if wrapLinks and c.version_ids() and not c.has_manually_wrapped_refs():
-                #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
-                #then count how many links came from that version. If any- do the wrapping.
-                from . import Link
-                query = oref.ref_regex_query()
-                query.update({"inline_citation": True})  # , "source_text_oid": {"$in": c.version_ids()}
-                if Link().load(query) is not None:
-                    link_wrapping_reg, title_nodes = library.get_regex_and_titles_for_ref_wrapping(c.ja().flatten_to_string(), lang=language, citing_only=True)
-                    text_modification_funcs += [lambda s, secs: library.get_wrapped_refs_string(s, lang=language, citing_only=True, reg=link_wrapping_reg, title_nodes=title_nodes)]
-            padded_sections, _ = oref.get_padded_sections()
-            setattr(self, self.text_attr_map[language], c._get_text_after_modifications(text_modification_funcs, start_sections=padded_sections))
-
-        if oref.is_spanning():
-            self.spanning = True
-        #// todo: should this parameter be renamed? it gets all links, not strictly commentary...
-        if commentary:
-            from sefaria.client.wrapper import get_links
-            if not oref.is_spanning():
-                links = get_links(oref.normal())  #todo - have this function accept an object
-            else:
-                links = [get_links(r.normal()) for r in oref.split_spanning_ref()]
-            self.commentary = links if "error" not in links else []
-
-        # get list of available versions of this text
-        self.versions = oref.version_list()
-
-        # Adds decoration for the start of each alt structure reference
-        if alts:
-            self._alts = oref.index.get_trimmed_alt_structs_for_ref(oref)
-        if self._inode.is_virtual:
-            self._index_offsets_by_depth = None
+        if not self.version():
+            assert self.actual_lang and self.direction, (
+                f"actual_lang and direction are required to create a new version: {self.oref.normal()}"
+            )
+            # pkeys = (title, direction, versionTitle), but that's not DB-enforced -- guard
+            # against silently creating a version colliding on that key in another actualLanguage.
+            colliding = Version().load({'title': self.oref.index.title, 'direction': self.direction, 'versionTitle': self.vtitle})
+            if colliding:
+                raise InputError(
+                    f"Cannot create version: {self.oref.index.title} {self.direction} {self.vtitle} "
+                    f"already exists with actualLanguage={colliding.actualLanguage}, not {self.actual_lang}"
+                )
+            self.full_version = Version(
+                {
+                    "chapter": self.oref.index.nodes.create_skeleton(),
+                    "versionTitle": self.vtitle,
+                    "versionSource": self.versionSource,
+                    "language": constants.get_legacy_lang_from_direction(self.direction),
+                    "actualLanguage": self.actual_lang,
+                    "title": self.oref.index.title
+                }
+            )
         else:
-            self._index_offsets_by_depth = self._inode.trim_index_offsets_by_sections(oref.sections, oref.toSections)
+            self.full_version = Version().load(self._condition_query)
+            assert self.full_version, f"Failed to load Version record for {self.oref.normal()}, {self.vtitle}"
+            # backfill whichever of direction/lang the caller didn't supply -- the query already
+            # guarantees a match on anything that was supplied, so this can't overwrite a mismatch
+            self.direction = self.full_version.direction
+            self.actual_lang = self.full_version.actualLanguage
+            self.lang = self.full_version.languageFamilyName
+            if self.versionSource:
+                # Inherited from LegacyTextChunk, where this line carried an unexplained "# hack"
+                # comment (traced to the original 2014 save() commit). Likely intended as the
+                # mechanism for updating versionSource, even though it's version metadata, not
+                # text content.
+                self.full_version.versionSource = self.versionSource
 
-    def contents(self):
+        content = self.full_version.sub_content(self.oref.index_node.version_address())
+        self._pad(content)
+        self.full_version.sub_content(self.oref.index_node.version_address(), [i - 1 for i in self.oref.sections], self.text)
+
+        self._snapshot_text_availability_before_save()
+
+        self.full_version.save()
+        self.oref.recalibrate_next_prev_refs(len(self.text))
+        self._update_link_language_availability()
+
+        # versionTitle may have just been suffixed by Version._normalize()
+        self.vtitle = self.full_version.versionTitle
+        return self
+
+    def _pad(self, content):
         """
-        :return dict: Returns the contents of the text family.
+        Pads the passed content to the dimension of self.oref.
+        Acts on the input variable 'content' in place
+        Does not yet handle ranges
         """
-        d = {k: getattr(self, k) for k in list(vars(self).keys()) if k[0] != "_"}
+        for pos, val in enumerate(self.oref.sections):
+            # at pos == 0, parent_content == content
+            # at pos == 1, parent_content == chapter
+            # at pos == 2, parent_content == verse
+            # etc
+            parent_content = reduce(lambda a, i: a[i - 1], self.oref.sections[:pos], content)
 
-        d["textDepth"]       = getattr(self._inode, "depth", None)
-        d["sectionNames"]    = getattr(self._inode, "sectionNames", None)
-        d["addressTypes"]    = getattr(self._inode, "addressTypes", None)
-        if getattr(self._inode, "lengths", None):
-            d["lengths"]     = getattr(self._inode, "lengths")
-            if len(d["lengths"]):
-                d["length"]  = d["lengths"][0]
-        elif getattr(self._inode, "length", None):
-            d["length"]      = getattr(self._inode, "length")
-        d["textDepth"]       = self._inode.depth
-        d["heTitle"]         = self._inode.full_title("he")
-        d["titleVariants"]   = self._inode.all_tree_titles("en")
-        d["heTitleVariants"] = self._inode.all_tree_titles("he")
-        d["type"]            = getattr(self._original_oref, "primary_category")
-        d["primary_category"] = getattr(self._original_oref, "primary_category")
-        d["book"]            = getattr(self._original_oref, "book")
+            # Pad out existing content to size of ref
+            if len(parent_content) < val:
+                for _ in range(len(parent_content), val):
+                    parent_content.append(self._empty_value_for_position(pos))
 
-        for attr in ["categories", "order"]:
-            d[attr] = getattr(self._inode.index, attr, "")
-        for attr in ["sections", "toSections"]:
-            d[attr] = getattr(self._original_oref, attr)[:]
+            # check for strings where arrays expected, except for last pass
+            if pos < self._ref_depth - 2 and isinstance(parent_content[val - 1], str):
+                parent_content[val - 1] = [parent_content[val - 1]]
 
-        if getattr(self._inode.index, 'collective_title', None):
-            d["commentator"] = getattr(self._inode.index, 'collective_title', "") # todo: deprecate Only used in s1 js code
-            d["heCommentator"] = hebrew_term(getattr(self._inode.index, 'collective_title', "")) # todo: deprecate Only used in s1 js code
-            d["collectiveTitle"] = getattr(self._inode.index, 'collective_title', "")
-            d["heCollectiveTitle"] = hebrew_term(getattr(self._inode.index, 'collective_title', ""))
+    def _validate(self):
+        """
+        Validates that depth/breadth of the posted text matches the ref being saved.
+        Arguably belongs on Version._validate() instead, so it applies to any version save.
+        self.oref.is_range() is excluded by _saveable, so a spanning/range ref never reaches here.
+        """
+        posted_depth = 0 if isinstance(self.text, str) else list_depth(self.text)
+        implied_depth = self._ref_depth + posted_depth
+        if implied_depth != self.oref.index_node.depth:
+            raise InputError(
+                f"Text Structure Mismatch. The stored depth of {self.oref.index_node.full_title()} is "
+                f"{self.oref.index_node.depth}, but the text posted to {self.oref.normal()} implies a depth of {implied_depth}."
+            )
 
-        if len(self._nonExistantVersions) > 0:
-            d['nonExistantVersions'] = self._nonExistantVersions
+    # -- link availability, called from save() --
 
-        if self._inode.index.is_dependant_text():
-            #d["commentaryBook"] = getattr(self._inode.index, 'base_text_titles', "")
-            #d["commentaryCategories"] = getattr(self._inode.index, 'related_categories', [])
-            d["baseTexTitles"] = getattr(self._inode.index, 'base_text_titles', [])
+    def _snapshot_text_availability_before_save(self):
+        """
+        Captures the availability of text for this ref, merged across every version sharing this
+        save's direction, before the save is made -- so `_update_link_language_availability`
+        can later tell whether segments were added or removed overall. Must run before
+        `full_version.save()` persists the new content, since it reads the live "before" state.
+        """
+        self._text_availability_snapshot = TextChunk(self.oref, direction=self.direction, merge_versions=True).text
 
-        d["isComplex"]    = self.isComplex
-        d["isDependant"] = self._inode.index.is_dependant_text()
-        d["indexTitle"]   = self._inode.index.title
-        d["heIndexTitle"] = self._inode.index.get_title("he")
-        d["sectionRef"]   = self._original_oref.section_ref().normal()
-        try:
-            d["firstAvailableSectionRef"] = self._original_oref.first_available_section_ref().normal()
-        except AttributeError:
-            pass
-        d["heSectionRef"] = self._original_oref.section_ref().he_normal()
-        d["isSpanning"]   = self._original_oref.is_spanning()
-        if d["isSpanning"]:
-            d["spanningRefs"] = [r.normal() for r in self._original_oref.split_spanning_ref()]
+    def _update_link_language_availability(self):
+        """
+        Check if the current save changed the overall availability of text for refs in this
+        direction, and update dependent Links if so.
+        """
+        changed = self._get_segments_with_changed_availability()
+        if len(changed):
+            from . import link
+            legacy_lang = constants.get_legacy_lang_from_direction(self.direction)  # Link.availableLangs is en/he-keyed
+            for change in changed:
+                link.update_link_language_availabiliy(change[0], legacy_lang, change[1])
 
-        for language, attr in list(self.text_attr_map.items()):
-            chunk = self._chunks.get(language)
-            if chunk.is_merged:
-                d[self.sourceMap[language]] = chunk.sources
-            else:
-                ver = chunk.version()
-                if ver:
-                    for key, val in list(self.attr_map.items()):
-                        d[val[language]] = getattr(ver, key, val.get("default", ""))
+    def _get_segments_with_changed_availability(self):
+        """
+        Returns a list of [Ref, bool] pairs for each Ref that was either made available or made
+        unavailable in this save's direction, by comparing the availability snapshot captured
+        before this save (see `_snapshot_text_availability_before_save`) to the text now being saved.
+        """
+        old_refs_available = self._text_to_ref_available(self._text_availability_snapshot)
+        new_refs_available = self._text_to_ref_available(self.text)
 
-        # replace ints with daf strings (3->"2a") for Talmud addresses
-        # this could be simpler if was done for every value - but would be slower.
-        if "Talmud" in self._inode.addressTypes:
-            for i in range(len(d["sections"])):
-                if self._inode.addressTypes[i] == "Talmud":
-                    d["sections"][i] = AddressTalmud.toStr("en", d["sections"][i])
-                    if "toSections" in d:
-                        d["toSections"][i] = AddressTalmud.toStr("en", d["toSections"][i])
+        changed = []
+        zipped = list(itertools.zip_longest(old_refs_available, new_refs_available))
+        for item in zipped:
+            old_text, new_text = item[0], item[1]
+            had_previously = old_text and old_text[1]
+            have_now = new_text and new_text[1]
 
-            d["title"] = self._context_oref.normal()
-            if "heTitle" in d:
-                d["heBook"] = d["heTitle"]
-                d["heTitle"] = self._context_oref.he_normal()
-            """if d["type"] == "Commentary" and self._context_oref.is_talmud() and len(d["sections"]) > 1:
-                d["title"] = "%s Line %d" % (d["title"], d["sections"][1])"""
+            if not had_previously and have_now:
+                changed.append(new_text)
+            elif had_previously and not have_now:
+                # Current save is deleting a line of text, but it could still be
+                # available in a different version sharing this direction. Check again.
+                text_still_available = bool(TextChunk(old_text[0], direction=self.direction, merge_versions=True).text)
+                if not text_still_available:
+                    changed.append([old_text[0], False])
 
-        """elif self._context_oref.is_commentary():
-            dep = len(d["sections"]) if len(d["sections"]) < 2 else 2
-            d["title"] = d["book"] + " " + ":".join(["%s" % s for s in d["sections"][:dep]])"""
+        return changed
 
-        d["alts"] = self._alts
-        d['index_offsets_by_depth'] = self._index_offsets_by_depth
+    def _text_to_ref_available(self, text):
+        """
+        Converts a JaggedArray of text to flat list of [Ref, bool] pairs, one per leaf segment,
+        indicating whether that segment has text. `text` may be a bare string (when self.oref is
+        itself segment-level) rather than a nested list -- JaggedArray.flatten_to_array_with_indices
+        handles that case by returning a single entry with an empty index path ([[[], text]]),
+        which below resolves to self.oref itself (unchanged sections), not "no ref".
+        """
+        flat = JaggedArray(text).flatten_to_array_with_indices()
+        refs_available = []
+        for item in flat:
+            d = self.oref._core_dict()
+            d["sections"] = d["sections"] + item[0]
+            d["toSections"] = d["sections"]
+            ref = Ref(_obj=d)
+            available = bool(item[1])
+            refs_available += [[ref, available]]
+        return refs_available
 
-        return d
 
 """
                     -------------------
@@ -3777,18 +3295,19 @@ class Ref(object, metaclass=RefCacheType):
 
     def is_text_fully_available(self, lang):
         """
-        :param lang: "he" or "en"
-        :return: True if at least one complete version of ref is available in lang.
+        :param lang: "he" or "en" -- legacy direction bucket, matching how Link.availableLangs is
+            keyed elsewhere (see TextChunk._update_link_language_availability). Checked by
+            direction, not real language, to stay consistent with that other write path.
+        :return: True if at least one complete version of ref is available in this direction.
         """
         if self.is_section_level() or self.is_segment_level():
             # Using mongo queries to slice and merge versions
             # is much faster than actually using the Version State doc
-            try:
-                text = self.text(lang=lang).text
-                return bool(len(text) and all(text))
-            except NoVersionFoundError:
-                return False
+            direction = constants.get_direction_from_legacy_lang(lang)
+            text = self.text(direction=direction).text
+            return bool(len(text) and all(text))
         elif isinstance(self.index_node, JaggedArrayNode):
+            # VersionState's availableTexts is a separate, legacy en/he-only subsystem
             sja = self.get_state_ja(lang)
             subarray = sja.subarray_with_ref(self)
             return subarray.is_full()
@@ -3821,10 +3340,10 @@ class Ref(object, metaclass=RefCacheType):
 
     def word_count(self, lang="he"):
         try:
-            return TextChunk(self, lang).word_count()
+            return self.text(lang=lang).word_count()
         except InputError:
             lns = self.index_node.get_leaf_nodes()
-            return sum([TextChunk(n.ref(), lang).word_count() for n in lns])
+            return sum([n.ref().text(lang=lang).word_count() for n in lns])
 
     def _iter_text_section(self, forward=True, depth_up=1, vstate=None):
         """
@@ -4769,13 +4288,24 @@ class Ref(object, metaclass=RefCacheType):
             setattr(self, normal_attr, normal_form)
         return getattr(self, normal_attr)
 
-    def text(self, lang="en", vtitle=None, exclude_copyrighted=False):
+    def text(self, lang=None, vtitle=None, lang_family=None, direction=None, merge_versions=None):
         """
-        :param lang: "he" or "en"
-        :param vtitle: optional. text title of the Version to get the text from
+        :param lang: real ISO language code (e.g. "en", "he", "fr") -- passed straight through to
+            TextChunk as actual_lang. "en"/"he" are themselves valid ISO codes, so no legacy
+            translation is needed here. If nothing at all is given (lang/vtitle/lang_family/
+            direction), falls back to this ref's primary version.
+        :param vtitle: optional. versionTitle to select a single version.
+        :param lang_family: optional languageFamilyName, passed straight through to TextChunk.
+            Rarely needed -- TextChunk derives it from `lang` automatically.
+        :param direction: optional "rtl"/"ltr", passed straight through. Only required to create
+            a brand-new version; existing versions resolve it automatically.
+        :param merge_versions: optional. Defaults to merging across all matching versions when no
+            vtitle is given, single version otherwise.
         :return: :class:`TextChunk` corresponding to this Ref
         """
-        return TextChunk(self, lang, vtitle, exclude_copyrighted=exclude_copyrighted)
+        if merge_versions is None:
+            merge_versions = vtitle is None
+        return TextChunk(self, lang=lang_family, vtitle=vtitle, direction=direction, actual_lang=lang, merge_versions=merge_versions)
 
     def url(self, encode_html=True):
         """

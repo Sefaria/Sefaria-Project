@@ -1,6 +1,6 @@
 from typing import Iterable
 from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
-from sefaria.model.text import TextChunk, Ref
+from sefaria.model.text import Ref
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.system.database import db
 from html import escape
@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 from bisect import bisect_right
 import structlog
 from sefaria.system.progress_context import report_progress
+from sefaria.constants.model import get_direction_from_legacy_lang
 logger = structlog.get_logger(__name__)
 
 
@@ -74,7 +75,8 @@ class MarkedUpTextChunk(AbstractMongoRecord):
         oref = Ref(self.ref)
         if not oref.is_segment_level():
             raise InputError(type(self).__name__ + "._validate(): Ref must be at segment level: " + oref.normal())
-        tc = TextChunk(oref, lang=self.language, vtitle=self.versionTitle)
+        direction = get_direction_from_legacy_lang(self.language)
+        tc = oref.text(direction=direction, vtitle=self.versionTitle)
 
         if not tc.text:
             raise InputError(type(self).__name__ + "._validate(): Corresponding TextChunk is empty")

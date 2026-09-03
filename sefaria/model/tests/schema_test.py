@@ -2,6 +2,7 @@
 
 import pytest
 from sefaria.model import *
+from sefaria.model.legacy_text import LegacyTextChunk
 import re
 from sefaria.system.exceptions import InputError, BookNameError
 
@@ -182,7 +183,7 @@ def test_text_index_map():
     nodes = index.nodes
     index_list, ref_list = nodes.text_index_map(tokenizer=tokenizer)
     mes_list = index.nodes.traverse_to_list(
-        lambda n, _: TextChunk(n.ref(), "he").ja().flatten_to_array() if not n.children else [])
+        lambda n, _: LegacyTextChunk(n.ref(), "he").ja().flatten_to_array() if not n.children else [])
     mes_str_array = [w for seg in mes_list for w in tokenizer(seg)]
 
     rand_inds = [1,20,45,1046,len(index_list)-2]
@@ -193,7 +194,7 @@ def test_text_index_map():
     nodes = index.nodes
     index_list, ref_list = nodes.text_index_map(tokenizer=tokenizer, lang="he", vtitle="Tanach with Text Only")
     mes_list = index.nodes.traverse_to_list(
-        lambda n, _: TextChunk(n.ref(), lang="he", vtitle="Tanach with Text Only").ja().flatten_to_array() if not n.children else [])
+        lambda n, _: LegacyTextChunk(n.ref(), lang="he", vtitle="Tanach with Text Only").ja().flatten_to_array() if not n.children else [])
     mes_str_array = [w for seg in mes_list for w in tokenizer(seg)]
 
     rand_inds = [1, 20, 245, len(index_list)-2]

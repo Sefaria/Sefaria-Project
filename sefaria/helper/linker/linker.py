@@ -8,6 +8,7 @@ from sefaria.model import text, library
 from sefaria.model.webpage import WebPage
 from sefaria.model.webpage_text import WebPageText
 from sefaria.system.cache import django_cache
+from sefaria.constants.model import get_direction_from_legacy_lang
 from api.api_errors import APIInvalidInputException
 from typing import List, Optional, Tuple
 import structlog
@@ -298,7 +299,8 @@ def _get_preferred_vtitle(oref: text.Ref, lang: str, version_preferences_by_corp
 
 def _get_ref_text_by_lang_for_linker(oref: text.Ref, lang: str, options: _FindRefsTextOptions) -> Tuple[List[str], bool]:
     vtitle = _get_preferred_vtitle(oref, lang, options.version_preferences_by_corpus)
-    chunk = text.TextChunk(oref, lang=lang, vtitle=vtitle, fallback_on_default_version=True)
+    direction = get_direction_from_legacy_lang(lang)
+    chunk = oref.text(direction=direction, vtitle=vtitle, merge_versions=True)
     as_array = [chunk.strip_itags(s) for s in chunk.ja().flatten_to_array()]
     was_truncated = 0 < options.max_segments < len(as_array)
     return as_array[:options.max_segments or None], was_truncated

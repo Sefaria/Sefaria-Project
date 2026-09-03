@@ -1156,31 +1156,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
                 d["offset"] = offset
             elif getattr(self, "startingAddress", False):
                 d["offset"] = self.address_class(0).toIndex("en", self.startingAddress)
-            if (kwargs.get("include_previews", False)):
-                d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
-                if d.get("refs"):
-                    d["refsPreview"] = []
-                    for r in d["refs"]:
-                        d["refsPreview"].append(self.expand_ref(r, kwargs.get("he_text_ja"), kwargs.get("en_text_ja")))
-                else:
-                    d["refsPreview"] = None
         return d
-
-    # Move this over to Ref and cache it?
-    def expand_ref(self, tref, he_text_ja = None, en_text_ja = None):
-        from . import text
-        from sefaria.utils.util import text_preview
-
-        oref = text.Ref(tref)
-        if oref.is_spanning():
-            oref = oref.first_spanned_ref()
-        if he_text_ja is None and en_text_ja is None:
-            t = text.TextFamily(oref, context=0, pad=False, commentary=False)
-            preview = text_preview(t.text, t.he) if (t.text or t.he) else []
-        else:
-            preview = text_preview(en_text_ja.subarray_with_ref(oref).array(), he_text_ja.subarray_with_ref(oref).array())
-
-        return preview
 
     def validate(self):
         if getattr(self, "depth", None) is None:
@@ -1369,14 +1345,8 @@ class SchemaNode(TitledTreeNode):
             res["heTitleVariants"] = self.full_titles("he")
         if self.index.has_alt_structures():
             res['alts'] = {}
-            if not self.children: # preload text and pass it down to the preview generation
-                from . import text
-                he_text_ja = text.TextChunk(self.ref(), "he").ja()
-                en_text_ja = text.TextChunk(self.ref(), "en").ja()
-            else:
-                he_text_ja = en_text_ja = None
             for key, struct in self.index.get_alt_structures().items():
-                res['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, he_text_ja=he_text_ja, en_text_ja=en_text_ja, expand_titles=True)
+                res['alts'][key] = struct.serialize(expand_shared=True, expand_refs=True, expand_titles=True)
             del res['alt_structs']
         return res
 

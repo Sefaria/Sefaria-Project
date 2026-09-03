@@ -15,5 +15,5 @@ vtitle = 'Mishnah, ed. Romm, Vilna 1913'
 
 for i, dex in enumerate(tyt):
     print("{}/{}".format(i+1, tyt.count()))
-    modify_text_by_function(dex.title, vtitle, 'he', out_brace, 23432)
+    modify_text_by_function(dex.title, vtitle, 'rtl', out_brace, 23432)
     dex.versionState().refresh()

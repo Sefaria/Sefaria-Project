@@ -3,6 +3,7 @@
 import pytest
 
 from sefaria.model import *
+from sefaria.model.legacy_text import LegacyTextChunk
 from sefaria.helper.link import rebuild_links_for_title, AutoLinkerFactory
 import sefaria.tracker as tracker
 from sefaria.system.exceptions import InputError
@@ -69,12 +70,12 @@ class Test_AutoLinker(object):
         }).save()
 
         p1 = [['intro intro', 'intro'], ['intro'], ['intro', '', 'intro']]
-        chunk = TextChunk(Ref('Many to One on Genesis, Introduction'), 'en', 'Schema Test')
+        chunk = LegacyTextChunk(Ref('Many to One on Genesis, Introduction'), 'en', 'Schema Test')
         chunk.text = p1
         chunk.save()
 
         p2 = [[['Default default']], [['default', 'default!']], [['default', '', 'default']]]
-        chunk = TextChunk(Ref('Many to One on Genesis'), 'en', 'Schema Test')
+        chunk = LegacyTextChunk(Ref('Many to One on Genesis'), 'en', 'Schema Test')
         chunk.text = p2
         chunk.save()
 
@@ -170,12 +171,12 @@ class Test_AutoLinker(object):
         }).save()
 
         p1 = [['intro intro', 'intro'], ['intro'], ['intro', '', 'intro']]
-        chunk = TextChunk(Ref('One to One on Genesis, Introduction'), 'en', 'Schema Test')
+        chunk = LegacyTextChunk(Ref('One to One on Genesis, Introduction'), 'en', 'Schema Test')
         chunk.text = p1
         chunk.save()
 
         p2 = [['Default default'], ['default', 'default!'], ['default', '', 'default']]
-        chunk = TextChunk(Ref('One to One on Genesis'), 'en', 'Schema Test')
+        chunk = LegacyTextChunk(Ref('One to One on Genesis'), 'en', 'Schema Test')
         chunk.text = p2
         chunk.save()
 
@@ -424,7 +425,7 @@ class Test_AutoLinker(object):
         higher_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
 
         # now delete
-        chunk = TextChunk(oref, lang, vtitle)
+        chunk = LegacyTextChunk(oref, lang, vtitle)
         chunk.text = chunk.text[:-1]
         tracker.modify_text(1, oref, vtitle, lang, chunk.text)
         lower_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
@@ -451,13 +452,13 @@ class Test_AutoLinker(object):
         lang = 'he'
         vtitle = "test"
         oref = Ref(title_ref)
-        stext = TextChunk(oref, lang=lang).text
+        stext = LegacyTextChunk(oref, lang=lang).text
         stext += ["חדש", "חדש"]
         tracker.modify_text(1, oref, vtitle, lang, stext)
         higher_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
 
         # now delete 2 segments
-        chunk = TextChunk(oref, lang, vtitle)
+        chunk = LegacyTextChunk(oref, lang, vtitle)
         chunk.text = chunk.text[:-2]
         tracker.modify_text(1, oref, vtitle, lang, chunk.text)
         lower_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
@@ -486,14 +487,14 @@ class Test_AutoLinker(object):
         lang = 'en'
         vtitle = "test"
         oref = Ref(title_ref)
-        stext = TextChunk(oref, lang=lang).text
+        stext = LegacyTextChunk(oref, lang=lang).text
         stext += ["new", "new"]
         tracker.modify_text(1, oref, vtitle, lang, stext)
         higher_link_count = LinkSet(
             {"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
 
         # now delete 2 segments
-        chunk = TextChunk(oref, lang, vtitle)
+        chunk = LegacyTextChunk(oref, lang, vtitle)
         chunk.text = chunk.text[:-2]
         tracker.modify_text(1, oref, vtitle, lang, chunk.text)
         lower_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
@@ -519,7 +520,7 @@ class Test_AutoLinker(object):
         tracker.modify_text(1, oref, vtitle, lang, stext)
         higher_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         # now delete
-        chunk = TextChunk(oref, lang, vtitle)
+        chunk = LegacyTextChunk(oref, lang, vtitle)
         chunk.text = chunk.text[:-2]
         tracker.modify_text(1, oref, vtitle, lang, chunk.text)
         lower_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
