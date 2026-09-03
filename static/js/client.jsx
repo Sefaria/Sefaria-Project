@@ -9,6 +9,14 @@ import * as Sentry from "@sentry/react";
 
 
 $(function() {
+  // no_applink (see sefaria/utils/views_utils.py) is a one-hop marker; strip it so a
+  // bookmarked/shared copy of this URL doesn't keep it forever.
+  const url = new URL(window.location.href);
+  if (url.searchParams.has('no_applink')) {
+    url.searchParams.delete('no_applink');
+    history.replaceState(null, '', url);
+  }
+
   const remoteConfig = DJANGO_VARS.props?.remoteConfig || {};
   // Initialize Sentry, sentryDSN is defined in base.html
   if (sentryDSN) {
