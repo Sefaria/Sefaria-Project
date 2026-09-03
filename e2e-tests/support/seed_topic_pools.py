@@ -7,6 +7,15 @@ module's TOPIC POOL — a Postgres-side curation table (django_topics), separate
 /topics/<slug> page 404s even though the topic exists. (This is why the older sidebar-ad specs
 navigate to /topics/category/<slug>, which has no pool gate.)
 
+WHY NOT THE EXISTING MACHINERY: production was populated once by
+scripts/migrations/migrate_good_to_promote_to_topic_pools.py (a destructive full rebuild — it
+wipes every pool row, then imports EVERY Mongo topic and assigns pools by bulk rules) and is
+curated day-to-day through the Django admin's pool actions. Neither fits a test prerequisite:
+the migration is a heavy, frozen one-timer, and the admin is a human workflow. This script is
+the missing third thing — a fast, idempotent, loud-on-typos fixture that pools exactly the
+topics the specs navigate to. Running the migration locally instead would also work (and makes
+a more realistic sandbox) if you don't mind the runtime and the wipe.
+
 The Strapi page-type specs (strapi-sidebar-ad-page-type.spec.js) need real topic pages — an
 author (samson-raphael-hirsch: Mongo `subclass: "author"`, no portal), a plain topic
 (shabbat), and BOTH portal topics (jonathan-sacks and adin-steinsaltz — portal topics
