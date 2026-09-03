@@ -1,5 +1,5 @@
 /**
- * useScrollNearBottom: picking the element that actually scrolls (sc-46995).
+ * useScrollNearBottom: picking the element that actually scrolls.
  *
  * The bug is silent -- a `scroll` listener on a non-scrolling div never fires -- and the
  * scroller cannot be inferred from the breakpoint, so these pin down all four real cases.
