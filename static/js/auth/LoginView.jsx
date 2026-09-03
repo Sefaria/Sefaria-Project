@@ -8,13 +8,19 @@ import Button from '../common/Button.jsx';
 import { authError, safeNext, postJson } from './utils.js';
 
 const LoginView = ({
-  switchFlow, fields, setField, onBack, onForgotClick, next, csrf,
+  switchFlow, fields, setField, onBack, onForgotClick, endProcess, next, csrf,
   registerGoogleTarget, triggerApple, setActiveErrorHandler,
 }) => {
   const onSubmit = async () => {
     const { ok, data } = await postJson('/api/auth/login', { email: fields.email, password: fields.password }, csrf);
-    if (ok) { window.location.href = safeNext(next); return; }
-    return { error: authError(data, 'auth.invalid_credentials') };
+    if (ok) {
+      endProcess('success', null, 'existing_user_login');
+      window.location.href = safeNext(next);
+      return;
+    }
+    const error = authError(data, 'auth.invalid_credentials');
+    endProcess('failure', error.code || 'invalid_credentials');
+    return { error };
   };
 
   return (
@@ -58,6 +64,7 @@ LoginView.propTypes = {
   setField: PropTypes.func.isRequired,
   onBack: PropTypes.func.isRequired,
   onForgotClick: PropTypes.func.isRequired,
+  endProcess: PropTypes.func.isRequired,
   next: PropTypes.string,
   csrf: PropTypes.string,
   registerGoogleTarget: PropTypes.func,

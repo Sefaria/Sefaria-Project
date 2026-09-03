@@ -11,8 +11,8 @@ import MessageView from './MessageView.jsx';
 import Button from '../common/Button.jsx';
 import { pathToFlow, flowToPath, nextFromPath } from './utils.js';
 import { useProviderTriggers } from './useSsoSignIn.jsx';
-import { useSignUpTracking } from './useSignUpTracking.js';
-import { SIGNUP_METHOD } from './signupAnalytics.js';
+import { useAuthTracking } from './useAuthTracking.js';
+import { AUTH_METHOD } from './authAnalytics.js';
 import { getCsrfToken } from '../sefaria/csrf';
 
 /**
@@ -53,7 +53,7 @@ const AuthPage = ({
   }, [flow]);
   const [fields, setFields] = useState({ email: '', password: '', first: '', last: '' });
   const csrf = getCsrfToken();
-  const tracking = useSignUpTracking({ flow, source: authSource });
+  const tracking = useAuthTracking({ flow, source: authSource });
   const {
     googleReady, appleReady, ssoLoading, overlayNode, registerGoogleTarget, setActiveErrorHandler, triggerApple,
   } = useProviderTriggers({ next, tracking });
@@ -77,7 +77,7 @@ const AuthPage = ({
   // existing manual-email-entry ForgotView rather than building a new one.
   const requestNewLink = () => { setView('forgot'); onNavigate?.(flowToPath('login', next)); };
   const onEmailClick = () => {
-    tracking.chooseMethod(SIGNUP_METHOD.EMAIL);
+    tracking.chooseMethod(AUTH_METHOD.EMAIL);
     tracking.startProcess();
     setView('email');
   };
@@ -99,7 +99,9 @@ const AuthPage = ({
       <LoginView
         switchFlow={switchFlow} fields={fields} setField={setField}
         onBack={() => setView('choose')}
-        onForgotClick={onForgotClick} next={next} csrf={csrf}
+        onForgotClick={onForgotClick}
+        endProcess={tracking.endProcess}
+        next={next} csrf={csrf}
         registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
       />

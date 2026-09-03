@@ -144,6 +144,19 @@ class SsoNextCookieRedirectTest(TestCase):
         with patch.object(DefaultAccountAdapter, 'get_signup_redirect_url', return_value='/signup-fallback'):
             self.assertEqual(adapter.get_signup_redirect_url(request), '/signup-fallback')
 
+    def test_login_redirect_sets_existing_user_login_outcome(self):
+        # allauth calls get_login_redirect_url only for a redirect-mode SSO login (not a
+        # signup) -- that distinction is stamped here for ClearSsoNextCookieMiddleware to
+        # relay to the frontend as the sefaria_sso_outcome cookie.
+        adapter, request = self._adapter('/some/next/path', safe=True)
+        adapter.get_login_redirect_url(request)
+        self.assertEqual(request._sefaria_sso_outcome, 'existing_user_login')
+
+    def test_signup_redirect_sets_created_new_account_outcome(self):
+        adapter, request = self._adapter('/welcome', safe=True)
+        adapter.get_signup_redirect_url(request)
+        self.assertEqual(request._sefaria_sso_outcome, 'created_new_account')
+
 
 @override_settings(ALLOWED_HOSTS=['*'])
 class IsSafeUrlTest(TestCase):
@@ -231,6 +244,9 @@ class SaveUserTest(TestCase):
         mock_crm_cls.return_value.create_crm_user.assert_called_once_with(
             user.email, first_name='New', last_name='User', lang='en', educator=False,
         )
+        # Read by sso.views._social_login_or_error to report outcome=created_new_account —
+        # save_user only ever runs for brand-new users, so this must always be set here.
+        self.assertTrue(request._sefaria_new_social_user)
 
     @patch('sso.adapters.CrmMediator')
     @patch('sso.adapters.import_gravatar')

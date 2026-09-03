@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { ALLAUTH_PROVIDER_TOKEN_URL, makeUuid } from './utils';
-import { fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded, fireFlowEnded, SIGNUP_METHOD } from './signupAnalytics';
+import { makeUuid } from './utils';
+import { fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded, fireFlowEnded, AUTH_METHOD } from './authAnalytics';
 import { getCsrfToken } from '../sefaria/csrf';
 
 const AUTH_PATHS = new Set(['/login', '/register']);
@@ -28,22 +28,22 @@ export default function GoogleOneTap({ googleClientId }) {
     // clicks at all (dismissed, timed out, tapped outside, or never shown), nothing fires at all,
     // since no attempt genuinely began.
     const handleCredential = (response, flowId, attemptId) => {
-      fireFlowStarted(flowId, 'one_tap');
-      fireMethodChosen(flowId, attemptId, SIGNUP_METHOD.GOOGLE_ONE_TAP);
+      fireFlowStarted(flowId, 'one_tap_widget', 'one_tap_login');
+      fireMethodChosen(flowId, attemptId, AUTH_METHOD.GOOGLE_ONE_TAP);
       fireProcessStarted(flowId, attemptId);
-      fetch(ALLAUTH_PROVIDER_TOKEN_URL, {
+      fetch('/api/auth/google/callback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-        body: JSON.stringify({ provider: 'google', process: 'login',
-                               token: { client_id: googleClientId, id_token: response.credential } }),
+        body: JSON.stringify({ id_token: response.credential }),
       })
-        .then(r => { if (r.ok) return null; return r.json(); })
-        .then(data => {
-          const status = data ? 'failure' : 'success';
-          const error = data ? (data.error || 'unknown') : null;
-          fireProcessEnded(flowId, attemptId, status, error);
-          fireFlowEnded(flowId, status, error);
-          if (data) console.error('Google One Tap failed', data);
+        .then(r => r.json().catch(() => ({})).then(data => ({ ok: r.ok, data: data || {} })))
+        .then(({ ok, data }) => {
+          const status = ok ? 'success' : 'failure';
+          const error = ok ? null : (data.error || 'unknown');
+          const outcome = ok ? data.outcome : null;
+          fireProcessEnded(flowId, attemptId, status, error, outcome);
+          fireFlowEnded(flowId, status, error, outcome);
+          if (!ok) console.error('Google One Tap failed', data);
           else window.location.reload();
         })
         .catch(err => {

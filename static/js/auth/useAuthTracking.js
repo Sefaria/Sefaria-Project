@@ -3,27 +3,30 @@ import { makeUuid } from './utils.js';
 import {
   persistActiveFlow, clearActiveFlow, clearPendingAttempt,
   fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded, fireFlowEnded,
-} from './signupAnalytics.js';
+} from './authAnalytics.js';
+
+// login/register both get a tracked flow; reset (password reset) never does.
+const isTrackedFlow = (f) => f === 'login' || f === 'register';
 
 /**
- * Drives the sign_up_flow_started/method_chosen/process_started/process_ended/
+ * Drives the auth_flow_started/method_chosen/process_started/process_ended/
  * flow_ended funnel for AuthPage. Owned by AuthPage, passed down into
- * RegisterView and useSsoSignIn.
+ * LoginView, RegisterView, and useSsoSignIn.
  *
  * @param flow   'login' | 'register' | 'reset' — AuthPage's `pathToFlow(initialPath)`.
  * @param source the CTA that led here (nav_bar, login_prompt, signup_modal_*,
  *               login_crosslink, ...) — AuthPage's `authSource` prop, ultimately
  *               read off a `data-signup-source` DOM attribute by ReaderApp.
  */
-export function useSignUpTracking({ flow, source }) {
+export function useAuthTracking({ flow, source }) {
   const flowIdRef = useRef(null);
   const attemptRef = useRef(null);
   const flowEndedRef = useRef(true);
-  const prevIsRegisterRef = useRef(false);
+  const prevFlowRef = useRef(null);
   // Set precisely at click time by useSsoSignIn.jsx (both Google's click_listener and
   // Apple's triggerApple) right before a mobile SSO redirect navigates away, so the
   // beforeunload that follows isn't mistaken for an ordinary abandoned visit — the flow's
-  // fate is instead resolved later, either by resumePendingSignUpAttempt (a persisted
+  // fate is instead resolved later, either by resumePendingAuthAttempt (a persisted
   // attempt + checking document.referrer on the next page load) or by the pageshow/bfcache
   // handler below if the user comes back via Back instead of completing the redirect.
   // Reset back to false at the start of every new flow (startFlow) so it never survives
@@ -39,7 +42,8 @@ export function useSignUpTracking({ flow, source }) {
     // suppressed for a redirect that's now over — a fresh flow must never start pre-suppressed.
     suppressFlowEndRef.current = false;
     persistActiveFlow({ flowId: flowIdRef.current });
-    fireFlowStarted(flowIdRef.current, src);
+    const flowIntent = flow === 'register' ? 'registration' : 'login';
+    fireFlowStarted(flowIdRef.current, src, flowIntent);
   }
 
   function chooseMethod(method) {
@@ -50,7 +54,7 @@ export function useSignUpTracking({ flow, source }) {
     // flight when a new method is chosen, so we never silently drop one).
     endProcess('failure', 'abandoned_for_new_attempt');
     const attemptId = makeUuid();
-    attemptRef.current = { attemptId, method, started: false, ended: false, status: null, error: null };
+    attemptRef.current = { attemptId, method, started: false, ended: false, status: null, error: null, outcome: null };
     fireMethodChosen(flowIdRef.current, attemptId, method);
     return attemptId;
   }
@@ -62,13 +66,14 @@ export function useSignUpTracking({ flow, source }) {
     fireProcessStarted(flowIdRef.current, attempt.attemptId);
   }
 
-  function endProcess(status, error = null) {
+  function endProcess(status, error = null, outcome = null) {
     const attempt = attemptRef.current;
     if (!attempt || attempt.ended) return;
     attempt.ended = true;
     attempt.status = status;
     attempt.error = error;
-    fireProcessEnded(flowIdRef.current, attempt.attemptId, status, error);
+    attempt.outcome = outcome;
+    fireProcessEnded(flowIdRef.current, attempt.attemptId, status, error, outcome);
   }
 
   function endFlow() {
@@ -77,7 +82,7 @@ export function useSignUpTracking({ flow, source }) {
     clearActiveFlow();
     // Any not-yet-resolved redirect marker for this flow is moot once it's concluded by any
     // means — left in place, it could otherwise be picked up by a later, unrelated page load's
-    // resumePendingSignUpAttempt() within its 10-minute window and double-reported as a failure.
+    // resumePendingAuthAttempt() within its 10-minute window and double-reported as a failure.
     clearPendingAttempt();
     const attempt = attemptRef.current;
     if (attempt?.started && !attempt.ended) {
@@ -85,31 +90,32 @@ export function useSignUpTracking({ flow, source }) {
     }
     const status = attempt?.status || 'failure';
     const error = attempt?.error ?? (attempt ? null : 'no_attempt');
-    fireFlowEnded(flowIdRef.current, status, error);
+    const outcome = attempt?.outcome ?? null;
+    fireFlowEnded(flowIdRef.current, status, error, outcome);
   }
 
   function getIds() {
     return { flowId: flowIdRef.current };
   }
 
-  // Flow-transition effect: fires once per arrival at /register (any sub-view),
-  // and once on departure — independent of which view (choose/email/etc) is showing.
+  // Flow-transition effect: fires once per arrival at /login or /register (any sub-view),
+  // and once on departure — independent of which view (choose/email/etc) is showing. A direct
+  // register<->login transition (no intervening untracked flow) still ends the old flow and
+  // starts a brand new one — per spec, Register then Login is two separate auth flows, not one
+  // continuous flow that merely changed intent.
   useEffect(() => {
-    const isRegister = flow === 'register';
-    const wasRegister = prevIsRegisterRef.current;
-    prevIsRegisterRef.current = isRegister;
-    if (isRegister && !wasRegister) {
-      startFlow(source);
-    } else if (!isRegister && wasRegister) {
-      endFlow();
-    }
+    const prevFlow = prevFlowRef.current;
+    prevFlowRef.current = flow;
+    if (prevFlow === flow) return;
+    if (isTrackedFlow(prevFlow)) endFlow();
+    if (isTrackedFlow(flow)) startFlow(source);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [flow, source]);
 
   // beforeunload can be suppressed (mobile SSO redirect may be in flight — resolved
-  // later via resumePendingSignUpAttempt); popstate never is.
+  // later via resumePendingAuthAttempt); popstate never is.
   useEffect(() => {
-    if (flow !== 'register') return;
+    if (!isTrackedFlow(flow)) return;
     const onBeforeUnload = () => {
       if (suppressFlowEndRef.current) return;
       endFlow();
@@ -122,7 +128,7 @@ export function useSignUpTracking({ flow, source }) {
     // whatever redirect was in flight did not succeed. That's why, unlike beforeunload, it
     // doesn't check suppressFlowEndRef: checking it here would just recreate the original
     // "which departure was the SSO one" problem for the one case where we now actually know
-    // the answer. Still on /register, so re-arm a fresh flow for whatever happens next.
+    // the answer. Still on /login or /register, so re-arm a fresh flow for whatever happens next.
     const onPageShow = (e) => {
       if (!e.persisted) return;
       const attempt = attemptRef.current;

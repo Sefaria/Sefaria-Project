@@ -7,12 +7,12 @@ import { act } from 'react-dom/test-utils';
 import GoogleOneTap from '../GoogleOneTap.jsx';
 import {
   fireFlowStarted, fireMethodChosen, fireProcessStarted, fireProcessEnded, fireFlowEnded,
-  SIGNUP_METHOD,
-} from '../signupAnalytics';
+  AUTH_METHOD,
+} from '../authAnalytics';
 import { makeUuid } from '../utils';
 
-jest.mock('../signupAnalytics', () => ({
-  ...jest.requireActual('../signupAnalytics'),
+jest.mock('../authAnalytics', () => ({
+  ...jest.requireActual('../authAnalytics'),
   fireFlowStarted: jest.fn(),
   fireMethodChosen: jest.fn(),
   fireProcessStarted: jest.fn(),
@@ -72,22 +72,36 @@ describe('handleCredential (fires on click — the credential callback — not o
 
     act(() => { credentialCallback({ credential: 'tok' }); });
 
-    expect(fireFlowStarted).toHaveBeenCalledWith('id-1', 'one_tap');
-    expect(fireMethodChosen).toHaveBeenCalledWith('id-1', 'id-2', SIGNUP_METHOD.GOOGLE_ONE_TAP);
+    expect(fireFlowStarted).toHaveBeenCalledWith('id-1', 'one_tap_widget', 'one_tap_login');
+    expect(fireMethodChosen).toHaveBeenCalledWith('id-1', 'id-2', AUTH_METHOD.GOOGLE_ONE_TAP);
     expect(fireProcessStarted).toHaveBeenCalledWith('id-1', 'id-2');
     expect(fireProcessEnded).not.toHaveBeenCalled();
   });
 
-  it('reports success once our backend confirms the token', async () => {
+  it('posts to the Sefaria-owned Google callback endpoint with just {id_token}', () => {
     mount();
     flushInitialDelay();
-    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => null });
+    global.fetch = jest.fn(() => new Promise(() => {}));
+    const credentialCallback = getCredentialCallback();
+
+    act(() => { credentialCallback({ credential: 'tok' }); });
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/auth/google/callback', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ id_token: 'tok' }),
+    }));
+  });
+
+  it('reports success and threads the backend-provided outcome once our backend confirms the token', async () => {
+    mount();
+    flushInitialDelay();
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ outcome: 'existing_user_login' }) });
     const credentialCallback = getCredentialCallback();
 
     await act(async () => { await credentialCallback({ credential: 'tok' }); });
 
-    expect(fireProcessEnded).toHaveBeenCalledWith('id-1', 'id-2', 'success', null);
-    expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'success', null);
+    expect(fireProcessEnded).toHaveBeenCalledWith('id-1', 'id-2', 'success', null, 'existing_user_login');
+    expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'success', null, 'existing_user_login');
   });
 
   it('reports failure with the backend-provided error when the backend rejects the token', async () => {
@@ -98,8 +112,8 @@ describe('handleCredential (fires on click — the credential callback — not o
 
     await act(async () => { await credentialCallback({ credential: 'tok' }); });
 
-    expect(fireProcessEnded).toHaveBeenCalledWith('id-1', 'id-2', 'failure', 'invalid_token');
-    expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'failure', 'invalid_token');
+    expect(fireProcessEnded).toHaveBeenCalledWith('id-1', 'id-2', 'failure', 'invalid_token', null);
+    expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'failure', 'invalid_token', null);
   });
 
   it('reports a network_error failure when the fetch itself rejects', async () => {
