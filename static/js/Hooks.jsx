@@ -58,13 +58,26 @@ function useDebounce(value, delay) {
  * scroller: on singlePanel the document scrolls instead, though not for every
  * container, so it is decided per element rather than per breakpoint. */
 
-// Overflow alone is not enough: `overflow-y: visible` beside `overflow-x: hidden` computes to
-// `auto` (.noOverflowX does this to TopicPage), so real overflow has to be checked too.
+// `scroll` always scrolls, `auto` and `overlay` only when the content does not fit, and
+// `visible` never does.
+const OVERFLOW_VALUES_THAT_CAN_SCROLL = ['scroll', 'auto', 'overlay'];
+
+// Both halves are needed, because `auto` is a condition rather than a promise: it means "scroll
+// only if the content does not fit". A container can report `auto` and still never scroll.
 const isScrollingElement = (el) => {
   if (!el) { return false; }
+
+  // Does the CSS permit a scrollbar? Not enough on its own -- `overflow-y: visible` beside an
+  // `overflow-x` that is not visible computes to `auto`, which is what .noOverflowX does to the
+  // topic and profile containers.
   const {overflowY} = window.getComputedStyle(el);
-  if (!['scroll', 'auto', 'overlay'].includes(overflowY)) { return false; }
-  return el.scrollHeight > el.clientHeight;
+  const overflowAllowsScrolling = OVERFLOW_VALUES_THAT_CAN_SCROLL.includes(overflowY);
+
+  // Is the box actually hiding anything? On singlePanel these containers grow to their full
+  // content height, so nothing is hidden, no scrollbar appears, and no scroll event ever fires.
+  const contentIsTallerThanBox = el.scrollHeight > el.clientHeight;
+
+  return overflowAllowsScrolling && contentIsTallerThanBox;
 };
 
 // A null scroller means the document scrolls.
