@@ -16,8 +16,8 @@ describe('INDEX_FIELD_METADATA', () => {
       const expectedFields = [
         'enDesc', 'enShortDesc', 'heDesc', 'heShortDesc',
         'categories', 'authors', 'compDate', 'compPlace', 'heCompPlace',
-        'pubDate', 'pubPlace', 'hePubPlace', 'toc_zoom',
-        'dependence', 'base_text_titles', 'collective_title', 'he_collective_title'
+        'pubDate', 'pubPlace', 'hePubPlace',
+        'dependence', 'base_text_titles', 'collective_title'
       ];
       expectedFields.forEach(field => {
         expect(INDEX_FIELD_METADATA).toHaveProperty(field);
@@ -44,43 +44,10 @@ describe('INDEX_FIELD_METADATA', () => {
     });
 
     it('Hebrew fields have rtl direction', () => {
-      const hebrewFields = ['heDesc', 'heShortDesc', 'heCompPlace', 'hePubPlace', 'he_collective_title'];
+      const hebrewFields = ['heDesc', 'heShortDesc', 'heCompPlace', 'hePubPlace'];
       hebrewFields.forEach(field => {
         expect(INDEX_FIELD_METADATA[field].dir).toBe('rtl');
       });
-    });
-  });
-
-  describe('toc_zoom validation', () => {
-    const validate = INDEX_FIELD_METADATA.toc_zoom.validate;
-
-    it('accepts empty values', () => {
-      expect(validate('')).toBe(true);
-      expect(validate(null)).toBe(true);
-      expect(validate(undefined)).toBe(true);
-    });
-
-    it('accepts valid integers 0-10', () => {
-      for (let i = 0; i <= 10; i++) {
-        expect(validate(String(i))).toBe(true);
-      }
-    });
-
-    it('rejects integers outside 0-10 range', () => {
-      expect(validate('-1')).toBe(false);
-      expect(validate('11')).toBe(false);
-      expect(validate('100')).toBe(false);
-    });
-
-    it('rejects non-numeric values', () => {
-      expect(validate('abc')).toBe(false);
-      expect(validate('one')).toBe(false);
-    });
-
-    it('accepts decimals (parseInt truncates to integer)', () => {
-      // Note: parseInt('1.5') = 1, which is valid
-      expect(validate('1.5')).toBe(true);
-      expect(validate('5.9')).toBe(true);
     });
   });
 

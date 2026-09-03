@@ -314,34 +314,7 @@ if (indexSpecificUpdates.collective_title === 'auto') {
 }
 ```
 
-### Term Creation Flow
-
-Terms are required for collective titles to display properly:
-
-```javascript
-const createTermIfNeeded = async (enTitle, heTitle) => {
-  // 1. Check if term exists
-  try {
-    await $.get(`/api/terms/${encodeURIComponent(enTitle)}`);
-    return true; // Already exists
-  } catch (e) {
-    if (e.status === 404) {
-      // 2. Create new term
-      await $.post(`/api/terms/${encodeURIComponent(enTitle)}`, {
-        json: JSON.stringify({
-          name: enTitle,
-          titles: [
-            { lang: "en", text: enTitle, primary: true },
-            { lang: "he", text: heTitle, primary: true }
-          ]
-        })
-      });
-    }
-  }
-};
-```
-
-### TOC Zoom Handling
+### TOC Zoom Handling (plan, not yet implemented)
 
 TOC zoom is applied to schema nodes, not the index directly:
 
