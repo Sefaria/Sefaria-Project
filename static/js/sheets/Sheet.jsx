@@ -45,12 +45,30 @@ class Sheet extends Component {
   }
   handleClick(e) {
     const target = e.target.closest('a');
-    if (target) {
-      e.preventDefault();
-      const href = target.getAttribute('href');
-      if (!href) { return; }
-      const moduleTarget = target.getAttribute('data-target-module');
-      const fullUrl = Sefaria.util.fullURL(href, moduleTarget); // Ignores moduleTarget if it's null
+    if (!target) { return; }
+    // Cmd/ctrl/shift-click is the user explicitly asking for a new tab or window -- let the browser do its thing.
+    if (e.metaKey || e.ctrlKey || e.shiftKey) { return; }
+    e.preventDefault();
+    const href = target.getAttribute('href');
+    if (!href) { return; }
+    const moduleTarget = target.getAttribute('data-target-module');
+    const fullUrl = Sefaria.util.fullURL(href, moduleTarget); // Ignores moduleTarget if it's null
+    let url;
+    try {
+      url = new URL(fullUrl, window.location.href); // second arg resolves relative paths against the current page
+    } catch (err) {
+      Sefaria.util.openInNewTab(fullUrl);
+      return;
+    }
+    // Check the hostname too, so that e.g. https://someothersite.com/sheets/42 isn't mistaken for one of our sheets.
+    // These checks look at every interface language's domains, since a link can point at the Hebrew domain
+    // (or the English one) no matter which language the reader is currently using.  We also accept "www.sefaria.org" as a hostname
+    // for backward compatibility with old links (especially since they get forwarded currently "voices.sefaria.org")
+    const isSheetLink = Sefaria.getAllHostnames().has(url.hostname) && /^\/sheets\/\d+/.test(url.pathname);
+    const isVoicesDomain = Sefaria.getCurrentModuleHostnames(Sefaria.VOICES_MODULE).has(url.hostname);
+    if (isSheetLink || isVoicesDomain) {
+      window.location.href = fullUrl;
+    } else {
       Sefaria.util.openInNewTab(fullUrl);
     }
   }
@@ -94,6 +112,7 @@ class Sheet extends Component {
           highlightedRefsInSheet={this.props.highlightedRefsInSheet}
           scrollToHighlighted={this.props.scrollToHighlighted}
           setSelectedWords={this.props.setSelectedWords}
+          handleClick={this.handleClick}
           sheetID={sheet.id}
           authorStatement={sheet.ownerName}
           authorID={sheet.owner}
