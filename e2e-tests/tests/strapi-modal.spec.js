@@ -10,31 +10,33 @@
  *   installOverlaySuppression(), which short-circuits /api/strapi/graphql-cache with an empty
  *   payload and marks every modal_/banner_ localStorage key as already-seen — i.e. it suppresses
  *   exactly what this spec asserts on (see e2e-tests/CLAUDE.md §3). So this spec intentionally uses
- *   a bare page.goto plus routeFromHAR, keeping Strapi ON. Do NOT route it through PageManager.
+ *   a bare page.goto plus a synthetic Strapi route, keeping Strapi ON. Do NOT route it through PageManager.
  *
- * The response is replayed from e2e-tests/fixtures/strapi-content.har. See ./strapi.fixtures.js
- * for the recording command and the pinned-clock rationale.
+ * The response is served from the scenario's synthetic payload replica (strapi.scenario-payloads.js),
+ * proven equal to its frozen recording by strapi-scenario-payload-fidelity.spec.js. See
+ * ./strapi.fixtures.js for the pinned-clock rationale.
  */
 
 import { test, expect } from '@playwright/test';
-import { routeWithStrapiHarFixture, expectStrapiServedFromHar } from '../support/strapi-har-fixture.js';
+import { routeWithStrapiPayload, expectStrapiServed } from '../support/strapi-payload-fixture.js';
 import { SCENARIOS, prepareStrapiPage, advanceUntilVisible } from './strapi.fixtures.js';
 
 const scenario = SCENARIOS.publishedModal;
 
 test.describe('Strapi Modal', () => {
-  let har;
+  let served;
 
   test.beforeEach(async ({ page, context }) => {
-    har = await routeWithStrapiHarFixture(context, scenario.har);
+    served = await routeWithStrapiPayload(context, scenario.payload);
     await prepareStrapiPage(page, scenario);
   });
 
-  // Guards against the fixture going stale. A HAR miss falls through to the live backend, where
-  // the test would either pass for the wrong reason or fail as a generic "not visible" — this
+  // The synthetic route fulfils every /api/strapi request, so nothing can fall through to a live
+  // backend; the remaining hazard is the page never requesting Strapi at all (STRAPI_INSTANCE
+  // unset, overlay suppression), which would make absence assertions pass vacuously — this
   // turns that into an explicit, self-diagnosing failure.
   test.afterEach(() => {
-    expectStrapiServedFromHar(har);
+    expectStrapiServed(served);
   });
 
   test('a published modal is displayed', async ({ page }) => {

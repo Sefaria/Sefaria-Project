@@ -159,10 +159,17 @@ const FIELD_DEFAULTS = {
     buttonIcon: null,
     startTime: null,
     endTime: null,
-    // Exclude-only rule: eligible on any page that does not carry the 'nowhere' keyword, i.e.
-    // everywhere. Page keyword targets come from the open refs, so an INCLUDE rule would make an
-    // ad depend on which text is open — rarely what a test means to vary.
-    keywords: '!nowhere',
+    // Empty = "no keyword restriction" (matcher semantics in static/js/sefaria/sidebarAds.js),
+    // so which page a spec navigates to never silently decides whether the default ad is
+    // eligible — including keyword-less pages like /texts. (The pre-2026-09 default was the
+    // exclusion hack '!nowhere', which stopped matching keyword-less pages when exclusion-only
+    // rules became strict; the recorded scenarios that still use exclusion keywords set them
+    // explicitly and navigate keyword-bearing pages.)
+    keywords: '',
+    // Same match-everywhere principle as `keywords` above: all_pages passes the page-type gate on
+    // every page, so which page a spec navigates to never silently decides whether the default ad
+    // is eligible. Specs testing the gate itself override this with a concrete PAGE_TYPE value.
+    pageType: 'all_pages',
     showTo: 'all',
     debug: false,
     hasBlueBackground: false,
@@ -176,6 +183,23 @@ const FIELD_DEFAULTS = {
 };
 
 const fieldNames = (contentType) => Object.keys(FIELD_DEFAULTS[contentType]);
+
+/**
+ * Query fields added AFTER the recordings were captured.
+ *
+ * The .har files are frozen reference documents — they are never re-recorded (decision
+ * 2026-08-31), so when the GraphQL query in static/js/context.js gains a field, the factory
+ * gains it in FIELD_DEFAULTS and the field's name is ALSO declared here. Two guards consume
+ * this list:
+ *   - strapi-payload-contract.spec.js allows a factory field to be absent from the recordings
+ *     only if it is listed here, and FAILS if a listed field ever shows up in a recording —
+ *     so the list can't quietly rot into a blanket exemption;
+ *   - strapi.scenario-payloads.js strips these fields so each scenario replica keeps matching
+ *     its recording (deep equality).
+ */
+const FIELDS_ADDED_SINCE_RECORDING = [
+  'pageType', // sidebar-ad page-type targeting, added 2026-08-31 — recordings predate it
+];
 
 /**
  * Per-document identifiers that MUST be unique, with the consequence of a collision.
@@ -338,6 +362,7 @@ export {
   FIELD_DEFAULTS,
   WINDOW_FIELDS,
   SYNTHETIC_NOW,
+  FIELDS_ADDED_SINCE_RECORDING,
   fieldNames,
   daysFromNow,
   hoursFromNow,

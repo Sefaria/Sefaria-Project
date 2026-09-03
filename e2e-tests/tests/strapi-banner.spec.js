@@ -10,13 +10,14 @@
  *   installOverlaySuppression(), which short-circuits /api/strapi/graphql-cache with an empty
  *   payload and marks every modal_/banner_ localStorage key as already-seen — i.e. it suppresses
  *   exactly what this spec asserts on (see e2e-tests/CLAUDE.md §3). So this spec intentionally uses
- *   a bare page.goto plus routeFromHAR, keeping Strapi ON. Do NOT route it through PageManager.
+ *   a bare page.goto plus a synthetic Strapi route, keeping Strapi ON. Do NOT route it through PageManager.
  *
- * Replayed from the scenario's recorded .har; see ./strapi.fixtures.js for the recording workflow.
+ * Served from the scenario's synthetic payload replica; see ./strapi.fixtures.js for how
+ * scenarios are anchored to their frozen recordings.
  */
 
 import { test, expect } from '@playwright/test';
-import { routeWithStrapiHarFixture, expectStrapiServedFromHar } from '../support/strapi-har-fixture.js';
+import { routeWithStrapiPayload, expectStrapiServed } from '../support/strapi-payload-fixture.js';
 import {
   SCENARIOS,
   prepareStrapiPage,
@@ -29,17 +30,17 @@ import {
 const scenario = SCENARIOS.publishedBanner;
 
 test.describe('Strapi Banner', () => {
-  let har;
+  let served;
 
   test.beforeEach(async ({ page, context }) => {
-    har = await routeWithStrapiHarFixture(context, scenario.har);
+    served = await routeWithStrapiPayload(context, scenario.payload);
     await prepareStrapiPage(page, scenario);
   });
 
-  // A HAR miss is blocked rather than forwarded to live Strapi, which would otherwise surface only
-  // as a generic "not visible". This reports the real cause instead.
+  // The synthetic route always answers, so the only silent failure left is the page never
+  // requesting Strapi at all — this reports that real cause instead of a generic "not visible".
   test.afterEach(() => {
-    expectStrapiServedFromHar(har);
+    expectStrapiServed(served);
   });
 
   test('a published banner is displayed', async ({ page }) => {

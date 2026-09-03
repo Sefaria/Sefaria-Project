@@ -9,7 +9,8 @@ const TranslationsPage = ({translationsSlug}) => {
     const [translations, setTranslations] = useState(null);
     const [uncategorized, setUncategorized] = useState({});
     const [prioritized, setPrioritized] = useState({});
-    let sidebarModules = [{type: "AboutTranslatedText", props: {translationsSlug: translationsSlug}}];
+    // Promo: sidebar-ad slot — makes this page targetable by ads (pageType "translations").
+    let sidebarModules = [{type: "AboutTranslatedText", props: {translationsSlug: translationsSlug}}, {type: "Promo"}];
     let translation = Sefaria.getTranslation(translationsSlug).then(x => {
         setTranslations(x)
     });

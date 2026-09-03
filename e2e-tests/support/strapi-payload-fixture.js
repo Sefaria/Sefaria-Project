@@ -1,19 +1,15 @@
 /**
  * Serve a synthetic Strapi payload to the page under test.
  *
- * The counterpart to `strapi-har-fixture.js`. Both make the Strapi endpoint deterministic and both
- * keep the browser off the live backend; they differ in where the payload comes from:
+ * The ONLY Strapi routing in use since 2026-08-31. Its former counterpart,
+ * `strapi-har-fixture.js` (HAR record/replay), is RETIRED — kept only as documentation of how the
+ * frozen recordings were made. routeWithStrapiPayload fulfils from a payload built in code and
+ * matches the URL glob ALONE, so it survives changes to the GraphQL query and needs no Strapi
+ * setup, at the cost of being a shape we assert rather than observe.
  *
- *   routeWithStrapiHarFixture  — replays a recorded response. Proves Sefaria behaves correctly
- *                                against a payload Strapi really produced. Matches on the full URL
- *                                AND the POST body, so it is tied to one clock and one query.
- *   routeWithStrapiPayload     — fulfils from a payload built in code. Matches the URL glob ALONE,
- *                                so it survives changes to the GraphQL query and needs no Strapi
- *                                setup, at the cost of being a shape we assert rather than observe.
- *
- * That last cost is paid off by `strapi-payload-contract.spec.js`, which holds the factory's field
- * set to what the recordings actually contain. Read the header of `strapi-payload-factory.js` for
- * when to reach for which.
+ * That cost is paid off twice: `strapi-payload-contract.spec.js` holds the factory's field set to
+ * what the frozen recordings actually contain, and `strapi-scenario-payload-fidelity.spec.js`
+ * proves each scenario replica deep-equals its recording.
  *
  * Only `/api/strapi/**` is intercepted; the page HTML and every other Sefaria API still come from
  * the local/CI Django server, which must be running. `STRAPI_INSTANCE` must also be configured
@@ -42,9 +38,16 @@ export async function routeWithStrapiPayload(context, payload, options = {}) {
   const { status = 200, rawBody, contentType = 'application/json' } = options;
 
   const served = [];
+  const queries = [];
 
   await context.route(STRAPI_URL_GLOB, async (route) => {
     served.push(route.request().url());
+    // The POST body is the client's real GraphQL query. The route deliberately does NOT match on
+    // it (URL-glob immunity is what freed the suite from recording invalidation), which means no
+    // test fails just because the query changed — including a change that DROPS a field the
+    // payload still fakes. Recording the body lets a spec assert on the query directly and close
+    // that hole; see "the client's real query asks Strapi for..." in the page-type spec.
+    queries.push(route.request().postData() || '');
     await route.fulfill({
       status,
       contentType,
@@ -52,7 +55,7 @@ export async function routeWithStrapiPayload(context, payload, options = {}) {
     });
   });
 
-  return { served, synthetic: true };
+  return { served, queries, synthetic: true };
 }
 
 /**

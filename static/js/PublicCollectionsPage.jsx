@@ -44,6 +44,8 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
   const sidebarModules = [
     multiPanel ? {type: "AboutCollections"} : {type: null},
     {type: "StayConnected"},
+    // Sidebar-ad slot — makes this page targetable by ads (pageType "public_collections").
+    {type: "Promo"},
   ];
 
   let enCollections, heCollections, enCollBox, heCollBox;  
