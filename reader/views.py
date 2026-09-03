@@ -20,6 +20,7 @@ import re
 import uuid
 from dataclasses import asdict
 from functools import lru_cache
+from pathlib import Path
 
 from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_KEY
 from remote_config import remoteConfigCache
@@ -530,7 +531,7 @@ def old_versions_redirect(request, tref, lang, version):
 
 def get_connections_mode(filter):
     # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open", "Version Open", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide", "LinkerAdmin")
+    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open", "Version Open", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide", "LinkerAdmin", "ResearchPanelPOC")
     if filter[0] in sidebarModes:
         return filter[0], True
     elif filter[0].endswith(" ConnectionsList"):
@@ -726,6 +727,57 @@ def make_panel_dicts(oref, primaryVersion, translationVersion, filter, versionFi
     return panels
 
 
+def make_lightweight_research_panel_poc_dicts(oref, primaryVersion, translationVersion, filter, versionFilter, multi_panel, **kwargs):
+    """
+    Build the initial reader state for the research-panel POC without embedding
+    full text payloads. Direct sandbox URLs can otherwise spend longer than the
+    public upstream timeout building initial text data before React hydrates.
+    """
+    section_ref = oref.first_available_section_ref()
+    oref = section_ref if section_ref else oref
+    refs = [oref.normal()] if not oref.is_spanning() else [r.normal() for r in oref.split_spanning_ref()]
+    highlighted_refs = [subref.normal() for subref in oref.range_list()] if oref.is_segment_level() or oref.is_range() else []
+    settings_override = {}
+    panel_display_language = kwargs.get("panelDisplayLanguage")
+    if panel_display_language:
+        settings_override["language"] = short_to_long_lang_code(panel_display_language)
+    aliyot_override = kwargs.get("aliyotOverride")
+    if aliyot_override:
+        settings_override["aliyotTorah"] = aliyot_override
+
+    def base_panel(mode):
+        panel = {
+            "mode": mode,
+            "ref": oref.normal(),
+            "refs": refs,
+            "currVersions": {"en": translationVersion, "he": primaryVersion},
+            "versionFilter": versionFilter,
+            "highlightedRefs": highlighted_refs or kwargs.get("highlightedRefs", []),
+            "showHighlight": kwargs.get("showHighlight", None),
+            "selectedWords": kwargs.get("selectedWords", None),
+            "sidebarSearchQuery": kwargs.get("sidebarSearchQuery", None),
+            "selectedNamedEntity": kwargs.get("selectedNamedEntity", None),
+            "selectedNamedEntityText": kwargs.get("selectedNamedEntityText", None),
+        }
+        if settings_override:
+            panel["settings"] = settings_override
+        return panel
+
+    text_panel = base_panel("Text")
+    connections_panel = base_panel("Connections")
+    connections_panel.update({
+        "connectionsMode": "ResearchPanelPOC",
+        "connectionsPanelDisplayLanguage": kwargs.get("connectionsPanelDisplayLanguage", None),
+    })
+
+    if multi_panel:
+        return [text_panel, connections_panel]
+
+    text_and_connections_panel = base_panel("TextAndConnections")
+    text_and_connections_panel["connectionsMode"] = "ResearchPanelPOC"
+    return [text_and_connections_panel]
+
+
 def _extract_version_params(request, key):
     params = request.GET.get(key, '|')
     params = params.replace("_", " ")
@@ -825,6 +877,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         filter = []
     elif filter:
         filter = filter.replace("_", " ").split("+")
+    is_research_panel_poc = filter == ["ResearchPanelPOC"]
 
     noindex = False
 
@@ -848,7 +901,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         kwargs["sidebarSearchQuery"] = request.GET.get("sbsq", None)
         kwargs["selectedNamedEntity"] = request.GET.get("namedEntity", None)
         kwargs["selectedNamedEntityText"] = request.GET.get("namedEntityText", None)
-        panels += make_panel_dicts(oref, primaryVersion, translationVersion, filter, versionFilter, multi_panel, **kwargs)
+        panel_builder = make_lightweight_research_panel_poc_dicts if is_research_panel_poc else make_panel_dicts
+        panels += panel_builder(oref, primaryVersion, translationVersion, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
         panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang",request.contentLang), "referer": request.path})
@@ -935,7 +989,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
                     desc = enDesc or heDesc  # if no english, fall back on hebrew
 
                 desc = bleach.clean(desc, strip=True, tags=())
-                desc = desc[:160].rsplit(' ', 1)[0] + "..."  # truncate as close to 160 characters as possible while maintaining whole word. Append ellipses.
+                desc = desc[:160].rsplit(' ', 1)[0] + "..." if desc else _("Explore 3,000 years of Jewish texts in Hebrew and English translation.")  # truncate as close to 160 characters as possible while maintaining whole word. Append ellipses.
 
             except (IndexError, KeyError):
                 desc = _("Explore 3,000 years of Jewish texts in Hebrew and English translation.")
@@ -2584,6 +2638,166 @@ def related_api(request, tref):
             for item in value:
                 if 'expandedRefs' in item:
                     del item['expandedRefs']
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+RESEARCH_PANEL_POC_FIXTURE_PATH = Path(settings.BASE_DIR) / "data" / "research_panel_poc" / "nitzavim_candidates_1000.tagged.claude.json"
+RESEARCH_PANEL_POC_PURPOSE_ORDER = [
+    "Explanatory",
+    "Linguistic",
+    "Parallel",
+    "Proof",
+    "Stylistic",
+    "Footnote",
+    "Base Text",
+    "Other",
+]
+
+
+@lru_cache(maxsize=1)
+def _research_panel_poc_fixture():
+    with RESEARCH_PANEL_POC_FIXTURE_PATH.open(encoding="utf-8") as fin:
+        return json.load(fin)
+
+
+def _refs_overlap(ref_a, ref_b):
+    try:
+        oref_a = Ref(ref_a)
+        oref_b = Ref(ref_b)
+        return oref_a.overlaps(oref_b) or oref_a.contains(oref_b) or oref_b.contains(oref_a)
+    except Exception:
+        return ref_a == ref_b
+
+
+def _research_panel_poc_item_for_client(item):
+    tags = item.get("llmTags", {})
+    title = (
+        item.get("sourceRef")
+        or item.get("title")
+        or item.get("fetchedTitle")
+        or item.get("url")
+        or item.get("id")
+    )
+    subtitle = item.get("sourceBook") or item.get("domain") or item.get("ownerName") or item.get("category")
+    snippet = (
+        item.get("citationSnippet")
+        or " ".join(e.get("text") or "" for e in item.get("deterministicSnippetEvidence", []))
+        or item.get("sourceTextPreview")
+        or item.get("summary")
+        or item.get("description")
+        or item.get("extractedTextPreview")
+        or ""
+    )
+    return {
+        "id": item.get("id"),
+        "resourceType": item.get("resourceType"),
+        "anchorRefs": item.get("anchorRefs", []),
+        "primaryAnchorRef": item.get("primaryAnchorRef"),
+        "passage": item.get("passage"),
+        "title": title,
+        "subtitle": subtitle,
+        "url": item.get("url"),
+        "sourceRef": item.get("sourceRef"),
+        "sourceBook": item.get("sourceBook"),
+        "category": item.get("category"),
+        "domain": item.get("domain"),
+        "ownerName": item.get("ownerName"),
+        "snippet": snippet[:700],
+        "snippetMethod": item.get("snippetMethod") or ("linker-citation-span" if item.get("deterministicSnippetAvailable") else "preview"),
+        "deterministicSnippetAvailable": item.get("deterministicSnippetAvailable") or item.get("citationFound") or False,
+        "fetchOk": item.get("webFetch", {}).get("fetchOk"),
+        "fetchStatus": item.get("webFetch", {}).get("fetchStatus"),
+        "purposeTags": tags.get("purposeTags", []),
+        "primaryPurpose": tags.get("primaryPurpose", "Other"),
+        "questionsAnswered": tags.get("questionsAnswered", []),
+        "normalizedQuestion": tags.get("normalizedQuestion", ""),
+        "topicTags": tags.get("topicTags", []),
+        "quality": tags.get("quality", ""),
+        "needsHumanReview": tags.get("needsHumanReview", False),
+        "rationale": tags.get("rationale", ""),
+        "clusterId": tags.get("clusterId"),
+        "clusterLabel": tags.get("clusterLabel"),
+    }
+
+
+def _research_panel_group_by(items, key):
+    grouped = OrderedDict()
+    for item in items:
+        value = item.get(key) or "Other"
+        grouped.setdefault(value, []).append(item)
+    return [{"name": name, "count": len(group_items), "items": group_items} for name, group_items in grouped.items()]
+
+
+def _research_panel_raw_categories(items):
+    groups = _research_panel_group_by(items, "primaryPurpose")
+    for group in groups:
+        if group["name"] == "Explanatory":
+            group["questionGroups"] = _research_panel_group_by(group["items"], "clusterLabel")
+            group["items"] = []
+    groups.sort(key=lambda group: RESEARCH_PANEL_POC_PURPOSE_ORDER.index(group["name"]) if group["name"] in RESEARCH_PANEL_POC_PURPOSE_ORDER else len(RESEARCH_PANEL_POC_PURPOSE_ORDER))
+    return groups
+
+
+@catch_error_as_json
+def related_by_passage_poc_api(request, tref):
+    """
+    Fixture-backed research panel POC data for Nitzavim.
+
+    This endpoint deliberately reads local JSON instead of production models so
+    the UI can be exercised without adding new collections for the POC.
+    """
+    oref = Ref(tref)
+    fixture = _research_panel_poc_fixture()
+    passage = None
+    try:
+        passage_record = Passage.containing_segment(oref)
+        if passage_record:
+            passage = {
+                "ref": passage_record.full_ref,
+                "type": passage_record.type,
+                "source": getattr(passage_record, "source", None),
+            }
+    except Exception:
+        passage = None
+
+    segment_items = []
+    passage_items = []
+    for fixture_item in fixture.get("items", []):
+        if any(_refs_overlap(anchor_ref, oref.normal()) for anchor_ref in fixture_item.get("anchorRefs", [])):
+            segment_items.append(_research_panel_poc_item_for_client(fixture_item))
+        if passage and any(_refs_overlap(anchor_ref, passage["ref"]) for anchor_ref in fixture_item.get("anchorRefs", [])):
+            passage_items.append(_research_panel_poc_item_for_client(fixture_item))
+
+    sort_key = lambda item: (
+        {"strong": 0, "okay": 1, "weak": 2, "off-topic": 3, "blocked": 4}.get(item.get("quality"), 5),
+        item.get("primaryPurpose") or "",
+        item.get("title") or "",
+    )
+    segment_items.sort(key=sort_key)
+    passage_items.sort(key=sort_key)
+
+    response = {
+        "ref": oref.normal(),
+        "parsha": fixture.get("parsha"),
+        "passage": passage,
+        "segment": {
+            "items": segment_items,
+            "count": len(segment_items),
+            "clusters": _research_panel_group_by(segment_items, "clusterLabel"),
+        },
+        "passageResults": {
+            "items": passage_items,
+            "count": len(passage_items),
+            "clusters": _research_panel_group_by(passage_items, "clusterLabel"),
+        },
+        "rawCategories": _research_panel_raw_categories(segment_items),
+        "summary": {
+            "fixturePath": str(RESEARCH_PANEL_POC_FIXTURE_PATH),
+            "fixtureItemCount": len(fixture.get("items", [])),
+            "segmentItemCount": len(segment_items),
+            "passageItemCount": len(passage_items),
+        },
+    }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 

@@ -18,7 +18,8 @@ class ConnectionsPanelHeader extends Component {
         // mapping from modes to previous modes
         "Translation Open":"Translations",
         "extended notes":"Translations",
-        "WebPagesList": "WebPages"
+        "WebPagesList": "WebPages",
+        "ResearchPanelPOC": "Resources"
     };
   }
   componentDidMount() {

@@ -23,7 +23,8 @@ import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
 import $ from './sefaria/sefariaJquery';
 import SidebarSearch from './SidebarSearch';
-import TextList from './TextList'
+import TextList, { ConnectionButtons, OpenConnectionTabButton } from './TextList'
+import TextRange from './TextRange';
 import ConnectionsPanelHeader from './ConnectionsPanelHeader';
 import { AddToSourceSheetBox } from './AddToSourceSheet';
 import LexiconBox from './LexiconBox';
@@ -463,6 +464,17 @@ class ConnectionsPanel extends Component {
         interfaceLang={this.props.interfaceLang}
         key="WebPages" />);
 
+    } else if (this.props.mode === "ResearchPanelPOC") {
+      content = (<ResearchPanelPOC
+        srefs={this.props.srefs}
+        panelPosition={this.props.panelPosition}
+        onTextClick={this.props.onTextClick}
+        onCitationClick={this.props.onCitationClick}
+        translationLanguagePreference={this.props.translationLanguagePreference}
+        filterRef={this.props.filterRef}
+        interfaceLang={this.props.interfaceLang}
+        key="ResearchPanelPOC" />);
+
     } else if (this.props.mode === "Torah Readings") {
       content = (<MediaList
         srefs={this.props.srefs}
@@ -586,7 +598,7 @@ class ConnectionsPanel extends Component {
               />
     }
 
-    const marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) !== -1;
+    const marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts", "ResearchPanelPOC"].indexOf(this.props.mode) !== -1;
     let classes = classNames({ connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel });
     return (
       <div className={classes} key={this.props.mode}>
@@ -673,6 +685,7 @@ const ResourcesList = ({ srefs, setConnectionsMode, counts }) => {
         <ToolsButton.SecondaryIcon icon="open-panel.svg" alt="Opens in new window" />
       </ToolsButton>
       <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} urlConnectionsMode="WebPages" onClick={() => setConnectionsMode("WebPages")} />
+      <ToolsButton en="Research Panel" he="פאנל מחקר" icon="flask" highlighted={true} experiment={true} urlConnectionsMode="ResearchPanelPOC" onClick={() => setConnectionsMode("ResearchPanelPOC")} alwaysShow={true} />
       <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]} urlConnectionsMode="Topics" onClick={() => setConnectionsMode("Topics")} alwaysShow={Sefaria.is_moderator} />
       <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} urlConnectionsMode="manuscripts" onClick={() => setConnectionsMode("manuscripts")} />
       <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" count={counts["audio"]} urlConnectionsMode="Torah Readings" onClick={() => setConnectionsMode("Torah Readings")} />
@@ -901,6 +914,381 @@ const TopicListItem = ({ id, topic, interfaceLang, srefs }) => {
     </a>
   );
 }
+
+const ResearchPanelTabs = {
+  segment: "Guided Segment",
+  passage: "Guided Passage",
+  categories: "Raw Categories",
+};
+
+class ResearchPanelPOC extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      activeTab: "segment",
+      selectedGuidedCluster: null,
+      selectedRawCategory: null,
+      selectedRawQuestion: null,
+      data: null,
+      isLoading: false,
+      loadError: null,
+    };
+    this.setGuidedCluster = this.setGuidedCluster.bind(this);
+    this.setRawCategory = this.setRawCategory.bind(this);
+    this.setRawQuestion = this.setRawQuestion.bind(this);
+  }
+  componentDidMount() {
+    this._isMounted = true;
+    this.loadData(this.props.srefs);
+  }
+  componentDidUpdate(prevProps) {
+    if (!prevProps.srefs.compare(this.props.srefs)) {
+      this.loadData(this.props.srefs);
+    }
+  }
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+  loadData(srefs) {
+    if (!srefs || !srefs.length) { return; }
+    const ref = srefs[0];
+    const cached = Sefaria.researchPanelPOC(ref);
+    if (cached) {
+      this.setState({ data: cached, isLoading: false, loadError: null });
+      return;
+    }
+    this.setState({ isLoading: true, loadError: null });
+    Sefaria.researchPanelPOC(ref, data => {
+      if (!this._isMounted) { return; }
+      if (!data || data.error) {
+        this.setState({ isLoading: false, loadError: data?.error || "Unable to load research panel." });
+        return;
+      }
+      this.setState({ data, isLoading: false, loadError: null });
+    });
+  }
+  setTab(activeTab) {
+    this.setState({ activeTab, selectedGuidedCluster: null, selectedRawCategory: null, selectedRawQuestion: null });
+  }
+  setGuidedCluster(selectedGuidedCluster) {
+    this.setState({ selectedGuidedCluster });
+  }
+  setRawCategory(selectedRawCategory) {
+    this.setState({ selectedRawCategory, selectedRawQuestion: null });
+  }
+  setRawQuestion(selectedRawQuestion) {
+    this.setState({ selectedRawQuestion });
+  }
+  renderTabButton(tabKey) {
+    const active = this.state.activeTab === tabKey;
+    return (
+      <button
+        className={classNames({ researchPanelTab: 1, active })}
+        onClick={() => this.setTab(tabKey)}
+        key={tabKey}
+      >
+        {ResearchPanelTabs[tabKey]}
+      </button>
+    );
+  }
+  render() {
+    if (this.state.isLoading && !this.state.data) {
+      return <div className="researchPanelPOC empty">
+        <LoadingMessage message="Loading research panel..." heMessage="טוען פאנל מחקר..." />
+      </div>;
+    }
+    if (this.state.loadError) {
+      return <div className="researchPanelPOC empty">
+        <LoadingMessage message={this.state.loadError} heMessage="לא ניתן לטעון את פאנל המחקר." />
+      </div>;
+    }
+    if (!this.state.data) {
+      return null;
+    }
+    const data = this.state.data;
+    const tabData = this.state.activeTab === "segment" ? data.segment : data.passageResults;
+    const textRangeProps = {
+      panelPosition: this.props.panelPosition,
+      onCitationClick: this.props.onCitationClick,
+      translationLanguagePreference: this.props.translationLanguagePreference,
+      filterRef: this.props.filterRef,
+    };
+    const tabContent = this.state.activeTab === "categories" ?
+      <ResearchCategoryGroups
+        groups={data.rawCategories || []}
+        selectedCategory={this.state.selectedRawCategory}
+        selectedQuestion={this.state.selectedRawQuestion}
+        setSelectedCategory={this.setRawCategory}
+        setSelectedQuestion={this.setRawQuestion}
+        onTextClick={this.props.onTextClick}
+        textRangeProps={textRangeProps}
+      /> :
+      <ResearchClusterGroups
+        groups={tabData.clusters || []}
+        itemCount={tabData.count}
+        selectedCluster={this.state.selectedGuidedCluster}
+        setSelectedCluster={this.setGuidedCluster}
+        onTextClick={this.props.onTextClick}
+        textRangeProps={textRangeProps}
+      />;
+
+    return (
+      <div className="researchPanelPOC">
+        <div className="researchPanelIntro sans-serif">
+          <div className="researchPanelEyebrow">{data.parsha} POC</div>
+          <div className="researchPanelRef">{data.ref}</div>
+          {data.passage ? <div className="researchPanelPassage">{data.passage.ref}</div> : null}
+        </div>
+        <div className="researchPanelTabs">
+          {Object.keys(ResearchPanelTabs).map(tabKey => this.renderTabButton(tabKey))}
+        </div>
+        {tabContent}
+      </div>
+    );
+  }
+}
+ResearchPanelPOC.propTypes = {
+  srefs: PropTypes.array.isRequired,
+  panelPosition: PropTypes.number,
+  onTextClick: PropTypes.func,
+  onCitationClick: PropTypes.func,
+  translationLanguagePreference: PropTypes.string,
+  filterRef: PropTypes.string,
+  interfaceLang: PropTypes.string,
+};
+
+const ResearchClusterGroups = ({ groups, itemCount, selectedCluster, setSelectedCluster, onTextClick, textRangeProps }) => {
+  const nonEmptyGroups = groups.filter(group => group.items && group.items.length);
+  if (!nonEmptyGroups.length) {
+    return <div className="researchPanelEmpty sans-serif">No fixture resources for this ref.</div>;
+  }
+  const selectedGroup = nonEmptyGroups.find(group => group.name === selectedCluster);
+  if (selectedGroup) {
+    return (
+      <div className="researchPanelGroups">
+        <button className="researchPanelCategoryBack sans-serif" onClick={() => setSelectedCluster(null)}>
+          <i className="fa fa-chevron-left" />
+          Questions
+        </button>
+        <ResearchQuestionGroup group={selectedGroup} onTextClick={onTextClick} textRangeProps={textRangeProps} />
+      </div>
+    );
+  }
+  return (
+    <div className="researchPanelGroups">
+      <div className="researchPanelCount sans-serif">{itemCount} resources</div>
+      <div className="researchPanelQuestionIndex">
+        {nonEmptyGroups.map(group => (
+          <ResearchQuestionButton group={group} onClick={() => setSelectedCluster(group.name)} key={group.name} />
+        ))}
+      </div>
+    </div>
+  );
+};
+ResearchClusterGroups.propTypes = {
+  groups: PropTypes.array.isRequired,
+  itemCount: PropTypes.number,
+  selectedCluster: PropTypes.string,
+  setSelectedCluster: PropTypes.func.isRequired,
+  onTextClick: PropTypes.func,
+  textRangeProps: PropTypes.object,
+};
+
+const ResearchCategoryIconColors = {
+  Explanatory: "#5577B9",
+  Linguistic: "#A88D45",
+  Parallel: "#5C946E",
+  Proof: "#8A4E56",
+  Stylistic: "#6D6A75",
+  Footnote: "#7B6F9E",
+  "Base Text": "#4F7D8A",
+  Other: "#777",
+};
+
+const ResearchCategoryGroups = ({ groups, selectedCategory, selectedQuestion, setSelectedCategory, setSelectedQuestion, onTextClick, textRangeProps }) => {
+  const renderableGroups = groups.filter(group => (group.items && group.items.length) || (group.questionGroups && group.questionGroups.length));
+  if (!renderableGroups.length) {
+    return <div className="researchPanelEmpty sans-serif">No fixture categories for this ref.</div>;
+  }
+  const selectedGroup = renderableGroups.find(group => group.name === selectedCategory);
+  if (selectedGroup) {
+    return (
+      <div className="researchPanelGroups">
+        <button className="researchPanelCategoryBack sans-serif" onClick={() => setSelectedCategory(null)}>
+          <i className="fa fa-chevron-left" />
+          Categories
+        </button>
+        {selectedGroup.questionGroups && selectedGroup.questionGroups.length ?
+          <ResearchCategoryWithQuestions
+            group={selectedGroup}
+            selectedQuestion={selectedQuestion}
+            setSelectedQuestion={setSelectedQuestion}
+            onTextClick={onTextClick}
+            textRangeProps={textRangeProps}
+          /> :
+          <ResearchGroup title={selectedGroup.name} count={selectedGroup.count} items={selectedGroup.items} onTextClick={onTextClick} textRangeProps={textRangeProps} />}
+      </div>
+    );
+  }
+  return (
+    <div className="researchPanelCategoryIndex">
+      {renderableGroups.map(group => (
+        <ResearchCategoryButton group={group} onClick={() => setSelectedCategory(group.name)} key={group.name} />
+      ))}
+    </div>
+  );
+};
+ResearchCategoryGroups.propTypes = {
+  groups: PropTypes.array.isRequired,
+  selectedCategory: PropTypes.string,
+  selectedQuestion: PropTypes.string,
+  setSelectedCategory: PropTypes.func.isRequired,
+  setSelectedQuestion: PropTypes.func.isRequired,
+  onTextClick: PropTypes.func,
+  textRangeProps: PropTypes.object,
+};
+
+const ResearchCategoryButton = ({ group, onClick }) => {
+  const color = ResearchCategoryIconColors[group.name] || ResearchCategoryIconColors.Other;
+  return (
+    <button className="researchPanelCategoryButton" onClick={onClick}>
+      <span className="researchPanelCategoryText">
+        <span className="researchPanelCategoryName">{group.name}</span>
+        <span className="researchPanelCategoryCount">({group.count})</span>
+      </span>
+      <i className="fa fa-book researchPanelCategoryIcon" style={{ color }} />
+    </button>
+  );
+};
+ResearchCategoryButton.propTypes = {
+  group: PropTypes.object.isRequired,
+  onClick: PropTypes.func.isRequired,
+};
+
+const ResearchCategoryWithQuestions = ({ group, selectedQuestion, setSelectedQuestion, onTextClick, textRangeProps }) => {
+  const selectedQuestionGroup = group.questionGroups.find(questionGroup => questionGroup.name === selectedQuestion);
+  if (selectedQuestionGroup) {
+    return (
+      <section className="researchPanelGroup">
+        <button className="researchPanelCategoryBack sans-serif" onClick={() => setSelectedQuestion(null)}>
+          <i className="fa fa-chevron-left" />
+          Questions
+        </button>
+        <ResearchQuestionGroup group={selectedQuestionGroup} onTextClick={onTextClick} textRangeProps={textRangeProps} />
+      </section>
+    );
+  }
+  return (
+    <section className="researchPanelGroup">
+      <h3 className="researchPanelGroupTitle sans-serif">{group.name} <span>{group.count}</span></h3>
+      <div className="researchPanelQuestionIndex">
+        {group.questionGroups.map(questionGroup => (
+          <ResearchQuestionButton group={questionGroup} onClick={() => setSelectedQuestion(questionGroup.name)} key={questionGroup.name} />
+        ))}
+      </div>
+    </section>
+  );
+};
+ResearchCategoryWithQuestions.propTypes = {
+  group: PropTypes.object.isRequired,
+  selectedQuestion: PropTypes.string,
+  setSelectedQuestion: PropTypes.func.isRequired,
+  onTextClick: PropTypes.func,
+  textRangeProps: PropTypes.object,
+};
+
+const ResearchQuestionButton = ({ group, onClick }) => (
+  <button className="researchPanelQuestionButton" onClick={onClick}>
+    <span className="researchPanelQuestionButtonText">{group.name}</span>
+    <span className="researchPanelQuestionButtonCount">({group.count})</span>
+  </button>
+);
+ResearchQuestionButton.propTypes = {
+  group: PropTypes.object.isRequired,
+  onClick: PropTypes.func.isRequired,
+};
+
+const ResearchQuestionGroup = ({ group, onTextClick, textRangeProps }) => (
+  <div className="researchPanelQuestionGroup">
+    <h4 className="researchPanelQuestionGroupTitle sans-serif">{group.name} <span>{group.count}</span></h4>
+    {group.items.slice(0, 8).map(item => <ResearchResourceItem item={item} onTextClick={onTextClick} showQuestion={false} textRangeProps={textRangeProps} key={`${item.resourceType}-${item.id}`} />)}
+  </div>
+);
+ResearchQuestionGroup.propTypes = {
+  group: PropTypes.object.isRequired,
+  onTextClick: PropTypes.func,
+  textRangeProps: PropTypes.object,
+};
+
+const ResearchGroup = ({ title, count, items, onTextClick, showItemQuestion=true, textRangeProps }) => (
+  <section className="researchPanelGroup">
+    <h3 className="researchPanelGroupTitle sans-serif">{title} <span>{count}</span></h3>
+    {items.slice(0, 12).map(item => <ResearchResourceItem item={item} onTextClick={onTextClick} showQuestion={showItemQuestion} textRangeProps={textRangeProps} key={`${item.resourceType}-${item.id}`} />)}
+  </section>
+);
+ResearchGroup.propTypes = {
+  title: PropTypes.string.isRequired,
+  count: PropTypes.number.isRequired,
+  items: PropTypes.array.isRequired,
+  onTextClick: PropTypes.func,
+  showItemQuestion: PropTypes.bool,
+  textRangeProps: PropTypes.object,
+};
+
+const ResearchResourceItem = ({ item, onTextClick, showQuestion=true, textRangeProps={} }) => {
+  const qualityClass = `quality-${item.quality || "unknown"}`;
+  const href = item.url || (item.sourceRef ? `/${Sefaria.normRef(item.sourceRef)}` : null);
+  const canOpenSourceInPanel = !!item.sourceRef && !!onTextClick;
+  const showInlineSource = item.resourceType === "text-link" && !!item.sourceRef;
+  const openSource = e => {
+    if (!canOpenSourceInPanel) { return; }
+    e.preventDefault();
+    onTextClick([item.sourceRef]);
+  };
+  return (
+    <div className={classNames("researchResourceItem", qualityClass)}>
+      <div className="researchResourceMeta sans-serif">
+        <span className="researchResourceType">{item.resourceType}</span>
+        <span className="researchResourcePurpose">{item.primaryPurpose}</span>
+        <span className="researchResourceQuality">{item.quality}</span>
+      </div>
+      {showInlineSource ?
+        <div className="researchResourceTextRange textListTextRangeBox">
+          <TextRange
+            panelPosition={textRangeProps.panelPosition}
+            sref={item.sourceRef}
+            basetext={false}
+            onRangeClick={onTextClick}
+            onCitationClick={textRangeProps.onCitationClick}
+            translationLanguagePreference={textRangeProps.translationLanguagePreference}
+            filterRef={textRangeProps.filterRef}
+          />
+        </div> :
+        href ?
+        <a className="researchResourceTitle" href={href} target={item.url ? "_blank" : undefined} rel={item.url ? "noopener noreferrer" : undefined} onClick={openSource}>{item.title}</a> :
+        <div className="researchResourceTitle">{item.title}</div>}
+      {item.subtitle ? <div className="researchResourceSubtitle sans-serif">{item.subtitle}</div> : null}
+      {showQuestion && item.questionsAnswered?.length ?
+        <div className="researchResourceQuestion sans-serif">{item.questionsAnswered[0]}</div> : null}
+      {item.snippet ? <div className="researchResourceSnippet">{item.snippet}</div> : null}
+      <div className="researchResourceFooter sans-serif">
+        <span>{Sefaria._r(item.primaryAnchorRef)}</span>
+        {item.deterministicSnippetAvailable ? <span>deterministic snippet</span> : null}
+        {item.needsHumanReview ? <span>review</span> : null}
+      </div>
+      {canOpenSourceInPanel ?
+        <ConnectionButtons>
+          <OpenConnectionTabButton srefs={[item.sourceRef]} openInTabCallback={onTextClick} />
+        </ConnectionButtons> : null}
+    </div>
+  );
+};
+ResearchResourceItem.propTypes = {
+  item: PropTypes.object.isRequired,
+  onTextClick: PropTypes.func,
+  showQuestion: PropTypes.bool,
+  textRangeProps: PropTypes.object,
+};
 
 class WebPagesList extends Component {
   // List of web pages for a ref in the sidebar
