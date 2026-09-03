@@ -89,6 +89,8 @@ django==6.0.4
     #   djangorestframework
     #   djangorestframework-simplejwt
 django-admin-sortable==2.3
+django-allauth[socialaccount]==65.8.0
+    # via -r ./requirements.txt
 django-anymail==10.3
     # via -r ./requirements.txt
 django-debug-toolbar==4.4.6
@@ -406,3 +408,4 @@ langchain-community==0.3.31
 langsmith==0.4.4
 setuptools==69.5.1
 Pympler==1.1
+kubernetes==31.0.0

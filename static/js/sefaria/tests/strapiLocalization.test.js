@@ -3,11 +3,14 @@ import {
   SUPPORTED_LOCALES,
   LOCALE_TO_INTERFACE_LANG,
   INTERFACE_LANG_TO_LOCALE,
+  LOCALIZED_FIELDS,
+  SKIPPED_ROWS_LOG,
   groupBy,
   keyBy,
   omit,
   mapLocales,
   groupByDocumentId,
+  groupByDocumentIdWithDiagnostics,
   buildInterfaceTextDoc,
 } from "../strapiLocalization";
 
@@ -179,5 +182,106 @@ describe("buildInterfaceTextDoc", function () {
 
     expect(doc.bannerText).toEqual({ en: "text-en", he: null });
     expect(doc.locales).toEqual(["en"]);
+  });
+});
+
+describe("countriesToTarget as a localized field", function () {
+  const ukOnly = { countryMode: "include", countries: [{ name: "United Kingdom", code: "GB" }] };
+  const everywhere = { countryMode: "all", countries: [] };
+
+  it("is listed as localized for banners and modals", function () {
+    // Editors can set targeting per locale in Strapi -- e.g. show a Hebrew-interface promotion to
+    // readers in the US but not in Israel -- so it must survive the per-document merge.
+    expect(LOCALIZED_FIELDS.banner).toContain("countriesToTarget");
+    expect(LOCALIZED_FIELDS.modal).toContain("countriesToTarget");
+  });
+
+  it("keeps each locale's targeting rather than applying the en row's to both", function () {
+    const rowsByLocale = {
+      en: [makeRow("en", { countriesToTarget: ukOnly })],
+      he: [makeRow("he", { countriesToTarget: everywhere })],
+    };
+    const [grouped] = groupByDocumentId(rowsByLocale, LOCALIZED_FIELDS.banner);
+    const doc = buildInterfaceTextDoc(grouped, LOCALIZED_FIELDS.banner);
+
+    expect(doc.countriesToTarget.en).toEqual(ukOnly);
+    expect(doc.countriesToTarget.he).toEqual(everywhere);
+  });
+
+  it("fills the absent locale with null so an unpublished locale carries no targeting", function () {
+    const rowsByLocale = { en: [], he: [makeRow("he", { countriesToTarget: everywhere })] };
+    const [grouped] = groupByDocumentId(rowsByLocale, LOCALIZED_FIELDS.banner);
+    const doc = buildInterfaceTextDoc(grouped, LOCALIZED_FIELDS.banner);
+
+    expect(doc.countriesToTarget).toEqual({ en: null, he: everywhere });
+  });
+});
+
+describe("groupByDocumentId — malformed rows are dropped loudly, never fatal", function () {
+  // One bad row from Strapi must cost only itself. Before this guard, a single null in any
+  // locale array threw (`row.documentId` on null) inside context.js's .then(), and the catch
+  // swallowed EVERY surface — no modal, no banner, no sidebar ads — for every viewer.
+  // "Loudly" matters as much as "dropped": a silent drop makes a misbehaving Strapi look
+  // identical to "nothing published", so every drop is console.error'd with SKIPPED_ROWS_LOG.
+  let consoleError;
+
+  beforeEach(function () {
+    consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
+  });
+
+  afterEach(function () {
+    consoleError.mockRestore();
+  });
+
+  const expectReportedSkips = () => {
+    expect(consoleError).toHaveBeenCalledWith(expect.stringContaining(SKIPPED_ROWS_LOG));
+  };
+
+  it("drops a null row, keeps the healthy documents, and reports the drop", function () {
+    const rowsByLocale = { en: [null, makeRow("en")], he: [] };
+    const grouped = groupByDocumentId(rowsByLocale, LOCALIZED_FIELDS.banner);
+
+    expect(grouped).toHaveLength(1);
+    expect(grouped[0].internalBannerName).toBe("spring-sale");
+    expectReportedSkips();
+  });
+
+  it("drops undefined and non-object rows (strings, numbers)", function () {
+    const rowsByLocale = { en: [undefined, "garbage", 42, makeRow("en")], he: [null] };
+    const grouped = groupByDocumentId(rowsByLocale, LOCALIZED_FIELDS.banner);
+
+    expect(grouped).toHaveLength(1);
+    expectReportedSkips();
+  });
+
+  it("drops a row with no documentId — it has no identity to merge under", function () {
+    // Without this, identity-less rows all merge into one garbage document keyed "undefined".
+    const rowsByLocale = { en: [makeRow("en", { documentId: null }), makeRow("en")], he: [] };
+    const grouped = groupByDocumentId(rowsByLocale, LOCALIZED_FIELDS.banner);
+
+    expect(grouped).toHaveLength(1);
+    expect(grouped[0].documentId).toBe("doc-1");
+    expectReportedSkips();
+  });
+
+  it("returns an empty list when every row is malformed", function () {
+    const rowsByLocale = { en: [null, "junk"], he: [undefined] };
+    expect(groupByDocumentId(rowsByLocale, LOCALIZED_FIELDS.banner)).toEqual([]);
+    expectReportedSkips();
+  });
+
+  it("reports how many rows were discarded so destructive consumers can preserve state", function () {
+    const rowsByLocale = { en: [null, makeRow("en")], he: ["junk"] };
+    const result = groupByDocumentIdWithDiagnostics(rowsByLocale, LOCALIZED_FIELDS.banner);
+
+    expect(result.documents).toHaveLength(1);
+    expect(result.discardedRowCount).toBe(2);
+    expectReportedSkips();
+  });
+
+  it("stays quiet when every row is healthy", function () {
+    const rowsByLocale = { en: [makeRow("en")], he: [makeRow("he")] };
+    groupByDocumentId(rowsByLocale, LOCALIZED_FIELDS.banner);
+    expect(consoleError).not.toHaveBeenCalled();
   });
 });

@@ -1093,6 +1093,14 @@ p.registration-links a:hover{
 #accountSettingsPage .form-section{
   margin: 2px auto 20px 1px;
 }
+#accountSettingsPage .loginMethodText {
+  color: var(--dark-grey);
+  font-weight: 400;
+}
+#accountSettingsPage .loginMethodEmail {
+  color: var(--dark-grey);
+  font-weight: 700;
+}
 #accountSettingsPage input[disabled="disabled"] {
   background-color: #FBFBFA;
 }

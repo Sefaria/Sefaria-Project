@@ -9,6 +9,7 @@ import {CONNECTION_MODE_STRING_IDS} from './constants';
 import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import SearchState from './sefaria/searchState';
+import SearchAnalytics from './sefaria/searchAnalytics';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
 import {
   ContestLandingPage,
@@ -33,6 +34,7 @@ import {
   CookiesNotification,
 } from './Misc';
 import Button from './common/Button';
+import GoogleOneTap from './auth/GoogleOneTap';
 import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
@@ -40,6 +42,9 @@ import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
+import AuthPage from './auth/AuthPage';
+import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
+import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -58,6 +63,7 @@ class ReaderApp extends Component {
         mode:                    "Menu",
         menuOpen:                props.initialMenu,
         searchQuery:             props.initialQuery,
+        tab:                     props.initialSearchTab,
         topicSort:               props.initialTopicSort,
         searchState: new SearchState({
           type:                  searchType,
@@ -80,6 +86,7 @@ class ReaderApp extends Component {
         collectionTag:           props.initialCollectionTag,
         translationsSlug:        props.initialTranslationsSlug,
         collectionData:          props.initialCollectionData,
+        linkerEditorBook:        props.initialLinkerEditorBook,
       };
     }
 
@@ -109,6 +116,7 @@ class ReaderApp extends Component {
 
     const defaultVersions   = Sefaria.util.clone(props.initialDefaultVersions) || {};
     const layoutOrientation = (props.interfaceLang == "hebrew") ? "rtl" : "ltr";
+    const { showAuth, authPath } = resolveInitialAuthState(props.initialPath, props.authResetUid);
 
     this.state = {
       panels: panels,
@@ -123,11 +131,19 @@ class ReaderApp extends Component {
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
       notificationCount: props.notificationCount || 0,
+      showAuth,
+      authPath,
+      // A direct/typed-URL/bookmarked arrival at /register has no clicked element and
+      // legitimately has no attributable source.
+      authSource: null,
     };
   }
   setEditorSaveState = (nextState) => {
     this.setState({ editorSaveState: nextState });
     };
+  handleAuthNavigate = (path, source = null) => {
+    this.setState({ showAuth: true, authPath: path, authSource: source });
+  }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
@@ -180,6 +196,8 @@ class ReaderApp extends Component {
       sideScrollPosition:      state.sideScrollPosition      || null,
       topicTestVersion:        state.topicTestVersion        || null,
       filterRef:               state.filterRef               || null,
+      connectionData:          state.connectionData          || null,
+      linkerEditorBook:        state.linkerEditorBook        || null,
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -223,6 +241,7 @@ class ReaderApp extends Component {
       Sefaria.markUserAsNewVisitor();
     }
 
+    resumePendingSignUpAttempt();
     if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
       sessionStorage.setItem("sa.reader_app_mounted", "true");
       sa_event("reader_app_mounted");
@@ -309,6 +328,14 @@ class ReaderApp extends Component {
         state.panels = [];
       }
 
+      // Going back INTO the search page (currently elsewhere, restored state is
+      // search) will remount it and start a new analytics flow -- label its
+      // source. Popping within the search page itself doesn't remount, so it
+      // must not set the hint (it would mislabel some later flow).
+      if (state.panels[0]?.menuOpen === "search" && this.state.panels[0]?.menuOpen !== "search") {
+        SearchAnalytics.setNextFlowSource('back_click');
+      }
+
       // need to clone state and panels; if we don't clone them, when we run setState, it will make it so that
       // this.state.panels refers to the same object as history.state.panels, which cause back button bugs
       const newState = {...state};
@@ -386,6 +413,9 @@ class ReaderApp extends Component {
   shouldHistoryUpdate() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
+    if (!!history.state?.showAuth !== !!this.state.showAuth) { return true; }
+    if (this.state.showAuth && history.state?.authPath !== this.state.authPath) { return true; }
+
     if (!history.state
         || (!history.state.panels && !!this.state.panels)
         || (history.state.panels && (history.state.panels.length !== this.state.panels.length))
@@ -417,12 +447,14 @@ class ReaderApp extends Component {
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.currentlyVisibleRef !== prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMode) ||
+          (JSON.stringify(next.connectionData) !== JSON.stringify(prev.connectionData)) ||
           (!Sefaria.areBothVersionsEqual(prev.currVersions, next.currVersions)) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.tab !== next.tab) ||
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
+          (prev.linkerEditorBook !== next.linkerEditorBook) ||
           (!prevSearchState.isEqual({ other: nextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
           (prev.navigationTopicCategory !== next.navigationTopicCategory) ||
@@ -454,13 +486,18 @@ class ReaderApp extends Component {
 
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
+    if (this.state.showAuth) {
+      const { authPath, authSource } = this.state;
+      return { state: { showAuth: true, authPath, authSource, panels: [] }, url: authPath, title: document.title };
+    }
+
     var histories = [];
     const states = this.state.panels.map(panel => this.clonePanel(panel, true));
     const shortLang = Sefaria._getShortInterfaceLang();
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL.
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open", 'Version Open',
-      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide"]);
+      "About", "AboutSheet", "Navigation", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide", "LinkerAdmin"]);
     const addTab = (url) => {
       if (state.tab && state.menuOpen !== "search") {
         return  url + `&tab=${state.tab}`
@@ -514,7 +551,10 @@ class ReaderApp extends Component {
             const searchTitle = state.searchQuery ? state.searchQuery.stripHtml() : "common.search";
             hist.title = Sefaria.getPageTitle(searchTitle);
             const prefix = state.searchState.type === 'text' ? 't' : 's';
-            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` +
+            // `tab` is taken on search URLs (it means the text/sheet search type),
+            // so the active results tab (sources/books/authors/topics) is `search_tab`.
+            const searchTab = state.tab ? `&search_tab=${encodeURIComponent(state.tab)}` : "";
+            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` + searchTab +
               state.searchState.makeURL({ prefix: prefix, isStart: false })) : "");
             hist.mode  = "search";
             break;
@@ -597,6 +637,14 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("reader_app.moderator_tools");
             hist.url = "modtools";
             hist.mode = "modtools";
+            break;
+          case "linkerEditor":
+            hist.title = Sefaria._("Linker Editor");
+            hist.url = "linker-editor";
+            hist.mode = "linkerEditor";
+            if (state.linkerEditorBook) {
+              hist.url += "&book=" + encodeURIComponent(state.linkerEditorBook);
+            }
             break;
           case "user_stats":
             hist.title = Sefaria.getPageTitle("user_stats.torah_tracker");
@@ -749,7 +797,7 @@ class ReaderApp extends Component {
     if (Sefaria._debug_mode === "linker") {
         url += "&debug_mode=linker";
     }
-    hist = {state: {panels: states}, url: url, title: title, mode: histories[0].mode};
+    hist = {state: {panels: states, showAuth: false}, url: url, title: title, mode: histories[0].mode};
     let isMobileConnectionsOpen = histories[0].mode === "TextAndConnections";
     for (var i = 1; i < histories.length || (isMobileConnectionsOpen && i===1); i++) {
       let isMultiPanelConnectionsOpen = ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") ||
@@ -853,7 +901,7 @@ class ReaderApp extends Component {
     //    "sticking" and affecting ALL future history updates
     // 4. We use the shouldReplace parameter for this specific update
     this.replaceHistory = false;
-    
+
     if (!this.shouldHistoryUpdate()) {
       return;
     }
@@ -945,9 +993,13 @@ class ReaderApp extends Component {
   }
   setContainerMode() {
     // Applies CSS classes to the React container and body so that the App can function as a
-    // header only on top of a static page.
+    // header only on top of a static page. Full-viewport mode is needed whenever a ReaderPanel
+    // is open, OR a non-panel full-app view is active (e.g. auth) — extend hasNonPanelView
+    // for future views of that kind rather than open-coding more state checks below.
     if (this.props.headerMode) {
-      if (this.state.panels && this.state.panels.length) {
+      const hasPanels = this.state.panels?.length;
+      const hasNonPanelView = this.state.showAuth;
+      if (hasPanels || hasNonPanelView) {
         $("#s2").removeClass("headerOnly");
         $("body").css({overflow: "hidden"})
           .addClass("inApp")
@@ -1102,6 +1154,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     if (linkTarget) { // We want the absolute target of the event to be a link tag, not the "currentTarget".
       // Dont trigger if user is attempting to open a link with a modifier key (new tab, new window)
       if (e.metaKey || e.shiftKey || e.ctrlKey || e.altKey) { //the ctrl/cmd, shift and alt/options keys in Windows and MacOS
+        // Report a search-result click before the event is killed below. This listener is on
+        // `document` in the CAPTURE phase, so the stopImmediatePropagation() a few lines down
+        // stops the event before it ever reaches the link — and before React's delegated
+        // bubble-phase listener, where every onClick in the app runs. Nothing after this point
+        // gets a chance to report, so the search result card cannot do it itself. No-ops
+        // unless a search flow is active and the link carries the card's analytics attributes.
+        SearchAnalytics.reportModifiedResultLinkClick(linkTarget);
         // Update href for links with data-target-module to ensure correct subdomain
         this.updateModuleLinkHref(linkTarget);
         // in this case we want to stop other handlers from running and just go to target href
@@ -1111,6 +1170,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   handleAppClick(event) {
+    const linkTarget = this.getHTMLLinkParentOfEventTarget(event);
     if (linkTarget) {
       this.handleInAppLinkClick(event);
     }
@@ -1146,11 +1206,24 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
     
     const moduleTarget = linkTarget.getAttribute('data-target-module');  // the module to open the URL in: currently either Sefaria.VOICES_MODULE or Sefaria.LIBRARY_MODULE or null
+    // which CTA led to /register, for sign-up funnel analytics — closest(), not getAttribute(),
+    // so a plain wrapper element can carry this for components that don't expose it as a prop
+    const signupSource = linkTarget.closest('[data-signup-source]')?.getAttribute('data-signup-source') || null;
 
     //on mobile just replace panel w/ any link
     if (!this.props.multiPanel) {
-      const handled = this.openURL(href, true, false, moduleTarget);
+      const handled = this.openURL(href, true, false, moduleTarget, signupSource);
       if (handled) {
+        // Any in-app navigation away from the search page ends its analytics
+        // flow. Result clicks don't reach here (SearchResultCard handles them
+        // and ends the flow itself), so this exit is an abandonment. No-ops
+        // when no search flow is active. Guarded on lastOpenURLNavigatedInApp
+        // so links openURL merely opened in a new tab -- and cancelled
+        // unsaved-changes prompts -- leave the flow running: the search page
+        // is still on screen and the user can keep searching.
+        if (this.lastOpenURLNavigatedInApp()) {
+          SearchAnalytics.endFlow('abandoned');
+        }
         e.preventDefault();
       }
       return
@@ -1159,8 +1232,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const isSheet = !!(linkTarget.closest(".sheetItem"));
     const replacePanel = !(isSheet);
     const isTranslationsPage = !!(linkTarget.closest(".translationsPage"));
-    const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget);
+    const handled = this.openURL(href,replacePanel, isTranslationsPage, moduleTarget, signupSource);
     if (handled) {
+      // See the mobile branch above -- ends any active search analytics flow,
+      // but only when this page actually navigated somewhere.
+      if (this.lastOpenURLNavigatedInApp()) {
+        SearchAnalytics.endFlow('abandoned');
+      }
       e.preventDefault();
     }
   }
@@ -1248,10 +1326,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.updateModuleLinkHref(link);
   }
 
-  openURL(href, replace=true, overrideContentLang=false, moduleTarget=null) {
+  openURL(href, replace=true, overrideContentLang=false, moduleTarget=null, signupSource=null) {
+    // Records whether this call actually navigated the current page somewhere else in the
+    // app, as opposed to being "handled" by opening a new tab or by the user cancelling.
+    // Callers that need to know (see handleInAppLinkClick) read it via
+    // lastOpenURLNavigatedInApp(); openURL's own return value stays a plain "handled?".
+    this._lastOpenURLNavigatedInApp = false;
+
     if (this.shouldAlertBeforeCloseEditor()) {
       if (!this.alertUnsavedChangesConfirmed()) {
-        return true;
+        return true;   // user cancelled -- current page is unchanged
       }
     }
 
@@ -1268,15 +1352,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     // TODO generalize to any domain of current deploy.
     if (!Sefaria.isSefariaURL(url) || (!!moduleTarget && moduleTarget !== Sefaria.activeModule)) {
       window.open(url, '_blank')
-      return true;
+      return true;   // new tab -- current page is unchanged
     }
     const path = decodeURI(url.pathname);
     if (Sefaria.activeModule === Sefaria.VOICES_MODULE) {
       if (this._aboutSidebarPaths.has(path)) {
         window.open(Sefaria.util.fullURL(path, Sefaria.LIBRARY_MODULE), '_blank', 'noopener,noreferrer');
-        return true;
+        return true;   // new tab -- current page is unchanged
       }
     }
+    // Everything below either navigates this page within the app or returns false.
+    this._lastOpenURLNavigatedInApp = true;
     const params = url.searchParams;
     if(overrideContentLang && params.get('lang')) {
       let lang = params.get("lang")
@@ -1284,6 +1370,15 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       this.setDefaultOption("language", lang)
     }
     const openPanel = replace ? this.openPanel : this.openPanelAtEnd;
+
+    if (isAuthPath(path)) {
+      const next = this.state.showAuth ? nextFromPath(this.state.authPath) : Sefaria.util.currentPath();
+      this.handleAuthNavigate(withNext(path, next), signupSource);
+      return true;
+    }
+
+    if (this.state.showAuth) { this.setState({ showAuth: false }); }
+
     if (path === "/") {
       this.showRoot();
 
@@ -1316,6 +1411,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
     } else if (path === "/torahtracker") {
       this.showUserStats();
+
+    } else if (path === "/linker-editor") {
+      this.showLinkerEditor(params.get("book"));
 
     } else if (path.match(/^\/sheets\/\d+/)) {
       openPanel("Sheet " + path.replace(/^\/sheets\//, ''));
@@ -1350,9 +1448,19 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       const options = {showHighlight: ref.indexOf("-") !== -1};   // showHighlight when ref is ranged
       openPanel(Sefaria.humanRef(ref), currVersions, options);
     } else {
+      this._lastOpenURLNavigatedInApp = false;
       return false
     }
     return true;
+  }
+  /**
+   * True if the most recent openURL() call navigated this page somewhere else in the app.
+   * False when openURL returned true only because it opened a new tab (external link,
+   * cross-module link) or because the user cancelled out of an unsaved-changes prompt --
+   * in those cases the current page is still on screen.
+   */
+  lastOpenURLNavigatedInApp() {
+    return !!this._lastOpenURLNavigatedInApp;
   }
   unsetTextHighlight(n) {
     this.setPanelState(n, { textHighlights: null });
@@ -1916,6 +2024,16 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     }
   }
   showSearch(searchQuery) {
+    // Label the flow the search page is about to start: this path is only reached from the
+    // header search bar (desktop + mobile nav menu). Only when a flow is actually about to
+    // start, though — searching from the nav bar while the search page is already open keeps
+    // the same panel (setSinglePanelState below leaves the panel key unchanged), so the page
+    // is re-rendered with new props rather than remounted and no new flow begins: the visit
+    // continues under the same flow_id with a new search_id. Setting the hint anyway would
+    // leave it uncollected and mislabel the *next* flow, which could be an unrelated deep link.
+    if (this.state.panels?.[0]?.menuOpen !== "search") {
+      SearchAnalytics.setNextFlowSource('nav_bar');
+    }
     const hasSearchState = !!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchState;
     const searchState =  hasSearchState  ? this.state.panels[0].searchState.update({ filtersValid: false })
         : new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)});
@@ -1947,6 +2065,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
   showUserStats() {
     this.setSinglePanelState({menuOpen: "user_stats"});
+  }
+  showLinkerEditor(book) {
+    this.setSinglePanelState({menuOpen: "linkerEditor", linkerEditorBook: book || null});
   }
   showCollections() {
     this.setSinglePanelState({menuOpen: "collectionsPublic"});
@@ -2379,6 +2500,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       onSearchResultClick={onSearchResultClick}
                       onSidebarSearchClick={onSidebarSearchClick}
                       onNavigationClick={this.handleNavigationClick}
+                      openURL={this.openURL}
                       openConnectionsPanel={openConnectionsPanel}
                       openComparePanel={openComparePanel}
                       setTextListHighlight={setTextListHighlight}
@@ -2460,6 +2582,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <Button href="#main" className="skip-link">{Sefaria._("reader_app.skip_to_main_content")}</Button>
             <InterruptingMessage />
             <Banner onClose={this.setContainerMode} />
+            <GoogleOneTap googleClientId={Sefaria.googleClientId} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
               {showChatbotBanner && (
@@ -2469,9 +2592,18 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                 />
               )}
               <main id="main" role="main">
+                {this.state.showAuth ? (
+                  <AuthPage
+                    initialPath={this.state.authPath}
+                    authSource={this.state.authSource}
+                    resetValid={this.props.authResetValid}
+                    onNavigate={this.handleAuthNavigate}
+                  />
+                ) : (
                 <div className="panelContainer">
                   {panels}
                 </div>
+                )}
                 {displayChatbot && (
                 <lc-chatbot
                   user-id={this.props.chatbot_user_token}
@@ -2507,6 +2639,7 @@ ReaderApp.propTypes = {
   initialCollection:           PropTypes.string,
   initialCollectionData:       PropTypes.object,
   initialQuery:                PropTypes.string,
+  initialSearchTab:            PropTypes.string,
   initialSearchFilters:        PropTypes.array,
   initialSearchField:          PropTypes.string,
   initialSearchSortType:       PropTypes.string,
@@ -2520,6 +2653,7 @@ ReaderApp.propTypes = {
   initialPath:                 PropTypes.string,
   initialPanelCap:             PropTypes.number,
   topicTestVersion:            PropTypes.string,
+  initialLinkerEditorBook:     PropTypes.string,
   sheetsWithRef:               PropTypes.object //properties 'he' and 'en' for english and hebrew spelling of ref
 };
 ReaderApp.defaultProps = {
@@ -2538,7 +2672,8 @@ ReaderApp.defaultProps = {
   initialDefaultVersions:      {},
   initialPanelCap:             2,
   initialPath:                 "/",
-  topicTestVersion:          null
+  topicTestVersion:          null,
+  initialLinkerEditorBook:     null,
 };
 
 const sefariaSetup = Sefaria.setup;
