@@ -41,7 +41,7 @@ def purge_test_profiles(*users):
     db.profiles.delete_many({"id": {"$in": ids}})
 
 
-def make_keyless_profile(user):
+def make_profile_missing_la_setting(user):
     """
     Give `user` a pre-migration-shaped profile: the doc exists but carries no
     Library Assistant key. Profile creation writes the key on every path, so the
