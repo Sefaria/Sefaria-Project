@@ -8,11 +8,26 @@ metadata:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
   schedule: "0 21 * * 5"
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
-      backoffLimit: 1
+      backoffLimit: 1  # one retry: an orchestrator crash mid-run gets a second attempt; init is idempotent
       template:
+        metadata:
+          annotations:
+            # The orchestrator runs for hours and holds no checkpoint, so a voluntary
+            # eviction restarts the whole link walk from zero. Observed 2026-08-31 on the
+            # dev cluster: "ScaleDown / deleting pod for node scale down" killed a run 30
+            # minutes in and consumed one of only two attempts (backoffLimit: 1). Cauldrons
+            # run on the `preemptable` node pool, where the autoscaler consolidates nodes
+            # routinely.
+            #
+            # This does NOT protect against GCP reclaiming a preemptible VM — that is a
+            # node-level event no annotation can veto. It only prevents the autoscaler's own
+            # voluntary eviction, which is the failure actually observed.
+            cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
         spec:
+          serviceAccountName: {{ .Values.deployEnv }}-reindex-orchestrator
           affinity:
             podAntiAffinity:
               requiredDuringSchedulingIgnoredDuringExecution:
@@ -22,18 +37,37 @@ spec:
                     operator: In
                     values:
                     - mongo
-                topologyKey: kubernetes.io.hostname
+                topologyKey: kubernetes.io/hostname
           containers:
           - name: reindex-elastic-search
             image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             resources:
-              limits:
-                memory: 20Gi
-              requests:
-                memory: 15Gi
+              {{- toYaml .Values.cronJobs.reindexElasticSearch.orchestratorResources | nindent 14 }}
             env:
+            - name: K8S_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: SHARD_COUNT
+              value: "{{ .Values.cronJobs.reindexElasticSearch.shardCount }}"
+            - name: SHARD_ACTIVE_DEADLINE_SECONDS
+              value: "{{ .Values.cronJobs.reindexElasticSearch.shardActiveDeadlineSeconds }}"
+            - name: SHARD_JOB_IMAGE
+              value: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+            - name: SHARD_JOB_NAME
+              value: "{{ .Values.deployEnv }}-reindex-shard"
+            - name: ELASTIC_ADMIN_SECRET
+              value: '{{ template "sefaria.secrets.elasticAdmin" . }}'
+            - name: LOCAL_SETTINGS_REF_SECRET
+              value: "{{ .Values.secrets.localSettings.ref }}"
+            - name: LOCAL_SETTINGS_CONFIGMAP
+              value: "local-settings-{{ .Values.deployEnv }}"
+            - name: LOCAL_SETTINGS_SECRET
+              value: "local-settings-secrets-{{ .Values.deployEnv }}"
+            - name: LOCAL_SETTINGS_FILE_CONFIGMAP
+              value: "local-settings-file-{{ .Values.deployEnv }}"
             - name: SEARCH_HOST
-              value: "elasticsearch-1b-es-http.elasticsearch.svc"
+              value: "{{ .Values.nginx.SEARCH_HOST }}"
             - name: SEARCH_PORT
               value: "9200"
             - name: SEARCH_PATH
@@ -46,9 +80,13 @@ spec:
               value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
             - name: VARNISH_HOST
               value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            - name: SHARD_RESOURCES
+              value: {{ .Values.cronJobs.reindexElasticSearch.shardResources | toJson | quote }}
+            - name: REINDEX_ALLOW_SHARED_INDEX
+              value: {{ .Values.cronJobs.reindexElasticSearch.allowSharedIndex | quote }}
             envFrom:
             - secretRef:
-                name: {{ template "sefaria.secrets.elasticAdmin" . }}  
+                name: {{ template "sefaria.secrets.elasticAdmin" . }}
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
                 optional: true
@@ -65,7 +103,7 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy && /app/run /app/scripts/scheduled/reindex_elasticsearch_cronjob.py"
+              "mkdir -p /log && touch /log/sefaria_book_errors.log && pip install numpy && /app/run /app/scripts/scheduled/reindex_orchestrator.py"
             ]
           restartPolicy: Never
           volumes:
