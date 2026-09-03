@@ -24,6 +24,7 @@ import {
 import SearchLoadSkeleton from './SearchLoadSkeleton';
 import SearchToggle from './SearchToggle';
 import SearchTabsMobileWeb from './SearchTabsMobileWeb';
+import SearchAnalytics, { tabLabel } from './sefaria/searchAnalytics';
 
 
 const SearchPageSearchBar = ({query, onQueryChange}) => {
@@ -101,7 +102,9 @@ const ENTITY_TABS = [
   {id: "topics",  type: "topic",  title: "common.topics",  sortOptions: "topics"},
 ];
 
-const ALL_TAB_IDS = ["sources", ...ENTITY_TABS.map(t => t.id)];
+// Exported so ElasticSearchQuerier can apply the same invalid-tab fallback as activeTab()
+// when it reads `tab` straight from props for analytics.
+export const ALL_TAB_IDS = ["sources", ...ENTITY_TABS.map(t => t.id)];
 
 const emptyEntityData  = () => Object.fromEntries(ENTITY_TABS.map(t => [t.type, null]));
 const defaultEntitySort = () => Object.fromEntries(ENTITY_TABS.map(t => [t.type, 'relevance']));
@@ -217,7 +220,7 @@ const ENTITY_CARD_PROP_BUILDERS = {
 };
 
 
-const EntitySearchResults = ({type, data, query, loadMore, openURL}) => {
+const EntitySearchResults = ({type, data, query, loadMore, trackClicks, openURL}) => {
   if (!data) {
     const searching = Sefaria._bilingual("search.searching");
     return <LoadingMessage message={searching.en} heMessage={searching.he} />;
@@ -232,13 +235,17 @@ const EntitySearchResults = ({type, data, query, loadMore, openURL}) => {
       isLoading={data.isLoadingMore}
       isLoadingMore={data.isLoadingMore}
       loadMore={loadMore}>
-      {data.hits.map(hit => {
+      {data.hits.map((hit, i) => {
         const cardProps = ENTITY_CARD_PROP_BUILDERS[type](hit, query);
         // These cards don't all point at refs the way Sources cards do — a book is "/Brit_Moshe",
         // a category row is "/texts/Tanakh/Torah", an author or topic is "/topics/<slug>". So they
         // navigate by URL (openURL) rather than by ref (onResultClick); without it the card falls
         // back to window.location and the whole page reloads.
-        return <SearchResultCard key={cardProps.href} {...cardProps} openURL={openURL} />;
+        //
+        // analyticsPosition (1-based rank) opts the card into firing the
+        // search_element_clicked / search_flow_ended GA4 events on click.
+        return <SearchResultCard key={cardProps.href} {...cardProps} openURL={openURL}
+                                 analyticsPosition={trackClicks ? i + 1 : undefined} />;
       })}
     </InfiniteScroll>
   );
@@ -302,6 +309,16 @@ class SearchPage extends Component {
 
   setEntitySort(type, sortKey) {
     if (this.state.entitySort[type] === sortKey) { return; }
+    if (!this.props.compare) {
+      // element_value is the option's visible English label ("Chronological"),
+      // matching how tab and filter clicks report. `name` on a sort option is
+      // already the English string -- see makeSortOption in SearchSortDropdown.
+      const sortOptions = ENTITY_SORT_OPTIONS[ENTITY_TABS.find(t => t.type === type)?.sortOptions] || [];
+      SearchAnalytics.elementClicked({
+        elementType: 'sort',
+        elementValue: sortOptions.find(o => o.type === sortKey)?.name || sortKey,
+      });
+    }
     // The server sorts the entire match set, so every page already downloaded is in the old
     // order and can't be reused — discard them and start again from the first page.
     this.setState(prev => ({entitySort: {...prev.entitySort, [type]: sortKey}}),
@@ -327,6 +344,9 @@ class SearchPage extends Component {
   }
 
   toggleBookCategoryFilter(filter) {
+    if (!this.props.compare) {
+      SearchAnalytics.elementClicked({elementType: 'filter', elementValue: filter.title, count: filter.docCount});
+    }
     filter.isSelected() ? filter.setUnselected(true) : filter.setSelected(true);
     // Same as a sort change: the server applies the filter to the whole match set, so the
     // downloaded pages (a filtered slice of the first ~20 rows) have to go.
@@ -344,7 +364,73 @@ class SearchPage extends Component {
     );
   }
 
+  // Wraps the sources-tab sort callback so the change is also reported to search
+  // analytics. Every sources sort control routes through here (the desktop
+  // dropdown, the mobile filter panel, and the one inside SearchResultList) so
+  // the event fires wherever the user changes it. SearchSortBox already ignores
+  // a click on the option that is currently selected, so this only ever reports
+  // a real change.
+  handleSourcesSortChange(sortType) {
+    if (!this.props.compare) {
+      // `name` on a sortTypeArray entry is the visible English label
+      // ("Relevance" / "Chronological") -- see searchState.js.
+      const option = (this.props.sortTypeArray || []).find(o => o.type === sortType);
+      SearchAnalytics.elementClicked({
+        elementType: 'sort',
+        elementValue: option?.name || sortType,
+      });
+    }
+    this.props.updateAppliedOptionSort(sortType);
+  }
+
+  // Wraps the sources-tab filter callback so the click is also reported to
+  // search analytics before the filter is applied.
+  handleSourcesFilterClick(filter) {
+    if (!this.props.compare) {
+      SearchAnalytics.elementClicked({elementType: 'filter', elementValue: filter.title, count: filter.docCount});
+    }
+    this.props.updateAppliedFilter(this.props.searchState, filter);
+  }
+
+  // The tab actually being displayed. this.props.tab comes from panel state and so from the
+  // URL, where it can be missing or garbage; the page falls back to Sources in that case.
+  activeTab() {
+    return ALL_TAB_IDS.includes(this.props.tab) ? this.props.tab : "sources";
+  }
+
+  // Tell search analytics which tab is on screen. Driven from the lifecycle rather than from
+  // setTab() so it also covers the ways the tab changes without a click: the initial tab from
+  // a deep link (?tab=books) and back/forward, which both arrive as a props change.
+  reportActiveTabToAnalytics() {
+    if (this.props.compare || this.props.searchInBook) { return; }
+    SearchAnalytics.setCurrentTab(this.activeTab());
+  }
+
+  // Raw (unformatted) result count shown on each tab; sources' count lives in props, the
+  // entity tabs' counts in state.
+  rawTabCounts() {
+    return {
+      sources: this.props.totalResults?.getValue(),
+      books:   this.state.entityData.book?.total,
+      authors: this.state.entityData.author?.total,
+      topics:  this.state.entityData.topic?.total,
+    };
+  }
+
+  // Report a move to `tab`. Must run BEFORE reportActiveTabToAnalytics(), because
+  // elementClicked reads the current tab live and sends it as `tab` -- the tab being left,
+  // which pairs with element_value naming the destination.
+  reportTabChange(tab) {
+    if (this.props.compare || this.props.searchInBook) { return; }
+    SearchAnalytics.elementClicked({
+      elementType: 'tab',
+      elementValue: tabLabel(tab),
+      count: this.rawTabCounts()[tab],
+    });
+  }
+
   componentDidMount() {
+    this.reportActiveTabToAnalytics();
     this.fetchEntityResults();
     this._onResize();  // first real viewport measurement; the constructor could not take one
     window.addEventListener('resize', this._onResize);
@@ -355,6 +441,19 @@ class SearchPage extends Component {
   }
 
   componentDidUpdate(prevProps) {
+    if (prevProps.tab !== this.props.tab) {
+      // A tab change that did not come through setTab() came from history -- the back or
+      // forward button restoring panel state (ReaderApp.handlePopState). The user changed
+      // tabs just as deliberately as with a click, so report it the same way; only the
+      // mechanism differs. The marker is cleared here rather than on every update so that
+      // clicking the tab already on screen -- which calls setTab() without changing
+      // props.tab -- cannot leave it stale in a way that swallows a later report.
+      if (this._reportedTabTransition !== this.activeTab()) {
+        this.reportTabChange(this.activeTab());
+      }
+      this._reportedTabTransition = null;
+      this.reportActiveTabToAnalytics();
+    }
     if (prevProps.query !== this.props.query) {
       // A new query invalidates the category selections and their counts — both describe the
       // previous result set — so rebuild the filter tree unselected before refetching.
@@ -368,16 +467,34 @@ class SearchPage extends Component {
     if (!query || this.props.searchInBook) { return; }
     types.forEach(type => {
       const token = ++this._entityFetchTokens[type];
+      // Analytics: each entity search is one of the four APIs whose return
+      // completes a query (search_query_executed fires once all report in).
+      // The API key is the plural tab name ('topics'/'authors'/'books'). A sort
+      // or filter change refetches, but recordApiResult ignores a repeat report
+      // for an API it already heard from, so the event still fires exactly once.
       Sefaria.search.entitySearch(query, type, 0, {
             sort: this.state.entitySort[type],
             categoryPaths: this.selectedCategoryPaths(type),
           })
           .then(data => {
             if (this._entityFetchTokens[type] !== token) { return; }  // a newer fetch superseded this one
+            if (!this.props.compare) { SearchAnalytics.recordApiResult(type + 's', data.total); }
             this.setState(prev => this.withCategoryCounts({...prev.entityData, [type]: this.makeEntityEntry(data)}, data));
           })
-          .catch(() => {
-            if (this._entityFetchTokens[type] !== token) { return; }
+          .catch((err) => {
+            if (this._entityFetchTokens[type] !== token) { return; }  // a newer fetch superseded this one
+            // Report the failure to analytics for the query still on screen only.
+            //
+            // The token check above deliberately comes FIRST. recordApiResult only counts the
+            // first report per API, so a superseded request that reports a failure would claim
+            // that API's slot and make search_query_executed say 'failure' even though the
+            // newer request succeeded and the user is looking at results. Dropping the stale
+            // report can't leave the event waiting forever, because whatever superseded this
+            // request reports in its own place -- on success or on failure.
+            if (this.props.query === query && !this.props.compare) {
+              SearchAnalytics.recordApiResult(type + 's', null, err?.message || String(err));
+            }
+            // Show the empty state rather than leaving the panel on the loading message.
             this.setState(prev => ({
               entityData: {...prev.entityData, [type]: {hits: [], total: 0, moreToLoad: false, isLoadingMore: false}},
               ...(type === 'book' ? {bookCategoryCounts: null} : {}),
@@ -448,6 +565,17 @@ class SearchPage extends Component {
   setTab(tab, replaceHistory) {
     // The active tab lives in panel state (this.props.tab) so it is serialized
     // into the URL and history; back/forward restores it via handlePopState.
+    //
+    // Record the destination whether or not it gets reported below: componentDidUpdate
+    // reports any tab change it did not already see here, and reads this marker to avoid
+    // double-reporting the move that is about to arrive as a props change.
+    this._reportedTabTransition = tab;
+    // replaceHistory is only passed (as true) by TabView's programmatic
+    // default-tab call on mount (Misc.jsx TabView.componentDidMount) -- that's
+    // not a user click, so don't report it. User clicks omit the argument.
+    if (!replaceHistory) {
+      this.reportTabChange(tab);
+    }
     this.setState({mobileFiltersOpen: false});
     this.props.setTab(tab, replaceHistory);
   }
@@ -471,7 +599,7 @@ class SearchPage extends Component {
         compare={this.props.compare}
         searchState={this.props.searchState}
         onResultClick={this.props.onResultClick}
-        updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+        updateAppliedOptionSort={this.handleSourcesSortChange}
         registerAvailableFilters={this.props.registerAvailableFilters}
         loadNextPage={this.props.loadNextPage}
         isQueryRunning={this.props.isQueryRunning}
@@ -484,7 +612,7 @@ class SearchPage extends Component {
         ? <SearchSortBox
               type={this.props.type}
               sortTypeArray={this.props.sortTypeArray}
-              updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+              updateAppliedOptionSort={this.handleSourcesSortChange}
               sortType={this.props.searchState.sortType}
               disabled={disabled} />
         : <MobileFilterIconButton
@@ -496,11 +624,28 @@ class SearchPage extends Component {
     }
 
     const isValidTab = ALL_TAB_IDS.includes(this.props.tab);
-    const activeTab = isValidTab ? this.props.tab : "sources";
+    const activeTab = this.activeTab();
     const closeMobileFilters = () => this.setState({mobileFiltersOpen: false});
 
     const isExactSearch = this.props.searchState.field === this.props.searchState.fieldExact;
+    // Rendered twice — above the results on desktop, inside the filter panel on mobile —
+    // and read a third time for the analytics label below, so the label always matches
+    // the words the user actually clicked.
+    const exactMatchOptions = [
+      {name: "all",   ...Sefaria._bilingual("search.exact_match_toggle.all_results")},
+      {name: "exact", ...Sefaria._bilingual("search.exact_match_toggle.exact_match")},
+    ];
     const handleExactMatchChange = (val) => {
+      // The toggle calls onChange even for a click on the option already selected;
+      // that changes nothing, so it isn't reported. Keeps this consistent with the
+      // sort control, which ignores a no-op selection before it ever gets here.
+      const isNoOp = (val === "exact") === isExactSearch;
+      if (!isNoOp && !this.props.compare) {
+        SearchAnalytics.elementClicked({
+          elementType: 'toggle',
+          elementValue: exactMatchOptions.find(o => o.name === val)?.en || val,
+        });
+      }
       const defaultField = SearchState.metadataByType[this.props.type]?.field;
       this.props.updateAppliedOptionField(val === "exact" ? this.props.searchState.fieldExact : defaultField);
     };
@@ -510,10 +655,7 @@ class SearchPage extends Component {
       <div className="searchFilterGroup">
         <h2><InterfaceText>search_page.search_type</InterfaceText></h2>
         <SearchToggle
-          options={[
-            {name: "all",   ...Sefaria._bilingual("search.exact_match_toggle.all_results")},
-            {name: "exact", ...Sefaria._bilingual("search.exact_match_toggle.exact_match")},
-          ]}
+          options={exactMatchOptions}
           selected={isExactSearch ? "exact" : "all"}
           onChange={handleExactMatchChange}
         />
@@ -527,8 +669,8 @@ class SearchPage extends Component {
       sidebar = <SearchFilters
           query={this.props.query}
           searchState={this.props.searchState}
-          updateAppliedFilter={this.props.updateAppliedFilter.bind(null, this.props.searchState)}
-          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+          updateAppliedFilter={this.handleSourcesFilterClick}
+          updateAppliedOptionSort={this.handleSourcesSortChange}
           topSection={searchTypeSection}
           closeMobileFilters={closeMobileFilters}
           compare={this.props.compare}
@@ -588,10 +730,7 @@ class SearchPage extends Component {
         <div className="searchTopMatter">
           {Sefaria.multiPanel && !this.props.compare && this.props.type === "text" && (
             <SearchToggle
-              options={[
-                {name: "all",   ...Sefaria._bilingual("search.exact_match_toggle.all_results")},
-                {name: "exact", ...Sefaria._bilingual("search.exact_match_toggle.exact_match")},
-              ]}
+              options={exactMatchOptions}
               selected={isExactSearch ? "exact" : "all"}
               onChange={handleExactMatchChange}
             />
@@ -621,6 +760,7 @@ class SearchPage extends Component {
             }
           </div>
           <EntitySearchResults type={type} data={this.state.entityData[type]} query={this.props.query}
+                               trackClicks={!this.props.compare}
                                loadMore={() => this.loadNextEntityPage(type)}
                                openURL={this.props.openURL}/>
         </div>
