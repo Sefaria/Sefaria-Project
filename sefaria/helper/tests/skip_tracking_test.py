@@ -606,3 +606,59 @@ class TestThreadSafety:
     # exact problem this class had before: green assertions that pass with the lock deleted.
     # The storage bound itself is covered single-threaded by
     # TestSignalAndReset::test_stored_records_bounded_but_counts_complete.
+
+
+class TestGuardedBuildMethodsOpenTheirOwnPathway:
+    """build_pathway() resets the skip log on ENTRY, so a guarded builder that runs at depth
+    0 without one has its skips recorded and then silently cleared by the next build. The
+    docstring on build_pathway says the wrapper "goes on the build METHOD, not its callers";
+    these are the Library builders where the callers demonstrably cannot supply it.
+
+    Read from source rather than by calling them: instantiating Library hits Mongo, and this
+    module is deliberately DB-free. The contract under test is structural anyway — that the
+    `with build_pathway(...)` is present — not what the builder computes.
+    """
+
+    # (method, pathway name, why its callers cannot open the pathway)
+    MUST_WRAP = [
+        ("_build_index_maps", "_build_index_maps",
+         "sefaria/model/__init__.py runs it at import, before reader/startup.py opens one"),
+        ("build_term_mappings", "build_term_mappings",
+         "Library.__init__ reaches it via get_simple_term_mapping(); so do request paths"),
+        ("_build_topic_mapping", "_build_topic_mapping",
+         "get_topic_mapping() is called from request paths such as sefaria/sheets.py"),
+        ("build_virtual_books", "build_virtual_books",
+         "get_virtual_books() is reached from the context processor on a cold shared cache"),
+        ("rebuild_linker_resolvers", "rebuild_linker_resolvers",
+         "the Celery task in sefaria/helper/linker/tasks.py calls it bare"),
+    ]
+
+    # Deliberately NOT in the list above: all_index_records() also guards records at depth 0,
+    # but it is an accessor over already-built maps that reader/views.py calls per request,
+    # so wrapping it would post a Slack summary on every request touching a corrupt index.
+
+    @staticmethod
+    def _library_methods():
+        import ast
+        import os
+        path = os.path.join(os.path.dirname(skip_tracking.__file__), "..", "model", "text.py")
+        with open(path, encoding="utf-8") as f:
+            tree = ast.parse(f.read())
+        library = next(n for n in ast.walk(tree)
+                       if isinstance(n, ast.ClassDef) and n.name == "Library")
+        return {n.name: n for n in library.body if isinstance(n, ast.FunctionDef)}
+
+    @pytest.mark.parametrize("method,pathway,reason", MUST_WRAP)
+    def test_builder_wraps_itself(self, method, pathway, reason):
+        import ast
+        node = self._library_methods().get(method)
+        assert node is not None, "Library.{} is gone; re-home this check".format(method)
+        opened = [call.args[0].value
+                  for call in ast.walk(node)
+                  if isinstance(call, ast.Call)
+                  and isinstance(call.func, ast.Name) and call.func.id == "build_pathway"
+                  and call.args and isinstance(call.args[0], ast.Constant)]
+        assert pathway in opened, (
+            "Library.{}() must open build_pathway({!r}) itself: {}. Without it the skips it "
+            "records are cleared, unreported, by the next build's reset-on-entry."
+            .format(method, pathway, reason))
