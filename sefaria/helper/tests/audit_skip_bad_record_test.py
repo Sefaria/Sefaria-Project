@@ -445,9 +445,12 @@ CASES = [
     case(site="S3", operation="TocTree index",
          corruption="index whose `categories` is empty",
          collection="index", doc=_index_doc("ZZAuditEmptyCats", categories=[]),
-         trigger=_toc_tree, expect=PROPAGATED, error_type="InputError", outside_guard=True,
-         note="rejected by Index.load_from_dict during IndexSet() iteration, so it aborts "
-              "_build_index_maps before the TocTree guard is ever reached"),
+         trigger=_toc_tree, expect=WRONG_SITE,
+         note="rejected by Index.load_from_dict during IndexSet() iteration, so it never "
+              "reaches the TocTree guard. It used to escape as a placement gap -- no "
+              "with-block is in scope during that iteration -- but _build_index_maps now "
+              "calls IndexSet().with_skip_guard(), which guards record CONSTRUCTION. So the "
+              "record is skipped, just at '_build_index_maps index record', not here"),
     case(site="S3", operation="TocTree index",
          corruption="index whose `categories` is a string, not a list",
          collection="index", doc=_index_doc("ZZAuditStrCats", categories="Tanakh"),
@@ -509,11 +512,11 @@ CASES = [
     case(site="S7", operation="_build_index_maps index record",
          corruption="index whose `schema` is not a dict",
          collection="index", doc=_index_doc("ZZAuditSchemaStr", schema={"nodes": "not-a-list"}),
-         trigger=_index_maps, expect=PROPAGATED, error_type="AttributeError", outside_guard=True,
-         note="AttributeError is now IN the tuple, and this still escapes -- it raises "
-              "during IndexSet() iteration, OUTSIDE the with-block. Previously recorded as "
-              "a deliberate exclusion; widening the tuple exposed it as a third instance of "
-              "the placement gap"),
+         trigger=_index_maps, expect=CAUGHT, error_type="AttributeError",
+         note="raises during IndexSet() iteration, OUTSIDE the with-block, so widening "
+              "BAD_RECORD_EXCEPTIONS alone could never reach it -- this was the placement "
+              "gap. IndexSet().with_skip_guard() closes it by guarding construction of each "
+              "record, so the same AttributeError is now caught at this site"),
     case(site="S7", operation="_build_index_maps index record",
          corruption="index with no `title`",
          collection="index",
