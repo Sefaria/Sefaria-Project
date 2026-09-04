@@ -5060,7 +5060,7 @@ class Library(object):
             # raises) logs and is skipped rather than aborting the whole rebuild.
             self._index_map = {}
             for i in IndexSet():
-                with skip_bad_record("reset_cache,startup", "_build_index_maps index record", record=getattr(i, "_id", "<unknown>"), level="error"):
+                with skip_bad_record("reset_cache,startup", "_build_index_maps index record", record=getattr(i, "_id", None), level="error"):
                     if i.nodes:
                         self._index_map[i.title] = i
             forest = [i.nodes for i in list(self._index_map.values())]
@@ -5070,7 +5070,7 @@ class Library(object):
             for tree in forest:
                 # IndexSchemaError is a subclass of InputError, so the guard's BAD_RECORD_EXCEPTIONS
                 # catches it too; isolate a corrupt node to this tree instead of aborting the rebuild.
-                with skip_bad_record("reset_cache,startup", "_build_index_maps title dict", record=getattr(tree, "key", "<unknown>"), level="error"):
+                with skip_bad_record("reset_cache,startup", "_build_index_maps title dict", record=getattr(tree, "key", None), level="error"):
                     for lang in self.langs:
                         tree_titles = tree.title_dict(lang)
                         self._index_title_maps[lang][tree.key] = list(tree_titles.keys())
@@ -5782,7 +5782,7 @@ class Library(object):
             self._full_term_mapping = {}
             for term in TermSet():
                 # One term with a missing/corrupt title_group must not abort startup.
-                with skip_bad_record("reset_cache,startup", "build_term_mappings term", record=getattr(term, "name", "<unknown>")):
+                with skip_bad_record("reset_cache,startup", "build_term_mappings term", record=getattr(term, "name", None)):
                     self._full_term_mapping[term.name] = term
                     self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
                                                             "he": term.get_primary_title("he")}
@@ -5862,7 +5862,7 @@ class Library(object):
             # One topic with a missing/corrupt title_group must not abort startup.
             self._topic_mapping = {}
             for t in TopicSet():
-                with skip_bad_record("reset_cache,startup", "_build_topic_mapping topic", record=getattr(t, "slug", "<unknown>")):
+                with skip_bad_record("reset_cache,startup", "_build_topic_mapping topic", record=getattr(t, "slug", None)):
                     self._topic_mapping[t.slug] = {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")}
         return self._topic_mapping
 
@@ -6135,7 +6135,7 @@ class Library(object):
             # .title raises) is logged-and-skipped rather than aborting startup.
             self._virtual_books = []
             for index in IndexSet({'lexiconName': {'$exists': True}}):
-                with skip_bad_record("startup", "build_virtual_books index", record=getattr(index, "_id", "<unknown>")):
+                with skip_bad_record("startup", "build_virtual_books index", record=getattr(index, "_id", None)):
                     self._virtual_books.append(index.title)
         return self._virtual_books
 
