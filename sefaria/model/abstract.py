@@ -305,6 +305,20 @@ class AbstractMongoRecord(object):
         return set(cls.__subclasses__()).union([sub_sub_cls for sub_cls in cls.__subclasses__() for sub_sub_cls in sub_cls.all_subclasses()])
 
 
+# Fields tried, in order, to name a record in a skip log. Instantiation is what failed, so
+# only the raw Mongo document is available — the record object does not exist yet.
+_RAW_IDENTIFIER_FIELDS = ("title", "slug", "name", "lastPath", "headword", "path", "_id")
+
+
+def _raw_record_identifier(raw):
+    """Best-effort human-readable id for a raw Mongo doc that could not be instantiated."""
+    for field in _RAW_IDENTIFIER_FIELDS:
+        value = raw.get(field)
+        if value is not None:
+            return "{}={!r}".format(field, value) if field == "_id" else value
+    return "<unidentifiable>"
+
+
 class AbstractMongoSet(collections.abc.Iterable):
     """
     A set of mongo records from a single collection
@@ -337,12 +351,79 @@ class AbstractMongoSet(collections.abc.Iterable):
         self._read_records()
         return self.records[item]
 
+    # Set by with_skip_guard(); None means "a record that fails to load aborts the set",
+    # which is the right default everywhere except the guarded build loops. A class attribute
+    # rather than an __init__ parameter on purpose — see with_skip_guard().
+    _skip_guard = None
+
+    def with_skip_guard(self, guard, pathway, operation, level="warning"):
+        """Skip records that fail to INSTANTIATE, instead of letting one abort the whole set.
+
+        Returns self, so it reads inline at a build site:
+
+            for i in IndexSet(query).with_skip_guard(skip_bad_record, "startup", "op"):
+                with skip_bad_record("startup", "op", record=i.title):
+                    ...
+
+        Both guards are needed; they cover different failures. This one covers BUILDING the
+        record — `_read_records()` below materializes every record the moment the set is first
+        touched, including by the `for rec in SomeSet():` clause itself, so a single malformed
+        document aborts the set before the loop body runs even once, and no `with` block inside
+        that body can catch it at any exception breadth. The inner guard covers USING the record.
+
+        Why the guard lives on the set rather than on one method: `_read_records()` is reached
+        from __iter__, __getitem__, __len__, array(), count(), contents(), remove(), update(),
+        save() and delete(). A method that guards only its own call protects the `for x in set`
+        shape and nothing else, so rewriting a loop as `set.array()` would silently drop the
+        protection.
+
+        Why NOT an __init__ parameter: most Set subclasses override __init__ and forward only
+        some arguments positionally to super() — LinkSet, VersionSet and LexiconEntrySet already
+        discard the existing `record_kwargs` and `skip` this way. A constructor argument would
+        therefore be silently ignored at some call sites (LexiconEntrySet among them), and
+        silently having no protection is the worst failure mode for a guard. Setting it after
+        construction sidesteps every subclass signature.
+
+        `guard` is passed in rather than imported so this module keeps no dependency on
+        sefaria.helper. `pathway` and `operation` are not decoration: they group the end-of-build
+        Slack summary and key the skip-tracking breakers, so a skip recorded without them would
+        be invisible degradation.
+        """
+        self._skip_guard = (guard, pathway, operation, level)
+        return self
+
+    def _instantiate_record(self, raw):
+        """Build one record object from one raw Mongo document.
+
+        Overridden by sets that choose the class per-document (LexiconEntrySet). Every path
+        that materializes records goes through here, so an override applies to all of them —
+        instantiating via `self.recordClass` directly would silently produce base-class
+        objects for those sets.
+        """
+        return self.recordClass(attrs=raw, **self.record_kwargs)
+
+    def _post_read_records(self):
+        """Hook run once after `self.records` is materialized, for sets that reorder or
+        re-type the list (TopicSet casts to subclasses; LexiconEntrySet sorts primaries
+        first). Same reason as above: every materializing path must run it."""
+        pass
+
     def _read_records(self):
         if self.records is None:
             self.records = []
             for rec in self.raw_records:
-                self.records.append(self.recordClass(attrs=rec, **self.record_kwargs))
+                if self._skip_guard is None:
+                    self.records.append(self._instantiate_record(rec))
+                else:
+                    guard, pathway, operation, level = self._skip_guard
+                    record = None
+                    with guard(pathway, operation,
+                               record=_raw_record_identifier(rec), level=level):
+                        record = self._instantiate_record(rec)
+                    if record is not None:
+                        self.records.append(record)
             self.max = len(self.records)
+            self._post_read_records()
 
     def __len__(self):
         if not self.max:

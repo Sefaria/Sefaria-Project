@@ -899,8 +899,7 @@ class TopicSet(abst.AbstractMongoSet):
         query = {'titles.text': title}
         return TopicSet(query=query)
 
-    def _read_records(self):
-        super()._read_records()
+    def _post_read_records(self):
         for rec in self.records:
             if getattr(rec, 'subclass', False):
                 Subclass = globals()[self.recordClass.subclass_map[rec.subclass]]

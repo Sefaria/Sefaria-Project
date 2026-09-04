@@ -199,3 +199,145 @@ class Test_Mongo_Record_Methods(object):
             assert res == c
 
 
+class TestWithSkipGuard(object):
+    """AbstractMongoSet.with_skip_guard() -- skip records that fail to INSTANTIATE.
+
+    `_read_records()` materializes the whole set the moment it is touched, including by the
+    `for rec in SomeSet():` clause itself, so one malformed document aborts the set before a
+    guarded loop body runs even once.
+    """
+
+    class _FakeGuard(object):
+        """Stands in for skip_bad_record: records what it swallowed."""
+
+        def __init__(self, exceptions=Exception):
+            self.exceptions = exceptions
+            self.skipped = []
+
+        def __call__(self, pathway, operation, record=None, level="warning"):
+            import contextlib
+
+            @contextlib.contextmanager
+            def guard():
+                try:
+                    yield
+                except self.exceptions as e:
+                    self.skipped.append((operation, record, type(e).__name__))
+            return guard()
+
+    def _set_of(self, docs, instantiate, post=None):
+        """A minimal AbstractMongoSet over `docs` with a stubbed instantiation hook."""
+        class _Set(abstract.AbstractMongoSet):
+            def __init__(self):
+                self.raw_records = list(docs)
+                self.records = None
+                self.record_kwargs = {}
+                self.max = None
+            def _instantiate_record(self, raw):
+                return instantiate(raw)
+            def _post_read_records(self):
+                if post:
+                    post(self)
+        return _Set()
+
+    def _failing_set(self, docs):
+        def instantiate(raw):
+            if raw.get("title") == "bad" or raw.get("boom"):
+                raise InputError("Please provide category for Index record: bad.")
+            return raw.get("title")
+        return self._set_of(docs, instantiate)
+
+    def test_without_the_guard_one_bad_record_aborts_the_whole_set(self):
+        """The behavior being fixed: the bad record is third, yet the first two are lost too,
+        because the set is materialized in one pass before iteration yields anything."""
+        s = self._failing_set([{"title": "good1"}, {"title": "good2"}, {"title": "bad"}])
+        with pytest.raises(InputError):
+            list(s)
+
+    def test_bad_record_is_skipped_and_the_rest_survive(self):
+        guard = self._FakeGuard(InputError)
+        s = self._failing_set([{"title": "good1"}, {"title": "bad"}, {"title": "good2"}])
+        assert list(s.with_skip_guard(guard, "startup", "op")) == ["good1", "good2"]
+        assert guard.skipped == [("op", "bad", "InputError")]
+        assert s.max == 2
+
+    def test_guard_applies_to_every_access_path_not_just_iteration(self):
+        """The reason the guard lives on the set rather than on one method: rewriting a loop
+        as .array() / len() / contents() must not silently drop the protection."""
+        class _Rec(object):                       # contents() calls .contents() per record
+            def __init__(self, title):
+                self.title = title
+            def contents(self, **kwargs):
+                return {"title": self.title}
+
+        def instantiate(raw):
+            if raw["title"] == "bad":
+                raise InputError("bad record")
+            return _Rec(raw["title"])
+
+        for access in (lambda s: list(s), lambda s: s.array(), lambda s: len(s),
+                       lambda s: s[0], lambda s: s.contents()):
+            s = self._set_of([{"title": "good1"}, {"title": "bad"}], instantiate)
+            s.with_skip_guard(self._FakeGuard(InputError), "startup", "op")
+            access(s)                     # must not raise
+            assert s.max == 1
+
+    def test_returns_self_so_it_reads_inline(self):
+        s = self._failing_set([{"title": "a"}])
+        assert s.with_skip_guard(self._FakeGuard(), "startup", "op") is s
+
+    def test_unguarded_exception_still_propagates(self):
+        def instantiate(raw):
+            raise ImportError("bad deploy")
+
+        s = self._set_of([{"title": "x"}], instantiate)
+        s.with_skip_guard(self._FakeGuard(InputError), "startup", "op")
+        with pytest.raises(ImportError):
+            list(s)
+
+    def test_record_is_identified_from_the_raw_document(self):
+        """Instantiation is what failed, so the log can only name the record from raw fields."""
+        guard = self._FakeGuard()
+        for doc in [{"title": "T"}, {"slug": "s"}, {"name": "n"}, {"_id": 7}, {"unknown": 1}]:
+            doc = dict(doc, boom=True)
+            s = self._failing_set([doc])
+            list(s.with_skip_guard(guard, "startup", "op"))
+        assert [rec for _, rec, _ in guard.skipped] == ["T", "s", "n", "_id=7", "<unidentifiable>"]
+
+    def test_guarded_path_uses_the_sets_own_instantiation_hook(self):
+        """Regression: an earlier version instantiated via `self.recordClass(...)` directly,
+        which silently produced base-class objects for LexiconEntrySet (whose entry class
+        depends on the document's lexicon) and skipped TopicSet's subclass casting."""
+        s = self._set_of([{"title": "a"}], lambda raw: "instantiated:" + raw["title"])
+        s.with_skip_guard(self._FakeGuard(), "startup", "op")
+        assert list(s) == ["instantiated:a"]
+
+    def test_guarded_path_runs_the_post_materialize_hook(self):
+        s = self._set_of([{"title": "b"}, {"title": "a"}], lambda raw: raw["title"],
+                         post=lambda self: self.records.sort())
+        s.with_skip_guard(self._FakeGuard(), "startup", "op")
+        assert list(s) == ["a", "b"]
+
+    def test_unguarded_sets_are_unaffected(self):
+        """The default must stay 'a record that fails to load aborts the set'."""
+        s = self._set_of([{"title": "a"}], lambda raw: raw["title"])
+        assert s._skip_guard is None
+        assert list(s) == ["a"]
+
+
+class TestPolymorphicSetsStillTypeTheirRecords(object):
+    """The instantiation hooks moved in the same change as with_skip_guard; these pin the
+    behavior that moved, against the real sets rather than stubs."""
+
+    def test_topic_set_casts_to_subclass(self):
+        from sefaria.model.topic import TopicSet, AuthorTopic
+        authors = TopicSet({"subclass": "author"}, limit=1)
+        for topic in authors:
+            assert isinstance(topic, AuthorTopic)
+
+    def test_lexicon_entry_set_builds_lexicon_specific_entries(self):
+        from sefaria.model.lexicon import LexiconEntrySet, LexiconEntry
+        entries = LexiconEntrySet({"parent_lexicon": "Jastrow Dictionary"}, limit=1)
+        for entry in entries:
+            assert type(entry) is not LexiconEntry
+            assert hasattr(entry, "get_alt_headwords")

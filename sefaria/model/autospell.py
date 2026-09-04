@@ -583,9 +583,10 @@ class LexiconTrie(datrie.Trie):
     def __init__(self, lexicon_name):
         super(LexiconTrie, self).__init__(letter_scope)
 
-        for entry in LexiconEntrySet({"parent_lexicon": lexicon_name}, sort=[("_id", -1)]):
+        for entry in LexiconEntrySet({"parent_lexicon": lexicon_name}, sort=[("_id", -1)]).with_skip_guard(
+                skip_bad_record, "startup", "LexiconTrie({}) entry".format(lexicon_name)):
             # One malformed lexicon entry (e.g. missing headword) must not abort startup.
-            with skip_bad_record("startup", "LexiconTrie({}) entry".format(lexicon_name), record=getattr(entry, "_id", "<unknown>")):
+            with skip_bad_record("startup", "LexiconTrie({}) entry".format(lexicon_name), record=getattr(entry, "_id", None)):
                 self[hebrew.strip_nikkud(entry.headword)] = self.get(hebrew.strip_nikkud(entry.headword), []) + [entry.headword]
                 for ahw in entry.get_alt_headwords():
                     self[hebrew.strip_nikkud(ahw)] = self.get(hebrew.strip_nikkud(ahw), []) + [entry.headword]

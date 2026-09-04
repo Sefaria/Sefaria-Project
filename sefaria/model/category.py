@@ -14,6 +14,25 @@ from . import collection as collection
 from .linker.has_match_template import MatchTemplateMixin
 
 
+def toc_node_id(node):
+    """Identify a ToC node for the skip log: its path, e.g. "Tanakh/Torah/Genesis".
+
+    Defensive because `record=` is an ARGUMENT to skip_bad_record, so it is evaluated
+    before the guard is entered — anything raised here escapes uncaught and aborts the
+    build the guard exists to protect. `full_path` reads primary_title() off every
+    ancestor, and a broken title_group is exactly the corruption this guard catches.
+
+    Returns None on failure rather than a shared string: skip_tracking gives None a unique
+    placeholder, so a site whose ids all fail degrades to counting occurrences instead of
+    collapsing into one bucket and silencing the signature breaker. It renders as
+    "<unknown>" in the summary either way.
+    """
+    try:
+        return "/".join(node.full_path)
+    except Exception:
+        return None
+
+
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject, MatchTemplateMixin):
     collection = 'category'
     history_noun = "category"
@@ -227,8 +246,13 @@ class TocTree(object):
                     "enComplete": bool(vs.get("flags", {}).get("enComplete", False)),
                 }
 
-        # Build Category object tree from stored Category objects
-        for c in CategorySet(sort=[("depth", 1)]):
+        # Build Category object tree from stored Category objects. Two guards, covering two
+        # different failures: with_skip_guard() covers CONSTRUCTING each Category — a bad
+        # `sharedTitle` raises out of _process_terms during _set_derived_attributes, while the
+        # set is materializing, so it would otherwise abort the whole TOC build before
+        # _add_category ran even once — and _add_category's own guard covers USING it.
+        for c in CategorySet(sort=[("depth", 1)]).with_skip_guard(
+                skip_bad_record, "reset_toc,startup", "TocTree category record"):
             self._add_category(c)
 
         # Get all of the first comment links. A single link missing either field must not abort startup.
@@ -241,9 +265,15 @@ class TocTree(object):
         # Place Indexes. Wrap each index so one malformed record (empty categories,
         # bad base_text_titles, broken schema, etc.) logs and is skipped rather than
         # aborting the whole TOC build and preventing server startup.
-        indx_set = self._library.all_index_records() if self._library else text.IndexSet()
+        # The library branch is already covered: all_index_records() returns a plain list built
+        # from _index_map, which _build_index_maps guards as it materializes. The IndexSet()
+        # fallback materializes here, so it needs its own construction guard.
+        indx_set = (self._library.all_index_records() if self._library
+                    else text.IndexSet().with_skip_guard(
+                        skip_bad_record, "reset_toc,startup", "TocTree index record",
+                        level="error"))
         for i in indx_set:
-            with skip_bad_record("reset_toc,startup", "TocTree index", record=getattr(i, "title", "<unknown>"), level="error"):
+            with skip_bad_record("reset_toc,startup", "TocTree index", record=getattr(i, "title", None), level="error"):
                 if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record
                     continue
                 node = self._make_index_node(i, mobile=mobile)
@@ -269,7 +299,7 @@ class TocTree(object):
         # Include Collections in TOC that has a `toc` field set. Skip-and-log per collection.
         collections = collection.CollectionSet({"toc": {"$exists": True}, "listed": True, "slug": {"$exists": True}})
         for c in collections:
-            with skip_bad_record("reset_toc,startup", "TocTree collection", record=getattr(c, "slug", "<unknown>"), level="error"):
+            with skip_bad_record("reset_toc,startup", "TocTree collection", record=getattr(c, "slug", None), level="error"):
                 self._collections_in_library.append(c.slug)
                 node = TocCollectionNode(collection_object=c)
                 categories = node.categories
@@ -461,7 +491,7 @@ class TocNode(schema.TitledTreeNode):
             # drops its subtree.
             d["contents"] = []
             for n in self.children:
-                with skip_bad_record("reset_toc,startup", "TocTree.serialize node", record=getattr(n, "title", None) or n.__class__.__name__, level="error"):
+                with skip_bad_record("reset_toc,startup", "TocTree.serialize node", record=toc_node_id(n), level="error"):
                     d["contents"].append(n.serialize(**kwargs))
 
         # thin param is used for generating search toc, and can be removed when search toc is retired.
