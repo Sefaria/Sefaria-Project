@@ -45,7 +45,7 @@ from django.utils.translation import gettext as _, ngettext_lazy
 from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError
-from sefaria.constants.model import VOICES_MODULE
+from sefaria.constants.model import VOICES_MODULE, LIBRARY_ASSISTANT_SETTING_KEY
 from functools import reduce
 
 if not hasattr(sys, '_doc_build'):
@@ -441,14 +441,22 @@ class UserProfile(object):
             # with the mongo database. This is an existing issue; a 'new user' will be populated with 'old user'
             # data from a nonexistent user (in postgres)
             self.update(profile, ignore_flags_on_init=True)
-        elif self.exists() and not user_registration:
-            # If we encounter a user that has a Django user record but not a profile document
-            # create a profile for them. This allows two enviornments to share a user database,
-            # while maintaining separate profiles (e.g. Sefaria and S4D).
-            self.show_editor_toggle = False
-            self.uses_new_editor = True
-            self.assign_slug()
-            self.save()
+        else:
+            # A profile being created for the first time starts with the Library Assistant
+            # on. Written here, the one point every creation path passes through, and not
+            # as a settings default: an existing doc without the key would read a default
+            # as its value and persist it on its next save. Reading the key from
+            # sefaria.constants rather than from sefaria.helper.library_assistant keeps
+            # this module free of an import back from the helper, which imports it.
+            self.settings[LIBRARY_ASSISTANT_SETTING_KEY] = True
+            if self.exists() and not user_registration:
+                # If we encounter a user that has a Django user record but not a profile document
+                # create a profile for them. This allows two enviornments to share a user database,
+                # while maintaining separate profiles (e.g. Sefaria and S4D).
+                self.show_editor_toggle = False
+                self.uses_new_editor = True
+                self.assign_slug()
+                self.save()
 
     @property
     def full_name(self):

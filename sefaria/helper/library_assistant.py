@@ -5,7 +5,9 @@ The Library Assistant's on/off switch, in one place.
 The assistant is a plain per-user setting living at
 ``profile.settings["library_assistant"]``. Every read and write of it goes through this
 module — views, templates, context processors and scripts all call in here rather than
-touching the key directly.
+touching the key directly. The one exception is ``UserProfile.__init__``, which writes
+the key when it creates a profile: importing this module from the model would be a
+cycle, so it reads the shared constant instead.
 
 Two rules:
 
@@ -27,9 +29,13 @@ user reads exactly as they do today. The migration run — not the deploy — is
 the assistant switches from opt-in to opt-out, and rollback is unsetting the key.
 """
 
+from sefaria.constants.model import LIBRARY_ASSISTANT_SETTING_KEY
 from sefaria.model.user_profile import UserProfile
 
-SETTING_KEY = "library_assistant"
+# Re-exported under the name the rest of the codebase already uses. The single
+# definition lives in sefaria/constants/model.py, which UserProfile also reads when it
+# writes the key at profile creation -- see the comment there.
+SETTING_KEY = LIBRARY_ASSISTANT_SETTING_KEY
 
 
 def normalize(value):

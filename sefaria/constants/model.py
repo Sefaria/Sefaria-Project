@@ -37,3 +37,8 @@ VOICES_MODULE = "voices"
 
 # Topics with fewer sources than this are hidden from the A-Z listing, category browse pages, and Google search
 MIN_SOURCES_FOR_TOPIC_DISPLAY = 3
+
+# Key for the Library Assistant preference in `profile.settings`, re-exported by
+# sefaria/helper/library_assistant.py as SETTING_KEY. Defined here, not there, to keep the
+# dependency one-way: that helper imports UserProfile, which writes this key on creation.
+LIBRARY_ASSISTANT_SETTING_KEY = "library_assistant"
