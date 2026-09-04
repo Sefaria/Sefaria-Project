@@ -5049,31 +5049,36 @@ class Library(object):
         Build index and title node dicts in an efficient way
         """
 
-        # self._index_title_commentary_maps if index_object.is_commentary() else self._index_title_maps
-        # simple texts
-        # Build the map record-by-record so one corrupt Index logs and is skipped rather than
-        # aborting the whole rebuild. TWO guards, covering two different failures: the
-        # with_skip_guard() call guards CONSTRUCTING each Index (a bad `schema` or missing
-        # `categories` raises inside IndexSet's own materialization, before this loop body ever
-        # runs), and the inner `with` guards USING it (.title/.nodes raising).
-        self._index_map = {}
-        for i in IndexSet().with_skip_guard(skip_bad_record, "reset_cache,startup",
-                                            "_build_index_maps index record", level="error"):
-            with skip_bad_record("reset_cache,startup", "_build_index_maps index record", record=getattr(i, "_id", "<unknown>"), level="error"):
-                if i.nodes:
-                    self._index_map[i.title] = i
-        forest = [i.nodes for i in list(self._index_map.values())]
-        self._title_node_maps = {lang: {} for lang in self.langs}
-        self._index_title_maps = {lang:{} for lang in self.langs}
+        # On the method rather than its callers because the most important caller is the
+        # import of sefaria/model/__init__.py, which runs while reader/startup.py is still
+        # executing its own imports — before it can open the "startup" pathway. Unwrapped,
+        # these error-level skips are recorded and then cleared by that pathway's reset.
+        with build_pathway("_build_index_maps"):
+            # self._index_title_commentary_maps if index_object.is_commentary() else self._index_title_maps
+            # simple texts
+            # Build the map record-by-record so one corrupt Index logs and is skipped rather than
+            # aborting the whole rebuild. TWO guards, covering two different failures: the
+            # with_skip_guard() call guards CONSTRUCTING each Index (a bad `schema` or missing
+            # `categories` raises inside IndexSet's own materialization, before this loop body ever
+            # runs), and the inner `with` guards USING it (.title/.nodes raising).
+            self._index_map = {}
+            for i in IndexSet().with_skip_guard(skip_bad_record, "reset_cache,startup",
+                                                "_build_index_maps index record", level="error"):
+                with skip_bad_record("reset_cache,startup", "_build_index_maps index record", record=getattr(i, "_id", None), level="error"):
+                    if i.nodes:
+                        self._index_map[i.title] = i
+            forest = [i.nodes for i in list(self._index_map.values())]
+            self._title_node_maps = {lang: {} for lang in self.langs}
+            self._index_title_maps = {lang:{} for lang in self.langs}
 
-        for tree in forest:
-            # IndexSchemaError is a subclass of InputError, so the guard's BAD_RECORD_EXCEPTIONS
-            # catches it too; isolate a corrupt node to this tree instead of aborting the rebuild.
-            with skip_bad_record("reset_cache,startup", "_build_index_maps title dict", record=getattr(tree, "key", "<unknown>"), level="error"):
-                for lang in self.langs:
-                    tree_titles = tree.title_dict(lang)
-                    self._index_title_maps[lang][tree.key] = list(tree_titles.keys())
-                    self._title_node_maps[lang].update(tree_titles)
+            for tree in forest:
+                # IndexSchemaError is a subclass of InputError, so the guard's BAD_RECORD_EXCEPTIONS
+                # catches it too; isolate a corrupt node to this tree instead of aborting the rebuild.
+                with skip_bad_record("reset_cache,startup", "_build_index_maps title dict", record=getattr(tree, "key", None), level="error"):
+                    for lang in self.langs:
+                        tree_titles = tree.title_dict(lang)
+                        self._index_title_maps[lang][tree.key] = list(tree_titles.keys())
+                        self._title_node_maps[lang].update(tree_titles)
 
     def _reset_index_derivative_objects(self, include_auto_complete=False):
         """
@@ -5773,19 +5778,23 @@ class Library(object):
            A simple term mapping has the term name as the key, and a dictionary containing the English and Hebrew
            primary titles for the terms as the value.
         """
-        self._simple_term_mapping = {}
-        self._full_term_mapping = {}
-        for term in TermSet().with_skip_guard(skip_bad_record, "reset_cache,startup",
-                                              "build_term_mappings term"):
-            # One term with a missing/corrupt title_group must not abort startup.
-            with skip_bad_record("reset_cache,startup", "build_term_mappings term", record=getattr(term, "name", "<unknown>")):
-                self._full_term_mapping[term.name] = term
-                self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
-                                                        "he": term.get_primary_title("he")}
-                if hasattr(term, "ref"):
-                    for lang in self.langs:
-                        for title in term.get_titles(lang):
-                            self._term_ref_maps[lang][title] = term.ref
+        # On the method, not its callers: Library.__init__ reaches this through
+        # get_simple_term_mapping(), and the lazy accessors (get_term, get_term_dict) reach
+        # it from request paths. None of those are builds, so none of them open a pathway.
+        with build_pathway("build_term_mappings"):
+            self._simple_term_mapping = {}
+            self._full_term_mapping = {}
+            for term in TermSet().with_skip_guard(skip_bad_record, "reset_cache,startup",
+                                                  "build_term_mappings term"):
+                # One term with a missing/corrupt title_group must not abort startup.
+                with skip_bad_record("reset_cache,startup", "build_term_mappings term", record=getattr(term, "name", None)):
+                    self._full_term_mapping[term.name] = term
+                    self._simple_term_mapping[term.name] = {"en": term.get_primary_title("en"),
+                                                            "he": term.get_primary_title("he")}
+                    if hasattr(term, "ref"):
+                        for lang in self.langs:
+                            for title in term.get_titles(lang):
+                                self._term_ref_maps[lang][title] = term.ref
 
     def get_simple_term_mapping(self, rebuild=False):
         if rebuild or not self._simple_term_mapping:
@@ -5851,13 +5860,16 @@ class Library(object):
         value of the topic's Hebrew primary title.
         :returns: topic map for the given slug Dictionary
         """
-        from .topic import Topic, TopicSet
-        # One topic with a missing/corrupt title_group must not abort startup.
-        self._topic_mapping = {}
-        for t in TopicSet().with_skip_guard(skip_bad_record, "reset_cache,startup",
-                                            "_build_topic_mapping topic"):
-            with skip_bad_record("reset_cache,startup", "_build_topic_mapping topic", record=getattr(t, "slug", "<unknown>")):
-                self._topic_mapping[t.slug] = {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")}
+        # On the method, not its callers: get_topic_mapping() reaches this from request paths
+        # (sefaria/sheets.py) that open no pathway. The call from rebuild() nests harmlessly.
+        with build_pathway("_build_topic_mapping"):
+            from .topic import Topic, TopicSet
+            # One topic with a missing/corrupt title_group must not abort startup.
+            self._topic_mapping = {}
+            for t in TopicSet().with_skip_guard(skip_bad_record, "reset_cache,startup",
+                                                "_build_topic_mapping topic"):
+                with skip_bad_record("reset_cache,startup", "_build_topic_mapping topic", record=getattr(t, "slug", None)):
+                    self._topic_mapping[t.slug] = {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")}
         return self._topic_mapping
 
     def get_linker(self, lang: str, rebuild=False):
@@ -5872,13 +5884,17 @@ class Library(object):
         RefResolver and CategoryResolver. If a linker for a language has not been
         initialized in this process, build the full linker once.
         """
-        for lang in langs:
-            linker = self._linker_by_lang.get(lang)
-            if not linker:
-                self.build_linker(lang)
-                continue
-            linker._ref_resolver = self._build_ref_resolver(lang)
-            linker._cat_resolver = self._build_category_resolver(lang)
+        # Wrapped for the same reason as build_linker() below, which this partly duplicates:
+        # _build_category_resolver() guards its records, and the Celery task that calls this
+        # (sefaria/helper/linker/tasks.py) opens no pathway. build_linker's own block nests.
+        with build_pathway("rebuild_linker_resolvers"):
+            for lang in langs:
+                linker = self._linker_by_lang.get(lang)
+                if not linker:
+                    self.build_linker(lang)
+                    continue
+                linker._ref_resolver = self._build_ref_resolver(lang)
+                linker._cat_resolver = self._build_category_resolver(lang)
 
     def build_linker(self, lang: str):
         from sefaria.model.linker.linker import Linker
@@ -6118,13 +6134,16 @@ class Library(object):
         return self._virtual_books
 
     def build_virtual_books(self):
-        # Build record-by-record so one malformed dictionary index (e.g. accessing
-        # .title raises) is logged-and-skipped rather than aborting startup.
-        self._virtual_books = []
-        for index in IndexSet({'lexiconName': {'$exists': True}}).with_skip_guard(
-                skip_bad_record, "startup", "build_virtual_books index"):
-            with skip_bad_record("startup", "build_virtual_books index", record=getattr(index, "_id", "<unknown>")):
-                self._virtual_books.append(index.title)
+        # On the method, not its callers: get_virtual_books() is reached from the context
+        # processor on any request that finds the shared cache cold, which opens no pathway.
+        with build_pathway("build_virtual_books"):
+            # Build record-by-record so one malformed dictionary index (e.g. accessing
+            # .title raises) is logged-and-skipped rather than aborting startup.
+            self._virtual_books = []
+            for index in IndexSet({'lexiconName': {'$exists': True}}).with_skip_guard(
+                    skip_bad_record, "startup", "build_virtual_books index"):
+                with skip_bad_record("startup", "build_virtual_books index", record=getattr(index, "_id", None)):
+                    self._virtual_books.append(index.title)
         return self._virtual_books
 
     def get_titles_in_string(self, s, lang=None, citing_only=False):

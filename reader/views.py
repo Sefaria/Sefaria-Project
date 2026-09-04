@@ -5025,6 +5025,28 @@ def annual_report(request, report_year=None):
     return render(request, template_name='static/annualreport.html', context={'reportYear': report_year, 'pdfURL': pdfs[report_year]})
 
 
+@lru_cache(maxsize=1)
+def get_current_990_form_filename():
+    """Return the most recent Form 990 PDF in static/files for this process."""
+    files_dir = os.path.join(STATICFILES_DIRS[0], 'files')
+    form_990_pattern = re.compile(r'^Sefaria_(\d{4})_990_Public\.pdf$')
+    form_990_files = [
+        (int(match.group(1)), filename)
+        for filename in os.listdir(files_dir)
+        if (match := form_990_pattern.match(filename))
+    ]
+    if not form_990_files:
+        raise Http404
+    _, latest_form_990 = max(form_990_files)
+    return latest_form_990
+
+
+def current_990_form(request):
+    """Redirect to the most recent Form 990 PDF in static/files."""
+    latest_form_990 = get_current_990_form_filename()
+    return redirect(f'{STATIC_URL}files/{latest_form_990}')
+
+
 @ensure_csrf_cookie
 def explore(request, topCat=None, bottomCat=None, book1=None, book2=None, lang=None):
     """
