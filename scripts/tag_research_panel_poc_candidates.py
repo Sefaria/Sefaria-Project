@@ -322,10 +322,14 @@ def cluster_prompt(questions: list[str]) -> list[dict[str, str]]:
             "role": "system",
             "content": (
                 "Cluster similar normalized questions for a research-panel POC. "
-                "Use broad, user-facing labels. Every question variant in your output "
-                "must be copied exactly from the provided question list. Prefer fewer, "
-                "larger user-facing clusters over near-duplicate clusters. Return only "
-                "JSON matching the schema."
+                "Use broad, user-facing labels, and phrase every label as a real "
+                "grammatical question that could be shown directly to a reader. "
+                "Do not use topic-title labels, noun phrases, or headline-style labels. "
+                "Every provided question must appear in exactly one questionVariants "
+                "array. Copy each question variant exactly from the provided question "
+                "list; do not omit, rewrite, summarize, or duplicate any question. "
+                "Prefer fewer, larger user-facing clusters over near-duplicate clusters. "
+                "Return only JSON matching the schema."
             ),
         },
         {
@@ -392,6 +396,30 @@ def attach_question_clusters(output_data: dict[str, Any]) -> None:
             tags.update(question_to_cluster[question])
 
 
+def add_missing_question_clusters(output_data: dict[str, Any]) -> None:
+    clustered_questions = {
+        variant
+        for cluster in output_data.get("questionClusters", [])
+        for variant in cluster.get("questionVariants", [])
+    }
+    missing_questions = sorted({
+        item["llmTags"].get("normalizedQuestion", "").strip()
+        for item in output_data["items"]
+        if item.get("llmTags")
+        and item["llmTags"].get("normalizedQuestion", "").strip()
+        and item["llmTags"].get("normalizedQuestion", "").strip() not in clustered_questions
+    })
+    output_data.setdefault("questionClusters", [])
+    for index, question in enumerate(missing_questions, start=1):
+        output_data["questionClusters"].append({
+            "clusterId": f"QF{index:03d}",
+            "label": question,
+            "questionVariants": [question],
+            "topicTags": [],
+            "fallbackCluster": True,
+        })
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", default=str(DEFAULT_IN))
@@ -405,6 +433,7 @@ def main():
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--skip-clustering", action="store_true")
     parser.add_argument("--only-clustering", action="store_true")
+    parser.add_argument("--replace-clustering", action="store_true")
     args = parser.parse_args()
     if args.model is None:
         args.model = DEFAULT_ANTHROPIC_MODEL if args.provider == "anthropic" else DEFAULT_MODEL
@@ -419,9 +448,17 @@ def main():
     output_data["taggingPolicy"]["workers"] = args.workers
     output_data["taggingPolicy"]["clusterBatchSize"] = args.cluster_batch_size
     output_data["taggingPolicy"]["clusterWorkers"] = args.cluster_workers
+    output_data["taggingPolicy"]["clusterLabelsAreQuestions"] = True
 
     client = OpenAI() if args.provider == "openai" else Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
     items = output_data["items"]
+    if args.replace_clustering:
+        output_data["questionClusters"] = []
+        for item in items:
+            tags = item.get("llmTags")
+            if tags:
+                tags.pop("clusterId", None)
+                tags.pop("clusterLabel", None)
     target_indexes = [] if args.only_clustering else [i for i, item in enumerate(items) if not item.get("llmTags")]
     if args.limit is not None:
         target_indexes = target_indexes[:args.limit]
@@ -512,6 +549,7 @@ def main():
                     f"{json.dumps(output_data['llmTaggingSummary'], ensure_ascii=False)}",
                     flush=True,
                 )
+        add_missing_question_clusters(output_data)
         attach_question_clusters(output_data)
         output_data["llmTaggingSummary"] = summarize(output_data["items"])
         output_data["llmTaggingSummary"]["questionClusterCount"] = len(output_data.get("questionClusters", []))
