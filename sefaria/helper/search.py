@@ -992,7 +992,7 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
     if category_paths and type != "book":
         raise ValueError(f"Entity search 'filter' is only supported for type 'book', not '{type}'.")
 
-    es_client = get_elasticsearch_client()
+    es_client = get_elasticsearch_client_for_online_search()
 
     if type == "book":
         # A category filter always runs the flat search: both collapsed views (author
@@ -1027,7 +1027,33 @@ def entity_search(query, type, start=0, size=20, sort="relevance", category_path
 def get_elasticsearch_client():
     from elasticsearch import Elasticsearch
     from sefaria.settings import SEARCH_URL
-    return Elasticsearch(SEARCH_URL)
+    # Hardened for index-management (alias swap, create/mapping) and sheet writes.
+    # Previously bare — a transient ES error during alias swap or sheet load would abort the whole reindex.
+    return Elasticsearch(
+        SEARCH_URL,
+        request_timeout=90,
+        retry_on_timeout=True,
+        max_retries=3,
+        http_compress=True,
+    )
+
+
+def get_elasticsearch_client_for_online_search():
+    """For the live, user-facing search request path ONLY (search_wrapper_api,
+    entity search). Deliberately does NOT retry_on_timeout/max_retries like
+    get_elasticsearch_client() - those defaults were added for the batch reindex path
+    (alias swap, sheet writes) and would otherwise tie up a Django request worker for
+    up to ~4x longer during an ES hiccup instead of failing fast, as this path did before
+    that hardening was introduced."""
+    from elasticsearch import Elasticsearch
+    from sefaria.settings import SEARCH_URL
+    return Elasticsearch(
+        SEARCH_URL,
+        request_timeout=5,
+        retry_on_timeout=False,
+        max_retries=0,
+        http_compress=True,
+    )
 
 
 def get_elasticsearch_client_for_indexer():

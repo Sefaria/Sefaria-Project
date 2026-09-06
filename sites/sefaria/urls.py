@@ -113,4 +113,5 @@ site_urlpatterns +=[
     re_path(r'^strategicplan/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Strategic_Plan.pdf')),
     re_path(r'^annualreport2021?$', lambda x: HttpResponseRedirect('/annualreport/2021')), # Added for backwards compatability for old links that might still point to this
     re_path(r'^annualreport(/(?P<report_year>\d+)/?|/?)$', reader_views.annual_report),
+    re_path(r'^current-990-form/?$', reader_views.current_990_form),
 ]
