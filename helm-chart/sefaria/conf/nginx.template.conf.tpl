@@ -87,7 +87,7 @@ http {
     }
 
     # protect all non-allowed elasticsearch paths
-    location ~ ^/api/search/(?!(text|sheet|merged|merged-c)(/_search|/_analyze)/?) {
+    location ~ ^/api/search/(?!(text|sheet|merged|merged-c|topic|book|category)(/_search|/_analyze)/?) {
       return 403;
     }
 
@@ -191,7 +191,7 @@ http {
     }
 
     # protect all non-allowed elasticsearch paths
-    location ~ ^/api/search/(?!(text|sheet|merged|merged-c)(/_search|/_analyze)/?) {
+    location ~ ^/api/search/(?!(text|sheet|merged|merged-c|topic|book|category)(/_search|/_analyze)/?) {
       return 403;
     }
 
