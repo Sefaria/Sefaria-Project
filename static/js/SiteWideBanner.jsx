@@ -27,7 +27,16 @@ const getPromoSessionLengthSeconds = (promoSessionLengthSeconds) => {
     : DEFAULT_PROMO_SESSION_LENGTH_SECONDS;
 };
 
+const canUseBrowserStorage = () => (
+  typeof window !== "undefined" &&
+  typeof document !== "undefined" &&
+  typeof localStorage !== "undefined"
+);
+
 const updatePromoSessionCounter = ({ storageKeys, sessionLengthSeconds }) => {
+  if (!canUseBrowserStorage()) {
+    return null;
+  }
   const nowSec = Math.floor(Date.now() / 1000);
   const lastSessionAtSec = Number(localStorage.getItem(storageKeys.lastSessionAtSec));
   const currentSessionCounter = Number(localStorage.getItem(storageKeys.sessionCounter)) || 0;
@@ -43,6 +52,9 @@ const updatePromoSessionCounter = ({ storageKeys, sessionLengthSeconds }) => {
 };
 
 const migrateLegacyCookieToBackoffState = ({ cookieName, storageKeys }) => {
+  if (!canUseBrowserStorage()) {
+    return;
+  }
   // One-time migration from the old close-button system to the new backoff system.
   // If backoff state already exists we've migrated (or the user is native to the new
   // system), so there's nothing to do.
@@ -126,6 +138,9 @@ const SiteWideBanner = ({
   }, [cookieName, gtagParams]);
 
   const isDismissed = () => {
+    if (!canUseBrowserStorage()) {
+      return false;
+    }
     if (enableBackoffDismissal) {
       let backoffState = {};
       try {

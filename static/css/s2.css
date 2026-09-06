@@ -8520,6 +8520,262 @@ But not to use a display block directive that might break continuous mode for ot
   text-decoration: underline;
 }
 
+.researchPanelPOC {
+  padding: 0 24px 24px;
+}
+.marginless .researchPanelPOC {
+  padding-top: 20px;
+}
+.researchPanelIntro {
+  color: var(--medium-grey);
+  font-size: 13px;
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+.researchPanelEyebrow {
+  color: var(--dark-grey);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.researchPanelRef {
+  color: #000;
+  font-size: 18px;
+}
+.researchPanelTabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid #E5E5E5;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.researchPanelTab {
+  background: #fff;
+  border: 0;
+  border-inline-end: 1px solid #E5E5E5;
+  color: var(--dark-grey);
+  cursor: pointer;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 12px;
+  min-height: 38px;
+  padding: 6px 8px;
+}
+.researchPanelTab:last-child {
+  border-inline-end: 0;
+}
+.researchPanelTab.active {
+  background: #f7f7f7;
+  color: #000;
+  font-weight: 700;
+}
+.researchPanelCount,
+.researchPanelEmpty {
+  color: var(--medium-grey);
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+.researchPanelCategoryIndex {
+  padding: 8px 0 18px;
+}
+.researchPanelCategoryButton {
+  align-items: center;
+  background: #fff;
+  border: 0;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  font-family: "Adobe Garamond Pro", "sans-serif";
+  font-size: 24px;
+  justify-content: center;
+  line-height: 1;
+  margin: 0;
+  min-height: 54px;
+  padding: 8px 12px;
+  text-align: center;
+  width: 100%;
+}
+.researchPanelCategoryButton:hover,
+.researchPanelCategoryButton:focus {
+  background: #f7f7f7;
+  outline: 0;
+}
+.researchPanelCategoryText {
+  align-items: baseline;
+  display: inline-flex;
+  gap: 8px;
+  justify-content: flex-end;
+  min-width: 190px;
+}
+.researchPanelCategoryName {
+  font-weight: 700;
+}
+.researchPanelCategoryCount {
+  color: var(--medium-grey);
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 18px;
+  font-weight: 300;
+}
+.researchPanelCategoryIcon {
+  font-size: 21px;
+  margin-inline-start: 16px;
+  width: 24px;
+}
+.researchPanelCategoryBack {
+  align-items: center;
+  background: #fff;
+  border: 0;
+  color: var(--medium-grey);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 13px;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 4px 0;
+}
+.researchPanelCategoryBack:hover {
+  color: #000;
+}
+.researchPanelGroup {
+  border-top: 1px solid #E5E5E5;
+  padding: 16px 0 4px;
+}
+.researchPanelGroupTitle {
+  color: #000;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0 0 12px;
+}
+.researchPanelGroupTitle span {
+  color: var(--medium-grey);
+  font-weight: 400;
+}
+.researchPanelNestedGroups {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.researchPanelQuestionIndex {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.researchPanelQuestionButton {
+  align-items: baseline;
+  background: #fff;
+  border: 1px solid #E5E5E5;
+  border-radius: 4px;
+  color: #000;
+  cursor: pointer;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  line-height: 1.35;
+  padding: 9px 10px;
+  text-align: start;
+  width: 100%;
+}
+.researchPanelQuestionButton:hover,
+.researchPanelQuestionButton:focus {
+  background: #f7f7f7;
+  outline: 0;
+}
+.researchPanelQuestionButtonText {
+  font-size: 13px;
+  font-weight: 700;
+}
+.researchPanelQuestionButtonCount {
+  color: var(--medium-grey);
+  flex: 0 0 auto;
+  font-size: 12px;
+}
+.researchPanelQuestionGroup {
+  border-inline-start: 3px solid #E5E5E5;
+  padding-inline-start: 12px;
+}
+.researchPanelQuestionGroupTitle {
+  color: var(--dark-grey);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0 0 8px;
+}
+.researchPanelQuestionGroupTitle span {
+  color: var(--medium-grey);
+  font-weight: 400;
+}
+.researchResourceItem {
+  border: 1px solid #E5E5E5;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  padding: 12px;
+}
+.researchResourceItem.quality-weak,
+.researchResourceItem.quality-off-topic,
+.researchResourceItem.quality-blocked {
+  background: #fafafa;
+}
+.researchResourceMeta,
+.researchResourceFooter,
+.researchResourceSubtitle,
+.researchResourceQuestion {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.researchResourceMeta,
+.researchResourceFooter {
+  align-items: center;
+  color: var(--medium-grey);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  gap: 6px;
+  line-height: 1.3;
+}
+.researchResourceMeta span,
+.researchResourceFooter span {
+  border: 1px solid #E5E5E5;
+  border-radius: 3px;
+  padding: 2px 5px;
+}
+.researchResourceTitle {
+  color: #000;
+  display: block;
+  font-size: 18px;
+  line-height: 1.25;
+  margin-top: 8px;
+  text-decoration: none;
+}
+.researchResourceTitle:hover {
+  text-decoration: underline;
+}
+.researchResourceSubtitle {
+  color: var(--dark-grey);
+  font-size: 13px;
+  margin-top: 4px;
+}
+.researchResourceTextRange {
+  margin-top: 8px;
+}
+.researchResourceTextRange .textRange {
+  cursor: pointer;
+}
+.researchResourceQuestion {
+  color: #000;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-top: 8px;
+}
+.researchResourceSnippet {
+  color: var(--medium-grey);
+  font-size: 15px;
+  line-height: 1.45;
+  margin-top: 8px;
+}
+.researchResourceFooter {
+  margin-top: 10px;
+}
+
 .manuscriptImage {
   width: auto;
   max-height: 180px;
