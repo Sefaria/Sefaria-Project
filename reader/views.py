@@ -4875,7 +4875,7 @@ def search_wrapper_api(request, es6_compat=False):
     @param es6_compat: True to return API response that's compatible with an Elasticsearch 6 compatible client
     @return:
     """
-    from sefaria.helper.search import get_elasticsearch_client
+    from sefaria.helper.search import get_elasticsearch_client_for_online_search
 
     if request.method == "POST":
         if "json" in request.POST:
@@ -4883,7 +4883,7 @@ def search_wrapper_api(request, es6_compat=False):
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
-        es_client = get_elasticsearch_client()
+        es_client = get_elasticsearch_client_for_online_search()
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()
@@ -5019,6 +5019,28 @@ def annual_report(request, report_year=None):
         raise Http404
     # Renders a simple template, does not extend base.html
     return render(request, template_name='static/annualreport.html', context={'reportYear': report_year, 'pdfURL': pdfs[report_year]})
+
+
+@lru_cache(maxsize=1)
+def get_current_990_form_filename():
+    """Return the most recent Form 990 PDF in static/files for this process."""
+    files_dir = os.path.join(STATICFILES_DIRS[0], 'files')
+    form_990_pattern = re.compile(r'^Sefaria_(\d{4})_990_Public\.pdf$')
+    form_990_files = [
+        (int(match.group(1)), filename)
+        for filename in os.listdir(files_dir)
+        if (match := form_990_pattern.match(filename))
+    ]
+    if not form_990_files:
+        raise Http404
+    _, latest_form_990 = max(form_990_files)
+    return latest_form_990
+
+
+def current_990_form(request):
+    """Redirect to the most recent Form 990 PDF in static/files."""
+    latest_form_990 = get_current_990_form_filename()
+    return redirect(f'{STATIC_URL}files/{latest_form_990}')
 
 
 @ensure_csrf_cookie

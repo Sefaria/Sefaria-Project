@@ -65,7 +65,11 @@ node_modules
 # AI Tools #
 ##########
 .cursor/
-.claude/
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/sefaria-release-notes/
+!.claude/skills/sefaria-release-notes/**
 CLAUDE.md
 !e2e-tests/CLAUDE.md
 
