@@ -142,7 +142,7 @@ class ReaderApp extends Component {
     this.setState({ editorSaveState: nextState });
     };
   handleAuthNavigate = (path, source = null) => {
-    // Hide the sign up modal and show the auth page, with the given path and source for analytics.
+    // Hide the sign up modal and show the auth page, with the given path and source.
     this.setState({ showAuth: true, authPath: path, authSource: source, showSignUpModal: false });
   }
   makePanelState(state) {
