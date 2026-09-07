@@ -131,12 +131,8 @@ const detectCommentaryPattern = (title) => {
  * Uses /api/v2/index/{title}, which rejects (404) for unknown titles.
  */
 const indexExists = async (title) => {
-  try {
-    const data = await Sefaria.getIndexDetails(title);
-    return !!data;
-  } catch (e) {
-    return false;
-  }
+  const data = await Sefaria.getIndexDetails(title);
+  return !!data && !data.error;
 };
 
 /**
