@@ -1,64 +1,304 @@
-from sefaria.helper.schema import cascade
+"""
+Seder Olam Rabbah — remove the chapter-heading segment.
+
+Every section of Seder Olam Rabbah currently starts with a segment that holds
+nothing but the chapter heading:
+
+    Seder Olam Rabbah 1:1   ->  "פרק א"           (heading — junk)
+    Seder Olam Rabbah 1:2   ->  "מאדם עד המבול…"  (the actual content)
+
+Sections 10, 20 and 30 additionally have a colophon at :3.  The three
+commentaries (Vilna Gaon, Yaakov Emden, Meir Ayin) are depth 3 —
+``<Commentary> on Seder Olam Rabbah <chapter>:<base segment>:<comment>`` — and
+their sub-section 1 is empty everywhere, mirroring the empty heading segment.
+
+This script drops segment 1 and shifts everything above it down by one:
+
+    X:1  (heading)   ->  deleted
+    X:2              ->  X:1
+    X:3              ->  X:2      (sections 10, 20, 30 only)
+
+    <Comm> X:1:Z     ->  (nothing there — sub-section is empty)
+    <Comm> X:2:Z     ->  <Comm> X:1:Z
+
+ORDERING.  The ref cascade runs BEFORE the text is shortened.  This is a
+downsize, so once a section loses a segment the old refs stop validating —
+``sefaria.helper.schema.resize_jagged_array`` cascades first for exactly the
+same reason (see the ``delta < 0`` branch).
+
+Run with:  ./run scripts/seder_olam_rabbah.py
+Set DRY_RUN = False to actually write.
+"""
 import re
+from collections import defaultdict
+
+import django
+django.setup()
+
 from sefaria.model import *
-from sefaria.model.text import TextChunk
+from sefaria.helper.schema import cascade, refresh_version_state
+from sefaria.system.database import db
+from sefaria.utils.util import traverse_dict_tree
 
 
+DRY_RUN = True
 
-## delete first segment in base text
-for ref in library.get_index("Seder Olam Rabbah").all_section_refs():
-  if ref.normal().startswith("Seder Olam Rabbah, Introduction"):
-    continue
-  for v in VersionSet({"title": "Seder Olam Rabbah"}):
-     tc = TextChunk(ref, vtitle=v.versionTitle)
-     if len(tc.text) == 2:
-       tc.text = [tc.text[1]]
-       try:
-         tc.save()
-       except Exception as e:
-         print(tc)
-         print(e)
+BASE_TITLE = "Seder Olam Rabbah"
+COMMENTARIES = [f"{c} on Seder Olam Rabbah" for c in ("Vilna Gaon", "Yaakov Emden", "Meir Ayin")]
+
+# Segment 1 must look like one of these before we delete it.  Anything else is
+# real content and the section is left untouched.
+HEADING = re.compile(r"^\s*(?:פרק\s+[א-ת]{1,3}|Chapter\s+\d+)\s*$")
+
+BASE_SEG = re.compile(r"^(Seder Olam Rabbah )(\d+):(\d+)$")
+COMM_SEG = re.compile(r"^((?:Vilna Gaon|Yaakov Emden|Meir Ayin) on Seder Olam Rabbah )(\d+):(\d+):(\d+)$")
 
 
+# ---------------------------------------------------------------------------
+# section lengths, read from the canonical Hebrew version
+# ---------------------------------------------------------------------------
 
-## offset text in commentaries
-books = ["Vilna Gaon", "Yaakov Emden", "Meir Ayin"]
-for book in books:
-  real_book = f"{book} on Seder Olam Rabbah"
-  for ref in library.get_index(real_book).all_top_section_refs():
-    if "Introduction" in ref.normal():
-      continue
-    for v in VersionSet({"title": real_book}):
-      tc = TextChunk(ref, vtitle=v.versionTitle)
-      if len(tc.text) == 0:
-        continue
-      tc.text = [tc.text[1]]
-      try:
-        tc.save()
-      except Exception as e:
-        print(tc)
-        print(e)
-    
+def canonical_section_lengths():
+    """{section number -> segment count} from the Warsaw 1904 Hebrew text."""
+    v = db.texts.find_one({"title": BASE_TITLE, "versionTitle": "Seder Olam, Warsaw 1904"})
+    return {i: len(sec) for i, sec in enumerate(v["chapter"]["default"], start=1)}
 
 
+SECTION_LEN = canonical_section_lengths()
+MAX_VALID_SEGMENT = max(SECTION_LEN.values())
 
-## cascade to topics, links, and source sheets
-needs_rewrite_base_text = lambda x, *y: x.startswith("Seder Olam Rabbah")
-needs_rewrite_comm_text = lambda x, *y: " on Seder Olam Rabbah" in x
 
-def rewriter_base_text(x):
-  x = Ref(x).normal()
-  if x.endswith(":2"):
-    return x.replace(":2", ":1")
-  return x
+# ---------------------------------------------------------------------------
+# rewriters — one cascade pass per segment number, ascending
+# ---------------------------------------------------------------------------
+#
+# Running "shift :2 down" to completion before "shift :3 down" is what keeps the
+# links collection safe.  It has a unique index on (refs.0, refs.1), so if a :3
+# link moved onto :2 while a :2 link were still sitting there we would get a
+# DuplicateKeyError.  Ascending order guarantees the slot is already vacated.
+#
+# Refs whose segment number exceeds the section's real length are left alone —
+# they are already dangling today (see report_dangling_refs) and renumbering
+# them would only move the breakage around.
 
-def rewriter_comm_text(x):
-  x = Ref(x).normal()
-  return re.sub(r'(\d+):2:(\d+)$', r'\1:1:\2', x)
+def base_rewriter_for(segment):
+    def rewriter(tref, *_):
+        m = BASE_SEG.match(tref)
+        if not m or int(m.group(3)) != segment:
+            return tref
+        return f"{m.group(1)}{m.group(2)}:{segment - 1}"
+    return rewriter
 
-for ref in library.get_index("Seder Olam Rabbah").all_segment_refs():
-  cascade(ref, rewriter=rewriter_base_text, needs_rewrite=needs_rewrite_base_text)
 
-for book in ["Vilna Gaon", "Yaakov Emden", "Meir Ayin"]:
-  for ref in library.get_index(f"{book} on Seder Olam Rabbah"):
-    cascade(ref, rewriter=rewriter_comm_text, needs_rewrite=needs_rewrite_comm_text)
+def base_needs_rewrite_for(segment):
+    def needs_rewrite(tref, record=None):
+        # links are the only collection with a uniqueness constraint on refs, and
+        # they are rewritten here like everything else — the collision pre-pass
+        # below has already cleared the way.
+        m = BASE_SEG.match(tref)
+        if not m:
+            return False
+        section, seg = int(m.group(2)), int(m.group(3))
+        if seg != segment or seg < 2:
+            return False
+        return seg <= SECTION_LEN.get(section, 0)   # skip pre-existing dangling refs
+    return needs_rewrite
+
+
+def comm_rewriter(tref, *_):
+    m = COMM_SEG.match(tref)
+    if not m or int(m.group(3)) != 2:
+        return tref
+    return f"{m.group(1)}{m.group(2)}:1:{m.group(4)}"
+
+
+def comm_needs_rewrite(tref, record=None):
+    m = COMM_SEG.match(tref)
+    return bool(m) and int(m.group(3)) == 2
+
+
+# ---------------------------------------------------------------------------
+# step 1 — clear link collisions
+# ---------------------------------------------------------------------------
+
+def find_link_collisions():
+    """Links that would land on a ref pair some other link already occupies.
+
+    Every one of these is a stale ``X:1`` link: the automatic citation linker
+    (``add_links_from_text``) built them back when the section's content lived
+    at :1, before the heading segment was inserted.  They point at a heading
+    like "פרק יא", which contains no citation, so they cannot be genuine.
+    The real link is the ``X:2`` one moving down onto them.
+    """
+    links = list(db.links.find({"refs": {"$regex": BASE_TITLE}}, {"refs": 1}))
+    occupied = defaultdict(list)
+    for l in links:
+        occupied[tuple(sorted(l["refs"]))].append(l["_id"])
+
+    victims = {}
+    for l in links:
+        new_refs = []
+        for r in l["refs"]:
+            m = BASE_SEG.match(r)
+            if m and 2 <= int(m.group(3)) <= SECTION_LEN.get(int(m.group(2)), 0):
+                new_refs.append(f"{m.group(1)}{m.group(2)}:{int(m.group(3)) - 1}")
+            else:
+                new_refs.append(r)
+        new_key, old_key = tuple(sorted(new_refs)), tuple(sorted(l["refs"]))
+        if new_key == old_key:
+            continue
+        for other in occupied.get(new_key, []):
+            if other != l["_id"]:
+                victims[other] = (new_key, old_key)
+    return victims
+
+
+def clear_link_collisions():
+    victims = find_link_collisions()
+    print(f"\n=== Step 1: stale links to delete so the rewrite can land: {len(victims)}")
+    for _id, (new_key, old_key) in list(victims.items())[:5]:
+        print(f"    delete {list(new_key)}   (displaced by {list(old_key)})")
+    if len(victims) > 5:
+        print(f"    ... and {len(victims) - 5} more")
+    if not DRY_RUN and victims:
+        res = db.links.delete_many({"_id": {"$in": list(victims)}})
+        print(f"    deleted {res.deleted_count}")
+
+
+# ---------------------------------------------------------------------------
+# step 2 — cascade the ref changes
+# ---------------------------------------------------------------------------
+
+def cascade_refs():
+    print("\n=== Step 2: cascading ref changes (before the text shrinks)")
+    for segment in range(2, MAX_VALID_SEGMENT + 1):
+        print(f"\n--- base text: shifting :{segment} -> :{segment - 1}")
+        if DRY_RUN:
+            n = db.links.count_documents(
+                {"refs": {"$regex": rf"^{BASE_TITLE} \d+:{segment}$"}})
+            print(f"    (dry run) {n} link refs at :{segment}")
+            continue
+        cascade(Ref(BASE_TITLE),
+                rewriter=base_rewriter_for(segment),
+                needs_rewrite=base_needs_rewrite_for(segment))
+
+    for title in COMMENTARIES:
+        print(f"\n--- {title}: shifting X:2:Z -> X:1:Z")
+        if DRY_RUN:
+            n = db.links.count_documents({"refs": {"$regex": rf"^{re.escape(title)} \d+:2:\d+$"}})
+            print(f"    (dry run) {n} link refs to shift")
+            continue
+        cascade(Ref(title), rewriter=comm_rewriter, needs_rewrite=comm_needs_rewrite)
+
+
+# ---------------------------------------------------------------------------
+# step 3 — drop segment 1 from the text
+# ---------------------------------------------------------------------------
+
+def default_node(index):
+    return index.nodes.get_default_child() if index.nodes.has_children() else index.nodes
+
+
+def drop_first_segment(title, require_heading):
+    """Remove entry 0 from every section of every version of `title`.
+
+    Writes straight to the Version rather than going through TextChunk, the way
+    resize_jagged_array does — a TextChunk built mid-change can pick up refs
+    that are momentarily inconsistent.
+    """
+    index = library.get_index(title)
+    node = default_node(index)
+    address = node.version_address()
+
+    for v in VersionSet({"title": title}):
+        chapter = traverse_dict_tree(v.chapter, address) if isinstance(v.chapter, dict) else v.chapter
+        changed, skipped = 0, []
+        new_chapter = []
+        for i, section in enumerate(chapter, start=1):
+            if len(section) < 2:
+                # Nothing to drop, or a section whose only entry is real content
+                # already sitting at :1 (Sefaria Community Translation §13).
+                if len(section) == 1 and section[0] and str(section[0]).strip():
+                    skipped.append(f"{i} (single segment holds content)")
+                new_chapter.append(section)
+                continue
+            first = section[0]
+            is_droppable = (not str(first).strip()) or bool(HEADING.match(str(first)))
+            if require_heading and not is_droppable:
+                skipped.append(f"{i} (segment 1 is content: {str(first)[:40]!r})")
+                new_chapter.append(section)
+                continue
+            new_chapter.append(section[1:])
+            changed += 1
+
+        print(f"    {v.versionTitle[:44]:46} lang={v.language:3} sections trimmed={changed}")
+        for s in skipped:
+            print(f"        SKIPPED section {s}")
+        if not DRY_RUN:
+            if isinstance(v.chapter, dict):
+                parent = traverse_dict_tree(v.chapter, address[:-1])
+                parent[address[-1]] = new_chapter
+            else:
+                v.chapter = new_chapter
+            v.save()
+
+
+def drop_first_segments():
+    print("\n=== Step 3: removing the heading segment from the text")
+    print(f"\n--- {BASE_TITLE}")
+    drop_first_segment(BASE_TITLE, require_heading=True)
+    for title in COMMENTARIES:
+        print(f"\n--- {title}")
+        drop_first_segment(title, require_heading=False)   # sub-section 1 is empty
+
+
+# ---------------------------------------------------------------------------
+# step 4 — rebuild caches and derived state
+# ---------------------------------------------------------------------------
+
+def refresh():
+    print("\n=== Step 4: rebuilding library / version state")
+    if DRY_RUN:
+        print("    (dry run) skipped")
+        return
+    library.rebuild()
+    for title in [BASE_TITLE] + COMMENTARIES:
+        refresh_version_state(title)
+        print(f"    refreshed {title}")
+    # NOT calling handle_dependant_indices(): it nulls out base_text_mapping on
+    # every commentary, which is how automatic commentary linking is driven.
+    # It exists for structural changes that leave the base/commentary mapping
+    # invalid — here base text and commentaries are shifted in lockstep, so
+    # 'many_to_one' stays correct and must be preserved.
+
+
+# ---------------------------------------------------------------------------
+# report only — pre-existing breakage, untouched by this migration
+# ---------------------------------------------------------------------------
+
+def report_dangling_refs():
+    """Links pointing past the end of a section.  These are broken *today*,
+    left over from an earlier restructuring, and this script deliberately does
+    not renumber them.  Reported so they can be dealt with separately."""
+    print("\n=== Report: pre-existing dangling refs (NOT modified)")
+    counts = defaultdict(int)
+    for l in db.links.find({"refs": {"$regex": BASE_TITLE}}, {"refs": 1}):
+        for r in l["refs"]:
+            m = BASE_SEG.match(r)
+            if m and int(m.group(3)) > SECTION_LEN.get(int(m.group(2)), 0):
+                counts[r] += 1
+    print(f"    {len(counts)} distinct refs across {sum(counts.values())} links")
+    for r in sorted(counts, key=lambda x: (int(x.split()[-1].split(':')[0]), int(x.split(':')[-1]))):
+        sec = int(r.split()[-1].split(':')[0])
+        print(f"      {r:34} in {counts[r]:>2} link(s)   [section has {SECTION_LEN.get(sec, 0)} segments]")
+
+
+if __name__ == "__main__":
+    print(f"{'DRY RUN — nothing will be written' if DRY_RUN else '*** LIVE RUN — WRITING ***'}")
+    print(f"section lengths: {SECTION_LEN}")
+    report_dangling_refs()
+    clear_link_collisions()
+    cascade_refs()
+    drop_first_segments()
+    refresh()
+    print("\nDone." + ("  Set DRY_RUN = False to apply." if DRY_RUN else ""))
