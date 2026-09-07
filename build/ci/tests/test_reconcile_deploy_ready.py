@@ -694,6 +694,31 @@ def test_main_failed_transition_exits_non_zero_and_is_reported(monkeypatch, tmp_
     assert "11111" in err
 
 
+def test_main_apply_all_triage_no_shipped_warns_and_exits_nonzero(monkeypatch, tmp_path, capsys):
+    """Every story routes to triage, none shipped -- must not exit 0 as if
+    the backlog were clean."""
+    story = _story(11111)  # no linked PRs -> triage
+    _make_main_env(monkeypatch, tmp_path, [story], argv_extra=["--apply"])
+
+    with pytest.raises(SystemExit) as exc_info:
+        rdr.main()
+    assert exc_info.value.code != 0
+    assert "WARNING" in capsys.readouterr().err
+
+
+def test_main_dry_run_all_triage_no_shipped_does_not_exit_nonzero(monkeypatch, tmp_path):
+    story = _story(11111)
+    _make_main_env(monkeypatch, tmp_path, [story])  # dry-run default, no --apply
+
+    rdr.main()  # must not raise
+
+
+def test_main_apply_all_triage_but_no_stories_at_all_does_not_exit_nonzero(monkeypatch, tmp_path):
+    """Empty backlog is not a silent no-op -- there's nothing to be silent about."""
+    _make_main_env(monkeypatch, tmp_path, [], argv_extra=["--apply"])
+    rdr.main()  # must not raise
+
+
 def test_main_prod_tag_override_is_used_instead_of_default(monkeypatch, tmp_path):
     story = _story(11111, pull_requests=[_pr(3606)])
     out_path = tmp_path / "report.json"
@@ -715,6 +740,20 @@ def test_main_prod_tag_override_is_used_instead_of_default(monkeypatch, tmp_path
     report = json.loads(out_path.read_text(encoding="utf-8"))
     assert report["prod_tag"] == "prod/explicit-tag"
     assert report["counts"]["shipped"] == 1
+
+
+def test_workflow_passes_prod_tag_to_reconcile_step():
+    """reconcile_deploy_ready.py's own --prod-tag handling is correct
+    (tested above), but nothing at that level can catch the workflow
+    itself forgetting to pass the flag -- assert the step's run block
+    actually does."""
+    import pathlib
+
+    workflow = pathlib.Path(__file__).resolve().parents[3] / ".github" / "workflows" / "prod-release-notes.yaml"
+    text = workflow.read_text(encoding="utf-8")
+    start = text.index("Reconcile Deploy Ready backlog")
+    end = text.index("- name:", start + 1)
+    assert "--prod-tag" in text[start:end]
 
 
 # --- resolve_default_prod_tag: newest by creation date -------------------

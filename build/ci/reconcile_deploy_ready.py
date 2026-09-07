@@ -459,6 +459,17 @@ def main():
         )
         sys.exit(1)
 
+    # Nothing shipped but stories exist and some routed to triage: could be
+    # legitimate, or a guard misconfiguration (e.g. SEFARIA_PROJECT_REPO_ID
+    # drift) silently routing everything to triage forever. --dry-run is a
+    # preview by definition and never exits non-zero for this.
+    if apply_mutations and stories and not shipped and triage:
+        warn(
+            f"{len(stories)} Deploy Ready stor{'y' if len(stories) == 1 else 'ies'} seen, 0 shipped, "
+            f"{len(triage)} routed to triage. Check for guard drift before assuming the backlog is clean."
+        )
+        sys.exit(2)
+
 
 if __name__ == "__main__":
     main()

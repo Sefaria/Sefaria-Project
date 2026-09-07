@@ -404,6 +404,7 @@ def main():
         return (
             c["pr_number"]
             and not c["story_ids"]
+            and not c["is_revert"]
             and not NOISE_PATTERN.search(c["subject"])
             and c["branch"] not in LONG_LIVED_ENV_BRANCHES
         )

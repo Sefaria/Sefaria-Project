@@ -887,6 +887,37 @@ def test_main_pr_link_fallback_skips_long_lived_env_head_branch(monkeypatch, tmp
     assert data["story_ids"] == []
 
 
+def test_main_pr_link_fallback_skips_revert_commits(monkeypatch, tmp_path):
+    """A revert's own merge-commit PR must never trigger the fallback --
+    its story ids are suppressed from the shipped set regardless, so a
+    recovered id here would appear in stories_from_shortcut_pr_link while
+    never actually being in story_ids/stories."""
+
+    def _fake_run_git(args):
+        if args[0] == "log":
+            return 'Revert "feat: something (#123)" (#456)\n'
+        if args[0] == "for-each-ref":
+            return ""
+        raise AssertionError(f"unexpected git call: {args!r}")
+
+    def _boom(*args, **kwargs):
+        raise AssertionError("urlopen must never be called for a revert commit's PR")
+
+    monkeypatch.setattr(ss, "run_git", _fake_run_git)
+    monkeypatch.setattr(ss, "fetch_pr_branch", lambda pr_number, repo: (pr_number, "feature/some-branch"))
+    monkeypatch.setenv("SHORTCUT_API_TOKEN", "fake-token-for-tests")
+    monkeypatch.setattr(ss.urllib.request, "urlopen", _boom)
+
+    out_path = tmp_path / "shipped-stories.json"
+    monkeypatch.setattr(
+        "sys.argv",
+        ["shipped_stories.py", "--range", "prev-tag..cur-tag", "--out", str(out_path)],
+    )
+    ss.main()
+    data = json.loads(out_path.read_text(encoding="utf-8"))
+    assert data["stories_from_shortcut_pr_link"] == []
+
+
 def test_main_pr_link_fallback_not_triggered_when_subject_already_has_story_id(monkeypatch, tmp_path):
     """A commit whose subject already carries a story id must never trigger
     the fallback lookup at all -- it has nothing missing to recover."""

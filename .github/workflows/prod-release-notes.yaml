@@ -56,7 +56,7 @@ jobs:
           node-version: "20"
 
       - name: Install Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code
+        run: npm install -g @anthropic-ai/claude-code@2.1.263
 
       - name: Resolve version
         id: resolve
@@ -125,43 +125,12 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           DRY_RUN_INPUT: ${{ inputs.dry_run }}
         run: |
-          ARGS=(--out "$RUNNER_TEMP/reconcile-deploy-ready-report.json")
+          CURRENT_TAG=$(python3 -c "import json; print(json.load(open('shipped-stories.json'))['range']['current_tag'])")
+          ARGS=(--out "$RUNNER_TEMP/reconcile-deploy-ready-report.json" --prod-tag "$CURRENT_TAG")
           if [[ "$EVENT_NAME" != "workflow_dispatch" || "$DRY_RUN_INPUT" != "true" ]]; then
             ARGS+=(--apply)
           fi
           python3 build/ci/reconcile_deploy_ready.py "${ARGS[@]}"
-
-      - name: Warn if Shortcut bookkeeping failed
-        if: steps.mark_deployed.outcome == 'failure' || steps.reconcile.outcome == 'failure'
-        env:
-          MARK_DEPLOYED_OUTCOME: ${{ steps.mark_deployed.outcome }}
-          RECONCILE_OUTCOME: ${{ steps.reconcile.outcome }}
-        run: |
-          if [[ "$MARK_DEPLOYED_OUTCOME" == "failure" ]]; then
-            echo "::warning::mark_stories_deployed.py failed -- shipped Shortcut stories were NOT moved Deploy Ready -> Done for this release. Release notes generation is continuing anyway. Check this run's 'Mark shipped stories as deployed' step and move the affected stories manually."
-          fi
-          if [[ "$RECONCILE_OUTCOME" == "failure" ]]; then
-            echo "::warning::reconcile_deploy_ready.py failed -- the org-wide Deploy Ready backlog sweep did not complete. Release notes generation is continuing anyway. Check this run's 'Reconcile Deploy Ready backlog' step; the backlog will be retried on the next release."
-          fi
-
-      - name: Alert Slack if Shortcut bookkeeping failed
-        if: steps.mark_deployed.outcome == 'failure' || steps.reconcile.outcome == 'failure'
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
-          VERSION: ${{ steps.resolve.outputs.version }}
-          MARK_DEPLOYED_OUTCOME: ${{ steps.mark_deployed.outcome }}
-          RECONCILE_OUTCOME: ${{ steps.reconcile.outcome }}
-        run: |
-          FAILURES=""
-          if [[ "$MARK_DEPLOYED_OUTCOME" == "failure" ]]; then
-            FAILURES="${FAILURES}mark_stories_deployed.py failed (this release's shipped stories NOT moved Deploy Ready -> Done). "
-          fi
-          if [[ "$RECONCILE_OUTCOME" == "failure" ]]; then
-            FAILURES="${FAILURES}reconcile_deploy_ready.py failed (org-wide Deploy Ready backlog sweep did not complete). "
-          fi
-          curl -s -X POST -H 'Content-type: application/json' \
-            --data "{\"text\": \":warning: Prod release notes for version ${VERSION:-unknown}: ${FAILURES}Release notes generation is continuing. Check the workflow run and move the affected stories manually.\"}" \
-            "$SLACK_WEBHOOK_URL" || true
 
       - name: Merge current-release backfill into shipped-stories.json
         id: merge_backfill
@@ -176,6 +145,46 @@ jobs:
           python3 build/ci/merge_release_backfill.py \
             --shipped-stories-out shipped-stories.json \
             --reconcile-report "$REPORT_FILE"
+
+      - name: Warn if Shortcut bookkeeping failed
+        if: steps.mark_deployed.outcome == 'failure' || steps.reconcile.outcome == 'failure' || steps.merge_backfill.outcome == 'failure'
+        env:
+          MARK_DEPLOYED_OUTCOME: ${{ steps.mark_deployed.outcome }}
+          RECONCILE_OUTCOME: ${{ steps.reconcile.outcome }}
+          MERGE_BACKFILL_OUTCOME: ${{ steps.merge_backfill.outcome }}
+        run: |
+          if [[ "$MARK_DEPLOYED_OUTCOME" == "failure" ]]; then
+            echo "::warning::mark_stories_deployed.py failed -- shipped Shortcut stories were NOT moved Deploy Ready -> Done for this release. Release notes generation is continuing anyway. Check this run's 'Mark shipped stories as deployed' step and move the affected stories manually."
+          fi
+          if [[ "$RECONCILE_OUTCOME" == "failure" ]]; then
+            echo "::warning::reconcile_deploy_ready.py failed -- the org-wide Deploy Ready backlog sweep did not complete. Release notes generation is continuing anyway. Check this run's 'Reconcile Deploy Ready backlog' step; the backlog will be retried on the next release."
+          fi
+          if [[ "$MERGE_BACKFILL_OUTCOME" == "failure" ]]; then
+            echo "::warning::merge_release_backfill.py failed -- a backfilled story that shipped in this release may be missing from the announcement. Check this run's 'Merge current-release backfill into shipped-stories.json' step."
+          fi
+
+      - name: Alert Slack if Shortcut bookkeeping failed
+        if: steps.mark_deployed.outcome == 'failure' || steps.reconcile.outcome == 'failure' || steps.merge_backfill.outcome == 'failure'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+          MARK_DEPLOYED_OUTCOME: ${{ steps.mark_deployed.outcome }}
+          RECONCILE_OUTCOME: ${{ steps.reconcile.outcome }}
+          MERGE_BACKFILL_OUTCOME: ${{ steps.merge_backfill.outcome }}
+        run: |
+          FAILURES=""
+          if [[ "$MARK_DEPLOYED_OUTCOME" == "failure" ]]; then
+            FAILURES="${FAILURES}mark_stories_deployed.py failed (this release's shipped stories NOT moved Deploy Ready -> Done). "
+          fi
+          if [[ "$RECONCILE_OUTCOME" == "failure" ]]; then
+            FAILURES="${FAILURES}reconcile_deploy_ready.py failed (org-wide Deploy Ready backlog sweep did not complete). "
+          fi
+          if [[ "$MERGE_BACKFILL_OUTCOME" == "failure" ]]; then
+            FAILURES="${FAILURES}merge_release_backfill.py failed (a backfilled story may be missing from the announcement). "
+          fi
+          curl -s -X POST -H 'Content-type: application/json' \
+            --data "{\"text\": \":warning: Prod release notes for version ${VERSION:-unknown}: ${FAILURES}Release notes generation is continuing. Check the workflow run and move the affected stories manually.\"}" \
+            "$SLACK_WEBHOOK_URL" || true
 
       - name: Resolve triage explainer opt-in
         id: triage_opt_in
@@ -196,6 +205,9 @@ jobs:
         if: steps.triage_opt_in.outputs.enabled == 'true'
         # Opt-in and best-effort; never blocks the release announcement.
         continue-on-error: true
+        # Input is contributor-controlled text; cwd here (not the checkout)
+        # is what actually bounds the step's Write grant.
+        working-directory: ${{ runner.temp }}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: |
@@ -211,7 +223,7 @@ jobs:
           fi
 
           TRIAGE_ONLY_FILE="$RUNNER_TEMP/reconcile-triage-only.json"
-          python3 build/ci/triage_explainer.py extract --report "$REPORT_FILE" --out "$TRIAGE_ONLY_FILE"
+          python3 "$GITHUB_WORKSPACE/build/ci/triage_explainer.py" extract --report "$REPORT_FILE" --out "$TRIAGE_ONLY_FILE"
 
           TRIAGE_COUNT=$(python3 -c "import json; print(json.load(open('$TRIAGE_ONLY_FILE'))['triage_count'])")
           if [[ "$TRIAGE_COUNT" == "0" ]]; then
