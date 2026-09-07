@@ -9,3 +9,9 @@ class TestMarkNoApplink:
 
         assert twice == once
         assert twice.count(NO_APPLINK_PARAM) == 1
+
+    def test_does_not_duplicate_a_bare_no_applink_with_no_value(self):
+        assert mark_no_applink(f'/next?{NO_APPLINK_PARAM}').count(NO_APPLINK_PARAM) == 1
+
+    def test_does_not_duplicate_a_blank_no_applink(self):
+        assert mark_no_applink(f'/next?{NO_APPLINK_PARAM}=').count(NO_APPLINK_PARAM) == 1
