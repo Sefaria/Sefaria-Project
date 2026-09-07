@@ -1,458 +1,89 @@
 # Prod rollout → Slack + release notes: manual setup
 
-This repo's changes (below) are necessary but not sufficient — the following
-still needs a human with real credentials, since none of it can be
-generated or guessed by an agent.
+This repo's changes are necessary but not sufficient — some setup below
+requires a human with real credentials.
 
-## How it works
+## Pipeline
 
 ```
 Argo post-promotion analysis (prod)
   -> repository_dispatch (prod-rollout-succeeded, carries `version` + `chartVersion`)
-  -> build/ci/shipped_stories.py   — walks the prod/* tag range in git,
-                                      resolves Shortcut story codes from
-                                      commit subjects, merged-PR branch
-                                      names, AND (as a third, fallback
-                                      source) Shortcut's own PR<->story
-                                      link, hydrates story details
-  -> build/ci/mark_stories_deployed.py — moves each shipped story
-                                      Deploy Ready -> Done via the
-                                      Shortcut API. Only ever writes that
-                                      state — no comment, no other
-                                      annotation. A failure here (missing
-                                      token, API error, nothing to move) is
-                                      logged and Slack-alerted but never
-                                      blocks the steps below.
-  -> build/ci/reconcile_deploy_ready.py — separately, sweeps EVERY
-                                      non-archived Deploy Ready story
-                                      org-wide (not just this release's
-                                      commit range) and transitions any
-                                      whose linked PR already reached prod
-                                      — see "Reconciliation sweep" below.
-                                      Its report is written to
-                                      `$RUNNER_TEMP` and NEVER read
-                                      wholesale by the steps that follow.
-  -> build/ci/merge_release_backfill.py — folds the ONE, pre-filtered
-                                      exception into shipped-stories.json:
-                                      a story the sweep backfilled whose
-                                      derived TRUE shipping release is
-                                      THIS run's own current release, not
-                                      an earlier one — see "Backfilled
-                                      stories that shipped in THIS
-                                      release" below. Only ever touches
-                                      shipped-stories.json; never reads
-                                      the reconcile report's shipped/
-                                      pending/triage buckets wholesale.
-  -> build/ci/triage_explainer.py  — OPT-IN, off by default: extracts
-     + headless `claude -p`          ONLY the triage bucket into its own
-                                      file, then proposes a labeled
-                                      hypothesis + suggested next action
-                                      per triage story — see "Opt-in triage
-                                      explainer" below. Never mutates
-                                      Shortcut; its output NEVER reaches
-                                      the two steps that follow either.
-  -> sefaria-release-notes skill   — reads shipped-stories.json (now
-                                      including the merge step's backfill,
-                                      if any), writes prose only
-  -> scripts/post_to_slack.py      — posts both files to Slack
+  -> build/ci/shipped_stories.py        — resolves shipped Shortcut stories for the release
+  -> build/ci/mark_stories_deployed.py  — moves those stories Deploy Ready -> Done
+  -> build/ci/reconcile_deploy_ready.py — org-wide Deploy Ready sweep (independent of this release)
+  -> build/ci/merge_release_backfill.py — folds any current-release backfill into shipped-stories.json
+  -> build/ci/triage_explainer.py       — opt-in: proposes hypotheses for the reconcile sweep's triage bucket
+     + headless `claude -p`
+  -> sefaria-release-notes skill        — reads shipped-stories.json, writes prose only
+  -> scripts/post_to_slack.py           — posts both files to Slack
 ```
 
-Only the release-notes generation step is an LLM. Deciding which stories a given deploy closed
-is a graph walk over git history, Shortcut IDs and the Shortcut API, and
-flipping a story's workflow state is a for-loop over a REST API — none of
-that is a job for a model. The skill's only input is the JSON that
-`shipped_stories.py` already produced; it does not call GitHub or Shortcut
-itself, and it does not mutate any story.
+Only the release-notes prose step and the opt-in triage explainer are LLM
+steps; everything else is deterministic Python or a REST call.
 
-## Three discovery sources in `shipped_stories.py`
-
-For each commit in the resolved tag range, a story id is looked for in, in
-order:
-
-1. **The commit subject itself** (`sc-NNNNN` in any of its usual shapes —
-   `fix(sc-123):`, `[sc-123]`, `feature/sc-123`, ...).
-2. **The branch name of the commit's merged PR**, when the commit carries a
-   `(#N)` reference or is a bare "Merge pull request #N from ..." — some
-   teams put the story code in the branch instead of the commit message.
-3. **Shortcut's own PR<->story link** (`GET search/stories?query=pr:<N>`),
-   used ONLY as a fallback for a commit whose PR carries no story id from
-   either source above. This exists because git text is not the only place
-   a story/PR link can live — a story can be attached to a PR from the
-   Shortcut UI with no story code ever appearing in the branch name.
-   `branch:"..."` and `pull-request:N` do NOT resolve this on this org;
-   only the `pr:N` search operator does. The id is adopted ONLY when the
-   search returns EXACTLY one story — an ambiguous match (>1) is logged and
-   skipped rather than guessed.
-
-   **This fallback is guarded the same way `reconcile_deploy_ready.py`'s
-   sweep is (via the shared `shortcut_pr_guards.py`), and for the same
-   reason: a bare `pr:<N>` match only proves Shortcut linked SOME story to
-   that PR number, not that the PR is real shipping evidence.** Verified
-   live: a promotion PR (head branch `master`/`preprod`/`prod`, merging
-   into the next environment) resolves via `pr:<N>` to a real story just as
-   readily as that story's actual feature PR does, while proving nothing
-   about whether that story's own change shipped. So the fallback (a) is
-   never even attempted for a commit whose subject is auto-generated
-   merge/branch-sync noise (`NOISE_PATTERN` — the same pattern already used
-   to keep such commits out of `commits_without_story`) or whose PR's own
-   head branch is a long-lived environment branch, and (b) re-checks the
-   single search result's own linked-PR entry against the four PR-level
-   guards (merged / Sefaria-Project repo / target branch master / head
-   branch not a long-lived environment branch) before adopting it — a
-   match that fails those guards is a warn-and-skip.
-
-   Ids recovered this way are echoed separately in the output's
-   `stories_from_shortcut_pr_link` list (in
-   addition to the ordinary `story_ids`) so a report can call out what only
-   Shortcut knew. Gated on `SHORTCUT_API_TOKEN`; without it (or on any
-   per-lookup failure) this step is skipped/warned and the run continues
-   with git-only discovery — it never aborts `shipped_stories.py`.
-
-## Reconciliation sweep: `build/ci/reconcile_deploy_ready.py`
-
-`shipped_stories.py` + `mark_stories_deployed.py` only ever look at ONE
-release's commit range (`prev-tag..cur-tag`). A story whose PR merged and
-shipped in an EARLIER release — or before this pipeline existed — never
-gets revisited by that pair of scripts; nothing ever walks backward and
-re-checks a story sitting in Deploy Ready. Of the stories stuck in Deploy
-Ready when this was diagnosed, ten times as many were this class of gap as
-were the discovery gap `shipped_stories.py`'s third source fixes above.
-
-`reconcile_deploy_ready.py` is a standalone, org-wide sweep that closes
-that gap. It enumerates every non-archived Deploy Ready story, resolves
-each one's linked merged PR(s), and checks whether any of those PRs'
-merge commits are an ancestor of the current prod tag. It classifies every
-story into exactly one of three buckets:
-
-- **shipped** — at least one qualifying PR is in prod. Transitioned
-  Deploy Ready (500000045) -> Done (500000010).
-- **pending** — has a qualifying merged PR, but none are in prod yet. Left
-  alone — this is the correct state, not a bug.
-- **triage** — no qualifying PR at all, or the story lives in a
-  non-Standard Shortcut workflow. Left alone and reported; this is the
-  part of the output a human actually has to look at.
-
-### The five guards
-
-Each of these caught a real false positive while this script was built (or
-maintained) against live data — skipping any one of them silently
-mis-transitions a story. The first four (merged / repo / target branch /
-head branch) are PR-level checks shared with `shipped_stories.py`'s own
-RC1 PR-link fallback via `build/ci/shortcut_pr_guards.py` — both scripts
-ask the same underlying question ("does this linked PR actually prove a
-story's change reached prod?") and a promotion PR is exactly as good at
-fooling either one, so there is exactly one implementation of these four
-checks, not two parallel copies that could silently drift apart. They
-already have, twice, in OPPOSITE directions:
-
-1. **`repository_id` must be Sefaria-Project's (`500000103`).** A story can
-   link a PR from a different repo; resolving that PR number against
-   Sefaria-Project instead finds an unrelated (often much older) PR that
-   happens to share the number — and that PR can easily already be in
-   prod, which would report "shipped" for a story that never touched this
-   repo.
-2. **`target_branch_name` must be `"master"`.** Some stories link a
-   promotion PR (preprod -> prod, or master -> preprod) instead of, or
-   alongside, the actual feature PR. A promotion PR merges constantly and
-   proves nothing about whether this story's own change reached prod.
-3. **The PR's own HEAD (source) branch must NOT be a long-lived
-   environment branch** (`master`, `preprod`, `prod`). Verified live: a
-   promotion PR merging `preprod` INTO `master` passes guards 1, 2 and 4
-   cleanly — it's merged, against the right repo, and its target really is
-   `master` — yet it's still a promotion merge, not a feature PR. Guard 2
-   alone cannot catch this shape (a promotion merge legitimately targets
-   `master`); only the HEAD branch gives it away. **This is the guard that
-   was missing** when a real story was classified `shipped` on the
-   strength of a PR shaped exactly this way, while its genuine feature PR
-   was (correctly) rejected by guard 2 for targeting a hotfix branch
-   instead of `master` directly. `shipped_stories.py`'s RC1 fallback
-   already had this check for its own purposes before `reconcile_
-   deploy_ready.py` did — the two scripts drifted apart on whether this
-   guard existed at all before it was unified here.
-4. **`merged` must be `true`.** An open or closed-without-merging PR is not
-   evidence anything shipped.
-5. **`workflow_id` must be the Standard workflow (`500000005`), and
-   `workflow_state_id` must be exactly the numeric Deploy Ready id
-   (`500000045`).** The Shortcut state named "Deploy Ready" — note its real
-   name carries a trailing space, `"Deploy Ready "` — is workflow-specific:
-   `500000045` doesn't exist as a concept in, say, the Content workflow.
-   Enumeration is keyed on the state NAME (the search endpoint has no other
-   way to filter it), so classification re-checks the NUMERIC ids before
-   trusting a match; a story on any other workflow, or at any other state
-   id despite matching the name, is routed to triage with its actual
-   workflow/state ids reported — mirroring `mark_stories_deployed.py`'s
-   `skipped_different_workflow` handling. This one is story-level, not
-   PR-level, and stays local to `reconcile_deploy_ready.py`.
-
-Enumeration uses the token'd search endpoint
-(`search/stories?query=state:"Deploy Ready" !is:archived`), paginated via
-its `next` cursor. This is deliberately NOT `iterations-get-active` — that
-endpoint is silently scoped to the calling token's own teams and has
-already produced an incomplete picture for this team once; the search
-endpoint returns every matching story across every team.
-
-A qualifying PR's merge commit is resolved via `gh pr view --json
-mergeCommit` and tested with `git merge-base --is-ancestor <sha> <prod
-tag>` — verified to correctly discriminate a merged-but-not-yet-promoted PR
-from one that already reached prod. `git log --grep="(#N)"` was tried and
-rejected: it misses squash-merge subjects and can't tell a real promotion
-merge apart from an unrelated one.
-
-### Dry-run by default
-
-Unlike `mark_stories_deployed.py` (which mutates by default and needs
-`--dry-run` to preview), `reconcile_deploy_ready.py` inverts that: **it
-never mutates anything unless you pass `--apply`.** This is a bulk mutation
-of shared state across potentially many stories and several different
-teams, and — unlike a single release's handful of stories — there's no
-natural moment (a deploy just happened) that makes running it low-risk. An
-explicit `--dry-run` flag also exists, purely for symmetry with
-`mark_stories_deployed.py` and CI readability; it's a no-op since dry-run
-is already the default, and it always wins if both flags are passed
-together.
+## Running the scripts
 
 ```
-python3 build/ci/reconcile_deploy_ready.py --dry-run                 # classify + report, mutate nothing (default)
-python3 build/ci/reconcile_deploy_ready.py --apply                   # actually transition the "shipped" bucket
+python3 build/ci/shipped_stories.py --version 6.111.0-prod.2 [--out shipped-stories.json] [--repo Sefaria/Sefaria-Project] [--chart-version 0.87.5-prod.1]
+python3 build/ci/shipped_stories.py --range <prev-tag>..<cur-tag> [--out shipped-stories.json]
+```
+Requires `git` and `gh` on PATH. `SHORTCUT_API_TOKEN` is optional; without
+it, story ids are still emitted but hydration and the PR-link fallback are
+skipped.
+
+```
+python3 build/ci/mark_stories_deployed.py --input shipped-stories.json [--dry-run] \
+    [--workflow-id 500000005] [--from-state-id 500000045] [--done-state-id 500000010]
+```
+Requires `SHORTCUT_API_TOKEN` unless `--dry-run` is passed.
+
+```
+python3 build/ci/reconcile_deploy_ready.py [--dry-run]
+python3 build/ci/reconcile_deploy_ready.py --apply
 python3 build/ci/reconcile_deploy_ready.py --apply --prod-tag prod/6.111.0-prod.2+chart.0.87.5-prod.1 --out report.json
 ```
-
-**Critical: this script never reads or writes `shipped-stories.json` itself
-and never talks to the release-notes prose step directly.** Most of what it
-backfills shipped in EARLIER releases — leaking that wholesale into today's
-release announcement would have Slack claim a dozen old features shipped
-today. This script only ever transitions Shortcut state; it never posts a
-comment or any other annotation ("just mark it as done" is the whole job
-here). In the workflow, its step runs after `mark_stories_deployed.py` and
-writes its own separate report file to `$RUNNER_TEMP` (NOT the checkout /
-`GITHUB_WORKSPACE`) — a distinct filename alone is a naming convention, not
-an access boundary, and the release-notes step's headless Claude run holds
-`Glob`+`Read` over its whole working directory, so a same-directory JSON
-full of real, recently-shipped story names would be one bad glob away from
-leaking into the prose it writes. Keeping the report outside the checkout
-entirely is what actually enforces the separation. A failure here is
-warned/Slack-alerted the same way a `mark_stories_deployed.py` failure is,
-and never blocks release-notes generation or posting.
-
-One narrow, explicitly-filtered exception to "never feeds the prose step"
-exists — see the next section.
-
-## Backfilled stories that shipped in THIS release: `build/ci/merge_release_backfill.py`
-
-The reconciliation sweep exists because nothing else revisits a Deploy
-Ready story once it falls outside the current release's git-range scan.
-Most of what it finds shipped in an EARLIER release, and the previous
-section is about keeping THAT out of today's announcement. But some of
-what it finds shipped in the CURRENT release too — a race, a discovery gap
-`shipped_stories.py`'s own RC1 fallback didn't close, a story that simply
-never got picked up by `mark_stories_deployed.py`'s own commit-range scan.
-Silently excluding that story from today's announcement is a different
-flavor of the same underlying mistake ("say what actually shipped today"),
-just by omission instead of leakage.
-
-Every entry in `reconcile_deploy_ready.py`'s `shipped` bucket now carries a
-`shipping_release_tag` field: the TRUE release that shipped it, resolved
-via `resolve_shipping_release_tag()` (`git tag --list 'prod/*' --contains
-<merge-oid> --sort=creatordate | head -1` — the first, earliest-created,
-`prod/*` tag that actually contains the winning PR's merge commit). Note
-the ascending `--sort=creatordate` — the OPPOSITE of the default-prod-tag
-resolution elsewhere in this script, which wants the NEWEST tag; this one
-wants the OLDEST tag that still contains the commit, i.e. the first
-release it ever reached. When `shipping_release_tag` equals the CURRENT
-prod tag that run was checking against, the entry ALSO carries a
-`hydrated_story` sub-object — a story record in exactly
-`shipped_stories.py`'s own hydrated-story shape (`id`, `name`,
-`description`, `url`, `workflow_id`, `workflow_state_id`, `story_type`),
-built from data the sweep already had in memory (no extra Shortcut API
-call). When `resolve_shipping_release_tag()` can't determine a release at
-all (shallow checkout, a genuine gap in tag history), the entry gets
-NEITHER field populated with a guess — fail closed, never guess a story
-into an announcement.
-
-`merge_release_backfill.py` is a separate, tiny, deterministic script that
-trusts that upstream decision completely and makes no judgment of its own:
-it reads `reconcile_deploy_ready.py`'s report, takes ONLY the
-`hydrated_story` entries (every other shipped entry — earlier release,
-unresolvable release, or a pending/triage entry — carries no such field
-and is silently skipped), and folds them into `shipped-stories.json`'s own
-`story_ids`/`stories` lists, deduplicated by story id against what
-`shipped_stories.py`'s own git-range + RC1 discovery already found (a
-story both paths independently find is never duplicated; the pre-existing
-entry always wins). The merged ids are also recorded separately under
-`stories_from_reconciliation_backfill`, mirroring `shipped_stories.py`'s
-own `stories_from_shortcut_pr_link` provenance field.
+`--dry-run` is the default; nothing is transitioned without `--apply`.
+Requires `git`, `gh`, and `SHORTCUT_API_TOKEN` (required even for `--dry-run`).
 
 ```
 python3 build/ci/merge_release_backfill.py \
     --shipped-stories-out shipped-stories.json \
     --reconcile-report reconcile-deploy-ready-report.json
-    # writes the merged result back to --shipped-stories-out by default;
-    # pass --out to write somewhere else instead.
+    # writes the merged result back to --shipped-stories-out by default; pass --out to write elsewhere
 ```
 
-In the workflow, this step runs immediately after `reconcile_deploy_ready.py`
-and BEFORE the release-notes prose step — order is load-bearing, since the
-prose step reads `shipped-stories.json` once and needs the merge already
-done. It reads the reconcile report from `$RUNNER_TEMP` (never the
-checkout) and only ever WRITES `shipped-stories.json` — the report's
-`shipped`/`pending`/`triage` buckets as a whole are still never handed to,
-or made readable by, the prose step; only the pre-filtered
-`hydrated_story` entries this script extracts ever reach it. A failure
-here means, at worst, one backfilled story misses today's announcement (an
-omission, not a leak) — never worth blocking release-notes generation and
-Slack posting over, so this step is `continue-on-error` too.
-
-## Opt-in triage explainer
-
-`reconcile_deploy_ready.py`'s triage bucket is reported as
-`reason=no_qualifying_pr` (or `non_standard_workflow_or_state`) plus raw
-diagnostic fields — description, comment text, and, per linked PR, exactly
-which shipping-evidence guard it failed (see `_triage_context` /
-`_diagnose_linked_pr` in `reconcile_deploy_ready.py`). That still leaves a
-human to open every triage story and work out each one individually. An
-OPT-IN workflow step proposes a short, labeled hypothesis for each one
-instead — but the pattern is deliberately the same one this workflow
-already uses for release-notes prose, kept LLM-free everywhere it can be:
-
 ```
-reconcile_deploy_ready.py            — writes its report (unchanged; still
-                                        deterministic, still stdlib-only,
-                                        still no API client)
-  -> build/ci/triage_explainer.py    — extracts ONLY the triage bucket
-     "extract" subcommand              (+ prod_tag) into its own file
-  -> headless `claude -p`            — reads THAT file, writes a
-     (in the workflow step only)       {id, hypothesis, suggested_next_action}
-                                        list to a separate file
+python3 build/ci/triage_explainer.py extract --report reconcile-deploy-ready-report.json --out triage-only.json
+python3 build/ci/triage_explainer.py resolve-enabled --event-name workflow_dispatch --explain-triage-input true --enable-var ""
 ```
-
-**Why a separate file, not a prompt instruction to "only look at
-triage":** the full report's `shipped`/`pending` buckets must never be
-visible to, scored by, or able to influence this explainer, and a triage
-story's `description`/`comments` are CONTRIBUTOR-CONTROLLED TEXT — a
-prompt-injection path. Rather than trust the model to honor "ignore the
-other buckets" against adversarial input embedded in the very document
-it's reading, `triage_explainer.py extract` simply never puts
-shipped/pending data into the file the explainer is given at all. There is
-nothing there to leak or be steered by, structurally, not merely by
-convention — see that script's own docstring, and
-`build/ci/tests/test_triage_explainer.py`, which asserts the extracted
-document never contains shipped/pending data even when the source report
-does.
-
-**Everything else about this step mirrors "Generate release notes"
-below**, on purpose:
-
-- `--allowedTools "Read,Write,Glob,Grep"`, never
-  `--dangerously-skip-permissions` — no Bash, no network. This agent
-  cannot touch Shortcut, git, or the GitHub API even if it wanted to;
-  writing English from a file it's handed is the entire extent of what it
-  can do.
-- Its output (`$RUNNER_TEMP/reconcile-triage-annotated.json`) stays in
-  `$RUNNER_TEMP`, never the checkout — same reasoning as the reconcile
-  report itself (see "Reconciliation sweep" above): the release-notes
-  prose step holds `Glob`+`Read` over its whole working directory, and a
-  distinct filename is a naming convention, not an access boundary.
-- Every hypothesis string is required (by the prompt) to start with the
-  literal `[AI hypothesis, unverified]` marker, so it can never be
-  mistaken for a verified finding by whoever reads it.
-- **Proposes, never decides**: no Shortcut mutation, no transition — of
-  ANY kind, on ANY story. Authority stays entirely with the deterministic
-  layer (the five guards, the ancestry check) and the human reading the
-  report. An ambiguous `pr:<N>`
-  lookup returning more than one story is still a deterministic
-  warn-and-skip in `shipped_stories.py`/`reconcile_deploy_ready.py`
-  (unchanged) — that's precisely the "model decides two things are
-  related and closes the wrong one" failure this design rejects, and the
-  explainer never gets a vote on it either.
-
-**Opt-in, off by default on every trigger path.** A `workflow_dispatch`
-run opts in per-run via its own `explain_triage` input; the automatic
-`repository_dispatch` trigger carries no such input at all (it's not a
-`workflow_dispatch`), so it instead opts in via a repo-level Actions
-*variable* (`vars.ENABLE_TRIAGE_EXPLAINER`, Settings → Secrets and
-variables → Actions → **Variables**, not Secrets — it's a plain on/off
-switch, nothing sensitive). The actual decision rule
-(`triage_explainer.resolve_enabled`) is tested Python, not a bash string
-comparison duplicated inline in the workflow — see
-`build/ci/tests/test_triage_explainer.py`. It degrades cleanly and never
-blocks the release announcement on any of these paths:
-
-- **Disabled** (the default): the step's `if:` condition is false; it
-  never runs at all.
-- **No `ANTHROPIC_API_KEY`**: the step's own guard exits 0 immediately —
-  same posture as "Generate release notes" below, which requires the key
-  (this step is opt-in, so it degrades instead of failing the job).
-- **No triage stories this run**: skipped with a short message — nothing
-  to explain.
-- **The `claude -p` call itself fails**: `continue-on-error: true` (same
-  as "Mark shipped stories as deployed" / "Reconcile Deploy Ready
-  backlog") — a failure here is never allowed to fail the job or skip
-  release-notes generation and Slack posting.
-
-**A note on the API key secret name:** an earlier version of this
-instruction claimed the repo's secret is misspelled `ANTHOPIC_API_KEY`
-(no R) and that the workflow maps it deliberately. That claim was checked
-against this repo's actual configured secrets (`gh secret list`) before
-writing any code — the only secret that exists is the correctly-spelled
-`ANTHROPIC_API_KEY`, already used by both `manual-promotion.yaml` and this
-workflow's own "Generate release notes" step. This step uses that same,
-correctly-spelled secret; wiring in the claimed misspelling would have
-referenced a secret that doesn't exist, silently and permanently
-disabling this feature in production (`secrets.ANTHOPIC_API_KEY` always
-resolves to an empty string, which the step's own missing-key guard would
-treat as "no key" on every single run).
 
 ## What's already wired up in this repo
 
 - `helm-chart/sefaria/templates/analysistemplate/rollout-complete.yaml` —
-  a `notify-github` container, gated on `deployEnv == "production"` (the
-  prod HelmRelease sets `deployEnv: production`, not `"prod"`), fires a
-  `repository_dispatch` (`event_type: prod-rollout-succeeded`) once Argo's
-  post-promotion analysis confirms the rollout healthy. Reads a
-  `GH_DISPATCH_TOKEN` key from its OWN dedicated secret
-  (`.Values.secrets.ghDispatch.ref`, default `gh-dispatch-token`) — kept
-  separate from `local-settings-secrets` because that secret is mounted via
-  `envFrom` into every web/task/monitor/cronjob pod, which is far too broad
-  a blast radius for a GitHub PAT.
+  fires `repository_dispatch` (`prod-rollout-succeeded`) once Argo's
+  post-promotion analysis confirms the prod rollout healthy. Uses a
+  `GH_DISPATCH_TOKEN` from its own dedicated secret
+  (`.Values.secrets.ghDispatch.ref`, default `gh-dispatch-token`).
 - `.github/workflows/prod-release-notes.yaml` — listens for that dispatch
-  (or a manual `workflow_dispatch`), resolves the version (and optional
-  chart version, for disambiguating a chart-only rollout), runs
-  `shipped_stories.py` and `mark_stories_deployed.py`, separately runs
-  `reconcile_deploy_ready.py` (its report never reaches the steps below),
-  runs the `sefaria-release-notes` skill headlessly, and posts both output
-  files to Slack via `scripts/post_to_slack.py`. The reconcile step honors
-  the same `workflow_dispatch` `dry_run` input as `mark_stories_deployed.py`
-  does — real trigger or `dry_run=false` passes `--apply`; the default
-  `workflow_dispatch` (`dry_run=true`) leaves it in its default dry-run
-  mode.
-- `.claude/skills/sefaria-release-notes/` — the skill, shipped in-repo,
-  now takes a shipped-stories JSON file as its only input and only writes
-  prose. It no longer talks to GitHub or Shortcut.
-- **preprod needs no changes.** `rollout-complete-preprod` already exists
-  (same chart, templated per `deployEnv`) and already posts to Slack on a
-  successful preprod rollout — assuming its `SLACK_URL` is populated (see
-  below).
+  (or a manual `workflow_dispatch`), runs the pipeline above, and posts to
+  Slack.
+- `.claude/skills/sefaria-release-notes/` — the release-notes skill,
+  shipped in-repo, takes a shipped-stories JSON file as its only input.
+- Preprod needs no changes — `rollout-complete-preprod` already exists and
+  posts to Slack on a successful preprod rollout (as long as `SLACK_URL`
+  is populated; see below).
 
 ## Still required — infrastructure repo (SOPS-encrypted secret)
 
-**This is the step that makes the whole pipeline live — without it,
-`GH_DISPATCH_TOKEN` is simply absent, the dispatch curl gets a 401, falls
-through `|| /bin/true`, and the entire feature is a silent no-op with
-nothing failing anywhere.**
-
 1. Create a GitHub PAT scoped to `Sefaria/Sefaria-Project` only —
-   fine-grained, **Contents: read and write** permission (required for the
-   `repository_dispatch` API endpoint; this token never needs push/admin
-   access, it only fires a dispatch event).
-2. SOPS-encrypt it into the `infrastructure` repo as its OWN dedicated
-   Secret (NOT `local-settings-secrets` — that secret is mounted into every
-   pod in the deployment; see above) under key `GH_DISPATCH_TOKEN`. This
-   repo's `envs/prod/helmrelease.yaml` already points
-   `secrets.ghDispatch.ref` at `gh-dispatch-token-production`; the
-   infrastructure repo needs to create a Secret with that exact name.
-3. Confirm `flux reconcile` picks it up (or wait for the next 5-minute
-   poll) so the key exists on the `rollout-complete-production` Job's pod
-   before the next prod rollout.
+   fine-grained, **Contents: read and write** permission.
+2. SOPS-encrypt it into the `infrastructure` repo as its own dedicated
+   Secret under key `GH_DISPATCH_TOKEN`, named `gh-dispatch-token-production`
+   to match `envs/prod/helmrelease.yaml`'s `secrets.ghDispatch.ref`.
+3. Confirm `flux reconcile` picks it up before the next prod rollout.
+
+Without this, `GH_DISPATCH_TOKEN` is absent, the dispatch curl 401s and
+falls through `|| /bin/true`, and the whole feature is a silent no-op.
 
 ## Still required — Sefaria-Project GitHub Actions secrets
 
@@ -460,101 +91,55 @@ Add these under repo Settings → Secrets and variables → Actions:
 
 | Secret | Purpose | Notes |
 |---|---|---|
-| `SHORTCUT_API_TOKEN` | `shipped_stories.py` story hydration and PR-link fallback, `mark_stories_deployed.py` state transitions, `reconcile_deploy_ready.py` enumeration and transitions | Shortcut → Settings → API Tokens. Not the same as the OAuth MCP connection used interactively. |
-| `SLACK_PRODUCT_WEBHOOK` | Non-technical release announcement | A second Slack incoming webhook, pointed at whichever channel should get `release-announcement-product-slack.txt`. Until this is set, that post step is a guarded no-op (won't fail the workflow). |
+| `SHORTCUT_API_TOKEN` | Story hydration, PR-link fallback, and state transitions for all three CI scripts | Shortcut → Settings → API Tokens |
+| `SLACK_PRODUCT_WEBHOOK` | Non-technical release announcement | A second Slack incoming webhook. Until set, that post step is a guarded no-op |
 
 Already exist and are reused as-is: `SLACK_DEPLOY_WEBHOOK`, `GITHUB_TOKEN`,
 `ANTHROPIC_API_KEY`.
 
-Optional, only if you want the triage explainer to opt in automatically on
-the real `repository_dispatch` trigger (a manual `workflow_dispatch` run
-can already opt in per-run via its own `explain_triage` input without
-this): add a repo-level Actions **Variable** (Settings → Secrets and
-variables → Actions → **Variables** tab, NOT Secrets) named
-`ENABLE_TRIAGE_EXPLAINER` set to `true`. See "Opt-in triage explainer"
-above.
+Optional — to have the triage explainer opt in automatically on the real
+`repository_dispatch` trigger (a manual `workflow_dispatch` run can already
+opt in per-run via its `explain_triage` input): add a repo-level Actions
+**Variable** (not Secret) named `ENABLE_TRIAGE_EXPLAINER` set to `true`.
 
 ## Worth verifying, not something this session could check
 
 `SLACK_URL` in `local-settings-secrets` — confirm it's actually populated
-for **both** `preprod` and `prod` (not just present as a key). The existing
-`rollout-complete` Slack ping silently no-ops if it's empty or missing
-(`optional: true`), so a misconfigured value wouldn't surface as an error
-anywhere — it would just be quiet.
+for both `preprod` and `prod`. The existing `rollout-complete` Slack ping
+silently no-ops if it's empty or missing (`optional: true`).
 
-## End-to-end verification, once the above is done
+## End-to-end verification
 
-1. **Dry-run the whole pipeline without a real deploy.** Run:
+1. Dry-run the whole pipeline without a real deploy:
 
    ```
    gh workflow run "Prod Release Notes" -f version=<a past prod version, bare, no leading v> -f dry_run=true
    ```
 
-   Add `-f chart_version=<chart version>` if that app version has more than
-   one `prod/*` tag (a chart-only rollout) and you need a specific one.
+   Add `-f chart_version=<chart version>` for a chart-only rollout.
 
-   This exercises tag-range resolution, story hydration, release-notes
-   generation, and both Slack posts, with `mark_stories_deployed.py` run in
-   `--dry-run` mode so nothing in Shortcut actually moves. It's the fastest
-   way to validate a change to any of the scripts or the skill without
-   waiting on a real rollout.
-
-2. **Then confirm the real trigger path.** Promote something small through
-   to prod normally.
-
-3. Watch for the existing terse Slack ping from `rollout-complete-production`
-   (confirms the AnalysisTemplate ran and Slack posting works at all).
-
-4. Watch the `Prod Release Notes` GitHub Actions workflow run
-   (`repository_dispatch` → `prod-rollout-succeeded`). If it doesn't fire,
-   check the `notify-github` container's logs on the `rollout-complete-production`
-   Job pod (`kubectl logs -n default -l job-name=...`) for the dispatch
-   curl's exit/response. The curl runs with `-sS -f --max-time 30
-   --connect-timeout 10`, so a bad/missing token (HTTP 401/403) or a
-   timeout now prints to stderr in the pod logs — but the call still falls
-   through `|| /bin/true` by design so it never blocks or fails the
-   rollout, which means a failure here still won't surface anywhere except
-   those logs unless you go look.
-
+2. Then confirm the real trigger path: promote something small through to
+   prod normally.
+3. Watch for the existing terse Slack ping from `rollout-complete-production`.
+4. Watch the `Prod Release Notes` GitHub Actions workflow run. If it
+   doesn't fire, check the `notify-github` container's logs on the
+   `rollout-complete-production` Job pod for the dispatch curl's
+   exit/response.
 5. Confirm both Slack files post correctly, and confirm the shipped
    stories actually moved Deploy Ready → Done in Shortcut.
 
 ## Running the tests
 
-The tests for these scripts (`build/ci/tests/test_shipped_stories.py`,
-`test_mark_stories_deployed.py`, `test_reconcile_deploy_ready.py`,
-`test_triage_explainer.py`, `test_merge_release_backfill.py`) are **not**
-collected by the repo's root `pytest.ini` (that config is scoped to the
-Django app's own test suites), so run them by explicit path from the repo
-root — either the whole directory:
-
 ```
 python3 -m pytest build/ci/tests/ -q -p no:django -c /dev/null
 ```
 
-or each file explicitly:
-
-```
-python3 -m pytest build/ci/tests/test_shipped_stories.py build/ci/tests/test_mark_stories_deployed.py build/ci/tests/test_reconcile_deploy_ready.py build/ci/tests/test_triage_explainer.py build/ci/tests/test_merge_release_backfill.py -q -p no:django -c /dev/null
-```
-
-Both flags are needed even though only explicit file paths are passed:
-`pytest` still discovers and loads the repo-root `pytest.ini` from the
-current directory regardless of which paths are given on the command line,
-and that ini sets `DJANGO_SETTINGS_MODULE` — which makes the `pytest-django`
-plugin try to `django.setup()` the whole app (and fail with
-`ModuleNotFoundError: No module named 'allauth'` in an environment that
-hasn't installed the full Django app's dependencies, which these
-standalone, stdlib-only scripts have no need of). `-c /dev/null` stops
-`pytest.ini` from being read at all; `-p no:django` disables the
-`pytest-django` plugin itself as a second, independent line of defense
-(matters if some other ini/plugin-autouse path re-enables it). Depending on
-which Python environment you invoke `pytest` from, the plain command
-without these flags may happen to work (if that environment has the full
-Django app's dependencies installed) or may not — the flagged command works
-regardless.
+Both `-c /dev/null` and `-p no:django` are needed: the repo-root
+`pytest.ini` sets `DJANGO_SETTINGS_MODULE`, which makes `pytest-django` try
+to `django.setup()` the whole app even when only these standalone,
+stdlib-only scripts' tests are selected. `-c /dev/null` stops that ini from
+being read; `-p no:django` disables the plugin as a second line of defense.
 
 No network access, `git`, or `gh` binary is required — everything that
-would otherwise shell out or call the Shortcut API is monkeypatched at the
-same boundary the module itself uses (`subprocess.run`,
-`urllib.request.urlopen`, or the module's own `run_git`/helper functions).
+would otherwise shell out or call the Shortcut API is monkeypatched in the
+tests.
