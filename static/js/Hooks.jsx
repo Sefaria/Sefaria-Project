@@ -51,6 +51,72 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
+
+/* Shared infinite-scroll trigger. Everything that loads on scroll binds through
+ * here, because getting the scroller wrong fails silently -- a listener on a non-scrolling
+ * element simply never fires. The container a component renders into is not always the
+ * scroller: on singlePanel the document scrolls instead, though not for every
+ * container, so it is decided per element rather than per breakpoint. */
+
+// `scroll` always scrolls, `auto` and `overlay` only when the content does not fit, and
+// `visible` never does.
+const OVERFLOW_VALUES_THAT_CAN_SCROLL = ['scroll', 'auto', 'overlay'];
+
+// Both halves are needed, because `auto` is a condition rather than a promise: it means "scroll
+// only if the content does not fit". A container can report `auto` and still never scroll.
+const isScrollingElement = (el) => {
+  if (!el) { return false; }
+
+  // Does the CSS permit a scrollbar? Not enough on its own -- `overflow-y: visible` beside an
+  // `overflow-x` that is not visible computes to `auto`, which is what .noOverflowX does to the
+  // topic and profile containers.
+  const {overflowY} = window.getComputedStyle(el);
+  const overflowAllowsScrolling = OVERFLOW_VALUES_THAT_CAN_SCROLL.includes(overflowY);
+
+  // Is the box actually hiding anything? On singlePanel these containers grow to their full
+  // content height, so nothing is hidden, no scrollbar appears, and no scroll event ever fires.
+  const contentIsTallerThanBox = el.scrollHeight > el.clientHeight;
+
+  return overflowAllowsScrolling && contentIsTallerThanBox;
+};
+
+// A null scroller means the document scrolls.
+const pixelsToBottom = (scroller) => (
+  scroller
+    ? scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight
+    : document.documentElement.scrollHeight - window.scrollY - window.innerHeight
+);
+
+// Returns an unsubscribe function.
+const observeNearBottom = (candidate, margin, onNearBottom) => {
+  const handler = () => {
+    // Re-checked per event: a container too short to scroll on page 1 can become the scroller.
+    const scroller = isScrollingElement(candidate) ? candidate : null;
+    if (pixelsToBottom(scroller) <= margin) { onNearBottom(); }
+  };
+  // Only one can fire: element scroll events don't bubble, document scroll is window-only.
+  const targets = candidate ? [candidate, window] : [window];
+  targets.forEach(t => t.addEventListener('scroll', handler, {passive: true}));
+  return () => targets.forEach(t => t.removeEventListener('scroll', handler));
+};
+
+/**
+ * Fires `onNearBottom` within `margin` px of the bottom of `getScrollCandidate()`, or of the
+ * document when that element is not the scroller. `onNearBottom` is read fresh on every event,
+ * so it need not be stable; callers do their own "already loading" / "nothing left" guarding.
+ * `enabled: false` skips binding; `deps` re-bind (normally the resolved element).
+ */
+function useScrollNearBottom({getScrollCandidate, margin, onNearBottom, enabled = true, deps = []}) {
+  const latestOnNearBottom = useRef(onNearBottom);
+  latestOnNearBottom.current = onNearBottom;
+
+  useEffect(() => {
+    if (!enabled) { return; }
+    return observeNearBottom(getScrollCandidate(), margin, () => latestOnNearBottom.current());
+  }, [enabled, margin, ...deps]);
+}
+
+
 /**
  * Hook for paginated data loading triggered by scroll position.
  *
@@ -97,25 +163,13 @@ function useScrollToLoad({scrollableRef, url, setter, itemsPreLoaded = 0, pageSi
     }
   }, []);
 
-  // Scroll listener for infinite loading
-  useEffect(() => {
-    const scrollable = scrollableRef.current;
-    if (!scrollable) return;
-
-    const scrollMargin = 600;  // Pixels from bottom to trigger load
-
-    const handleScroll = () => {
-      const scrollPosition = scrollable.scrollTop + scrollable.clientHeight;
-      const scrollThreshold = scrollable.scrollHeight - scrollMargin;
-
-      if (scrollPosition >= scrollThreshold) {
-        loadMore();
-      }
-    };
-
-    scrollable.addEventListener('scroll', handleScroll);
-    return () => scrollable.removeEventListener('scroll', handleScroll);
-  }, [loadMore]);
+  // `loadMore` guards itself against overlapping and past-the-end calls.
+  useScrollNearBottom({
+    getScrollCandidate: () => scrollableRef.current,
+    margin: 600,
+    onNearBottom: loadMore,
+    deps: [scrollableRef.current],
+  });
 }
 
 
@@ -142,20 +196,15 @@ function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMarg
     setLoadedToEnd(false);
   }, [scrollable_element_ref && scrollable_element_ref.current, input]);
   const numPages = useMemo(() => Math.ceil(input.length/pageSize), [input, pageSize]);
-  useEffect(() => {
-    if (!scrollable_element_ref) { return; }
-    const scrollable_element = $(scrollable_element_ref.current);
-    const handleScroll = () => {
-      if (loadedToEnd) { return; }
-      if (scrollable_element.scrollTop() + scrollable_element.innerHeight() + bottomMargin >= scrollable_element[0].scrollHeight) {
-        setPage(prevPage => prevPage + 1);
-      }
-    };
-    scrollable_element.on("scroll", handleScroll);
-    return () => {
-      scrollable_element.off("scroll", handleScroll);
-    }
-  }, [scrollable_element_ref && scrollable_element_ref.current, loadedToEnd]);
+  // No ref at all means the caller opts out of scroll pagination entirely -- not the same as
+  // passing a ref to a container that turns out not to be the scroller.
+  useScrollNearBottom({
+    getScrollCandidate: () => scrollable_element_ref.current,
+    margin: bottomMargin,
+    onNearBottom: () => { if (!loadedToEnd) { setPage(prevPage => prevPage + 1); } },
+    enabled: !!scrollable_element_ref,
+    deps: [scrollable_element_ref && scrollable_element_ref.current],
+  });
   useEffect(() => {
     setInputUpToPage(prev => {
       // decide whether or not inputUpToPage has changed. if it's the same element-by-element to `prev`, return `prev`
@@ -248,6 +297,7 @@ function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, re
 }
 
 export {
+  useScrollNearBottom,
   useScrollToLoad,
   usePaginatedDisplay,
   useDebounce,
