@@ -7,30 +7,40 @@ name: "Prod Release Notes"
 # repository_dispatch here, carrying the deployed `version` and `chartVersion`.
 #
 # From there this workflow is a strict pipeline of deterministic scripts, with
-# exactly one step handed to an LLM:
+# two steps handed to an LLM (release-notes prose, and an OPT-IN triage
+# explanation -- see step 4 below):
 #   1. build/ci/shipped_stories.py resolves the prod/* tag range for that
 #      version (chartVersion disambiguates a chart-only rollout, where several
 #      tags share the same app version), walks git log between the tags, and
 #      hydrates the Shortcut stories those commits reference.
 #   2. build/ci/mark_stories_deployed.py moves each of those stories from
-#      Deploy Ready -> Done via the Shortcut API. A failure here (missing
-#      token, API error, nothing to move) is surfaced as a warning but never
-#      blocks steps 3-5 — see "Mark shipped stories as deployed" below.
+#      Deploy Ready -> Done via the Shortcut API, then posts a write-back
+#      comment on each naming this release. A failure here (missing token,
+#      API error, nothing to move) is surfaced as a warning but never blocks
+#      steps 3-6 — see "Mark shipped stories as deployed" below.
 #   3. build/ci/reconcile_deploy_ready.py sweeps EVERY non-archived Deploy
 #      Ready story org-wide (not just this release's commit range) and
 #      transitions any whose linked PR already reached prod, regardless of
-#      which release actually shipped it. This backfills stories a prior
-#      release's git-range-scoped run never revisited (RC2) — see that
-#      script's own docstring for the four guards it applies. Its output
-#      NEVER feeds shipped-stories.json or step 4/5 below: those stories
-#      shipped in EARLIER releases, and leaking them into today's
-#      announcement would have Slack claim old features shipped today. A
-#      failure here is warned/alerted the same way step 2's is, and never
-#      blocks steps 4-5.
-#   4. The sefaria-release-notes skill (.claude/skills/sefaria-release-notes/)
+#      which release actually shipped it, then posts its own write-back
+#      comment naming the release that ACTUALLY shipped it (never this one).
+#      This backfills stories a prior release's git-range-scoped run never
+#      revisited (RC2) — see that script's own docstring for the four guards
+#      it applies. Its output NEVER feeds shipped-stories.json or steps 5-6
+#      below: those stories shipped in EARLIER releases, and leaking them
+#      into today's announcement would have Slack claim old features shipped
+#      today. A failure here is warned/alerted the same way step 2's is, and
+#      never blocks steps 4-6.
+#   4. build/ci/triage_explainer.py + a headless `claude -p` run (OPT-IN,
+#      off by default -- see "Explain Deploy Ready triage backlog" below)
+#      proposes a short, labeled HYPOTHESIS for why each story in step 3's
+#      triage bucket is stuck, and a suggested next action for a human. It
+#      sees ONLY the triage bucket (never shipped/pending, structurally —
+#      see triage_explainer.py's own docstring), never mutates Shortcut,
+#      and its output never reaches steps 5-6 either.
+#   5. The sefaria-release-notes skill (.claude/skills/sefaria-release-notes/)
 #      reads that JSON and writes prose only — it does not talk to GitHub or
 #      Shortcut.
-#   5. scripts/post_to_slack.py posts both generated files to Slack.
+#   6. scripts/post_to_slack.py posts both generated files to Slack.
 #
 # Manual setup this depends on: see build/ci/README-prod-release-notes.md
 
@@ -62,6 +72,11 @@ on:
         required: false
         type: boolean
         default: true
+      explain_triage:
+        description: "Opt-in: run the headless triage explainer over the reconcile sweep's triage bucket only (requires ANTHROPIC_API_KEY; never mutates Shortcut)"
+        required: false
+        type: boolean
+        default: false
 
 # A pod retry (the AnalysisTemplate Job has backoffLimit: 1) can re-fire the
 # repository_dispatch for the same version, and a manual workflow_dispatch
@@ -93,6 +108,18 @@ jobs:
           # git tags, so the checkout needs the tags themselves, not just full
           # commit history.
           fetch-tags: true
+
+      # Moved up front (both LLM steps in this workflow need the `claude`
+      # CLI): the release-notes prose step below, AND the opt-in triage
+      # explainer, which now runs earlier in the pipeline than prose does.
+      # One install, shared by both, instead of two.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
 
       - name: Resolve version
         id: resolve
@@ -228,13 +255,94 @@ jobs:
             --data "{\"text\": \":warning: Prod release notes for version ${VERSION:-unknown}: ${FAILURES}Release notes generation is continuing. Check the workflow run and move the affected stories manually.\"}" \
             "$SLACK_WEBHOOK_URL" || true
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
+      - name: Resolve triage explainer opt-in
+        id: triage_opt_in
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EXPLAIN_TRIAGE_INPUT: ${{ inputs.explain_triage }}
+          # A repo-level Actions VARIABLE (Settings -> Secrets and
+          # variables -> Actions -> Variables), not a secret -- this is a
+          # plain on/off switch, nothing sensitive. Lets the automatic
+          # repository_dispatch trigger opt in too, since that trigger
+          # carries no workflow_dispatch-style inputs at all.
+          ENABLE_TRIAGE_EXPLAINER_VAR: ${{ vars.ENABLE_TRIAGE_EXPLAINER }}
+        run: |
+          # The actual decision rule (triage_explainer.resolve_enabled) is
+          # tested Python, not bash string comparisons duplicated here --
+          # see build/ci/triage_explainer.py's own docstring. Off by
+          # default on every trigger path until a human explicitly flips
+          # one of the two switches.
+          ENABLED=$(python3 build/ci/triage_explainer.py resolve-enabled \
+            --event-name "$EVENT_NAME" \
+            --explain-triage-input "$EXPLAIN_TRIAGE_INPUT" \
+            --enable-var "$ENABLE_TRIAGE_EXPLAINER_VAR")
+          echo "enabled=${ENABLED}" >> "$GITHUB_OUTPUT"
 
-      - name: Install Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code
+      - name: Explain Deploy Ready triage backlog (optional)
+        id: explain_triage
+        if: steps.triage_opt_in.outputs.enabled == 'true'
+        # Opt-in and best-effort: a triage explanation is a convenience for
+        # whoever works the backlog next, never a precondition for
+        # anything downstream. continue-on-error keeps a failure here from
+        # ever touching the release announcement -- same posture as "Mark
+        # shipped stories as deployed" / "Reconcile Deploy Ready backlog"
+        # above.
+        continue-on-error: true
+        env:
+          # This IS `ANTHROPIC_API_KEY` (correctly spelled) -- verified
+          # against this repo's actual configured secrets (`gh secret
+          # list`) rather than assumed, and it's the exact same secret the
+          # "Generate release notes" step below already uses.
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [[ -z "$ANTHROPIC_API_KEY" ]]; then
+            echo "ANTHROPIC_API_KEY is empty -- skipping the triage explainer. This is an opt-in convenience feature and degrades cleanly without a key; it never blocks the release announcement."
+            exit 0
+          fi
+
+          REPORT_FILE="$RUNNER_TEMP/reconcile-deploy-ready-report.json"
+          if [[ ! -s "$REPORT_FILE" ]]; then
+            echo "No reconcile report found at $REPORT_FILE (the reconcile step may have failed or produced nothing) -- skipping the triage explainer."
+            exit 0
+          fi
+
+          # Structural isolation, not a prompt instruction: this extracts
+          # ONLY the triage bucket (plus prod_tag) from the reconcile
+          # report into its own file -- "shipped" and "pending" are never
+          # even present in what the model reads, so there is nothing
+          # there for a prompt-injection path (a story's own
+          # description/comments are contributor-controlled text) to leak
+          # or influence. See triage_explainer.py's own docstring.
+          TRIAGE_ONLY_FILE="$RUNNER_TEMP/reconcile-triage-only.json"
+          python3 build/ci/triage_explainer.py extract --report "$REPORT_FILE" --out "$TRIAGE_ONLY_FILE"
+
+          TRIAGE_COUNT=$(python3 -c "import json; print(json.load(open('$TRIAGE_ONLY_FILE'))['triage_count'])")
+          if [[ "$TRIAGE_COUNT" == "0" ]]; then
+            echo "No triage stories this run -- nothing for the explainer to explain."
+            exit 0
+          fi
+
+          ANNOTATED_FILE="$RUNNER_TEMP/reconcile-triage-annotated.json"
+          # --allowedTools instead of --dangerously-skip-permissions: same
+          # reasoning as "Generate release notes" below -- the input embeds
+          # contributor-controlled text (story descriptions, comments), a
+          # prompt-injection path. This agent never holds Bash or network
+          # tools, and it never touches Shortcut or git itself: it only
+          # reads the triage-only JSON and writes prose hypotheses to
+          # $RUNNER_TEMP, which the prose step further below never reads --
+          # same "not the checkout, not a naming convention, an actual
+          # access boundary" reasoning as the reconcile report itself (see
+          # the workflow header and reconcile_deploy_ready.py's docstring).
+          claude -p "Read the JSON file at ${TRIAGE_ONLY_FILE}. It lists Shortcut stories an automated Deploy Ready reconciliation sweep could not classify as shipped or pending ('triage'), each with: name, description, comments, and (for a story with a linked PR that didn't qualify) linked_prs -- the PR number and exactly which shipping-evidence guard(s) it failed (not merged / wrong repo / wrong target branch), or (for a story on the wrong Shortcut workflow) its workflow_id/workflow_state_id. For EACH story in the 'triage' array, propose (a) a short hypothesis for why it is stuck, grounded ONLY in the fields given -- e.g. 'a linked PR targets preprod, not master -- likely a promotion PR was linked instead of the real feature PR', 'no PR is linked at all -- may have shipped via an unlinked PR, or a PR may still need to be opened', 'workflow/state ids do not match Standard -- this story may belong to a different team or process entirely', and (b) a short suggested next action for a human, e.g. 'search for the real feature PR and re-link it', 'no code artifact found -- consider closing manually', 'may belong to another repo's release train -- verify with that PR's author'. Do not invent PR numbers, dates, names, or any fact not present in the input. Do not recommend or imply any automatic action, transition, or comment -- every output is an unverified hypothesis for a human to check, never a finding. Prefix every hypothesis string with the literal text '[AI hypothesis, unverified] ' so it can never be mistaken for a verified cause. Write your ONLY output as JSON to ${ANNOTATED_FILE}: a list of objects, one per input triage story, each shaped {id, hypothesis, suggested_next_action}. Do not ask any clarifying questions -- proceed directly." \
+            --allowedTools "Read,Write,Glob,Grep"
+
+          if [[ -s "$ANNOTATED_FILE" ]]; then
+            echo "----- Triage explainer output (hypotheses only -- NOT verified findings) -----"
+            cat "$ANNOTATED_FILE"
+            echo "--------------------------------------------------------------------------------"
+          else
+            echo "Triage explainer produced no output file -- treating as a soft failure. Opt-in feature; this never blocks the run."
+          fi
 
       - name: Generate release notes (headless Claude Code)
         id: generate

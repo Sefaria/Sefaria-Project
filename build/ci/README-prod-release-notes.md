@@ -33,8 +33,15 @@ Argo post-promotion analysis (prod)
                                       shipped it (never this one) — see
                                       "Reconciliation sweep" and "Write-back
                                       release comment" below. Its output
-                                      NEVER reaches the two steps that
-                                      follow.
+                                      NEVER reaches the steps that follow.
+  -> build/ci/triage_explainer.py  — OPT-IN, off by default: extracts
+     + headless `claude -p`          ONLY the triage bucket into its own
+                                      file, then proposes a labeled
+                                      hypothesis + suggested next action
+                                      per triage story — see "Opt-in triage
+                                      explainer" below. Never mutates
+                                      Shortcut; its output NEVER reaches
+                                      the two steps that follow either.
   -> sefaria-release-notes skill   — reads shipped-stories.json, writes
                                       prose only
   -> scripts/post_to_slack.py      — posts both files to Slack
@@ -267,6 +274,106 @@ Safety properties, both scripts:
   re-run's search/classify simply never sees it again — idempotency falls
   out of the state machine for free.
 
+## Opt-in triage explainer
+
+`reconcile_deploy_ready.py`'s triage bucket is reported as
+`reason=no_qualifying_pr` (or `non_standard_workflow_or_state`) plus raw
+diagnostic fields — description, comment text, and, per linked PR, exactly
+which shipping-evidence guard it failed (see `_triage_context` /
+`_diagnose_linked_pr` in `reconcile_deploy_ready.py`). That still leaves a
+human to open every triage story and work out each one individually. An
+OPT-IN workflow step proposes a short, labeled hypothesis for each one
+instead — but the pattern is deliberately the same one this workflow
+already uses for release-notes prose, kept LLM-free everywhere it can be:
+
+```
+reconcile_deploy_ready.py            — writes its report (unchanged; still
+                                        deterministic, still stdlib-only,
+                                        still no API client)
+  -> build/ci/triage_explainer.py    — extracts ONLY the triage bucket
+     "extract" subcommand              (+ prod_tag) into its own file
+  -> headless `claude -p`            — reads THAT file, writes a
+     (in the workflow step only)       {id, hypothesis, suggested_next_action}
+                                        list to a separate file
+```
+
+**Why a separate file, not a prompt instruction to "only look at
+triage":** the full report's `shipped`/`pending` buckets must never be
+visible to, scored by, or able to influence this explainer, and a triage
+story's `description`/`comments` are CONTRIBUTOR-CONTROLLED TEXT — a
+prompt-injection path. Rather than trust the model to honor "ignore the
+other buckets" against adversarial input embedded in the very document
+it's reading, `triage_explainer.py extract` simply never puts
+shipped/pending data into the file the explainer is given at all. There is
+nothing there to leak or be steered by, structurally, not merely by
+convention — see that script's own docstring, and
+`build/ci/tests/test_triage_explainer.py`, which asserts the extracted
+document never contains shipped/pending data even when the source report
+does.
+
+**Everything else about this step mirrors "Generate release notes"
+below**, on purpose:
+
+- `--allowedTools "Read,Write,Glob,Grep"`, never
+  `--dangerously-skip-permissions` — no Bash, no network. This agent
+  cannot touch Shortcut, git, or the GitHub API even if it wanted to;
+  writing English from a file it's handed is the entire extent of what it
+  can do.
+- Its output (`$RUNNER_TEMP/reconcile-triage-annotated.json`) stays in
+  `$RUNNER_TEMP`, never the checkout — same reasoning as the reconcile
+  report itself (see "Reconciliation sweep" above): the release-notes
+  prose step holds `Glob`+`Read` over its whole working directory, and a
+  distinct filename is a naming convention, not an access boundary.
+- Every hypothesis string is required (by the prompt) to start with the
+  literal `[AI hypothesis, unverified]` marker, so it can never be
+  mistaken for a verified finding by whoever reads it.
+- **Proposes, never decides**: no Shortcut mutation, no comment posted
+  from its output, no transition — of ANY kind, on ANY story. Authority
+  stays entirely with the deterministic layer (the four guards, the
+  ancestry check) and the human reading the report. An ambiguous `pr:<N>`
+  lookup returning more than one story is still a deterministic
+  warn-and-skip in `shipped_stories.py`/`reconcile_deploy_ready.py`
+  (unchanged) — that's precisely the "model decides two things are
+  related and closes the wrong one" failure this design rejects, and the
+  explainer never gets a vote on it either.
+
+**Opt-in, off by default on every trigger path.** A `workflow_dispatch`
+run opts in per-run via its own `explain_triage` input; the automatic
+`repository_dispatch` trigger carries no such input at all (it's not a
+`workflow_dispatch`), so it instead opts in via a repo-level Actions
+*variable* (`vars.ENABLE_TRIAGE_EXPLAINER`, Settings → Secrets and
+variables → Actions → **Variables**, not Secrets — it's a plain on/off
+switch, nothing sensitive). The actual decision rule
+(`triage_explainer.resolve_enabled`) is tested Python, not a bash string
+comparison duplicated inline in the workflow — see
+`build/ci/tests/test_triage_explainer.py`. It degrades cleanly and never
+blocks the release announcement on any of these paths:
+
+- **Disabled** (the default): the step's `if:` condition is false; it
+  never runs at all.
+- **No `ANTHROPIC_API_KEY`**: the step's own guard exits 0 immediately —
+  same posture as "Generate release notes" below, which requires the key
+  (this step is opt-in, so it degrades instead of failing the job).
+- **No triage stories this run**: skipped with a short message — nothing
+  to explain.
+- **The `claude -p` call itself fails**: `continue-on-error: true` (same
+  as "Mark shipped stories as deployed" / "Reconcile Deploy Ready
+  backlog") — a failure here is never allowed to fail the job or skip
+  release-notes generation and Slack posting.
+
+**A note on the API key secret name:** an earlier version of this
+instruction claimed the repo's secret is misspelled `ANTHOPIC_API_KEY`
+(no R) and that the workflow maps it deliberately. That claim was checked
+against this repo's actual configured secrets (`gh secret list`) before
+writing any code — the only secret that exists is the correctly-spelled
+`ANTHROPIC_API_KEY`, already used by both `manual-promotion.yaml` and this
+workflow's own "Generate release notes" step. This step uses that same,
+correctly-spelled secret; wiring in the claimed misspelling would have
+referenced a secret that doesn't exist, silently and permanently
+disabling this feature in production (`secrets.ANTHOPIC_API_KEY` always
+resolves to an empty string, which the step's own missing-key guard would
+treat as "no key" on every single run).
+
 ## What's already wired up in this repo
 
 - `helm-chart/sefaria/templates/analysistemplate/rollout-complete.yaml` —
@@ -331,6 +438,14 @@ Add these under repo Settings → Secrets and variables → Actions:
 Already exist and are reused as-is: `SLACK_DEPLOY_WEBHOOK`, `GITHUB_TOKEN`,
 `ANTHROPIC_API_KEY`.
 
+Optional, only if you want the triage explainer to opt in automatically on
+the real `repository_dispatch` trigger (a manual `workflow_dispatch` run
+can already opt in per-run via its own `explain_triage` input without
+this): add a repo-level Actions **Variable** (Settings → Secrets and
+variables → Actions → **Variables** tab, NOT Secrets) named
+`ENABLE_TRIAGE_EXPLAINER` set to `true`. See "Opt-in triage explainer"
+above.
+
 ## Worth verifying, not something this session could check
 
 `SLACK_URL` in `local-settings-secrets` — confirm it's actually populated
@@ -379,13 +494,20 @@ anywhere — it would just be quiet.
 ## Running the tests
 
 The tests for these scripts (`build/ci/tests/test_shipped_stories.py`,
-`test_mark_stories_deployed.py`, `test_reconcile_deploy_ready.py`) are
-**not** collected by the repo's root `pytest.ini` (that config is scoped to
-the Django app's own test suites), so run them by explicit path from the
-repo root:
+`test_mark_stories_deployed.py`, `test_reconcile_deploy_ready.py`,
+`test_triage_explainer.py`) are **not** collected by the repo's root
+`pytest.ini` (that config is scoped to the Django app's own test suites),
+so run them by explicit path from the repo root — either the whole
+directory:
 
 ```
-python3 -m pytest build/ci/tests/test_shipped_stories.py build/ci/tests/test_mark_stories_deployed.py build/ci/tests/test_reconcile_deploy_ready.py -q -p no:django -c /dev/null
+python3 -m pytest build/ci/tests/ -q -p no:django -c /dev/null
+```
+
+or each file explicitly:
+
+```
+python3 -m pytest build/ci/tests/test_shipped_stories.py build/ci/tests/test_mark_stories_deployed.py build/ci/tests/test_reconcile_deploy_ready.py build/ci/tests/test_triage_explainer.py -q -p no:django -c /dev/null
 ```
 
 Both flags are needed even though only explicit file paths are passed:

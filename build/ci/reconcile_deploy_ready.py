@@ -423,6 +423,36 @@ def _story_summary(story):
     return {"id": story.get("id"), "name": story.get("name"), "url": story.get("app_url")}
 
 
+def _triage_context(story):
+    """Extra context for a TRIAGE story only, already sitting in the same
+    Shortcut search response that produced `story` -- adds no extra API
+    calls ("cheap", as opposed to e.g. an extra `gh pr view` round trip
+    per triage story, which this deliberately avoids). This is the raw
+    material a human (or the opt-in triage-explainer workflow step
+    downstream -- see build/ci/triage_explainer.py) needs to propose why a
+    story is stuck, without re-deriving it from scratch."""
+    return {
+        "description": story.get("description"),
+        "comments": [c.get("text") for c in (story.get("comments") or []) if c.get("text")],
+    }
+
+
+def _diagnose_linked_pr(pr, repo_id, target_branch):
+    """Which of the three PR-level guards (see qualifying_prs /
+    shortcut_pr_guards.passes_pr_guards) this specific linked PR fails, if
+    any. Diagnostic ONLY -- classification itself never reads this; it
+    exists purely so a triage story's report entry can say WHY a linked PR
+    didn't count instead of just listing its bare number."""
+    failed = []
+    if pr.get("merged") is not True:
+        failed.append("not merged")
+    if pr.get("repository_id") != repo_id:
+        failed.append(f"wrong repo (repository_id={pr.get('repository_id')}, expected {repo_id})")
+    if pr.get("target_branch_name") != target_branch:
+        failed.append(f"wrong target branch ({pr.get('target_branch_name')!r}, expected {target_branch!r})")
+    return failed
+
+
 def classify_stories(stories, repo_id, target_branch):
     """Pure classification, no I/O beyond what's already embedded in the
     Shortcut story payloads: split into (triage, candidates), where
@@ -431,7 +461,12 @@ def classify_stories(stories, repo_id, target_branch):
     first and unconditionally routes to triage -- a story on any workflow
     other than Standard, or sitting at any state id other than the numeric
     Deploy Ready id (500000045) despite matching the "Deploy Ready" state
-    NAME search, must never reach the PR guards or a transition at all."""
+    NAME search, must never reach the PR guards or a transition at all.
+
+    Every triage entry also carries _triage_context (description, comment
+    text) -- shipped/pending entries deliberately do NOT, so they stay as
+    lean as before this was added; only a triage story's own report entry
+    ever needs to answer "why is this one stuck"."""
     triage = []
     candidates = []
     for story in stories:
@@ -440,6 +475,7 @@ def classify_stories(stories, repo_id, target_branch):
             entry["reason"] = "non_standard_workflow_or_state"
             entry["workflow_id"] = story.get("workflow_id")
             entry["workflow_state_id"] = story.get("workflow_state_id")
+            entry.update(_triage_context(story))
             triage.append(entry)
             warn(
                 f"Story {story.get('id')} matched the Deploy Ready search but is on "
@@ -457,6 +493,15 @@ def classify_stories(stories, repo_id, target_branch):
             entry["linked_pr_numbers"] = sorted(
                 pr.get("number") for pr in linked if pr.get("number") is not None
             )
+            # Full per-PR diagnostic, sorted the same way as
+            # linked_pr_numbers above for a stable, readable report --
+            # linked_pr_numbers stays as-is (existing consumers rely on
+            # it); this is additive.
+            entry["linked_prs"] = [
+                {"number": pr.get("number"), "failed_guards": _diagnose_linked_pr(pr, repo_id, target_branch)}
+                for pr in sorted(linked, key=lambda p: (p.get("number") is None, p.get("number")))
+            ]
+            entry.update(_triage_context(story))
             triage.append(entry)
             continue
 

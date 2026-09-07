@@ -40,7 +40,7 @@ def _pr(number, merged=True, repository_id=SEFARIA_REPO_ID, target_branch_name="
 
 
 def _story(story_id, name="Story", workflow_id=STANDARD_WORKFLOW_ID, workflow_state_id=DEPLOY_READY_STATE_ID,
-           pull_requests=None, branches=None):
+           pull_requests=None, branches=None, description=None, comments=None):
     return {
         "id": story_id,
         "name": name,
@@ -49,6 +49,8 @@ def _story(story_id, name="Story", workflow_id=STANDARD_WORKFLOW_ID, workflow_st
         "workflow_state_id": workflow_state_id,
         "pull_requests": pull_requests or [],
         "branches": branches or [],
+        "description": description,
+        "comments": comments or [],
     }
 
 
@@ -163,6 +165,93 @@ def test_classify_stories_no_qualifying_pr_routes_to_triage():
     assert candidates == []
     assert triage[0]["reason"] == "no_qualifying_pr"
     assert triage[0]["linked_pr_numbers"] == [3397]
+
+
+# --- triage enrichment: description/comments/per-PR guard diagnostics ---
+# --- (raw material for the opt-in triage-explainer step) -----------------
+
+def test_diagnose_linked_pr_reports_every_failed_guard():
+    pr = {"number": 1, "merged": False, "repository_id": 999, "target_branch_name": "preprod"}
+    failed = rdr._diagnose_linked_pr(pr, SEFARIA_REPO_ID, "master")
+    assert "not merged" in failed
+    assert any("wrong repo" in f for f in failed)
+    assert any("wrong target branch" in f for f in failed)
+
+
+def test_diagnose_linked_pr_reports_no_failures_for_a_qualifying_pr():
+    pr = _pr(3606)
+    assert rdr._diagnose_linked_pr(pr, SEFARIA_REPO_ID, "master") == []
+
+
+def test_diagnose_linked_pr_reports_only_the_specific_guard_that_failed():
+    pr = _pr(3698, target_branch_name="preprod")  # merged + right repo, wrong branch only
+    failed = rdr._diagnose_linked_pr(pr, SEFARIA_REPO_ID, "master")
+    assert failed == ["wrong target branch ('preprod', expected 'master')"]
+
+
+def test_triage_context_extracts_description_and_comment_text():
+    story = _story(
+        11111, description="Some story description",
+        comments=[{"text": "first comment"}, {"text": "second comment"}, {"author_id": "x"}],
+    )
+    ctx = rdr._triage_context(story)
+    assert ctx["description"] == "Some story description"
+    assert ctx["comments"] == ["first comment", "second comment"]
+
+
+def test_triage_context_handles_missing_description_and_comments():
+    story = {"id": 11111}
+    ctx = rdr._triage_context(story)
+    assert ctx["description"] is None
+    assert ctx["comments"] == []
+
+
+def test_classify_stories_no_qualifying_pr_entry_carries_full_context(monkeypatch):
+    """The raw material the opt-in explainer needs: description, comment
+    text, and -- per linked PR -- exactly which guard(s) it failed, not
+    just a bare number."""
+    story = _story(
+        11111,
+        pull_requests=[_pr(3698, target_branch_name="preprod"), _pr(3397, merged=False)],
+        description="A story description",
+        comments=[{"text": "why is this stuck?"}],
+    )
+    triage, _ = rdr.classify_stories([story], SEFARIA_REPO_ID, "master")
+    entry = triage[0]
+    assert entry["description"] == "A story description"
+    assert entry["comments"] == ["why is this stuck?"]
+    assert entry["linked_pr_numbers"] == [3397, 3698]
+    by_number = {p["number"]: p["failed_guards"] for p in entry["linked_prs"]}
+    assert by_number[3698] == ["wrong target branch ('preprod', expected 'master')"]
+    assert by_number[3397] == ["not merged"]
+
+
+def test_classify_stories_non_standard_workflow_entry_also_carries_context():
+    story = _story(
+        11111, workflow_id=500000061, workflow_state_id=500000900,
+        description="Lives on a different workflow", comments=[{"text": "not ours"}],
+    )
+    triage, _ = rdr.classify_stories([story], SEFARIA_REPO_ID, "master")
+    entry = triage[0]
+    assert entry["description"] == "Lives on a different workflow"
+    assert entry["comments"] == ["not ours"]
+
+
+def test_classify_stories_shipped_pending_candidates_do_not_carry_triage_context(monkeypatch):
+    """Shipped/pending stories must stay as lean as before this was added
+    -- _triage_context is triage-only, both by name and by application.
+    classify_stories only returns the raw (story, prs) pair for a
+    candidate; classify_candidates builds its own lean entry via
+    _story_summary, which never includes description/comments."""
+    story = _story(11111, pull_requests=[_pr(3606)], description="should never appear")
+    triage, candidates = rdr.classify_stories([story], SEFARIA_REPO_ID, "master")
+    assert triage == []
+    assert len(candidates) == 1
+
+    monkeypatch.setattr(rdr, "is_ancestor_of_prod", lambda oid, tag: True)
+    shipped, pending = rdr.classify_candidates(candidates, {3606: "abc"}, "prod/1.0")
+    assert "description" not in shipped[0]
+    assert "comments" not in shipped[0]
 
 
 def test_classify_stories_story_with_no_linked_prs_at_all_routes_to_triage():
