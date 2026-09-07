@@ -1,7 +1,10 @@
 import re
+from functools import lru_cache
 from urllib.parse import urlparse
 
 from django.conf import settings
+from django.dispatch import receiver
+from django.test.signals import setting_changed
 
 from sefaria.constants.model import LIBRARY_MODULE
 from sefaria.utils.util import short_to_long_lang_code, get_short_lang
@@ -59,13 +62,24 @@ def current_domain_lang(request):
     return short_to_long_lang_code(matched_langs[0])
 
 
+@lru_cache(maxsize=1)
 def _known_domain_hostnames():
+    # DOMAIN_MODULES is set once at startup and never changes at runtime in production, so
+    # this is computed once and reused for the life of the process. The only thing that
+    # changes it at all is override_settings in tests, which is why the cache is cleared
+    # below on setting_changed rather than just computed once forever.
     domain_modules = getattr(settings, 'DOMAIN_MODULES', None) or {}
-    return {
+    return frozenset(
         urlparse(url).hostname
         for modules in domain_modules.values()
         for url in modules.values()
-    }
+    )
+
+
+@receiver(setting_changed)
+def _clear_known_domain_hostnames_cache(sender, setting, **kwargs):
+    if setting == 'DOMAIN_MODULES':
+        _known_domain_hostnames.cache_clear()
 
 
 def referer_is_sefaria_domain(request):
