@@ -14,7 +14,7 @@ $(function() {
   const url = new URL(window.location.href);
   if (url.searchParams.has('no_applink')) {
     url.searchParams.delete('no_applink');
-    history.replaceState(null, '', url);
+    history.replaceState(null, '', url.toString());
   }
 
   const remoteConfig = DJANGO_VARS.props?.remoteConfig || {};
