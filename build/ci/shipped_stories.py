@@ -4,18 +4,39 @@ Deterministically resolve which Shortcut stories shipped in a prod rollout.
 
 Walks the git tree between two prod tags (or an explicit commit range),
 extracts Shortcut (SC) story ids from commit subjects and, for commits that
-reference a merged PR, from that PR's branch name too. Revert commits
-(`Revert "..."`, `Revert: ...`, `revert(...)`) never contribute story ids to
-the shipped set; their suppressed ids are surfaced separately in
-`reverted_commits` instead of being silently dropped. Optionally hydrates
-each id via the Shortcut API (id, name, description, url, workflow id,
-workflow state, story type) when SHORTCUT_API_TOKEN is set — `workflow_id`
-is included because a workflow's Done state id is not universal across
-Shortcut workflows, and downstream tooling (mark_stories_deployed.py) needs
-it to tell "different workflow" apart from "different state". Emits a
-single JSON document that downstream tooling (the sefaria-release-notes
-skill, mark_stories_deployed.py) consumes — this script never writes prose
-and never mutates a Shortcut story.
+reference a merged PR, from that PR's branch name too. As a THIRD discovery
+source, a commit whose PR carries no sc-NNNNN id in either place (subject or
+branch name) is looked up against Shortcut's own PR<->story link
+(`search/stories?query=pr:<N>`) when SHORTCUT_API_TOKEN is set -- git text is
+not the only place a story/PR link can live; a story can be linked to a PR
+from the Shortcut UI without the PR's branch ever mentioning a story code.
+This fallback is NOT run at all for a commit whose subject is auto-generated
+merge/branch-sync noise (NOISE_PATTERN) or whose PR's own head branch is a
+long-lived environment branch (master/preprod/prod) -- both are shapes a
+promotion PR takes, and a promotion PR resolves via `pr:<N>` to a real story
+just as readily as that story's actual feature PR does, while proving
+nothing about whether that story's own change shipped (verified live: PRs
+whose head branch was `preprod` or `master` each resolved to a real story
+this way). The single search result is also re-checked against the SAME
+three PR-level guards `reconcile_deploy_ready.py`'s org-wide sweep applies
+(merged / Sefaria-Project repo / target branch master; shared via
+shortcut_pr_guards.py so the two scripts cannot silently drift apart) before
+its id is adopted -- a match that fails those guards is a warn-and-skip, not
+a fallback of last resort. The id is adopted ONLY when the search resolves
+to EXACTLY one story AND that story's PR passes those guards; ids recovered
+this way are also surfaced separately in `stories_from_shortcut_pr_link` so
+a report can say what only Shortcut knew.
+Revert commits (`Revert "..."`, `Revert: ...`, `revert(...)`) never
+contribute story ids to the shipped set; their suppressed ids are surfaced
+separately in `reverted_commits` instead of being silently dropped.
+Optionally hydrates each id via the Shortcut API (id, name, description,
+url, workflow id, workflow state, story type) when SHORTCUT_API_TOKEN is
+set — `workflow_id` is included because a workflow's Done state id is not
+universal across Shortcut workflows, and downstream tooling
+(mark_stories_deployed.py) needs it to tell "different workflow" apart from
+"different state". Emits a single JSON document that downstream tooling
+(the sefaria-release-notes skill, mark_stories_deployed.py) consumes — this
+script never writes prose and never mutates a Shortcut story.
 
 Usage:
     python3 shipped_stories.py --version 6.111.0-prod.2 [--out shipped-stories.json] [--repo Sefaria/Sefaria-Project]
@@ -31,7 +52,8 @@ names (`gh pr view --json headRefName,number`) and is never required to
 succeed — a failing lookup for one PR is logged to stderr and skipped.
 SHORTCUT_API_TOKEN is optional; without it, story ids are still emitted but
 `stories` is empty and `unresolved_story_ids` is not populated (hydration
-was never attempted, which is a different case from a failed lookup).
+was never attempted, which is a different case from a failed lookup), and
+the RC1 PR-link fallback above is skipped entirely (git-text discovery only).
 
 All ids shown in this file's docstring and comments (e.g. story id 11111)
 are placeholders, not real Shortcut story ids.
@@ -45,7 +67,28 @@ import re
 import subprocess
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
+
+# The PR-level shipping-evidence guards (merged / right repo / right target
+# branch) are shared with reconcile_deploy_ready.py's org-wide sweep -- see
+# shortcut_pr_guards.py's own docstring for why a single shared
+# implementation matters (a promotion PR is exactly as good at fooling
+# either script). build/ci is not a package (see tests/conftest.py), but a
+# plain sibling-module import works both when this file is run directly
+# (python3 puts its own directory on sys.path[0]) and under pytest (the
+# test conftest adds build/ci to sys.path the same way).
+import shortcut_pr_guards
+
+# Long-lived environment branches. A PR whose HEAD branch is one of these is
+# a promotion/branch-sync PR (preprod -> prod, master -> preprod, ...), not
+# a real feature PR -- verified live to resolve via the RC1 PR-link fallback
+# below to a real story despite proving nothing about whether that story's
+# own change shipped. Checked against the PR's *head* branch (the same
+# `branch` value already resolved via fetch_pr_branch for story-id
+# extraction), not its target branch -- shortcut_pr_guards' target-branch
+# guard covers that side separately.
+LONG_LIVED_ENV_BRANCHES = frozenset({"master", "preprod", "prod"})
 
 # Shortcut (SC) story id patterns recognized in a commit subject or a PR
 # branch name. Kept intentionally short: `\bsc[-_](\d+)\b` (pattern 1) has a
@@ -308,6 +351,100 @@ def fetch_story(story_id, token):
     }
 
 
+def fetch_story_by_pr_link(pr_number, token):
+    """Look up the single Shortcut story linked to a merged PR via
+    Shortcut's own PR<->story association (RC1 in the incident writeup):
+    `GET search/stories?query=pr:<N>`. This is a fallback ONLY for a commit
+    whose subject and PR branch name both carried no sc-NNNNN id -- git text
+    is not the only place the link can live; a story can be attached to a PR
+    from the Shortcut UI with no story code ever appearing in the branch
+    name (verified case: a PR branched as
+    `feature/prod-rollout-slack-release-notes`, no story code at all, that
+    Shortcut still knew was linked to a real story).
+
+    `branch:"..."` and `pull-request:N` search operators do NOT resolve this
+    -- only `pr:N` does -- so that's the only query shape used here.
+
+    Adopts the id ONLY when the search returns EXACTLY one story AND that
+    story's OWN linked-PR entry for this exact PR number passes the same
+    three PR-level guards reconcile_deploy_ready.py's sweep applies (merged
+    / Sefaria-Project repo / target branch master -- see
+    shortcut_pr_guards.py). That second check matters because a bare
+    `pr:<N>` match only proves Shortcut linked SOME story to this PR
+    number -- not that this PR is real shipping evidence for it. A
+    promotion PR (head branch `master`/`preprod`/`prod`) resolves via this
+    same search to a real story just as readily as that story's actual
+    feature PR does; without re-checking the guards here, that promotion
+    PR would get silently adopted as if it were proof the story shipped
+    (verified live). More than one search result is ambiguous (which story
+    is "the" story for this PR?) and is a warn-and-skip, never a guess.
+    Any lookup failure (network, HTTP error, bad JSON) is also a
+    warn-and-skip, matching fetch_story's error posture immediately above
+    -- this must never abort the run.
+    """
+    query = urllib.parse.quote(f"pr:{pr_number}")
+    url = f"{SHORTCUT_API_BASE}/search/stories?query={query}"
+    req = urllib.request.Request(url, headers={"Shortcut-Token": token, "Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=20) as resp:
+            body = resp.read().decode("utf-8")
+        data = json.loads(body)
+    except urllib.error.HTTPError as e:
+        warn(f"Shortcut PR-link lookup for PR #{pr_number} failed: HTTP {e.code} {e.reason}")
+        return pr_number, None
+    except Exception as e:  # noqa: BLE001 - a lookup failure must never abort the run
+        warn(f"Shortcut PR-link lookup for PR #{pr_number} failed: {e}")
+        return pr_number, None
+
+    results = data.get("data", [])
+    total = data.get("total", len(results))
+    if not results:
+        return pr_number, None
+    if total > 1 or len(results) > 1:
+        warn(f"Shortcut PR-link lookup for PR #{pr_number} was ambiguous ({total} stories); skipping.")
+        return pr_number, None
+
+    story = results[0]
+    story_id = story.get("id")
+    if story_id is None:
+        return pr_number, None
+
+    try:
+        pr_number_int = int(pr_number)
+    except (TypeError, ValueError):
+        pr_number_int = None
+
+    matching_pr = next(
+        (pr for pr in shortcut_pr_guards.gather_linked_prs(story) if pr.get("number") == pr_number_int),
+        None,
+    )
+    if matching_pr is None or not shortcut_pr_guards.passes_pr_guards(matching_pr):
+        warn(
+            f"Shortcut PR-link lookup for PR #{pr_number} resolved to story {story_id}, but "
+            "that PR does not pass the shipping-evidence guards (merged / Sefaria-Project "
+            "repo / target branch master) -- e.g. a promotion or branch-sync merge rather "
+            "than the real feature PR. Skipping."
+        )
+        return pr_number, None
+
+    return pr_number, str(story_id)
+
+
+def fetch_stories_by_pr(pr_numbers, token, max_workers=8):
+    """Batch-resolve fetch_story_by_pr_link across PRs concurrently, the
+    same pattern fetch_branches and hydrate_stories already use below."""
+    story_id_by_pr = {}
+    if not pr_numbers:
+        return story_id_by_pr
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        futures = [executor.submit(fetch_story_by_pr_link, n, token) for n in pr_numbers]
+        for future in concurrent.futures.as_completed(futures):
+            pr_number, story_id = future.result()
+            if story_id:
+                story_id_by_pr[pr_number] = story_id
+    return story_id_by_pr
+
+
 def hydrate_stories(story_ids, token, max_workers=8):
     stories = []
     unresolved = []
@@ -386,6 +523,12 @@ def main():
 
     branch_by_pr = fetch_branches(sorted(pr_numbers), args.repo)
 
+    # Read once, up front: used both for the RC1 PR-link fallback right
+    # below and for hydration later in main(). A single token means both a
+    # missing token and an unreachable Shortcut behave identically in both
+    # places -- degrade gracefully, never abort the run.
+    token = os.environ.get("SHORTCUT_API_TOKEN")
+
     # Resolve each commit's full story_ids (subject ∪ its PR branch name)
     # once, up front -- both the per-commit `commits[]` output and the
     # aggregate shipped-set logic below read from this.
@@ -393,6 +536,55 @@ def main():
         branch = branch_by_pr.get(c["pr_number"]) if c["pr_number"] else None
         c["branch"] = branch
         c["story_ids"] = c["subject_story_ids"] | extract_story_ids(branch)
+
+    # THIRD discovery source (RC1): for any commit that has a PR number but
+    # STILL resolved to no story id from subject+branch, ask Shortcut
+    # itself whether that PR is linked to a story. Done at this same
+    # resolution point -- before carrying_indices_by_id, reverted_commits,
+    # commits_without_story, or the aggregate shipped set are computed --
+    # so every one of those downstream consumers sees the recovered id as
+    # if it had always been there, with no separate code path to keep in
+    # sync.
+    #
+    # A commit is eligible for this lookup only if, in addition to "has a PR
+    # number but no story id yet": its subject isn't auto-generated
+    # merge/branch-sync noise (NOISE_PATTERN already excludes exactly this
+    # shape from commits_without_story for the same reason -- reused here
+    # rather than inventing a second notion of "not a real feature commit"),
+    # and its PR's own head branch isn't a long-lived environment branch
+    # (LONG_LIVED_ENV_BRANCHES). Both are shapes a promotion PR takes, and a
+    # promotion PR resolves via `pr:<N>` to a real story just as readily as
+    # that story's actual feature PR does -- verified live -- so both are
+    # filtered out here, BEFORE ever calling Shortcut, rather than relying
+    # solely on fetch_story_by_pr_link's own re-check of the PR itself.
+    def _eligible_for_pr_link_fallback(c):
+        return (
+            c["pr_number"]
+            and not c["story_ids"]
+            and not NOISE_PATTERN.search(c["subject"])
+            and c["branch"] not in LONG_LIVED_ENV_BRANCHES
+        )
+
+    stories_from_shortcut_pr_link = set()
+    prs_needing_shortcut_lookup = sorted(
+        {c["pr_number"] for c in parsed_commits if _eligible_for_pr_link_fallback(c)},
+        key=int,
+    )
+    if prs_needing_shortcut_lookup:
+        if token:
+            story_id_by_pr = fetch_stories_by_pr(prs_needing_shortcut_lookup, token)
+            for c in parsed_commits:
+                if _eligible_for_pr_link_fallback(c):
+                    sid = story_id_by_pr.get(c["pr_number"])
+                    if sid:
+                        c["story_ids"] = {sid}
+                        stories_from_shortcut_pr_link.add(sid)
+        else:
+            warn(
+                f"SHORTCUT_API_TOKEN is not set; skipping the Shortcut PR-link fallback "
+                f"lookup for {len(prs_needing_shortcut_lookup)} commit(s) whose PR carries "
+                "no sc-NNNNN id in its subject or branch name."
+            )
 
     # Track, per story id, which NON-revert commit indices carry it. This is
     # what lets a revert exclude ONLY the specific original commit it quotes
@@ -450,7 +642,6 @@ def main():
         if not c["is_revert"] and not c["story_ids"] and not NOISE_PATTERN.search(c["subject"]):
             commits_without_story.append(c["subject"])
 
-    token = os.environ.get("SHORTCUT_API_TOKEN")
     hydrated = bool(token)
     if token:
         stories, unresolved_story_ids = hydrate_stories(sorted(all_story_ids, key=int), token)
@@ -472,6 +663,12 @@ def main():
         "commits_without_story": commits_without_story,
         "reverted_commits": reverted_commits,
         "story_ids": sorted(all_story_ids, key=int),
+        # Ids adopted ONLY via the RC1 Shortcut PR-link fallback above --
+        # i.e. story ids git text alone (subject + branch name) never
+        # revealed. Every id here is also already included in "story_ids"
+        # (and, if hydration succeeded, in "stories"); this list exists so
+        # a report can call out what only Shortcut knew.
+        "stories_from_shortcut_pr_link": sorted(stories_from_shortcut_pr_link, key=int),
         "stories": stories,
         # False when SHORTCUT_API_TOKEN was absent, so `stories` being empty
         # means "never looked up" rather than "looked up and found nothing".

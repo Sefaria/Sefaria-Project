@@ -15,11 +15,22 @@ name: "Prod Release Notes"
 #   2. build/ci/mark_stories_deployed.py moves each of those stories from
 #      Deploy Ready -> Done via the Shortcut API. A failure here (missing
 #      token, API error, nothing to move) is surfaced as a warning but never
-#      blocks steps 3-4 — see "Mark shipped stories as deployed" below.
-#   3. The sefaria-release-notes skill (.claude/skills/sefaria-release-notes/)
+#      blocks steps 3-5 — see "Mark shipped stories as deployed" below.
+#   3. build/ci/reconcile_deploy_ready.py sweeps EVERY non-archived Deploy
+#      Ready story org-wide (not just this release's commit range) and
+#      transitions any whose linked PR already reached prod, regardless of
+#      which release actually shipped it. This backfills stories a prior
+#      release's git-range-scoped run never revisited (RC2) — see that
+#      script's own docstring for the four guards it applies. Its output
+#      NEVER feeds shipped-stories.json or step 4/5 below: those stories
+#      shipped in EARLIER releases, and leaking them into today's
+#      announcement would have Slack claim old features shipped today. A
+#      failure here is warned/alerted the same way step 2's is, and never
+#      blocks steps 4-5.
+#   4. The sefaria-release-notes skill (.claude/skills/sefaria-release-notes/)
 #      reads that JSON and writes prose only — it does not talk to GitHub or
 #      Shortcut.
-#   4. scripts/post_to_slack.py posts both generated files to Slack.
+#   5. scripts/post_to_slack.py posts both generated files to Slack.
 #
 # Manual setup this depends on: see build/ci/README-prod-release-notes.md
 
@@ -149,19 +160,72 @@ jobs:
           fi
           python3 build/ci/mark_stories_deployed.py "${ARGS[@]}"
 
-      - name: Warn if Shortcut bookkeeping failed
-        if: steps.mark_deployed.outcome == 'failure'
+      - name: Reconcile Deploy Ready backlog
+        id: reconcile
+        # Separate concern from this release's own commit-range bookkeeping
+        # above: this sweeps EVERY non-archived Deploy Ready story org-wide
+        # and transitions any whose linked PR already reached prod,
+        # regardless of which release shipped it (RC2 — see
+        # reconcile_deploy_ready.py's own docstring for the four guards it
+        # applies before trusting a linked PR). Its report file is never
+        # read by the release-notes/Slack steps below — see the workflow
+        # header comment for why that separation is load-bearing. It's
+        # written to $RUNNER_TEMP rather than the checkout (GITHUB_WORKSPACE)
+        # specifically so it can't leak into the prose step: that step's
+        # prompt only NAMES shipped-stories.json, but the agent still holds
+        # Glob+Read over its whole working directory, and a same-directory
+        # JSON full of real story names is exactly the "old stories leak
+        # into today's announcement" failure this whole separation exists to
+        # prevent — a distinct filename is a naming convention, not an
+        # access boundary. A failure here (Shortcut API hiccup, gh
+        # unreachable, a transition error) must never skip release-notes
+        # generation and Slack posting for an otherwise healthy rollout, so
+        # this gets the same continue-on-error treatment as "Mark shipped
+        # stories as deployed" above, and the two outcomes are
+        # warned/alerted together by the two steps that follow.
+        continue-on-error: true
+        env:
+          SHORTCUT_API_TOKEN: ${{ secrets.SHORTCUT_API_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          DRY_RUN_INPUT: ${{ inputs.dry_run }}
         run: |
-          echo "::warning::mark_stories_deployed.py failed -- shipped Shortcut stories were NOT moved Deploy Ready -> Done for this release. Release notes generation is continuing anyway. Check this run's 'Mark shipped stories as deployed' step and move the affected stories manually."
+          ARGS=(--out "$RUNNER_TEMP/reconcile-deploy-ready-report.json")
+          if [[ "$EVENT_NAME" != "workflow_dispatch" || "$DRY_RUN_INPUT" != "true" ]]; then
+            ARGS+=(--apply)
+          fi
+          python3 build/ci/reconcile_deploy_ready.py "${ARGS[@]}"
+
+      - name: Warn if Shortcut bookkeeping failed
+        if: steps.mark_deployed.outcome == 'failure' || steps.reconcile.outcome == 'failure'
+        env:
+          MARK_DEPLOYED_OUTCOME: ${{ steps.mark_deployed.outcome }}
+          RECONCILE_OUTCOME: ${{ steps.reconcile.outcome }}
+        run: |
+          if [[ "$MARK_DEPLOYED_OUTCOME" == "failure" ]]; then
+            echo "::warning::mark_stories_deployed.py failed -- shipped Shortcut stories were NOT moved Deploy Ready -> Done for this release. Release notes generation is continuing anyway. Check this run's 'Mark shipped stories as deployed' step and move the affected stories manually."
+          fi
+          if [[ "$RECONCILE_OUTCOME" == "failure" ]]; then
+            echo "::warning::reconcile_deploy_ready.py failed -- the org-wide Deploy Ready backlog sweep did not complete. Release notes generation is continuing anyway. Check this run's 'Reconcile Deploy Ready backlog' step; the backlog will be retried on the next release."
+          fi
 
       - name: Alert Slack if Shortcut bookkeeping failed
-        if: steps.mark_deployed.outcome == 'failure'
+        if: steps.mark_deployed.outcome == 'failure' || steps.reconcile.outcome == 'failure'
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
           VERSION: ${{ steps.resolve.outputs.version }}
+          MARK_DEPLOYED_OUTCOME: ${{ steps.mark_deployed.outcome }}
+          RECONCILE_OUTCOME: ${{ steps.reconcile.outcome }}
         run: |
+          FAILURES=""
+          if [[ "$MARK_DEPLOYED_OUTCOME" == "failure" ]]; then
+            FAILURES="${FAILURES}mark_stories_deployed.py failed (this release's shipped stories NOT moved Deploy Ready -> Done). "
+          fi
+          if [[ "$RECONCILE_OUTCOME" == "failure" ]]; then
+            FAILURES="${FAILURES}reconcile_deploy_ready.py failed (org-wide Deploy Ready backlog sweep did not complete). "
+          fi
           curl -s -X POST -H 'Content-type: application/json' \
-            --data "{\"text\": \":warning: Prod release notes for version ${VERSION:-unknown}: mark_stories_deployed.py failed -- shipped Shortcut stories were NOT moved Deploy Ready -> Done. Release notes generation is continuing. Check the workflow run and move the affected stories manually.\"}" \
+            --data "{\"text\": \":warning: Prod release notes for version ${VERSION:-unknown}: ${FAILURES}Release notes generation is continuing. Check the workflow run and move the affected stories manually.\"}" \
             "$SLACK_WEBHOOK_URL" || true
 
       - name: Set up Node
