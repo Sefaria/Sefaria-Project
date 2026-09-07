@@ -57,9 +57,7 @@ import sys
 # top-level keys carelessly. Listed explicitly (rather than an
 # allow-only-"triage" approach implemented by construction below) as a
 # second, redundant line of defense -- see extract_triage_only.
-EXCLUDED_REPORT_KEYS = frozenset({
-    "shipped", "pending", "applied", "comment_posted", "comment_failed",
-})
+EXCLUDED_REPORT_KEYS = frozenset({"shipped", "pending", "applied"})
 
 
 def die(message: str) -> None:

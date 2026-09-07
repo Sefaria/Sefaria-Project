@@ -16,14 +16,13 @@ import triage_explainer as te
 FULL_REPORT = {
     "prod_tag": "prod/7.1.3-prod.1+chart.0.88.2-prod.1",
     "applied": False,
-    "counts": {
-        "total": 3, "shipped": 1, "pending": 1, "triage": 1,
-        "comment_posted": 0, "comment_failed": 0,
-    },
+    "counts": {"total": 3, "shipped": 1, "pending": 1, "triage": 1},
     "shipped": [
         {"id": 11111, "name": "Shipped story", "url": "https://app.shortcut.com/org/story/11111",
          "shipped_via_prs": [3606], "qualifying_prs": [3606], "transitioned": True,
-         "would_comment": "should never leak into the explainer's input"},
+         "shipping_release_tag": "prod/7.1.3-prod.1+chart.0.88.2-prod.1",
+         "hydrated_story": {"id": 11111, "name": "Shipped story", "description": "should never leak",
+                             "url": "https://app.shortcut.com/org/story/11111"}},
     ],
     "pending": [
         {"id": 22222, "name": "Pending story", "url": "https://app.shortcut.com/org/story/22222",
@@ -35,8 +34,6 @@ FULL_REPORT = {
          "linked_prs": [{"number": 3698, "failed_guards": ["wrong target branch ('preprod', expected 'master')"]}],
          "description": "A story description", "comments": ["why is this stuck?"]},
     ],
-    "comment_posted": [],
-    "comment_failed": [],
 }
 
 
@@ -47,7 +44,7 @@ def test_extract_triage_only_excludes_shipped_and_pending_entirely():
     assert "shipped" not in result
     assert "pending" not in result
     # Not just absent as top-level keys -- the shipped/pending story data
-    # itself (ids, names, would_comment text) must not appear anywhere in
+    # itself (ids, names, hydrated_story text) must not appear anywhere in
     # the serialized output.
     serialized = json.dumps(result)
     assert "11111" not in serialized
@@ -55,11 +52,9 @@ def test_extract_triage_only_excludes_shipped_and_pending_entirely():
     assert "should never leak" not in serialized
 
 
-def test_extract_triage_only_excludes_applied_and_comment_bookkeeping():
+def test_extract_triage_only_excludes_applied_and_counts():
     result = te.extract_triage_only(FULL_REPORT)
     assert "applied" not in result
-    assert "comment_posted" not in result
-    assert "comment_failed" not in result
     assert "counts" not in result  # counts.shipped/pending would otherwise leak bucket sizes
 
 

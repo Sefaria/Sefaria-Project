@@ -388,7 +388,8 @@ def test_fetch_story_workflow_id_defaults_to_none_when_absent(monkeypatch):
 # Shortcut story ids and are not covered by that convention.)
 
 
-def _story_with_linked_pr(story_id, pr_number, merged=True, repository_id=500000103, target_branch_name="master"):
+def _story_with_linked_pr(story_id, pr_number, merged=True, repository_id=500000103, target_branch_name="master",
+                           branch_name="feature/some-branch"):
     """Minimal Shortcut search-result story payload carrying ONE linked PR
     -- enough for fetch_story_by_pr_link's guard re-check
     (shortcut_pr_guards.gather_linked_prs / passes_pr_guards) to find and
@@ -402,6 +403,7 @@ def _story_with_linked_pr(story_id, pr_number, merged=True, repository_id=500000
             "merged": merged,
             "repository_id": repository_id,
             "target_branch_name": target_branch_name,
+            "branch_name": branch_name,
         }],
     }
 
@@ -462,6 +464,56 @@ def test_fetch_story_by_pr_link_unmerged_pr_guard_rejects(monkeypatch, capsys):
     pr_number, story_id = ss.fetch_story_by_pr_link("3606", "fake-token-for-tests")
     assert story_id is None
     assert "does not pass the shipping-evidence guards" in capsys.readouterr().err
+
+
+def test_fetch_story_by_pr_link_promotion_head_branch_guard_rejects_preprod_to_master(monkeypatch, capsys):
+    """Guard #4 regression: a promotion PR merging preprod INTO master
+    passes guards 1-3 cleanly (merged, right repo, target IS master) --
+    only the HEAD branch reveals it's a promotion merge, not a feature PR.
+    This is the exact live false positive that was found: a story was
+    classified shipped on the strength of a PR shaped exactly like this."""
+    monkeypatch.setattr(
+        ss.urllib.request, "urlopen",
+        lambda req, timeout=None: _FakeShortcutResponse(
+            {"data": [_story_with_linked_pr(66666, "3677", target_branch_name="master", branch_name="preprod")],
+             "total": 1}
+        ),
+    )
+    pr_number, story_id = ss.fetch_story_by_pr_link("3677", "fake-token-for-tests")
+    assert story_id is None
+    assert "does not pass the shipping-evidence guards" in capsys.readouterr().err
+
+
+def test_fetch_story_by_pr_link_promotion_head_branch_guard_rejects_master_to_preprod(monkeypatch, capsys):
+    """The other promotion direction (master -> preprod) is already caught
+    by guard #3 (target branch must be master) -- but guard #4 must reject
+    it too, independently, since the two checks are not redundant (a
+    linked PR could in principle target 'master' while also having a
+    long-lived head branch for some other reason)."""
+    monkeypatch.setattr(
+        ss.urllib.request, "urlopen",
+        lambda req, timeout=None: _FakeShortcutResponse(
+            {"data": [_story_with_linked_pr(66666, "3698", target_branch_name="master", branch_name="master")],
+             "total": 1}
+        ),
+    )
+    pr_number, story_id = ss.fetch_story_by_pr_link("3698", "fake-token-for-tests")
+    assert story_id is None
+    assert "does not pass the shipping-evidence guards" in capsys.readouterr().err
+
+
+def test_fetch_story_by_pr_link_normal_feature_pr_still_passes_all_four_guards(monkeypatch):
+    """A real feature PR (merged, right repo, targets master, head branch
+    is an ordinary feature branch) must still be adopted -- guard #4 must
+    not be so broad it rejects legitimate PRs."""
+    monkeypatch.setattr(
+        ss.urllib.request, "urlopen",
+        lambda req, timeout=None: _FakeShortcutResponse(
+            {"data": [_story_with_linked_pr(66666, "3606", branch_name="feature/some-fix")], "total": 1}
+        ),
+    )
+    pr_number, story_id = ss.fetch_story_by_pr_link("3606", "fake-token-for-tests")
+    assert story_id == "66666"
 
 
 def test_fetch_story_by_pr_link_no_match_returns_none_quietly(monkeypatch, capsys):

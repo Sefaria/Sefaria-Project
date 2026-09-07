@@ -30,17 +30,19 @@ OTHER_WORKFLOW_ID = 500000061
 OTHER_WORKFLOW_STATE_ID = 500000900
 
 
-def _pr(number, merged=True, repository_id=SEFARIA_REPO_ID, target_branch_name="master"):
+def _pr(number, merged=True, repository_id=SEFARIA_REPO_ID, target_branch_name="master",
+        branch_name="feature/some-branch"):
     return {
         "number": number,
         "merged": merged,
         "repository_id": repository_id,
         "target_branch_name": target_branch_name,
+        "branch_name": branch_name,
     }
 
 
 def _story(story_id, name="Story", workflow_id=STANDARD_WORKFLOW_ID, workflow_state_id=DEPLOY_READY_STATE_ID,
-           pull_requests=None, branches=None, description=None, comments=None):
+           pull_requests=None, branches=None, description=None, comments=None, story_type="feature"):
     return {
         "id": story_id,
         "name": name,
@@ -51,6 +53,7 @@ def _story(story_id, name="Story", workflow_id=STANDARD_WORKFLOW_ID, workflow_st
         "branches": branches or [],
         "description": description,
         "comments": comments or [],
+        "story_type": story_type,
     }
 
 
@@ -82,10 +85,10 @@ def test_gather_linked_prs_ignores_prs_with_no_number():
     assert rdr.gather_linked_prs(story) == []
 
 
-# --- qualifying_prs: the three PR-level guards ---------------------------
+# --- qualifying_prs: the four PR-level guards (shortcut_pr_guards.py) ----
 
 def test_qualifying_prs_wrong_repo_guard():
-    """Guard #1: a PR linked from a DIFFERENT repo must never count as
+    """Guard: a PR linked from a DIFFERENT repo must never count as
     evidence a Sefaria-Project story shipped, even if it's merged and
     targets 'master' -- resolving it against Sefaria-Project would find an
     unrelated PR that happens to share the number."""
@@ -93,8 +96,8 @@ def test_qualifying_prs_wrong_repo_guard():
     assert rdr.qualifying_prs(prs) == []
 
 
-def test_qualifying_prs_promotion_pr_guard():
-    """Guard #2: a PR targeting anything other than 'master' (e.g. a
+def test_qualifying_prs_promotion_pr_target_branch_guard():
+    """Guard: a PR targeting anything other than 'master' (e.g. a
     preprod->prod or master->preprod promotion PR some stories link instead
     of the real feature PR) must not qualify."""
     prs = [_pr(3551, target_branch_name="prod")]
@@ -103,14 +106,32 @@ def test_qualifying_prs_promotion_pr_guard():
     assert rdr.qualifying_prs(prs2) == []
 
 
+def test_qualifying_prs_promotion_pr_head_branch_guard_preprod_to_master():
+    """Guard (regression): a promotion PR merging preprod INTO master
+    passes the repo/merged/target-branch guards cleanly -- its target
+    really is 'master'. Only the HEAD branch (branch_name) reveals it's a
+    promotion merge, not a feature PR. This is the exact live false
+    positive that was found and fixed: a story was classified `shipped` on
+    the strength of a PR shaped exactly like this."""
+    prs = [_pr(3677, target_branch_name="master", branch_name="preprod")]
+    assert rdr.qualifying_prs(prs) == []
+
+
+def test_qualifying_prs_promotion_pr_head_branch_guard_master_to_preprod():
+    """The other promotion direction is already caught by the target-branch
+    guard, but the head-branch guard must reject it too, independently."""
+    prs = [_pr(3698, target_branch_name="preprod", branch_name="master")]
+    assert rdr.qualifying_prs(prs) == []
+
+
 def test_qualifying_prs_unmerged_pr_guard():
-    """Guard #3: an open or closed-without-merging PR proves nothing."""
+    """Guard: an open or closed-without-merging PR proves nothing."""
     prs = [_pr(3397, merged=False)]
     assert rdr.qualifying_prs(prs) == []
 
 
-def test_qualifying_prs_accepts_a_pr_passing_all_three_guards():
-    prs = [_pr(3606)]
+def test_qualifying_prs_accepts_a_normal_feature_pr_passing_all_four_guards():
+    prs = [_pr(3606, branch_name="feature/some-fix")]
     assert rdr.qualifying_prs(prs) == prs
 
 
@@ -119,14 +140,15 @@ def test_qualifying_prs_filters_mixed_list_keeping_only_the_valid_one():
         _pr(224, repository_id=OTHER_REPO_ID),
         _pr(3551, target_branch_name="prod"),
         _pr(3397, merged=False),
-        _pr(3606),
+        _pr(3677, target_branch_name="master", branch_name="preprod"),
+        _pr(3606, branch_name="feature/some-fix"),
     ]
     assert [p["number"] for p in rdr.qualifying_prs(prs)] == [3606]
 
 
 def test_qualifying_prs_custom_repo_and_target_branch_args():
     """--repo/--target-branch overrides are threaded through, not hardcoded."""
-    prs = [_pr(1, repository_id=999, target_branch_name="main")]
+    prs = [_pr(1, repository_id=999, target_branch_name="main", branch_name="feature/some-fix")]
     assert rdr.qualifying_prs(prs, repo_id=999, target_branch="main") == prs
     assert rdr.qualifying_prs(prs, repo_id=SEFARIA_REPO_ID, target_branch="master") == []
 
@@ -187,6 +209,15 @@ def test_diagnose_linked_pr_reports_only_the_specific_guard_that_failed():
     pr = _pr(3698, target_branch_name="preprod")  # merged + right repo, wrong branch only
     failed = rdr._diagnose_linked_pr(pr, SEFARIA_REPO_ID, "master")
     assert failed == ["wrong target branch ('preprod', expected 'master')"]
+
+
+def test_diagnose_linked_pr_reports_promotion_head_branch_guard():
+    """A promotion PR (preprod -> master) passes merged/repo/target-branch
+    but must be flagged for its head branch -- the diagnostic must surface
+    the SAME reason qualifying_prs silently rejects it for."""
+    pr = _pr(3677, target_branch_name="master", branch_name="preprod")
+    failed = rdr._diagnose_linked_pr(pr, SEFARIA_REPO_ID, "master")
+    assert failed == ["promotion PR (head branch 'preprod' is a long-lived environment branch)"]
 
 
 def test_triage_context_extracts_description_and_comment_text():
@@ -274,6 +305,7 @@ def test_classify_stories_qualifying_story_becomes_a_candidate():
 
 def test_classify_candidates_ancestor_true_is_shipped(monkeypatch):
     monkeypatch.setattr(rdr, "is_ancestor_of_prod", lambda oid, tag: True)
+    monkeypatch.setattr(rdr, "resolve_shipping_release_tag", lambda oid: None)
     story = _story(11111, pull_requests=[_pr(3606)])
     candidates = [(story, [_pr(3606)])]
     shipped, pending = rdr.classify_candidates(candidates, {3606: "abc123"}, "prod/1.0")
@@ -325,6 +357,7 @@ def test_classify_candidates_any_qualifying_pr_in_prod_is_enough(monkeypatch):
     """A story with two qualifying PRs, only one of which is in prod, still
     ships -- 'at least one' per the spec."""
     monkeypatch.setattr(rdr, "is_ancestor_of_prod", lambda oid, tag: oid == "in-prod-oid")
+    monkeypatch.setattr(rdr, "resolve_shipping_release_tag", lambda oid: None)
 
     story = _story(11111, pull_requests=[_pr(1), _pr(2)])
     candidates = [(story, [_pr(1), _pr(2)])]
@@ -333,6 +366,85 @@ def test_classify_candidates_any_qualifying_pr_in_prod_is_enough(monkeypatch):
     assert len(shipped) == 1
     assert shipped[0]["shipped_via_prs"] == [2]
     assert shipped[0]["qualifying_prs"] == [1, 2]
+
+
+# --- classify_candidates: shipping_release_tag / hydrated_story ----------
+# --- (the "backfilled story that shipped in THIS release" fix) -----------
+
+def test_classify_candidates_shipping_release_tag_equal_to_current_attaches_hydrated_story(monkeypatch):
+    """When the derived TRUE shipping release equals the CURRENT prod tag,
+    the entry gets a hydrated_story sub-object -- the ONLY signal
+    merge_release_backfill.py uses to fold a backfilled story into
+    shipped-stories.json."""
+    monkeypatch.setattr(rdr, "is_ancestor_of_prod", lambda oid, tag: True)
+    monkeypatch.setattr(rdr, "resolve_shipping_release_tag", lambda oid: "prod/1.0")
+    story = _story(11111, name="Some Story", pull_requests=[_pr(3606)], description="A description")
+    candidates = [(story, [_pr(3606)])]
+    shipped, pending = rdr.classify_candidates(candidates, {3606: "abc"}, "prod/1.0")
+    assert shipped[0]["shipping_release_tag"] == "prod/1.0"
+    hydrated = shipped[0]["hydrated_story"]
+    assert hydrated == {
+        "id": 11111,
+        "name": "Some Story",
+        "description": "A description",
+        "url": f"https://app.shortcut.com/org/story/11111",
+        "workflow_id": STANDARD_WORKFLOW_ID,
+        "workflow_state_id": DEPLOY_READY_STATE_ID,
+        "story_type": "feature",
+    }
+
+
+def test_classify_candidates_shipping_release_tag_earlier_than_current_excludes_hydrated_story(monkeypatch):
+    """A story that shipped in an EARLIER release must never carry
+    hydrated_story -- that's exactly the 'old features shipped today'
+    leak this whole design rejects."""
+    monkeypatch.setattr(rdr, "is_ancestor_of_prod", lambda oid, tag: True)
+    monkeypatch.setattr(rdr, "resolve_shipping_release_tag", lambda oid: "prod/0.9-earlier")
+    story = _story(11111, pull_requests=[_pr(3606)])
+    candidates = [(story, [_pr(3606)])]
+    shipped, pending = rdr.classify_candidates(candidates, {3606: "abc"}, "prod/1.0")
+    assert shipped[0]["shipping_release_tag"] == "prod/0.9-earlier"
+    assert "hydrated_story" not in shipped[0]
+
+
+def test_classify_candidates_unresolvable_shipping_release_excludes_hydrated_story(monkeypatch):
+    """resolve_shipping_release_tag returning None (unresolvable) must
+    also never attach hydrated_story -- fail closed, never guess a story
+    into the announcement."""
+    monkeypatch.setattr(rdr, "is_ancestor_of_prod", lambda oid, tag: True)
+    monkeypatch.setattr(rdr, "resolve_shipping_release_tag", lambda oid: None)
+    story = _story(11111, pull_requests=[_pr(3606)])
+    candidates = [(story, [_pr(3606)])]
+    shipped, pending = rdr.classify_candidates(candidates, {3606: "abc"}, "prod/1.0")
+    assert shipped[0]["shipping_release_tag"] is None
+    assert "hydrated_story" not in shipped[0]
+
+
+def test_classify_candidates_pending_entries_never_carry_shipping_release_tag(monkeypatch):
+    """shipping_release_tag/hydrated_story are shipped-only concepts -- a
+    pending story (nothing in prod yet) has no shipping release to derive
+    at all."""
+    monkeypatch.setattr(rdr, "is_ancestor_of_prod", lambda oid, tag: False)
+
+    def _boom(oid):
+        raise AssertionError("resolve_shipping_release_tag must not be called for a pending story")
+
+    monkeypatch.setattr(rdr, "resolve_shipping_release_tag", _boom)
+    story = _story(11111, pull_requests=[_pr(3670)])
+    candidates = [(story, [_pr(3670)])]
+    shipped, pending = rdr.classify_candidates(candidates, {3670: "def"}, "prod/1.0")
+    assert shipped == []
+    assert "shipping_release_tag" not in pending[0]
+    assert "hydrated_story" not in pending[0]
+
+
+def test_story_for_release_notes_matches_shipped_stories_hydrated_shape():
+    story = _story(11111, name="A Story", description="Desc", story_type="bug")
+    hydrated = rdr._story_for_release_notes(story)
+    assert set(hydrated.keys()) == {
+        "id", "name", "description", "url", "workflow_id", "workflow_state_id", "story_type",
+    }
+    assert hydrated["url"] == story["app_url"]
 
 
 # --- is_ancestor_of_prod: exit-code interpretation -----------------------
@@ -445,17 +557,16 @@ def test_fetch_pr_merge_oid_failed_gh_call_returns_none(monkeypatch, capsys):
 # --- End-to-end main(): dry-run is the default and mutates nothing -------
 
 def _make_main_env(monkeypatch, tmp_path, stories, prod_tag="prod/1.0", oid_by_pr=None,
-                    ancestor_result=True, argv_extra=None, shipping_tag=None,
-                    mock_post_comment=True):
+                    ancestor_result=True, argv_extra=None, shipping_tag=None):
     """Wire main() end-to-end with every I/O boundary mocked: Shortcut
-    search, gh merge-commit lookup, git ancestry, the git-based
-    shipping-release lookup, and (by default) the comment POST itself --
-    mirroring _run_main_with_commits in test_shipped_stories.py.
-    resolve_shipping_release_tag defaults to a plain lambda returning
-    `shipping_tag` (None unless overridden) rather than shelling out to
-    real git, so tests that don't care about that specific behavior stay
-    hermetic; the dedicated tests for it below monkeypatch it themselves
-    when they need to exercise its own git-shelling logic."""
+    search, gh merge-commit lookup, git ancestry, and the git-based
+    shipping-release lookup -- mirroring _run_main_with_commits in
+    test_shipped_stories.py. resolve_shipping_release_tag defaults to a
+    plain lambda returning `shipping_tag` (None unless overridden) rather
+    than shelling out to real git, so tests that don't care about that
+    specific behavior stay hermetic; the dedicated tests for it below
+    monkeypatch it themselves when they need to exercise its own
+    git-shelling logic."""
     monkeypatch.setenv("SHORTCUT_API_TOKEN", "fake-token-for-tests")
     monkeypatch.setattr(rdr, "search_deploy_ready_stories", lambda token: stories)
     monkeypatch.setattr(rdr, "resolve_default_prod_tag", lambda: prod_tag)
@@ -466,11 +577,6 @@ def _make_main_env(monkeypatch, tmp_path, stories, prod_tag="prod/1.0", oid_by_p
     )
     monkeypatch.setattr(rdr, "is_ancestor_of_prod", lambda oid, tag: ancestor_result)
     monkeypatch.setattr(rdr, "resolve_shipping_release_tag", lambda oid: shipping_tag)
-    if mock_post_comment:
-        monkeypatch.setattr(
-            rdr.shortcut_comment, "post_story_comment",
-            lambda story_id, text, token: (story_id, True, None),
-        )
 
     argv = ["reconcile_deploy_ready.py"] + (argv_extra or [])
     monkeypatch.setattr("sys.argv", argv)
@@ -492,13 +598,10 @@ def test_main_dry_run_is_the_default_and_never_calls_transition(monkeypatch, tmp
 
 
 def test_main_apply_transitions_shipped_stories(monkeypatch, tmp_path, capsys):
-    """--no-comment here to keep this test scoped to transition mechanics
-    only -- the write-back comment behavior has its own dedicated tests
-    below."""
     story = _story(11111, pull_requests=[_pr(3606)])
     _make_main_env(
         monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
-        argv_extra=["--apply", "--no-comment"],
+        argv_extra=["--apply"],
     )
 
     calls = []
@@ -542,10 +645,7 @@ def test_main_writes_out_json_report(monkeypatch, tmp_path):
     rdr.main()
 
     report = json.loads(out_path.read_text(encoding="utf-8"))
-    assert report["counts"] == {
-        "total": 2, "shipped": 1, "pending": 0, "triage": 1,
-        "comment_posted": 0, "comment_failed": 0,
-    }
+    assert report["counts"] == {"total": 2, "shipped": 1, "pending": 0, "triage": 1}
     assert report["applied"] is False
     assert [s["id"] for s in report["shipped"]] == [11111]
     assert [s["id"] for s in report["triage"]] == [22222]
@@ -560,10 +660,7 @@ def test_main_pending_bucket_when_qualifying_pr_not_yet_in_prod(monkeypatch, tmp
     )
     rdr.main()
     report = json.loads(out_path.read_text(encoding="utf-8"))
-    assert report["counts"] == {
-        "total": 1, "shipped": 0, "pending": 1, "triage": 0,
-        "comment_posted": 0, "comment_failed": 0,
-    }
+    assert report["counts"] == {"total": 1, "shipped": 0, "pending": 1, "triage": 0}
     assert report["pending"][0]["id"] == 11111
 
 
@@ -609,6 +706,7 @@ def test_main_prod_tag_override_is_used_instead_of_default(monkeypatch, tmp_path
     monkeypatch.setattr(rdr, "resolve_default_prod_tag", _boom_default_tag)
     monkeypatch.setattr(rdr, "fetch_merge_oids", lambda pr_numbers, repo, max_workers=8: {3606: "abc"})
     monkeypatch.setattr(rdr, "is_ancestor_of_prod", lambda oid, tag: tag == "prod/explicit-tag")
+    monkeypatch.setattr(rdr, "resolve_shipping_release_tag", lambda oid: None)
     monkeypatch.setattr(
         "sys.argv",
         ["reconcile_deploy_ready.py", "--prod-tag", "prod/explicit-tag", "--out", str(out_path)],
@@ -682,176 +780,74 @@ def test_resolve_shipping_release_tag_returns_none_and_warns_on_git_failure(monk
     assert "WARNING" in capsys.readouterr().err
 
 
-# --- write-back release comment: posted / not posted / dry-run preview ---
-# --- / --no-comment / API failure / honest degrade (regression coverage --
-# --- for the promotion-PR-style "old features shipped today" mistake, --
-# --- just in a Shortcut comment instead of a Slack post) -----------------
 
-def test_main_posts_comment_after_a_real_transition(monkeypatch, tmp_path):
+# --- main(): shipping_release_tag / hydrated_story end-to-end ------------
+
+def test_main_report_attaches_hydrated_story_when_shipping_release_matches_current(monkeypatch, tmp_path):
+    """End-to-end: a shipped story whose derived release equals the
+    CURRENT prod tag gets a hydrated_story entry in the report -- the
+    signal a separate merge step uses to fold it into today's release
+    notes."""
+    story = _story(11111, name="Some Story", pull_requests=[_pr(3606)], description="A description")
+    out_path = tmp_path / "report.json"
+    _make_main_env(
+        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        prod_tag="prod/1.0", shipping_tag="prod/1.0",
+        argv_extra=["--out", str(out_path)],
+    )
+    rdr.main()
+    report = json.loads(out_path.read_text(encoding="utf-8"))
+    entry = report["shipped"][0]
+    assert entry["shipping_release_tag"] == "prod/1.0"
+    assert entry["hydrated_story"]["id"] == 11111
+    assert entry["hydrated_story"]["name"] == "Some Story"
+
+
+def test_main_report_excludes_hydrated_story_for_an_earlier_release(monkeypatch, tmp_path):
     story = _story(11111, pull_requests=[_pr(3606)])
+    out_path = tmp_path / "report.json"
+    _make_main_env(
+        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        prod_tag="prod/9.9.9-prod.1+chart.9.9.9-prod.1", shipping_tag="prod/6.100.0-prod.1+chart.0.85.8-prod.1",
+        argv_extra=["--out", str(out_path)],
+    )
+    rdr.main()
+    report = json.loads(out_path.read_text(encoding="utf-8"))
+    entry = report["shipped"][0]
+    assert entry["shipping_release_tag"] == "prod/6.100.0-prod.1+chart.0.85.8-prod.1"
+    assert "hydrated_story" not in entry
+
+
+def test_main_report_excludes_hydrated_story_when_release_unresolvable(monkeypatch, tmp_path):
+    story = _story(11111, pull_requests=[_pr(3606)])
+    out_path = tmp_path / "report.json"
+    _make_main_env(
+        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        prod_tag="prod/9.9.9-prod.1+chart.9.9.9-prod.1", shipping_tag=None,
+        argv_extra=["--out", str(out_path)],
+    )
+    rdr.main()
+    report = json.loads(out_path.read_text(encoding="utf-8"))
+    entry = report["shipped"][0]
+    assert entry["shipping_release_tag"] is None
+    assert "hydrated_story" not in entry
+
+
+def test_main_never_posts_to_shortcut_beyond_the_state_transition(monkeypatch, tmp_path):
+    """Regression guard for the removed write-back comment feature: even
+    on a real --apply run, the only Shortcut mutation this script performs
+    is the workflow_state_id PUT (transition_story) -- nothing else calls
+    out to Shortcut."""
+    story = _story(11111, pull_requests=[_pr(3606)])
+    _make_main_env(
+        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        argv_extra=["--apply"],
+    )
     calls = []
-
-    _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
-        argv_extra=["--apply"], shipping_tag="prod/6.100.0-prod.1+chart.0.85.8-prod.1",
-        mock_post_comment=False,
-    )
-    monkeypatch.setattr(rdr, "transition_story", lambda sid, done, token: (sid, True, None))
     monkeypatch.setattr(
-        rdr.shortcut_comment, "post_story_comment",
-        lambda story_id, text, token: (calls.append((story_id, text)), story_id, True, None)[1:],
-    )
-
-    rdr.main()
-
-    assert len(calls) == 1
-    posted_id, text = calls[0]
-    assert posted_id == 11111
-    assert "prod/6.100.0-prod.1+chart.0.85.8-prod.1" in text
-    assert "not part of today's release" in text
-    assert "https://github.com/Sefaria/Sefaria-Project/pull/3606" in text
-    # Must NOT name the CURRENT prod tag as if the story shipped in it.
-    assert "prod/1.0" not in text
-
-
-def test_main_does_not_post_comment_when_transition_fails(monkeypatch, tmp_path):
-    story = _story(11111, pull_requests=[_pr(3606)])
-
-    def _boom_post(*args, **kwargs):
-        raise AssertionError("no comment must be posted for a story whose transition failed")
-
-    _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
-        argv_extra=["--apply"], mock_post_comment=False,
-    )
-    monkeypatch.setattr(rdr, "transition_story", lambda sid, done, token: (sid, False, "HTTP 500 Internal Server Error"))
-    monkeypatch.setattr(rdr.shortcut_comment, "post_story_comment", _boom_post)
-
-    with pytest.raises(SystemExit):
-        rdr.main()  # transition failure still exits non-zero
-
-
-def test_main_does_not_post_comment_in_dry_run(monkeypatch, tmp_path):
-    story = _story(11111, pull_requests=[_pr(3606)])
-
-    def _boom_post(*args, **kwargs):
-        raise AssertionError("no comment must be posted in dry-run")
-
-    _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
-        mock_post_comment=False,  # dry-run (no --apply): must never even try to POST
-    )
-    monkeypatch.setattr(rdr.shortcut_comment, "post_story_comment", _boom_post)
-    rdr.main()  # must not raise -- proves no POST was attempted
-
-
-def test_main_dry_run_report_previews_the_comment_it_would_post(monkeypatch, tmp_path):
-    story = _story(11111, pull_requests=[_pr(3606)])
-    out_path = tmp_path / "report.json"
-    _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
-        shipping_tag="prod/6.100.0-prod.1+chart.0.85.8-prod.1",
-        argv_extra=["--out", str(out_path)],
+        rdr, "transition_story",
+        lambda sid, done, token: (calls.append(sid), sid, True, None)[1:],
     )
     rdr.main()
-
-    report = json.loads(out_path.read_text(encoding="utf-8"))
-    assert report["counts"]["comment_posted"] == 0
-    would_comment = report["shipped"][0]["would_comment"]
-    assert "prod/6.100.0-prod.1+chart.0.85.8-prod.1" in would_comment
-
-
-def test_main_no_comment_flag_suppresses_posting(monkeypatch, tmp_path):
-    story = _story(11111, pull_requests=[_pr(3606)])
-
-    def _boom_post(*args, **kwargs):
-        raise AssertionError("--no-comment must suppress the write-back comment entirely")
-
-    _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
-        argv_extra=["--apply", "--no-comment"], mock_post_comment=False,
-    )
-    monkeypatch.setattr(rdr, "transition_story", lambda sid, done, token: (sid, True, None))
-    monkeypatch.setattr(rdr.shortcut_comment, "post_story_comment", _boom_post)
-
-    rdr.main()  # must not raise -- proves no POST was attempted
-
-
-def test_main_no_comment_flag_suppresses_dry_run_preview_too(monkeypatch, tmp_path):
-    story = _story(11111, pull_requests=[_pr(3606)])
-    out_path = tmp_path / "report.json"
-    _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
-        argv_extra=["--no-comment", "--out", str(out_path)],
-    )
-    rdr.main()
-    report = json.loads(out_path.read_text(encoding="utf-8"))
-    assert "would_comment" not in report["shipped"][0]
-
-
-def test_main_comment_api_failure_does_not_fail_the_run_and_is_reported(monkeypatch, tmp_path, capsys):
-    """A failed comment POST must never fail the run or roll back the
-    transition -- it's reported (warned + counted) and nothing else."""
-    story = _story(11111, pull_requests=[_pr(3606)])
-    out_path = tmp_path / "report.json"
-
-    _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
-        argv_extra=["--apply", "--out", str(out_path)], mock_post_comment=False,
-    )
-    monkeypatch.setattr(rdr, "transition_story", lambda sid, done, token: (sid, True, None))
-    monkeypatch.setattr(
-        rdr.shortcut_comment, "post_story_comment",
-        lambda story_id, text, token: (story_id, False, "HTTP 503 Service Unavailable"),
-    )
-
-    rdr.main()  # must return normally -- a comment failure is never fatal
-
-    report = json.loads(out_path.read_text(encoding="utf-8"))
-    assert report["counts"]["shipped"] == 1
-    assert report["counts"]["comment_failed"] == 1
-    assert report["comment_failed"] == [{"id": 11111, "error": "HTTP 503 Service Unavailable"}]
-    assert "Failed to post release comment on story 11111" in capsys.readouterr().err
-
-
-def test_main_comment_names_the_contains_derived_release_not_the_current_one(monkeypatch, tmp_path):
-    """Regression coverage for the exact mistake this feature exists to
-    avoid: a story backfilled by this sweep shipped in an EARLIER release,
-    and the comment must name THAT release (resolved via
-    resolve_shipping_release_tag's `--contains` lookup), never the current
-    --prod-tag / today's release."""
-    story = _story(11111, pull_requests=[_pr(3606)])
-    out_path = tmp_path / "report.json"
-    _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
-        prod_tag="prod/9.9.9-prod.1+chart.9.9.9-prod.1",  # "today's" release
-        shipping_tag="prod/6.100.0-prod.1+chart.0.85.8-prod.1",  # the TRUE, earlier release
-        argv_extra=["--out", str(out_path)],
-    )
-    rdr.main()
-    report = json.loads(out_path.read_text(encoding="utf-8"))
-    would_comment = report["shipped"][0]["would_comment"]
-    assert "prod/6.100.0-prod.1+chart.0.85.8-prod.1" in would_comment
-    assert "prod/9.9.9-prod.1+chart.9.9.9-prod.1" not in would_comment
-
-
-def test_main_comment_degrades_honestly_when_release_tag_lookup_fails(monkeypatch, tmp_path):
-    """When resolve_shipping_release_tag can't determine the true release
-    (returns None -- e.g. a shallow checkout or a genuine history gap), the
-    comment must degrade to naming the current prod tag as "present as of"
-    language and the PR -- it must NEVER guess or imply a specific
-    release."""
-    story = _story(11111, pull_requests=[_pr(3606)])
-    out_path = tmp_path / "report.json"
-    _make_main_env(
-        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
-        prod_tag="prod/9.9.9-prod.1+chart.9.9.9-prod.1",
-        shipping_tag=None,  # lookup failed / inconclusive
-        argv_extra=["--out", str(out_path)],
-    )
-    rdr.main()
-    report = json.loads(out_path.read_text(encoding="utf-8"))
-    would_comment = report["shipped"][0]["would_comment"]
-    assert "present in production as of prod/9.9.9-prod.1+chart.9.9.9-prod.1" in would_comment
-    assert "could not be determined" in would_comment
-    assert "https://github.com/Sefaria/Sefaria-Project/pull/3606" in would_comment
+    assert calls == [11111]
+    assert not hasattr(rdr, "shortcut_comment")

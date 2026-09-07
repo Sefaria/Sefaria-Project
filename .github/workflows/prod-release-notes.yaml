@@ -8,39 +8,47 @@ name: "Prod Release Notes"
 #
 # From there this workflow is a strict pipeline of deterministic scripts, with
 # two steps handed to an LLM (release-notes prose, and an OPT-IN triage
-# explanation -- see step 4 below):
+# explanation -- see step 5 below):
 #   1. build/ci/shipped_stories.py resolves the prod/* tag range for that
 #      version (chartVersion disambiguates a chart-only rollout, where several
 #      tags share the same app version), walks git log between the tags, and
 #      hydrates the Shortcut stories those commits reference.
 #   2. build/ci/mark_stories_deployed.py moves each of those stories from
-#      Deploy Ready -> Done via the Shortcut API, then posts a write-back
-#      comment on each naming this release. A failure here (missing token,
-#      API error, nothing to move) is surfaced as a warning but never blocks
-#      steps 3-6 — see "Mark shipped stories as deployed" below.
+#      Deploy Ready -> Done via the Shortcut API. It only ever writes that
+#      state -- no comment, no other annotation. A failure here (missing
+#      token, API error, nothing to move) is surfaced as a warning but never
+#      blocks steps 3-7 — see "Mark shipped stories as deployed" below.
 #   3. build/ci/reconcile_deploy_ready.py sweeps EVERY non-archived Deploy
 #      Ready story org-wide (not just this release's commit range) and
 #      transitions any whose linked PR already reached prod, regardless of
-#      which release actually shipped it, then posts its own write-back
-#      comment naming the release that ACTUALLY shipped it (never this one).
-#      This backfills stories a prior release's git-range-scoped run never
-#      revisited (RC2) — see that script's own docstring for the four guards
-#      it applies. Its output NEVER feeds shipped-stories.json or steps 5-6
-#      below: those stories shipped in EARLIER releases, and leaking them
-#      into today's announcement would have Slack claim old features shipped
-#      today. A failure here is warned/alerted the same way step 2's is, and
-#      never blocks steps 4-6.
-#   4. build/ci/triage_explainer.py + a headless `claude -p` run (OPT-IN,
+#      which release actually shipped it -- same "state only" posture as
+#      step 2. This backfills stories a prior release's git-range-scoped run
+#      never revisited (RC2) — see that script's own docstring for the four
+#      PR-level guards (+ one story-level workflow/state guard) it applies.
+#      Its report is written to $RUNNER_TEMP and NEVER read directly by
+#      steps 6-7: most of what it backfills shipped in EARLIER releases, and
+#      leaking that wholesale into today's announcement would have Slack
+#      claim old features shipped today. A failure here is warned/alerted
+#      the same way step 2's is, and never blocks steps 4-7.
+#   4. build/ci/merge_release_backfill.py folds the ONE, pre-filtered
+#      exception into shipped-stories.json: a story step 3 backfilled whose
+#      TRUE shipping release (resolved there, from git) equals THIS run's
+#      own current release, not an earlier one -- that story really did
+#      just ship today and belongs in the announcement. This is the only
+#      channel through which anything from step 3's report ever reaches
+#      shipped-stories.json, and the decision was already made
+#      deterministically upstream; this step is a pure mechanical merge.
+#   5. build/ci/triage_explainer.py + a headless `claude -p` run (OPT-IN,
 #      off by default -- see "Explain Deploy Ready triage backlog" below)
 #      proposes a short, labeled HYPOTHESIS for why each story in step 3's
 #      triage bucket is stuck, and a suggested next action for a human. It
 #      sees ONLY the triage bucket (never shipped/pending, structurally —
 #      see triage_explainer.py's own docstring), never mutates Shortcut,
-#      and its output never reaches steps 5-6 either.
-#   5. The sefaria-release-notes skill (.claude/skills/sefaria-release-notes/)
-#      reads that JSON and writes prose only — it does not talk to GitHub or
-#      Shortcut.
-#   6. scripts/post_to_slack.py posts both generated files to Slack.
+#      and its output never reaches steps 6-7 either.
+#   6. The sefaria-release-notes skill (.claude/skills/sefaria-release-notes/)
+#      reads shipped-stories.json (now including step 4's merge, if any) and
+#      writes prose only — it does not talk to GitHub or Shortcut.
+#   7. scripts/post_to_slack.py posts both generated files to Slack.
 #
 # Manual setup this depends on: see build/ci/README-prod-release-notes.md
 
@@ -254,6 +262,37 @@ jobs:
           curl -s -X POST -H 'Content-type: application/json' \
             --data "{\"text\": \":warning: Prod release notes for version ${VERSION:-unknown}: ${FAILURES}Release notes generation is continuing. Check the workflow run and move the affected stories manually.\"}" \
             "$SLACK_WEBHOOK_URL" || true
+
+      - name: Merge current-release backfill into shipped-stories.json
+        id: merge_backfill
+        # Runs AFTER "Reconcile Deploy Ready backlog" writes its report,
+        # and BEFORE "Generate release notes" reads shipped-stories.json --
+        # order is load-bearing here. Folds in the ONE, already-decided
+        # exception to "the reconcile report never reaches the prose step":
+        # a story that sweep backfilled whose derived TRUE shipping release
+        # (git evidence, resolved in reconcile_deploy_ready.py itself) is
+        # THIS run's own current release, not an earlier one. See
+        # merge_release_backfill.py's own docstring for why trusting that
+        # upstream decision, rather than re-deciding anything here, is what
+        # keeps this a pure mechanical merge. Reads the reconcile report
+        # from $RUNNER_TEMP (never the checkout) and only ever WRITES
+        # shipped-stories.json -- the report itself is still never handed
+        # to, or made readable by, the prose step below.
+        #
+        # continue-on-error: a failure here means, at worst, one backfilled
+        # story misses today's announcement (an omission, not a leak) --
+        # never worth blocking release-notes generation and Slack posting
+        # for an otherwise healthy rollout, same posture as steps 2-3 above.
+        continue-on-error: true
+        run: |
+          REPORT_FILE="$RUNNER_TEMP/reconcile-deploy-ready-report.json"
+          if [[ ! -s "$REPORT_FILE" ]]; then
+            echo "No reconcile report found at $REPORT_FILE (the reconcile step may have failed or produced nothing) -- nothing to merge."
+            exit 0
+          fi
+          python3 build/ci/merge_release_backfill.py \
+            --shipped-stories-out shipped-stories.json \
+            --reconcile-report "$REPORT_FILE"
 
       - name: Resolve triage explainer opt-in
         id: triage_opt_in

@@ -30,9 +30,9 @@ tag. It classifies every story into exactly one of three buckets:
                 alone and reported for a human to look at -- this is the
                 part of the output that actually needs eyes on it.
 
-Four guards apply before a linked PR counts as evidence a story shipped --
-each one caught a real false positive while this script was being built
-against live data:
+Five guards apply before a linked PR counts as evidence a story shipped --
+each one caught a real false positive while this script was being built (or
+maintained) against live data:
 
   1. repository_id must be Sefaria-Project's (500000103). A story can link
      a PR from a DIFFERENT repo (e.g. a docs or infra repo); resolving that
@@ -45,9 +45,20 @@ against live data:
      (preprod -> prod, or master -> preprod) instead of, or alongside, the
      actual feature PR. A promotion PR merges constantly and proves nothing
      about whether THIS story's own change reached prod.
-  3. merged must be true. An open or closed-without-merging PR is not
+  3. The PR's own HEAD (source) branch must NOT be a long-lived environment
+     branch (master, preprod, prod). Verified live: a promotion PR merging
+     preprod INTO master passes guards 1-2 and 4 cleanly -- it's merged,
+     against the right repo, and its target really is "master" -- yet it's
+     still a promotion merge, not a feature PR. Guard 2 alone cannot catch
+     this shape (a promotion merge legitimately targets master); only the
+     HEAD branch gives it away. This is the exact live false positive that
+     was found and fixed: a story was classified `shipped` on the strength
+     of a promotion PR shaped exactly this way, while its genuine feature
+     PR (correctly) failed guard 2 for targeting a hotfix branch instead of
+     master directly.
+  4. merged must be true. An open or closed-without-merging PR is not
      evidence of anything having shipped.
-  4. workflow_id must be Sefaria's "Standard" workflow (500000005), and
+  5. workflow_id must be Sefaria's "Standard" workflow (500000005), and
      workflow_state_id must be exactly the numeric Deploy Ready state id
      (500000045) within it. The Shortcut state named "Deploy Ready" (note:
      the real name carries a trailing space, "Deploy Ready ") is
@@ -57,6 +68,11 @@ against live data:
      never be transitioned using Standard's state ids; it's routed to
      triage with its actual workflow/state ids reported instead, mirroring
      mark_stories_deployed.py's skipped_different_workflow handling.
+
+Guards 1-4 are PR-level and live in shortcut_pr_guards.py, shared with
+shipped_stories.py's RC1 fallback -- see that module's own docstring. Guard
+5 is story-level and specific to this sweep; it stays local, in
+classify_stories below.
 
 Enumeration uses the token'd search endpoint
 (`search/stories?query=state:"Deploy Ready" !is:archived`), paginated via
@@ -84,38 +100,38 @@ it low-risk. Nothing is ever transitioned without an explicit --apply.
 
 Emits a JSON report (--out) with all three buckets in full, plus a readable
 stdout summary. CRITICAL: this script never reads or writes
-shipped-stories.json and never feeds the release-notes prose step -- the
-stories it backfills shipped in EARLIER releases, and leaking them into
-today's release announcement would have Slack claim a dozen old features
-shipped today. Reconciliation transitions Shortcut state only; it has no
-opinion about what today's release notes should say.
+shipped-stories.json itself and never talks to the release-notes prose
+step directly -- the stories it backfills mostly shipped in EARLIER
+releases, and leaking them into today's release announcement would have
+Slack claim a dozen old features shipped today. This script only ever
+transitions Shortcut state; it never posts a comment or any other
+annotation ("just mark it as done" is the whole job here).
 
-Immediately after a story is ACTUALLY transitioned by this run, a short
-write-back comment is posted on it via `POST /stories/{id}/comments`
-(shortcut_comment.py, shared with mark_stories_deployed.py's own
-write-back) -- but the SAME "old features shipped today" mistake this
-script's whole shipped-stories.json separation exists to avoid can just as
-easily happen inside a single Shortcut comment, so the comment text is
-built differently here than in mark_stories_deployed.py. That script knows
-the current release's own version/chart/date directly (it's reading that
-release's own shipped-stories.json); this script does NOT -- a story it
-backfills shipped in some EARLIER release, and naming the CURRENT prod tag
-in its comment would tell a reader it shipped TODAY, which is false. So
-this script instead asks git for the TRUE release: `git tag --list
+One exception exists, and it is handled by a SEPARATE, later, explicitly
+filtered step -- never by this script writing to shipped-stories.json
+itself: a story this sweep backfills can, in the ordinary case, ALSO have
+shipped in the CURRENT release rather than an earlier one (the sweep exists
+because nothing else revisits Deploy Ready stories, including ones from
+THIS release that a race or a discovery gap missed). That case belongs in
+today's announcement -- silently excluding it would just be a different
+flavor of the same failure this whole separation defends against, this
+time by omission instead of leakage. So every shipped entry in this
+report also carries `shipping_release_tag`: the TRUE release that shipped
+it, resolved via `resolve_shipping_release_tag()` (`git tag --list
 'prod/*' --contains <merge-oid> --sort=creatordate | head -1` -- the
-first (earliest-created) prod/* tag that actually contains the winning
-PR's merge commit, i.e. the release that really carried it. If that can't
-be resolved for any reason (shallow checkout, tag history gap, ...), the
-comment degrades HONESTLY: it says only that the story was detected as
-already present in production as of the current prod tag, and names the
-PR -- it never guesses or implies a specific release.
-
-A comment is posted ONLY for a story this run actually transitioned --
-never for pending/triage, and never merely because a dry-run run
-classified it as shipped. A comment failure is logged and recorded in
-`comment_failed` but never fails the run or rolls back the transition.
-Posting is skipped entirely in dry-run (which instead reports what WOULD
-be posted) and with --no-comment.
+first, earliest-created, prod/* tag that actually contains the winning
+PR's merge commit). When `shipping_release_tag` equals the CURRENT
+`prod_tag`, the entry ALSO carries `hydrated_story` -- a story object in
+shipped_stories.py's own hydrated-story shape, built from data this sweep
+already fetched (no extra API call) -- so a separate, deterministic
+downstream script (`merge_release_backfill.py`) can fold exactly that
+story, and only that story, into shipped-stories.json before the prose
+step runs. Every other shipped entry, and the reconcile report as a
+whole, is never read by that step or any step after it. `resolve_
+shipping_release_tag()` returns None when it can't determine a release at
+all (shallow checkout, tag history gap, ...); that case is EXCLUDED from
+`hydrated_story` too -- fail closed, never guess a story into an
+announcement.
 
 Usage:
     python3 reconcile_deploy_ready.py [--dry-run]
@@ -153,13 +169,6 @@ import urllib.request
 # (python3 puts its own directory on sys.path[0]) and under pytest (the test
 # conftest adds build/ci to sys.path the same way).
 import shortcut_pr_guards
-
-# The story-comment POST mechanics are shared with mark_stories_deployed.py
-# -- see shortcut_comment.py's own docstring for why (and for why the
-# comment TEXT itself is deliberately NOT shared -- this script and
-# mark_stories_deployed.py know different things about which release
-# actually shipped a story).
-import shortcut_comment
 
 SHORTCUT_API_BASE = "https://api.app.shortcut.com/api/v3"
 SHORTCUT_API_ROOT = "https://api.app.shortcut.com"
@@ -315,21 +324,20 @@ def is_ancestor_of_prod(oid, prod_tag):
 
 def resolve_shipping_release_tag(oid):
     """The TRUE release that shipped commit `oid`: the first (earliest
-    created) `prod/*` tag that actually contains it. Used ONLY for the
-    write-back comment's text -- see the module docstring for why this
-    script cannot just name the current `--prod-tag` the way
-    mark_stories_deployed.py names its own release: a story backfilled by
-    this sweep almost never shipped in the CURRENT release, and a comment
-    claiming otherwise would be actively misleading, not just imprecise.
+    created) `prod/*` tag that actually contains it. Used to decide
+    whether a backfilled story belongs in TODAY's release notes -- see the
+    module docstring's `shipping_release_tag` / `hydrated_story`
+    paragraph and `classify_candidates` below.
 
     `--sort=creatordate` (ascending, oldest first) is deliberate and the
     OPPOSITE of resolve_default_prod_tag's `-creatordate` above -- that one
     wants the newest tag (today's release); this one wants the OLDEST tag
     that still contains the commit, i.e. the first release it ever
     reached. Returns None if the lookup fails outright (non-fatal --
-    logged and the caller degrades the comment text honestly) or if no
+    logged, and the caller must fail closed: never guess or default to
+    "belongs to the current release" when this is unresolvable) or if no
     prod/* tag contains it at all (e.g. a shallow checkout, or a genuine
-    gap in tag history) -- both cases must never be guessed past."""
+    gap in tag history)."""
     proc = subprocess.run(
         ["git", "tag", "--list", "prod/*", "--contains", oid, "--sort=creatordate"],
         capture_output=True,
@@ -340,46 +348,6 @@ def resolve_shipping_release_tag(oid):
         return None
     tags = [t for t in proc.stdout.splitlines() if t.strip()]
     return tags[0] if tags else None
-
-
-def _reconcile_comment_text(story_entry, oid_by_pr, prod_tag, repo):
-    """Write-back comment text for a story THIS SWEEP actually transitioned.
-    See resolve_shipping_release_tag and the module docstring for why this
-    resolves the TRUE shipping release from git rather than naming the
-    current --prod-tag: naming the current release for a backfilled story
-    would be exactly the "old features shipped today" mistake this whole
-    script's two-output separation (never touching shipped-stories.json)
-    exists to prevent -- just showing up in a Shortcut comment instead of a
-    Slack post."""
-    pr_numbers = story_entry.get("shipped_via_prs") or []
-    if pr_numbers:
-        pr_line = "PR(s): " + ", ".join(f"https://github.com/{repo}/pull/{n}" for n in pr_numbers)
-    else:
-        pr_line = "PR(s): unavailable."
-
-    shipping_tag = None
-    if pr_numbers:
-        oid = oid_by_pr.get(pr_numbers[0])
-        if oid:
-            shipping_tag = resolve_shipping_release_tag(oid)
-
-    if shipping_tag:
-        headline = (
-            f"Detected as shipped in {shipping_tag} — found while reconciling the Deploy "
-            "Ready backlog (not part of today's release)."
-        )
-    else:
-        headline = (
-            f"Detected as already present in production as of {prod_tag} — found while "
-            "reconciling the Deploy Ready backlog; the exact shipping release could not be "
-            "determined."
-        )
-
-    return (
-        "\U0001F916 Automated update — posted by the Deploy Ready reconciliation sweep; no reply expected.\n"
-        f"{headline}\n"
-        f"{pr_line}"
-    )
 
 
 def transition_story(story_id, done_state_id, token):
@@ -438,7 +406,7 @@ def _triage_context(story):
 
 
 def _diagnose_linked_pr(pr, repo_id, target_branch):
-    """Which of the three PR-level guards (see qualifying_prs /
+    """Which of the four PR-level guards (see qualifying_prs /
     shortcut_pr_guards.passes_pr_guards) this specific linked PR fails, if
     any. Diagnostic ONLY -- classification itself never reads this; it
     exists purely so a triage story's report entry can say WHY a linked PR
@@ -450,6 +418,8 @@ def _diagnose_linked_pr(pr, repo_id, target_branch):
         failed.append(f"wrong repo (repository_id={pr.get('repository_id')}, expected {repo_id})")
     if pr.get("target_branch_name") != target_branch:
         failed.append(f"wrong target branch ({pr.get('target_branch_name')!r}, expected {target_branch!r})")
+    if pr.get("branch_name") in shortcut_pr_guards.LONG_LIVED_ENV_BRANCHES:
+        failed.append(f"promotion PR (head branch {pr.get('branch_name')!r} is a long-lived environment branch)")
     return failed
 
 
@@ -509,13 +479,48 @@ def classify_stories(stories, repo_id, target_branch):
     return triage, candidates
 
 
+def _story_for_release_notes(story):
+    """Build a story entry in EXACTLY shipped_stories.py's own
+    hydrated-story shape (id, name, description, url, workflow_id,
+    workflow_state_id, story_type -- see that script's fetch_story)
+    directly from the story object this sweep already fetched via
+    search/stories -- its "detail=full" response already carries every one
+    of these fields, so no extra Shortcut API call is needed here. Used
+    ONLY for a shipped story whose `shipping_release_tag` equals the
+    CURRENT prod tag -- see classify_candidates and the module docstring."""
+    return {
+        "id": story.get("id"),
+        "name": story.get("name"),
+        "description": story.get("description"),
+        "url": story.get("app_url"),
+        "workflow_id": story.get("workflow_id"),
+        "workflow_state_id": story.get("workflow_state_id"),
+        "story_type": story.get("story_type"),
+    }
+
+
 def classify_candidates(candidates, oid_by_pr, prod_tag):
     """For each (story, qualifying_prs) candidate, check every qualifying
     PR's merge commit for prod ancestry and split into shipped / pending.
     A PR whose merge oid never resolved, or whose ancestry check itself
     couldn't run, counts as inconclusive -- never as "in prod" -- so a
     resolution failure can only ever push a story toward pending (leave it
-    alone), never wrongly toward shipped (a mutation)."""
+    alone), never wrongly toward shipped (a mutation).
+
+    Every shipped entry also carries `shipping_release_tag` -- the TRUE
+    release that shipped it (resolve_shipping_release_tag, from the first
+    confirmed-in-prod qualifying PR's merge commit) -- computed
+    unconditionally, independent of --apply/--dry-run: this is a fact
+    about git history, not about whether THIS run happens to mutate
+    Shortcut, so a dry-run report is exactly as trustworthy an input to
+    the downstream release-notes merge decision as a live one. ONLY when
+    `shipping_release_tag` equals the CURRENT `prod_tag` -- i.e. this
+    story provably shipped in TODAY's release, not an earlier one -- the
+    entry ALSO carries `hydrated_story` (see _story_for_release_notes).
+    That field's presence is the ONLY signal merge_release_backfill.py
+    uses to decide whether to fold a backfilled story into
+    shipped-stories.json; every other shipped entry (a different or
+    unresolvable release) carries no such field and is never merged."""
     shipped = []
     pending = []
     for story, prs in candidates:
@@ -530,7 +535,12 @@ def classify_candidates(candidates, oid_by_pr, prod_tag):
         entry = _story_summary(story)
         entry["qualifying_prs"] = sorted(pr["number"] for pr in prs)
         if shipped_via:
-            entry["shipped_via_prs"] = sorted(shipped_via)
+            shipped_via_sorted = sorted(shipped_via)
+            entry["shipped_via_prs"] = shipped_via_sorted
+            shipping_tag = resolve_shipping_release_tag(oid_by_pr[shipped_via_sorted[0]])
+            entry["shipping_release_tag"] = shipping_tag
+            if shipping_tag == prod_tag:
+                entry["hydrated_story"] = _story_for_release_notes(story)
             shipped.append(entry)
         else:
             pending.append(entry)
@@ -558,14 +568,19 @@ def print_summary(report):
             status = "transitioned"
         else:
             status = f"FAILED: {s.get('transition_error')}"
-        print(f"  {s['id']}  {s.get('name', '')!r}  via PR(s) {s.get('shipped_via_prs')}  [{status}]")
-        if s.get("would_comment"):
-            preview = "\n".join(f"      {line}" for line in s["would_comment"].splitlines())
-            print(f"    would post comment:\n{preview}")
-        elif s.get("comment_posted"):
-            print("    comment posted")
-        elif s.get("comment_error"):
-            print(f"    comment FAILED: {s['comment_error']}")
+        # belongs-to-current-release marker: hydrated_story's presence is
+        # the same signal merge_release_backfill.py acts on downstream --
+        # printed here too so a human reading this summary can see which
+        # shipped stories will (or won't) show up in today's announcement.
+        release_note = (
+            "belongs in THIS release's notes" if s.get("hydrated_story")
+            else f"shipped in {s.get('shipping_release_tag')}" if s.get("shipping_release_tag")
+            else "shipping release could not be determined"
+        )
+        print(
+            f"  {s['id']}  {s.get('name', '')!r}  via PR(s) {s.get('shipped_via_prs')}  "
+            f"[{status}]  ({release_note})"
+        )
 
     print(f"--- pending ({len(report['pending'])}) ---")
     for s in report["pending"]:
@@ -611,10 +626,6 @@ def build_arg_parser():
              f"default {DEFAULT_TARGET_BRANCH!r}",
     )
     parser.add_argument("--out", help="Write the machine-readable JSON report to this path")
-    parser.add_argument(
-        "--no-comment", action="store_true",
-        help="Transition stories but skip posting the write-back release comment.",
-    )
     parser.add_argument("--max-workers", type=int, default=8)
     return parser
 
@@ -652,8 +663,6 @@ def main():
     apply_mutations = args.apply and not args.dry_run
 
     failed_transitions = []
-    comment_posted = []
-    comment_failed = []
     if apply_mutations:
         transitioned_ids, failed_transitions = transition_stories(
             [s["id"] for s in shipped], DONE_STATE_ID, token, args.max_workers
@@ -664,33 +673,9 @@ def main():
             s["transitioned"] = s["id"] in transitioned_set
             if s["id"] in failed_by_id:
                 s["transition_error"] = failed_by_id[s["id"]]
-
-        # Comment ONLY on a story THIS RUN actually transitioned -- never a
-        # candidate whose PUT itself failed, and never pending/triage.
-        # Re-runs never re-post: a transitioned story leaves Deploy Ready,
-        # so it's simply absent from the NEXT run's search results -- no
-        # separate dedupe index is needed.
-        if not args.no_comment:
-            for s in shipped:
-                if not s["transitioned"]:
-                    continue
-                comment_text = _reconcile_comment_text(s, oid_by_pr, prod_tag, args.repo)
-                sid, ok, err = shortcut_comment.post_story_comment(s["id"], comment_text, token)
-                if ok:
-                    comment_posted.append(sid)
-                    s["comment_posted"] = True
-                else:
-                    warn(f"Failed to post release comment on story {sid}: {err}")
-                    comment_failed.append({"id": sid, "error": err})
-                    s["comment_error"] = err
     else:
         for s in shipped:
             s["transitioned"] = None  # not attempted -- dry-run
-            # Preview-only: never calls Shortcut, but DOES shell out to git
-            # (resolve_shipping_release_tag) -- read-only local introspection,
-            # not a live mutation, so it's safe to compute even in dry-run.
-            if not args.no_comment:
-                s["would_comment"] = _reconcile_comment_text(s, oid_by_pr, prod_tag, args.repo)
 
     report = {
         "prod_tag": prod_tag,
@@ -700,14 +685,10 @@ def main():
             "shipped": len(shipped),
             "pending": len(pending),
             "triage": len(triage),
-            "comment_posted": len(comment_posted),
-            "comment_failed": len(comment_failed),
         },
         "shipped": shipped,
         "pending": pending,
         "triage": triage,
-        "comment_posted": sorted(comment_posted),
-        "comment_failed": sorted(comment_failed, key=lambda d: (d["id"] is None, d["id"])),
     }
 
     print_summary(report)

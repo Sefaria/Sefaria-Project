@@ -18,14 +18,15 @@ just as readily as that story's actual feature PR does, while proving
 nothing about whether that story's own change shipped (verified live: PRs
 whose head branch was `preprod` or `master` each resolved to a real story
 this way). The single search result is also re-checked against the SAME
-three PR-level guards `reconcile_deploy_ready.py`'s org-wide sweep applies
-(merged / Sefaria-Project repo / target branch master; shared via
-shortcut_pr_guards.py so the two scripts cannot silently drift apart) before
-its id is adopted -- a match that fails those guards is a warn-and-skip, not
-a fallback of last resort. The id is adopted ONLY when the search resolves
-to EXACTLY one story AND that story's PR passes those guards; ids recovered
-this way are also surfaced separately in `stories_from_shortcut_pr_link` so
-a report can say what only Shortcut knew.
+four PR-level guards `reconcile_deploy_ready.py`'s org-wide sweep applies
+(merged / Sefaria-Project repo / target branch master / head branch not a
+long-lived environment branch; shared via shortcut_pr_guards.py so the two
+scripts cannot silently drift apart) before its id is adopted -- a match
+that fails those guards is a warn-and-skip, not a fallback of last resort.
+The id is adopted ONLY when the search resolves to EXACTLY one story AND
+that story's PR passes those guards; ids recovered this way are also
+surfaced separately in `stories_from_shortcut_pr_link` so a report can say
+what only Shortcut knew.
 Revert commits (`Revert "..."`, `Revert: ...`, `revert(...)`) never
 contribute story ids to the shipped set; their suppressed ids are surfaced
 separately in `reverted_commits` instead of being silently dropped.
@@ -88,7 +89,14 @@ import shortcut_pr_guards
 # `branch` value already resolved via fetch_pr_branch for story-id
 # extraction), not its target branch -- shortcut_pr_guards' target-branch
 # guard covers that side separately.
-LONG_LIVED_ENV_BRANCHES = frozenset({"master", "preprod", "prod"})
+#
+# Re-exported from shortcut_pr_guards (guard #4 there) rather than a second
+# local copy -- these two scripts already drifted apart once on whether a
+# head-branch guard existed at all (reconcile_deploy_ready.py had none until
+# a promotion PR slipped a story into "shipped" live); naming the same
+# frozenset object in both places is what actually prevents a second drift,
+# not just matching the values by hand.
+LONG_LIVED_ENV_BRANCHES = shortcut_pr_guards.LONG_LIVED_ENV_BRANCHES
 
 # Shortcut (SC) story id patterns recognized in a commit subject or a PR
 # branch name. Kept intentionally short: `\bsc[-_](\d+)\b` (pattern 1) has a
@@ -367,9 +375,10 @@ def fetch_story_by_pr_link(pr_number, token):
 
     Adopts the id ONLY when the search returns EXACTLY one story AND that
     story's OWN linked-PR entry for this exact PR number passes the same
-    three PR-level guards reconcile_deploy_ready.py's sweep applies (merged
-    / Sefaria-Project repo / target branch master -- see
-    shortcut_pr_guards.py). That second check matters because a bare
+    four PR-level guards reconcile_deploy_ready.py's sweep applies (merged
+    / Sefaria-Project repo / target branch master / head branch not a
+    long-lived environment branch -- see shortcut_pr_guards.py). That
+    second check matters because a bare
     `pr:<N>` match only proves Shortcut linked SOME story to this PR
     number -- not that this PR is real shipping evidence for it. A
     promotion PR (head branch `master`/`preprod`/`prod`) resolves via this
@@ -422,8 +431,8 @@ def fetch_story_by_pr_link(pr_number, token):
         warn(
             f"Shortcut PR-link lookup for PR #{pr_number} resolved to story {story_id}, but "
             "that PR does not pass the shipping-evidence guards (merged / Sefaria-Project "
-            "repo / target branch master) -- e.g. a promotion or branch-sync merge rather "
-            "than the real feature PR. Skipping."
+            "repo / target branch master / head branch not long-lived) -- e.g. a promotion "
+            "or branch-sync merge rather than the real feature PR. Skipping."
         )
         return pr_number, None
 

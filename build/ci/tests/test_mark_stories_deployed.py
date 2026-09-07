@@ -135,8 +135,6 @@ def test_dry_run_never_calls_urlopen(monkeypatch, tmp_path, capsys):
         "skipped_other_state": 1,
         "skipped_different_workflow": 1,
         "failed": 0,
-        "comment_posted": 0,
-        "comment_failed": 0,
     }
 
 
@@ -172,9 +170,6 @@ def test_missing_token_without_dry_run_exits_before_any_work(monkeypatch, tmp_pa
 # --- Live run (mocked urllib): transitions only the Deploy Ready bucket -
 
 def test_live_run_transitions_only_deploy_ready_stories(monkeypatch, tmp_path):
-    """--no-comment here to keep this test scoped to transition mechanics
-    only -- the write-back comment behavior has its own dedicated tests
-    below."""
     monkeypatch.setenv("SHORTCUT_API_TOKEN", "fake-token-for-tests")
 
     calls = []
@@ -201,7 +196,7 @@ def test_live_run_transitions_only_deploy_ready_stories(monkeypatch, tmp_path):
 
     monkeypatch.setattr(
         "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path), "--no-comment",
+        ["mark_stories_deployed.py", "--input", str(input_path),
          "--workflow-id", str(WORKFLOW_ID),
          "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
     )
@@ -240,7 +235,7 @@ def test_live_run_per_story_failure_does_not_abort_or_fail_process(monkeypatch, 
 
     monkeypatch.setattr(
         "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path), "--no-comment",
+        ["mark_stories_deployed.py", "--input", str(input_path),
          "--workflow-id", str(WORKFLOW_ID),
          "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
     )
@@ -479,209 +474,3 @@ def test_all_already_done_does_not_warn_or_exit_nonzero(monkeypatch, tmp_path, c
     err = capsys.readouterr().err
     assert "silent no-op" not in err
 
-
-# --- write-back release comment on a successful transition --------------
-# (POST /stories/{id}/comments -- shared shortcut_comment.post_story_comment)
-
-RELEASE_INPUT_WITH_COMMITS = {
-    "version": "6.111.0-prod.2",
-    "chart_version": "0.87.5-prod.1",
-    "release_date": "2026-08-31T07:17:36Z",
-    "commits": [
-        {"subject": "fix: a change (#3644)", "pr_number": "3644", "story_ids": ["11111"]},
-    ],
-    "stories": [STORY_DEPLOY_READY_1],
-}
-
-
-class _OKResponse:
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *exc):
-        return False
-
-    def read(self):
-        return b"{}"
-
-
-def test_comment_posted_on_successful_transition(monkeypatch, tmp_path):
-    """A story this run actually transitioned gets a write-back comment
-    naming THIS release's own version/chart/date and the PR that carried
-    it -- available directly from --input, no ambiguity to resolve (unlike
-    reconcile_deploy_ready.py's backfill sweep)."""
-    monkeypatch.setenv("SHORTCUT_API_TOKEN", "fake-token-for-tests")
-
-    calls = []
-
-    def _fake_urlopen(req, timeout=None):
-        calls.append((req.get_method(), req.full_url, req.data))
-        return _OKResponse()
-
-    monkeypatch.setattr(msd.urllib.request, "urlopen", _fake_urlopen)
-
-    input_path = tmp_path / "shipped-stories.json"
-    input_path.write_text(json.dumps(RELEASE_INPUT_WITH_COMMITS), encoding="utf-8")
-
-    monkeypatch.setattr(
-        "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path),
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
-    )
-    msd.main()
-
-    put_calls = [c for c in calls if c[0] == "PUT"]
-    post_calls = [c for c in calls if c[0] == "POST"]
-    assert put_calls == [("PUT", f"{msd.SHORTCUT_API_BASE}/stories/11111", put_calls[0][2])]
-    assert len(post_calls) == 1
-    _, url, body = post_calls[0]
-    assert url == f"{msd.SHORTCUT_API_BASE}/stories/11111/comments"
-    text = json.loads(body.decode("utf-8"))["text"]
-    assert "6.111.0-prod.2" in text
-    assert "0.87.5-prod.1" in text
-    assert "2026-08-31" in text
-    assert "https://github.com/Sefaria/Sefaria-Project/pull/3644" in text
-
-
-def test_comment_not_posted_on_failed_transition(monkeypatch, tmp_path):
-    """A story whose PUT itself failed must get NO comment -- the write-back
-    only follows an ACTUAL transition, never a mere candidate."""
-    monkeypatch.setenv("SHORTCUT_API_TOKEN", "fake-token-for-tests")
-
-    import urllib.error
-
-    def _fake_urlopen(req, timeout=None):
-        if req.get_method() == "PUT":
-            raise urllib.error.HTTPError(req.full_url, 500, "Internal Server Error", None, None)
-        raise AssertionError("no comment POST must be attempted for a story whose transition failed")
-
-    monkeypatch.setattr(msd.urllib.request, "urlopen", _fake_urlopen)
-
-    input_path = tmp_path / "shipped-stories.json"
-    input_path.write_text(json.dumps(RELEASE_INPUT_WITH_COMMITS), encoding="utf-8")
-
-    monkeypatch.setattr(
-        "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path),
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
-    )
-    msd.main()  # must not raise despite the AssertionError path being unreachable
-
-
-def test_comment_not_posted_in_dry_run(monkeypatch, tmp_path, capsys):
-    """--dry-run must post nothing -- but the report says what it WOULD
-    post, including the release identity and PR link."""
-    monkeypatch.delenv("SHORTCUT_API_TOKEN", raising=False)
-
-    def _boom(*args, **kwargs):
-        raise AssertionError("urlopen (transition or comment) must never be called in --dry-run")
-
-    monkeypatch.setattr(msd.urllib.request, "urlopen", _boom)
-
-    input_path = tmp_path / "shipped-stories.json"
-    input_path.write_text(json.dumps(RELEASE_INPUT_WITH_COMMITS), encoding="utf-8")
-
-    monkeypatch.setattr(
-        "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path), "--dry-run",
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
-    )
-    msd.main()
-
-    out = json.loads(capsys.readouterr().out)
-    assert out["counts"]["comment_posted"] == 0
-    assert out["counts"]["comment_failed"] == 0
-
-
-def test_dry_run_previews_the_comment_it_would_post(monkeypatch, tmp_path, capsys):
-    monkeypatch.delenv("SHORTCUT_API_TOKEN", raising=False)
-    monkeypatch.setattr(
-        msd.urllib.request, "urlopen",
-        lambda *a, **k: (_ for _ in ()).throw(AssertionError("urlopen must never be called in --dry-run")),
-    )
-
-    input_path = tmp_path / "shipped-stories.json"
-    input_path.write_text(json.dumps(RELEASE_INPUT_WITH_COMMITS), encoding="utf-8")
-
-    monkeypatch.setattr(
-        "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path), "--dry-run",
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
-    )
-    msd.main()
-
-    err = capsys.readouterr().err
-    assert "would post comment on story 11111" in err
-    assert "6.111.0-prod.2" in err
-    assert "https://github.com/Sefaria/Sefaria-Project/pull/3644" in err
-
-
-def test_comment_not_posted_with_no_comment_flag(monkeypatch, tmp_path):
-    monkeypatch.setenv("SHORTCUT_API_TOKEN", "fake-token-for-tests")
-
-    def _fake_urlopen(req, timeout=None):
-        if req.get_method() == "POST":
-            raise AssertionError("--no-comment must suppress the write-back comment entirely")
-        return _OKResponse()
-
-    monkeypatch.setattr(msd.urllib.request, "urlopen", _fake_urlopen)
-
-    input_path = tmp_path / "shipped-stories.json"
-    input_path.write_text(json.dumps(RELEASE_INPUT_WITH_COMMITS), encoding="utf-8")
-
-    monkeypatch.setattr(
-        "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path), "--no-comment",
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
-    )
-    msd.main()  # must not raise -- proves no POST was attempted
-
-
-def test_comment_api_failure_does_not_fail_the_run_and_is_reported(monkeypatch, tmp_path, capsys):
-    """A failed comment POST must never fail the run or roll back the
-    transition -- it's reported (warned + counted) and nothing else."""
-    monkeypatch.setenv("SHORTCUT_API_TOKEN", "fake-token-for-tests")
-
-    import urllib.error
-
-    def _fake_urlopen(req, timeout=None):
-        if req.get_method() == "PUT":
-            return _OKResponse()
-        raise urllib.error.HTTPError(req.full_url, 503, "Service Unavailable", None, None)
-
-    monkeypatch.setattr(msd.urllib.request, "urlopen", _fake_urlopen)
-
-    input_path = tmp_path / "shipped-stories.json"
-    input_path.write_text(json.dumps(RELEASE_INPUT_WITH_COMMITS), encoding="utf-8")
-
-    monkeypatch.setattr(
-        "sys.argv",
-        ["mark_stories_deployed.py", "--input", str(input_path),
-         "--workflow-id", str(WORKFLOW_ID),
-         "--from-state-id", str(FROM_STATE), "--done-state-id", str(DONE_STATE)],
-    )
-    # Must return normally -- a comment failure is never fatal.
-    msd.main()
-
-    captured = capsys.readouterr()
-    out = json.loads(captured.out)
-    assert out["counts"]["transitioned"] == 1
-    assert out["counts"]["comment_failed"] == 1
-    assert out["comment_failed"] == [{"id": 11111, "error": "HTTP 503 Service Unavailable"}]
-    assert "Failed to post release comment on story 11111" in captured.err
-
-
-def test_release_comment_text_falls_back_when_no_pr_reference_available():
-    """A story whose carrying commit has no PR number (or whose release's
-    commits list doesn't mention it at all) must still get a comment --
-    just without a PR link, not a crash."""
-    data = {"version": "6.111.0-prod.2", "chart_version": "0.87.5-prod.1",
-            "release_date": "2026-08-31T07:17:36Z", "commits": []}
-    text = msd._release_comment_text({"id": 11111}, data, "Sefaria/Sefaria-Project")
-    assert "not available" in text
-    assert "6.111.0-prod.2" in text

@@ -6,13 +6,21 @@ Both `shipped_stories.py` (RC1's PR<->story link fallback) and
 `reconcile_deploy_ready.py` (RC2's org-wide Deploy Ready sweep) need to
 answer the exact same question about a PR that Shortcut says is linked to a
 story: does this PR actually prove that story's change reached prod? A
-linked PR is NOT automatically that evidence -- three guards apply, and
-both scripts must apply the SAME three guards or they will silently drift
-apart (verified live: a promotion PR, e.g. head branch `preprod` merging
-into `master`, or `master` merging into `preprod`, resolves via
+linked PR is NOT automatically that evidence -- FOUR guards apply, and
+both scripts must apply the SAME four guards or they will silently drift
+apart. They already have, twice, in opposite directions: RC1's PR-link
+fallback initially had no guards at all (a promotion PR resolved via
 `search/stories?query=pr:<N>` to a real story just as readily as that
-story's actual feature PR does -- but proves nothing about whether that
-story's own change shipped).
+story's actual feature PR); then, after guards 1-3 were added here, a
+promotion PR merging INTO master (rather than out of it) turned out to
+still pass all three -- verified live: a real story was classified
+`shipped` on the strength of a PR whose head branch was `preprod` and
+target branch was `master`, a promotion merge, while its genuine feature
+PR (head a hotfix/bugfix branch, target a hotfix branch) was correctly
+rejected by guard 3 for not targeting `master` directly. Guard 3 alone
+cannot catch this shape: a promotion merge legitimately targets `master`,
+so the target-branch check has nothing to object to. The giveaway is the
+SOURCE (head) branch, not the target -- hence guard 4.
 
   1. `merged` must be true. An open or closed-without-merging PR is not
      evidence anything shipped.
@@ -24,6 +32,13 @@ story's own change shipped).
      prod, or master -> preprod) merges constantly and proves nothing
      about whether a given story's own change reached prod -- it must
      never be treated as interchangeable with the real feature PR.
+  4. `branch_name` (the PR's HEAD/source branch) must NOT be a long-lived
+     environment branch (master, preprod, prod). A promotion PR that
+     merges ONE of those branches INTO master (e.g. preprod -> master, the
+     opposite direction from guard 3's preprod/prod targets) passes guards
+     1-3 cleanly -- it's merged, against the right repo, and its target
+     really is "master". Only the head branch reveals it's a promotion
+     merge, not a feature PR.
 
 This module holds the shared implementation so there is exactly one place
 these guards live; single-source-of-truth, not two parallel copies that a
@@ -43,17 +58,27 @@ SEFARIA_PROJECT_REPO_ID = 500000103
 
 DEFAULT_TARGET_BRANCH = "master"
 
+# Guard #4. Shared with shipped_stories.py's own pre-filter (it also skips
+# the RC1 fallback lookup entirely for a commit whose PR head branch is one
+# of these -- see that script's LONG_LIVED_ENV_BRANCHES, which now imports
+# this same set rather than keeping a second copy) -- the two must name the
+# exact same branches or they can drift apart on what counts as "long-lived"
+# the same way they already drifted on whether this guard existed at all.
+LONG_LIVED_ENV_BRANCHES = frozenset({"master", "preprod", "prod"})
+
 
 def passes_pr_guards(pr, repo_id=SEFARIA_PROJECT_REPO_ID, target_branch=DEFAULT_TARGET_BRANCH):
     """True if a single linked-PR object (a Shortcut `pull-request` entity,
     as found in a story's `pull_requests` or `branches[*].pull_requests`)
     counts as evidence that a story's change reached prod: merged, against
-    the right repo, targeting the right branch. See the module docstring
-    for why each of the three checks exists."""
+    the right repo, targeting the right branch, and NOT itself a promotion
+    merge (head branch not long-lived). See the module docstring for why
+    each of the four checks exists."""
     return (
         pr.get("merged") is True
         and pr.get("repository_id") == repo_id
         and pr.get("target_branch_name") == target_branch
+        and pr.get("branch_name") not in LONG_LIVED_ENV_BRANCHES
     )
 
 
