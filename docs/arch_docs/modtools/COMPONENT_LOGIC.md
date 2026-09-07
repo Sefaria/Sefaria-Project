@@ -280,7 +280,9 @@ cohort is split and the user can search for the new title to see which texts wer
 1. **Updates Index records** (text metadata) not Version records (translations)
 2. **Auto-detection** for commentary fields using "X on Y" title pattern
 3. **Author validation** against AuthorTopic database
-4. **Term creation** for collective titles
+4. **Term validation** for collective titles — a `collective_title` is only written if a
+   matching Term already exists; otherwise the field is dropped for that index and a warning
+   is reported. The tool never creates Terms.
 5. **Sequential API calls** (one per index) instead of single bulk call
 
 ### Commentary Auto-Detection Logic
