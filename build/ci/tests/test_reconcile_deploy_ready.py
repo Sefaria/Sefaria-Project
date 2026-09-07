@@ -356,10 +356,17 @@ def test_fetch_pr_merge_oid_failed_gh_call_returns_none(monkeypatch, capsys):
 # --- End-to-end main(): dry-run is the default and mutates nothing -------
 
 def _make_main_env(monkeypatch, tmp_path, stories, prod_tag="prod/1.0", oid_by_pr=None,
-                    ancestor_result=True, argv_extra=None):
+                    ancestor_result=True, argv_extra=None, shipping_tag=None,
+                    mock_post_comment=True):
     """Wire main() end-to-end with every I/O boundary mocked: Shortcut
-    search, gh merge-commit lookup, and git ancestry -- mirroring
-    _run_main_with_commits in test_shipped_stories.py."""
+    search, gh merge-commit lookup, git ancestry, the git-based
+    shipping-release lookup, and (by default) the comment POST itself --
+    mirroring _run_main_with_commits in test_shipped_stories.py.
+    resolve_shipping_release_tag defaults to a plain lambda returning
+    `shipping_tag` (None unless overridden) rather than shelling out to
+    real git, so tests that don't care about that specific behavior stay
+    hermetic; the dedicated tests for it below monkeypatch it themselves
+    when they need to exercise its own git-shelling logic."""
     monkeypatch.setenv("SHORTCUT_API_TOKEN", "fake-token-for-tests")
     monkeypatch.setattr(rdr, "search_deploy_ready_stories", lambda token: stories)
     monkeypatch.setattr(rdr, "resolve_default_prod_tag", lambda: prod_tag)
@@ -369,6 +376,12 @@ def _make_main_env(monkeypatch, tmp_path, stories, prod_tag="prod/1.0", oid_by_p
         lambda pr_numbers, repo, max_workers=8: {n: oid_map[n] for n in pr_numbers if n in oid_map},
     )
     monkeypatch.setattr(rdr, "is_ancestor_of_prod", lambda oid, tag: ancestor_result)
+    monkeypatch.setattr(rdr, "resolve_shipping_release_tag", lambda oid: shipping_tag)
+    if mock_post_comment:
+        monkeypatch.setattr(
+            rdr.shortcut_comment, "post_story_comment",
+            lambda story_id, text, token: (story_id, True, None),
+        )
 
     argv = ["reconcile_deploy_ready.py"] + (argv_extra or [])
     monkeypatch.setattr("sys.argv", argv)
@@ -390,10 +403,13 @@ def test_main_dry_run_is_the_default_and_never_calls_transition(monkeypatch, tmp
 
 
 def test_main_apply_transitions_shipped_stories(monkeypatch, tmp_path, capsys):
+    """--no-comment here to keep this test scoped to transition mechanics
+    only -- the write-back comment behavior has its own dedicated tests
+    below."""
     story = _story(11111, pull_requests=[_pr(3606)])
     _make_main_env(
         monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
-        argv_extra=["--apply"],
+        argv_extra=["--apply", "--no-comment"],
     )
 
     calls = []
@@ -437,7 +453,10 @@ def test_main_writes_out_json_report(monkeypatch, tmp_path):
     rdr.main()
 
     report = json.loads(out_path.read_text(encoding="utf-8"))
-    assert report["counts"] == {"total": 2, "shipped": 1, "pending": 0, "triage": 1}
+    assert report["counts"] == {
+        "total": 2, "shipped": 1, "pending": 0, "triage": 1,
+        "comment_posted": 0, "comment_failed": 0,
+    }
     assert report["applied"] is False
     assert [s["id"] for s in report["shipped"]] == [11111]
     assert [s["id"] for s in report["triage"]] == [22222]
@@ -452,7 +471,10 @@ def test_main_pending_bucket_when_qualifying_pr_not_yet_in_prod(monkeypatch, tmp
     )
     rdr.main()
     report = json.loads(out_path.read_text(encoding="utf-8"))
-    assert report["counts"] == {"total": 1, "shipped": 0, "pending": 1, "triage": 0}
+    assert report["counts"] == {
+        "total": 1, "shipped": 0, "pending": 1, "triage": 0,
+        "comment_posted": 0, "comment_failed": 0,
+    }
     assert report["pending"][0]["id"] == 11111
 
 
@@ -522,3 +544,225 @@ def test_resolve_default_prod_tag_dies_with_no_tags(monkeypatch):
     monkeypatch.setattr(rdr, "run_git", lambda args: "")
     with pytest.raises(SystemExit):
         rdr.resolve_default_prod_tag()
+
+
+# --- resolve_shipping_release_tag: the TRUE (earliest) release, not the --
+# --- current --prod-tag -- see the module docstring for why this matters --
+
+def test_resolve_shipping_release_tag_picks_earliest_containing_tag(monkeypatch):
+    """--sort=creatordate (ascending) here is the OPPOSITE of
+    resolve_default_prod_tag's -creatordate -- this wants the FIRST release
+    that ever contained the commit, not the newest tag overall."""
+    class _Proc:
+        returncode = 0
+        stdout = "prod/6.100.0-prod.1+chart.0.85.8-prod.1\nprod/6.111.0-prod.2+chart.0.87.5-prod.1\n"
+        stderr = ""
+
+    captured_args = {}
+
+    def _fake_run(args, **kwargs):
+        captured_args["args"] = args
+        return _Proc()
+
+    monkeypatch.setattr(rdr.subprocess, "run", _fake_run)
+    tag = rdr.resolve_shipping_release_tag("abc123")
+    assert tag == "prod/6.100.0-prod.1+chart.0.85.8-prod.1"
+    assert "--contains" in captured_args["args"]
+    assert "abc123" in captured_args["args"]
+    assert "--sort=creatordate" in captured_args["args"]  # ascending, not -creatordate
+
+
+def test_resolve_shipping_release_tag_returns_none_when_no_tag_contains_it(monkeypatch):
+    class _Proc:
+        returncode = 0
+        stdout = ""
+        stderr = ""
+
+    monkeypatch.setattr(rdr.subprocess, "run", lambda *a, **k: _Proc())
+    assert rdr.resolve_shipping_release_tag("abc123") is None
+
+
+def test_resolve_shipping_release_tag_returns_none_and_warns_on_git_failure(monkeypatch, capsys):
+    class _Proc:
+        returncode = 128
+        stdout = ""
+        stderr = "fatal: malformed object name abc123"
+
+    monkeypatch.setattr(rdr.subprocess, "run", lambda *a, **k: _Proc())
+    assert rdr.resolve_shipping_release_tag("abc123") is None
+    assert "WARNING" in capsys.readouterr().err
+
+
+# --- write-back release comment: posted / not posted / dry-run preview ---
+# --- / --no-comment / API failure / honest degrade (regression coverage --
+# --- for the promotion-PR-style "old features shipped today" mistake, --
+# --- just in a Shortcut comment instead of a Slack post) -----------------
+
+def test_main_posts_comment_after_a_real_transition(monkeypatch, tmp_path):
+    story = _story(11111, pull_requests=[_pr(3606)])
+    calls = []
+
+    _make_main_env(
+        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        argv_extra=["--apply"], shipping_tag="prod/6.100.0-prod.1+chart.0.85.8-prod.1",
+        mock_post_comment=False,
+    )
+    monkeypatch.setattr(rdr, "transition_story", lambda sid, done, token: (sid, True, None))
+    monkeypatch.setattr(
+        rdr.shortcut_comment, "post_story_comment",
+        lambda story_id, text, token: (calls.append((story_id, text)), story_id, True, None)[1:],
+    )
+
+    rdr.main()
+
+    assert len(calls) == 1
+    posted_id, text = calls[0]
+    assert posted_id == 11111
+    assert "prod/6.100.0-prod.1+chart.0.85.8-prod.1" in text
+    assert "not part of today's release" in text
+    assert "https://github.com/Sefaria/Sefaria-Project/pull/3606" in text
+    # Must NOT name the CURRENT prod tag as if the story shipped in it.
+    assert "prod/1.0" not in text
+
+
+def test_main_does_not_post_comment_when_transition_fails(monkeypatch, tmp_path):
+    story = _story(11111, pull_requests=[_pr(3606)])
+
+    def _boom_post(*args, **kwargs):
+        raise AssertionError("no comment must be posted for a story whose transition failed")
+
+    _make_main_env(
+        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        argv_extra=["--apply"], mock_post_comment=False,
+    )
+    monkeypatch.setattr(rdr, "transition_story", lambda sid, done, token: (sid, False, "HTTP 500 Internal Server Error"))
+    monkeypatch.setattr(rdr.shortcut_comment, "post_story_comment", _boom_post)
+
+    with pytest.raises(SystemExit):
+        rdr.main()  # transition failure still exits non-zero
+
+
+def test_main_does_not_post_comment_in_dry_run(monkeypatch, tmp_path):
+    story = _story(11111, pull_requests=[_pr(3606)])
+
+    def _boom_post(*args, **kwargs):
+        raise AssertionError("no comment must be posted in dry-run")
+
+    _make_main_env(
+        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        mock_post_comment=False,  # dry-run (no --apply): must never even try to POST
+    )
+    monkeypatch.setattr(rdr.shortcut_comment, "post_story_comment", _boom_post)
+    rdr.main()  # must not raise -- proves no POST was attempted
+
+
+def test_main_dry_run_report_previews_the_comment_it_would_post(monkeypatch, tmp_path):
+    story = _story(11111, pull_requests=[_pr(3606)])
+    out_path = tmp_path / "report.json"
+    _make_main_env(
+        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        shipping_tag="prod/6.100.0-prod.1+chart.0.85.8-prod.1",
+        argv_extra=["--out", str(out_path)],
+    )
+    rdr.main()
+
+    report = json.loads(out_path.read_text(encoding="utf-8"))
+    assert report["counts"]["comment_posted"] == 0
+    would_comment = report["shipped"][0]["would_comment"]
+    assert "prod/6.100.0-prod.1+chart.0.85.8-prod.1" in would_comment
+
+
+def test_main_no_comment_flag_suppresses_posting(monkeypatch, tmp_path):
+    story = _story(11111, pull_requests=[_pr(3606)])
+
+    def _boom_post(*args, **kwargs):
+        raise AssertionError("--no-comment must suppress the write-back comment entirely")
+
+    _make_main_env(
+        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        argv_extra=["--apply", "--no-comment"], mock_post_comment=False,
+    )
+    monkeypatch.setattr(rdr, "transition_story", lambda sid, done, token: (sid, True, None))
+    monkeypatch.setattr(rdr.shortcut_comment, "post_story_comment", _boom_post)
+
+    rdr.main()  # must not raise -- proves no POST was attempted
+
+
+def test_main_no_comment_flag_suppresses_dry_run_preview_too(monkeypatch, tmp_path):
+    story = _story(11111, pull_requests=[_pr(3606)])
+    out_path = tmp_path / "report.json"
+    _make_main_env(
+        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        argv_extra=["--no-comment", "--out", str(out_path)],
+    )
+    rdr.main()
+    report = json.loads(out_path.read_text(encoding="utf-8"))
+    assert "would_comment" not in report["shipped"][0]
+
+
+def test_main_comment_api_failure_does_not_fail_the_run_and_is_reported(monkeypatch, tmp_path, capsys):
+    """A failed comment POST must never fail the run or roll back the
+    transition -- it's reported (warned + counted) and nothing else."""
+    story = _story(11111, pull_requests=[_pr(3606)])
+    out_path = tmp_path / "report.json"
+
+    _make_main_env(
+        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        argv_extra=["--apply", "--out", str(out_path)], mock_post_comment=False,
+    )
+    monkeypatch.setattr(rdr, "transition_story", lambda sid, done, token: (sid, True, None))
+    monkeypatch.setattr(
+        rdr.shortcut_comment, "post_story_comment",
+        lambda story_id, text, token: (story_id, False, "HTTP 503 Service Unavailable"),
+    )
+
+    rdr.main()  # must return normally -- a comment failure is never fatal
+
+    report = json.loads(out_path.read_text(encoding="utf-8"))
+    assert report["counts"]["shipped"] == 1
+    assert report["counts"]["comment_failed"] == 1
+    assert report["comment_failed"] == [{"id": 11111, "error": "HTTP 503 Service Unavailable"}]
+    assert "Failed to post release comment on story 11111" in capsys.readouterr().err
+
+
+def test_main_comment_names_the_contains_derived_release_not_the_current_one(monkeypatch, tmp_path):
+    """Regression coverage for the exact mistake this feature exists to
+    avoid: a story backfilled by this sweep shipped in an EARLIER release,
+    and the comment must name THAT release (resolved via
+    resolve_shipping_release_tag's `--contains` lookup), never the current
+    --prod-tag / today's release."""
+    story = _story(11111, pull_requests=[_pr(3606)])
+    out_path = tmp_path / "report.json"
+    _make_main_env(
+        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        prod_tag="prod/9.9.9-prod.1+chart.9.9.9-prod.1",  # "today's" release
+        shipping_tag="prod/6.100.0-prod.1+chart.0.85.8-prod.1",  # the TRUE, earlier release
+        argv_extra=["--out", str(out_path)],
+    )
+    rdr.main()
+    report = json.loads(out_path.read_text(encoding="utf-8"))
+    would_comment = report["shipped"][0]["would_comment"]
+    assert "prod/6.100.0-prod.1+chart.0.85.8-prod.1" in would_comment
+    assert "prod/9.9.9-prod.1+chart.9.9.9-prod.1" not in would_comment
+
+
+def test_main_comment_degrades_honestly_when_release_tag_lookup_fails(monkeypatch, tmp_path):
+    """When resolve_shipping_release_tag can't determine the true release
+    (returns None -- e.g. a shallow checkout or a genuine history gap), the
+    comment must degrade to naming the current prod tag as "present as of"
+    language and the PR -- it must NEVER guess or imply a specific
+    release."""
+    story = _story(11111, pull_requests=[_pr(3606)])
+    out_path = tmp_path / "report.json"
+    _make_main_env(
+        monkeypatch, tmp_path, [story], oid_by_pr={3606: "abc"}, ancestor_result=True,
+        prod_tag="prod/9.9.9-prod.1+chart.9.9.9-prod.1",
+        shipping_tag=None,  # lookup failed / inconclusive
+        argv_extra=["--out", str(out_path)],
+    )
+    rdr.main()
+    report = json.loads(out_path.read_text(encoding="utf-8"))
+    would_comment = report["shipped"][0]["would_comment"]
+    assert "present in production as of prod/9.9.9-prod.1+chart.9.9.9-prod.1" in would_comment
+    assert "could not be determined" in would_comment
+    assert "https://github.com/Sefaria/Sefaria-Project/pull/3606" in would_comment

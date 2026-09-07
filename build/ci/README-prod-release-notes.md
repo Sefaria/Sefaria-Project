@@ -17,18 +17,24 @@ Argo post-promotion analysis (prod)
                                       link, hydrates story details
   -> build/ci/mark_stories_deployed.py — moves each shipped story
                                       Deploy Ready -> Done via the
-                                      Shortcut API. A failure here (missing
-                                      token, API error, nothing to move) is
-                                      logged and Slack-alerted but never
-                                      blocks the steps below.
+                                      Shortcut API, then posts a write-back
+                                      comment naming this release. A
+                                      failure here (missing token, API
+                                      error, nothing to move) is logged and
+                                      Slack-alerted but never blocks the
+                                      steps below.
   -> build/ci/reconcile_deploy_ready.py — separately, sweeps EVERY
                                       non-archived Deploy Ready story
                                       org-wide (not just this release's
                                       commit range) and transitions any
-                                      whose linked PR already reached prod
-                                      — see "Reconciliation sweep" below.
-                                      Its output NEVER reaches the two
-                                      steps that follow.
+                                      whose linked PR already reached prod,
+                                      then posts its own write-back comment
+                                      naming the release that ACTUALLY
+                                      shipped it (never this one) — see
+                                      "Reconciliation sweep" and "Write-back
+                                      release comment" below. Its output
+                                      NEVER reaches the two steps that
+                                      follow.
   -> sefaria-release-notes skill   — reads shipped-stories.json, writes
                                       prose only
   -> scripts/post_to_slack.py      — posts both files to Slack
@@ -193,6 +199,73 @@ writes. Keeping the report outside the checkout entirely is what actually
 enforces the separation. A failure here is warned/Slack-alerted the same way a
 `mark_stories_deployed.py` failure is, and never blocks release-notes
 generation or posting.
+
+## Write-back release comment
+
+Until this feature, the pipeline only ever WROTE a story's workflow state
+(the `PUT` that moves it Deploy Ready -> Done) — nothing recorded WHICH
+release actually carried a story, so a person reading it in Shortcut could
+see it became Done but had no way to tell what shipped it without going and
+digging through CI logs or git. Both `mark_stories_deployed.py` and
+`reconcile_deploy_ready.py` now post a short, factual comment
+(`POST /stories/{id}/comments`) immediately after a story is ACTUALLY
+transitioned by that run — never for already-Done/skipped stories, and
+never merely because a dry-run run classified something as a candidate.
+
+The POST mechanics (`build/ci/shortcut_comment.py`) are shared between the
+two scripts for the same drift-prevention reason `shortcut_pr_guards.py`
+is shared for the PR-level guards — one implementation, not two copies that
+could quietly diverge. The comment TEXT is deliberately **not** shared,
+because the two scripts know different things about which release actually
+shipped a story:
+
+- **`mark_stories_deployed.py`** is reading THIS release's own
+  shipped-stories.json, so it already has `version`, `chart_version` and
+  `release_date` for exactly the release a story just shipped in — the
+  comment states that directly, plus the PR(s) that carried it (resolved
+  from the JSON's own `commits` list).
+- **`reconcile_deploy_ready.py`** does NOT know that — a story it backfills
+  shipped in some EARLIER release, and if its comment named the CURRENT
+  prod tag, a reader would reasonably conclude that story shipped in
+  TODAY's release. That is exactly the "old features shipped today" error
+  class the `shipped-stories.json` / reconcile-report separation already
+  documented above exists to prevent — just showing up in a Shortcut
+  comment instead of a Slack post. So it instead asks git for the TRUE
+  release:
+
+  ```
+  git tag --list 'prod/*' --contains <merge-oid> --sort=creatordate | head -1
+  ```
+
+  the first (earliest-created) `prod/*` tag that actually contains the
+  winning PR's merge commit — the release that really carried it. Note the
+  ascending `--sort=creatordate` here, the OPPOSITE of
+  `resolve_default_prod_tag`'s `-creatordate`: that one wants the newest
+  tag (today's release); this one wants the OLDEST tag that still contains
+  the commit, i.e. the first release it ever reached. If that lookup can't
+  be resolved for any reason (shallow checkout, a genuine gap in tag
+  history, ...), the comment degrades HONESTLY — it says only that the
+  story was detected as already present in production as of the current
+  prod tag, and names the PR. It never guesses or implies a specific
+  release.
+
+Safety properties, both scripts:
+
+- Posted ONLY after a transition actually succeeds; a failed transition
+  posts nothing.
+- Never posted in `--dry-run` (or reconcile's default no-`--apply` mode) —
+  the report instead shows what WOULD be posted (`would_comment` in the
+  JSON, a preview line in the stdout summary).
+- A comment failure is logged (`WARNING` to stderr) and recorded
+  (`comment_failed` in the JSON summary/report) but never fails the run or
+  rolls back the already-successful transition — the state change is the
+  valuable, already-durable part; the comment is a best-effort annotation
+  on top of it.
+- `--no-comment` on both scripts opts out of the annotation entirely while
+  still transitioning.
+- No separate dedupe index: a transitioned story leaves Deploy Ready, so a
+  re-run's search/classify simply never sees it again — idempotency falls
+  out of the state machine for free.
 
 ## What's already wired up in this repo
 

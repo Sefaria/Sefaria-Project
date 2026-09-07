@@ -90,6 +90,33 @@ today's release announcement would have Slack claim a dozen old features
 shipped today. Reconciliation transitions Shortcut state only; it has no
 opinion about what today's release notes should say.
 
+Immediately after a story is ACTUALLY transitioned by this run, a short
+write-back comment is posted on it via `POST /stories/{id}/comments`
+(shortcut_comment.py, shared with mark_stories_deployed.py's own
+write-back) -- but the SAME "old features shipped today" mistake this
+script's whole shipped-stories.json separation exists to avoid can just as
+easily happen inside a single Shortcut comment, so the comment text is
+built differently here than in mark_stories_deployed.py. That script knows
+the current release's own version/chart/date directly (it's reading that
+release's own shipped-stories.json); this script does NOT -- a story it
+backfills shipped in some EARLIER release, and naming the CURRENT prod tag
+in its comment would tell a reader it shipped TODAY, which is false. So
+this script instead asks git for the TRUE release: `git tag --list
+'prod/*' --contains <merge-oid> --sort=creatordate | head -1` -- the
+first (earliest-created) prod/* tag that actually contains the winning
+PR's merge commit, i.e. the release that really carried it. If that can't
+be resolved for any reason (shallow checkout, tag history gap, ...), the
+comment degrades HONESTLY: it says only that the story was detected as
+already present in production as of the current prod tag, and names the
+PR -- it never guesses or implies a specific release.
+
+A comment is posted ONLY for a story this run actually transitioned --
+never for pending/triage, and never merely because a dry-run run
+classified it as shipped. A comment failure is logged and recorded in
+`comment_failed` but never fails the run or rolls back the transition.
+Posting is skipped entirely in dry-run (which instead reports what WOULD
+be posted) and with --no-comment.
+
 Usage:
     python3 reconcile_deploy_ready.py [--dry-run]
     python3 reconcile_deploy_ready.py --apply
@@ -126,6 +153,13 @@ import urllib.request
 # (python3 puts its own directory on sys.path[0]) and under pytest (the test
 # conftest adds build/ci to sys.path the same way).
 import shortcut_pr_guards
+
+# The story-comment POST mechanics are shared with mark_stories_deployed.py
+# -- see shortcut_comment.py's own docstring for why (and for why the
+# comment TEXT itself is deliberately NOT shared -- this script and
+# mark_stories_deployed.py know different things about which release
+# actually shipped a story).
+import shortcut_comment
 
 SHORTCUT_API_BASE = "https://api.app.shortcut.com/api/v3"
 SHORTCUT_API_ROOT = "https://api.app.shortcut.com"
@@ -279,6 +313,75 @@ def is_ancestor_of_prod(oid, prod_tag):
     return None
 
 
+def resolve_shipping_release_tag(oid):
+    """The TRUE release that shipped commit `oid`: the first (earliest
+    created) `prod/*` tag that actually contains it. Used ONLY for the
+    write-back comment's text -- see the module docstring for why this
+    script cannot just name the current `--prod-tag` the way
+    mark_stories_deployed.py names its own release: a story backfilled by
+    this sweep almost never shipped in the CURRENT release, and a comment
+    claiming otherwise would be actively misleading, not just imprecise.
+
+    `--sort=creatordate` (ascending, oldest first) is deliberate and the
+    OPPOSITE of resolve_default_prod_tag's `-creatordate` above -- that one
+    wants the newest tag (today's release); this one wants the OLDEST tag
+    that still contains the commit, i.e. the first release it ever
+    reached. Returns None if the lookup fails outright (non-fatal --
+    logged and the caller degrades the comment text honestly) or if no
+    prod/* tag contains it at all (e.g. a shallow checkout, or a genuine
+    gap in tag history) -- both cases must never be guessed past."""
+    proc = subprocess.run(
+        ["git", "tag", "--list", "prod/*", "--contains", oid, "--sort=creatordate"],
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        warn(f"git tag --list --contains {oid} failed: {proc.stderr.strip()}")
+        return None
+    tags = [t for t in proc.stdout.splitlines() if t.strip()]
+    return tags[0] if tags else None
+
+
+def _reconcile_comment_text(story_entry, oid_by_pr, prod_tag, repo):
+    """Write-back comment text for a story THIS SWEEP actually transitioned.
+    See resolve_shipping_release_tag and the module docstring for why this
+    resolves the TRUE shipping release from git rather than naming the
+    current --prod-tag: naming the current release for a backfilled story
+    would be exactly the "old features shipped today" mistake this whole
+    script's two-output separation (never touching shipped-stories.json)
+    exists to prevent -- just showing up in a Shortcut comment instead of a
+    Slack post."""
+    pr_numbers = story_entry.get("shipped_via_prs") or []
+    if pr_numbers:
+        pr_line = "PR(s): " + ", ".join(f"https://github.com/{repo}/pull/{n}" for n in pr_numbers)
+    else:
+        pr_line = "PR(s): unavailable."
+
+    shipping_tag = None
+    if pr_numbers:
+        oid = oid_by_pr.get(pr_numbers[0])
+        if oid:
+            shipping_tag = resolve_shipping_release_tag(oid)
+
+    if shipping_tag:
+        headline = (
+            f"Detected as shipped in {shipping_tag} — found while reconciling the Deploy "
+            "Ready backlog (not part of today's release)."
+        )
+    else:
+        headline = (
+            f"Detected as already present in production as of {prod_tag} — found while "
+            "reconciling the Deploy Ready backlog; the exact shipping release could not be "
+            "determined."
+        )
+
+    return (
+        "\U0001F916 Automated update — posted by the Deploy Ready reconciliation sweep; no reply expected.\n"
+        f"{headline}\n"
+        f"{pr_line}"
+    )
+
+
 def transition_story(story_id, done_state_id, token):
     """PUT a workflow_state_id update to Shortcut. Mirrors
     mark_stories_deployed.transition_story exactly (kept as its own copy
@@ -411,6 +514,13 @@ def print_summary(report):
         else:
             status = f"FAILED: {s.get('transition_error')}"
         print(f"  {s['id']}  {s.get('name', '')!r}  via PR(s) {s.get('shipped_via_prs')}  [{status}]")
+        if s.get("would_comment"):
+            preview = "\n".join(f"      {line}" for line in s["would_comment"].splitlines())
+            print(f"    would post comment:\n{preview}")
+        elif s.get("comment_posted"):
+            print("    comment posted")
+        elif s.get("comment_error"):
+            print(f"    comment FAILED: {s['comment_error']}")
 
     print(f"--- pending ({len(report['pending'])}) ---")
     for s in report["pending"]:
@@ -456,6 +566,10 @@ def build_arg_parser():
              f"default {DEFAULT_TARGET_BRANCH!r}",
     )
     parser.add_argument("--out", help="Write the machine-readable JSON report to this path")
+    parser.add_argument(
+        "--no-comment", action="store_true",
+        help="Transition stories but skip posting the write-back release comment.",
+    )
     parser.add_argument("--max-workers", type=int, default=8)
     return parser
 
@@ -493,6 +607,8 @@ def main():
     apply_mutations = args.apply and not args.dry_run
 
     failed_transitions = []
+    comment_posted = []
+    comment_failed = []
     if apply_mutations:
         transitioned_ids, failed_transitions = transition_stories(
             [s["id"] for s in shipped], DONE_STATE_ID, token, args.max_workers
@@ -503,9 +619,33 @@ def main():
             s["transitioned"] = s["id"] in transitioned_set
             if s["id"] in failed_by_id:
                 s["transition_error"] = failed_by_id[s["id"]]
+
+        # Comment ONLY on a story THIS RUN actually transitioned -- never a
+        # candidate whose PUT itself failed, and never pending/triage.
+        # Re-runs never re-post: a transitioned story leaves Deploy Ready,
+        # so it's simply absent from the NEXT run's search results -- no
+        # separate dedupe index is needed.
+        if not args.no_comment:
+            for s in shipped:
+                if not s["transitioned"]:
+                    continue
+                comment_text = _reconcile_comment_text(s, oid_by_pr, prod_tag, args.repo)
+                sid, ok, err = shortcut_comment.post_story_comment(s["id"], comment_text, token)
+                if ok:
+                    comment_posted.append(sid)
+                    s["comment_posted"] = True
+                else:
+                    warn(f"Failed to post release comment on story {sid}: {err}")
+                    comment_failed.append({"id": sid, "error": err})
+                    s["comment_error"] = err
     else:
         for s in shipped:
             s["transitioned"] = None  # not attempted -- dry-run
+            # Preview-only: never calls Shortcut, but DOES shell out to git
+            # (resolve_shipping_release_tag) -- read-only local introspection,
+            # not a live mutation, so it's safe to compute even in dry-run.
+            if not args.no_comment:
+                s["would_comment"] = _reconcile_comment_text(s, oid_by_pr, prod_tag, args.repo)
 
     report = {
         "prod_tag": prod_tag,
@@ -515,10 +655,14 @@ def main():
             "shipped": len(shipped),
             "pending": len(pending),
             "triage": len(triage),
+            "comment_posted": len(comment_posted),
+            "comment_failed": len(comment_failed),
         },
         "shipped": shipped,
         "pending": pending,
         "triage": triage,
+        "comment_posted": sorted(comment_posted),
+        "comment_failed": sorted(comment_failed, key=lambda d: (d["id"] is None, d["id"])),
     }
 
     print_summary(report)

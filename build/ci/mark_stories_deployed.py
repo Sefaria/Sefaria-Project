@@ -36,6 +36,22 @@ unresolved_story_ids echoed straight from the input file so stage 3 doesn't
 silently lose stories that shipped but that shipped_stories.py could not
 look up.
 
+Immediately after a story is ACTUALLY transitioned by this run (never for
+already_done/skipped stories, and never merely because it was a candidate),
+a short write-back comment is posted on it via
+`POST /stories/{id}/comments` (shortcut_comment.py, shared with
+reconcile_deploy_ready.py's own write-back) naming the release that shipped
+it: this run's own --input JSON already carries `version`, `chart_version`
+and `release_date` for exactly that release, so there's no ambiguity to
+guard against here the way reconcile_deploy_ready.py's backfill sweep has
+to (see that script's own docstring). The PR(s) that carried the story, if
+resolvable from --input's `commits` list, are included as GitHub links.
+A comment failure is logged and recorded in `comment_failed` but never
+fails the run or rolls back the transition -- the state change is the
+valuable, already-durable part; the comment is a best-effort annotation on
+top of it. Posting is skipped entirely in --dry-run (which instead prints
+what WOULD be posted) and with --no-comment.
+
 Whenever the input's "stories" list is non-empty and at least one story was
 skipped for a reason other than already being Done, this script prints a
 WARNING to stderr naming those stories -- even in a MIXED release where some
@@ -62,6 +78,14 @@ import sys
 import urllib.error
 import urllib.request
 
+# The story-comment POST mechanics are shared with reconcile_deploy_ready.py
+# -- see shortcut_comment.py's own docstring for why. build/ci is not a
+# package (see tests/conftest.py), but a plain sibling-module import works
+# both when this file is run directly (python3 puts its own directory on
+# sys.path[0]) and under pytest (the test conftest adds build/ci to
+# sys.path the same way).
+import shortcut_comment
+
 SHORTCUT_API_BASE = "https://api.app.shortcut.com/api/v3"
 
 # Sefaria's "Standard" Shortcut workflow: "Deploy Ready" -> "Done". These are
@@ -73,6 +97,10 @@ SHORTCUT_API_BASE = "https://api.app.shortcut.com/api/v3"
 DEFAULT_WORKFLOW_ID = 500000005
 DEFAULT_FROM_STATE_ID = 500000045
 DEFAULT_DONE_STATE_ID = 500000010
+
+# Used only to build a GitHub PR link in the write-back comment -- this
+# script never calls `gh` or the GitHub API itself.
+DEFAULT_REPO = "Sefaria/Sefaria-Project"
 
 
 def die(message: str) -> None:
@@ -151,6 +179,57 @@ def transition_stories(to_transition, done_state_id, token, max_workers=8):
     return transitioned, failed
 
 
+def _pr_numbers_for_story(story_id, commits):
+    """PR numbers of every commit in this release's own `commits` list
+    (from --input's shipped-stories.json) that carried this story id, in
+    the order they appear there. A story can ship via more than one
+    commit/PR in the same release (e.g. a same-day fix-up), so this
+    collects all of them rather than just the first match. Returns []
+    (not an error) when none are resolvable -- an older shipped-stories.json
+    without a `commits` key, or a story whose only carrying commit had no
+    PR number, both degrade to "no PR reference available" in the comment
+    text rather than raising."""
+    sid = str(story_id)
+    numbers = []
+    seen = set()
+    for c in commits:
+        pr_number = c.get("pr_number")
+        if pr_number and sid in (c.get("story_ids") or []) and pr_number not in seen:
+            seen.add(pr_number)
+            numbers.append(pr_number)
+    return numbers
+
+
+def _release_comment_text(story, data, repo):
+    """Write-back comment text for a story THIS RUN actually transitioned.
+    Unlike reconcile_deploy_ready.py's backfill sweep, there's no release
+    ambiguity to resolve here: --input IS this release's own
+    shipped-stories.json, so `version`/`chart_version`/`release_date` are
+    exactly the release this story just shipped in -- state that fact
+    directly rather than re-deriving it from git the way the sweep has to
+    for stories it didn't just observe shipping in real time."""
+    version = data.get("version") or "an unresolved version"
+    chart_version = data.get("chart_version")
+    release_date = data.get("release_date")
+    # Human-readable date only (no time-of-day/timezone noise) -- release_date
+    # is an ISO 8601 timestamp like "2026-08-31T07:17:36Z".
+    release_date_human = release_date.split("T")[0] if release_date else "an unresolved date"
+
+    pr_numbers = _pr_numbers_for_story(story.get("id"), data.get("commits") or [])
+    if pr_numbers:
+        pr_line = "PR(s): " + ", ".join(f"https://github.com/{repo}/pull/{n}" for n in pr_numbers)
+    else:
+        pr_line = "PR(s): not available in this release's shipped-stories data."
+
+    chart_part = f" (chart {chart_version})" if chart_version else ""
+
+    return (
+        "\U0001F916 Automated update — posted by the prod release pipeline; no reply expected.\n"
+        f"Shipped in prod release {version}{chart_part}, released {release_date_human}.\n"
+        f"{pr_line}"
+    )
+
+
 def _ids(stories):
     return sorted((s.get("id") for s in stories), key=lambda x: (x is None, x))
 
@@ -186,6 +265,11 @@ def build_arg_parser():
     parser.add_argument("--workflow-id", type=int, default=DEFAULT_WORKFLOW_ID)
     parser.add_argument("--from-state-id", type=int, default=DEFAULT_FROM_STATE_ID)
     parser.add_argument("--done-state-id", type=int, default=DEFAULT_DONE_STATE_ID)
+    parser.add_argument("--repo", default=DEFAULT_REPO, help=f"GitHub repo for the comment's PR link(s), default {DEFAULT_REPO}")
+    parser.add_argument(
+        "--no-comment", action="store_true",
+        help="Transition stories but skip posting the write-back release comment.",
+    )
     parser.add_argument("--max-workers", type=int, default=8)
     return parser
 
@@ -218,6 +302,9 @@ def main():
         stories, args.workflow_id, args.from_state_id, args.done_state_id,
     )
 
+    comment_posted = []
+    comment_failed = []
+
     if args.dry_run:
         for story in to_transition:
             print(
@@ -226,10 +313,37 @@ def main():
                 f"{args.from_state_id} to {args.done_state_id}",
                 file=sys.stderr,
             )
+            # Preview-only: never calls Shortcut. Shown so a --dry-run run
+            # says what it WOULD post, matching how it already says what it
+            # would transition.
+            if not args.no_comment:
+                preview = "\n".join(f"DRY RUN:   {line}" for line in _release_comment_text(story, data, args.repo).splitlines())
+                print(f"DRY RUN: would post comment on story {story.get('id')}:\n{preview}", file=sys.stderr)
         transitioned = _ids(to_transition)
         failed = []
     else:
         transitioned, failed = transition_stories(to_transition, args.done_state_id, token, args.max_workers)
+
+        # Comment ONLY on a story THIS RUN actually transitioned -- never
+        # already_done/skipped (those paths never reach to_transition at
+        # all), and never a story that was a to_transition CANDIDATE but
+        # whose PUT itself failed (excluded via transitioned_ids below).
+        # transitions are naturally once-only (a transitioned story leaves
+        # Deploy Ready, so classify_stories routes it to already_done on any
+        # re-run) -- no separate dedupe index is needed to keep a re-run
+        # from re-posting.
+        if not args.no_comment:
+            transitioned_ids = set(transitioned)
+            for story in to_transition:
+                if story.get("id") not in transitioned_ids:
+                    continue
+                comment_text = _release_comment_text(story, data, args.repo)
+                sid, ok, err = shortcut_comment.post_story_comment(story.get("id"), comment_text, token)
+                if ok:
+                    comment_posted.append(sid)
+                else:
+                    warn(f"Failed to post release comment on story {sid}: {err}")
+                    comment_failed.append({"id": sid, "error": err})
 
     skipped_detail = _skipped_detail(skipped_other_state, skipped_different_workflow)
 
@@ -241,6 +355,8 @@ def main():
             "skipped_other_state": len(skipped_other_state),
             "skipped_different_workflow": len(skipped_different_workflow),
             "failed": len(failed),
+            "comment_posted": len(comment_posted),
+            "comment_failed": len(comment_failed),
         },
         "transitioned": sorted(transitioned, key=lambda x: (x is None, x)),
         "already_done": _ids(already_done),
@@ -248,6 +364,8 @@ def main():
         "skipped_different_workflow": _ids(skipped_different_workflow),
         "skipped_detail": skipped_detail,
         "failed": sorted(failed, key=lambda x: (x is None, x)),
+        "comment_posted": sorted(comment_posted, key=lambda x: (x is None, x)),
+        "comment_failed": sorted(comment_failed, key=lambda d: (d["id"] is None, d["id"])),
         "hydrated": hydrated,
         "unresolved_story_ids": sorted(unresolved_story_ids),
     }
