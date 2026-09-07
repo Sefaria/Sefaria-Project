@@ -141,6 +141,50 @@ describe('chooseMethod / startProcess / endProcess', () => {
 
     expect(fireProcessEnded).not.toHaveBeenCalled();
   });
+
+  it('startProcess is a no-op while an attempt is still genuinely in flight (does not re-fire)', () => {
+    mount({ flow: 'register', source: 'nav_bar' });
+    const attemptId = hookApi.chooseMethod('email');
+    hookApi.startProcess();
+    fireProcessStarted.mockClear();
+
+    hookApi.startProcess(); // e.g. a second render calling it again before any resolution
+
+    expect(fireProcessStarted).not.toHaveBeenCalled();
+    // the original attempt is untouched -- endProcess still resolves it normally
+    hookApi.endProcess('success', null, 'created_new_account');
+    expect(fireProcessEnded).toHaveBeenCalledWith('id-1', attemptId, 'success', null, 'created_new_account');
+  });
+
+  it('a retry after a failed attempt re-arms the same attempt_id: fresh process_started, and the retry\'s outcome is not swallowed', () => {
+    mount({ flow: 'register', source: 'nav_bar' });
+    const attemptId = hookApi.chooseMethod('email');
+    hookApi.startProcess();
+    hookApi.endProcess('failure', 'invalid_credentials');
+    expect(fireProcessEnded).toHaveBeenLastCalledWith('id-1', attemptId, 'failure', 'invalid_credentials', null);
+
+    // user retries without leaving the form -- no new chooseMethod, just startProcess again
+    hookApi.startProcess();
+    expect(fireProcessStarted).toHaveBeenLastCalledWith('id-1', attemptId);
+    expect(fireMethodChosen).toHaveBeenCalledTimes(1); // still the same sub-flow, no re-choice
+
+    hookApi.endProcess('success', null, 'existing_user_login');
+    expect(fireProcessEnded).toHaveBeenLastCalledWith('id-1', attemptId, 'success', null, 'existing_user_login');
+  });
+
+  it('a retry that ultimately succeeds is reflected in auth_flow_ended, not stuck on the earlier failure', () => {
+    mount({ flow: 'register', source: 'nav_bar' });
+    hookApi.chooseMethod('email');
+    hookApi.startProcess();
+    hookApi.endProcess('failure', 'invalid_credentials');
+
+    hookApi.startProcess();
+    hookApi.endProcess('success', null, 'existing_user_login');
+
+    rerender({ flow: 'reset', source: 'nav_bar' }); // leaves the tracked scope, concluding the flow
+
+    expect(fireFlowEnded).toHaveBeenCalledWith('id-1', 'success', null, 'existing_user_login');
+  });
 });
 
 describe('endFlow status/error/outcome derivation', () => {

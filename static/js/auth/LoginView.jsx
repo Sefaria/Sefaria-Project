@@ -8,10 +8,11 @@ import Button from '../common/Button.jsx';
 import { authError, safeNext, postJson } from './utils.js';
 
 const LoginView = ({
-  switchFlow, fields, setField, onBack, onForgotClick, endProcess, next, csrf,
+  switchFlow, fields, setField, onBack, onForgotClick, startProcess, endProcess, next, csrf,
   registerGoogleTarget, triggerApple, setActiveErrorHandler,
 }) => {
   const onSubmit = async () => {
+    startProcess();
     const { ok, data } = await postJson('/api/auth/login', { email: fields.email, password: fields.password }, csrf);
     if (ok) {
       endProcess('success', null, 'existing_user_login');
@@ -64,6 +65,7 @@ LoginView.propTypes = {
   setField: PropTypes.func.isRequired,
   onBack: PropTypes.func.isRequired,
   onForgotClick: PropTypes.func.isRequired,
+  startProcess: PropTypes.func.isRequired,
   endProcess: PropTypes.func.isRequired,
   next: PropTypes.string,
   csrf: PropTypes.string,

@@ -61,8 +61,15 @@ export function useAuthTracking({ flow, source }) {
 
   function startProcess() {
     const attempt = attemptRef.current;
-    if (!attempt || attempt.started) return;
+    // A no-op only while genuinely still in flight (started, not yet ended) -- once an
+    // attempt has concluded (success or failure), a retry on the same chosen method
+    // re-arms it: same attempt_id, fresh process_started, and endProcess unblocked again.
+    if (!attempt || (attempt.started && !attempt.ended)) return;
     attempt.started = true;
+    attempt.ended = false;
+    attempt.status = null;
+    attempt.error = null;
+    attempt.outcome = null;
     fireProcessStarted(flowIdRef.current, attempt.attemptId);
   }
 

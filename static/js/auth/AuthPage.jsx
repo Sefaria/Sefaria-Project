@@ -88,7 +88,7 @@ const AuthPage = ({
       <RegisterView
         switchFlow={switchFlow} fields={fields} setField={setField}
         onBack={() => setView('choose')}
-        endProcess={tracking.endProcess}
+        startProcess={tracking.startProcess} endProcess={tracking.endProcess}
         next={next} csrf={csrf}
         registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
@@ -100,7 +100,7 @@ const AuthPage = ({
         switchFlow={switchFlow} fields={fields} setField={setField}
         onBack={() => setView('choose')}
         onForgotClick={onForgotClick}
-        endProcess={tracking.endProcess}
+        startProcess={tracking.startProcess} endProcess={tracking.endProcess}
         next={next} csrf={csrf}
         registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
         setActiveErrorHandler={setActiveErrorHandler}
