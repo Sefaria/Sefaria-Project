@@ -579,9 +579,9 @@ BulkVersionEditor.jsx
 
 BulkIndexEditor.jsx
   ├── imports: INDEX_FIELD_METADATA (fieldMetadata.js)
-  ├── imports: Sefaria (for getIndexDetails)
+  ├── imports: Sefaria (for getIndexDetails, and Sefaria._translateTerms for Term validation)
   ├── imports: ModToolsSection, IndexSelector, StatusMessage (shared/)
-  └── API: /api/version-indices, /api/v2/raw/index, /admin/reset, /api/terms
+  └── API: /api/version-indices, /api/v2/raw/index, /admin/reset, /api/name
 
 AutoLinkCommentaryTool.jsx
   ├── imports: BASE_TEXT_MAPPING_OPTIONS (fieldMetadata.js)

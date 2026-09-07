@@ -128,7 +128,13 @@ const detectCommentaryPattern = (title) => {
 
 /**
  * Check whether an exact Index with this title exists.
- * Uses /api/v2/index/{title}, which rejects (404) for unknown titles.
+ * index_api is wrapped by catch_error_as_json, so an unknown title comes back as HTTP 200
+ * with an {error: ...} body rather than a rejection; check the payload and let real
+ * transport failures propagate.
+ *
+ * No caching needed here: Sefaria.getIndexDetails already goes through
+ * _cachedApiPromise (store: Sefaria._indexDetails), so repeating a title across the
+ * selected indices costs one request, not one per index.
  */
 const indexExists = async (title) => {
   const data = await Sefaria.getIndexDetails(title);
@@ -136,17 +142,17 @@ const indexExists = async (title) => {
 };
 
 /**
- * Check whether a Term exists for this collective title.
- * The terms API returns 404 (rejects) when the term doesn't exist.
+ * Check whether a Term exists with this name.
+ *
+ * No API call needed: every page is served the full Term list. The `terms_json` context
+ * processor calls library.get_simple_term_mapping_json(), which is built by looping over
+ * TermSet() (every Term in Mongo, keyed by name); templates/js/data.js sets it as
+ * Sefaria.terms, and Sefaria.setup() copies it into _translateTerms.
+ *
+ * Caveat: this is a page-load snapshot, so a Term created in another tab after this page
+ * loaded is not in it. The warning below tells the user to reload in that case.
  */
-const termExists = async (name) => {
-  try {
-    await Sefaria.apiRequestWithBody(`/api/terms/${encodeURIComponent(name)}`, null, null, 'GET');
-    return true;
-  } catch (e) {
-    return false;
-  }
-};
+const termExists = (name) => name in Sefaria._translateTerms;
 
 const BulkIndexEditor = () => {
   // Search state
@@ -426,9 +432,9 @@ const BulkIndexEditor = () => {
         // Validate collective_title: a matching Term must exist.
         // If not, drop the field for this index.
         if (indexSpecificUpdates.collective_title) {
-          const exists = await termExists(indexSpecificUpdates.collective_title);
+          const exists = termExists(indexSpecificUpdates.collective_title);
           if (!exists) {
-            warnings.push(`${indexTitle}: skipped collective_title (no term "${indexSpecificUpdates.collective_title}")`);
+            warnings.push(`${indexTitle}: skipped collective_title (no term "${indexSpecificUpdates.collective_title}"). If you just created it, reload the page and try again.`);
             delete indexSpecificUpdates.collective_title;
           }
         }
