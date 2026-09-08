@@ -84,10 +84,15 @@ def attach_branch(new_node, parent_node, place=0):
     handle_dependant_indices(index.title)
 
 
-def remove_branch(node):
+def remove_branch(node, handle_dependencies=True):
     """
     This will delete any text in `node`
     :param node: SchemaNode to remove
+    :param handle_dependencies: When True (the default), clears base_text_mapping on every
+        structure-matched commentary, which disables their automatic commentary linking.
+        That is the right call for a structural change that leaves the base/commentary
+        mapping invalid.  Pass False when base text and commentaries are being changed in
+        lockstep and the mapping stays correct, so it is not thrown away needlessly.
     :return:
     """
     assert isinstance(node, SchemaNode)
@@ -111,7 +116,8 @@ def remove_branch(node):
     library.rebuild()
     refresh_version_state(index.title)
 
-    handle_dependant_indices(index.title)
+    if handle_dependencies:
+        handle_dependant_indices(index.title)
 
 
 def reorder_children(parent_node, new_order):
@@ -704,6 +710,16 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
     print('Updating Ref Data')
     generic_rewrite(RefDataSet(construct_query('ref', identifier)))
     print('Updating Topic Links')
+    # NOTE on the expandedRefs passes below (RefTopicLink and WebPage): both models
+    # regenerate expandedRefs from their primary ref inside _normalize(), so the value
+    # written here is discarded on save and recomputed from the CURRENT text shape.
+    # That is fine when the primary ref itself was rewritten above, and it is fine when
+    # cascade() runs after the text has reached its final shape.  It does NOT work for
+    # section-level or ranged primary refs during a resize run before the text changes:
+    # the recomputation regenerates the old expansion and nothing revisits it afterwards.
+    # Such callers must re-save the affected records once the text is final.
+    # (ManuscriptPage is different — nothing recomputes its expanded_refs on save, so the
+    # direct rewrite below sticks.)
     generic_rewrite(RefTopicLinkSet(construct_query('ref', identifier)))
     generic_rewrite(RefTopicLinkSet(construct_query('expandedRefs', identifier)))
     print('Updating Garden Stops')

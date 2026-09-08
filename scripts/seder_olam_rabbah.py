@@ -44,18 +44,34 @@ from sefaria.system.database import db
 from sefaria.utils.util import traverse_dict_tree
 
 
+TRUE_WORDS = ("1", "true", "yes", "y", "on")
+FALSE_WORDS = ("0", "false", "no", "n", "off")
+
+
 def _env_flag(name, default):
     """Read a boolean switch from the environment, falling back to `default`.
 
     Lets a run be driven without editing the file, which matters on a cauldron:
         DRY_RUN=false REINDEX_SEARCH=true ./run scripts/seder_olam_rabbah.py
+
+    Both spellings are matched explicitly and anything else aborts.  A membership test
+    against the true-words alone would quietly read every unrecognised value as False —
+    so ``DRY_RUN=flase`` would not mean "I am being careful", it would launch a live run
+    of a destructive migration.  An empty value falls back to the default for the same
+    reason.
     """
     raw = os.environ.get(name)
     if raw is None or not raw.strip():
-        # An empty value (DRY_RUN= ...) must not read as False — that would turn a
-        # typo into a live run of a destructive migration.
         return default
-    return raw.strip().lower() in ("1", "true", "yes", "y", "on")
+    val = raw.strip().lower()
+    if val in TRUE_WORDS:
+        return True
+    if val in FALSE_WORDS:
+        return False
+    raise SystemExit(
+        f"ABORT: {name}={raw!r} is not a recognised true/false value.\n"
+        f"       Use one of {TRUE_WORDS} or {FALSE_WORDS}.\n"
+        f"       Refusing to guess, because guessing wrong here means a live run.")
 
 
 DRY_RUN = _env_flag("DRY_RUN", True)
@@ -67,6 +83,33 @@ DRY_RUN = _env_flag("DRY_RUN", True)
 # — see reindex_search() for why reindexing an unchanged text is worse than useless.
 REINDEX_SEARCH = _env_flag("REINDEX_SEARCH", False)
 
+# Escape hatch for the check below, for the case where search is going to be rebuilt by
+# the normal reindex job instead of by this script.
+ALLOW_STALE_SEARCH = _env_flag("ALLOW_STALE_SEARCH", False)
+
+
+def check_flags():
+    """Reject a live run that would finish with Elasticsearch left wrong.
+
+    This has to fail BEFORE anything is written, not at step 5, because by then the
+    situation is unrecoverable from inside this script: preflight() blocks a second run,
+    and even bypassing it would not help, since the old ref list step 5 needs to delete
+    is captured during the trim and cannot be reconstructed once the text is short.
+
+    Fixing search afterwards means running the normal full reindex job.  That is a
+    perfectly reasonable plan — it just has to be a decision rather than an oversight,
+    hence the explicit acknowledgement.
+    """
+    if DRY_RUN or REINDEX_SEARCH or ALLOW_STALE_SEARCH:
+        return
+    raise SystemExit(
+        "ABORT: DRY_RUN=false with REINDEX_SEARCH=false would renumber the text and leave\n"
+        "       Elasticsearch pointing at refs that no longer exist, with no way for this\n"
+        "       script to repair it on a later run.\n"
+        "       Either:  REINDEX_SEARCH=true   (this script rewrites the index), or\n"
+        "                ALLOW_STALE_SEARCH=true   (you will run the full reindex job yourself)")
+
+
 BASE_TITLE = "Seder Olam Rabbah"
 COMMENTARIES = [f"{c} on Seder Olam Rabbah" for c in ("Vilna Gaon", "Yaakov Emden", "Meir Ayin")]
 
@@ -76,6 +119,19 @@ HEADING = re.compile(r"^\s*(?:פרק\s+[א-ת]{1,3}|Chapter\s+\d+)\s*$")
 
 BASE_SEG = re.compile(r"^(Seder Olam Rabbah )(\d+):(\d+)$")
 COMM_SEG = re.compile(r"^((?:Vilna Gaon|Yaakov Emden|Meir Ayin) on Seder Olam Rabbah )(\d+):(\d+):(\d+)$")
+
+
+def title_query(field, titles=None):
+    """Mongo query matching `field` against any of `titles`, ANCHORED.
+
+    The anchor is the whole point.  An unanchored ``{"ref": {"$regex": "Seder Olam
+    Rabbah"}}`` cannot use an index and forces a full collection scan — which is
+    survivable on `links` and emphatically not on `history`, where it hangs for
+    minutes.  A ``^``-anchored regex is a prefix match and can be served from the
+    index on that field.  This is the same shape cascade()'s own construct_query uses.
+    """
+    titles = [BASE_TITLE] + COMMENTARIES if titles is None else titles
+    return {"$or": [{field: {"$regex": "^" + re.escape(t) + " "}} for t in titles]}
 
 
 # ---------------------------------------------------------------------------
@@ -118,6 +174,17 @@ def preflight():
     ref again — and the cascade would happily shift the colophon's refs down
     onto the content.  Nothing else in the script catches that, because from the
     cascade's point of view a second run looks exactly like a first one.
+
+    THIS IS NOT A RESUME CHECK, and it cannot be made into one.  It reads the text,
+    and the text is the LAST thing the migration writes — so a run that died anywhere
+    in the cascade leaves the text untouched and sails straight through here, no matter
+    how much reference data has already moved.
+
+    That window is genuinely destructive.  cascade_refs() shifts :2 -> :1 and then
+    :3 -> :2; a run that dies after the :3 pass leaves the old :3 refs sitting at :2,
+    and a re-run's :2 pass shifts those to :1 — a second shift, on top of the refs
+    already there.  The remedy for an interrupted run is to restore the database and
+    start over, not to run this script again.
     """
     chapter = canonical_chapter()
     already = [i for i, sec in enumerate(chapter, start=1)
@@ -127,9 +194,13 @@ def preflight():
             "ABORT: this looks ALREADY MIGRATED — segment 1 is real content, not a chapter\n"
             f"       heading, in section(s) {already[:5]}{'...' if len(already) > 5 else ''}.\n"
             "       Re-running would shift the colophon refs in sections 10/20/30 down a\n"
-            "       second time.  If you are resuming an interrupted run, the text step had\n"
-            "       not yet completed and this check would have passed.")
+            "       second time.")
     print(f"preflight OK: {len(chapter)} sections, segment 1 is a heading in all of them")
+    if not DRY_RUN:
+        print("    NOTE: this checks the TEXT, which is written last.  It cannot detect a\n"
+              "          run that died part-way through the reference cascade.  If this run\n"
+              "          does not reach 'Done.', restore the database before trying again —\n"
+              "          re-running on top of a partial cascade shifts refs twice.")
 
 
 SECTION_LEN = canonical_section_lengths()
@@ -175,6 +246,67 @@ def base_needs_rewrite_for(segment):
     return needs_rewrite
 
 
+# ---------------------------------------------------------------------------
+# ranged refs — rewritten in one dedicated pass, after the per-segment passes
+# ---------------------------------------------------------------------------
+#
+# A range names two endpoints, so it cannot be handled by the per-segment passes
+# above (which each match exactly one segment number).  It gets its own pass, which
+# is safe to run last because ranges live in sheets and web pages, neither of which
+# has a uniqueness constraint the way links do.
+#
+# Endpoint rule: a segment shifts down one, and segment 1 — the heading, which is
+# being deleted — collapses onto the new segment 1.  So "3:1-2" (heading through
+# content) becomes just "3:1" (the content), and "29:1-30:2" becomes "29:1-30:1".
+# A range that collapses to a single segment is emitted as a plain segment ref.
+
+BASE_RANGE_SAME = re.compile(r"^(Seder Olam Rabbah )(\d+):(\d+)-(\d+)$")
+BASE_RANGE_CROSS = re.compile(r"^(Seder Olam Rabbah )(\d+):(\d+)-(\d+):(\d+)$")
+COMM_RANGE_SUB = re.compile(
+    r"^((?:Vilna Gaon|Yaakov Emden|Meir Ayin) on Seder Olam Rabbah )(\d+):(\d+):(\d+)-(\d+)$")
+
+
+def _shift_endpoint(section, seg):
+    """New segment number for one endpoint, or None if it must be left alone."""
+    if seg > SECTION_LEN.get(section, 0):
+        return None                      # already dangling — see report_dangling_refs
+    return max(1, seg - 1)
+
+
+def range_rewriter(tref, *_):
+    m = BASE_RANGE_CROSS.match(tref)
+    if m:
+        title, sec_a, a, sec_b, b = m.group(1), int(m.group(2)), int(m.group(3)), int(m.group(4)), int(m.group(5))
+        na, nb = _shift_endpoint(sec_a, a), _shift_endpoint(sec_b, b)
+        if na is None or nb is None:
+            return tref
+        if sec_a == sec_b and na == nb:
+            return f"{title}{sec_a}:{na}"
+        return f"{title}{sec_a}:{na}-{sec_b}:{nb}"
+
+    m = BASE_RANGE_SAME.match(tref)
+    if m:
+        title, sec, a, b = m.group(1), int(m.group(2)), int(m.group(3)), int(m.group(4))
+        na, nb = _shift_endpoint(sec, a), _shift_endpoint(sec, b)
+        if na is None or nb is None:
+            return tref
+        return f"{title}{sec}:{na}" if na == nb else f"{title}{sec}:{na}-{nb}"
+
+    m = COMM_RANGE_SUB.match(tref)
+    if m and int(m.group(3)) == 2:
+        # Only the BASE segment index moves; the comment sub-range is untouched,
+        # because the commentary's own sub-sections are not being renumbered.
+        return f"{m.group(1)}{m.group(2)}:1:{m.group(4)}-{m.group(5)}"
+
+    return tref
+
+
+def range_needs_rewrite(tref, record=None):
+    if isinstance(record, MarkedUpTextChunk):
+        return False                     # deferred, same as the per-segment passes
+    return range_rewriter(tref) != tref
+
+
 def comm_rewriter(tref, *_):
     m = COMM_SEG.match(tref)
     if not m or int(m.group(3)) != 2:
@@ -202,25 +334,39 @@ def find_link_collisions():
     like "פרק יא", which contains no citation, so they cannot be genuine.
     The real link is the ``X:2`` one moving down onto them.
     """
-    links = list(db.links.find({"refs": {"$regex": BASE_TITLE}}, {"refs": 1}))
+    links = list(db.links.find(title_query("refs", [BASE_TITLE]), {"refs": 1}))
+
+    def shifted(refs):
+        """`refs` with every in-range Seder Olam segment moved down one."""
+        out = []
+        for r in refs:
+            m = BASE_SEG.match(r)
+            if m and 2 <= int(m.group(3)) <= SECTION_LEN.get(int(m.group(2)), 0):
+                out.append(f"{m.group(1)}{m.group(2)}:{int(m.group(3)) - 1}")
+            else:
+                out.append(r)
+        return out
+
     occupied = defaultdict(list)
+    stationary = {}
     for l in links:
-        occupied[tuple(sorted(l["refs"]))].append(l["_id"])
+        key = tuple(sorted(l["refs"]))
+        occupied[key].append(l["_id"])
+        # A link that moves is not really blocking its slot — the ascending cascade
+        # vacates it first.  Only a link whose refs are unchanged by the shift is a
+        # true obstacle.  Without this, a link at 10:2 (which is itself due to move to
+        # 10:1) would be deleted as the "occupant" the 10:3 link is about to land on,
+        # destroying a legitimate link rather than letting it move.
+        stationary[l["_id"]] = tuple(sorted(shifted(l["refs"]))) == key
 
     victims = {}
     for l in links:
-        new_refs = []
-        for r in l["refs"]:
-            m = BASE_SEG.match(r)
-            if m and 2 <= int(m.group(3)) <= SECTION_LEN.get(int(m.group(2)), 0):
-                new_refs.append(f"{m.group(1)}{m.group(2)}:{int(m.group(3)) - 1}")
-            else:
-                new_refs.append(r)
-        new_key, old_key = tuple(sorted(new_refs)), tuple(sorted(l["refs"]))
+        new_key = tuple(sorted(shifted(l["refs"])))
+        old_key = tuple(sorted(l["refs"]))
         if new_key == old_key:
             continue
         for other in occupied.get(new_key, []):
-            if other != l["_id"]:
+            if other != l["_id"] and stationary[other]:
                 victims[other] = (new_key, old_key)
     return victims
 
@@ -297,6 +443,20 @@ def cascade_refs():
             print(f"    (dry run) {n} link refs to shift")
             continue
         cascade(Ref(title), rewriter=comm_rewriter, needs_rewrite=comm_needs_rewrite)
+
+    # Ranges last: they name two endpoints and so cannot ride along with the
+    # per-segment passes.  Run once per book, since a range ref is anchored to the
+    # book whose title it carries.
+    for title in [BASE_TITLE] + COMMENTARIES:
+        print(f"\n--- {title}: shifting ranged refs")
+        if DRY_RUN:
+            hits = [r for r in _ranged_refs_in_data() if r.startswith(title + " ")]
+            changed = [(r, range_rewriter(r)) for r in hits if range_rewriter(r) != r]
+            print(f"    (dry run) {len(hits)} ranged ref(s), {len(changed)} would change")
+            for old, new in changed[:5]:
+                print(f"        {old:44} -> {new}")
+            continue
+        cascade(Ref(title), rewriter=range_rewriter, needs_rewrite=range_needs_rewrite)
 
 
 # ---------------------------------------------------------------------------
@@ -406,6 +566,9 @@ def refresh():
     # It exists for structural changes that leave the base/commentary mapping
     # invalid — here base text and commentaries are shifted in lockstep, so
     # 'many_to_one' stays correct and must be preserved.
+    # NOTE: remove_introduction_nodes() must pass handle_dependencies=False for the
+    # same reason — remove_branch() calls handle_dependant_indices() by default and
+    # would undo this a few steps later.
 
 
 # ---------------------------------------------------------------------------
@@ -468,6 +631,56 @@ def rewrite_marked_up_text_chunks():
         print(f"    {title:40} moved={moved} failed={len(failed)}")
         for tref, err in failed[:5]:
             print(f"        FAILED {tref}: {err}")
+        if len(failed) > 5:
+            print(f"        ... and {len(failed) - 5} more failures")
+
+
+# ---------------------------------------------------------------------------
+# step 4c — recompute derived expandedRefs (must follow the trim AND the rebuild)
+# ---------------------------------------------------------------------------
+
+def recompute_expanded_refs():
+    """Re-save WebPage and RefTopicLink records so their expandedRefs are rebuilt.
+
+    Both models derive expandedRefs from their primary ref inside ``_normalize()``:
+    ``WebPage`` calls ``Ref.expand_refs(self.refs)`` and ``RefTopicLink`` calls
+    ``Ref(self.ref).all_segment_refs()``.  The value the cascade wrote is therefore
+    discarded on save and regenerated from the text as it stood at that moment.
+
+    For a segment-level primary ref that is harmless — the cascade rewrote the primary
+    ref too, so the regenerated expansion is already right.  It is NOT harmless for a
+    SECTION-level or ranged primary ref, which the segment rewriters never match: the
+    ref keeps its old value, the expansion is regenerated from the pre-trim text, and
+    nothing revisits it.  Those records would keep listing a final segment that no
+    longer exists.
+
+    Re-saving here, once the text is short and ``library.rebuild()`` has run, makes the
+    same recomputation produce the correct answer.  Records whose expansion is already
+    correct are skipped so this does not churn the whole collection.
+    """
+    print("\n=== Step 4c: recomputing derived expandedRefs")
+    titles = [BASE_TITLE] + COMMENTARIES
+    query = title_query("expandedRefs", titles)
+
+    if DRY_RUN:
+        for coll in ("webpages", "ref_topic_links"):
+            print(f"    (dry run) {db[coll].count_documents(query)} {coll} record(s) to re-save")
+        return
+
+    for label, model_set in (("WebPage", WebPageSet), ("RefTopicLink", RefTopicLinkSet)):
+        touched, failed = 0, []
+        for record in model_set(query):
+            before = list(getattr(record, "expandedRefs", []))
+            try:
+                record.save()
+            except Exception as e:
+                failed.append((getattr(record, "url", None) or getattr(record, "ref", "?"), str(e)))
+                continue
+            if list(getattr(record, "expandedRefs", [])) != before:
+                touched += 1
+        print(f"    {label:14} re-saved, {touched} record(s) changed, {len(failed)} failed")
+        for who, err in failed[:5]:
+            print(f"        FAILED {who}: {err}")
         if len(failed) > 5:
             print(f"        ... and {len(failed) - 5} more failures")
 
@@ -571,7 +784,7 @@ def report_dangling_refs():
     """
     print("\n=== Report: pre-existing dangling refs (NOT modified)")
     partners = defaultdict(list)
-    for l in db.links.find({"refs": {"$regex": BASE_TITLE}}, {"refs": 1, "type": 1}):
+    for l in db.links.find(title_query("refs", [BASE_TITLE]), {"refs": 1, "type": 1}):
         for i, r in enumerate(l["refs"]):
             m = BASE_SEG.match(r)
             if m and int(m.group(3)) > SECTION_LEN.get(int(m.group(2)), 0):
@@ -589,6 +802,83 @@ def report_dangling_refs():
               f"[section has {SECTION_LEN.get(sec, 0)} segments]")
         for other, ltype in sorted(partners[r]):
             print(f"          linked to  {other}{f'  ({ltype})' if ltype else ''}")
+
+
+# collections the cascade rewrites, as (collection, field) — used by the ranged-ref
+# report below to look in exactly the places cascade() touches.
+CASCADED_FIELDS = [
+    ("links", "refs"), ("notes", "ref"), ("history", "ref"), ("ref_topic_links", "ref"),
+    ("ref_topic_links", "expandedRefs"), ("user_history", "ref"), ("ref_data", "ref"),
+    ("webpages", "refs"), ("webpages", "expandedRefs"), ("sheets", "sources.ref"),
+    ("manuscript_pages", "contained_refs"), ("manuscript_pages", "expanded_refs"),
+]
+
+
+def _ranged_refs_by_location():
+    """{"collection.field": [ranged ref, ...]} across every collection cascade() touches."""
+    titles = [BASE_TITLE] + COMMENTARIES
+    found = defaultdict(list)
+    for coll, field in CASCADED_FIELDS:
+        for d in db[coll].find(title_query(field), {field: 1}):
+            # sheets store refs one level down (sources.ref); everything else is flat
+            if "." in field:
+                parent, sub = field.split(".", 1)
+                vals = [s.get(sub) for s in (d.get(parent) or []) if isinstance(s, dict)]
+            else:
+                vals = d.get(field)
+                vals = vals if isinstance(vals, list) else [vals]
+            for r in vals:
+                if not isinstance(r, str) or not any(r.startswith(t + " ") for t in titles):
+                    continue
+                if "-" in r.split()[-1]:
+                    found[f"{coll}.{field}"].append(r)
+    return found
+
+
+def _ranged_refs_in_data():
+    """Every distinct ranged ref, flattened.  Used by the step 2 dry run."""
+    return sorted({r for refs in _ranged_refs_by_location().values() for r in refs})
+
+
+def report_ranged_refs():
+    """Refs holding a range, and what the range pass will do to each one.
+
+    BASE_SEG and COMM_SEG both anchor on a single segment number, so ranges cannot be
+    handled by the per-segment passes; range_rewriter() handles them in a pass of its
+    own.  Two shapes turn up:
+
+      * CHAPTER ranges  ('Seder Olam Rabbah 9-10') — chapters are not being renumbered,
+        so these are left exactly as they are.  Their segment expansions are refreshed
+        by recompute_expanded_refs() after the trim.
+      * SEGMENT ranges  ('Seder Olam Rabbah 3:1-2', 'Vilna Gaon ... 6:2:5-6') — these
+        do move, and are shown here with their rewritten value so the endpoint rule can
+        be eyeballed before a live run.
+
+    Anything range-shaped that the rewriter does NOT recognise is called out loudly
+    rather than passing through unnoticed.
+    """
+    print("\n=== Report: ranged refs")
+    found = _ranged_refs_by_location()
+    if not found:
+        print("    none")
+        return
+    unhandled = []
+    for where, refs in sorted(found.items()):
+        uniq = sorted(set(refs))
+        print(f"    {where}: {len(refs)} ref(s), {len(uniq)} distinct")
+        for r in uniq:
+            new = range_rewriter(r)
+            if new != r:
+                print(f"        {r:44} -> {new}")
+            elif ":" not in r.split()[-1]:
+                print(f"        {r:44}    (chapter range — nothing to renumber)")
+            else:
+                print(f"        {r:44}    NOT REWRITTEN")
+                unhandled.append(r)
+    if unhandled:
+        print("\n    WARNING: the range rewriter did not recognise the segment range(s) above.\n"
+              "             They point at segments being renumbered and would be left stale.\n"
+              "             Fix them by hand, or extend range_rewriter(), before running live.")
 
 
 # ---------------------------------------------------------------------------
@@ -687,6 +977,12 @@ def remove_introduction_nodes():
     remove_branch does not cascade: it deletes the node's own linkset and its text in
     every version, then rebuilds, and leaves notes/topic links/sheets/webpages/history
     alone.  That is fine here only because these nodes are empty and unreferenced.
+
+    handle_dependencies=False is essential.  By default remove_branch() ends with
+    handle_dependant_indices(), which sets base_text_mapping = None on every
+    structure-matched commentary and disables their automatic commentary linking.
+    Running that on the base text here would silently undo the preservation refresh()
+    goes out of its way to maintain — and this step runs last, so it would win.
     """
     print("\n=== Step 6: removing the 'Introduction' node")
     if DRY_RUN:
@@ -696,22 +992,46 @@ def remove_introduction_nodes():
     for title in INTRO_NODE_TITLES:
         index = library.get_index(title)
         node = next(n for n in index.nodes.children if n.key == "Introduction")
-        remove_branch(node)
+        remove_branch(node, handle_dependencies=False)
         print(f"    removed Introduction from {title}")
+
+
+def verify_commentary_linking():
+    """Confirm base_text_mapping survived the run.
+
+    Losing it is silent — commentary linking simply stops working later — and this
+    migration passes through two separate code paths that clear it by default
+    (handle_dependant_indices via refresh(), and again via remove_branch()).  Cheap
+    to assert, expensive to notice months from now.
+    """
+    print("\n=== Verify: automatic commentary linking still configured")
+    for title in COMMENTARIES:
+        try:
+            mapping = getattr(library.get_index(title), "base_text_mapping", None)
+        except Exception as e:
+            print(f"    {title}: could not load index ({e})")
+            continue
+        print(f"    {title:44} base_text_mapping={mapping!r}"
+              f"{'   <-- LOST' if not mapping else ''}")
 
 
 if __name__ == "__main__":
     print(f"{'DRY RUN — nothing will be written' if DRY_RUN else '*** LIVE RUN — WRITING ***'}")
+    check_flags()
     print(f"section lengths: {SECTION_LEN}")
     preflight()
     report_dangling_refs()
+    report_ranged_refs()
     report_marked_up_text_chunks()
     clear_link_collisions()
     clear_stale_mutc()
     cascade_refs()
     drop_first_segments()
     refresh()
+    recompute_expanded_refs()
     rewrite_marked_up_text_chunks()
     reindex_search()
     remove_introduction_nodes()
-    print("\nDone." + ("  Set DRY_RUN = False to apply." if DRY_RUN else ""))
+    if not DRY_RUN:
+        verify_commentary_linking()
+    print("\nDone." + ("  Set DRY_RUN=false to apply." if DRY_RUN else ""))
