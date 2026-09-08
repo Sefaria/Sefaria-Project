@@ -43,6 +43,12 @@ from sefaria.utils.util import traverse_dict_tree
 
 DRY_RUN = True
 
+# Rewriting Elasticsearch is a separate switch: it needs SEARCH_URL pointing at a
+# cluster you may WRITE to.  The default local_settings points SEARCH_URL at
+# https://www.sefaria.org/api/search, so leaving this False keeps a local run from
+# reaching out to production's search index.
+REINDEX_SEARCH = False
+
 BASE_TITLE = "Seder Olam Rabbah"
 COMMENTARIES = [f"{c} on Seder Olam Rabbah" for c in ("Vilna Gaon", "Yaakov Emden", "Meir Ayin")]
 
@@ -303,12 +309,24 @@ def drop_first_segment(title):
             v.save()
 
 
+# title -> segment refs as they were BEFORE the trim, captured by drop_first_segments()
+# and consumed by reindex_search().  See that function for why this has to be recorded
+# rather than recomputed.
+OLD_SEGMENT_REFS = {}
+
+
+def capture_old_refs(title):
+    OLD_SEGMENT_REFS[title] = [r.normal() for r in library.get_index(title).all_segment_refs()]
+
+
 def drop_first_segments():
     print("\n=== Step 3: removing the heading segment from the text")
     print(f"\n--- {BASE_TITLE}")
+    capture_old_refs(BASE_TITLE)
     drop_first_segment(BASE_TITLE)
     for title in COMMENTARIES:
         print(f"\n--- {title}")
+        capture_old_refs(title)
         drop_first_segment(title)
 
 
@@ -330,6 +348,86 @@ def refresh():
     # It exists for structural changes that leave the base/commentary mapping
     # invalid — here base text and commentaries are shifted in lockstep, so
     # 'many_to_one' stays correct and must be preserved.
+
+
+# ---------------------------------------------------------------------------
+# step 5 — rewrite the Elasticsearch text index
+# ---------------------------------------------------------------------------
+
+def reindex_search():
+    """Rewrite the ES `text` index for the books we just renumbered.
+
+    ES documents are keyed by (ref, versionTitle, lang) via make_text_doc_id, so a
+    renumbering leaves two kinds of wrong document behind:
+
+    1. The doc at each section's old last segment — 'Seder Olam Rabbah 1:2' — which
+       no longer exists in the text and would linger indefinitely.
+    2. The doc at every surviving ref, still holding the *previous* segment's text.
+
+    (2) fixes itself on re-index, because index_ref upserts by doc id.  (1) has to be
+    deleted explicitly, and this is the trap: `delete_version` finds its targets via
+    `index.all_segment_refs()`, which by the time this runs already reflects the
+    *shortened* text — so it would never see 'Seder Olam Rabbah 1:2' and would leave
+    the stale doc in place.  That is why drop_first_segments() records the pre-trim
+    ref list, and why deletion goes through delete_text_by_ref_string (it takes a
+    plain string; these refs no longer resolve to a Ref).
+
+    Note that index_ref returns without indexing when a segment is empty in a given
+    version, so deleting first is what keeps newly-emptied segments from keeping a
+    stale doc.
+
+    Per-segment failures are collected rather than raised, matching
+    process_version_title_change_in_search in sefaria/model/dependencies.py: the Mongo
+    side is already committed by now, so one bad segment must not abort the rest.
+    """
+    # Bail out BEFORE importingtouching sefaria.search: get_new_and_current_index_names
+    # performs a live get_alias() call against SEARCH_URL, so merely asking for the
+    # index name reaches the cluster.  A dry run must not talk to search at all.
+    if DRY_RUN or not REINDEX_SEARCH:
+        print("\n=== Step 5: Elasticsearch — SKIPPED "
+              f"(DRY_RUN={DRY_RUN}, REINDEX_SEARCH={REINDEX_SEARCH}); no request sent")
+        for title in [BASE_TITLE] + COMMENTARIES:
+            old_refs = OLD_SEGMENT_REFS.get(title) or []
+            versions = VersionSet({"title": title}).count()
+            print(f"    {title}: would clear {len(old_refs)} old refs per version, "
+                  f"then re-index every surviving ref, across {versions} version(s)")
+        return
+
+    from sefaria.search import (TextIndexer, delete_text_by_ref_string,
+                                get_new_and_current_index_names)
+
+    index_name = get_new_and_current_index_names('text')['current']
+    print(f"\n=== Step 5: Elasticsearch — index {index_name!r}")
+
+    for title in [BASE_TITLE] + COMMENTARIES:
+        old_refs = OLD_SEGMENT_REFS.get(title)
+        if old_refs is None:
+            print(f"    {title}: SKIPPED — no pre-trim ref list captured this run")
+            continue
+        new_refs = library.get_index(title).all_segment_refs()
+        versions = list(VersionSet({"title": title}))
+        print(f"\n--- {title}: clearing {len(old_refs)} old refs, indexing {len(new_refs)}, "
+              f"across {len(versions)} version(s)")
+
+        for v in versions:
+            for tref in old_refs:
+                # already logs and swallows its own errors
+                delete_text_by_ref_string(tref, v.versionTitle, v.language)
+
+            failed = []
+            for oref in new_refs:
+                try:
+                    TextIndexer.index_ref(index_name, oref, v.versionTitle, v.language,
+                                          getattr(v, "languageFamilyName", None),
+                                          getattr(v, "isPrimary", False))
+                except Exception as e:
+                    failed.append((oref.normal(), str(e)))
+            print(f"    {v.versionTitle[:44]:46} lang={v.language:3} "
+                  f"indexed={len(new_refs) - len(failed)} failed={len(failed)}")
+            for tref, err in failed[:5]:
+                print(f"        FAILED {tref}: {err}")
+            if len(failed) > 5:
+                print(f"        ... and {len(failed) - 5} more failures")
 
 
 # ---------------------------------------------------------------------------
@@ -362,4 +460,5 @@ if __name__ == "__main__":
     cascade_refs()
     drop_first_segments()
     refresh()
+    reindex_search()
     print("\nDone." + ("  Set DRY_RUN = False to apply." if DRY_RUN else ""))
