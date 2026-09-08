@@ -58,10 +58,54 @@ COMM_SEG = re.compile(r"^((?:Vilna Gaon|Yaakov Emden|Meir Ayin) on Seder Olam Ra
 # section lengths, read from the canonical Hebrew version
 # ---------------------------------------------------------------------------
 
+CANONICAL_VERSION = "Seder Olam, Warsaw 1904"
+
+
+def canonical_chapter():
+    """The `default` node's jagged array from the canonical Hebrew version.
+
+    Everything downstream is measured against this one version, so fail loudly
+    and specifically if it is not shaped the way we expect rather than dying
+    later with a KeyError halfway through a cascade.
+    """
+    v = db.texts.find_one({"title": BASE_TITLE, "versionTitle": CANONICAL_VERSION})
+    if v is None:
+        raise SystemExit(
+            f"ABORT: no version titled {CANONICAL_VERSION!r} for {BASE_TITLE!r}.\n"
+            f"       Available: {sorted(x['versionTitle'] for x in db.texts.find({'title': BASE_TITLE}, {'versionTitle': 1}))}")
+    chapter = v.get("chapter")
+    if not isinstance(chapter, dict) or "default" not in chapter:
+        raise SystemExit(
+            f"ABORT: expected {BASE_TITLE!r} to be a complex text with a 'default' node; "
+            f"got {list(chapter) if isinstance(chapter, dict) else type(chapter).__name__}")
+    return chapter["default"]
+
+
 def canonical_section_lengths():
-    """{section number -> segment count} from the Warsaw 1904 Hebrew text."""
-    v = db.texts.find_one({"title": BASE_TITLE, "versionTitle": "Seder Olam, Warsaw 1904"})
-    return {i: len(sec) for i, sec in enumerate(v["chapter"]["default"], start=1)}
+    """{section number -> segment count} from the canonical Hebrew text."""
+    return {i: len(sec) for i, sec in enumerate(canonical_chapter(), start=1)}
+
+
+def preflight():
+    """Refuse to run against data that is not in the expected pre-migration shape.
+
+    The critical case is a SECOND live run after a successful one.  By then
+    sections 10/20/30 hold [content, colophon], so their segment :2 is a *valid*
+    ref again — and the cascade would happily shift the colophon's refs down
+    onto the content.  Nothing else in the script catches that, because from the
+    cascade's point of view a second run looks exactly like a first one.
+    """
+    chapter = canonical_chapter()
+    already = [i for i, sec in enumerate(chapter, start=1)
+               if sec and not HEADING.match(str(sec[0])) and str(sec[0]).strip()]
+    if already:
+        raise SystemExit(
+            "ABORT: this looks ALREADY MIGRATED — segment 1 is real content, not a chapter\n"
+            f"       heading, in section(s) {already[:5]}{'...' if len(already) > 5 else ''}.\n"
+            "       Re-running would shift the colophon refs in sections 10/20/30 down a\n"
+            "       second time.  If you are resuming an interrupted run, the text step had\n"
+            "       not yet completed and this check would have passed.")
+    print(f"preflight OK: {len(chapter)} sections, segment 1 is a heading in all of them")
 
 
 SECTION_LEN = canonical_section_lengths()
@@ -199,7 +243,24 @@ def default_node(index):
     return index.nodes.get_default_child() if index.nodes.has_children() else index.nodes
 
 
-def drop_first_segment(title, require_heading):
+def is_droppable(first):
+    """Is entry 0 of a section safe to delete?
+
+    Two shapes reach this.  In the base text entry 0 is a string, and it may go
+    only if it is the chapter heading or blank.  In a commentary entry 0 is a
+    whole sub-section (a list of comments on base segment :1), and it may go
+    only if it holds no comments — sub-section 1 is empty throughout, because
+    nobody comments on a chapter heading.  Anything else is real content and the
+    section is left alone rather than silently destroyed.
+    """
+    if isinstance(first, list):
+        return not any(str(x).strip() for x in first)
+    if not str(first).strip():
+        return True
+    return bool(HEADING.match(str(first)))
+
+
+def drop_first_segment(title):
     """Remove entry 0 from every section of every version of `title`.
 
     Writes straight to the Version rather than going through TextChunk, the way
@@ -223,9 +284,8 @@ def drop_first_segment(title, require_heading):
                 new_chapter.append(section)
                 continue
             first = section[0]
-            is_droppable = (not str(first).strip()) or bool(HEADING.match(str(first)))
-            if require_heading and not is_droppable:
-                skipped.append(f"{i} (segment 1 is content: {str(first)[:40]!r})")
+            if not is_droppable(first):
+                skipped.append(f"{i} (entry 1 holds content: {str(first)[:40]!r})")
                 new_chapter.append(section)
                 continue
             new_chapter.append(section[1:])
@@ -246,10 +306,10 @@ def drop_first_segment(title, require_heading):
 def drop_first_segments():
     print("\n=== Step 3: removing the heading segment from the text")
     print(f"\n--- {BASE_TITLE}")
-    drop_first_segment(BASE_TITLE, require_heading=True)
+    drop_first_segment(BASE_TITLE)
     for title in COMMENTARIES:
         print(f"\n--- {title}")
-        drop_first_segment(title, require_heading=False)   # sub-section 1 is empty
+        drop_first_segment(title)
 
 
 # ---------------------------------------------------------------------------
@@ -296,6 +356,7 @@ def report_dangling_refs():
 if __name__ == "__main__":
     print(f"{'DRY RUN — nothing will be written' if DRY_RUN else '*** LIVE RUN — WRITING ***'}")
     print(f"section lengths: {SECTION_LEN}")
+    preflight()
     report_dangling_refs()
     clear_link_collisions()
     cascade_refs()
