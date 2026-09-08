@@ -304,6 +304,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         for attr in ['description', 'categoryDescription']:
             p = getattr(self, attr, {})
             for k, v in p.items():
+                # Guard against non-str values
+                if not isinstance(v, str):
+                    continue
                 p[k] = bleach.clean(v, tags=[], strip=True)
             setattr(self, attr, p)
 
