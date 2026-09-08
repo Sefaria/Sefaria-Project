@@ -4,9 +4,8 @@ from types import SimpleNamespace
 import pytest
 from sefaria.system.database import db as mongo_db
 from sefaria.model.marked_up_text_chunk import (
+    LinkerOutput,
     MarkedUpTextChunk,
-    process_version_title_change_in_linker_output,
-    process_version_title_change_in_marked_up_text_chunks,
 )
 from sefaria.system.exceptions import DuplicateRecordError, InputError
 from sefaria.model.text import Ref
@@ -208,7 +207,7 @@ class TestMarkedUpTextChunk:
                     {**base_doc, "ref": other_ref, "language": "en"},
                 ])
 
-            process_version_title_change_in_marked_up_text_chunks(
+            MarkedUpTextChunk.process_version_title_change(
                 SimpleNamespace(title="Genesis", language="en"),
                 old=old_title,
                 new=new_title,
@@ -225,7 +224,7 @@ class TestMarkedUpTextChunk:
                 "versionTitle": old_title,
             }) == 1
 
-            process_version_title_change_in_linker_output(
+            LinkerOutput.process_version_title_change(
                 SimpleNamespace(title="Genesis", language="en"),
                 old=old_title,
                 new=new_title,
