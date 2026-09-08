@@ -44,36 +44,23 @@ from sefaria.system.database import db
 from sefaria.utils.util import traverse_dict_tree
 
 
-TRUE_WORDS = ("1", "true", "yes", "y", "on")
-FALSE_WORDS = ("0", "false", "no", "n", "off")
-
-
 def _env_flag(name, default):
     """Read a boolean switch from the environment, falling back to `default`.
 
-    Lets a run be driven without editing the file, which matters on a cauldron:
-        DRY_RUN=false REINDEX_SEARCH=true ./run scripts/seder_olam_rabbah.py
-
-    Both spellings are matched explicitly and anything else aborts.  A membership test
-    against the true-words alone would quietly read every unrecognised value as False —
-    so ``DRY_RUN=flase`` would not mean "I am being careful", it would launch a live run
-    of a destructive migration.  An empty value falls back to the default for the same
-    reason.
+    Accepts exactly 'true' or 'false' and aborts on anything else, so a typo cannot
+    turn into a live run: without the check, ``DRY_RUN=flase`` would read as False.
     """
     raw = os.environ.get(name)
-    if raw is None or not raw.strip():
+    if raw is None:
         return default
-    val = raw.strip().lower()
-    if val in TRUE_WORDS:
-        return True
-    if val in FALSE_WORDS:
-        return False
-    raise SystemExit(
-        f"ABORT: {name}={raw!r} is not a recognised true/false value.\n"
-        f"       Use one of {TRUE_WORDS} or {FALSE_WORDS}.\n"
-        f"       Refusing to guess, because guessing wrong here means a live run.")
+    if raw not in ("true", "false"):
+        raise SystemExit(f"ABORT: {name}={raw!r} — use exactly 'true' or 'false'.")
+    return raw == "true"
 
 
+# The two intended invocations:
+#     DRY_RUN=false REINDEX_SEARCH=false ./run scripts/seder_olam_rabbah.py   (local)
+#     DRY_RUN=false REINDEX_SEARCH=true  ./run scripts/seder_olam_rabbah.py   (cauldron/prod)
 DRY_RUN = _env_flag("DRY_RUN", True)
 
 # Rewriting Elasticsearch is a separate switch: it needs SEARCH_URL pointing at a
@@ -81,33 +68,13 @@ DRY_RUN = _env_flag("DRY_RUN", True)
 # https://www.sefaria.org/api/search, so leaving this False keeps a local run from
 # reaching out to production's search index.  It is also ignored while DRY_RUN is on
 # — see reindex_search() for why reindexing an unchanged text is worse than useless.
+#
+# Running live with this off is a normal local workflow.  It does leave the search
+# index stale, and this script cannot fix that on a later run (preflight() blocks a
+# second run, and step 5's delete list is captured during the trim).  Locally that
+# does not matter; on a cauldron or production, turn it on or rebuild search with the
+# normal reindex job afterwards.
 REINDEX_SEARCH = _env_flag("REINDEX_SEARCH", False)
-
-# Escape hatch for the check below, for the case where search is going to be rebuilt by
-# the normal reindex job instead of by this script.
-ALLOW_STALE_SEARCH = _env_flag("ALLOW_STALE_SEARCH", False)
-
-
-def check_flags():
-    """Reject a live run that would finish with Elasticsearch left wrong.
-
-    This has to fail BEFORE anything is written, not at step 5, because by then the
-    situation is unrecoverable from inside this script: preflight() blocks a second run,
-    and even bypassing it would not help, since the old ref list step 5 needs to delete
-    is captured during the trim and cannot be reconstructed once the text is short.
-
-    Fixing search afterwards means running the normal full reindex job.  That is a
-    perfectly reasonable plan — it just has to be a decision rather than an oversight,
-    hence the explicit acknowledgement.
-    """
-    if DRY_RUN or REINDEX_SEARCH or ALLOW_STALE_SEARCH:
-        return
-    raise SystemExit(
-        "ABORT: DRY_RUN=false with REINDEX_SEARCH=false would renumber the text and leave\n"
-        "       Elasticsearch pointing at refs that no longer exist, with no way for this\n"
-        "       script to repair it on a later run.\n"
-        "       Either:  REINDEX_SEARCH=true   (this script rewrites the index), or\n"
-        "                ALLOW_STALE_SEARCH=true   (you will run the full reindex job yourself)")
 
 
 BASE_TITLE = "Seder Olam Rabbah"
@@ -1017,7 +984,6 @@ def verify_commentary_linking():
 
 if __name__ == "__main__":
     print(f"{'DRY RUN — nothing will be written' if DRY_RUN else '*** LIVE RUN — WRITING ***'}")
-    check_flags()
     print(f"section lengths: {SECTION_LEN}")
     preflight()
     report_dangling_refs()
