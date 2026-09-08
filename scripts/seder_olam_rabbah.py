@@ -29,6 +29,7 @@ same reason (see the ``delta < 0`` branch).
 Run with:  ./run scripts/seder_olam_rabbah.py
 Set DRY_RUN = False to actually write.
 """
+import os
 import re
 from collections import defaultdict
 
@@ -36,18 +37,33 @@ import django
 django.setup()
 
 from sefaria.model import *
-from sefaria.helper.schema import cascade, refresh_version_state
+from sefaria.helper.schema import cascade, refresh_version_state, remove_branch
 from sefaria.system.database import db
 from sefaria.utils.util import traverse_dict_tree
 
 
-DRY_RUN = True
+def _env_flag(name, default):
+    """Read a boolean switch from the environment, falling back to `default`.
+
+    Lets a run be driven without editing the file, which matters on a cauldron:
+        DRY_RUN=false REINDEX_SEARCH=true ./run scripts/seder_olam_rabbah.py
+    """
+    raw = os.environ.get(name)
+    if raw is None or not raw.strip():
+        # An empty value (DRY_RUN= ...) must not read as False — that would turn a
+        # typo into a live run of a destructive migration.
+        return default
+    return raw.strip().lower() in ("1", "true", "yes", "y", "on")
+
+
+DRY_RUN = _env_flag("DRY_RUN", True)
 
 # Rewriting Elasticsearch is a separate switch: it needs SEARCH_URL pointing at a
 # cluster you may WRITE to.  The default local_settings points SEARCH_URL at
 # https://www.sefaria.org/api/search, so leaving this False keeps a local run from
-# reaching out to production's search index.
-REINDEX_SEARCH = False
+# reaching out to production's search index.  It is also ignored while DRY_RUN is on
+# — see reindex_search() for why reindexing an unchanged text is worse than useless.
+REINDEX_SEARCH = _env_flag("REINDEX_SEARCH", False)
 
 BASE_TITLE = "Seder Olam Rabbah"
 COMMENTARIES = [f"{c} on Seder Olam Rabbah" for c in ("Vilna Gaon", "Yaakov Emden", "Meir Ayin")]
@@ -384,8 +400,11 @@ def reindex_search():
     # performs a live get_alias() call against SEARCH_URL, so merely asking for the
     # index name reaches the cluster.  A dry run must not talk to search at all.
     if DRY_RUN or not REINDEX_SEARCH:
-        print("\n=== Step 5: Elasticsearch — SKIPPED "
-              f"(DRY_RUN={DRY_RUN}, REINDEX_SEARCH={REINDEX_SEARCH}); no request sent")
+        why = ("DRY_RUN is on, so the text never changed — re-indexing it would delete "
+               "every doc and rewrite identical content"
+               if DRY_RUN and REINDEX_SEARCH else
+               f"DRY_RUN={DRY_RUN}, REINDEX_SEARCH={REINDEX_SEARCH}")
+        print(f"\n=== Step 5: Elasticsearch — SKIPPED ({why}); no request sent")
         for title in [BASE_TITLE] + COMMENTARIES:
             old_refs = OLD_SEGMENT_REFS.get(title) or []
             versions = VersionSet({"title": title}).count()
@@ -451,6 +470,34 @@ def report_dangling_refs():
         print(f"      {r:34} in {counts[r]:>2} link(s)   [section has {SECTION_LEN.get(sec, 0)} segments]")
 
 
+# ---------------------------------------------------------------------------
+# step 6 — drop the "Introduction" node from two of the four books
+# ---------------------------------------------------------------------------
+
+INTRO_NODE_TITLES = ["Seder Olam Rabbah", "Vilna Gaon on Seder Olam Rabbah"]
+
+
+def remove_introduction_nodes():
+    """Delete the (empty) 'Introduction' schema node from the two books that want it.
+
+    Only these two — the Yaakov Emden and Meir Ayin Introductions stay.
+
+    remove_branch does not cascade: it deletes the node's own linkset and its text in
+    every version, then rebuilds, and leaves notes/topic links/sheets/webpages/history
+    alone.  That is fine here only because these nodes are empty and unreferenced.
+    """
+    print("\n=== Step 6: removing the 'Introduction' node")
+    if DRY_RUN:
+        for title in INTRO_NODE_TITLES:
+            print(f"    (dry run) would remove Introduction from {title}")
+        return
+    for title in INTRO_NODE_TITLES:
+        index = library.get_index(title)
+        node = next(n for n in index.nodes.children if n.key == "Introduction")
+        remove_branch(node)
+        print(f"    removed Introduction from {title}")
+
+
 if __name__ == "__main__":
     print(f"{'DRY RUN — nothing will be written' if DRY_RUN else '*** LIVE RUN — WRITING ***'}")
     print(f"section lengths: {SECTION_LEN}")
@@ -461,4 +508,5 @@ if __name__ == "__main__":
     drop_first_segments()
     refresh()
     reindex_search()
+    remove_introduction_nodes()
     print("\nDone." + ("  Set DRY_RUN = False to apply." if DRY_RUN else ""))
