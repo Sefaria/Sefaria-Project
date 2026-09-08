@@ -37,6 +37,8 @@ import django
 django.setup()
 
 from sefaria.model import *
+# Not re-exported by sefaria.model's __init__, so it needs naming outright.
+from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk
 from sefaria.helper.schema import cascade, refresh_version_state, remove_branch
 from sefaria.system.database import db
 from sefaria.utils.util import traverse_dict_tree
@@ -161,6 +163,8 @@ def base_needs_rewrite_for(segment):
         # links are the only collection with a uniqueness constraint on refs, and
         # they are rewritten here like everything else — the collision pre-pass
         # below has already cleared the way.
+        if isinstance(record, MarkedUpTextChunk):
+            return False        # deferred to after the trim — see rewrite_marked_up_text_chunks()
         m = BASE_SEG.match(tref)
         if not m:
             return False
@@ -179,6 +183,8 @@ def comm_rewriter(tref, *_):
 
 
 def comm_needs_rewrite(tref, record=None):
+    if isinstance(record, MarkedUpTextChunk):
+        return False            # deferred to after the trim — see rewrite_marked_up_text_chunks()
     m = COMM_SEG.match(tref)
     return bool(m) and int(m.group(3)) == 2
 
@@ -229,6 +235,42 @@ def clear_link_collisions():
     if not DRY_RUN and victims:
         res = db.links.delete_many({"_id": {"$in": list(victims)}})
         print(f"    deleted {res.deleted_count}")
+
+
+# ---------------------------------------------------------------------------
+# step 1b — clear stale MarkedUpTextChunk records at segment 1
+# ---------------------------------------------------------------------------
+
+def find_stale_mutc():
+    """MarkedUpTextChunk records sitting at ``X:1`` / ``<Comm> X:1:Z``.
+
+    Exactly the same species as the stale ``X:1`` links cleared above, and stale for
+    the same reason: the citation linker wrote them when the section's content lived
+    at :1, before the heading segment was inserted.  Their spans describe characters
+    of a text that is no longer at that ref — ``report_marked_up_text_chunks()``
+    prints the evidence, span by span.
+
+    They have to go before the :2 records can move down, because MarkedUpTextChunk
+    enforces uniqueness on (ref, versionTitle, language) in ``_validate()``.
+    """
+    stale = []
+    for title in [BASE_TITLE] + COMMENTARIES:
+        for d in db.marked_up_text_chunks.find({"ref": {"$regex": f"^{re.escape(title)} "}},
+                                               {"ref": 1}):
+            m = BASE_SEG.match(d["ref"]) or COMM_SEG.match(d["ref"])
+            if m and int(m.group(3)) == 1:
+                stale.append(d["_id"])
+    return stale
+
+
+def clear_stale_mutc():
+    stale = find_stale_mutc()
+    print(f"\n=== Step 1b: stale segment-1 MarkedUpTextChunk records to delete: {len(stale)}")
+    if not DRY_RUN and stale:
+        res = db.marked_up_text_chunks.delete_many({"_id": {"$in": stale}})
+        print(f"    deleted {res.deleted_count}")
+    elif DRY_RUN:
+        print("    (dry run) nothing deleted — see the report above for what these hold")
 
 
 # ---------------------------------------------------------------------------
@@ -367,6 +409,70 @@ def refresh():
 
 
 # ---------------------------------------------------------------------------
+# step 4b — rewrite MarkedUpTextChunk refs (deferred until AFTER the trim)
+# ---------------------------------------------------------------------------
+
+def rewrite_marked_up_text_chunks():
+    """Move each MarkedUpTextChunk down a segment, once the text underneath is correct.
+
+    This one collection cannot ride along with the cascade in step 2, and it is the
+    only one that cares about the ordering.  ``MarkedUpTextChunk._validate()`` checks
+    the record against the text *at its own ref*: the TextChunk must be non-empty, the
+    (ref, versionTitle, language) key must be free, and every span's charRange must
+    still cut out exactly the span's text.  During step 2 the text has not moved yet,
+    so a record arriving at ``12:1`` is validated against the chapter heading — and
+    fails all three ways at once.  Deferring to here means each record lands on the
+    text it was actually built from, so the spans line up unchanged.
+
+    (In step 2 the cascade still *visits* these records; the ``needs_rewrite``
+    callbacks return False for them, which is why nothing is saved there.)
+
+    Ascending segment order, for the same reason the links need it: :2 must vacate
+    :1 before :3 moves onto :2, or the uniqueness check rejects the second move.
+    """
+    print("\n=== Step 4b: rewriting MarkedUpTextChunk refs")
+    if DRY_RUN:
+        print("    (dry run) skipped — the text still holds the heading segment, so every")
+        print("              record would fail validation exactly as it does in a live run")
+        return
+
+    for title in [BASE_TITLE] + COMMENTARIES:
+        is_comm = title in COMMENTARIES
+        pattern = COMM_SEG if is_comm else BASE_SEG
+        docs = []
+        for d in db.marked_up_text_chunks.find({"ref": {"$regex": f"^{re.escape(title)} "}},
+                                               {"ref": 1}):
+            m = pattern.match(d["ref"])
+            if m and int(m.group(3)) >= 2:
+                docs.append((int(m.group(3)), d["_id"], d["ref"], m))
+        docs.sort(key=lambda t: t[0])           # ascending segment
+
+        moved, failed = 0, []
+        for seg, _id, tref, m in docs:
+            new_ref = (f"{m.group(1)}{m.group(2)}:{seg - 1}:{m.group(4)}" if is_comm
+                       else f"{m.group(1)}{m.group(2)}:{seg - 1}")
+            mutc = MarkedUpTextChunk().load({"_id": _id})
+            if mutc is None:
+                failed.append((tref, "record vanished between query and load"))
+                continue
+            mutc.ref = new_ref
+            try:
+                mutc.save()
+                moved += 1
+            except Exception as e:
+                # Left where it is, pointing at a segment that no longer exists.  Reported
+                # rather than raised: Mongo is already committed by this point, and one bad
+                # record must not strand the rest of the collection mid-move.
+                failed.append((f"{tref} -> {new_ref}", str(e)))
+
+        print(f"    {title:40} moved={moved} failed={len(failed)}")
+        for tref, err in failed[:5]:
+            print(f"        FAILED {tref}: {err}")
+        if len(failed) > 5:
+            print(f"        ... and {len(failed) - 5} more failures")
+
+
+# ---------------------------------------------------------------------------
 # step 5 — rewrite the Elasticsearch text index
 # ---------------------------------------------------------------------------
 
@@ -471,6 +577,87 @@ def report_dangling_refs():
 
 
 # ---------------------------------------------------------------------------
+# report only — MarkedUpTextChunk records (the citation linker's per-segment data)
+# ---------------------------------------------------------------------------
+
+def _text_at(tref, vtitle, lang):
+    """Plain text of one segment in one version, or '' if the ref no longer resolves."""
+    try:
+        return TextChunk(Ref(tref), lang=lang, vtitle=vtitle).text or ""
+    except Exception:
+        return ""
+
+
+def report_marked_up_text_chunks():
+    """What the cascade would meet in ``marked_up_text_chunks``, and why some of it fails.
+
+    A MarkedUpTextChunk is keyed by (ref, versionTitle, language) and, on save, checks
+    itself against the text *at its ref*: the text must be non-empty, no other record
+    may hold the same key, and each span's text must match the characters it points
+    at.  Two kinds of record trip over that during this migration:
+
+    1. Records already sitting at ``X:1`` / ``<Comm> X:1:Z`` — the slot every ``:2``
+       record has to move into.  Like the stale ``X:1`` links, these were built when
+       the content still lived at :1, before the heading segment was inserted.
+       They block the move with a Duplicate primary key error.
+    2. Every ``:2`` record, if it is rewritten BEFORE the text shrinks: at that moment
+       the destination still holds the heading (or nothing), so validation fails.
+
+    This prints a sample of (1) so the decision to delete them can be made on real
+    data, and counts (2) so the size of the post-trim rewrite is known up front.
+    """
+    print("\n=== Report: MarkedUpTextChunk records (NOT modified)")
+    titles = [BASE_TITLE] + COMMENTARIES
+    stale, movers = [], defaultdict(int)
+    for title in titles:
+        for d in db.marked_up_text_chunks.find({"ref": {"$regex": f"^{re.escape(title)} "}}):
+            m = BASE_SEG.match(d["ref"]) or COMM_SEG.match(d["ref"])
+            if not m:
+                continue
+            seg = int(m.group(3))
+            if seg == 1:
+                stale.append(d)
+            elif seg >= 2:
+                movers[title] += 1
+
+    print(f"    records that would be MOVED down one segment (after the text is trimmed):")
+    for title in titles:
+        print(f"      {title:40} {movers[title]:>4}")
+
+    print(f"\n    records ALREADY at segment 1 — the slot the :2 records need: {len(stale)}")
+    if not stale:
+        return
+    by_version = defaultdict(int)
+    for d in stale:
+        by_version[(d["versionTitle"], d["language"])] += 1
+    for (vt, lang), n in sorted(by_version.items(), key=lambda kv: -kv[1]):
+        print(f"      {n:>4}  {vt} [{lang}]")
+
+    print("\n    sample (span text vs. what is at that ref today vs. the :2 segment it presumably describes):")
+    for d in stale[:8]:
+        m = BASE_SEG.match(d["ref"]) or COMM_SEG.match(d["ref"])
+        if COMM_SEG.match(d["ref"]):
+            content_ref = f"{m.group(1)}{m.group(2)}:2:{m.group(4)}"
+        else:
+            content_ref = f"{m.group(1)}{m.group(2)}:2"
+        here = _text_at(d["ref"], d["versionTitle"], d["language"])
+        there = _text_at(content_ref, d["versionTitle"], d["language"])
+        spans = [sp for sp in d.get("spans", []) if not sp.get("deleted")]
+        print(f"\n      {d['ref']}  ({d['versionTitle']} [{d['language']}])  {len(spans)} span(s)")
+        print(f"        text at {d['ref']!s:34}: {here[:70]!r}")
+        print(f"        text at {content_ref!s:34}: {there[:70]!r}")
+        for sp in spans[:3]:
+            a, b = sp["charRange"]
+            in_content = there[a:b] == sp["text"]
+            print(f"        span [{a}:{b}] {sp['type']:12} {sp['text'][:40]!r:44} "
+                  f"{'matches the :2 text' if in_content else 'does NOT match the :2 text either'}")
+        if len(spans) > 3:
+            print(f"        ... and {len(spans) - 3} more span(s)")
+    if len(stale) > 8:
+        print(f"\n      ... and {len(stale) - 8} more record(s)")
+
+
+# ---------------------------------------------------------------------------
 # step 6 — drop the "Introduction" node from two of the four books
 # ---------------------------------------------------------------------------
 
@@ -503,10 +690,13 @@ if __name__ == "__main__":
     print(f"section lengths: {SECTION_LEN}")
     preflight()
     report_dangling_refs()
+    report_marked_up_text_chunks()
     clear_link_collisions()
+    clear_stale_mutc()
     cascade_refs()
     drop_first_segments()
     refresh()
+    rewrite_marked_up_text_chunks()
     reindex_search()
     remove_introduction_nodes()
     print("\nDone." + ("  Set DRY_RUN = False to apply." if DRY_RUN else ""))
