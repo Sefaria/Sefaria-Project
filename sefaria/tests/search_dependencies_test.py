@@ -377,6 +377,7 @@ class TestUnitGuards:
 #  Layer 1 — hook integration tests (real Mongo, fake ES)                      #
 # --------------------------------------------------------------------------- #
 
+@pytest.mark.needs_mongo
 class TestBookHooks:
 
     def test_book_save_and_delete(self, django_db_setup, django_db_blocker, search_on):
@@ -498,6 +499,7 @@ class TestBookHooks:
         assert failing_ref in [ref for ref in summary_calls[0].kwargs["failed_refs"]]
 
 
+@pytest.mark.needs_mongo
 @pytest.mark.django_db
 class TestTopicHooks:
 
@@ -628,6 +630,7 @@ class TestTopicHooks:
             t.delete()
 
 
+@pytest.mark.needs_mongo
 class TestCategoryHooks:
 
     def test_category_path_change_reindexes_books(self, search_on, monkeypatch):

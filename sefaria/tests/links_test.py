@@ -12,6 +12,7 @@ def setup_module(module):
 
 class Test_get_links():
 
+    @pytest.mark.needs_mongo
     def test_get_links_on_range(self):
         r3 = [l["ref"] + l["type"] for l in get_links("Exodus 2:3")]
         r4 = [l["ref"] + l["type"]  for l in get_links("Exodus 2:4")]
@@ -24,12 +25,14 @@ class Test_get_links():
         # No links in range absent from segments
         assert all(r in r3 or r in r4 for r in r34)
 
+    @pytest.mark.needs_mongo
     @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
     def test_get_links_filtered_by_single_category(self, mock_collections):
         links = get_links("Exodus 1:12", with_text=False, categories=["Commentary"])
         assert len(links) > 0
         assert all(link["category"] == "Commentary" for link in links)
 
+    @pytest.mark.needs_mongo
     @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
     def test_get_links_filtered_by_multiple_categories(self, mock_collections):
         allowed_categories = {"Commentary", "Midrash"}
@@ -37,6 +40,7 @@ class Test_get_links():
         assert len(links) > 0
         assert all(link["category"] in allowed_categories for link in links)
 
+    @pytest.mark.needs_mongo
     @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
     def test_get_links_excludes_talmud_perek_refs(self, mock_collections):
         """Links whose anchor ref is a Talmud perek ref should be excluded from results."""
@@ -57,6 +61,7 @@ class Test_get_links():
             f"Perek ref {perek_ref_with_links} should be excluded from link anchor refs"
         )
 
+    @pytest.mark.needs_mongo
     @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
     def test_get_links_excludes_parasha_refs(self, mock_collections):
         """Links whose anchor ref is a parasha ref should be excluded from results."""
@@ -102,6 +107,7 @@ class Test_get_links():
         )
 
 
+@pytest.mark.needs_mongo
 class Test_links_from_get_text():
 
     def test_links_from_padded_ref(self):

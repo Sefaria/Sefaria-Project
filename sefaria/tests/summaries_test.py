@@ -31,6 +31,7 @@ class Test_Toc(object):
             model.IndexSet({"title": title}).delete()
             model.VersionSet({"title": title}).delete()
 
+    @pytest.mark.needs_mongo
     def test_toc_integrity(self):
         self.recur_toc_integrity(model.library.get_toc())
 
@@ -77,6 +78,7 @@ class Test_Toc(object):
         assert set(node.keys()) >= expected_keys
         assert 'category' not in node  
 
+    @pytest.mark.needs_mongo
     @pytest.mark.deep
     def test_new_index_title_change(self):
         new_index = model.Index({
@@ -166,6 +168,7 @@ class Test_Toc(object):
     def test_text_change(self):
         pass
 
+    @pytest.mark.needs_mongo
     @pytest.mark.deep
     def test_index_title_change(self):
         try:
