@@ -562,18 +562,33 @@ def reindex_search():
 def report_dangling_refs():
     """Links pointing past the end of a section.  These are broken *today*,
     left over from an earlier restructuring, and this script deliberately does
-    not renumber them.  Reported so they can be dealt with separately."""
+    not renumber them.  Reported so they can be dealt with separately.
+
+    The other side of each link is printed too: knowing that 'Seder Olam Rabbah 5:3'
+    is dangling says nothing about how to fix it, but knowing what it was linked to
+    usually does — a commentary anchored there points at which segment it meant,
+    and a cluster of links from one work suggests they all shifted together.
+    """
     print("\n=== Report: pre-existing dangling refs (NOT modified)")
-    counts = defaultdict(int)
-    for l in db.links.find({"refs": {"$regex": BASE_TITLE}}, {"refs": 1}):
-        for r in l["refs"]:
+    partners = defaultdict(list)
+    for l in db.links.find({"refs": {"$regex": BASE_TITLE}}, {"refs": 1, "type": 1}):
+        for i, r in enumerate(l["refs"]):
             m = BASE_SEG.match(r)
             if m and int(m.group(3)) > SECTION_LEN.get(int(m.group(2)), 0):
-                counts[r] += 1
-    print(f"    {len(counts)} distinct refs across {sum(counts.values())} links")
-    for r in sorted(counts, key=lambda x: (int(x.split()[-1].split(':')[0]), int(x.split(':')[-1]))):
+                # A link's `refs` is a 2-element list, so the partner is the other
+                # entry.  Guard the length anyway — malformed links do exist, and a
+                # report is the last place that should raise.
+                other = [x for j, x in enumerate(l["refs"]) if j != i]
+                partners[r].append((other[0] if other else "(no partner ref)",
+                                    l.get("type") or ""))
+    total = sum(len(v) for v in partners.values())
+    print(f"    {len(partners)} distinct refs across {total} links")
+    for r in sorted(partners, key=lambda x: (int(x.split()[-1].split(':')[0]), int(x.split(':')[-1]))):
         sec = int(r.split()[-1].split(':')[0])
-        print(f"      {r:34} in {counts[r]:>2} link(s)   [section has {SECTION_LEN.get(sec, 0)} segments]")
+        print(f"      {r:34} in {len(partners[r]):>2} link(s)   "
+              f"[section has {SECTION_LEN.get(sec, 0)} segments]")
+        for other, ltype in sorted(partners[r]):
+            print(f"          linked to  {other}{f'  ({ltype})' if ltype else ''}")
 
 
 # ---------------------------------------------------------------------------
