@@ -23,8 +23,15 @@ This script drops segment 1 and shifts everything above it down by one:
 
 ORDERING.  The ref cascade runs BEFORE the text is shortened.  This is a
 downsize, so once a section loses a segment the old refs stop validating —
-``sefaria.helper.schema.resize_jagged_array`` cascades first for exactly the
-same reason (see the ``delta < 0`` branch).
+``sefaria.helper.schema.change_node_structure`` cascades first for exactly the
+same reason (see its ``delta < 0`` branch: "For downsizing, refs will become
+invalidated in their current state, so changes must be made before the
+structure change").
+
+Two collections need the OPPOSITE order and get their own steps after the trim:
+MarkedUpTextChunk (step 4b), whose validation checks the record against the text
+at its ref, and the derived expandedRefs on WebPage / RefTopicLink (step 4c),
+which are recomputed on save and so would otherwise be rebuilt from the old text.
 
 Run with:  ./run scripts/seder_olam_rabbah.py
 Set DRY_RUN = False to actually write.
@@ -454,9 +461,11 @@ def is_droppable(first):
 def drop_first_segment(title):
     """Remove entry 0 from every section of every version of `title`.
 
-    Writes straight to the Version rather than going through TextChunk, the way
-    resize_jagged_array does — a TextChunk built mid-change can pick up refs
-    that are momentarily inconsistent.
+    Writes straight to the Version rather than going through TextChunk, because a
+    TextChunk built mid-change can pick up refs that are momentarily inconsistent.
+    change_node_structure() does the same thing for the same reason, down to the
+    traverse_dict_tree pattern for complex texts — its comment reads "we're going to
+    save directly on the version to avoid weird mid change Ref bugs".
     """
     index = library.get_index(title)
     node = default_node(index)

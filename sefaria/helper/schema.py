@@ -730,13 +730,20 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
     print('Updating WebPages')
     # Same shape as the Topic Links pair above: query on expandedRefs, but rewrite the
     # primary 'refs', because WebPage._normalize() recomputes expandedRefs from refs.
+    # (_normalize runs inside every save() — see AbstractMongoRecord.save — so it is not
+    # something a caller can sequence around; every save here recomputes the expansion.)
     #
-    # CAVEAT for resize callers: that recomputation runs against the text as it stands
-    # AT SAVE TIME.  A section-level or ranged primary ref ('Seder Olam Rabbah 9') is not
-    # matched by a segment rewriter, so it keeps its value and its expansion is simply
-    # regenerated unchanged.  If cascade() ran before the text was resized, that expansion
-    # is stale and nothing here revisits it — such callers must re-save the affected
-    # records once the text is final.
+    # CAVEAT FOR DOWNSIZING CALLERS.  A downsize has to cascade BEFORE the structure
+    # changes, because the old refs stop resolving once it does — change_node_structure()
+    # does exactly this in its `delta < 0` branch.  That ordering means the expansions
+    # recomputed here are built from the OLD text.
+    #
+    # For a segment-level primary ref that is harmless: the rewriter changed the ref, so
+    # the fresh expansion is correct.  It is NOT harmless for a section-level or ranged
+    # primary ref ('Seder Olam Rabbah 9'), which no segment rewriter matches — the ref
+    # keeps its value, the expansion is regenerated unchanged from the pre-resize text,
+    # and it will still list a segment that the resize is about to delete.  Nothing here
+    # revisits it, so a downsizing caller must re-save the affected records afterwards.
     #
     # ManuscriptPage above is the exception: nothing recomputes its expanded_refs on save,
     # so rewriting that field directly is both necessary and effective.
