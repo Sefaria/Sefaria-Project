@@ -18,7 +18,12 @@ import { NewsletterSignUpForm } from "./NewsletterSignUpForm";
 // the prop is absent and context.pageTypes (classified synchronously from panel state in
 // ReaderApp.getUserContext) is the whole answer.
 const Promotions = ({ pageTypeOverride }) => {
-  const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds); // local cache
+  // No cross-mount cache here on purpose: the processing effect below re-runs on every mount
+  // (StrapiDataContext lives at the app root and still holds the payload), so a remounted
+  // instance rebuilds its ads immediately. A module-global stash (Sefaria._inAppAds) used to
+  // pre-fill this state — a leftover whose only real job had been masking the effect-deps bug
+  // this component's other comment describes, by making ads appear after a remount.
+  const [inAppAds, setInAppAds] = useState(null);
   const [matchingAds, setMatchingAds] = useState(null); // match the ads to what comes from Strapi
   const context = useContext(AdContext);
   const strapi = useContext(StrapiDataContext);
@@ -30,15 +35,12 @@ const Promotions = ({ pageTypeOverride }) => {
     if (strapi.dataFromStrapiHasBeenReceived) {
       // Guard against unexpected Strapi payload shapes so a processing error here so the code can never unmount the whole React tree
       try {
-        Sefaria._inAppAds = [];
-
         const sidebarAds = strapi.strapiData?.sidebarAds;
 
         // Only an array is iterable here. A stale/incompatible payload may nest the ads under a wrapper object (Strapi v4's { data: [...] })
         // The wrong data type  must be treated as "no ads" rather than crashing on .forEach iterator
         if (Array.isArray(sidebarAds)) {
-          Sefaria._inAppAds = buildInAppAdsFromSidebarAds(sidebarAds);
-          setInAppAds(Sefaria._inAppAds);
+          setInAppAds(buildInAppAdsFromSidebarAds(sidebarAds));
         }
       } catch (error) {
         console.error("Failed to process sidebar ads from Strapi: ", error);

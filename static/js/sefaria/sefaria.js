@@ -3032,7 +3032,6 @@ _media: {},
   },
   _tableOfContentsDedications: {},
     _strapiContent: null,
-  _inAppAds: null,
   _upcomingDay: {},  // for example, possible keys are 'parasha' and 'holiday'
   getUpcomingDay: function(day) {
       // currently `day` can be 'holiday' or 'parasha'
@@ -4157,7 +4156,6 @@ Sefaria.resetCache = function() {
     this.sheets._userSheetsByRef = {};
 
     // These change slowly, but they do change
-    this._inAppAds = {};
     this._upcomingDay = {};
     this._parashaNextRead = {};
     this._featuredTopic = {};
