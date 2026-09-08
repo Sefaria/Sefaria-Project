@@ -3,7 +3,11 @@ from types import SimpleNamespace
 
 import pytest
 from sefaria.system.database import db as mongo_db
-from sefaria.model.marked_up_text_chunk import MarkedUpTextChunk, process_version_title_change
+from sefaria.model.marked_up_text_chunk import (
+    MarkedUpTextChunk,
+    process_version_title_change_in_linker_output,
+    process_version_title_change_in_marked_up_text_chunks,
+)
 from sefaria.system.exceptions import DuplicateRecordError, InputError
 from sefaria.model.text import Ref
 pytestmark = pytest.mark.django_db
@@ -176,7 +180,7 @@ class TestMarkedUpTextChunk:
         with pytest.raises(InputError):
             MarkedUpTextChunk(invalid_language_payload).save()
 
-    def test_process_version_title_change_updates_mutc_and_linker_output_only_in_scope(self):
+    def test_process_version_title_change_handlers_update_only_their_collection_and_scope(self):
         old_title = "Old Shared Version Title"
         new_title = "New Shared Version Title"
         target_ref = "Genesis 1:1"
@@ -204,7 +208,24 @@ class TestMarkedUpTextChunk:
                     {**base_doc, "ref": other_ref, "language": "en"},
                 ])
 
-            process_version_title_change(
+            process_version_title_change_in_marked_up_text_chunks(
+                SimpleNamespace(title="Genesis", language="en"),
+                old=old_title,
+                new=new_title,
+            )
+
+            assert mongo_db.marked_up_text_chunks.count_documents({
+                "ref": target_ref,
+                "language": "en",
+                "versionTitle": new_title,
+            }) == 1
+            assert mongo_db.linker_output.count_documents({
+                "ref": target_ref,
+                "language": "en",
+                "versionTitle": old_title,
+            }) == 1
+
+            process_version_title_change_in_linker_output(
                 SimpleNamespace(title="Genesis", language="en"),
                 old=old_title,
                 new=new_title,
