@@ -32,7 +32,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from functools import wraps
@@ -135,38 +135,6 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
                 return resolve_url(next_page)
         return super().get_next_page()
 
-
-class CustomPasswordResetDoneView(StaticViewMixin, PasswordResetDoneView):
-    pass
-
-class CustomPasswordResetCompleteView(StaticViewMixin, PasswordResetCompleteView):
-    pass
-
-class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
-    form_class = SefariaPasswordResetForm
-    email_template_name = 'registration/password_reset_email.txt'
-    html_email_template_name = 'registration/password_reset_email.html'
-    
-    def form_valid(self, form):
-        """
-        Override form_valid to set the correct domain for the email context.
-        """
-        # Get the current domain from the request
-        current_domain = self.request.get_host()
-        
-        # Call form.save with domain override - this sends the email
-        form.save(
-            request=self.request,
-            domain_override=current_domain,
-            use_https=self.request.is_secure(),
-            email_template_name=self.email_template_name,
-            subject_template_name=self.subject_template_name,
-            html_email_template_name=self.html_email_template_name,
-            from_email=self.from_email,
-            extra_email_context=self.extra_email_context,
-        )
-        # Don't call super().form_valid(form) as it would send the email again
-        return HttpResponseRedirect(self.get_success_url())
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm

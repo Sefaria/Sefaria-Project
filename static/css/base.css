@@ -588,10 +588,6 @@ body.hebrew #aboutPage .span5 {
 	margin-bottom: 7px;
 }
 
-#resetPassword label {
-	width: 50px;
-}
-
 .errorlist {
 	color: red;
 	list-style-type: none;
