@@ -710,16 +710,10 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
     print('Updating Ref Data')
     generic_rewrite(RefDataSet(construct_query('ref', identifier)))
     print('Updating Topic Links')
-    # NOTE on the expandedRefs passes below (RefTopicLink and WebPage): both models
-    # regenerate expandedRefs from their primary ref inside _normalize(), so the value
-    # written here is discarded on save and recomputed from the CURRENT text shape.
-    # That is fine when the primary ref itself was rewritten above, and it is fine when
-    # cascade() runs after the text has reached its final shape.  It does NOT work for
-    # section-level or ranged primary refs during a resize run before the text changes:
-    # the recomputation regenerates the old expansion and nothing revisits it afterwards.
-    # Such callers must re-save the affected records once the text is final.
-    # (ManuscriptPage is different — nothing recomputes its expanded_refs on save, so the
-    # direct rewrite below sticks.)
+    # The second pass QUERIES on expandedRefs but REWRITES 'ref' (generic_rewrite's
+    # default attr_name) — a second net for records the first query missed.  Rewriting
+    # the primary ref is the point: RefTopicLink._normalize() regenerates expandedRefs
+    # from it on every save, so writing the expansion directly would be overwritten.
     generic_rewrite(RefTopicLinkSet(construct_query('ref', identifier)))
     generic_rewrite(RefTopicLinkSet(construct_query('expandedRefs', identifier)))
     print('Updating Garden Stops')
@@ -734,8 +728,20 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
     generic_rewrite(ManuscriptPageSet(construct_query('contained_refs', identifier)), attr_name='contained_refs')
     generic_rewrite(ManuscriptPageSet(construct_query('expanded_refs', identifier)), attr_name='expanded_refs')
     print('Updating WebPages')
+    # Same shape as the Topic Links pair above: query on expandedRefs, but rewrite the
+    # primary 'refs', because WebPage._normalize() recomputes expandedRefs from refs.
+    #
+    # CAVEAT for resize callers: that recomputation runs against the text as it stands
+    # AT SAVE TIME.  A section-level or ranged primary ref ('Seder Olam Rabbah 9') is not
+    # matched by a segment rewriter, so it keeps its value and its expansion is simply
+    # regenerated unchanged.  If cascade() ran before the text was resized, that expansion
+    # is stale and nothing here revisits it — such callers must re-save the affected
+    # records once the text is final.
+    #
+    # ManuscriptPage above is the exception: nothing recomputes its expanded_refs on save,
+    # so rewriting that field directly is both necessary and effective.
     generic_rewrite(WebPageSet(construct_query('refs', identifier)), attr_name='refs')
-    generic_rewrite(WebPageSet(construct_query('expandedRefs', identifier)), attr_name='expandedRefs')
+    generic_rewrite(WebPageSet(construct_query('expandedRefs', identifier)), attr_name='refs')
     if not skip_history:
         print('Updating History')
         generic_rewrite(HistorySet(construct_query('ref', identifier), sort=[('ref', 1)]))
