@@ -5378,7 +5378,7 @@ AASA_EXCLUDED_PATHS = [
     "/register/",
     "/logout",
     "/logout/",
-    "/password/reset*",     # reset request, emailed confirm link, done/complete pages
+    "/password/reset*",     # emailed password-reset confirm link
 ]
 
 AASA_PATHS = ["NOT " + path for path in AASA_EXCLUDED_PATHS] + ["*"]
