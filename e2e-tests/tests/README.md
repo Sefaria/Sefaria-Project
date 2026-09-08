@@ -7,20 +7,21 @@ URL glob alone); the historical recorded/synthetic split ended 2026-08-31:
 | | Payload source | Status |
 | --- | --- | --- |
 | **Synthetic** (`routeWithStrapiPayload`) | a payload built in code by the factory | the only routing in use — permutations, unpublishable field values, responses Strapi would never send, AND the fourteen recorded scenarios, now served from deep-equal replicas in [`strapi.scenario-payloads.js`](strapi.scenario-payloads.js) |
-| **Recorded** (`.har` files) | committed captures from real Strapi | **frozen reference** — never replayed, never re-recorded. They document real response structure and anchor two guards: the factory schema contract and the per-scenario fidelity proof |
+| **Recorded** (`.har` files) | committed captures from real Strapi | **inert reference** — never replayed, never re-recorded, depended on by nothing at runtime. They stay committed so anyone can read what Strapi really produced; the scenario replicas were verified against them once, at generation time |
 
 Recording came first, deliberately: fourteen real states were captured before any abstraction was
 extracted, so the factory is shaped by observed variation rather than by a guess. The move off HAR
 replay happened because `routeFromHAR` matches on the GraphQL POST body, so ANY change to the query
-in `static/js/context.js` — even one added field — invalidated all fourteen recordings at once. The
-recordings still hold the factory honest two ways:
+in `static/js/context.js` — even one added field — invalidated all fourteen recordings at once.
+What keeps the synthetic payloads honest now that nothing compares them to recordings at runtime:
 
-- [`strapi-payload-contract.spec.js`](strapi-payload-contract.spec.js) — the factory's field set
-  equals what the recordings contain (minus `FIELDS_ADDED_SINCE_RECORDING`, the declared list of
-  query fields added after the freeze — and a companion test fails if a declared addition ever
-  appears in a recording, so the list can't rot);
-- [`strapi-scenario-payload-fidelity.spec.js`](strapi-scenario-payload-fidelity.spec.js) — each
-  scenario replica in `strapi.scenario-payloads.js` deep-equals its recording's response body.
+- **the factory is the schema** — `FIELD_DEFAULTS` is updated together with the GraphQL query in
+  the same change, `assertKnownFields` throws on any undeclared field a spec tries to set, and the
+  page-type spec asserts the client's REAL query names its fields (from the intercepted POST body);
+- [`strapi-payload-contract.spec.js`](strapi-payload-contract.spec.js) — the builders emit exactly
+  the fields the factory declares (self-consistency; no recordings involved);
+- the scenario replicas' recorded VALUES are frozen by rule — verified against the `.har` files
+  once when generated, and `strapi.scenario-payloads.js`'s header forbids editing them.
 
 These specs intentionally sit **outside** the `PageManager` / `goToPageWithLang` conventions in
 [`../CLAUDE.md`](../CLAUDE.md). The standard entry helpers call `installOverlaySuppression()`,
@@ -34,11 +35,10 @@ use a bare `page.goto` plus a Strapi route, keeping Strapi **on**.
 | --- | --- |
 | [`../support/strapi-har-fixture.js`](../support/strapi-har-fixture.js) | RETIRED record/replay wrapper over `routeFromHAR` — no spec imports it since the 2026-08-31 migration; kept as reference for how the recordings were made. |
 | [`strapi.scenario-payloads.js`](strapi.scenario-payloads.js) | `SCENARIO_PAYLOADS` — factory-built, deep-equal replicas of the fourteen recordings, attached to `SCENARIOS.<name>.payload`. |
-| [`strapi-scenario-payload-fidelity.spec.js`](strapi-scenario-payload-fidelity.spec.js) | Proves each replica deep-equals its recording (toEqual — structural equality). Needs no server. |
 | [`../support/strapi-payload-factory.js`](../support/strapi-payload-factory.js) | Builds a synthetic response body: `banner`/`modal`/`sidebarAd` document builders, `strapiPayload`, `targetCountries`, and the `daysFromNow`/`hoursFromNow` helpers measured from `SYNTHETIC_NOW`. Pure — no Playwright import. |
 | [`../support/strapi-payload-fixture.js`](../support/strapi-payload-fixture.js) | `routeWithStrapiPayload(context, payload, {status, rawBody})` plus `expectStrapiServed` — fulfils the endpoint from a built payload, matching the URL glob alone. |
 | [`strapi.fixtures.js`](strapi.fixtures.js) | The `SCENARIOS` map (one entry per recorded Strapi state) plus the setup helpers: `prepareStrapiPage`, `useInterfaceLanguage`, `advanceUntilVisible`, `advanceBy`, `waitForTimerArmed`. |
-| [`strapi-payload-contract.spec.js`](strapi-payload-contract.spec.js) | Holds the factory's field set to what every committed recording actually contains — the guard that keeps synthetic payloads honest. Needs no server. |
+| [`strapi-payload-contract.spec.js`](strapi-payload-contract.spec.js) | The builders emit exactly the fields the factory declares — self-consistency, no recordings read. Needs no server. |
 | [`strapi-show-delay.spec.js`](strapi-show-delay.spec.js) | *(synthetic)* Each surface waits exactly its own `showDelay` — hidden a second before, visible a second after, with two surfaces on different delays. |
 | [`strapi-selection-order.spec.js`](strapi-selection-order.spec.js) | *(synthetic)* Selection runs every viewer gate (locale, country, dismissal) and ranks eligible documents by specificity — Hebrew readers get their own document past English competitors, a dismissed winner falls through to the runner-up, a shorter window outranks a longer one, and identical documents tie to payload order. |
 | [`strapi-audience.spec.js`](strapi-audience.spec.js) | *(synthetic)* The audience gate for anonymous readers: `logged_out_only` shows and `logged_in_only` doesn't, and new vs. returning visitors (a fresh context IS a new visitor; returning is seeded by writing what `markUserAsReturningVisitor` writes). Mixed payloads prove selection-time filtering in both orders. |
@@ -63,7 +63,7 @@ use a bare `page.goto` plus a Strapi route, keeping Strapi **on**.
 | [`strapi-sidebar-ad-date-states.spec.js`](strapi-sidebar-ad-date-states.spec.js) | Three ads — expired, active, future — all delivered, only the active one displayed. |
 | [`strapi-sidebar-ad-bilingual.spec.js`](strapi-sidebar-ad-bilingual.spec.js) | Both locales published: exactly one ad renders per interface, carrying that locale's copy. |
 | [`strapi-sidebar-ad-page-type.spec.js`](strapi-sidebar-ad-page-type.spec.js) | *(synthetic)* Page-type targeting: one shows-up test per targetable page type on its real page (incl. the voices-module host), null/unknown `pageType` boundaries, the category_toc + multi-word-keyword conjunction on a real collection TOC, author-vs-topic-vs-portal pages (a portal classifies exclusively as portal_page), the no-flash guarantee while topic data loads, and the schema-mismatch contract (a Strapi without the field means NO promotions render, exactly one query, and a named console error). Needs mongod + seeded topic pools (see `../support/seed_topic_pools.py`); voices/auth tests skip by name when unavailable. |
-| `../fixtures/strapi-*.har` | One self-contained FROZEN recording per scenario (bodies embedded, no sidecars). Reference + oracle only; never replayed or re-recorded. |
+| `../fixtures/strapi-*.har` | One self-contained FROZEN recording per scenario (bodies embedded, no sidecars). Inert reference only — read by humans, depended on by nothing at runtime. |
 | `*.template.js` | Early scaffolding from before any content was recorded, kept only for reference. Every state it anticipated is now covered by a real spec, so these are candidates for deletion. Not collected by any project. |
 
 ## Recorded scenarios
@@ -488,7 +488,8 @@ it fails.
 (built by `strapi.scenario-payloads.js`), the `pinnedNow` the original recording was captured
 under, and a description of what it contains. Specs read `SCENARIOS.<name>`; they never hardcode
 content. The fourteen original entries also carry a `har` name pointing at the frozen recording
-their payload replicates — the fidelity spec proves each replica deep-equals its recording.
+their payload replicates — verified equal once at generation time; the replica file's header
+forbids editing the frozen values.
 
 To add a state:
 
@@ -507,9 +508,10 @@ recording era (mid-2026). They are FROZEN: no spec replays them, `RECORD_HAR` no
 any workflow, and they are never re-recorded. They keep two jobs:
 
 - **Reference** — each documents a response Strapi really produced, readable and diffable.
-- **Schema oracle** — the contract spec holds the factory's field set to what they contain
-  (minus fields declared in `FIELDS_ADDED_SINCE_RECORDING`, each of which must NOT appear in any
-  recording — the companion test enforces that, so the exemption list cannot rot).
+- **A one-time verification baseline** — the synthetic scenario replicas were generated from
+  these recordings and mechanically verified equal to them at that moment (2026-08-31). Nothing
+  re-reads them since; the replica file's header forbids editing the frozen values, which is what
+  carries the guarantee forward without runtime coupling.
 
 Why replay was retired (2026-08-31): `routeFromHAR` matched on the GraphQL POST body, so any
 change to the query in `static/js/context.js` — even one added field — invalidated all fourteen
@@ -678,6 +680,6 @@ specs.
 
 Paranoia check when bootstrapping a spec: change a value in the payload (a title, a body string)
 to a sentinel and re-run — the assertion should now fail on the sentinel. For a scenario payload,
-make the edit in `strapi.scenario-payloads.js` (the fidelity spec will flag the divergence from
-the recording, which is exactly the reminder to revert). If the spec passes unchanged, it is
-reading something other than your payload.
+make the edit in `strapi.scenario-payloads.js` — and REVERT it afterwards; that file's header
+forbids lasting edits to the frozen recorded values. If the spec passes unchanged, it is reading
+something other than your payload.

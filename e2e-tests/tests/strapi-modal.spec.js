@@ -12,9 +12,9 @@
  *   exactly what this spec asserts on (see e2e-tests/CLAUDE.md §3). So this spec intentionally uses
  *   a bare page.goto plus a synthetic Strapi route, keeping Strapi ON. Do NOT route it through PageManager.
  *
- * The response is served from the scenario's synthetic payload replica (strapi.scenario-payloads.js),
- * proven equal to its frozen recording by strapi-scenario-payload-fidelity.spec.js. See
- * ./strapi.fixtures.js for the pinned-clock rationale.
+ * The response is served from the scenario's synthetic payload replica
+ * (strapi.scenario-payloads.js — frozen recorded data; that file's header forbids editing it).
+ * See ./strapi.fixtures.js for the pinned-clock rationale.
  */
 
 import { test, expect } from '@playwright/test';

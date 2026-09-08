@@ -2,27 +2,25 @@
  * Synthetic replicas of the recorded Strapi scenarios.
  *
  * Each entry rebuilds, through the payload factory, the response body captured in the .har file
- * it names — same documents, same locales, same dates, same row order. Deep-equal, precisely:
- * `strapi-scenario-payload-fidelity.spec.js` holds every entry to its recording with toEqual
- * (structural equality — key order and byte encoding are not part of the claim), so these cannot
- * drift from what Strapi really returned.
+ * it names — same documents, same locales, same dates, same row order. The recordings themselves
+ * are INERT REFERENCE: nothing reads them at runtime; they stay committed so anyone can see what
+ * Strapi really produced. The equality of these replicas to their recordings was verified
+ * mechanically once, when they were generated (2026-08-31, by diffing each recording's rows
+ * against FIELD_DEFAULTS); from then on the rule below is what preserves it.
+ *
+ * ⚠️ NEVER CHANGE THE FIELD VALUES WRITTEN IN THIS FILE. They are frozen recorded data — editing
+ * one silently breaks the promise that these scenarios describe payloads Strapi really produced,
+ * and the specs' `expected` blocks in strapi.fixtures.js are pinned to them. Two safe kinds of
+ * change: adding a NEW scenario (build it from the factory; it makes no recording claim), and
+ * fields the factory adds over time (a new query field appears here automatically as its factory
+ * DEFAULT — that is correct and expected; a recorded document predates the field, and the
+ * default is defined to mean exactly what absence meant).
  *
  * WHY THE SPECS ROUTE THROUGH THESE RATHER THAN THE RECORDINGS (decision 2026-08-31):
  *   routeFromHAR matches on the GraphQL POST body, so ANY change to the query in
  *   static/js/context.js — even one added field — invalidated all fourteen recordings at once,
  *   and re-recording meant reconstructing each scenario's Strapi publish state. Synthetic routes
- *   match the URL glob alone and survive query changes. The .har files stay committed, frozen,
- *   as reference documents of real Strapi response structure and as the schema oracle for
- *   strapi-payload-contract.spec.js; they are never re-recorded.
- *
- * GENERATED, THEN COMMITTED: this file was produced by diffing each recording's rows against
- * FIELD_DEFAULTS (fields matching a default are omitted; fields differing between locale rows sit
- * in the locale blocks). Edit it like any source file — the fidelity spec is the safety net.
- *
- * These are legacy-shaped payloads: rows carry exactly the fields the recordings carry. Fields
- * added to the GraphQL query AFTER the recordings were made (see FIELDS_ADDED_SINCE_RECORDING in
- * the factory) are stripped by scenarioPayload() below, so replicas keep matching their
- * recordings without each entry having to know the field history.
+ *   match the URL glob alone and survive query changes.
  */
 
 import {
@@ -31,36 +29,11 @@ import {
   sidebarAd,
   targetCountries,
   strapiPayload,
-  FIELDS_ADDED_SINCE_RECORDING,
 } from '../support/strapi-payload-factory.js';
 
-/** {a: 1, b: 2} minus keys -> {a: 1} — same omit shape as strapiLocalization.js uses. */
-const omitKeys = (object, keys) =>
-  Object.fromEntries(Object.entries(object).filter(([key]) => !keys.includes(key)));
-
-/**
- * Build a payload whose rows carry only the fields that existed when the recordings were made.
- *
- * The factory always emits the CURRENT full field set (that is its contract with the app code);
- * the recordings are frozen at an older one. Stripping the post-recording fields here — rather
- * than hand-maintaining them out of each entry — keeps a single list, in the factory, as the one
- * place a query addition is declared.
- */
-const scenarioPayload = (documents) => {
-  const payload = strapiPayload(documents);
-  return {
-    data: Object.fromEntries(
-      Object.entries(payload.data).map(([alias, rows]) => [
-        alias,
-        rows.map((row) => omitKeys(row, FIELDS_ADDED_SINCE_RECORDING)),
-      ]),
-    ),
-  };
-};
-
 export const SCENARIO_PAYLOADS = {
-  // Replicates e2e-tests/fixtures/strapi-modal-published.har (proven by the fidelity spec).
-  publishedModal: scenarioPayload({
+  // Replicates e2e-tests/fixtures/strapi-modal-published.har — frozen recorded data, never edit (see header).
+  publishedModal: strapiPayload({
     modals: [
       modal({
         window: { start: "2026-08-04T04:45:00.000Z", end: "2026-08-11T03:45:00.000Z" },
@@ -82,8 +55,8 @@ export const SCENARIO_PAYLOADS = {
     ],
   }),
 
-  // Replicates e2e-tests/fixtures/strapi-modal-hebrew-only.har (proven by the fidelity spec).
-  publishedModalHebrewOnly: scenarioPayload({
+  // Replicates e2e-tests/fixtures/strapi-modal-hebrew-only.har — frozen recorded data, never edit (see header).
+  publishedModalHebrewOnly: strapiPayload({
     modals: [
       modal({
         window: { start: "2026-08-04T04:45:00.000Z", end: "2026-08-11T03:45:00.000Z" },
@@ -105,8 +78,8 @@ export const SCENARIO_PAYLOADS = {
     ],
   }),
 
-  // Replicates e2e-tests/fixtures/strapi-modal-both-locales.har (proven by the fidelity spec).
-  publishedModalBothLocales: scenarioPayload({
+  // Replicates e2e-tests/fixtures/strapi-modal-both-locales.har — frozen recorded data, never edit (see header).
+  publishedModalBothLocales: strapiPayload({
     modals: [
       modal({
         window: { start: "2026-08-04T04:45:00.000Z", end: "2026-08-11T03:45:00.000Z" },
@@ -138,8 +111,8 @@ export const SCENARIO_PAYLOADS = {
     ],
   }),
 
-  // Replicates e2e-tests/fixtures/strapi-sidebar-ad-published.har (proven by the fidelity spec).
-  publishedSidebarAd: scenarioPayload({
+  // Replicates e2e-tests/fixtures/strapi-sidebar-ad-published.har — frozen recorded data, never edit (see header).
+  publishedSidebarAd: strapiPayload({
     modals: [
       modal({
         window: { start: "2026-08-04T04:45:00.000Z", end: "2026-08-11T03:45:00.000Z" },
@@ -193,8 +166,8 @@ export const SCENARIO_PAYLOADS = {
     ],
   }),
 
-  // Replicates e2e-tests/fixtures/strapi-sidebar-ad-hebrew-only.har (proven by the fidelity spec).
-  publishedSidebarAdHebrewOnly: scenarioPayload({
+  // Replicates e2e-tests/fixtures/strapi-sidebar-ad-hebrew-only.har — frozen recorded data, never edit (see header).
+  publishedSidebarAdHebrewOnly: strapiPayload({
     modals: [
       modal({
         window: { start: "2026-08-04T04:45:00.000Z", end: "2026-08-11T03:45:00.000Z" },
@@ -248,8 +221,8 @@ export const SCENARIO_PAYLOADS = {
     ],
   }),
 
-  // Replicates e2e-tests/fixtures/strapi-sidebar-ad-both-locales.har (proven by the fidelity spec).
-  publishedSidebarAdBothLocales: scenarioPayload({
+  // Replicates e2e-tests/fixtures/strapi-sidebar-ad-both-locales.har — frozen recorded data, never edit (see header).
+  publishedSidebarAdBothLocales: strapiPayload({
     modals: [
       modal({
         window: { start: "2026-08-04T04:45:00.000Z", end: "2026-08-11T03:45:00.000Z" },
@@ -312,8 +285,8 @@ export const SCENARIO_PAYLOADS = {
     ],
   }),
 
-  // Replicates e2e-tests/fixtures/strapi-modal-country-targeted.har (proven by the fidelity spec).
-  modalCountryTargeted: scenarioPayload({
+  // Replicates e2e-tests/fixtures/strapi-modal-country-targeted.har — frozen recorded data, never edit (see header).
+  modalCountryTargeted: strapiPayload({
     modals: [
       modal({
         window: { start: "2026-08-04T04:45:00.000Z", end: "2026-08-11T03:45:00.000Z" },
@@ -378,8 +351,8 @@ export const SCENARIO_PAYLOADS = {
     ],
   }),
 
-  // Replicates e2e-tests/fixtures/strapi-banner-country-targeted.har (proven by the fidelity spec).
-  bannerCountryTargeted: scenarioPayload({
+  // Replicates e2e-tests/fixtures/strapi-banner-country-targeted.har — frozen recorded data, never edit (see header).
+  bannerCountryTargeted: strapiPayload({
     banners: [
       banner({
         window: { start: "2026-08-04T04:00:00.000Z", end: "2026-08-08T17:00:00.000Z" },
@@ -473,8 +446,8 @@ export const SCENARIO_PAYLOADS = {
     ],
   }),
 
-  // Replicates e2e-tests/fixtures/strapi-banner-expired.har (proven by the fidelity spec).
-  bannerExpired: scenarioPayload({
+  // Replicates e2e-tests/fixtures/strapi-banner-expired.har — frozen recorded data, never edit (see header).
+  bannerExpired: strapiPayload({
     banners: [
       banner({
         window: { start: "2026-08-01T04:00:00.000Z", end: "2026-08-03T17:00:00.000Z" },
@@ -558,8 +531,8 @@ export const SCENARIO_PAYLOADS = {
     ],
   }),
 
-  // Replicates e2e-tests/fixtures/strapi-banner-future.har (proven by the fidelity spec).
-  bannerNotYetStarted: scenarioPayload({
+  // Replicates e2e-tests/fixtures/strapi-banner-future.har — frozen recorded data, never edit (see header).
+  bannerNotYetStarted: strapiPayload({
     banners: [
       banner({
         window: { start: "2026-08-08T04:00:00.000Z", end: "2026-08-10T17:00:00.000Z" },
@@ -643,8 +616,8 @@ export const SCENARIO_PAYLOADS = {
     ],
   }),
 
-  // Replicates e2e-tests/fixtures/strapi-sidebar-ad-date-states.har (proven by the fidelity spec).
-  sidebarAdDateStates: scenarioPayload({
+  // Replicates e2e-tests/fixtures/strapi-sidebar-ad-date-states.har — frozen recorded data, never edit (see header).
+  sidebarAdDateStates: strapiPayload({
     banners: [
       banner({
         window: { start: "2026-08-08T04:00:00.000Z", end: "2026-08-10T17:00:00.000Z" },
@@ -773,8 +746,8 @@ export const SCENARIO_PAYLOADS = {
     ],
   }),
 
-  // Replicates e2e-tests/fixtures/strapi-banner-published.har (proven by the fidelity spec).
-  publishedBanner: scenarioPayload({
+  // Replicates e2e-tests/fixtures/strapi-banner-published.har — frozen recorded data, never edit (see header).
+  publishedBanner: strapiPayload({
     banners: [
       banner({
         window: { start: "2026-08-04T04:00:00.000Z", end: "2026-08-08T17:00:00.000Z" },
@@ -795,8 +768,8 @@ export const SCENARIO_PAYLOADS = {
     ],
   }),
 
-  // Replicates e2e-tests/fixtures/strapi-banner-hebrew-only.har (proven by the fidelity spec).
-  publishedBannerHebrewOnly: scenarioPayload({
+  // Replicates e2e-tests/fixtures/strapi-banner-hebrew-only.har — frozen recorded data, never edit (see header).
+  publishedBannerHebrewOnly: strapiPayload({
     banners: [
       banner({
         window: { start: "2026-08-04T04:00:00.000Z", end: "2026-08-08T17:00:00.000Z" },
@@ -817,8 +790,8 @@ export const SCENARIO_PAYLOADS = {
     ],
   }),
 
-  // Replicates e2e-tests/fixtures/strapi-banner-both-locales.har (proven by the fidelity spec).
-  publishedBannerBothLocales: scenarioPayload({
+  // Replicates e2e-tests/fixtures/strapi-banner-both-locales.har — frozen recorded data, never edit (see header).
+  publishedBannerBothLocales: strapiPayload({
     banners: [
       banner({
         window: { start: "2026-08-04T04:00:00.000Z", end: "2026-08-08T17:00:00.000Z" },

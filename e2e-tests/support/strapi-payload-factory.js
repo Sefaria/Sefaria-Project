@@ -19,10 +19,14 @@
  *   adding one field to the GraphQL query in static/js/context.js invalidates every recording at
  *   once. A synthetic route matches the URL glob alone.
  *
- * THE RISK, AND WHAT CONTAINS IT: a hand-built fixture can drift from what Strapi actually returns,
- * and then tests pass against a shape that no longer exists. `strapi-payload-contract.spec.js`
- * closes that hole by asserting this module's field set equals the field set of every committed
- * recording. The recordings are the oracle; keep at least one of each content type among them.
+ * THE FACTORY IS THE SCHEMA. FIELD_DEFAULTS declares every field the GraphQL query in
+ * static/js/context.js asks for, and the two are updated together in the same change —
+ * assertKnownFields makes forgetting loud (a spec that sets an undeclared field throws), the
+ * page-type spec asserts the client's real query names its fields, and
+ * strapi-payload-contract.spec.js pins the builders to this declaration. The fourteen committed
+ * .har recordings are INERT REFERENCE: real captured responses kept for humans to read, checked
+ * against this factory once when the synthetic replicas were generated, depended on by nothing
+ * at runtime.
  *
  * SHAPE CONSTRAINTS, each observed in a real recording rather than assumed:
  *   - Emit RAW PER-LOCALE ROWS, exactly as the endpoint does — not "a document with translations".
@@ -185,23 +189,6 @@ const FIELD_DEFAULTS = {
 const fieldNames = (contentType) => Object.keys(FIELD_DEFAULTS[contentType]);
 
 /**
- * Query fields added AFTER the recordings were captured.
- *
- * The .har files are frozen reference documents — they are never re-recorded (decision
- * 2026-08-31), so when the GraphQL query in static/js/context.js gains a field, the factory
- * gains it in FIELD_DEFAULTS and the field's name is ALSO declared here. Two guards consume
- * this list:
- *   - strapi-payload-contract.spec.js allows a factory field to be absent from the recordings
- *     only if it is listed here, and FAILS if a listed field ever shows up in a recording —
- *     so the list can't quietly rot into a blanket exemption;
- *   - strapi.scenario-payloads.js strips these fields so each scenario replica keeps matching
- *     its recording (deep equality).
- */
-const FIELDS_ADDED_SINCE_RECORDING = [
-  'pageType', // sidebar-ad page-type targeting, added 2026-08-31 — recordings predate it
-];
-
-/**
  * Per-document identifiers that MUST be unique, with the consequence of a collision.
  *
  * None of these fail loudly when duplicated, which is why they are generated rather than defaulted
@@ -362,7 +349,6 @@ export {
   FIELD_DEFAULTS,
   WINDOW_FIELDS,
   SYNTHETIC_NOW,
-  FIELDS_ADDED_SINCE_RECORDING,
   fieldNames,
   daysFromNow,
   hoursFromNow,

@@ -7,9 +7,10 @@
  * matches the URL glob ALONE, so it survives changes to the GraphQL query and needs no Strapi
  * setup, at the cost of being a shape we assert rather than observe.
  *
- * That cost is paid off twice: `strapi-payload-contract.spec.js` holds the factory's field set to
- * what the frozen recordings actually contain, and `strapi-scenario-payload-fidelity.spec.js`
- * proves each scenario replica deep-equals its recording.
+ * That cost is contained three ways: the factory's FIELD_DEFAULTS is updated together with the
+ * GraphQL query (assertKnownFields throws on undeclared fields), the page-type spec asserts the
+ * client's REAL query names its fields from the intercepted POST body, and
+ * `strapi-payload-contract.spec.js` pins the builders to the factory's own declaration.
  *
  * Only `/api/strapi/**` is intercepted; the page HTML and every other Sefaria API still come from
  * the local/CI Django server, which must be running. `STRAPI_INSTANCE` must also be configured

@@ -14,9 +14,10 @@ import { SCENARIO_PAYLOADS } from './strapi.scenario-payloads.js';
  * `scenario.payload` via routeWithStrapiPayload; nothing replays the .har files anymore, because
  * routeFromHAR matches on the GraphQL POST body and every query change invalidated all fourteen
  * recordings at once. The .har files stay committed, FROZEN, in two jobs: reference documents of
- * real Strapi response structure, and the schema oracle for strapi-payload-contract.spec.js.
- * strapi-scenario-payload-fidelity.spec.js proves each `payload` equals its recording, so the
- * scenarios below still describe payloads Strapi really produced.
+ * real Strapi response structure — read by humans, depended on by nothing at runtime.
+ * Each replica was verified equal to its recording when generated, and
+ * strapi.scenario-payloads.js's header forbids editing the frozen values — so the scenarios
+ * below still describe payloads Strapi really produced.
  *
  * Adding a scenario: build its payload with the factory in strapi.scenario-payloads.js (or
  * inline, for states no editor would publish), add an entry here with `payload` and `pinnedNow`,
