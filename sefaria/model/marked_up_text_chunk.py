@@ -397,20 +397,38 @@ def process_index_delete(indx, **kwargs):
     LinkerOutputSet({"ref": {"$regex": pattern}}).delete()
 
 
-def process_version_title_change(ver, **kwargs):
-    report_progress("Cascading Marked Up Text Chunk version title from {} to {}".format(kwargs['old'], kwargs['new']))
-
+def _version_title_change_query(ver, **kwargs):
     patterns = Ref(ver.title).regex(as_list=True)
-    query = {
+    return {
         "$and": [
             {"versionTitle": kwargs["old"]},
             {"language": ver.language},
             {"$or": [{"ref": {"$regex": pattern}} for pattern in patterns]},
         ]
     }
-    update = {"$set": {"versionTitle": kwargs["new"]}}
+
+
+def _version_title_change_update(**kwargs):
+    return {"$set": {"versionTitle": kwargs["new"]}}
+
+
+def process_version_title_change_in_marked_up_text_chunks(ver, **kwargs):
+    report_progress("Cascading Marked Up Text Chunk version title from {} to {}".format(kwargs['old'], kwargs['new']))
+    query = _version_title_change_query(ver, **kwargs)
+    update = _version_title_change_update(**kwargs)
     db.marked_up_text_chunks.update_many(query, update)
+
+
+def process_version_title_change_in_linker_output(ver, **kwargs):
+    report_progress("Cascading Linker Output version title from {} to {}".format(kwargs['old'], kwargs['new']))
+    query = _version_title_change_query(ver, **kwargs)
+    update = _version_title_change_update(**kwargs)
     db.linker_output.update_many(query, update)
+
+
+def process_version_title_change(ver, **kwargs):
+    process_version_title_change_in_marked_up_text_chunks(ver, **kwargs)
+    process_version_title_change_in_linker_output(ver, **kwargs)
 
 
 def process_category_path_change(category, **kwargs):
