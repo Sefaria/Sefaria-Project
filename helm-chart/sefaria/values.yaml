@@ -572,6 +572,11 @@ localSettings:
   DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
   SERVER_EMAIL: "dev@sefaria.org"
   MULTISERVER_ENABLED: "True"
+  # Kill switch for the background multiserver listener thread on web pods (see
+  # sefaria/system/multiserver/coordinator.py:start_background_listener). Off by default so it
+  # can be canaried per-environment without a code change; MultiServerEventListenerMiddleware's
+  # every-20-request poll keeps working regardless of this flag.
+  MULTISERVER_BACKGROUND_LISTENER_ENABLED: "False"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
   SESSION_COOKIE_SECURE: true

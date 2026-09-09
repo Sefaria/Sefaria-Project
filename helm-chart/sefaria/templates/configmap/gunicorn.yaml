@@ -39,6 +39,19 @@ data:
         {{- if .Values.instrumentation.enabled }}
         from opentelemetry.instrumentation.auto_instrumentation import sitecustomize
         {{- end }}
+        # on_starting() (master, pre-fork) already called server_coordinator.connect() once via
+        # init_library_cache() -- every worker forked from that master would otherwise inherit the
+        # SAME Redis pubsub socket (fork() duplicates file descriptors, not connections), so only
+        # one worker per pod would ever actually receive a given multiserver message. Reconnect
+        # fresh here so each worker gets its own subscription -- same reasoning as Celery's
+        # worker_process_init hook in sefaria/celery_setup/app.py.
+        from sefaria.settings import MULTISERVER_ENABLED, MULTISERVER_BACKGROUND_LISTENER_ENABLED
+        if MULTISERVER_ENABLED:
+            from sefaria.system.multiserver.coordinator import server_coordinator
+            if server_coordinator:
+                server_coordinator.connect()
+                if MULTISERVER_BACKGROUND_LISTENER_ENABLED:
+                    server_coordinator.start_background_listener()
 
     def on_starting(server):
         from reader.startup import init_library_cache
