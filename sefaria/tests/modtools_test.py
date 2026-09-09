@@ -46,6 +46,7 @@ def anon_client():
 class TestVersionIndicesAPI:
     """Tests for /api/version-indices endpoint."""
 
+    @pytest.mark.needs_linker
     @pytest.mark.django_db
     def test_version_indices_requires_auth(self, anon_client):
         """Unauthenticated users should be redirected."""
@@ -1030,6 +1031,7 @@ class TestLinksUploadAPI:
         assert 'error' in data
         assert 'Unsupported Method' in data['error']
 
+    @pytest.mark.needs_linker
     @pytest.mark.needs_mongo
     @pytest.mark.django_db
     def test_links_upload_requires_csv_file(self, staff_client):

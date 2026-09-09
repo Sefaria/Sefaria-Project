@@ -199,6 +199,65 @@ jobs:
                 - 'requirements.txt'
                 - 'setup.py'
                 - 'pyproject.toml'
+  check-linker-impact:
+    # Deterministic answer to "can a linker test possibly be affected by this diff?"
+    # NOT a path filter on sefaria/model/linker/** -- a linker test can break from a
+    # change anywhere in its transitive import closure, and gating on the subsystem's
+    # own directory would produce false greens. The closure is recomputed on every run
+    # (a stdlib AST walk, seconds, no DB) rather than committed, so it cannot drift.
+    # FAILS OPEN: unresolvable dynamic imports mean "affected".
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    outputs:
+      linker_affected: ${{ steps.impact.outputs.linker_affected }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Compute changed files
+        id: changed
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          git diff --name-only "$BASE"...HEAD > changed.txt || git diff --name-only HEAD~1 HEAD > changed.txt
+          echo "--- changed files ---"; cat changed.txt
+      - name: Is any linker-reachable file touched?
+        id: impact
+        run: |
+          ARGS=$(sed 's/^/--changed-file /' changed.txt | tr '\n' ' ')
+          RESULT=$(python scripts/test_impact/import_closure.py \
+            --subsystem-glob 'sefaria/model/linker/*' \
+            --subsystem-glob 'sefaria/helper/linker/*' \
+            --subsystem-glob 'sefaria/model/linker_*.py' \
+            --subsystem-glob 'sefaria/helper/linker_*.py' \
+            $ARGS --format json)
+          echo "$RESULT" | python -c "import json,sys; d=json.load(sys.stdin); print('affected:', d.get('affected')); print('fail_open:', d['fail_open'])"
+          AFFECTED=$(echo "$RESULT" | python -c "import json,sys; print(str(json.load(sys.stdin).get('affected', True)).lower())")
+          echo "linker_affected=$AFFECTED" >> $GITHUB_OUTPUT
+
+  pytest-no-mongo:
+    # The two thirds of the suite measured to issue zero Mongo commands. No sandbox,
+    # no Helm deploy, no dev-mongo mutex -- a plain runner.
+    name: "Continuous Testing: PyTest (no Mongo)"
+    needs: [ check-python-files ]
+    if: >
+      github.event.pull_request.draft == false &&
+      needs.check-python-files.outputs.python_files_changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest-django pytest-timeout
+      - name: Run tests that need no database
+        run: pytest -v --timeout=600 -m "not deep and not failing and not needs_mongo" ./sefaria ./sso ./reader ./powered_by
+
   sandbox-deploy:
     name: "Continuous Testing: Sandbox Deploy"
     concurrency:
@@ -327,6 +386,9 @@ jobs:
         env:
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           DEPLOY_ENV: sandbox-${{ steps.get-sha.outputs.sha_short }}
+          # Mongo-dependent tests only. Linker tests run in pytest-linker-job, which
+          # is gated on the import closure -- see check-linker-impact.
+          PYTEST_MARK_EXPR: "not deep and not failing and not needs_linker"
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
         timeout-minutes: 45
@@ -338,6 +400,75 @@ jobs:
         run: kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest 2>/dev/null || echo "(no pod logs available)"
       - name: Cleanup pyTest Pod
         run: kubectl delete jobs -l ci-run=$GITHUB_RUN_ID,test-name=pytest
+        if: always()
+  pytest-linker-job:
+    name: "Continuous Testing: PyTest (linker)"
+    concurrency:
+      group: dev-mongo
+      cancel-in-progress: false
+    needs: [ sandbox-ready, check-python-files, check-linker-impact ]
+    if: >
+      github.event.pull_request.draft == false &&
+      needs.check-python-files.outputs.python_files_changed == 'true' &&
+      needs.check-linker-impact.outputs.linker_affected == 'true'
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.DEV_GKE_SA }}'
+      - name: Setup GCloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.DEV_PROJECT }}
+          install_components: 'gke-gcloud-auth-plugin'
+      - name: Authenticate GHA Runner To Target Cluster
+        uses: google-github-actions/get-gke-credentials@v3
+        with:
+          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
+          location: ${{secrets.DEV_GKE_REGION}}
+          project_id: ${{secrets.DEV_GCP_PROJECT}}
+      - name: Set outputs
+        id: get-sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Get branch name
+        id: branch-raw
+        uses: tj-actions/branch-names@v5.1
+      - name: Format branch name
+        id: branch-name
+        run: >-
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
+          | awk '{print tolower($0)}'
+          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
+          | sed 's/[^a-z0-9\.\-]//g')
+          >> $GITHUB_OUTPUT
+      - name: Start Job
+        run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV linker
+        env:
+          # dependent on GITHUB_RUN_ID, which is implicitly passed in
+          DEPLOY_ENV: sandbox-${{ steps.get-sha.outputs.sha_short }}
+          # Mongo-dependent tests only. Linker tests run in pytest-linker-job, which
+          # is gated on the import closure -- see check-linker-impact.
+          PYTEST_MARK_EXPR: "not deep and not failing and needs_linker"
+      - name: Wait For Job To Finish
+        run: ./build/ci/waitForCIJob.bash
+        timeout-minutes: 45
+        env:
+          # dependent on GITHUB_RUN_ID, which is implicitly passed in
+          TEST_NAME: pytest-linker
+      - name: Get Logs From Cluster and propogate test result
+        if: always()
+        run: kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest-linker 2>/dev/null || echo "(no pod logs available)"
+      - name: Cleanup pyTest Pod
+        run: kubectl delete jobs -l ci-run=$GITHUB_RUN_ID,test-name=pytest-linker
         if: always()
   ending-notification:
     name: "Continuous Testing: Notifications"
@@ -409,6 +540,8 @@ jobs:
       - sandbox-deploy
       - sandbox-ready
       - pytest-job
+      - pytest-no-mongo
+      - pytest-linker-job
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -426,8 +559,16 @@ jobs:
             if [ "${{ needs.check-python-files.outputs.python_files_changed }}" == "true" ]; then
               if [ "${{ needs.sandbox-deploy.result }}" != "success" ] || \
                  [ "${{ needs.sandbox-ready.result }}" != "success" ] || \
+                 [ "${{ needs.pytest-no-mongo.result }}" != "success" ] || \
                  [ "${{ needs.pytest-job.result }}" != "success" ]; then
                 echo "One or more Python-related test jobs failed"
+                exit 1
+              fi
+              # pytest-linker-job is deliberately skipped when the diff cannot reach
+              # linker code. "skipped" is a pass here; "failure" is not.
+              if [ "${{ needs.pytest-linker-job.result }}" == "failure" ] || \
+                 [ "${{ needs.pytest-linker-job.result }}" == "cancelled" ]; then
+                echo "Linker test job failed"
                 exit 1
               fi
             fi
