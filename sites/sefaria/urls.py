@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.urls import re_path
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
 import reader.views as reader_views
 import dedications.views as dedications_views
 from sefaria.settings import STATIC_URL
@@ -42,7 +42,6 @@ static_pages = [
     "ramban-sponsorships",
     "contest",
     "design-system",
-    "powered-by",
     "word-by-word",
     "cloudflare_site_is_down_en",
     "cloudflare_site_is_down_he",
@@ -86,6 +85,7 @@ site_urlpatterns = [
 site_urlpatterns += [
     re_path(r'^donate/mobile?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/english?c_src=App' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he?c_src=App')),
     re_path(r'^donate/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/english' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he')),
+    re_path(r'^powered-by/?$', lambda x: HttpResponsePermanentRedirect('https://developers.sefaria.org/docs/powered-by-sefaria')),
     re_path(r'^wiki/?$', lambda x: HttpResponseRedirect('https://developers.sefaria.org/docs/welcome')),
     re_path(r'^developers/?$', lambda x: HttpResponseRedirect('https://developers.sefaria.org')),
     re_path(r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),

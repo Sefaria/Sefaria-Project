@@ -12937,6 +12937,19 @@
           "Calendars"
         ],
         "description": "Returns topic metadata for the current week's parasha — title, ref, category ordering, and bilingual display values.",
+        "parameters": [
+          {
+            "name": "diaspora",
+            "description": "Whether to return the diaspora parasha reading (`1`) or the Israel reading (`0`). Defaults to `1` (diaspora). In weeks where Israel and the diaspora read different portions, passing `0` returns the Israel reading.",
+            "schema": {
+              "type": "string",
+              "enum": ["0", "1"],
+              "default": "1"
+            },
+            "in": "query",
+            "required": false
+          }
+        ],
         "responses": {
           "200": {
             "content": {
