@@ -20,6 +20,11 @@ sys._called_from_test = True
 import pytest
 from unittest.mock import patch, MagicMock
 
+_MOCK_MONGO_ENABLED = os.environ.get("SEFARIA_MOCK_MONGO") == "1"
+_MOCK_MONGO_CLIENT = None
+_MOCK_MONGO_SENTINEL = "__sefaria_mock_mongo_bootstrap__"
+_MONGO_FIXTURE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tests", "fixtures", "mongo")
+
 # --- Local-Mongo endpoint override, applied BEFORE sefaria.system.database is
 # imported (its MongoClient is built from module-level constants at import time,
 # so this must land first). Only takes effect when SEFARIA_TEST_MONGO=1; every
@@ -35,10 +40,34 @@ if os.environ.get("SEFARIA_TEST_MONGO") == "1":
             "against a shared/cluster Mongo."
         )
     _sefaria_settings.MONGO_HOST = _pytest_mongo_settings.MONGO_HOST
-    _sefaria_settings.MONGO_PORT = _pytest_mongo_settings.MONGO_PORT
+    _sefaria_settings.MONGO_PORT = int(
+        os.environ.get("LOCAL_TEST_MONGO_PORT", _pytest_mongo_settings.MONGO_PORT)
+    )
     _sefaria_settings.SEFARIA_DB = _pytest_mongo_settings.SEFARIA_DB
     _sefaria_settings.SEFARIA_DB_USER = _pytest_mongo_settings.SEFARIA_DB_USER
     _sefaria_settings.SEFARIA_DB_PASSWORD = _pytest_mongo_settings.SEFARIA_DB_PASSWORD
+
+if _MOCK_MONGO_ENABLED:
+    import mongomock
+    from bson import json_util
+    from sefaria import settings as _sefaria_settings
+
+    _MOCK_MONGO_CLIENT = mongomock.MongoClient()
+    # mongomock lists databases lazily; database.py checks existence before it
+    # assigns `db`, so create one collection in the configured DB up front.
+    _MOCK_MONGO_CLIENT[_sefaria_settings.SEFARIA_DB][_MOCK_MONGO_SENTINEL].insert_one({"_id": "exists"})
+    if os.path.isdir(_MONGO_FIXTURE_DIR):
+        for name in sorted(os.listdir(_MONGO_FIXTURE_DIR)):
+            if not name.endswith(".json"):
+                continue
+            with open(os.path.join(_MONGO_FIXTURE_DIR, name)) as f:
+                payload = json_util.loads(f.read())
+            for collection, docs in payload.get("collections", {}).items():
+                for doc in docs:
+                    _MOCK_MONGO_CLIENT[_sefaria_settings.SEFARIA_DB][collection].replace_one(
+                        {"_id": doc["_id"]}, doc, upsert=True
+                    )
+    patch("pymongo.MongoClient", return_value=_MOCK_MONGO_CLIENT).start()
 
 # NOTE: sefaria.system.database is NOT imported here at module load time.
 # database.py builds its MongoClient (and decides whether to attach QueryCounter
@@ -78,6 +107,10 @@ def _recording_enabled():
 
 def _sanitize_nodeid(nodeid):
     return re.sub(r'[^A-Za-z0-9_.-]', '_', nodeid)
+
+
+def _mongo_fixture_path(nodeid):
+    return os.path.join(_MONGO_FIXTURE_DIR, _sanitize_nodeid(nodeid) + ".json")
 
 
 def _json_default(o):
@@ -168,6 +201,51 @@ def pytest_sessionfinish(session, exitstatus):
     }
     with open(os.path.join(_ARTIFACT_DIR, '_index.json'), 'w') as f:
         json.dump(serializable, f, indent=2, sort_keys=True)
+
+
+@pytest.fixture(autouse=True)
+def _seed_mock_mongo(request):
+    if not _MOCK_MONGO_ENABLED:
+        yield
+        return
+    if request.node.get_closest_marker("needs_mongo") is None:
+        yield
+        return
+
+    path = _mongo_fixture_path(request.node.nodeid)
+    if not os.path.isfile(path):
+        # A missing fixture must FAIL by default, not skip. Conversion to mocked
+        # Mongo is incremental, so most needs_mongo tests have no fixture yet --
+        # and skipping them makes the whole marked set exit 0 while almost nothing
+        # ran (measured: 3 passed, 73 skipped). That is the false-green shape this
+        # pipeline already has a documented history of. Set
+        # SEFARIA_MOCK_MONGO_INCOMPLETE_OK=1 while converting a set by hand; never
+        # in CI.
+        message = (
+            f"SEFARIA_MOCK_MONGO=1 but no Mongo fixture exists for {request.node.nodeid}. "
+            f"Generate one with scripts/pytest_minimal_dataset/export_mongo_fixtures.py, "
+            f"or set SEFARIA_MOCK_MONGO_INCOMPLETE_OK=1 to skip unconverted tests locally."
+        )
+        if os.environ.get("SEFARIA_MOCK_MONGO_INCOMPLETE_OK") == "1":
+            pytest.skip(message)
+        pytest.fail(message, pytrace=False)
+
+    from bson import json_util
+    from sefaria.system import database
+
+    active_db = database.db
+    for collection in active_db.list_collection_names():
+        active_db.drop_collection(collection)
+    with open(path) as f:
+        payload = json_util.loads(f.read())
+    for collection, docs in payload.get("collections", {}).items():
+        if docs:
+            active_db[collection].insert_many(docs)
+        else:
+            active_db.create_collection(collection)
+    yield
+    for collection in active_db.list_collection_names():
+        active_db.drop_collection(collection)
 
 mock_topics_pool = {'sheets_topic_only': ['sheets', 'general_en', 'torah_tab'],
  'library_topic_only': ['library'],
