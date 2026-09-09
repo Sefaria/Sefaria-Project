@@ -385,7 +385,24 @@ def _flush_chunk_and_vector_batch(batch: list[ChunkAndVector], chunk_store: Chun
     units are written last, only after both upserts succeed - if either raises, this function
     exits via the exception before any hash update happens, so a unit whose chunk/vector
     upsert failed never gets marked "text unchanged" (which would otherwise cause it to be
-    silently skipped forever on every future run)."""
+    silently skipped forever on every future run).
+
+    Dedupes on the chunk_metadata unique key (ref, version_title, language, chunk_ordinal,
+    chunking_scheme_id) before upserting: two different units - most likely overlapping
+    passage-based units producing the same sub-chunk ref, since get_passages_for_index() applies
+    no type filter or overlap check - can independently converge on the same key within one
+    flush, which Postgres's ON CONFLICT DO UPDATE refuses outright ("cannot affect row a second
+    time"), failing every chunk in the batch rather than just the colliding one. Last write
+    wins; dropped duplicates are logged for follow-up, not silently discarded."""
+    deduped: dict = {}
+    for b in batch:
+        key = (b.chunk.ref, b.chunk.version_title, b.chunk.language, b.chunk.chunk_ordinal,
+               b.chunk.chunking_scheme_id)
+        if key in deduped:
+            logger.warning(f"Dropping duplicate chunk key within one flush batch: {key}")
+        deduped[key] = b
+    batch = list(deduped.values())
+
     chunk_store.upsert([b.chunk for b in batch])
     vector_store.upsert([
         Vector(chunk_metadata=b.chunk, embedding_model_id=DEFAULT_EMBEDDING_MODEL_ID,
