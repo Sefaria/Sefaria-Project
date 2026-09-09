@@ -20,7 +20,7 @@ const BACKEND_MESSAGES = { required: 'auth.required_field' };
 
 const RegisterView = ({
   switchFlow, fields, setField, onBack,
-  endProcess, next, csrf,
+  startProcess, endProcess, next, csrf,
   registerGoogleTarget, triggerApple, setActiveErrorHandler,
 }) => {
   const [captchaError, setCaptchaError] = useState(null);
@@ -95,6 +95,7 @@ const RegisterView = ({
   }, [recaptchaSiteKey]);
 
   const onSubmit = async () => {
+    startProcess();
     setCaptchaError(null);
     // Reuse the existing /register view's JSON ("noredirect") mode — keeps the
     // server-side captcha validation and full onboarding side effects.
@@ -112,7 +113,7 @@ const RegisterView = ({
       return { error: authError(null, 'auth.generic_error') };
     }
     if (data?.redirect) {
-      endProcess('success', null);
+      endProcess('success', null, 'created_new_account');
       window.location.href = data.redirect;
       return;
     }
@@ -153,7 +154,7 @@ const RegisterView = ({
         <>
           <InterfaceText>auth.already_have_an_account</InterfaceText>
           {' '}
-          <a href="/login" onClick={switchFlow('login')}>
+          <a href="/login" data-signup-source="register_crosslink" onClick={switchFlow('login')}>
             <InterfaceText>auth.log_in_link</InterfaceText>
           </a>
         </>
@@ -211,6 +212,7 @@ RegisterView.propTypes = {
   }).isRequired,
   setField: PropTypes.func.isRequired,
   onBack: PropTypes.func.isRequired,
+  startProcess: PropTypes.func.isRequired,
   endProcess: PropTypes.func.isRequired,
   next: PropTypes.string,
   csrf: PropTypes.string,

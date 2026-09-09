@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { whenReady, makeUuid, safeNext, authError, ALLAUTH_PROVIDER_TOKEN_URL } from './utils.js';
-import { persistPendingAttempt, SIGNUP_METHOD } from './signupAnalytics.js';
+import { whenReady, makeUuid, safeNext, authError } from './utils.js';
+import { persistPendingAttempt, AUTH_METHOD } from './authAnalytics.js';
 import { getCsrfToken } from '../sefaria/csrf';
 
 /**
@@ -80,19 +80,15 @@ export function useProviderTriggers({ next, tracking }) {
     googlePopupStateRef.current = 'processing';
     setSsoLoading(true);
     try {
-      const res = await fetch(ALLAUTH_PROVIDER_TOKEN_URL, {
+      const res = await fetch('/api/auth/google/callback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-        body: JSON.stringify({
-          provider: 'google',
-          process: 'login',
-          token: { client_id: googleClientId, id_token: resp.credential },
-        }),
+        body: JSON.stringify({ id_token: resp.credential }),
       });
       const data = await res.json().catch(() => ({}));
       googlePopupStateRef.current = 'done';
       if (res.ok) {
-        trackingRef.current.endProcess('success', null);
+        trackingRef.current.endProcess('success', null, data.outcome);
         window.location.href = safeNext(nextRef.current);
       } else {
         setSsoLoading(false);
@@ -111,11 +107,11 @@ export function useProviderTriggers({ next, tracking }) {
   // click_listener, see renderButton config), so method_chosen/process_started fire
   // synchronously here instead of being synthesized in onGoogleResult.
   const onGoogleButtonClicked = useCallback(() => {
-    const attemptId = trackingRef.current.chooseMethod(SIGNUP_METHOD.GOOGLE);
+    const attemptId = trackingRef.current.chooseMethod(AUTH_METHOD.GOOGLE);
     trackingRef.current.startProcess();
     if (Sefaria.ssoUseRedirect()) {
       trackingRef.current.suppressFlowEndRef.current = true;
-      persistPendingAttempt({ ...trackingRef.current.getIds(), attemptId, method: SIGNUP_METHOD.GOOGLE });
+      persistPendingAttempt({ ...trackingRef.current.getIds(), attemptId, method: AUTH_METHOD.GOOGLE });
       return;
     }
     // Popup mode: GIS gives no cancellation callback at all, so watch for focus returning to
@@ -225,8 +221,9 @@ export function useProviderTriggers({ next, tracking }) {
             id_token: a.id_token, first_name: n.firstName || '', last_name: n.lastName || '', email: u.email || '',
           }),
         });
+        const data = await res.json().catch(() => ({}));
         if (res.ok) {
-          trackingRef.current.endProcess('success', null);
+          trackingRef.current.endProcess('success', null, data.outcome);
           window.location.href = safeNext(nextRef.current);
         } else {
           setSsoLoading(false);
@@ -274,11 +271,11 @@ export function useProviderTriggers({ next, tracking }) {
     if (!appleReady) return;
     // We *do* control this call (unlike Google's iframe-driven button), so method_chosen/
     // process_started can fire synchronously right here for both popup and redirect mode.
-    const attemptId = trackingRef.current.chooseMethod(SIGNUP_METHOD.APPLE);
+    const attemptId = trackingRef.current.chooseMethod(AUTH_METHOD.APPLE);
     trackingRef.current.startProcess();
     if (Sefaria.ssoUseRedirect()) {
       trackingRef.current.suppressFlowEndRef.current = true;
-      persistPendingAttempt({ ...trackingRef.current.getIds(), attemptId, method: SIGNUP_METHOD.APPLE });
+      persistPendingAttempt({ ...trackingRef.current.getIds(), attemptId, method: AUTH_METHOD.APPLE });
       window.location.href = `/accounts/apple/login/?next=${encodeURIComponent(safeNext(nextRef.current))}`;
       return;
     }
