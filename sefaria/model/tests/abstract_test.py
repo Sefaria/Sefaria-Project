@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import contextlib
+
 import pytest
 
 from sefaria.system.database import db
@@ -199,6 +201,23 @@ class Test_Mongo_Record_Methods(object):
             assert res == c
 
 
+class _FakeGuard(object):
+    """Stands in for skip_bad_record: records what it swallowed."""
+
+    def __init__(self, exceptions=Exception):
+        self.exceptions = exceptions
+        self.skipped = []
+
+    def __call__(self, pathway, operation, record=None, level="warning"):
+        @contextlib.contextmanager
+        def guard():
+            try:
+                yield
+            except self.exceptions as e:
+                self.skipped.append((operation, record, type(e).__name__))
+        return guard()
+
+
 class TestWithSkipGuard(object):
     """AbstractMongoSet.with_skip_guard() -- skip records that fail to INSTANTIATE.
 
@@ -207,37 +226,20 @@ class TestWithSkipGuard(object):
     guarded loop body runs even once.
     """
 
-    class _FakeGuard(object):
-        """Stands in for skip_bad_record: records what it swallowed."""
-
-        def __init__(self, exceptions=Exception):
-            self.exceptions = exceptions
-            self.skipped = []
-
-        def __call__(self, pathway, operation, record=None, level="warning"):
-            import contextlib
-
-            @contextlib.contextmanager
-            def guard():
-                try:
-                    yield
-                except self.exceptions as e:
-                    self.skipped.append((operation, record, type(e).__name__))
-            return guard()
-
     def _set_of(self, docs, instantiate, post=None):
-        """A minimal AbstractMongoSet over `docs` with a stubbed instantiation hook."""
+        """A minimal AbstractMongoSet over `docs`, shaped like the real subclasses: it
+        overrides _read_records() and instantiates through _build_records()."""
         class _Set(abstract.AbstractMongoSet):
             def __init__(self):
                 self.raw_records = list(docs)
                 self.records = None
                 self.record_kwargs = {}
                 self.max = None
-            def _instantiate_record(self, raw):
-                return instantiate(raw)
-            def _post_read_records(self):
-                if post:
-                    post(self)
+            def _read_records(self):
+                if self.records is None:
+                    self._build_records(instantiate)
+                    if post:
+                        post(self)
         return _Set()
 
     def _failing_set(self, docs):
@@ -255,7 +257,7 @@ class TestWithSkipGuard(object):
             list(s)
 
     def test_bad_record_is_skipped_and_the_rest_survive(self):
-        guard = self._FakeGuard(InputError)
+        guard = _FakeGuard(InputError)
         s = self._failing_set([{"title": "good1"}, {"title": "bad"}, {"title": "good2"}])
         assert list(s.with_skip_guard(guard, "startup", "op")) == ["good1", "good2"]
         assert guard.skipped == [("op", "bad", "InputError")]
@@ -278,45 +280,60 @@ class TestWithSkipGuard(object):
         for access in (lambda s: list(s), lambda s: s.array(), lambda s: len(s),
                        lambda s: s[0], lambda s: s.contents()):
             s = self._set_of([{"title": "good1"}, {"title": "bad"}], instantiate)
-            s.with_skip_guard(self._FakeGuard(InputError), "startup", "op")
+            s.with_skip_guard(_FakeGuard(InputError), "startup", "op")
             access(s)                     # must not raise
             assert s.max == 1
 
     def test_returns_self_so_it_reads_inline(self):
         s = self._failing_set([{"title": "a"}])
-        assert s.with_skip_guard(self._FakeGuard(), "startup", "op") is s
+        assert s.with_skip_guard(_FakeGuard(), "startup", "op") is s
 
     def test_unguarded_exception_still_propagates(self):
         def instantiate(raw):
             raise ImportError("bad deploy")
 
         s = self._set_of([{"title": "x"}], instantiate)
-        s.with_skip_guard(self._FakeGuard(InputError), "startup", "op")
+        s.with_skip_guard(_FakeGuard(InputError), "startup", "op")
         with pytest.raises(ImportError):
             list(s)
 
     def test_record_is_identified_from_the_raw_document(self):
         """Instantiation is what failed, so the log can only name the record from raw fields."""
-        guard = self._FakeGuard()
+        guard = _FakeGuard()
         for doc in [{"title": "T"}, {"slug": "s"}, {"name": "n"}, {"_id": 7}, {"unknown": 1}]:
             doc = dict(doc, boom=True)
             s = self._failing_set([doc])
             list(s.with_skip_guard(guard, "startup", "op"))
         assert [rec for _, rec, _ in guard.skipped] == ["T", "s", "n", "_id=7", "<unidentifiable>"]
 
-    def test_guarded_path_uses_the_sets_own_instantiation_hook(self):
+    def test_guarded_path_uses_the_callers_own_instantiate_function(self):
         """Regression: an earlier version instantiated via `self.recordClass(...)` directly,
         which silently produced base-class objects for LexiconEntrySet (whose entry class
         depends on the document's lexicon) and skipped TopicSet's subclass casting."""
         s = self._set_of([{"title": "a"}], lambda raw: "instantiated:" + raw["title"])
-        s.with_skip_guard(self._FakeGuard(), "startup", "op")
+        s.with_skip_guard(_FakeGuard(), "startup", "op")
         assert list(s) == ["instantiated:a"]
 
-    def test_guarded_path_runs_the_post_materialize_hook(self):
+    def test_whole_list_work_after_build_records_still_runs(self):
+        """A subclass's own post-processing (LexiconEntrySet's sort) is unaffected by the
+        guard -- _build_records() returns and the subclass carries on."""
         s = self._set_of([{"title": "b"}, {"title": "a"}], lambda raw: raw["title"],
                          post=lambda self: self.records.sort())
-        s.with_skip_guard(self._FakeGuard(), "startup", "op")
+        s.with_skip_guard(_FakeGuard(), "startup", "op")
         assert list(s) == ["a", "b"]
+
+    def test_whole_list_work_that_fails_propagates_even_when_guarded(self):
+        """Deliberate, not an oversight: the guard covers _build_records(), not whatever a
+        subclass does with the finished list. A failure there has no single record to blame,
+        so swallowing it could only hand back a half-processed set. Per-record work that can
+        raise belongs inside the `instantiate` function -- see TopicSet._read_records."""
+        def boom(self):
+            raise InputError("post-processing blew up")
+
+        s = self._set_of([{"title": "a"}], lambda raw: raw["title"], post=boom)
+        s.with_skip_guard(_FakeGuard(InputError), "startup", "op")
+        with pytest.raises(InputError):
+            list(s)
 
     def test_unguarded_sets_are_unaffected(self):
         """The default must stay 'a record that fails to load aborts the set'."""
@@ -325,19 +342,68 @@ class TestWithSkipGuard(object):
         assert list(s) == ["a"]
 
 
+@pytest.fixture
+def zz_topics():
+    """Two topics of our own: one whose `subclass` the map knows, one whose value is garbage.
+
+    Inserted rather than queried for, so the assertions below hold on any database. Asserting
+    over `TopicSet({"subclass": "author"})` would pass vacuously wherever that data is absent.
+    """
+    good, bad = "zzabstract-author", "zzabstract-bad-subclass"
+    titles = lambda text: [{"text": text, "lang": "en", "primary": True},
+                           {"text": "א" + text, "lang": "he", "primary": True}]
+    db.topics.delete_many({"slug": {"$in": [good, bad]}})
+    db.topics.insert_many([
+        {"slug": good, "subclass": "author", "titles": titles("ZZAbstract Author")},
+        {"slug": bad, "subclass": "no-such-subclass", "titles": titles("ZZAbstract Bad")},
+    ])
+    yield good, bad
+    db.topics.delete_many({"slug": {"$in": [good, bad]}})
+
+
+@pytest.fixture
+def zz_lexicon_entry():
+    headword = "zzabstract-headword"
+    db.lexicon_entry.delete_many({"headword": headword})
+    db.lexicon_entry.insert_one({"headword": headword, "parent_lexicon": "Jastrow Dictionary",
+                                 "rid": "zzabstract-rid", "content": {"senses": []}})
+    yield headword
+    db.lexicon_entry.delete_many({"headword": headword})
+
+
 class TestPolymorphicSetsStillTypeTheirRecords(object):
     """The instantiation hooks moved in the same change as with_skip_guard; these pin the
     behavior that moved, against the real sets rather than stubs."""
 
-    def test_topic_set_casts_to_subclass(self):
+    def test_topic_set_casts_to_subclass(self, zz_topics):
         from sefaria.model.topic import TopicSet, AuthorTopic
-        authors = TopicSet({"subclass": "author"}, limit=1)
-        for topic in authors:
-            assert isinstance(topic, AuthorTopic)
+        good, _ = zz_topics
+        topics = TopicSet({"slug": good}).array()
+        assert len(topics) == 1
+        assert isinstance(topics[0], AuthorTopic)
 
-    def test_lexicon_entry_set_builds_lexicon_specific_entries(self):
-        from sefaria.model.lexicon import LexiconEntrySet, LexiconEntry
-        entries = LexiconEntrySet({"parent_lexicon": "Jastrow Dictionary"}, limit=1)
-        for entry in entries:
-            assert type(entry) is not LexiconEntry
-            assert hasattr(entry, "get_alt_headwords")
+    def test_an_unknown_subclass_aborts_an_unguarded_topic_set(self, zz_topics):
+        """Unchanged: without a guard, a corrupt record is still loud."""
+        from sefaria.model.topic import TopicSet
+        _, bad = zz_topics
+        with pytest.raises(KeyError):
+            TopicSet({"slug": bad}).array()
+
+    def test_an_unknown_subclass_is_skipped_by_a_guarded_topic_set(self, zz_topics):
+        """Regression: the cast used to run in a second pass over self.records, i.e. AFTER
+        the guarded loop, so this KeyError escaped with_skip_guard() and aborted the whole
+        set -- taking every healthy topic with it, on the guarded startup path in
+        Library._build_topic_mapping."""
+        from sefaria.model.topic import TopicSet
+        good, bad = zz_topics
+        guard = _FakeGuard(KeyError)
+        topics = TopicSet({"slug": {"$in": [good, bad]}}).with_skip_guard(
+            guard, "startup", "op").array()
+        assert [t.slug for t in topics] == [good]
+        assert guard.skipped == [("op", bad, "KeyError")]
+
+    def test_lexicon_entry_set_builds_lexicon_specific_entries(self, zz_lexicon_entry):
+        from sefaria.model.lexicon import LexiconEntrySet, JastrowDictionaryEntry
+        entries = LexiconEntrySet({"headword": zz_lexicon_entry}).array()
+        assert len(entries) == 1
+        assert type(entries[0]) is JastrowDictionaryEntry
