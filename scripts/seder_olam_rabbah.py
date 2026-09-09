@@ -191,8 +191,10 @@ MAX_VALID_SEGMENT = max(SECTION_LEN.values())
 # DuplicateKeyError.  Ascending order guarantees the slot is already vacated.
 #
 # Refs whose segment number exceeds the section's real length are left alone —
-# they are already dangling today (see report_dangling_refs) and renumbering
-# them would only move the breakage around.
+# they are already dangling today and renumbering them would only move the
+# breakage around.  Dangling *links* are deleted outright in step 1c, before this
+# runs; this guard still matters for every other collection the cascade touches
+# (notes, history, sheets, topic links, webpages), which are not cleaned up.
 
 def base_rewriter_for(segment):
     def rewriter(tref, *_):
@@ -243,7 +245,7 @@ COMM_RANGE_SUB = re.compile(
 def _shift_endpoint(section, seg):
     """New segment number for one endpoint, or None if it must be left alone."""
     if seg > SECTION_LEN.get(section, 0):
-        return None                      # already dangling — see report_dangling_refs
+        return None                      # already dangling — see delete_dangling_links
     return max(1, seg - 1)
 
 
@@ -391,6 +393,66 @@ def clear_stale_mutc():
         print(f"    deleted {res.deleted_count}")
     elif DRY_RUN:
         print("    (dry run) nothing deleted — see the report above for what these hold")
+
+
+# ---------------------------------------------------------------------------
+# step 1c — delete pre-existing dangling links
+# ---------------------------------------------------------------------------
+
+def find_dangling_links():
+    """Links whose Seder Olam ref points past the end of its section.
+
+    These are broken *today* — left over from an earlier restructuring, not
+    created by this migration.  Scoped to the base text on purpose: the three
+    commentaries have no dangling refs (every one of their ~1,100 link refs
+    resolves), so widening the query would only add risk.
+
+    Returns (ids, partners): the _ids to delete, and {dangling ref -> [(partner
+    ref, link type), ...]} for the printout.
+    """
+    ids, partners = set(), defaultdict(list)
+    for l in db.links.find(title_query("refs", [BASE_TITLE]), {"refs": 1, "type": 1}):
+        for i, r in enumerate(l["refs"]):
+            m = BASE_SEG.match(r)
+            if m and int(m.group(3)) > SECTION_LEN.get(int(m.group(2)), 0):
+                ids.add(l["_id"])
+                # A link's `refs` is a 2-element list, so the partner is the other
+                # entry.  Guard the length anyway — malformed links do exist, and
+                # this is the last place that should raise.
+                other = [x for j, x in enumerate(l["refs"]) if j != i]
+                partners[r].append((other[0] if other else "(no partner ref)",
+                                    l.get("type") or ""))
+    return ids, partners
+
+
+def delete_dangling_links():
+    """Delete the pre-existing dangling links.
+
+    Every one is printed before it goes, with the ref on the other side.  That
+    is the only record of what was destroyed: knowing that 'Seder Olam Rabbah
+    5:3' was dangling says nothing about how it might have been repaired, but
+    knowing it pointed at 'Ibn Ezra on Exodus 40:2:1' does.  Keep the run log if
+    anyone may want to reconstruct these later.
+
+    Runs BEFORE the cascade so these links are simply gone by the time refs move,
+    rather than being carried along as breakage in a new location.
+    """
+    ids, partners = find_dangling_links()
+    total = sum(len(v) for v in partners.values())
+    print(f"\n=== Step 1c: deleting pre-existing dangling links: "
+          f"{len(ids)} link(s) across {len(partners)} distinct dangling refs "
+          f"({total} dangling ref occurrence(s))")
+    for r in sorted(partners, key=lambda x: (int(x.split()[-1].split(':')[0]), int(x.split(':')[-1]))):
+        sec = int(r.split()[-1].split(':')[0])
+        print(f"      {r:34} in {len(partners[r]):>2} link(s)   "
+              f"[section has {SECTION_LEN.get(sec, 0)} segments]")
+        for other, ltype in sorted(partners[r]):
+            print(f"          was linked to  {other}{f'  ({ltype})' if ltype else ''}")
+    if not DRY_RUN and ids:
+        res = db.links.delete_many({"_id": {"$in": list(ids)}})
+        print(f"    deleted {res.deleted_count}")
+    elif DRY_RUN:
+        print("    (dry run) nothing deleted")
 
 
 # ---------------------------------------------------------------------------
@@ -745,40 +807,8 @@ def reindex_search():
 
 
 # ---------------------------------------------------------------------------
-# report only — pre-existing breakage, untouched by this migration
+# report only — ranged refs, which the cascade cannot rewrite
 # ---------------------------------------------------------------------------
-
-def report_dangling_refs():
-    """Links pointing past the end of a section.  These are broken *today*,
-    left over from an earlier restructuring, and this script deliberately does
-    not renumber them.  Reported so they can be dealt with separately.
-
-    The other side of each link is printed too: knowing that 'Seder Olam Rabbah 5:3'
-    is dangling says nothing about how to fix it, but knowing what it was linked to
-    usually does — a commentary anchored there points at which segment it meant,
-    and a cluster of links from one work suggests they all shifted together.
-    """
-    print("\n=== Report: pre-existing dangling refs (NOT modified)")
-    partners = defaultdict(list)
-    for l in db.links.find(title_query("refs", [BASE_TITLE]), {"refs": 1, "type": 1}):
-        for i, r in enumerate(l["refs"]):
-            m = BASE_SEG.match(r)
-            if m and int(m.group(3)) > SECTION_LEN.get(int(m.group(2)), 0):
-                # A link's `refs` is a 2-element list, so the partner is the other
-                # entry.  Guard the length anyway — malformed links do exist, and a
-                # report is the last place that should raise.
-                other = [x for j, x in enumerate(l["refs"]) if j != i]
-                partners[r].append((other[0] if other else "(no partner ref)",
-                                    l.get("type") or ""))
-    total = sum(len(v) for v in partners.values())
-    print(f"    {len(partners)} distinct refs across {total} links")
-    for r in sorted(partners, key=lambda x: (int(x.split()[-1].split(':')[0]), int(x.split(':')[-1]))):
-        sec = int(r.split()[-1].split(':')[0])
-        print(f"      {r:34} in {len(partners[r]):>2} link(s)   "
-              f"[section has {SECTION_LEN.get(sec, 0)} segments]")
-        for other, ltype in sorted(partners[r]):
-            print(f"          linked to  {other}{f'  ({ltype})' if ltype else ''}")
-
 
 # collections the cascade rewrites, as (collection, field) — used by the ranged-ref
 # report below to look in exactly the places cascade() touches.
@@ -1040,11 +1070,11 @@ if __name__ == "__main__":
     print(f"{'DRY RUN — nothing will be written' if DRY_RUN else '*** LIVE RUN — WRITING ***'}")
     print(f"section lengths: {SECTION_LEN}")
     preflight()
-    report_dangling_refs()
     report_ranged_refs()
     report_marked_up_text_chunks()
     clear_link_collisions()
     clear_stale_mutc()
+    delete_dangling_links()
     cascade_refs()
     drop_first_segments()
     refresh()
