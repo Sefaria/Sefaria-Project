@@ -359,6 +359,11 @@ SEARCH_INDEX_NAME_TOPIC = 'topic'
 SEARCH_INDEX_NAME_BOOK = 'book'
 SEARCH_INDEX_NAME_CATEGORY = 'category'
 
+# Same reasoning as the SEARCH_INDEX_NAME_* defaults above: a local_settings.py that predates
+# this flag must still boot, and MULTISERVER_ENABLED-gated code (e.g. gunicorn's post_fork hook)
+# imports this by name. See sefaria/system/multiserver/coordinator.py:start_background_listener.
+MULTISERVER_BACKGROUND_LISTENER_ENABLED = False
+
 # Grab environment specific settings from a file which
 # is left out of the repo.
 if os.getenv("CI_RUN"):

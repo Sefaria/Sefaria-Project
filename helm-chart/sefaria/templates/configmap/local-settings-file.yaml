@@ -145,6 +145,7 @@ data:
 
     # Multiserver
     MULTISERVER_ENABLED = bool(os.getenv("MULTISERVER_ENABLED", default="True").lower() == "true")
+    MULTISERVER_BACKGROUND_LISTENER_ENABLED = bool(os.getenv("MULTISERVER_BACKGROUND_LISTENER_ENABLED", default="False").lower() == "true")
     MULTISERVER_REDIS_SERVER = redisHost
     MULTISERVER_REDIS_PORT = 6379
     MULTISERVER_REDIS_DB = 0

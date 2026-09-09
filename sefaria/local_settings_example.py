@@ -245,6 +245,11 @@ CLOUDFLARE_TOKEN = ""
 
 # Multiserver
 MULTISERVER_ENABLED = False
+# Runs a persistent background thread per web worker that applies multiserver cache-refresh
+# events as they arrive, instead of relying solely on MultiServerEventListenerMiddleware's
+# every-20-request poll. Requires MULTISERVER_ENABLED. See
+# sefaria/system/multiserver/coordinator.py:ServerCoordinator.start_background_listener.
+MULTISERVER_BACKGROUND_LISTENER_ENABLED = False
 MULTISERVER_REDIS_SERVER = "127.0.0.1"
 MULTISERVER_REDIS_PORT = 6379
 MULTISERVER_REDIS_DB = 0
