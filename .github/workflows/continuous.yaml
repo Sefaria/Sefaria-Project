@@ -238,25 +238,10 @@ jobs:
           AFFECTED=$(echo "$RESULT" | python -c "import json,sys; print(str(json.load(sys.stdin).get('affected', True)).lower())")
           echo "linker_affected=$AFFECTED" >> $GITHUB_OUTPUT
 
-  pytest-no-mongo:
-    # The two thirds of the suite measured to issue zero Mongo commands. No sandbox,
-    # no Helm deploy, no dev-mongo mutex -- a plain runner.
-    name: "Continuous Testing: PyTest (no Mongo)"
-    needs: [ check-python-files ]
-    if: >
-      github.event.pull_request.draft == false &&
-      needs.check-python-files.outputs.python_files_changed == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install dependencies
-        run: pip install -r requirements.txt pytest-django pytest-timeout
-      - name: Run tests that need no database
-        run: pytest -v --timeout=600 -m "not deep and not failing and not needs_mongo" ./sefaria ./sso ./reader ./powered_by
+  # A plain-runner no-Mongo pytest job cannot pass yet: sefaria/system/database.py
+  # connects to TEST_DB at import time, while needs_mongo measures commands issued,
+  # not whether imports need a connection. Rejected for this PR: seed a Mongo
+  # service with the multi-GB dataset, or refactor the module connection to be lazy.
 
   sandbox-deploy:
     name: "Continuous Testing: Sandbox Deploy"
@@ -540,7 +525,6 @@ jobs:
       - sandbox-deploy
       - sandbox-ready
       - pytest-job
-      - pytest-no-mongo
       - pytest-linker-job
     runs-on: ubuntu-latest
     if: always()
@@ -559,7 +543,6 @@ jobs:
             if [ "${{ needs.check-python-files.outputs.python_files_changed }}" == "true" ]; then
               if [ "${{ needs.sandbox-deploy.result }}" != "success" ] || \
                  [ "${{ needs.sandbox-ready.result }}" != "success" ] || \
-                 [ "${{ needs.pytest-no-mongo.result }}" != "success" ] || \
                  [ "${{ needs.pytest-job.result }}" != "success" ]; then
                 echo "One or more Python-related test jobs failed"
                 exit 1
