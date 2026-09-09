@@ -36,6 +36,7 @@ from sefaria.model.collection import Collection, CollectionSet, process_sheet_de
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.system.cache import django_cache
 from sefaria.utils.util import strip_tags, get_redirect_to_help_center
+from sefaria.constants.model import get_direction_from_legacy_lang
 from sefaria.site.site_settings import SITE_SETTINGS
 
 from reader.views import render_template, catchall, get_search_params, get_page_title, PageTypes, menu_page
@@ -734,10 +735,11 @@ def add_source_to_sheet_api(request, sheet_id):
             del source_obj[lang]
             return lang_tc
         else:  # otherwise get the text chunk for the prvided ref, either with a version (if provided) or the default.
-            lang_tc = TextChunk(ref_obj, lang, source["version-"+lang]) if source.get("version-"+lang, None) else TextChunk(ref_obj, lang)
-            lang_tc = lang_tc.ja().flatten_to_string()
-            if "version-"+lang in source_obj:
-                del source_obj["version-"+lang]
+            # Keyed by direction, not real language -- sheets still carry the old en/he-as-ltr/rtl dichotomy.
+            direction = get_direction_from_legacy_lang(lang)
+            lang_tc = ref_obj.text(direction=direction, vtitle=source.get(f"version-{lang}", None)).ja().flatten_to_string()
+            if f"version-{lang}" in source_obj:
+                del source_obj[f"version-{lang}"]
             return lang_tc if lang_tc != "" else "..."
 
     sheet = db.sheets.find_one({"id": int(sheet_id)})

@@ -74,14 +74,14 @@ shared_patterns = [
     path('api/texts/versions/<path:tref>', reader_views.versions_api),
     re_path(r'^api/texts/version-status/tree/?(?P<lang>.*)?/?$', reader_views.version_status_tree_api),
     re_path(r'^api/texts/version-status/?$', reader_views.version_status_api),
-    path('api/texts/parashat_hashavua', reader_views.parashat_hashavua_api),
+    path('api/texts/parashat_hashavua', reader_views.parashat_hashavua_api),  # legacy, documented as broken (504s) -- see docs/decisions/documented_endpoints.md
     re_path(r'^api/texts/translations/?$', reader_views.translations_api),
     re_path(r'^api/texts/translations/(?P<lang>.+)', reader_views.translations_api),
     re_path(r'^api/texts/random?$', reader_views.random_text_api),
     re_path(r'^api/texts/random-by-topic/?$', reader_views.random_by_topic_api),
     path('api/texts/modify-bulk/<path:title>', reader_views.modify_bulk_text_api),
     re_path(r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.old_text_versions_api_redirect),
-    path('api/texts/<path:tref>', reader_views.texts_api),
+    path('api/texts/<path:tref>', reader_views.texts_api),  # legacy v1 API, kept for external consumers; superseded internally by api/v3/texts
     re_path(r'^api/versions/?$', reader_views.complete_version_api),
     path('api/v3/texts/<path:tref>', api_views.Text.as_view()),
     path('api/knn-search', api_views.KnnSearch.as_view()),

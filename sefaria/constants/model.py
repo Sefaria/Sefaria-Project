@@ -31,6 +31,20 @@ LANGUAGE_CODES = {
     "jrb": "arabic",
 }
 
+
+def get_direction_from_legacy_lang(lang):
+    """
+    Legacy en/he-bucket convention: "he" is rtl, everything else (including non-en/he languages
+    forced into the "en" bucket to satisfy the old binary schema) is ltr.
+    """
+    return "rtl" if lang == "he" else "ltr"
+
+
+def get_legacy_lang_from_direction(direction):
+    """Inverse of get_direction_from_legacy_lang: the legacy en/he bucket for a given direction."""
+    return "he" if direction == "rtl" else "en"
+
+
 # Module constants that correspond to DOMAIN_MODULES keys
 LIBRARY_MODULE = "library"
 VOICES_MODULE = "voices"
