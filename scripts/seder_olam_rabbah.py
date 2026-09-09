@@ -972,6 +972,51 @@ def remove_introduction_nodes():
         print(f"    removed Introduction from {title}")
 
 
+# ---------------------------------------------------------------------------
+# step 7 — zoom the commentary tables of contents out to the section level
+# ---------------------------------------------------------------------------
+
+# The three commentaries are depth 3: Chapter / Paragraph / Comment.  Without
+# toc_zoom the book page's table of contents drills all the way to the bottom and
+# lists every individual comment, which is unreadable on a text this size.
+#
+# toc_zoom is read in static/js/BookPage.jsx (the JaggedArrayNode component): it
+# computes ``zoom = toc_zoom - 1`` and then renders the tree at ``depth - zoom``.
+# So on a depth-3 node, toc_zoom = 2 gives ``3 - 1 = 2`` levels — Chapter, then
+# Paragraph — and the links land on section refs like "Vilna Gaon on Seder Olam
+# Rabbah 1:1" rather than on "…1:1:1".  That is what nearly every other depth-3
+# commentary in the library already does.
+TOC_ZOOM_SECTION_LEVEL = 2
+
+
+def set_commentary_toc_zoom():
+    """Set toc_zoom on each commentary's main (default) node.
+
+    Only the default node.  Yaakov Emden and Meir Ayin also carry an
+    'Introduction' JaggedArrayNode, but those are depth 2 — zooming them out
+    would collapse their table of contents to a single flat list, so they are
+    left alone.
+
+    This runs after remove_introduction_nodes() on purpose: remove_branch() saves
+    the index itself, and Vilna Gaon is both a commentary and one of the two books
+    losing an Introduction.  Setting toc_zoom first would hand that save a stale
+    in-memory index and the change could be written back out.
+    """
+    print("\n=== Step 7: setting toc_zoom on the commentaries")
+    for title in COMMENTARIES:
+        index = library.get_index(title)
+        node = default_node(index)
+        current = getattr(node, "toc_zoom", None)
+        if current == TOC_ZOOM_SECTION_LEVEL:
+            print(f"    {title:44} already toc_zoom={current} — nothing to do")
+            continue
+        print(f"    {title:44} toc_zoom {current!r} -> {TOC_ZOOM_SECTION_LEVEL}"
+              f"   (depth={node.depth}, sectionNames={node.sectionNames})")
+        if not DRY_RUN:
+            node.toc_zoom = TOC_ZOOM_SECTION_LEVEL
+            index.save()
+
+
 def verify_commentary_linking():
     """Confirm base_text_mapping survived the run.
 
@@ -1007,6 +1052,7 @@ if __name__ == "__main__":
     rewrite_marked_up_text_chunks()
     reindex_search()
     remove_introduction_nodes()
+    set_commentary_toc_zoom()
     if not DRY_RUN:
         verify_commentary_linking()
     print("\nDone." + ("  Set DRY_RUN=false to apply." if DRY_RUN else ""))
