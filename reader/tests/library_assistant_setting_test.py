@@ -4,7 +4,7 @@ from unittest import mock
 
 from django.test import TestCase
 
-from reader.conftest import create_test_user, purge_test_profiles
+from reader.conftest import create_test_user, make_profile_missing_la_setting, purge_test_profiles
 from sefaria.system.context_processors import chatbot_user_token
 from reader.models import UserExperimentSettings, _set_user_experiments
 from sefaria.helper import library_assistant
@@ -39,6 +39,18 @@ class LibraryAssistantUserTestCase(TestCase):
 
     def post_setting(self, value):
         return self.post_profile({"settings": {SETTING_KEY: value}})
+
+
+class ProfileCreationTest(LibraryAssistantUserTestCase):
+    """
+    The key is written at the single point every profile-creation path passes
+    through: UserProfile.__init__, when no stored doc exists yet.
+    """
+
+    def test_new_profile_is_created_with_the_setting_on(self):
+        UserProfile(id=self.user.id)
+
+        self.assertIs(self.stored_setting(), True)
 
 
 class ProfileApiTest(LibraryAssistantUserTestCase):
@@ -78,6 +90,7 @@ class ProfileApiTest(LibraryAssistantUserTestCase):
         # On through the pre-migration rule, with no setting key of their own. Saving
         # something else must not write a value for them.
         self.enroll_in_experiments(True)
+        make_profile_missing_la_setting(self.user)
 
         self.post_profile({"settings": {"interface_language": "hebrew"}})
 
@@ -125,15 +138,19 @@ class ScriptTagGateTest(LibraryAssistantUserTestCase):
 
     def test_absent_setting_keeps_todays_behavior(self):
         # Never enrolled: no script, exactly as before the setting existed.
+        make_profile_missing_la_setting(self.user)
+
         self.assertIsNone(self.context()["chatbot_script_url"])
 
     def test_legacy_enrolled_user_still_gets_the_script(self):
         self.enroll_in_experiments(True)
+        make_profile_missing_la_setting(self.user)
 
         self.assertIsNotNone(self.context()["chatbot_script_url"])
 
     def test_legacy_opt_out_still_gets_nothing(self):
         self.enroll_in_experiments(False)
+        make_profile_missing_la_setting(self.user)
 
         self.assertIsNone(self.context()["chatbot_script_url"])
 
@@ -169,10 +186,13 @@ class AccountSettingsPageTest(LibraryAssistantUserTestCase):
         self.assertIn('id="libraryAssistantSetting"', self.get_page())
 
     def test_never_enrolled_user_sees_off(self):
+        make_profile_missing_la_setting(self.user)
+
         self.assertToggleShows(self.get_page(), on=False)
 
     def test_legacy_enrolled_user_sees_on(self):
         self.enroll_in_experiments(True)
+        make_profile_missing_la_setting(self.user)
 
         self.assertToggleShows(self.get_page(), on=True)
 

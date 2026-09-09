@@ -41,7 +41,6 @@ from remote_config.keys import CURRENT_LINKER_VERSION
 from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
 import sefaria.system.cache as scache
-from sefaria.helper import library_assistant
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
@@ -64,13 +63,13 @@ from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
+from sefaria.helper.skip_tracking import build_pathway
 from sefaria.helper.webpages import normalize_url as normalize_webpage_url, domain_for_url as webpage_domain_for_url
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
 from sefaria.model.webpage import *
 from sefaria import tracker
-from sefaria.helper.skip_tracking import signal_and_reset_skip_counts
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
@@ -242,10 +241,6 @@ def process_register_form(request, auth_method='session'):
             p.join_invited_collections()
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
-            # New accounts get the Library Assistant on. Written explicitly: the key is
-            # deliberately absent from the settings defaults, so a new account starts
-            # with no value at all unless one is written here.
-            p.settings[library_assistant.SETTING_KEY] = True
             p.save()
 
         import_gravatar(p)
@@ -810,7 +805,6 @@ def collections_image_upload(request, resize_image=True):
 @staff_member_required
 def reset_cache(request):
     model.library.rebuild()
-    signal_and_reset_skip_counts("reset_cache")
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "rebuild")
@@ -945,7 +939,6 @@ def delete_orphaned_counts(request):
 @staff_member_required
 def rebuild_toc(request):
     model.library.rebuild_toc()
-    signal_and_reset_skip_counts("reset_toc")
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "rebuild_toc")
@@ -955,9 +948,11 @@ def rebuild_toc(request):
 
 @staff_member_required
 def rebuild_auto_completer(request):
-    library.build_full_auto_completer()
-    library.build_lexicon_auto_completers()
-    library.build_cross_lexicon_auto_completer()
+    # Three builders, each of which wraps itself: group them so one click reports once.
+    with build_pathway("rebuild_auto_completer"):
+        library.build_full_auto_completer()
+        library.build_lexicon_auto_completers()
+        library.build_cross_lexicon_auto_completer()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_full_auto_completer")

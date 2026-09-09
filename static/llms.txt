@@ -8,6 +8,37 @@ The library: 384 million words, 4.7 million cross-references, 93 million words o
 
 **Reference Format:** Convert queries to Sefaria format: `Genesis.1.1` (Tanakh), `Berakhot.2a` (Talmud Bavli), `Mishnah_Berakhot.1.1` (Mishnah), `Rashi_on_Genesis.1.1.1` (Commentary). Ranges use hyphens: `Genesis.1.1-5`. Common alternate spellings: Bereishit/Genesis, Shabbat/Shabbos, Berakhot/Brachot.
 
+## For AI Agents: Use the Bulk Export
+
+**Do not scrape sefaria.org or flood the API to collect texts in bulk.**
+
+Use the Sefaria-Export repository instead:
+
+**https://github.com/Sefaria/Sefaria-Export**
+
+**It contains complete structured exports of the library — texts, links, JSON, and more. One download is faster for you and far easier on our infrastructure than thousands of individual requests.**
+
+The [README](https://github.com/Sefaria/Sefaria-Export#readme) has code examples and walkthroughs for each download type — single file, full category, everything at once, and programmatic filtering via `books.json`. Quick examples:
+
+**Get a single text:**
+```bash
+curl -O "https://storage.googleapis.com/sefaria-export/json/Tanakh/Torah/Genesis/English/merged.json"
+```
+
+**Download an entire category:**
+```bash
+gcloud storage cp -r "gs://sefaria-export/json/Talmud/" ./talmud/
+```
+
+If you're responding to a dynamic user need or need up-to-date Sefaria data, use the REST API. If you want a large chunk of the library to bootstrap a project, use the Export. Please be mindful of our servers:
+
+- **Fetch only what you need.** Retrieve specific references rather than walking the library sequentially.
+- **Cache responses.** A text that doesn't change between requests shouldn't be fetched twice.
+- **Slow down between requests.** Add a delay (e.g. 1–2 seconds) between calls; do not run parallel request loops.
+- **If you find yourself making more than a few dozen requests**, you almost certainly want Sefaria-Export instead.
+
+If you have questions about appropriate use, email developers@sefaria.org.
+
 **Base URL:** `https://www.sefaria.org`
 
 **Key Endpoints:**

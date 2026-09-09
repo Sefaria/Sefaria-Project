@@ -1,8 +1,13 @@
 """
 Tests for sefaria.helper.linker.tasks
 """
+from types import SimpleNamespace
+
 import pytest
-from sefaria.helper.linker.tasks import _get_link_trefs_to_add_and_delete
+from ne_span import NEDoc
+from sefaria.model.linker.ref_part import RawRef
+from sefaria.model.linker.ref_resolver import ResolvedRef
+from sefaria.helper.linker.tasks import _get_link_trefs_to_add_and_delete, _extract_resolved_spans
 
 
 @pytest.mark.parametrize("trefs_found,existing_linked_trefs,all_linked_trefs,expected_add,expected_delete,test_id", [
@@ -59,3 +64,37 @@ def test_link_trefs_operations(trefs_found, existing_linked_trefs, all_linked_tr
     
     assert to_add == expected_add, f"Failed for test: {test_id}"
     assert to_delete == expected_delete, f"Failed for test: {test_id}"
+
+
+def _make_resolved_ref(doc_text, span_text, tref):
+    doc = NEDoc(doc_text)
+    start = doc_text.index(span_text)
+    end = start + len(span_text)
+    raw_ref = RawRef(doc.subspan(slice(start, end)), 'he', [])
+    # _extract_resolved_spans only ever calls .normal() on `ref`, so a stand-in avoids needing a real Ref/DB
+    fake_ref = SimpleNamespace(normal=lambda: tref)
+    return ResolvedRef(raw_ref, [], fake_ref)
+
+
+@pytest.mark.parametrize(('doc_text', 'span_text', 'tref'), [
+    # Rashba on Berakhot 17b:1: "אסקה רב אשי בגמרא (לקמן ברכות יח, א) דמוטל...". Confirmed against the real
+    # LinkerOutput debug span (GET /api/v3/texts/Rashba_on_Berakhot.17b.1?debug_mode=linker) that the raw
+    # entity span is 'בגמרא (לקמן ברכות יח, א' -- the trailing ")" is just outside the matched span.
+    ['אסקה רב אשי בגמרא (לקמן ברכות יח, א) דמוטל עליו לקוברו', 'בגמרא (לקמן ברכות יח, א', 'Berakhot 18a'],
+])
+def test_extract_resolved_spans_end_paren(doc_text, span_text, tref):
+    """
+    `_extract_resolved_spans` builds the citation spans that end up on the live MarkedUpTextChunk (i.e. the
+    text that actually gets highlighted/linked for readers), and it reads straight off
+    `resolved_ref.raw_entity.char_indices`/`.text` rather than `resolved_ref.pretty_text`. `pretty_text`
+    already knows how to extend the span to include a trailing ")" just outside the raw entity (see
+    test_pretty_text_end_paren in sefaria/model/linker/tests/linker_test.py) -- this function just never
+    consults it, so the closing paren silently gets dropped from what's actually shown to readers.
+    """
+    resolved_ref = _make_resolved_ref(doc_text, span_text, tref)
+    spans = _extract_resolved_spans([resolved_ref])
+
+    assert len(spans) == 1
+    assert spans[0]['text'] == resolved_ref.pretty_text
+    start, end = spans[0]['charRange']
+    assert doc_text[start:end] == resolved_ref.pretty_text

@@ -192,6 +192,7 @@ INSTALLED_APPS = (
 DATABASE_ROUTERS = ['semantic_search.router.SemanticSearchRouter']
 
 SEMANTIC_SEARCH_API_TOKEN = os.environ.get("SEMANTIC_SEARCH_API_TOKEN", "")
+SEMANTIC_SEARCH_TABLE_VERSION = os.environ.get("SEMANTIC_SEARCH_TABLE_VERSION", "legacy")
 
 # Deployed app version (semantic-release tag), set as a pod env var by the Helm chart.
 # Empty in local dev, where no deploy has happened.

@@ -44,18 +44,29 @@ ArrayMapNode that
   NonUniqueTerm slug (e.g. base ['parasha', 'bereshit'] -> ['rashi', 'parasha', 'bereshit']),
   with scope set to "alone" -- this mirrors the existing pattern used for e.g. Rashi's
   "Chapters" alt structs on Talmud tractates.
-- has a `wholeRef` that is the same chapter:verse range, re-anchored to the commentary's
-  own ref space:
+- has a `wholeRef` anchored to the commentary's own ref space and trimmed to the
+  commentary's actual content. The base parasha's chapter:verse range is first
+  re-anchored into the commentary's ref space:
     - "simple" / "complex_single": "Genesis 1:1-6:8" -> "Rashi on Genesis 1:1-6:8"
     - "complex_multi": "Genesis 1:1-6:8" -> "Chizkuni, Genesis 1:1-6:8" (an extra
       comma-separated path segment naming the book, e.g. its own English or
       transliterated-Hebrew title within the combined index)
+  and then trimmed down to the first and last segment-level refs that actually
+  have commentary content in that span, at whatever depth the commentary's own
+  segments sit (usually depth 3 -- chapter:verse:comment -- but not assumed to
+  be). e.g. if Rashi comments on Genesis 1:1 but his last comment in Parshat
+  Bereishit falls on Genesis 6:5 (not 6:8, the parasha's nominal end), the
+  wholeRef is "Rashi on Genesis 1:1:1-6:5:1", not "Rashi on Genesis 1:1-6:8".
   This mirrors the wholeRef re-anchoring pattern already used for existing Torah
-  commentaries such as "Minchat Shai on Torah".
+  commentaries such as "Minchat Shai on Torah", but precise instead of nominal.
+  A parasha with no commentary content at all in the range is skipped entirely
+  (not added as an empty node).
 
 The struct is added to the commentary's `alt_structs`, where it's usable for ref
-resolution, search, etc., and also shows up as a navigation toggle in the "Table of
-Contents" on the book page.
+resolution, search, etc. The struct name "Parasha" is also added to the index's
+`exclude_structs` list, which tells the client to leave it out of the navigation
+toggle on the book page's "Table of Contents" -- the struct is fully functional,
+just not surfaced as a nav option.
 
 The commentator's NonUniqueTerm slug is guessed as the first term_slug of the first
 match_template on the commentary index's root node (e.g. "Rashi on Genesis" has root
@@ -79,7 +90,6 @@ django.setup()
 
 from sefaria.model import *
 from sefaria.model.schema import deserialize_tree, TitledTreeNode
-from sefaria.system.database import db
 
 
 TORAH_BOOK_ORDER = ["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"]
@@ -274,8 +284,18 @@ def confirm_commentator_term_slug(commentary_index, skip_manual=False, accept_al
 
 def _build_parasha_nodes_for_book(commentator_slug, base_title, ref_prefix):
     """
-    Builds the list of ArrayMapNode dicts for one base Torah book's parshiot, with
-    wholeRef anchored as "{ref_prefix} {start}-{end}".
+    Builds the list of ArrayMapNode dicts for one base Torah book's parshiot.
+
+    Each parasha's base chapter:verse range (e.g. "Genesis 1:1-6:8") is first
+    re-anchored into the commentary's own ref space ("{ref_prefix} {start}-{end}"),
+    then trimmed to the commentary's actual content: the wholeRef ends up spanning
+    from the first to the last segment-level ref that actually has commentary
+    content within that range, at whatever depth the commentary's segments happen
+    to sit (usually chapter:verse:comment, but not assumed). So if Rashi comments
+    on Genesis 1:1 but his last comment in Parshat Bereishit falls on Genesis 6:5
+    (not 6:8, the parasha's nominal end), the wholeRef is
+    "Rashi on Genesis 1:1:1-6:5:1", not "Rashi on Genesis 1:1-6:8". A parasha with
+    no commentary content at all in that range is skipped.
     """
     base_index = library.get_index(base_title)
     base_parasha_struct = base_index.get_alt_structures().get("Parasha")
@@ -287,8 +307,14 @@ def _build_parasha_nodes_for_book(commentator_slug, base_title, ref_prefix):
         base_ref = Ref(base_node.wholeRef)
         start = ":".join(str(s) for s in base_ref.sections)
         end = ":".join(str(s) for s in base_ref.toSections)
-        whole_ref = "{} {}-{}".format(ref_prefix, start, end)
-        Ref(whole_ref)  # validate that it resolves in the commentary's own ref space
+        nominal_ref = Ref("{} {}-{}".format(ref_prefix, start, end))  # validates it resolves
+
+        segment_refs = nominal_ref.all_segment_refs()
+        if not segment_refs:
+            print("  Skipping parasha '{}' for '{}': no actual content in {}".format(
+                base_node.get_primary_title("en"), ref_prefix, nominal_ref.normal()))
+            continue
+        whole_ref = segment_refs[0].to(segment_refs[-1]).normal()
 
         match_templates = [
             {"term_slugs": [commentator_slug] + list(base_template.get("term_slugs", [])), "scope": "alone"}
@@ -335,29 +361,6 @@ def build_parasha_alt_struct(commentary_index, commentator_slug, kind, extra):
     return struct_obj
 
 
-def save_index_directly_to_mongo(index):
-    """
-    Persist `index` without firing model dependency notifications.
-
-    This mirrors the pre-write portions of AbstractMongoRecord.save() so the Mongo
-    document has the same serialized shape as a normal Index.save(), but writes
-    directly to the index collection instead of calling save()/notify().
-    """
-    if index.is_new():
-        raise ValueError("Direct index save only supports existing indexes: {}".format(index.title))
-
-    index._normalize()
-    index._validate()
-    index._sanitize()
-    index._pre_save()
-
-    props = index._saveable_attrs()
-    result = db.index.replace_one({"_id": index._id}, props, upsert=True)
-    if not result.matched_count and result.upserted_id:
-        raise Exception("Index '{}' inserted when expecting an update.".format(index.title))
-    return index
-
-
 def add_parsha_struct_to_commentary(title, commentator_slug, dry_run=False, force=False):
     index = library.get_index(title)
     torah_books = get_torah_books()
@@ -374,15 +377,19 @@ def add_parsha_struct_to_commentary(title, commentator_slug, dry_run=False, forc
     struct_obj = build_parasha_alt_struct(index, commentator_slug, kind, extra)
 
     if dry_run:
-        print("Would set 'Parasha' alt structure on '{}' [{}]:".format(title, kind))
+        print("Would set 'Parasha' alt structure on '{}' [{}] (hidden from TOC nav via exclude_structs):".format(title, kind))
         for node in struct_obj.children:
             print("  {} -> {} | match_templates={}".format(
                 node.get_primary_title("en"), node.wholeRef, node.match_templates))
         return True
 
     index.set_alt_structure("Parasha", struct_obj)
-    save_index_directly_to_mongo(index)
-    print("Added 'Parasha' alt structure to '{}' [{}]".format(title, kind))
+    exclude_structs = list(getattr(index, "exclude_structs", None) or [])
+    if "Parasha" not in exclude_structs:
+        exclude_structs.append("Parasha")
+    index.exclude_structs = exclude_structs
+    index.save()
+    print("Added 'Parasha' alt structure to '{}' [{}] (hidden from TOC nav via exclude_structs)".format(title, kind))
     return True
 
 

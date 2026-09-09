@@ -20,4 +20,7 @@
 {{- if and .Values.keda.tasks.enabled (or .Values.tasks.enabled .Values.gpuServer) }}
 {{- include "sefaria.keda.scaledobject" (list . "tasks" (printf "%s-tasks" .Values.deployEnv) .Values.keda.tasks) }}
 {{- end }}
+{{- if and .Values.keda.nameService.enabled .Values.nameService.enabled }}
+{{- include "sefaria.keda.scaledobject" (list . "name" (printf "%s-name" .Values.deployEnv) .Values.keda.nameService) }}
+{{- end }}
 {{- end }}
