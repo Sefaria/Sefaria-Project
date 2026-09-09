@@ -206,6 +206,10 @@ spec:
         enabled: true
       dailyEmailNotifications:
         enabled: true
+      embedLibraryToPgvector:
+        enabled: true
+      embedLibraryToPgvectorMetadata:
+        enabled: true
       indexFromQueue:
         enabled: true
       metrics:
