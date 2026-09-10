@@ -5,45 +5,80 @@ import SearchAnalytics, { resultLinkAnalyticsAttrs } from './sefaria/searchAnaly
 import { InterfaceText } from './Misc';
 import BreadcrumbPath from './BreadcrumbPath';
 
-// Tracks whether a touch gesture is a tap (no/minimal movement) so we can show
-// a pressed state only for taps, not for scrolls that happen to start on a card.
+// How long the finger has to stay put before the card lights up. Short enough to feel
+// immediate on a real tap, long enough that a scroll flick never highlights anything.
+const PRESS_DELAY_MS = 100;
+// A tap shorter than PRESS_DELAY_MS still has to show feedback, so once the pressed state
+// goes on screen it stays there at least this long.
+const PRESS_MIN_MS = 150;
+// Finger drift, in pixels, still counted as a tap rather than the start of a scroll.
+const PRESS_MOVE_TOLERANCE = 10;
+
+// Tracks whether a touch gesture is a tap (finger stays put) so the card shows its pressed
+// state only for taps, never for a scroll that happens to start on a card.
 function usePressState() {
   const ref = useRef(null);
   const [pressed, setPressed] = useState(false);
-  const startPos = useRef(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
+    let startPos  = null;   // where the finger landed; null once the gesture ends or is ruled out
+    let showTimer = null;   // fires PRESS_DELAY_MS after touchstart
+    let hideTimer = null;   // holds a quick tap's highlight on screen for PRESS_MIN_MS
+    let shownAt   = null;   // when the pressed state actually went on screen
+
+    const clearTimers = () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+      showTimer = hideTimer = null;
+    };
+    const show = () => { shownAt = Date.now(); setPressed(true); };
+    const hide = () => { shownAt = null; setPressed(false); };
+
     const onStart = (e) => {
       const t = e.touches[0];
-      startPos.current = { x: t.clientX, y: t.clientY };
-      setPressed(true);
+      clearTimers();
+      hide();
+      startPos = { x: t.clientX, y: t.clientY };
+      showTimer = setTimeout(show, PRESS_DELAY_MS);
     };
     const onMove = (e) => {
-      if (!startPos.current) return;
+      if (!startPos) return;
       const t = e.touches[0];
-      if (Math.abs(t.clientX - startPos.current.x) > 10 ||
-          Math.abs(t.clientY - startPos.current.y) > 10) {
-        setPressed(false);
-        startPos.current = null;
+      if (Math.abs(t.clientX - startPos.x) > PRESS_MOVE_TOLERANCE ||
+          Math.abs(t.clientY - startPos.y) > PRESS_MOVE_TOLERANCE) {
+        // The finger is scrolling, not tapping — abandon the gesture without ever showing it.
+        startPos = null;
+        clearTimers();
+        hide();
       }
     };
     const onEnd = () => {
-      setPressed(false);
-      startPos.current = null;
+      if (!startPos) return;   // already ruled out as a scroll
+      startPos = null;
+      clearTimers();
+      if (shownAt === null) { show(); }   // finger lifted before the delay: flash it now
+      const remaining = PRESS_MIN_MS - (Date.now() - shownAt);
+      if (remaining > 0) { hideTimer = setTimeout(hide, remaining); } else { hide(); }
+    };
+    const onCancel = () => {
+      startPos = null;
+      clearTimers();
+      hide();
     };
 
-    el.addEventListener('touchstart',  onStart, { passive: true });
-    el.addEventListener('touchmove',   onMove,  { passive: true });
-    el.addEventListener('touchend',    onEnd,   { passive: true });
-    el.addEventListener('touchcancel', onEnd,   { passive: true });
+    el.addEventListener('touchstart',  onStart,  { passive: true });
+    el.addEventListener('touchmove',   onMove,   { passive: true });
+    el.addEventListener('touchend',    onEnd,    { passive: true });
+    el.addEventListener('touchcancel', onCancel, { passive: true });
     return () => {
+      clearTimers();
       el.removeEventListener('touchstart',  onStart);
       el.removeEventListener('touchmove',   onMove);
       el.removeEventListener('touchend',    onEnd);
-      el.removeEventListener('touchcancel', onEnd);
+      el.removeEventListener('touchcancel', onCancel);
     };
   }, []);
 

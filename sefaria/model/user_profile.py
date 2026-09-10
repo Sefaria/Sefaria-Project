@@ -60,7 +60,7 @@ if not hasattr(sys, '_doc_build'):
 from . import abstract as abst
 from sefaria.model.following import FollowersSet, FolloweesSet, general_follow_recommendations
 from sefaria.model.blocking import BlockersSet, BlockeesSet
-from sefaria.model.text import Ref, TextChunk
+from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
@@ -194,9 +194,11 @@ class UserHistory(abst.AbstractMongoRecord):
                 if ref.is_sheet():
                     d.update(get_sheet_listing_data(d["sheet_id"]))
                 else:
+                    # Keyed by direction, not real language -- this still carries the old en/he-as-
+                    # ltr/rtl dichotomy rather than genuine source/translation, unlike the main reader.
                     d["text"] = {
-                        "en": TextChunk(ref, "en").as_sized_string(),
-                        "he": TextChunk(ref, "he").as_sized_string()
+                        "en": ref.text(direction="ltr").as_sized_string(),
+                        "he": ref.text(direction="rtl").as_sized_string()
                     }
             except Exception as e:
                 logger.warning("Failed to retrieve text for history Ref: {}".format(d['ref']))

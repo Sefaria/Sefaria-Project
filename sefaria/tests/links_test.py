@@ -3,14 +3,15 @@
 
 These used to query the full dump (Exodus plus every linked book). That is a
 partial-library / oversized fixture, not a unit of product code. The assertions
-here are the same behaviors: range union, category filter, and exclusion of
-Talmud-perek / parasha anchors.
+here are the same behaviors: range union, category filter, exclusion of
+Talmud-perek / parasha anchors, and real version metadata when a linked
+segment is empty.
 """
 import pytest
 from unittest.mock import patch
 
 from sefaria.client.wrapper import get_links
-from sefaria.model import Index, IndexSet, Link, LinkSet, Ref, TextChunk, VersionSet, VersionState, library
+from sefaria.model import Index, IndexSet, Link, LinkSet, Ref, VersionSet, VersionState, library
 
 
 BASE = "Synth GetLinks Base"
@@ -19,6 +20,7 @@ MIDRASH = "Synth GetLinks Midrash"
 HALAKHAH = "Synth GetLinks Halakhah"
 TITLES = (BASE, COMMENTARY, MIDRASH, HALAKHAH)
 GENERATED_BY = "synth_get_links"
+VERSION_TITLE = "Synth GetLinks Version"
 
 
 def _index_data(title, he_title, categories, dependence=None, base_text_titles=None):
@@ -55,7 +57,7 @@ def _save_index(title, he_title, categories, dependence=None, base_text_titles=N
 
 
 def _save_text(title, chapter):
-    chunk = TextChunk(Ref(f"{title} 1"), "en", "Synth GetLinks Version")
+    chunk = Ref(f"{title} 1").text(direction="ltr", lang="en", vtitle=VERSION_TITLE)
     chunk.text = chapter
     chunk.versionSource = "http://test.example.com"
     chunk.save()
@@ -92,6 +94,7 @@ def synth_get_links_library():
 
     _save_link(f"{COMMENTARY} 1:1", f"{BASE} 1:3", "commentary")
     _save_link(f"{COMMENTARY} 1:2", f"{BASE} 1:4", "commentary")
+    _save_link(f"{COMMENTARY} 1:3", f"{BASE} 1:3", "commentary")
     _save_link(f"{MIDRASH} 1:1", f"{BASE} 1:3", "midrash")
     _save_link(f"{HALAKHAH} 1:1", f"{BASE} 1:3", "related")
     yield
@@ -152,3 +155,21 @@ class Test_get_links:
             links = get_links(perek, with_text=False)
         assert perek in {l["anchorRef"] for l in links}
         assert links
+
+    @patch("sefaria.client.wrapper.library.get_collections_in_library", return_value=[])
+    def test_get_links_version_metadata_is_real_even_without_content_at_position(self, mock_collections, synth_get_links_library):
+        """A linked segment can be empty in a chapter that still has a real version.
+
+        get_links() should report that version's metadata, not invent one and not
+        drop it because this exact position is empty.
+        """
+        links = get_links(f"{BASE} 1:3", with_text=True)
+        empty_with_version = [l for l in links if not l.get("text") and l.get("versionTitle")]
+        assert empty_with_version, "Expected at least one link with empty text but real version metadata"
+
+        for link in empty_with_version:
+            index_title = Ref(link["ref"]).index.title
+            real_titles = {v.versionTitle for v in VersionSet({"title": index_title, "direction": "ltr"})}
+            assert link["versionTitle"] in real_titles, (
+                f"{link['ref']}: versionTitle {link['versionTitle']!r} is not a real version of {index_title}"
+            )

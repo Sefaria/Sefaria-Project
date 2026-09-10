@@ -9,6 +9,7 @@ from bson.code import Code
 
 from sefaria.model import *
 from sefaria.system.database import db
+from sefaria.constants.model import get_direction_from_legacy_lang
 
 dmp = diff_match_patch()
 
@@ -170,7 +171,8 @@ def text_at_revision(tref, version, lang, revision):
     Returns the state of a text (identified by ref/version/lang) at revision number 'revision'
     """
     changes = db.history.find({"ref": tref, "version": version, "language": lang}).sort([['revision', -1]])
-    current = TextChunk(Ref(tref), lang, version)
+    direction = get_direction_from_legacy_lang(lang)
+    current = TextChunk(Ref(tref), direction=direction, vtitle=version)
     text = str(current.text)  # needed?
 
     for r in changes:

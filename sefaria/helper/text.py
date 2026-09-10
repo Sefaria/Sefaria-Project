@@ -20,6 +20,7 @@ except ImportError:
     import xml.etree.ElementTree as ET
 from sefaria.model import *
 from sefaria.utils.hebrew import has_hebrew
+from sefaria.constants.model import get_direction_from_legacy_lang, get_legacy_lang_from_direction
 
 def add_spelling(category, old, new, lang="en"):
     """
@@ -236,7 +237,7 @@ def merge_text(a, b):
     return out
 
 
-def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_rewrite_function=lambda x: True, **kwargs):
+def modify_text_by_function(title, vtitle, direction, rewrite_function, uid, needs_rewrite_function=lambda x: True, **kwargs):
     """
     Walks ever segment contained in title, calls rewrite_function on the text and saves the result.
     rewrite_function should accept two parameters: 1) text of current segment 2) zero-indexed indices of segment
@@ -246,11 +247,11 @@ def modify_text_by_function(title, vtitle, lang, rewrite_function, uid, needs_re
     leaf_nodes = library.get_index(title).nodes.get_leaf_nodes()
     for leaf in leaf_nodes:
         oref = leaf.ref()
-        ja = oref.text(lang, vtitle).ja()
+        ja = oref.text(vtitle=vtitle, direction=direction).ja()
         assert isinstance(ja, JaggedTextArray)
         modified_text = ja.modify_by_function(rewrite_function)
         if needs_rewrite_function(ja.array()):
-            modify_text(uid, oref, vtitle, lang, modified_text, **kwargs)
+            modify_text(uid, oref, vtitle, None, modified_text, direction=direction, **kwargs)
 
 
 def modify_many_texts_and_make_report(rewrite_function, versions_query=None, return_zeros=False):
@@ -296,27 +297,29 @@ def modify_many_texts_and_make_report(rewrite_function, versions_query=None, ret
     return output.getvalue()
 
 
-def split_text_section(oref, lang, old_version_title, new_version_title):
+def split_text_section(oref, direction, old_version_title, new_version_title):
     """
     Splits the text in `old_version_title` so that the content covered by `oref` now appears in `new_version_title`.
-    Rewrites history for affected content. 
+    Rewrites history for affected content.
 
-    NOTE: `oref` cannot be ranging (until we implement saving ranging refs on TextChunk). Spanning refs are handled recursively.
+    NOTE: `oref` cannot be ranging. Spanning refs are handled recursively.
     """
     if oref.is_spanning():
         for span in oref.split_spanning_ref():
-            split_text_section(span, lang, old_version_title, new_version_title)
+            split_text_section(span, direction, old_version_title, new_version_title)
         return
 
-    old_chunk = TextChunk(oref, lang=lang, vtitle=old_version_title)
-    new_chunk = TextChunk(oref, lang=lang, vtitle=new_version_title)
+    old_chunk = oref.text(direction=direction, vtitle=old_version_title)
+    new_chunk = oref.text(direction=direction, vtitle=new_version_title)
 
-    # Copy content to new version
+    # Copy content to new version -- splitting a version doesn't change its real language
     new_chunk.versionSource = old_chunk.version().versionSource
+    new_chunk.actual_lang = new_chunk.actual_lang or old_chunk.version().actualLanguage
     new_chunk.text = old_chunk.text
     new_chunk.save()
 
-    # Rewrite History
+    # Rewrite History -- db.history is permanently keyed on the legacy language field, not direction
+    lang = get_legacy_lang_from_direction(direction)
     ref_regex_queries = [{"ref": {"$regex": r}, "version": old_version_title, "language": lang} for r in oref.regex(as_list=True)]
     query = {"$or": ref_regex_queries}
     # Note: update() deprecated in PyMongo 4.x, use update_many() instead
@@ -327,15 +330,15 @@ def split_text_section(oref, lang, old_version_title, new_version_title):
     old_chunk.save()
 
 
-def find_and_replace_in_text(title, vtitle, lang, find_string, replace_string, uid):
+def find_and_replace_in_text(title, vtitle, direction, find_string, replace_string, uid):
     """
-    Replaces all instances of `find_string` with `replace_string` in the text specified by `title` / `vtitle` / `lang`.
-    Changes are attributed to the user with `uid`. 
+    Replaces all instances of `find_string` with `replace_string` in the text specified by `title` / `vtitle` / `direction`.
+    Changes are attributed to the user with `uid`.
     """
     def replacer(text, sections):
         return text.replace(find_string, replace_string)
 
-    modify_text_by_function(title, vtitle, lang, replacer, uid)
+    modify_text_by_function(title, vtitle, direction, replacer, uid)
 
 
 def replace_roman_numerals(text, allow_lowercase=False, only_lowercase=False):
@@ -894,9 +897,10 @@ class WorkflowyParser(object):
             text = text_ref['text']
             user = self._uid
             vtitle = self.version_info['info']['versionTitle']
-            lang = self.version_info['info']['language']
+            lang = self.version_info['info']['language']  # legacy "en"/"he" only, no real ISO lang available here
             vsource = self.version_info['info']['versionSource']
-            modify_text(user, ref, vtitle, lang, text, vsource)
+            direction = get_direction_from_legacy_lang(lang)
+            modify_text(user, ref, vtitle, lang, text, vsource, direction=direction)
 
     def save_version_default(self, idx):
         Version(
