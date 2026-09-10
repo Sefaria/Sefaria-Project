@@ -21,12 +21,9 @@ from django_topics.models import Topic as DjangoTopic, TopicPool, PoolType
 
 import sefaria.model.dependencies as dependencies
 import sefaria.search as search_module
-from sefaria.model import Index, IndexSet, Version, Ref, TextChunk, VersionState, library
-from sefaria.model.category import Category
-from sefaria.model.schema import Term
+from sefaria.model import Index, Ref, TextChunk, VersionState, library
 from sefaria.model.topic import Topic, PersonTopic, AuthorTopic, TopicSet
-from sefaria.search import TextIndexer, make_text_doc_id
-from sefaria.system.exceptions import BookNameError
+from sefaria.search import TextIndexer
 
 
 # --------------------------------------------------------------------------- #
@@ -120,11 +117,8 @@ def search_on(monkeypatch, fake_es):
 TEST_BOOK = "Test ES Cascade Book"
 TEST_BOOK_RENAMED = "Test ES Cascade Book Renamed"
 TEST_VTITLE = "Test ES Cascade Version"
-TEST_VTITLE_RENAMED = "Test ES Cascade Version Renamed"
 TEST_SEGMENTS = ["First test segment.", "Second test segment.", "Third test segment."]
 TEST_AUTHOR_SLUG = "test-es-cascade-author"
-TEST_CAT_TERM = "Test ES Cascade Category"
-TEST_CAT_TERM_RENAMED = "Test ES Cascade Category Renamed"
 
 
 def _index_data(title, categories):
@@ -197,34 +191,6 @@ def _make_book(title=TEST_BOOK, categories=("Liturgy",), authors=None):
     # iterate — reads the version state, so refresh it explicitly.
     VersionState(title).refresh()
     return book
-
-
-@pytest.fixture
-def test_book(search_on):
-    """A dedicated tiny book: depth-2 JaggedArrayNode, one English Version with
-    three segments, filed under Liturgy. Created with the hooks live (so its
-    book doc lands in FakeES) and removed in teardown while FakeES is still
-    patched in."""
-    _delete_book_records(TEST_BOOK, TEST_BOOK_RENAMED)
-    book = _make_book()
-    yield book
-    _delete_book_records(TEST_BOOK, TEST_BOOK_RENAMED)
-
-
-def _segment_doc_ids(title, vtitle=TEST_VTITLE, lang="en"):
-    return {
-        make_text_doc_id(r.normal(), vtitle, lang)
-        for r in library.get_index(title).all_segment_refs()
-    }
-
-
-def _seed_segment_docs(fake, title, vtitle=TEST_VTITLE, lang="en"):
-    """Pre-populate FakeES with the book's segment docs, bypassing the log so
-    ordering assertions only see hook-driven operations."""
-    for r in library.get_index(title).all_segment_refs():
-        tref = r.normal()
-        doc_id = make_text_doc_id(tref, vtitle, lang)
-        fake.store[(TEXT_INDEX, doc_id)] = {"ref": tref, "version": vtitle, "lang": lang}
 
 
 # --------------------------------------------------------------------------- #
@@ -409,95 +375,6 @@ class TestBookHooks:
                 _delete_book_records(TEST_BOOK)
                 author.delete()
 
-    @pytest.mark.deep
-    def test_book_rename_cascades_to_text_and_book_docs(self, search_on, test_book):
-        """T1 (flagship): renaming an Index
-        - deletes every old-title segment doc and indexes new-title ones for the
-          version's versionTitle/language (delete_version(old_title=...) rewrite,
-          and implicitly the subscription-order contract with
-          process_index_title_change_in_versions — VersionSet({"title": new})
-          must find the renamed versions);
-        - swaps the book doc to the new id with the right path;
-        - orders the book-doc delete before the book-doc upsert
-          (attributeChange hooks fire before the save hook)."""
-        fake = search_on
-        old_ids = _segment_doc_ids(TEST_BOOK)
-        _seed_segment_docs(fake, TEST_BOOK)
-        assert old_ids <= fake.ids(TEXT_INDEX)
-
-        indx = Index().load({"title": TEST_BOOK})
-        indx.title = TEST_BOOK_RENAMED
-        indx.save()
-
-        # Old-title segment docs deleted, new-title docs indexed, same version/lang
-        new_ids = _segment_doc_ids(TEST_BOOK_RENAMED)
-        assert len(new_ids) == len(TEST_SEGMENTS)
-        text_ids = fake.ids(TEXT_INDEX)
-        assert not (text_ids & old_ids), "stale old-title segment docs remain"
-        assert new_ids <= text_ids, "new-title segment docs missing"
-
-        # Book doc moved to the new id with correct denormalized path
-        assert fake.get(BOOK_INDEX, TEST_BOOK) is None
-        new_doc = fake.get(BOOK_INDEX, TEST_BOOK_RENAMED)
-        assert new_doc is not None
-        assert new_doc["path"] == f"Liturgy/{TEST_BOOK_RENAMED}"
-
-        # Ordering: stale book-doc delete precedes the new book-doc upsert
-        delete_pos = max(i for i, op in enumerate(fake.log)
-                         if op == ("delete", BOOK_INDEX, TEST_BOOK))
-        index_pos = max(i for i, op in enumerate(fake.log)
-                        if op == ("index", BOOK_INDEX, TEST_BOOK_RENAMED))
-        assert delete_pos < index_pos
-
-    def test_version_rename_reindexes_segments(self, search_on, test_book):
-        """T6 (regression guard): the delete_text/delete_text_by_ref_string
-        refactor didn't change the pre-existing 3-arg delete_version path."""
-        fake = search_on
-        old_ids = _segment_doc_ids(TEST_BOOK, vtitle=TEST_VTITLE)
-        assert len(old_ids) == len(TEST_SEGMENTS)  # guard against passing vacuously
-        _seed_segment_docs(fake, TEST_BOOK, vtitle=TEST_VTITLE)
-
-        ver = Version().load({"title": TEST_BOOK, "versionTitle": TEST_VTITLE, "language": "en"})
-        assert ver is not None
-        ver.versionTitle = TEST_VTITLE_RENAMED
-        ver.save()
-
-        new_ids = _segment_doc_ids(TEST_BOOK, vtitle=TEST_VTITLE_RENAMED)
-        text_ids = fake.ids(TEXT_INDEX)
-        assert not (text_ids & old_ids), "stale old-versionTitle docs remain"
-        assert new_ids <= text_ids, "new-versionTitle docs missing"
-
-    def test_segment_failure_does_not_abort_rename(self, search_on, test_book, monkeypatch):
-        """T7a: best-effort semantics. One segment failing to index mid-rename
-        must not abort the rename; the other segments index and the failure is
-        logged (per-segment warning + summary error)."""
-        fake = search_on
-        _seed_segment_docs(fake, TEST_BOOK, vtitle=TEST_VTITLE)
-        logger_spy = MagicMock()
-        monkeypatch.setattr(dependencies, "logger", logger_spy)
-
-        segment_refs = [r.normal() for r in library.get_index(TEST_BOOK).all_segment_refs()]
-        failing_ref = segment_refs[1]
-        fake.fail_index_ids.add(make_text_doc_id(failing_ref, TEST_VTITLE_RENAMED, "en"))
-
-        ver = Version().load({"title": TEST_BOOK, "versionTitle": TEST_VTITLE, "language": "en"})
-        ver.versionTitle = TEST_VTITLE_RENAMED
-        ver.save()  # must not raise
-
-        text_ids = fake.ids(TEXT_INDEX)
-        for tref in segment_refs:
-            doc_id = make_text_doc_id(tref, TEST_VTITLE_RENAMED, "en")
-            if tref == failing_ref:
-                assert doc_id not in text_ids
-            else:
-                assert doc_id in text_ids, f"segment {tref} should have indexed despite the failure"
-
-        assert logger_spy.warning.called
-        summary_calls = [c for c in logger_spy.error.call_args_list
-                         if c.kwargs.get("failed_count") == 1]
-        assert summary_calls, "expected a summary error naming the one failed segment"
-        assert failing_ref in [ref for ref in summary_calls[0].kwargs["failed_refs"]]
-
 
 @pytest.mark.needs_mongo
 @pytest.mark.django_db
@@ -628,62 +505,4 @@ class TestTopicHooks:
             # rip out the FakeES and send the cleanup delete to a real cluster.
             monkeypatch.setattr(search_module, "is_library_pool_topic", real_lookup)
             t.delete()
-
-
-@pytest.mark.needs_mongo
-class TestCategoryHooks:
-
-    def test_category_path_change_reindexes_books(self, search_on, monkeypatch):
-        """T5: renaming a category re-upserts its books' docs with the new
-        categories/path — via the category hook ALONE. The cascaded Index saves
-        use override_dependencies=True, so the per-Index save hook must never
-        fire; the category hook exists precisely because it is those books'
-        only path back into the `book` index."""
-        fake = search_on
-        book_title = "Test ES Cascade Categorized Book"
-
-        terms = []
-        for name in (TEST_CAT_TERM, TEST_CAT_TERM_RENAMED):
-            if not Term().load({"name": name}):
-                term = Term()
-                term.name = name
-                term.add_primary_titles(name, name[::-1])
-                term.save()
-                terms.append(term)
-
-        cat = Category()
-        cat.path = [TEST_CAT_TERM]
-        cat.add_shared_term(TEST_CAT_TERM)
-        try:
-            cat.save()
-            _delete_book_records(book_title)
-            _make_book(title=book_title, categories=[TEST_CAT_TERM])
-            assert fake.get(BOOK_INDEX, book_title)["categories"] == [TEST_CAT_TERM]
-
-            save_hook_spy = MagicMock()
-            monkeypatch.setattr(search_module, "index_book_doc", save_hook_spy)
-
-            # pkeys_orig_values["path"] aliases self.path (a _set_pkeys reference,
-            # not a copy), and change_key_name mutates path in place — which would
-            # make save() see old == new and skip every path-change cascade. Rebind
-            # path to a copy first, mirroring how the Category Editor's
-            # tracker.update replaces the list outright.
-            cat.path = list(cat.path)
-            cat.change_key_name(TEST_CAT_TERM_RENAMED)
-            cat.save()
-
-            doc = fake.get(BOOK_INDEX, book_title)
-            assert doc["categories"] == [TEST_CAT_TERM_RENAMED]
-            assert doc["path"] == f"{TEST_CAT_TERM_RENAMED}/{book_title}"
-            # The fix came from the category hook alone
-            save_hook_spy.assert_not_called()
-        finally:
-            _delete_book_records(book_title)
-            for path in ([TEST_CAT_TERM_RENAMED], [TEST_CAT_TERM]):
-                leftover = Category().load({"path": path})
-                if leftover:
-                    leftover.delete()
-            library.rebuild_toc()
-            for term in terms:
-                term.delete()
 

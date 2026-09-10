@@ -1,7 +1,9 @@
 import json
+import hashlib
 import os
 import re
 import sys
+from collections import defaultdict
 
 # sys._called_from_test must be set before ANY sefaria import below, not just
 # inside pytest_configure() further down this file. The `patch(...).start()`
@@ -24,6 +26,20 @@ _MOCK_MONGO_ENABLED = os.environ.get("SEFARIA_MOCK_MONGO") == "1"
 _MOCK_MONGO_CLIENT = None
 _MOCK_MONGO_SENTINEL = "__sefaria_mock_mongo_bootstrap__"
 _MONGO_FIXTURE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tests", "fixtures", "mongo")
+_MONGO_BASE_FIXTURE = os.path.join(_MONGO_FIXTURE_DIR, "_base.json")
+_NOT_MOCKABLE_MANIFEST = os.path.join(_MONGO_FIXTURE_DIR, "_not-mockable.json")
+_deselected_not_mockable = defaultdict(list)
+
+
+def _load_not_mockable():
+    if os.path.isfile(_NOT_MOCKABLE_MANIFEST):
+        try:
+            with open(_NOT_MOCKABLE_MANIFEST) as f:
+                data = json.load(f)
+                return {entry["nodeid"]: entry.get("reason", "unknown") for entry in data}
+        except (ValueError, OSError):
+            pass
+    return {}
 
 # --- Local-Mongo endpoint override, applied BEFORE sefaria.system.database is
 # imported (its MongoClient is built from module-level constants at import time,
@@ -56,17 +72,14 @@ if _MOCK_MONGO_ENABLED:
     # mongomock lists databases lazily; database.py checks existence before it
     # assigns `db`, so create one collection in the configured DB up front.
     _MOCK_MONGO_CLIENT[_sefaria_settings.SEFARIA_DB][_MOCK_MONGO_SENTINEL].insert_one({"_id": "exists"})
-    if os.path.isdir(_MONGO_FIXTURE_DIR):
-        for name in sorted(os.listdir(_MONGO_FIXTURE_DIR)):
-            if not name.endswith(".json"):
-                continue
-            with open(os.path.join(_MONGO_FIXTURE_DIR, name)) as f:
-                payload = json_util.loads(f.read())
-            for collection, docs in payload.get("collections", {}).items():
-                for doc in docs:
-                    _MOCK_MONGO_CLIENT[_sefaria_settings.SEFARIA_DB][collection].replace_one(
-                        {"_id": doc["_id"]}, doc, upsert=True
-                    )
+    if os.path.isfile(_MONGO_BASE_FIXTURE):
+        with open(_MONGO_BASE_FIXTURE) as f:
+            payload = json_util.loads(f.read())
+        for collection, docs in payload.get("collections", {}).items():
+            for doc in docs:
+                _MOCK_MONGO_CLIENT[_sefaria_settings.SEFARIA_DB][collection].replace_one(
+                    {"_id": doc["_id"]}, doc, upsert=True
+                )
     patch("pymongo.MongoClient", return_value=_MOCK_MONGO_CLIENT).start()
 
 # NOTE: sefaria.system.database is NOT imported here at module load time.
@@ -106,11 +119,31 @@ def _recording_enabled():
 
 
 def _sanitize_nodeid(nodeid):
-    return re.sub(r'[^A-Za-z0-9_.-]', '_', nodeid)
+    sanitized = re.sub(r'[^A-Za-z0-9_.-]', '_', nodeid)
+    if len(sanitized) <= 180:
+        return sanitized
+    digest = hashlib.sha256(nodeid.encode("utf-8")).hexdigest()[:16]
+    return f"{sanitized[:160]}_{digest}"
 
 
 def _mongo_fixture_path(nodeid):
     return os.path.join(_MONGO_FIXTURE_DIR, _sanitize_nodeid(nodeid) + ".json")
+
+
+def _load_fixture(path):
+    from bson import json_util
+
+    with open(path) as f:
+        return json_util.loads(f.read())
+
+
+def _insert_fixture(active_db, payload):
+    for collection, docs in payload.get("collections", {}).items():
+        if docs:
+            for doc in docs:
+                active_db[collection].replace_one({"_id": doc["_id"]}, doc, upsert=True)
+        else:
+            active_db.create_collection(collection)
 
 
 def _json_default(o):
@@ -140,15 +173,41 @@ def _flush_phase():
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_collection_modifyitems(session, config, items):
+    if _MOCK_MONGO_ENABLED:
+        not_mockable = _load_not_mockable()
+        if not_mockable:
+            deselected = []
+            remaining = []
+            for item in items:
+                raw_nodeid = item.nodeid.split("[", 1)[0]
+                reason = not_mockable.get(item.nodeid) or not_mockable.get(raw_nodeid)
+                if reason:
+                    deselected.append(item)
+                    _deselected_not_mockable[reason].append(item.nodeid)
+                else:
+                    remaining.append(item)
+            if deselected:
+                items[:] = remaining
+                config.hook.pytest_deselected(items=deselected)
+
     if not _recording_enabled():
         yield
         return
-    # Clear stale artifacts from a previous recording run before this one starts,
-    # so counts reflect only this invocation (JSONL flushing below appends).
+    # Clear stale artifacts ONLY for the tests this run actually collected, so a
+    # run scoped to one suite cannot destroy another suite's measurements.
+    #
+    # This used to wipe the whole directory, which meant recording ./reader/tests
+    # silently deleted every artifact previously recorded for ./sefaria/tests --
+    # measurement is accumulated across many scoped runs, so whole-directory
+    # cleanup loses work that is expensive to reproduce. It also raced when two
+    # recording processes ran at once, both unlinking the same paths.
     if os.path.isdir(_ARTIFACT_DIR):
-        for name in os.listdir(_ARTIFACT_DIR):
-            if name.endswith(".jsonl") or name == "_index.json":
-                os.remove(os.path.join(_ARTIFACT_DIR, name))
+        for item in items:
+            stale = os.path.join(_ARTIFACT_DIR, _sanitize_nodeid(item.nodeid) + ".jsonl")
+            try:
+                os.remove(stale)
+            except FileNotFoundError:
+                pass  # never recorded, or another process got there first
     # Seed every collected nodeid at zero so tests that never touch Mongo are
     # still present in _index.json (an absent .jsonl file plus a zero entry here
     # is the "made zero Mongo calls" signal, not just a missing key).
@@ -199,8 +258,26 @@ def pytest_sessionfinish(session, exitstatus):
         }
         for nodeid, v in _recorder_index.items()
     }
-    with open(os.path.join(_ARTIFACT_DIR, '_index.json'), 'w') as f:
-        json.dump(serializable, f, indent=2, sort_keys=True)
+    # Merge into any existing index rather than overwriting it: the index is the
+    # union of every scoped recording run, not a snapshot of the last one.
+    index_path = os.path.join(_ARTIFACT_DIR, '_index.json')
+    merged = {}
+    if os.path.isfile(index_path):
+        try:
+            with open(index_path) as f:
+                merged = json.load(f)
+        except (ValueError, OSError):
+            merged = {}
+    merged.update(serializable)
+    with open(index_path, 'w') as f:
+        json.dump(merged, f, indent=2, sort_keys=True)
+
+
+def pytest_terminal_summary(terminalreporter, exitstatus, config):
+    if _MOCK_MONGO_ENABLED and _deselected_not_mockable:
+        total = sum(len(v) for v in _deselected_not_mockable.values())
+        breakdown = ", ".join(f"{len(v)} {reason}" for reason, v in sorted(_deselected_not_mockable.items()))
+        terminalreporter.write_line(f"MOCKED MONGO: {total} tests deselected ({breakdown})")
 
 
 @pytest.fixture(autouse=True)
@@ -236,16 +313,21 @@ def _seed_mock_mongo(request):
     active_db = database.db
     for collection in active_db.list_collection_names():
         active_db.drop_collection(collection)
-    with open(path) as f:
-        payload = json_util.loads(f.read())
-    for collection, docs in payload.get("collections", {}).items():
-        if docs:
-            active_db[collection].insert_many(docs)
-        else:
-            active_db.create_collection(collection)
+    _insert_fixture(active_db, _load_fixture(_MONGO_BASE_FIXTURE))
+    _insert_fixture(active_db, _load_fixture(path))
+
+    # `library` builds its title maps when sefaria.model is imported -- which, under
+    # mocked Mongo, happens against an EMPTY database. Seeding the collections above
+    # does not touch those in-memory maps, so Ref('Sotah') raises even though the
+    # Index document is present in the fixture. Rebuild after every seed, and clear
+    # the Ref cache so refs resolved against a previous test's data are not reused.
+    from sefaria.model.text import library
+    library.rebuild(include_toc=True)
+
     yield
     for collection in active_db.list_collection_names():
         active_db.drop_collection(collection)
+    library.rebuild(include_toc=True)
 
 mock_topics_pool = {'sheets_topic_only': ['sheets', 'general_en', 'torah_tab'],
  'library_topic_only': ['library'],
@@ -255,13 +337,18 @@ mock_topics_pool = {'sheets_topic_only': ['sheets', 'general_en', 'torah_tab'],
 def mock_get_pools(self):
     return mock_topics_pool.get(self.slug, [])
 
-patch("sefaria.model.topic.Topic.get_pools", mock_get_pools).start()
+_topic_pool_patch = None
 
 def pytest_configure(config):
     import sys
     import django
     sys._called_from_test = True
     django.setup()
+
+    global _topic_pool_patch
+    if _topic_pool_patch is None:
+        _topic_pool_patch = patch("sefaria.model.topic.Topic.get_pools", mock_get_pools)
+        _topic_pool_patch.start()
 
     # The `vector_db` (pgvector) database is an external Postgres that is not
     # provisioned for the test run. Leaving it in DATABASES makes pytest-django's
@@ -288,6 +375,10 @@ def pytest_configure(config):
 
 def pytest_unconfigure(config):
     import sys
+    global _topic_pool_patch
+    if _topic_pool_patch is not None:
+        _topic_pool_patch.stop()
+        _topic_pool_patch = None
     del sys._called_from_test
 
 

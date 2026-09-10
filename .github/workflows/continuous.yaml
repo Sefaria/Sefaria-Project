@@ -199,6 +199,8 @@ jobs:
                 - 'requirements.txt'
                 - 'setup.py'
                 - 'pyproject.toml'
+                - 'sefaria/tests/fixtures/mongo/**'
+                - '.github/workflows/continuous.yaml'
   check-linker-impact:
     # Deterministic answer to "can a linker test possibly be affected by this diff?"
     # NOT a path filter on sefaria/model/linker/** -- a linker test can break from a
@@ -238,223 +240,120 @@ jobs:
           AFFECTED=$(echo "$RESULT" | python -c "import json,sys; print(str(json.load(sys.stdin).get('affected', True)).lower())")
           echo "linker_affected=$AFFECTED" >> $GITHUB_OUTPUT
 
-  # A plain-runner no-Mongo pytest job cannot pass yet: sefaria/system/database.py
-  # connects to TEST_DB at import time, while needs_mongo measures commands issued,
-  # not whether imports need a connection. Rejected for this PR: seed a Mongo
-  # service with the multi-GB dataset, or refactor the module connection to be lazy.
+  # Pytest on ubuntu-latest with mongomock. No Cauldron/Kubernetes sandbox and no
+  # Mongo service container. sefaria/system/database.py builds a MongoClient at
+  # import time, so SEFARIA_MOCK_MONGO=1 is set on every pytest job (including the
+  # no-Mongo job) and LOCAL_TEST_MONGO_PORT points at a closed port so a missed
+  # patch cannot silently talk to a real mongod.
+  #
+  # pytest-job keeps the required check name "Continuous Testing: PyTest".
+  # Twenty needs_mongo tests in sefaria/tests/fixtures/mongo/_not-mockable.json
+  # (8 oversized, 12 partial-library) are deselected by sefaria/conftest.py. A
+  # GitHub Mongo service cannot run them without restoring a multi-GB dump.
 
-  sandbox-deploy:
-    name: "Continuous Testing: Sandbox Deploy"
-    concurrency:
-      group: dev-mongo
-      cancel-in-progress: false
-    needs: [ build-derived, check-python-files ]
+  pytest-no-mongo-job:
+    name: "Continuous Testing: PyTest (no Mongo)"
+    needs: [ check-python-files ]
     if: >
       github.event.pull_request.draft == false &&
       needs.check-python-files.outputs.python_files_changed == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-      - id: auth
-        name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          token_format: 'access_token'
-          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
-          service_account: '${{ secrets.DEV_GKE_SA }}'
-      - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ secrets.DEV_PROJECT }}
-          install_components: 'gke-gcloud-auth-plugin'
-      - name: Get branch name
-        id: branch-raw
-        uses: tj-actions/branch-names@v5.1
-      - name: Format branch name
-        id: branch-name
-        run: >-
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
-          | awk '{print tolower($0)}'
-          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
-          | sed 's/[^a-z0-9\.\-]//g')
-          >> $GITHUB_OUTPUT
-      - name: Set outputs
-        id: get-sha
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Set up yq
-        uses: frenck/action-setup-yq@v1
-      - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v3
-        with:
-          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
-          location: ${{secrets.DEV_GKE_REGION}}
-          project_id: ${{secrets.DEV_GCP_PROJECT}}
-      - name: Deploy Sandbox
-        run: ./build/ci/sandbox-helm-deploy.sh build/ci/sandbox-values.yaml
-        env:
-          GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
-          BRANCH: "${{ steps.branch-name.outputs.current_branch }}"
-          PROJECT_ID: "${{ secrets.DEV_PROJECT }}"
-          NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
-  sandbox-ready:
-    if: >
-      github.event.pull_request.draft == false &&
-      needs.check-python-files.outputs.python_files_changed == 'true'
-    needs: sandbox-deploy
-    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SEFARIA_MOCK_MONGO: "1"
+      SEFARIA_TEST_MONGO: "1"
+      LOCAL_TEST_MONGO_PORT: "27099"
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-      - name: Set outputs
-        id: get-sha
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Wait for test sandbox to become available
-        # https://gist.github.com/rgl/f90ff293d56dbb0a1e0f7e7e89a81f42
-        run: ./build/ci/waitForSandbox.bash
-        env:
-          WAIT_DURATION: "3000"
-          GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
+        uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Write Django local settings
+        run: bash build/ci/prepare-pytest-runner.sh
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run no-Mongo pytest tests
+        # Helper/reader suites still need a live library, webpack stats, or a real
+        # PyMongo client. Keep this job to unit tests proven green under mongomock.
+        run: >
+          python -m pytest -q --reuse-db
+          -m "not deep and not failing and not needs_mongo and not needs_linker"
+          ./sefaria/datatype
+          ./sefaria/tests/forms_test.py
+          ./sefaria/system/tests/reindex_cronjob_test.py
+          ./sefaria/system/tests/reindex_orchestrator_test.py
+          ./sefaria/system/tests/reindex_pipeline_test.py
+          ./sefaria/system/tests/test_decorators.py
+          ./sefaria/system/tests/test_varnish.py
+          ./sefaria/system/tests/test_language_module_switching.py
+          ./sefaria/system/tests/interface_language_test.py
+          ./sefaria/system/tests/ref_data_index_test.py
+          ./sso
+          ./powered_by
+          ./semantic_search
+          scripts/pytest_minimal_dataset/test_export_mongo_fixtures.py
   pytest-job:
     name: "Continuous Testing: PyTest"
-    concurrency:
-      group: dev-mongo
-      cancel-in-progress: false
-    needs: [ sandbox-ready, check-python-files ]
+    needs: [ check-python-files ]
     if: >
       github.event.pull_request.draft == false &&
       needs.check-python-files.outputs.python_files_changed == 'true'
-    permissions:
-      contents: 'read'
-      id-token: 'write'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SEFARIA_MOCK_MONGO: "1"
+      SEFARIA_TEST_MONGO: "1"
+      LOCAL_TEST_MONGO_PORT: "27099"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - id: auth
-        name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+      - uses: actions/setup-python@v5
         with:
-          token_format: 'access_token'
-          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
-          service_account: '${{ secrets.DEV_GKE_SA }}'
-      - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ secrets.DEV_PROJECT }}
-          install_components: 'gke-gcloud-auth-plugin'
-      - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v3
-        with:
-          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
-          location: ${{secrets.DEV_GKE_REGION}}
-          project_id: ${{secrets.DEV_GCP_PROJECT}}
-      - name: Set outputs
-        id: get-sha
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Get branch name
-        id: branch-raw
-        uses: tj-actions/branch-names@v5.1
-      - name: Format branch name
-        id: branch-name
-        run: >-
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
-          | awk '{print tolower($0)}'
-          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
-          | sed 's/[^a-z0-9\.\-]//g')
-          >> $GITHUB_OUTPUT
-      - name: Start Job
-        run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV
-        env:
-          # dependent on GITHUB_RUN_ID, which is implicitly passed in
-          DEPLOY_ENV: sandbox-${{ steps.get-sha.outputs.sha_short }}
-          # Mongo-dependent tests only. Linker tests run in pytest-linker-job, which
-          # is gated on the import closure -- see check-linker-impact.
-          PYTEST_MARK_EXPR: "not deep and not failing and not needs_linker"
-      - name: Wait For Job To Finish
-        run: ./build/ci/waitForCIJob.bash
-        timeout-minutes: 45
-        env:
-          # dependent on GITHUB_RUN_ID, which is implicitly passed in
-          TEST_NAME: pytest
-      - name: Get Logs From Cluster and propogate test result
-        if: always()
-        run: kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest 2>/dev/null || echo "(no pod logs available)"
-      - name: Cleanup pyTest Pod
-        run: kubectl delete jobs -l ci-run=$GITHUB_RUN_ID,test-name=pytest
-        if: always()
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Write Django local settings
+        run: bash build/ci/prepare-pytest-runner.sh
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run mocked Mongo pytest tests
+        run: >
+          python -m pytest -q --reuse-db
+          -m "not deep and not failing and needs_mongo and not needs_linker"
+          ./sefaria ./sso ./reader ./powered_by
   pytest-linker-job:
     name: "Continuous Testing: PyTest (linker)"
-    concurrency:
-      group: dev-mongo
-      cancel-in-progress: false
-    needs: [ sandbox-ready, check-python-files, check-linker-impact ]
+    needs: [ check-python-files, check-linker-impact ]
     if: >
       github.event.pull_request.draft == false &&
       needs.check-python-files.outputs.python_files_changed == 'true' &&
       needs.check-linker-impact.outputs.linker_affected == 'true'
-    permissions:
-      contents: 'read'
-      id-token: 'write'
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SEFARIA_MOCK_MONGO: "1"
+      SEFARIA_TEST_MONGO: "1"
+      LOCAL_TEST_MONGO_PORT: "27099"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - id: auth
-        name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
+      - uses: actions/setup-python@v5
         with:
-          token_format: 'access_token'
-          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
-          service_account: '${{ secrets.DEV_GKE_SA }}'
-      - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ secrets.DEV_PROJECT }}
-          install_components: 'gke-gcloud-auth-plugin'
-      - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v3
-        with:
-          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
-          location: ${{secrets.DEV_GKE_REGION}}
-          project_id: ${{secrets.DEV_GCP_PROJECT}}
-      - name: Set outputs
-        id: get-sha
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: Get branch name
-        id: branch-raw
-        uses: tj-actions/branch-names@v5.1
-      - name: Format branch name
-        id: branch-name
-        run: >-
-          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
-          | awk '{print tolower($0)}'
-          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
-          | sed 's/[^a-z0-9\.\-]//g')
-          >> $GITHUB_OUTPUT
-      - name: Start Job
-        run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV linker
-        env:
-          # dependent on GITHUB_RUN_ID, which is implicitly passed in
-          DEPLOY_ENV: sandbox-${{ steps.get-sha.outputs.sha_short }}
-          # Mongo-dependent tests only. Linker tests run in pytest-linker-job, which
-          # is gated on the import closure -- see check-linker-impact.
-          PYTEST_MARK_EXPR: "not deep and not failing and needs_linker"
-      - name: Wait For Job To Finish
-        run: ./build/ci/waitForCIJob.bash
-        timeout-minutes: 45
-        env:
-          # dependent on GITHUB_RUN_ID, which is implicitly passed in
-          TEST_NAME: pytest-linker
-      - name: Get Logs From Cluster and propogate test result
-        if: always()
-        run: kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest-linker 2>/dev/null || echo "(no pod logs available)"
-      - name: Cleanup pyTest Pod
-        run: kubectl delete jobs -l ci-run=$GITHUB_RUN_ID,test-name=pytest-linker
-        if: always()
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Write Django local settings
+        run: bash build/ci/prepare-pytest-runner.sh
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run linker pytest tests
+        run: >
+          python -m pytest -q --reuse-db
+          -m "not deep and not failing and needs_linker"
+          ./sefaria ./sso ./reader ./powered_by
   ending-notification:
     name: "Continuous Testing: Notifications"
     runs-on: ubuntu-latest
@@ -475,55 +374,12 @@ jobs:
           SLACK_TEST_FAILURE_WEBHOOK_URL: ${{secrets.SLACK_TEST_FAILURE_WEBHOOK_URL}}
           GITUSER_SLACK_MAP: ${{secrets.GITUSER_SLACK_MAP}}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  sandbox-cleanup:
-    name: "Continuous Testing: Clean up"
-    if: ${{ always() && (github.event.pull_request.draft == false) }}
-    needs:
-      - pytest-job
-    runs-on: ubuntu-latest
-    permissions:
-      contents: 'read'
-      id-token: 'write'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - id: auth
-        name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          token_format: 'access_token'
-          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
-          service_account: '${{ secrets.DEV_GKE_SA }}'
-      - name: Setup GCloud
-        uses: google-github-actions/setup-gcloud@v2
-        with:
-          project_id: ${{ secrets.DEV_PROJECT }}
-          install_components: 'gke-gcloud-auth-plugin'
-      - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v3
-        with:
-          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
-          location: ${{secrets.DEV_GKE_REGION}}
-          project_id: ${{secrets.DEV_GCP_PROJECT}}
-      - name: Set outputs
-        id: get-sha
-        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-      - name: check helm
-        id: get-helm
-        run: echo "count=$(helm list -n $NAMESPACE | grep $NAME | wc -l)" >> $GITHUB_OUTPUT
-        env:
-          NAMESPACE: ${{ secrets.DEV_SANDBOX_NAMESPACE }}
-          NAME: sandbox-${{ steps.get-sha.outputs.sha_short }}
-      - name: Uninstall
-        run: helm delete sandbox-${{ steps.get-sha.outputs.sha_short }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
-        if: steps.get-helm.outputs.count > 0
   continuous-branch-protection:
     needs:
       - build-generic
       - build-derived
       - check-python-files
-      - sandbox-deploy
-      - sandbox-ready
+      - pytest-no-mongo-job
       - pytest-job
       - pytest-linker-job
     runs-on: ubuntu-latest
@@ -541,8 +397,7 @@ jobs:
           fi
           if [ "${{ github.event.pull_request.draft }}" == "false" ]; then
             if [ "${{ needs.check-python-files.outputs.python_files_changed }}" == "true" ]; then
-              if [ "${{ needs.sandbox-deploy.result }}" != "success" ] || \
-                 [ "${{ needs.sandbox-ready.result }}" != "success" ] || \
+              if [ "${{ needs.pytest-no-mongo-job.result }}" != "success" ] || \
                  [ "${{ needs.pytest-job.result }}" != "success" ]; then
                 echo "One or more Python-related test jobs failed"
                 exit 1

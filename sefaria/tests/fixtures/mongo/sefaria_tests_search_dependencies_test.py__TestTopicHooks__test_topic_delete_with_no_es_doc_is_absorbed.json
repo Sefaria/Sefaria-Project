@@ -1,0 +1,4 @@
+{
+  "collections": {},
+  "nodeid": "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_delete_with_no_es_doc_is_absorbed"
+}

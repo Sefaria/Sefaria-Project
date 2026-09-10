@@ -1,0 +1,4 @@
+{
+  "collections": {},
+  "nodeid": "sefaria/tests/search_dependencies_test.py::TestTopicHooks::test_topic_dropped_from_library_pool_is_evicted_on_next_save"
+}
