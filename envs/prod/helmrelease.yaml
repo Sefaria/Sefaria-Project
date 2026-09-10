@@ -129,12 +129,12 @@ spec:
       enabled: true
       resources:
         requests:
-          memory: "3Gi"
+          memory: "6Gi"
           cpu: "200m"
         limits:
-          memory: "6Gi"
+          memory: "8Gi"
           cpu: "1000m"
-      replicaCount: 5
+      replicaCount: 7
       redis:
         url: ""
         port: "26379"
