@@ -11,23 +11,28 @@ logger = structlog.get_logger(__name__)
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
 from sefaria.helper.marked_up_text_chunk_generator import MarkedUpTextChunkGenerator
+from sefaria.constants.model import get_legacy_lang_from_direction
 from sefaria.settings import USE_VARNISH, CELERY_ENABLED
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
 
-def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
+def modify_text(user, oref, vtitle, lang, text, vsource=None, direction=None, **kwargs):
     """
     Updates a chunk of text, identified by oref, versionTitle, and lang, and records history.
+    `lang` is the real ISO language code. `direction` ("rtl"/"ltr") is required whenever this
+    call creates a brand-new version -- it's the caller's job to supply it (e.g. legacy en/he
+    callers can compute it trivially); this function doesn't special-case any particular language.
     :param user:
     :param oref:
     :param vtitle:
     :param lang:
     :param text:
     :param vsource:
+    :param direction:
     :return:
     """
-    chunk = model.TextChunk(oref, lang, vtitle)
+    chunk = model.TextChunk(oref, actual_lang=lang, vtitle=vtitle, direction=direction)
     if getattr(chunk.version(), "status", "") == "locked" and not model.user_profile.is_user_staff(user):
         raise InputError("This text has been locked against further edits.")
     action = kwargs.get("type") or "edit" if chunk.text else "add"
@@ -39,10 +44,19 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
         skip_links = kwargs.pop('skip_links', False) or chunk.has_manually_wrapped_refs()
         count_after = kwargs.pop("count_after", 1)
         version_id = str(chunk.full_version._id)
+        # db.history, the legacy v1 texts_api URLs Varnish purges, and search indexing (still
+        # keyed by the legacy en/he bucket both for direction and for the stored/filterable
+        # "lang" field -- not yet migrated) all need that bucket, not the real ISO code. Derive
+        # it the same way modify_bulk_text/modify_version already do via version.language.
+        legacy_lang = get_legacy_lang_from_direction(chunk.full_version.direction)
+        # chunk.vtitle, not the pre-save `vtitle` argument -- Version._normalize() may have
+        # auto-suffixed a new non-en/he version's title (e.g. "Foo" -> "Foo [de]"), and
+        # chunk.save() already synced chunk.vtitle to match the version actually stored.
+        saved_vtitle = chunk.vtitle
 
-        _post_modify_changed_segments(user, action, oref, lang, vtitle, old_text, text, version_id, skip_links=skip_links, **kwargs)
+        _post_modify_changed_segments(user, action, oref, legacy_lang, saved_vtitle, old_text, text, version_id, skip_links=skip_links, **kwargs)
 
-        count_and_index(oref, lang, vtitle, to_count=count_after)
+        count_and_index(oref, legacy_lang, saved_vtitle, to_count=count_after)
 
     return chunk
 
