@@ -19,10 +19,14 @@
  *   adding one field to the GraphQL query in static/js/context.js invalidates every recording at
  *   once. A synthetic route matches the URL glob alone.
  *
- * THE RISK, AND WHAT CONTAINS IT: a hand-built fixture can drift from what Strapi actually returns,
- * and then tests pass against a shape that no longer exists. `strapi-payload-contract.spec.js`
- * closes that hole by asserting this module's field set equals the field set of every committed
- * recording. The recordings are the oracle; keep at least one of each content type among them.
+ * THE FACTORY IS THE SCHEMA. FIELD_DEFAULTS declares every field the GraphQL query in
+ * static/js/context.js asks for, and the two are updated together in the same change —
+ * assertKnownFields makes forgetting loud (a spec that sets an undeclared field throws), the
+ * page-type spec asserts the client's real query names its fields, and
+ * strapi-payload-contract.spec.js pins the builders to this declaration. The fourteen committed
+ * .har recordings are INERT REFERENCE: real captured responses kept for humans to read, checked
+ * against this factory once when the synthetic replicas were generated, depended on by nothing
+ * at runtime.
  *
  * SHAPE CONSTRAINTS, each observed in a real recording rather than assumed:
  *   - Emit RAW PER-LOCALE ROWS, exactly as the endpoint does — not "a document with translations".
@@ -159,10 +163,17 @@ const FIELD_DEFAULTS = {
     buttonIcon: null,
     startTime: null,
     endTime: null,
-    // Exclude-only rule: eligible on any page that does not carry the 'nowhere' keyword, i.e.
-    // everywhere. Page keyword targets come from the open refs, so an INCLUDE rule would make an
-    // ad depend on which text is open — rarely what a test means to vary.
-    keywords: '!nowhere',
+    // Empty = "no keyword restriction" (matcher semantics in static/js/sefaria/sidebarAds.js),
+    // so which page a spec navigates to never silently decides whether the default ad is
+    // eligible — including keyword-less pages like /texts. (The pre-2026-09 default was the
+    // exclusion hack '!nowhere', which stopped matching keyword-less pages when exclusion-only
+    // rules became strict; the recorded scenarios that still use exclusion keywords set them
+    // explicitly and navigate keyword-bearing pages.)
+    keywords: '',
+    // Same match-everywhere principle as `keywords` above: all_pages passes the page-type gate on
+    // every page, so which page a spec navigates to never silently decides whether the default ad
+    // is eligible. Specs testing the gate itself override this with a concrete PAGE_TYPE value.
+    pageType: 'all_pages',
     showTo: 'all',
     debug: false,
     hasBlueBackground: false,

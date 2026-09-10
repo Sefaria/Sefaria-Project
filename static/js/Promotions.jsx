@@ -1,31 +1,46 @@
 import React, {useState, useContext, useEffect, useRef} from "react";
 import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
-import { buildInAppAdsFromSidebarAds } from "./sefaria/sidebarAds";
+import { buildInAppAdsFromSidebarAds, adMatchesKeywords } from "./sefaria/sidebarAds";
+import { adMatchesPageTypes } from "./sefaria/pageTypes";
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
 import Util from "./sefaria/util";
-import {EnglishText, HebrewText, InterfaceText, OnInView} from "./Misc";
+import {EnglishText, HebrewText, InterfaceText, OnInView, replaceNewLinesWithLinebreaks} from "./Misc";
 import $ from "./sefaria/sefariaJquery";
 import { NewsletterSignUpForm } from "./NewsletterSignUpForm";
 
-const Promotions = () => {
-  const [inAppAds, setInAppAds] = useState(Sefaria._inAppAds); // local cache
+// pageTypeOverride: a PAGE_TYPE value supplied by a page that knows its own type better than
+// panel state can. Two call sites pass it today, both in TopicPage.jsx: the topic sidebar passes
+// author_page/topic_page (decided by fetched topic data that lives in TopicPage's state — and
+// TopicPage mounts this component only after that data has loaded, so the classification can
+// never refine underneath a rendered ad; no flash of an ad that stops matching), and
+// PortalNavSideBar passes portal_page through NavSidebar's Promo module props. Everywhere else
+// the prop is absent and context.pageTypes (classified synchronously from panel state in
+// ReaderApp.getUserContext) is the whole answer.
+const Promotions = ({ pageTypeOverride }) => {
+  // No cross-mount cache here on purpose: the processing effect below re-runs on every mount
+  // (StrapiDataContext lives at the app root and still holds the payload), so a remounted
+  // instance rebuilds its ads immediately. A module-global stash (Sefaria._inAppAds) used to
+  // pre-fill this state — a leftover whose only real job had been masking the effect-deps bug
+  // this component's other comment describes, by making ads appear after a remount.
+  const [inAppAds, setInAppAds] = useState(null);
   const [matchingAds, setMatchingAds] = useState(null); // match the ads to what comes from Strapi
   const context = useContext(AdContext);
   const strapi = useContext(StrapiDataContext);
+  // context.pageTypes may be absent: AdContext defaults to {} before the provider mounts.
+  const activePageTypes = pageTypeOverride
+    ? [...(context.pageTypes || []), pageTypeOverride]
+    : context.pageTypes || [];
   useEffect(() => {
     if (strapi.dataFromStrapiHasBeenReceived) {
       // Guard against unexpected Strapi payload shapes so a processing error here so the code can never unmount the whole React tree
       try {
-        Sefaria._inAppAds = [];
-
         const sidebarAds = strapi.strapiData?.sidebarAds;
 
         // Only an array is iterable here. A stale/incompatible payload may nest the ads under a wrapper object (Strapi v4's { data: [...] })
         // The wrong data type  must be treated as "no ads" rather than crashing on .forEach iterator
         if (Array.isArray(sidebarAds)) {
-          Sefaria._inAppAds = buildInAppAdsFromSidebarAds(sidebarAds);
-          setInAppAds(Sefaria._inAppAds);
+          setInAppAds(buildInAppAdsFromSidebarAds(sidebarAds));
         }
       } catch (error) {
         console.error("Failed to process sidebar ads from Strapi: ", error);
@@ -44,7 +59,9 @@ const Promotions = () => {
     if (inAppAds) {
       setMatchingAds(getCurrentMatchingAds());
     }
-  }, [context, inAppAds]);
+    // pageTypeOverride is a real matching input, so it belongs in the deps for the same reason
+    // strapiData does in the effect above: depend on the actual inputs, not proxies for them.
+  }, [context, inAppAds, pageTypeOverride]);
 
 
   function showToUser(ad) {
@@ -78,13 +95,13 @@ const Promotions = () => {
         ad.trigger.interfaceLang === context.interfaceLang &&
         context.dt >= ad.trigger.startTimeDate &&
         context.dt <= ad.trigger.endTimeDate &&
-        (context.keywordTargets.some((kw) =>
-          ad.trigger.keywordTargets.includes(kw)
-        ) ||
-          (ad.trigger.excludeKeywordTargets.length !== 0 &&
-            !context.keywordTargets.some((kw) =>
-              ad.trigger.excludeKeywordTargets.includes(kw)
-            )))
+        // Both targeting axes must pass. Page type: an all_pages ad passes everywhere, a typed
+        // ad needs the current page's kind among activePageTypes. Keywords: see the semantics
+        // table on adMatchesKeywords in sefaria/sidebarAds.js — an empty keyword rule passes
+        // everywhere, includes require a matching page keyword, and exclusions only subtract
+        // from keyword-bearing pages.
+        adMatchesPageTypes(ad.trigger.pageType, activePageTypes) &&
+        adMatchesKeywords(ad.trigger, context.keywordTargets || [])
       );
     });
   }
@@ -177,6 +194,23 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
     const isHebrew = context.interfaceLang === "hebrew";
     const getLanguageClass = () => (isHebrew ? "int-he" : "int-en");
 
+    // The body renders MARKDOWN, matching banners and modals (their body text flows through the
+    // same InterfaceText markdown path with the same Strapi newline handling; the title stays
+    // plain, like a banner/modal header). One difference from those surfaces: each sidebar-ad
+    // object is single-language — one ad per locale, and matching already guarantees the ad's
+    // language equals the interface language — so the {en}/{he} object InterfaceText expects is
+    // built from whichever language this ad is.
+    function getBodyText() {
+      const bodyByLanguage = isHebrew ? { he: matchingAd.bodyText } : { en: matchingAd.bodyText };
+      return (
+        <p className={getLanguageClass() + " line-break"}>
+          <InterfaceText
+            markdown={replaceNewLinesWithLinebreaks(bodyByLanguage, { mode: "strapi" })}
+          />
+        </p>
+      );
+    }
+
     return (
       <OnInView onVisible={() => trackSidebarAdImpression(matchingAd)}>
         <div className={classes}>
@@ -184,7 +218,7 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
           {matchingAd.buttonLocation === "below" ? (
             matchingAd.isNewsletterSubscriptionInputForm ? (
               <>
-                <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+                {getBodyText()}
                 <NewsletterSignUpForm
                   context={"Sidebar Ad: " + context.keywordTargets.toString()}
                   includeEducatorOption={false}
@@ -193,7 +227,7 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
               </>
             ) : (
               <>
-                <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+                {getBodyText()}
                 {getButton()}
               </>
             )
@@ -204,12 +238,12 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
                 includeEducatorOption={false}
                 additionalNewsletterMailingLists={matchingAd.newsletterMailingLists}
               />
-              <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+              {getBodyText()}
             </>
           ) : (
             <>
               {getButton()}
-              <p className={getLanguageClass()}>{matchingAd.bodyText}</p>
+              {getBodyText()}
             </>
           )}
         </div>

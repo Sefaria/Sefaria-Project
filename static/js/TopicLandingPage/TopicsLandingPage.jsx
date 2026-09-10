@@ -16,6 +16,8 @@ export const TopicsLandingPage = ({openTopic}) => {
         {type: "TopicLandingTopicCatList"},
         {type: "TrendingTopics"},
         {type: "AZTopicsLink"},
+        // Sidebar-ad slot — makes this page targetable by ads (pageType "topics_landing").
+        {type: "Promo"},
     ];
     const pageTitle = "Explore by Topic"
     return (
