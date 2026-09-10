@@ -446,11 +446,13 @@ CASES = [
          corruption="index whose `categories` is empty",
          collection="index", doc=_index_doc("ZZAuditEmptyCats", categories=[]),
          trigger=_toc_tree, expect=WRONG_SITE,
-         note="rejected by Index.load_from_dict during IndexSet() iteration, so it never "
-              "reaches the TocTree guard. It used to escape as a placement gap -- no "
-              "with-block is in scope during that iteration -- but _build_index_maps now "
-              "calls IndexSet().with_skip_guard(), which guards record CONSTRUCTION. So the "
-              "record is skipped, just at '_build_index_maps index record', not here"),
+         note="Index.load_from_dict rejects an empty `categories` (text.py:557) during "
+              "IndexSet() iteration, so it never reaches the TocTree guard. It used to "
+              "escape as a placement gap -- no with-block is in scope during that iteration "
+              "-- but _build_index_maps now calls IndexSet().with_skip_guard(), which guards "
+              "record CONSTRUCTION. So the record is skipped, just at '_build_index_maps "
+              "index record', not here. The two CAUGHT sibling S3 cases below still "
+              "exercise this guard directly, so the site keeps its coverage"),
     case(site="S3", operation="TocTree index",
          corruption="index whose `categories` is a string, not a list",
          collection="index", doc=_index_doc("ZZAuditStrCats", categories="Tanakh"),
@@ -504,9 +506,17 @@ CASES = [
          collection="category",
          doc={"path": ["Tanakh", "ZZAuditSerialize"], "lastPath": "ZZAuditSerialize",
               "depth": 2, "sharedTitle": "ZZNoSuchTerm"},
-         trigger=_toc_tree_serialize, expect=PROPAGATED, error_type="IndexError", outside_guard=True,
-         note="IndexError IS in BAD_RECORD_EXCEPTIONS, but it is raised during TocTree "
-              "__init__/_sort, outside every with-block -- see `escaped at` column"),
+         trigger=_toc_tree_serialize, expect=WRONG_SITE,
+         note="a missing term raises out of _process_terms during _set_derived_attributes, "
+              "i.e. while CategorySet() instantiates the record, so the category is dropped "
+              "before any tree exists to serialize. TocTree's construction guard "
+              "(category.py:254) catches it -- a skip is recorded, at a different site than "
+              "this one. Was PROPAGATED before with_skip_guard() existed. "
+              "COVERAGE GAP: this is the only case at the serialize site, so that guard is "
+              "now unexercised. Reaching it needs a document that BUILDS cleanly and fails "
+              "only during serialize -- per that guard's own docstring, a broken title_group "
+              "or an index whose author lookup raises under include_authors. No such "
+              "corruption is known yet: Category validates eagerly, at load time"),
 
     # -- text.py:5036  _build_index_maps index record ------------------------------
     case(site="S7", operation="_build_index_maps index record",
@@ -516,7 +526,8 @@ CASES = [
          note="raises during IndexSet() iteration, OUTSIDE the with-block, so widening "
               "BAD_RECORD_EXCEPTIONS alone could never reach it -- this was the placement "
               "gap. IndexSet().with_skip_guard() closes it by guarding construction of each "
-              "record, so the same AttributeError is now caught at this site"),
+              "record, and passes the SAME `operation` string -- so this reports CAUGHT "
+              "rather than WRONG_SITE"),
     case(site="S7", operation="_build_index_maps index record",
          corruption="index with no `title`",
          collection="index",

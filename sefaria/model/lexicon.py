@@ -550,17 +550,17 @@ class LexiconEntrySet(abst.AbstractMongoSet):
         super(LexiconEntrySet, self).__init__(query, page, limit, sort, proj, hint)
         self._primary_tuples = primary_tuples
 
-    def _instantiate_record(self, raw):
-        # The entry class depends on the document's lexicon, so this set cannot use
-        # `recordClass` — see AbstractMongoSet._instantiate_record.
-        return LexiconEntrySubClassMapping.instance_from_record_factory(raw)
-
-    def _post_read_records(self):
+    def _read_records(self):
         def is_primary(entry):
             return not (entry.headword, entry.parent_lexicon) in self._primary_tuples
 
-        if self._primary_tuples:
-            self.records.sort(key=is_primary)
+        if self.records is None:
+            # The entry class depends on the document's lexicon, so this set cannot use
+            # `recordClass`. Instantiating through _build_records() rather than looping here
+            # is what keeps with_skip_guard() working — see AbstractMongoSet._build_records.
+            self._build_records(LexiconEntrySubClassMapping.instance_from_record_factory)
+            if self._primary_tuples:
+                self.records.sort(key=is_primary)
 
 
 class LexiconLookupAggregator(object):

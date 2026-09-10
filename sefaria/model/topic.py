@@ -899,11 +899,23 @@ class TopicSet(abst.AbstractMongoSet):
         query = {'titles.text': title}
         return TopicSet(query=query)
 
-    def _post_read_records(self):
-        for rec in self.records:
+    def _read_records(self):
+        # The cast happens per-record, inside _build_records(), rather than in a second pass
+        # over self.records afterwards: a `subclass` value missing from subclass_map raises
+        # KeyError, and only work done inside _build_records() is covered by the guard
+        # with_skip_guard() installs. Cast in a second pass and that KeyError would escape the
+        # guard and abort the whole set -- precisely what the guard exists to prevent, on the
+        # guarded startup path in Library._build_topic_mapping. Here the malformed topic is
+        # skipped and the rest survive. See AbstractMongoSet._build_records.
+        def instantiate(raw):
+            rec = self.recordClass(attrs=raw, **self.record_kwargs)
             if getattr(rec, 'subclass', False):
                 Subclass = globals()[self.recordClass.subclass_map[rec.subclass]]
                 rec.__class__ = Subclass  # cast to relevant subclass
+            return rec
+
+        if self.records is None:
+            self._build_records(instantiate)
 
 
 class PersonTopicSet(TopicSet):
