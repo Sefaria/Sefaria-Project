@@ -46,12 +46,14 @@ def anon_client():
 class TestVersionIndicesAPI:
     """Tests for /api/version-indices endpoint."""
 
+    @pytest.mark.needs_linker
     @pytest.mark.django_db
     def test_version_indices_requires_auth(self, anon_client):
         """Unauthenticated users should be redirected."""
         response = anon_client.get('/api/version-indices')
         assert response.status_code == 302  # Redirect to login
 
+    @pytest.mark.needs_mongo
     @pytest.mark.django_db
     def test_version_indices_returns_list(self, staff_client):
         """Should return list of indices for valid versionTitle."""
@@ -63,6 +65,7 @@ class TestVersionIndicesAPI:
         assert 'indices' in data
         assert isinstance(data['indices'], list)
 
+    @pytest.mark.needs_mongo
     @pytest.mark.django_db
     def test_version_indices_empty_for_nonexistent(self, staff_client):
         """Should return empty list for nonexistent versionTitle."""
@@ -75,6 +78,7 @@ class TestVersionIndicesAPI:
         assert data['indices'] == []
 
 
+@pytest.mark.needs_mongo
 class TestVersionBulkEditAPI:
     """Tests for /api/version-bulk-edit endpoint."""
 
@@ -363,6 +367,7 @@ class TestVersionBulkEditAPI:
         assert v.versionNotes == 'Updated notes'
 
 
+@pytest.mark.needs_mongo
 class TestVersionBulkDeleteAPI:
     """Tests for /api/version-bulk-delete endpoint."""
 
@@ -570,6 +575,7 @@ class TestVersionBulkDeleteAPI:
         })
 
 
+@pytest.mark.needs_mongo
 class TestVersionRenameAPI:
     """Tests for /api/version-rename endpoint (single-index rename)."""
 
@@ -964,6 +970,7 @@ class TestCheckIndexDependenciesAPI:
         response = regular_client.get('/api/check-index-dependencies/Genesis')
         assert response.status_code in [302, 403]
 
+    @pytest.mark.needs_mongo
     @pytest.mark.django_db
     def test_check_dependencies_returns_info(self, staff_client):
         """Should return dependency information for valid index."""
@@ -999,6 +1006,7 @@ def malformed_csv():
 class TestLinksUploadAPI:
     """Tests for /modtools/links endpoint (POST for upload)."""
 
+    @pytest.mark.needs_mongo
     @pytest.mark.django_db
     def test_links_upload_requires_staff(self, regular_client, sample_links_csv):
         """Non-staff users should be denied access."""
@@ -1020,6 +1028,7 @@ class TestLinksUploadAPI:
         })
         assert response.status_code == 302
 
+    @pytest.mark.needs_mongo
     @pytest.mark.django_db
     def test_links_upload_requires_post(self, staff_client):
         """GET requests should return error."""
@@ -1029,6 +1038,8 @@ class TestLinksUploadAPI:
         assert 'error' in data
         assert 'Unsupported Method' in data['error']
 
+    @pytest.mark.needs_linker
+    @pytest.mark.needs_mongo
     @pytest.mark.django_db
     def test_links_upload_requires_csv_file(self, staff_client):
         """Should error when no CSV file provided."""
@@ -1041,6 +1052,7 @@ class TestLinksUploadAPI:
             })
 
 
+@pytest.mark.needs_mongo
 class TestLinksDeleteAPI:
     """Tests for /modtools/links endpoint (POST with action=DELETE)."""
 
@@ -1101,6 +1113,7 @@ class TestWorkflowyUploadAPI:
         </opml>"""
         return SimpleUploadedFile("workflowy.opml", xml_content, content_type="text/xml")
 
+    @pytest.mark.needs_mongo
     @pytest.mark.django_db
     def test_workflowy_requires_staff(self, regular_client, sample_workflowy_xml):
         """Non-staff users should be denied access."""
@@ -1117,6 +1130,7 @@ class TestWorkflowyUploadAPI:
         })
         assert response.status_code == 302
 
+    @pytest.mark.needs_mongo
     @pytest.mark.django_db
     def test_workflowy_requires_post(self, staff_client):
         """GET requests should return error."""
@@ -1125,6 +1139,7 @@ class TestWorkflowyUploadAPI:
         data = json.loads(response.content)
         assert 'error' in data
 
+    @pytest.mark.needs_mongo
     @pytest.mark.django_db
     def test_workflowy_requires_files(self, staff_client):
         """Should error when no files provided."""
@@ -1139,6 +1154,7 @@ class TestWorkflowyUploadAPI:
 # Legacy Modtools API Tests (Priority 2 - Read Operations)
 # ============================================================================
 
+@pytest.mark.needs_mongo
 class TestBulkDownloadVersionsAPI:
     """Tests for /download/bulk/versions/ endpoint."""
 
@@ -1170,6 +1186,7 @@ class TestBulkDownloadVersionsAPI:
         assert 'text/csv' in content_type or 'application/json' in content_type
 
 
+@pytest.mark.needs_mongo
 class TestLinksDownloadAPI:
     """Tests for /modtools/links/<tref1>/<tref2> endpoint."""
 
@@ -1189,6 +1206,7 @@ class TestLinksDownloadAPI:
         assert response.status_code in [200, 400]
 
 
+@pytest.mark.needs_mongo
 class TestIndexLinksDownloadAPI:
     """Tests for /modtools/index_links/<tref1>/<tref2> endpoint."""
 

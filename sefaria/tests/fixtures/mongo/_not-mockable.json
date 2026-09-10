@@ -1,0 +1,10 @@
+[
+  {
+    "nodeid": "sefaria/tests/modtools_test.py::TestLinksUploadAPI::test_links_upload_requires_csv_file",
+    "reason": "oversized"
+  },
+  {
+    "nodeid": "sefaria/tests/search_test.py::test_index_all_calls_select_shard_keys_when_sharding",
+    "reason": "partial-library"
+  }
+]

@@ -127,6 +127,11 @@ def _ensure_warm() -> None:
     now = time.time()
     if now - _last_rebuild_attempt < _REBUILD_COOLDOWN_SECONDS:
         return
+    from sefaria.settings import CELERY_ENABLED
+    if not CELERY_ENABLED:
+        # DummyCache CI (and any other CELERY_ENABLED=False env) has no broker.
+        # apply_async would spend ~20s retrying 127.0.0.1:6379 and then fail.
+        return
     _last_rebuild_attempt = now
     from sefaria.helper.linker.tasks import rebuild_nonuniqueterm_index_task
     from sefaria.celery_setup.config import CeleryQueue
