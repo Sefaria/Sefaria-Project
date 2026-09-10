@@ -130,9 +130,11 @@ def process_version_delete_in_global_notifications(ver, **kwargs):
 
 
 # Version Title Change
-subscribe(history.process_version_title_change_in_history,              text.Version, "attributeChange", "versionTitle")
-subscribe(process_version_title_change_in_search,                       text.Version, "attributeChange", "versionTitle")
-subscribe(process_version_title_change_in_global_notifications,        text.Version, "attributeChange", "versionTitle")
+subscribe(history.process_version_title_change_in_history,                         text.Version, "attributeChange", "versionTitle")
+subscribe(marked_up_text_chunk.MarkedUpTextChunk.process_version_title_change,     text.Version, "attributeChange", "versionTitle")
+subscribe(marked_up_text_chunk.LinkerOutput.process_version_title_change,          text.Version, "attributeChange", "versionTitle")
+subscribe(process_version_title_change_in_search,                                  text.Version, "attributeChange", "versionTitle")
+subscribe(process_version_title_change_in_global_notifications,                    text.Version, "attributeChange", "versionTitle")
 
 subscribe(process_version_delete_in_global_notifications,              text.Version, "delete")
 

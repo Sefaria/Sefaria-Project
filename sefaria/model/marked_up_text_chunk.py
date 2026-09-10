@@ -188,6 +188,13 @@ class MarkedUpTextChunk(AbstractMongoRecord):
 
         return out
 
+    @classmethod
+    def process_version_title_change(cls, ver, **kwargs):
+        report_progress("Cascading Marked Up Text Chunk version title from {} to {}".format(kwargs['old'], kwargs['new']))
+        query = _version_title_change_query(ver, **kwargs)
+        update = _version_title_change_update(**kwargs)
+        db.marked_up_text_chunks.update_many(query, update)
+
 
 class MarkedUpTextChunkSet(AbstractMongoSet):
     recordClass = MarkedUpTextChunk
@@ -195,7 +202,9 @@ class MarkedUpTextChunkSet(AbstractMongoSet):
 
 class LinkerOutput(MarkedUpTextChunk):
     """
-    Track linker resolutions for debugging purposes.
+    Stores the full linker output for a text segment/version/language, including
+    failed, ambiguous, and successful resolutions. Used by linker debug mode and
+    downstream workflows such as disambiguation and admin review.
     """
     collection = "linker_output"
     criteria_field = "ref"
@@ -257,6 +266,13 @@ class LinkerOutput(MarkedUpTextChunk):
             "required": True
         }
     }
+
+    @classmethod
+    def process_version_title_change(cls, ver, **kwargs):
+        report_progress("Cascading Linker Output version title from {} to {}".format(kwargs['old'], kwargs['new']))
+        query = _version_title_change_query(ver, **kwargs)
+        update = _version_title_change_update(**kwargs)
+        db.linker_output.update_many(query, update)
 
 
 class LinkerOutputSet(AbstractMongoSet):
@@ -393,6 +409,21 @@ def process_index_delete(indx, **kwargs):
     pattern = prepare_index_regex_for_dependency_process(indx)
     MarkedUpTextChunkSet({"ref": {"$regex": pattern}}).delete()
     LinkerOutputSet({"ref": {"$regex": pattern}}).delete()
+
+
+def _version_title_change_query(ver, **kwargs):
+    patterns = Ref(ver.title).regex(as_list=True)
+    return {
+        "$and": [
+            {"versionTitle": kwargs["old"]},
+            {"language": ver.language},
+            {"$or": [{"ref": {"$regex": pattern}} for pattern in patterns]},
+        ]
+    }
+
+
+def _version_title_change_update(**kwargs):
+    return {"$set": {"versionTitle": kwargs["new"]}}
 
 
 def process_category_path_change(category, **kwargs):
