@@ -558,7 +558,14 @@ def test_serialize_node_properties():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.needs_linker
-def test_usage_index_surgical_add_remove():
+def test_usage_index_surgical_add_remove(monkeypatch):
+    # CI uses DummyCache and has no Redis. Drive the surgical add/remove against
+    # a dict so this tests entry identity, not the shared-cache backend.
+    store = {}
+    monkeypatch.setattr(ni, "get_shared_cache_elem", store.get)
+    monkeypatch.setattr(ni, "set_shared_cache_elem", lambda k, v: store.__setitem__(k, v))
+    monkeypatch.setattr(ni, "delete_shared_cache_elem", lambda k: store.pop(k, None))
+
     entry = {
         "index_title": "__LE_TEST__",
         "node_key_path": ["__LE_TEST__"],
@@ -630,25 +637,48 @@ def test_get_node_by_editor_path_alt_struct():
 
 @pytest.mark.needs_linker
 def test_search_and_detail_non_unique_terms():
-    results = le.search_non_unique_terms("bavli", 5)
-    slugs = [t["slug"] for t in results]
-    assert "bavli" in slugs
+    from sefaria.model.schema import NonUniqueTerm
+    created = None
+    try:
+        created = le.create_non_unique_term([
+            {"lang": "en", "text": "Bavli Editor Search Term"},
+            {"lang": "he", "text": "בבלי מונח בדיקה"},
+        ], 1)
+        slug = created["slug"]
+        results = le.search_non_unique_terms("Bavli Editor Search Term", 5)
+        assert slug in [t["slug"] for t in results]
 
-    detail = le.get_non_unique_term_detail("bavli")
-    assert detail["slug"] == "bavli"
-    assert len(detail["titles"]) > 0
-    assert "usages" in detail
+        detail = le.get_non_unique_term_detail(slug)
+        assert detail["slug"] == slug
+        assert len(detail["titles"]) > 0
+        assert "usages" in detail
 
-    with pytest.raises(InputError):
-        le.get_non_unique_term_detail("__no_such_slug__")
+        with pytest.raises(InputError):
+            le.get_non_unique_term_detail("__no_such_slug__")
+    finally:
+        if created:
+            NonUniqueTerm.init(created["slug"]).delete()
 
 
 @pytest.mark.needs_linker
 def test_search_non_unique_terms_by_slug():
     # The hyphenated slug does not appear in the term's titles (which use spaces),
     # so a hit here can only come from matching the slug itself.
-    results = le.search_non_unique_terms("a-collection-on-prophets", 5)
-    assert "a-collection-on-prophets" in [t["slug"] for t in results]
+    from sefaria.model.schema import NonUniqueTerm
+    created = None
+    try:
+        created = le.create_non_unique_term([
+            {"lang": "en", "text": "A Collection On Prophets"},
+            {"lang": "he", "text": "אוסף על נביאים"},
+        ], 1)
+        slug = created["slug"]
+        assert "-" in slug
+        assert slug not in {t["text"] for t in created["titles"]}
+        results = le.search_non_unique_terms(slug, 5)
+        assert slug in [t["slug"] for t in results]
+    finally:
+        if created:
+            NonUniqueTerm.init(created["slug"]).delete()
 
 
 @pytest.mark.needs_linker
