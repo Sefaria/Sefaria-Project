@@ -5,7 +5,7 @@ import re
 from django.http import HttpResponse
 import io
 from bs4 import BeautifulSoup
-from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, get_direction_from_legacy_lang
 from typing import Literal, TypeAlias, cast
 
 SocialImageLang: TypeAlias = Literal["en", "he"]
@@ -377,7 +377,7 @@ def get_text_direction(lang: str) -> Literal["rtl", "ltr"] | None:
     """
     if not supports_rtl_text_layout():
         return None
-    return "rtl" if lang == "he" else "ltr"
+    return get_direction_from_legacy_lang(lang)
 
 
 def html_to_text_canonical(html: str | None) -> str:

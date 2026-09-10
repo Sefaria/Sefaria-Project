@@ -3,6 +3,7 @@ import re
 import django
 django.setup()
 from sefaria.model import *
+from sefaria.model.legacy_text import LegacyTextChunk
 from sefaria.helper import schema
 from sefaria.sheets import save_sheet
 from sefaria.system.database import db
@@ -115,26 +116,26 @@ def create_simple_text():
 
     p1, p2, p3, p4, p5, p6, p7 = get_text_for_simple_text()
 
-    chunk = TextChunk(Ref('MigrateBook 1:1'), 'en', 'Schema Test')
+    chunk = LegacyTextChunk(Ref('MigrateBook 1:1'), 'en', 'Schema Test')
     chunk.text = p1
     chunk.save()
     for i in range(4):
-        chunk = TextChunk(Ref("MigrateBook 1:{}".format(i+2)), 'en', 'Schema Test')
+        chunk = LegacyTextChunk(Ref("MigrateBook 1:{}".format(i+2)), 'en', 'Schema Test')
         chunk.text = p7
         chunk.save()
-    chunk = TextChunk(Ref("MigrateBook 2:2"), 'en', 'Schema Test')
+    chunk = LegacyTextChunk(Ref("MigrateBook 2:2"), 'en', 'Schema Test')
     chunk.text = p2
     chunk.save()
-    chunk = TextChunk(Ref("MigrateBook 3:3"), 'en', 'Schema Test')
+    chunk = LegacyTextChunk(Ref("MigrateBook 3:3"), 'en', 'Schema Test')
     chunk.text = p3
     chunk.save()
-    chunk = TextChunk(Ref("MigrateBook 3:5"), 'en', 'Schema Test')
+    chunk = LegacyTextChunk(Ref("MigrateBook 3:5"), 'en', 'Schema Test')
     chunk.text = p6
     chunk.save()
-    chunk = TextChunk(Ref("MigrateBook 4:1"), 'en', 'Schema Test')
+    chunk = LegacyTextChunk(Ref("MigrateBook 4:1"), 'en', 'Schema Test')
     chunk.text = p4
     chunk.save()
-    chunk = TextChunk(Ref("MigrateBook 5:4"), 'en', 'Schema Test')
+    chunk = LegacyTextChunk(Ref("MigrateBook 5:4"), 'en', 'Schema Test')
     chunk.text = p5
     chunk.save()
 
@@ -249,12 +250,12 @@ def setup_module():
     }).save()
 
     p1 = [['Part1 part1', 'Part1'], ['Part1'], ['Part1', '', 'part1']]
-    chunk = TextChunk(Ref('Delete Me, Part1'), 'en', 'Schema Test')
+    chunk = LegacyTextChunk(Ref('Delete Me, Part1'), 'en', 'Schema Test')
     chunk.text = p1
     chunk.save()
 
     p2 = [['Part2 part2', 'Part2'], ['Part2'], ['Part2', '', 'part2']]
-    chunk = TextChunk(Ref('Delete Me, Part2'), 'en', 'Schema Test')
+    chunk = LegacyTextChunk(Ref('Delete Me, Part2'), 'en', 'Schema Test')
     chunk.text = p2
     chunk.save()
 
@@ -362,9 +363,9 @@ def test_migrate_to_complex_structure():
 
     p1, p2, p3, p4, p5, p6, p7 = get_text_for_simple_text()
 
-    assert TextChunk(children[0].ref(), "en", 'Schema Test').text == [[p1, p7, p7, p7, p7], ["", p2]]
-    assert TextChunk(children[1].ref(), "en", "Schema Test").text == ["", "", p3]
-    assert TextChunk(children[2].ref(), "en", "Schema Test").text == [[p4]]
+    assert LegacyTextChunk(children[0].ref(), "en", 'Schema Test').text == [[p1, p7, p7, p7, p7], ["", p2]]
+    assert LegacyTextChunk(children[1].ref(), "en", "Schema Test").text == ["", "", p3]
+    assert LegacyTextChunk(children[2].ref(), "en", "Schema Test").text == [[p4]]
 
     assert isinstance(Link().load({'refs': sorted(['MigrateBook, Part 1 1:1', 'Guide for the Perplexed, Part 1']),}), Link)
     assert isinstance(Link().load({'refs': sorted(['MigrateBook, Part 1 2:2', 'Guide for the Perplexed, Part 1 2']),}), Link)
@@ -427,9 +428,9 @@ def test_change_node_structure_complex():
     schema.change_node_structure(node, ['SuperSection', 'Section', 'Segment'])
 
     assert node.depth == 3
-    chunk = TextChunk(Ref('Delete Me, Part1'), 'en', 'Schema Test')
+    chunk = LegacyTextChunk(Ref('Delete Me, Part1'), 'en', 'Schema Test')
     assert chunk.text == [[['Part1 part1'], ['Part1']], [['Part1']], [['Part1'], [], ['part1']]]
-    blank_chunk = TextChunk(Ref('Delete Me, Part1'), 'en', 'Schema Test Blank')
+    blank_chunk = LegacyTextChunk(Ref('Delete Me, Part1'), 'en', 'Schema Test Blank')
     assert len(blank_chunk.text) == 0
     assert isinstance(Link().load({'refs': ['Delete Me, Part1 1:1:1', 'Shabbat 2a:5'],}), Link)
     assert isinstance(Link().load({'refs': ['Delete Me, Part1 2:1:1', 'Delete Me, Part2 2:1'], }), Link)
@@ -448,7 +449,7 @@ def test_change_node_structure_complex():
     schema.change_node_structure(node, ['Section', 'Segment'])
 
     assert node.depth == 2
-    chunk = TextChunk(Ref('Delete Me, Part1'), 'en', 'Schema Test')
+    chunk = LegacyTextChunk(Ref('Delete Me, Part1'), 'en', 'Schema Test')
     assert chunk.text == [['Part1 part1', 'Part1'], ['Part1'], ['Part1', '', 'part1']]
     assert isinstance(Link().load({'refs': ['Delete Me, Part1 1:1', 'Shabbat 2a:5'], }), Link)
     assert isinstance(Link().load({'refs': ['Delete Me, Part1 2:1', 'Delete Me, Part2 2:1'], }), Link)
@@ -470,13 +471,13 @@ def test_change_node_structure_simple():
     schema.change_node_structure(node, ['SuperSection', 'Section', 'Segment'])
 
     assert node.depth == 3
-    tc = TextChunk(Ref("MigrateBook 2:2:1"), "en", "Schema Test")
+    tc = LegacyTextChunk(Ref("MigrateBook 2:2:1"), "en", "Schema Test")
     assert tc.text == 'This should eventually end up in MigrateBook, Part 1, 2:2'
 
     # change depth back to 2
     node = library.get_index("MigrateBook").nodes
     schema.change_node_structure(node, ['Section', 'Segment'])
     assert node.depth == 2
-    tc = TextChunk(Ref("MigrateBook 2:2"), "en", "Schema Test")
+    tc = LegacyTextChunk(Ref("MigrateBook 2:2"), "en", "Schema Test")
     assert tc.text == 'This should eventually end up in MigrateBook, Part 1, 2:2'
 
