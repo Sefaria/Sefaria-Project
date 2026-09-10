@@ -262,7 +262,6 @@ varnish:
 tasks:
   localsettings: {}
   enabled: false
-  # Chart defaults only. Prod/preprod size these in envs/*/helmrelease.yaml.
   resources:
     requests:
       memory: "2Gi"
