@@ -209,6 +209,16 @@ class TestTopics(object):
         assert "<script>" not in t.description["he"]
         assert "<script>" not in t.slug
 
+    def test_sanitize_leaves_non_strings_alone(self):
+        t = Topic()
+        t.slug = "test-topic"
+        t.description = {"en": "<b>Foo</b> <script>balrg</script>", "he": None}
+        t.categoryDescription = {"en": None}
+        t._sanitize()
+        assert "<b>" not in t.description["en"]
+        assert t.description["he"] is None
+        assert t.categoryDescription["en"] is None
+
     @pytest.mark.parametrize(('num_sources', 'min_sources', 'description', 'data_source', 'should_display_flag', 'expected'), [
         (1, 1, None, None, None, True),                                   # default threshold matches legacy '> 0' behavior
         (0, 1, None, None, None, False),                                  # default threshold matches legacy '> 0' behavior

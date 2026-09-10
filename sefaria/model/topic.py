@@ -304,6 +304,9 @@ class Topic(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         for attr in ['description', 'categoryDescription']:
             p = getattr(self, attr, {})
             for k, v in p.items():
+                # Some topics have null descriptions; bleach errors on None
+                if v is None:
+                    continue
                 p[k] = bleach.clean(v, tags=[], strip=True)
             setattr(self, attr, p)
 
