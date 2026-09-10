@@ -4784,15 +4784,27 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   position: relative;
   transition: box-shadow 0.15s ease;
   cursor: pointer;
+  /* Mobile browsers paint their own grey flash over any tappable element. It reads as the
+     card changing background color on tap, which isn't in the spec — the pressed shadow
+     below is the only feedback we want. */
+  -webkit-tap-highlight-color: transparent;
 }
-.searchResultCard:hover {
+/* Hover and pressed are one and the same state in the spec: a darker shadow, no change of
+   background. `.is-pressed` is set by usePressState in SearchResultCard.jsx for taps only. */
+.searchResultCard.is-pressed {
   box-shadow: 0 0 10px -1px rgba(83,83,83,0.4),
               0 1px 2px 0  rgba(31,31,31,0.04),
               0 8px 16px 0 rgba(31,31,31,0.05);
-  cursor: pointer;
 }
-.searchResultCard.is-pressed {
-  background-color: var(--lighter-grey);
+/* Gated on devices that really hover: a touch browser keeps :hover stuck on the last card
+   tapped, so an ungated rule would leave a card highlighted after a tap or a scroll. */
+@media (hover: hover) {
+  .searchResultCard:hover {
+    box-shadow: 0 0 10px -1px rgba(83,83,83,0.4),
+                0 1px 2px 0  rgba(31,31,31,0.04),
+                0 8px 16px 0 rgba(31,31,31,0.05);
+    cursor: pointer;
+  }
 }
 .searchResultCard:focus-visible {
   outline: 2px solid var(--sefaria-blue);
