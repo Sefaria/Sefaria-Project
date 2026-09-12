@@ -280,7 +280,9 @@ cohort is split and the user can search for the new title to see which texts wer
 1. **Updates Index records** (text metadata) not Version records (translations)
 2. **Auto-detection** for commentary fields using "X on Y" title pattern
 3. **Author validation** against AuthorTopic database
-4. **Term creation** for collective titles
+4. **Term validation** for collective titles — a `collective_title` is only written if a
+   matching Term already exists; otherwise the field is dropped for that index and a warning
+   is reported. The tool never creates Terms.
 5. **Sequential API calls** (one per index) instead of single bulk call
 
 ### Commentary Auto-Detection Logic
@@ -314,34 +316,7 @@ if (indexSpecificUpdates.collective_title === 'auto') {
 }
 ```
 
-### Term Creation Flow
-
-Terms are required for collective titles to display properly:
-
-```javascript
-const createTermIfNeeded = async (enTitle, heTitle) => {
-  // 1. Check if term exists
-  try {
-    await $.get(`/api/terms/${encodeURIComponent(enTitle)}`);
-    return true; // Already exists
-  } catch (e) {
-    if (e.status === 404) {
-      // 2. Create new term
-      await $.post(`/api/terms/${encodeURIComponent(enTitle)}`, {
-        json: JSON.stringify({
-          name: enTitle,
-          titles: [
-            { lang: "en", text: enTitle, primary: true },
-            { lang: "he", text: heTitle, primary: true }
-          ]
-        })
-      });
-    }
-  }
-};
-```
-
-### TOC Zoom Handling
+### TOC Zoom Handling (plan, not yet implemented)
 
 TOC zoom is applied to schema nodes, not the index directly:
 
@@ -604,9 +579,9 @@ BulkVersionEditor.jsx
 
 BulkIndexEditor.jsx
   ├── imports: INDEX_FIELD_METADATA (fieldMetadata.js)
-  ├── imports: Sefaria (for getIndexDetails)
+  ├── imports: Sefaria (for getIndexDetails, and Sefaria._translateTerms for Term validation)
   ├── imports: ModToolsSection, IndexSelector, StatusMessage (shared/)
-  └── API: /api/version-indices, /api/v2/raw/index, /admin/reset, /api/terms
+  └── API: /api/version-indices, /api/v2/raw/index, /admin/reset, /api/name
 
 AutoLinkCommentaryTool.jsx
   ├── imports: BASE_TEXT_MAPPING_OPTIONS (fieldMetadata.js)
