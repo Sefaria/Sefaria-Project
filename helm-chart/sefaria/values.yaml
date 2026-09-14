@@ -584,6 +584,11 @@ localSettings:
   PGVECTOR_DB_PORT: "5432"
   PGVECTOR_DB: pgvector
   PGVECTOR_USER: pgvector
+  # "legacy" serves semantic search from the single-table library_chunks store; "new" serves
+  # from the split chunk_metadata + vectors tables. Override to "legacy" per-env if that env's
+  # chunk_metadata/vectors tables haven't been populated yet (see
+  # sefaria/helper/vector/embed_library_to_pgvector.py).
+  SEMANTIC_SEARCH_TABLE_VERSION: "new"
 
 instrumentation:
   enabled: false
