@@ -902,8 +902,11 @@ class TestVersionRenameAPI:
 
     @pytest.mark.django_db
     def test_rename_collision_different_language_family_allowed(self, staff_client):
-        """A title clash in a *different* language family is not a collision, even when the
-        coarse language field (LTR/RTL) is identical."""
+        """Two versions can't actually share one literal versionTitle across different language
+        families sharing the same coarse LTR/RTL bucket -- Version._normalize() auto-suffixes the
+        non-en/he one (e.g. "... [de]") specifically to keep them from colliding. So renaming an
+        English version onto a title a German version already holds isn't a real collision: the
+        German version's title is already the suffixed form, not the literal target string."""
         from sefaria.model import Version, VersionSet
 
         # Both versions are LTR (language='en'), but different actual language families.
@@ -925,7 +928,9 @@ class TestVersionRenameAPI:
             'versionSource': 'https://test.com',
         })
         v_german.save()
-        # Sanity check: same coarse language, distinct family — the case the old check got wrong.
+        # Only one version can hold the literal title -- the other (non-en/he) one gets
+        # auto-suffixed with its language code in brackets, right at save time.
+        assert v_german.versionTitle == 'TestVersionRenameFamily_New [de]'
         assert v_english.languageFamilyName != v_german.languageFamilyName
 
         response = staff_client.post(
@@ -943,8 +948,10 @@ class TestVersionRenameAPI:
         data = json.loads(response.content)
         assert data['status'] == 'ok'
 
-        # The English version took the new title; the German version is untouched. Both coexist.
-        assert len(VersionSet({'versionTitle': 'TestVersionRenameFamily_New', 'title': 'Genesis'})) == 2
+        # The English version took the literal new title. The German version, already at its
+        # suffixed title before the rename, is untouched by it.
+        assert Version().load({'versionTitle': 'TestVersionRenameFamily_New', 'title': 'Genesis', 'actualLanguage': 'en'}) is not None
+        assert Version().load({'versionTitle': 'TestVersionRenameFamily_New [de]', 'title': 'Genesis', 'actualLanguage': 'de'}) is not None
         assert Version().load({'versionTitle': 'TestVersionRenameFamily_Old', 'title': 'Genesis'}) is None
 
 
