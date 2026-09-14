@@ -49,16 +49,19 @@ django.setup()
 
 from django_topics.models import Topic as DjangoTopic  # noqa: E402
 from django_topics.models import TopicPool  # noqa: E402
+from django_topics.models.pool import PoolType  # noqa: E402
 
-# 'library' serves the library module; 'sheets' serves the voices module (the pool predates the
-# module's rename — see django_topics/utils.py:get_topic_pool_name_for_module).
-POOL_NAMES = ["library", "sheets"]
-# jonathan-sacks and adin-steinsaltz are the only two portal topics in existence (portals
+# Imported from PoolType rather than hardcoded, so a future pool rename (it has happened —
+# migrations 0012/0013 renamed sheets->voices and back) changes nothing here. LIBRARY serves the
+# library module; SHEETS serves the voices module (the pool name predates the module's rename —
+# see django_topics/utils.py:get_topic_pool_name_for_module).
+POOL_NAMES: list[str] = [PoolType.LIBRARY.value, PoolType.SHEETS.value]
+# jonathan-sacks and adin-steinsaltz are the only two portal topics as of 2026-09 (portals
 # 'sacks' and 'steinsaltz'); both are seeded so the portal_page specs cover both instances.
-TOPIC_SLUGS = ["jonathan-sacks", "adin-steinsaltz", "samson-raphael-hirsch", "shabbat"]
+TOPIC_SLUGS: list[str] = ["jonathan-sacks", "adin-steinsaltz", "samson-raphael-hirsch", "shabbat"]
 
 
-def assert_topic_exists_in_mongo(slug):
+def assert_topic_exists_in_mongo(slug: str) -> None:
     """Fail loudly on a slug Mongo doesn't know.
 
     Without this, get_or_create would happily create a phantom pool row for a typo'd slug and
@@ -75,8 +78,8 @@ def assert_topic_exists_in_mongo(slug):
         )
 
 
-def seed():
-    pools = [TopicPool.objects.get_or_create(name=name)[0] for name in POOL_NAMES]
+def seed() -> None:
+    pools: list[TopicPool] = [TopicPool.objects.get_or_create(name=name)[0] for name in POOL_NAMES]
     for slug in TOPIC_SLUGS:
         assert_topic_exists_in_mongo(slug)
         topic, created = DjangoTopic.objects.get_or_create(slug=slug)
