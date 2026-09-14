@@ -10,6 +10,7 @@ from sefaria.sheets import save_sheet
 from sefaria.utils.util import list_depth, traverse_dict_tree
 
 import re
+import unicodedata
 
 """
 
@@ -1007,13 +1008,15 @@ def change_term_hebrew(en_primary, new_he):
     t.save()
 
 
-def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
+def change_lexicon_headword(parent_lexicon, old_headword, new_headword, rebuild_library=True):
     """
     Changes the headword of an entry.
     NOTICE: many lexicon has internal references, wrapped with an a tag within the data. This function won't change this.
     :param parent_lexicon: string
     :param old_headword: string
     :param new_headword: string
+    :param rebuild_library: set False to skip the library.rebuild() call (e.g. when renaming many entries in a
+        batch and rebuilding once afterward instead of once per rename)
     :return: None
 
     Example: change_lexicon_headword('Jastrow Dictionary', 'אַפּוּכִי.1', 'אַפּוּכִי 1')
@@ -1051,20 +1054,32 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
     if LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': new_headword}):
         raise ValueError(f'Entry of {parent_lexicon} with headword {new_headword} already exists')
 
+    entry = LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': old_headword})
+
+    # Captured before entry.save(): entry._normalize() NFC-normalizes prev_hw/next_hw as a
+    # side effect of that save, which can change their value out from under us if the
+    # neighbor's own headword isn't NFC yet. Re-reading them from entry afterward would
+    # then look up a headword the neighbor doesn't actually have.
+    old_prev_hw = getattr(entry, 'prev_hw', None)
+    old_next_hw = getattr(entry, 'next_hw', None)
+
+    # Fail before any writes, not partway through: prev_hw/next_hw pointing at a headword
+    # with no matching entry is bad pre-existing data, not something to paper over here.
+    for attr, adj_hw in (('prev_hw', old_prev_hw), ('next_hw', old_next_hw)):
+        if adj_hw and not LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': adj_hw}):
+            raise ValueError(f'{attr} "{adj_hw}" on entry "{old_headword}" does not match any entry in {parent_lexicon}')
+
     # change entry itself
     print('Updating entry')
-    entry = LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': old_headword})
     entry.headword = new_headword
     entry.save()
 
     # change prev and next
     print('Updating previous and next entries')
-    adjacents = ['prev_hw', 'next_hw']
-    for i in [1, -1]:
-        adj_hw = getattr(entry, adjacents[::i][0], None)
+    for adj_hw, neighbor_attr in ((old_prev_hw, 'next_hw'), (old_next_hw, 'prev_hw')):
         if adj_hw:
             adj_entry = LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': adj_hw})
-            setattr(adj_entry, adjacents[::i][1], new_headword)
+            setattr(adj_entry, neighbor_attr, new_headword)
             adj_entry.save()
 
     # change index
@@ -1105,7 +1120,8 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
         }]
     )
 
-    library.rebuild()
+    if rebuild_library:
+        library.rebuild()
 
     # other entries in the same dictionary that includes wrapped ref for the old headword
     # changing another entry is too complicated, for any lexicon has different entries structure, so it will be only printed
@@ -1119,3 +1135,26 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
         if quoted:
             print(f'Other entries in this lexicon with this old headword as ref: {", ".join(quoted)}')
         print('Warning: old ref can appear as wrapped ref in other places in the library.')
+
+
+_SUPERSCRIPT_TRANS = str.maketrans('0123456789', '⁰¹²³⁴⁵⁶⁷⁸⁹')
+_SUPERSCRIPT_STRIP_RE = re.compile(r'[⁰¹²³⁴-⁹]+$')
+
+
+def get_available_lexicon_headword(parent_lexicon, headword):
+    """
+    Returns `headword` stripped, NFC-normalized, and guaranteed free in `parent_lexicon`.
+    Strips any trailing superscript-digit suffix first (so a resubmitted already-numbered
+    headword doesn't stack, e.g. "b²²"), then appends a fresh superscript digit starting at
+    2 if the base collides -- matching the existing Jastrow/BDB superscript-homograph
+    convention. Numbering doesn't need to be contiguous or sorted relative to other
+    numbered homographs: if "b²" is taken but "b³" isn't, this returns "b³" as-is.
+    """
+    headword = unicodedata.normalize('NFC', headword.strip())
+    base = _SUPERSCRIPT_STRIP_RE.sub('', headword)
+    n = 1
+    candidate = base
+    while LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': candidate}):
+        n += 1
+        candidate = f'{base}{str(n).translate(_SUPERSCRIPT_TRANS)}'
+    return candidate

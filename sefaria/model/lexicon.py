@@ -4,10 +4,13 @@ Writes to MongoDB Collection: word_form, lexicon_entry
 """
 import re
 import unicodedata
+import bleach
 from . import abstract as abst
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError
 from sefaria.utils.hebrew import has_hebrew, strip_cantillation, has_cantillation
+from sefaria.utils.util import deep_map, deep_prune
+from sefaria.system.database import db
 
 
 class WordForm(abst.AbstractMongoRecord):
@@ -132,8 +135,93 @@ class LexiconEntry(abst.AbstractMongoRecord):
         'a': ['dir', 'class', 'href', 'data-ref'],
     }
 
+    # is_key_changed('headword') tells _validate() whether headword itself is being set to
+    # a new value on this save, vs. an unrelated field changing on an entry whose headword
+    # already happens to collide with another one.
+    track_pkeys = True
+    pkeys = ["headword"]
+
+    # Attrs the content-replace API (replace_content_attrs) is not allowed to overwrite:
+    # headword/parent_lexicon are identity; prev_hw/next_hw are sibling pointers only
+    # change_lexicon_headword maintains; rid is an external xref id; quotes isn't read by
+    # any rendering method.
+    content_patch_excluded_attrs = ["headword", "parent_lexicon", "prev_hw", "next_hw", "rid", "quotes"]
+
+    def load(self, query, proj=None):
+        # Resolve the correct dictionary subclass before super().load(), since its
+        # known-keys assertion needs self.__class__ to already be e.g. KrupnikEntry to
+        # accept fields (pos_list, emendation, ...) the base class doesn't know about.
+        parent_lexicon = query.get('parent_lexicon')
+        if parent_lexicon is None:  # query didn't include it (e.g. lookup by _id alone)
+            peek = getattr(db, self.collection).find_one(query, {'parent_lexicon': 1})
+            parent_lexicon = peek['parent_lexicon'] if peek else None
+        if parent_lexicon is not None:
+            self.__class__ = LexiconEntrySubClassMapping.class_factory(parent_lexicon)
+        return super(LexiconEntry, self).load(query, proj)
+
+    def _normalize(self):
+        # Relies on headword/prev_hw/next_hw always being NFC on every write path (this
+        # one, and change_lexicon_headword): re-normalizing an already-NFC value is a
+        # no-op, so nothing that depends on the byte value (Index, WordForm, cascaded refs)
+        # is ever desynced here. Existing non-NFC data needs a backfill first -- see
+        # scripts/lexicon/normalize_lexicon_headwords.py.
+        self.headword = unicodedata.normalize('NFC', self.headword)
+        for attr in ('prev_hw', 'next_hw'):
+            if hasattr(self, attr):
+                setattr(self, attr, unicodedata.normalize('NFC', getattr(self, attr)))
+        self._prune_empty_attrs()
+
+    def _prune_empty_attrs(self):
+        # Deletes optional attrs that end up empty (e.g. after clearing a value via the
+        # content editor). required_attrs are pruned internally but never deleted.
+        for attr in self.required_attrs + self.optional_attrs:
+            if not hasattr(self, attr):
+                continue
+            pruned = deep_prune(getattr(self, attr))
+            if pruned in ("", {}, []) and attr in self.optional_attrs:
+                delattr(self, attr)
+            else:
+                setattr(self, attr, pruned)
+
+    # Hyphen/dash, period, and colon each make a headword fail to resolve as a ref (Ref's
+    # tref parsing, sefaria/model/text.py). Comma and underscore were checked and don't.
+    HEADWORD_REF_UNSAFE_CHARS = re.compile(r'[-\u2010-\u2015.:]')
+
+    def _validate(self):
+        super(LexiconEntry, self)._validate()
+        lexicon = Lexicon().load({'name': self.parent_lexicon})
+        is_rendered_as_text = bool(getattr(lexicon, 'index_title', None))
+        if is_rendered_as_text and self.is_key_changed('headword'):
+            if self.HEADWORD_REF_UNSAFE_CHARS.search(self.headword):
+                raise InputError(f"Headword {self.headword!r} would not resolve as a ref in {self.parent_lexicon}")
+            existing = LexiconEntry().load({'parent_lexicon': self.parent_lexicon, 'headword': self.headword})
+            if existing and getattr(existing, '_id', None) != getattr(self, '_id', None):
+                raise InputError(f"Entry of {self.parent_lexicon} with headword {self.headword} already exists")
+
     def _sanitize(self):
-        pass
+        # Recurses via deep_map because the inherited generic _sanitize() only bleaches
+        # top-level string attrs -- content is a dict, so it would be skipped entirely.
+        for attr in self.required_attrs + self.optional_attrs:
+            if hasattr(self, attr):
+                setattr(self, attr, deep_map(getattr(self, attr),
+                    leaf_fn=lambda v: bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS) if isinstance(v, str) else v))
+
+    def content_attr_names(self):
+        return (set(self.required_attrs) | set(self.optional_attrs)) - set(self.content_patch_excluded_attrs)
+
+    def replace_content_attrs(self, new_values):
+        # The one sanctioned way to bulk-replace content: wipes existing content-patchable
+        # attrs and sets new ones, rejecting anything else -- enforces
+        # content_patch_excluded_attrs here once, rather than per caller.
+        content_attr_names = self.content_attr_names()
+        unknown = set(new_values.keys()) - content_attr_names
+        if unknown:
+            raise InputError(f"Cannot set non-content or unknown attrs via content patch: {sorted(unknown)}")
+        for attr in content_attr_names:
+            if hasattr(self, attr):
+                delattr(self, attr)
+        for attr, value in new_values.items():
+            setattr(self, attr, value)
 
     def factory(self, lexicon_name):
         pass
@@ -387,8 +475,13 @@ class KrupnikEntry(DictionaryEntry):
         'used_in': {'type': 'string'},
         'pos_list': {'type': 'list', 'schema': {'type': 'string'}}
     }
+    # 'required': True on each schema's own discriminating key, since _validate()'s outer
+    # allow_unknown=True would otherwise let oneof/oneof_schema alternatives below match
+    # any dict regardless of which keys it actually has, rather than picking out the one
+    # shape it's actually meant to recognize.
     senses_schema = {'senses':
                          {'type': 'list',
+                          'required': True,
                           'schema': {
                               'type': 'dict',
                               'schema': {
@@ -415,21 +508,25 @@ class KrupnikEntry(DictionaryEntry):
             'oneof': [
                 {'type': 'string'},
                 {'type': 'dict',
+                 'allow_unknown': False,
                  'schema': {'binyans': {
                      'type': 'list',
+                     'required': True,
                      'schema': {
                          'type': 'list',
                          'schema': {
                              'type': 'dict',
                              'required': True,
+                             'allow_unknown': False,
                              'oneof_schema': [
                                  senses_schema,
-                                 pos_schema,
-                                 {'binyan-form': {'type': 'string'}},
-                                 {'binyan-name': {'type': 'string'}}
+                                 {'pos': {'type': 'string', 'required': True}},
+                                 {'binyan-form': {'type': 'string', 'required': True}},
+                                 {'binyan-name': {'type': 'string', 'required': True}}
                              ]},
                      }}}},
                 {'type': 'dict',
+                 'allow_unknown': False,
                  'schema': senses_schema}
             ]
         }
