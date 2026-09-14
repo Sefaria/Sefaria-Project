@@ -7,10 +7,24 @@ import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { useProviderTriggers } from '../useSsoSignIn.jsx';
 import { persistPendingAttempt, SIGNUP_METHOD } from '../signupAnalytics.js';
+import Sefaria from '../../sefaria/sefaria';
 
 jest.mock('../signupAnalytics.js', () => ({
   ...jest.requireActual('../signupAnalytics.js'),
   persistPendingAttempt: jest.fn(),
+}));
+
+// useSsoSignIn.jsx imports the Sefaria singleton; mock the module rather than
+// setting a `global.Sefaria` (which the import would ignore).
+jest.mock('../../sefaria/sefaria', () => ({
+  __esModule: true,
+  default: {
+    googleClientId: 'gid',
+    appleClientId: null, // Apple's own effect no-ops; out of scope for these tests
+    interfaceLang: 'english',
+    _: (s) => s,
+    ssoUseRedirect: jest.fn(() => false),
+  },
 }));
 
 let container = null;
@@ -60,13 +74,7 @@ function getInitConfig() {
 beforeEach(() => {
   jest.useFakeTimers();
   jest.clearAllMocks();
-  global.Sefaria = {
-    googleClientId: 'gid',
-    appleClientId: null, // Apple's own effect no-ops; out of scope for these tests
-    interfaceLang: 'english',
-    _: (s) => s,
-    ssoUseRedirect: jest.fn(() => false),
-  };
+  Sefaria.ssoUseRedirect.mockImplementation(() => false); // tests below flip this to true
   window.google = { accounts: { id: { initialize: jest.fn(), renderButton: jest.fn() } } };
   tracking = {
     chooseMethod: jest.fn(() => 'attempt-1'),
