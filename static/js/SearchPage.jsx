@@ -27,6 +27,42 @@ import SearchTabsMobileWeb from './SearchTabsMobileWeb';
 import SearchAnalytics, { tabLabel } from './sefaria/searchAnalytics';
 
 
+/**
+ * Fuzzy-search POC (sc-47189). Shown above the results when the server auto-corrected
+ * the typed query against the string warehouse (see search_wrapper_api / ElasticSearchQuerier).
+ * The search bar itself keeps showing what the user actually typed -- this banner is the
+ * only place `correctedQuery` vs `originalQuery` is surfaced. Clicking the first line is a
+ * no-op (you're already looking at those results); clicking the second re-runs the search
+ * with auto-correction disabled, searching `originalQuery` exactly as typed.
+ */
+const SearchAutocorrectBanner = ({correctedQuery, originalQuery, onSearchOriginal}) => {
+  if (!correctedQuery) { return null; }
+  const searchOriginal = () => onSearchOriginal && onSearchOriginal();
+  return (
+    <div className="searchAutocorrectBanner">
+      <span className="searchAutocorrectBanner-line">
+        <InterfaceText text={{en: "These are results for ", he: "אלו התוצאות עבור "}}/>
+        <strong>{correctedQuery}</strong>
+      </span>
+      <span
+          className="searchAutocorrectBanner-line searchAutocorrectBanner-original"
+          role="button"
+          tabIndex="0"
+          onClick={searchOriginal}
+          onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); searchOriginal(); } }}
+      >
+        <InterfaceText text={{en: "Search instead for ", he: "חפש במקום זאת עבור "}}/>
+        <strong>{originalQuery}</strong>
+      </span>
+    </div>
+  );
+};
+SearchAutocorrectBanner.propTypes = {
+  correctedQuery:   PropTypes.string,
+  originalQuery:    PropTypes.string,
+  onSearchOriginal: PropTypes.func,
+};
+
 const SearchPageSearchBar = ({query, onQueryChange}) => {
   const [value, setValue] = React.useState(query || "");
   React.useEffect(() => { setValue(query || ""); }, [query]);
@@ -741,6 +777,11 @@ class SearchPage extends Component {
             {makeSortFilterControls(!Sefaria.multiPanel ? false : !(this.props.totalResults?.getValue() > 0))}
           </div>
         </div>
+        <SearchAutocorrectBanner
+            correctedQuery={this.props.correctedQuery}
+            originalQuery={this.props.query}
+            onSearchOriginal={this.props.onDisableAutoCorrect}
+        />
         {this.props.totalResults && !this.props.totalResults.getValue()
           ? <NoSearchResults mode="sources" query={this.props.query} />
           : searchResultList}
@@ -828,6 +869,8 @@ class SearchPage extends Component {
 
 SearchPage.propTypes = {
   query:                    PropTypes.string,
+  correctedQuery:           PropTypes.string,
+  onDisableAutoCorrect:     PropTypes.func,
   tab:                      PropTypes.string,
   setTab:                   PropTypes.func,
   type:                      PropTypes.oneOf(["text", "sheet"]),

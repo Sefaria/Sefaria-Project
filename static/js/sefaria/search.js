@@ -244,6 +244,11 @@ class Search {
     }
     mergeQueries(addAggregations, sortType, filters) {
         let result = {hits: {}};
+        // Fuzzy-search POC (sc-47189): the merged result is a fresh object, so metadata
+        // set by the server on the raw Sefaria response (see search_wrapper_api) has to be
+        // carried over explicitly or it's silently dropped for Dicta-federated queries.
+        result.corrected_query = this.sefariaQueryQueue.corrected_query;
+        result.original_query = this.sefariaQueryQueue.original_query;
         if(addAggregations) {
 
             let newBuckets = this.sefariaQueryQueue['aggregations']['path']['buckets'].filter(
@@ -406,7 +411,8 @@ class Search {
       type,
       field,
       sort_type,
-      exact
+      exact,
+      disable_autocorrect
     }) {
       const { sortTypeArray, aggregation_field_array } = SearchState.metadataByType[type];
       const { sort_method, fieldArray, score_missing, direction } = sortTypeArray.find( x => x.type === sort_type );
@@ -425,6 +431,9 @@ class Search {
         sort_fields: fieldArray,
         sort_reverse: direction === "desc",
         sort_score_missing: score_missing,
+        // Fuzzy-search POC (sc-47189): when true, server skips the string-warehouse
+        // autocorrect check and searches exactly what the user typed.
+        disable_autocorrect: !!disable_autocorrect,
       };
     }
     mergeTextResultsVersions(hits) {

@@ -4010,6 +4010,24 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 24px;
   cursor: pointer;
 }
+/* Fuzzy-search POC (sc-47189) */
+.searchAutocorrectBanner {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: var(--dark-grey);
+}
+.searchAutocorrectBanner-line strong {
+  font-weight: bold;
+  color: var(--black);
+}
+.searchAutocorrectBanner-original {
+  cursor: pointer;
+  color: var(--sefaria-blue);
+  text-decoration: underline;
+}
 .searchContent .tab-view .tab-list .tab .searchTabCount {
   display: inline-block;
   min-width: 24px;

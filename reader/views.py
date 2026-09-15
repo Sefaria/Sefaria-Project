@@ -4938,6 +4938,21 @@ def search_wrapper_api(request, es6_compat=False):
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
+
+        # Fuzzy-search POC (sc-47189): if the query isn't a known string but is exactly one
+        # edit away from one in the string warehouse, search the corrected string instead
+        # and tell the client so it can show the "results for X / search instead for Y"
+        # banner. `disable_autocorrect` is sent by that banner's "search instead" action to
+        # force the original, uncorrected query back through untouched.
+        original_query = j.get("query")
+        disable_autocorrect = j.pop("disable_autocorrect", False)
+        corrected_query = None
+        if original_query and not disable_autocorrect:
+            correction = library.autocorrect_query(original_query)
+            if correction is not None:
+                corrected_query, _ = correction
+                j["query"] = corrected_query
+
         es_client = get_elasticsearch_client_for_online_search()
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
@@ -4946,6 +4961,9 @@ def search_wrapper_api(request, es6_compat=False):
             response_json = response.to_dict().body
             if es6_compat and isinstance(response_json['hits']['total'], dict):
                 response_json['hits']['total'] = response_json['hits']['total']['value']
+            if corrected_query is not None:
+                response_json['corrected_query'] = corrected_query
+                response_json['original_query'] = original_query
             return jsonResponse(response_json, callback=request.GET.get("callback", None))
         return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
