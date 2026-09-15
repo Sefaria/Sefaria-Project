@@ -238,7 +238,7 @@ SiteWideBanner.propTypes = {
 
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
-const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register", "/password/reset"];
+const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register", "/password/reset/confirm"];
 
 // Keep authentication and password-recovery screens focused on the task at hand.
 const isChatbotBannerExcludedPath = (path, moduleUrl) => {
