@@ -51,6 +51,10 @@ data:
             if server_coordinator:
                 server_coordinator.connect()
                 if MULTISERVER_BACKGROUND_LISTENER_ENABLED:
+                    # Dedicated connection for the blocking listener loop, separate from the one
+                    # connect() just (re)built above -- see MessagingNode.connect_listener()'s
+                    # docstring for why it can't share that connection's short socket_timeout.
+                    server_coordinator.connect_listener()
                     server_coordinator.start_background_listener()
 
     def on_starting(server):
