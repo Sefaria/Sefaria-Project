@@ -1159,6 +1159,7 @@ def test_reindex_init_reuses_in_progress_index_with_docs(monkeypatch):
     bulk_setting_calls = []
 
     monkeypatch.setattr(search, "_index_doc_count", lambda name: 500)
+    monkeypatch.setattr(search, "_index_has_managed_settings", lambda name: True)
     monkeypatch.setattr(search, "create_index",
                         lambda index_name, type, force=False: create_calls.append((index_name, force)))
     monkeypatch.setattr(search, "set_index_bulk_load_settings",
@@ -1168,6 +1169,36 @@ def test_reindex_init_reuses_in_progress_index_with_docs(monkeypatch):
 
     assert create_calls == []
     assert bulk_setting_calls == ["text-new"]
+
+
+def test_reindex_init_recreates_auto_created_index_instead_of_reusing_it(monkeypatch):
+    """Prod 2026-09-11: text-a had 2957 docs but a dynamic mapping (auto-created by a stale
+    writer). Reusing it bulk-loaded the corpus into an unsearchable index until the disk filled."""
+    from sefaria import search
+
+    monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
+    names = {"new": "text-a", "current": "text-b", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search.index_client, "exists", lambda index: index == "text-a")
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 2957)
+    monkeypatch.setattr(search.index_client, "get_settings", lambda index, filter_path: {})
+    create_calls = []
+    monkeypatch.setattr(search, "create_index",
+                        lambda index_name, type, force=False: create_calls.append((index_name, force)))
+    monkeypatch.setattr(search, "set_index_bulk_load_settings", lambda index_name: None)
+
+    search.reindex_init("text", debug=False)
+
+    assert create_calls == [("text-a", True)]
+
+
+def test_index_has_managed_settings_detects_our_analysis_settings(monkeypatch):
+    from sefaria import search
+    monkeypatch.setattr(search.index_client, "get_settings", lambda index, filter_path: {
+        "text-b": {"settings": {"index": {"analysis": {"analyzer": {"exact_english": {}}}}}}})
+    assert search._index_has_managed_settings("text-b") is True
+    monkeypatch.setattr(search.index_client, "get_settings", lambda index, filter_path: {})
+    assert search._index_has_managed_settings("text-a") is False
 
 
 def test_reindex_init_creates_fresh_index_when_missing(monkeypatch):
