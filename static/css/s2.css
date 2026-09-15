@@ -2746,6 +2746,15 @@ a.cardTitle:hover {
   margin-top: -2px;
 }
 
+/* Images an editor writes in an ad body's markdown: their own line, centered, never wider than
+   the sidebar. Scoped to the body paragraph so the button icon (a.button img above) keeps its
+   inline layout. */
+.sidebarPromo p img {
+  display: block;
+  margin: 10px auto;
+  max-width: 100%;
+}
+
 .sidebarPromo.blue a.button img {
   filter: invert(0);
 }
