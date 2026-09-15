@@ -16,6 +16,16 @@ class QueryCounter(monitoring.CommandListener):
     queries = []
     tracked_commands = None
 
+    # --- per-test Mongo-usage recorder ---
+    # Populated only while begin_recording()/end_recording() bracket a test phase
+    # (see sefaria/conftest.py). Kept as class state to match the rest of this
+    # listener; deliberately inert (current_nodeid is None) outside test runs so
+    # this adds no overhead to production request handling.
+    current_nodeid = None
+    current_phase = None
+    recorded = []
+    _pending = {}
+
     def started(self, event):
         if self.tracked_commands is not None and event.command_name not in self.tracked_commands:
             return
@@ -27,14 +37,96 @@ class QueryCounter(monitoring.CommandListener):
             'traceback': ''.join(traceback.format_stack()[-6:-1])
         })
 
-    def succeeded(self, event): pass
-    def failed(self, event): pass
+        if QueryCounter.current_nodeid is None:
+            return
+        cmd = event.command_name
+        collection = event.command.get('collection') or event.command.get(cmd)
+        filt = None
+        insert_ids = None
+        if cmd == 'find':
+            filt = event.command.get('filter')
+        elif cmd == 'aggregate':
+            filt = event.command.get('pipeline')
+        elif cmd in ('count', 'distinct'):
+            filt = event.command.get('query') or event.command.get('filter')
+        elif cmd == 'update':
+            updates = event.command.get('updates') or []
+            filt = [u.get('q') for u in updates] or None
+        elif cmd == 'delete':
+            deletes = event.command.get('deletes') or []
+            filt = [d.get('q') for d in deletes] or None
+        elif cmd == 'insert':
+            docs = event.command.get('documents') or []
+            insert_ids = [str(d.get('_id')) for d in docs if isinstance(d, dict) and '_id' in d]
+        QueryCounter._pending[event.request_id] = {
+            'command': cmd,
+            'collection': collection,
+            'filter': filt,
+            'insert_ids': insert_ids,
+        }
+
+    def succeeded(self, event):
+        if QueryCounter.current_nodeid is None:
+            return
+        pending = QueryCounter._pending.pop(event.request_id, None)
+        if pending is None:
+            return
+        reply = event.reply or {}
+        cmd = pending['command']
+        doc_ids = []
+        n_returned = None
+        if cmd in ('find', 'aggregate', 'getMore'):
+            cursor = reply.get('cursor', {}) or {}
+            batch = cursor.get('firstBatch')
+            if batch is None:
+                batch = cursor.get('nextBatch', [])
+            doc_ids = [str(d.get('_id')) for d in batch if isinstance(d, dict) and '_id' in d]
+            n_returned = len(batch)
+        elif cmd == 'insert':
+            doc_ids = pending.get('insert_ids') or []
+            n_returned = reply.get('n', len(doc_ids))
+        elif cmd in ('update', 'delete'):
+            n_returned = reply.get('n', 0)
+        else:
+            n_returned = reply.get('n')
+
+        QueryCounter.recorded.append({
+            'nodeid': QueryCounter.current_nodeid,
+            'phase': QueryCounter.current_phase,
+            'command': cmd,
+            'collection': pending.get('collection'),
+            'filter': pending.get('filter'),
+            'doc_ids': doc_ids,
+            'n_returned': n_returned,
+        })
+
+    def failed(self, event):
+        if QueryCounter.current_nodeid is not None:
+            QueryCounter._pending.pop(event.request_id, None)
 
     @classmethod
     def reset(cls, tracked_commands=None):
         cls.count = 0
         cls.queries = []
         cls.tracked_commands = tracked_commands
+
+    @classmethod
+    def begin_recording(cls, nodeid, phase):
+        """Start capturing Mongo commands issued during one (nodeid, phase)."""
+        cls.current_nodeid = nodeid
+        cls.current_phase = phase
+        cls.recorded = []
+        cls._pending = {}
+
+    @classmethod
+    def end_recording(cls):
+        """Stop capturing and return the commands recorded since begin_recording()."""
+        records = cls.recorded
+        cls.current_nodeid = None
+        cls.current_phase = None
+        cls.recorded = []
+        cls._pending = {}
+        return records
 
 def check_db_exists(db_name):
     dbnames = client.list_database_names()
