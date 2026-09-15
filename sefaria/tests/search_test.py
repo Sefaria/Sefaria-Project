@@ -596,9 +596,8 @@ class _Pymongo4Collection:
     def __init__(self, records):
         self.records = [dict(r, _id=i) for i, r in enumerate(records)]
 
-    def find(self, *args, **kwargs):
-        # copies, like a real cursor: later changes to stored records don't alter fetched ones
-        return iter([dict(r) for r in self.records])
+    def find(self, query=None, *args, **kwargs):
+        return _FakeCursor(self, query or {})
 
     def delete_one(self, flt):
         # Mongo semantics: every filter key must match; {"generation": None} matches a missing field.
@@ -606,6 +605,36 @@ class _Pymongo4Collection:
             if all(r.get(k) == v for k, v in flt.items()):
                 del self.records[i]
                 return
+
+
+class _FakeCursor:
+    """find().sort().limit() over _Pymongo4Collection. Yields copies, like a real cursor.
+    Iterating past one server batch without a limit raises, standing in for the
+    CursorNotFound a long-lived cursor gets once Mongo reaps it mid-run."""
+    SERVER_BATCH = 2
+
+    def __init__(self, collection, query):
+        self.collection, self.query, self._limit, self._sorted = collection, query, None, False
+
+    def sort(self, key, direction):
+        assert key == "_id"
+        self._sorted = True
+        return self
+
+    def limit(self, n):
+        self._limit = n
+        return self
+
+    def __iter__(self):
+        gt = self.query.get("_id", {}).get("$gt")
+        rows = [dict(r) for r in sorted(self.collection.records, key=lambda r: r["_id"])
+                if gt is None or r["_id"] > gt]
+        if self._limit is not None:
+            rows = rows[:self._limit]
+        for i, row in enumerate(rows):
+            if self._limit is None and i >= self.SERVER_BATCH:
+                raise RuntimeError("CursorNotFound: cursor reaped during a long-running iteration")
+            yield row
 
 
 def _queue_db(monkeypatch, records, sheets=None):
@@ -637,6 +666,29 @@ def test_index_from_queue_resolves_current_index_per_item_and_drains_queue(monke
 
     assert written == [("text-a", "Genesis 1:1"), ("text-b", "Genesis 1:2")]
     assert fake.index_queue.records == []
+
+
+def test_index_from_queue_walks_bounded_batches_and_skips_failures_within_a_run(monkeypatch):
+    """Large backlogs must not ride one cursor, and a failing record must not be refetched forever."""
+    from sefaria import search
+
+    records = [{"type": "ref", "ref": f"Genesis 1:{i}", "version": "v", "lang": "en"} for i in range(1, 8)]
+    fake = _queue_db(monkeypatch, records)
+    monkeypatch.setattr(search, "INDEX_QUEUE_BATCH_SIZE", 2)
+    monkeypatch.setattr(search, "Ref", lambda tref: tref)
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type: {"current": "text-b"})
+    attempts = []
+
+    def index_ref(cls, index_name, oref, *a):
+        attempts.append(oref)
+        if oref == "Genesis 1:3":
+            raise RuntimeError("503 no master")
+    monkeypatch.setattr(search.TextIndexer, "index_ref", classmethod(index_ref))
+
+    search.index_from_queue()
+
+    assert attempts == [f"Genesis 1:{i}" for i in range(1, 8)]  # each attempted exactly once
+    assert [r["ref"] for r in fake.index_queue.records] == ["Genesis 1:3"]
 
 
 def test_index_from_queue_keeps_record_when_text_write_fails(monkeypatch):

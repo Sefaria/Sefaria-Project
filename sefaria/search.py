@@ -2419,30 +2419,49 @@ def add_sheet_to_index_queue(sheet_id):
     return add_sheets_to_index_queue([sheet_id])
 
 
+INDEX_QUEUE_BATCH_SIZE = 100
+
+
 def index_from_queue():
     """
     Process every record in the index queue: text refs are (re)indexed, sheets are synced
     to their current state. Records are deleted only after their write succeeds.
+
+    Records are fetched in bounded batches, fresh query per batch, walking _id upward.
+    Holding one cursor open across slow Elasticsearch writes lets the server reap it after
+    its 10-minute idle timeout, and the resulting CursorNotFound would abort the whole run
+    (the backlog can be tens of thousands of records). Walking _id also means a record
+    that fails is left for the next run instead of being refetched forever in this one.
     """
-    queue = db.index_queue.find()
-    for item in queue:
-        try:
-            # Resolved per item, not once up front: a run can outlive a weekly alias swap,
-            # and a name captured before the swap points at an index finalize has deleted.
-            if item.get("type") == SHEET_QUEUE_TYPE:
-                index_name = get_new_and_current_index_names('sheet').get('current')
-                if not sync_sheet_in_index(index_name, item["sheet_id"]):
-                    continue  # failure already logged; keep the record for the next run
-            else:
-                index_name = get_new_and_current_index_names('text').get('current')
-                TextIndexer.index_ref(index_name, Ref(item.get("ref")), item.get("version"), item.get("lang"), item.get('languageFamilyName'), item.get('isPrimary'))
-            # delete_one, not remove: Collection.remove was dropped in pymongo 4, so the old
-            # call raised after every successful write and no record ever left the queue.
-            # Conditional on generation: a re-enqueue during processing bumps it, and that
-            # record must survive. Records without the field (text refs) match None.
-            db.index_queue.delete_one({"_id": item["_id"], "generation": item.get("generation")})
-        except Exception as e:
-            logger.error(f"Error indexing from queue ({item.get('ref')} / {item.get('version')} / {item.get('lang')}) : {type(e).__name__}: {e}")
+    last_id = None
+    while True:
+        query = {} if last_id is None else {"_id": {"$gt": last_id}}
+        batch = list(db.index_queue.find(query).sort("_id", pymongo.ASCENDING).limit(INDEX_QUEUE_BATCH_SIZE))
+        if not batch:
+            return
+        last_id = batch[-1]["_id"]
+        for item in batch:
+            _process_index_queue_item(item)
+
+
+def _process_index_queue_item(item):
+    try:
+        # Resolved per item, not once up front: a run can outlive a weekly alias swap,
+        # and a name captured before the swap points at an index finalize has deleted.
+        if item.get("type") == SHEET_QUEUE_TYPE:
+            index_name = get_new_and_current_index_names('sheet').get('current')
+            if not sync_sheet_in_index(index_name, item["sheet_id"]):
+                return  # failure already logged; keep the record for the next run
+        else:
+            index_name = get_new_and_current_index_names('text').get('current')
+            TextIndexer.index_ref(index_name, Ref(item.get("ref")), item.get("version"), item.get("lang"), item.get('languageFamilyName'), item.get('isPrimary'))
+        # delete_one, not remove: Collection.remove was dropped in pymongo 4, so the old
+        # call raised after every successful write and no record ever left the queue.
+        # Conditional on generation: a re-enqueue during processing bumps it, and that
+        # record must survive. Records without the field (text refs) match None.
+        db.index_queue.delete_one({"_id": item["_id"], "generation": item.get("generation")})
+    except Exception as e:
+        logger.error(f"Error indexing from queue ({item.get('ref')} / {item.get('version')} / {item.get('lang')}) : {type(e).__name__}: {e}")
 
 
 def add_recent_to_queue(ndays):
