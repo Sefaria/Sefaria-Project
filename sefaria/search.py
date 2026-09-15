@@ -146,10 +146,16 @@ def delete_version(index, version, lang, old_title=None):
 
 
 def delete_sheet(index_name, id):
+    """Remove sheet `id` from the index. Returns True when the doc is gone (including
+    when it was never indexed), False when the delete failed and should be retried."""
     try:
         es_client.delete(index=index_name, id=id)
+        return True
+    except NotFoundError:
+        return True
     except Exception as e:
-        logger.error(f"deleting sheet {id}")
+        logger.error(f"Failed to delete sheet {id} from {index_name}: {type(e).__name__}: {e}")
+        return False
 
 
 def make_text_doc_id(ref, version, lang):
@@ -207,20 +213,22 @@ def index_sheet(index_name, id):
     dateCreated = sheet.get("dateCreated")
     dateModified = sheet.get("dateModified")
 
-    pud = public_user_data(owner_id)
-    if not pud:
-        pud = {"name": "", "imageUrl": "", "profileUrl": ""}
-
-    owner_name = pud.get("name", "")
-    owner_image = pud.get("imageUrl", "")
-    profile_url = pud.get("profileUrl", "")
-    owner_link = user_link(owner_id) or ""
-    
-    topics = make_sheet_topics(sheet)
-    collections = CollectionSet({"sheets": id, "listed": True})
-    collection_names = [c.name for c in collections]
-    
+    # Everything that can raise lives inside the try, so a profile/topic/collection lookup
+    # failure is reported the same way as an ES rejection instead of escaping to the caller.
     try:
+        pud = public_user_data(owner_id)
+        if not pud:
+            pud = {"name": "", "imageUrl": "", "profileUrl": ""}
+
+        owner_name = pud.get("name", "")
+        owner_image = pud.get("imageUrl", "")
+        profile_url = pud.get("profileUrl", "")
+        owner_link = user_link(owner_id) or ""
+
+        topics = make_sheet_topics(sheet)
+        collections = CollectionSet({"sheets": id, "listed": True})
+        collection_names = [c.name for c in collections]
+
         doc = {
             "title": strip_tags(sheet_title),
             "content": make_sheet_text(sheet, pud),
@@ -245,8 +253,22 @@ def index_sheet(index_name, id):
         es_client.index(index=index_name, id=id, body=doc)
         return True
     except Exception as e:
-        logger.warning(f"Failed to index sheet {id}: {type(e).__name__}: {e}")
+        logger.error(f"Failed to index sheet {id} into {index_name}: {type(e).__name__}: {e}")
         return False
+
+
+def sync_sheet_in_index(index_name, sheet_id):
+    """
+    Make the search index match the sheet's *current* state in Mongo: index it if it is
+    public and indexable, otherwise remove it. Deciding at processing time (not when the
+    change was queued) means a publish followed by an unpublish converges on the last
+    state, so one deduplicated queue record per sheet is enough.
+    Returns True on success, False when the write failed and should be retried.
+    """
+    sheet = db.sheets.find_one({"id": sheet_id}, {"status": 1, "owner": 1})
+    if sheet and sheet.get("status") == "public" and sheet.get("owner"):
+        return index_sheet(index_name, sheet_id)
+    return delete_sheet(index_name, sheet_id)
 
 def make_sheet_text(sheet, pud):
     """
@@ -2356,23 +2378,54 @@ def add_ref_to_index_queue(ref, version, lang):
     return True
 
 
+SHEET_QUEUE_TYPE = "sheet"
+
+
+def add_sheet_to_index_queue(sheet_id):
+    """
+    Queue sheet `sheet_id` to be synced to search by the index-from-queue CronJob.
+
+    Web pods must not write to Elasticsearch themselves: they authenticate as a read-only
+    search user, so every direct index/delete from the save path was rejected (403) and
+    swallowed, leaving new and edited sheets unsearchable until the weekly full rebuild.
+    The CronJob runs with the ES admin credentials, the same path text edits already use.
+
+    ref/version/lang are placeholders that satisfy IndexQueue's required attrs and its
+    unique (lang, version, ref) index, which collapses repeat saves of a sheet into one record.
+    """
+    sheet_id = int(sheet_id)
+    qu.IndexQueue({
+        "ref": f"Sheet {sheet_id}",
+        "lang": SHEET_QUEUE_TYPE,
+        "version": SHEET_QUEUE_TYPE,
+        "type": SHEET_QUEUE_TYPE,
+        "sheet_id": sheet_id,
+    }).save()
+    return True
+
+
 def index_from_queue():
     """
-    Index every ref/version/lang found in the index queue.
-    Delete queue records on success.
+    Process every record in the index queue: text refs are (re)indexed, sheets are synced
+    to their current state. Records are deleted only after their write succeeds.
     """
     queue = db.index_queue.find()
     for item in queue:
         try:
             # Resolved per item, not once up front: a run can outlive a weekly alias swap,
-            # and a name captured before the swap points at the index finalize just deleted.
-            # Writing there makes Elasticsearch auto-create it with a dynamic mapping, which
-            # the next reindex_init then reuses as its "in-progress" index.
-            index_name = get_new_and_current_index_names('text').get('current')
-            TextIndexer.index_ref(index_name, Ref(item.get("ref")), item.get("version"), item.get("lang"), item.get('languageFamilyName'), item.get('isPrimary'))
-            db.index_queue.remove(item)
+            # and a name captured before the swap points at an index finalize has deleted.
+            if item.get("type") == SHEET_QUEUE_TYPE:
+                index_name = get_new_and_current_index_names('sheet').get('current')
+                if not sync_sheet_in_index(index_name, item["sheet_id"]):
+                    continue  # failure already logged; keep the record for the next run
+            else:
+                index_name = get_new_and_current_index_names('text').get('current')
+                TextIndexer.index_ref(index_name, Ref(item.get("ref")), item.get("version"), item.get("lang"), item.get('languageFamilyName'), item.get('isPrimary'))
+            # delete_one, not remove: Collection.remove was dropped in pymongo 4, so the old
+            # call raised after every successful write and no record ever left the queue.
+            db.index_queue.delete_one({"_id": item["_id"]})
         except Exception as e:
-            logger.error(f"Error indexing from queue ({item.get('ref')} / {item.get('version')} / {item.get('lang')}) : {e}")
+            logger.error(f"Error indexing from queue ({item.get('ref')} / {item.get('version')} / {item.get('lang')}) : {type(e).__name__}: {e}")
 
 
 def add_recent_to_queue(ndays):

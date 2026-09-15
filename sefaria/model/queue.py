@@ -21,7 +21,7 @@ class IndexQueue(abst.AbstractMongoRecord):
         "ref"
     ]
     optional_attrs = [
-
+        "sheet_id",  # set on type="sheet" records; see sefaria.search.add_sheet_to_index_queue
     ]
 
     #todo: This is written generically.  Do we want elsewhere?

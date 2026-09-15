@@ -560,9 +560,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
             scored_by_llm = True
         if sheet["status"] != "public":
             # UNPUBLISH
-            if SEARCH_INDEX_ON_SAVE and not search_override:
-                es_index_name = search.get_new_and_current_index_names("sheet")['current']
-                search.delete_sheet(es_index_name, sheet['id'])
+            # Removal from search happens via the index queue at the end of save_sheet.
 
             delete_sheet_publication(sheet["id"], user_id)  # remove history
 
@@ -612,12 +610,14 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
         update_sheet_topic_links(sheet["id"], [], old_topics)
 
 
-    if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
+    # Public sheets and sheets leaving public status both need a search sync; the queue
+    # consumer (index-from-queue CronJob, ES admin credentials) indexes or removes the doc
+    # based on the sheet's state when it runs. Web pods only have read access to ES.
+    if (sheet["status"] == "public" or status_changed) and SEARCH_INDEX_ON_SAVE and not search_override:
         try:
-            index_name = search.get_new_and_current_index_names("sheet")['current']
-            search.index_sheet(index_name, sheet["id"])
-        except:
-            logger.error("Failed index on " + str(sheet["id"]))
+            search.add_sheet_to_index_queue(sheet["id"])
+        except Exception as e:
+            logger.error("Failed to queue sheet for search indexing", sheet_id=sheet["id"], error=f"{type(e).__name__}: {e}")
 
     return sheet
 

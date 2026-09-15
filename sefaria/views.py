@@ -46,7 +46,7 @@ from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED, SEARCH_INDEX_ON_SAVE
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sso.adapters import import_gravatar
@@ -1392,13 +1392,13 @@ def delete_sheet_by_id(request):
             process_sheet_deletion_in_collections(id)
             process_sheet_deletion_in_notifications(id)
 
-            try:
-                es_index_name = search.get_new_and_current_index_names("sheet")['current']
-                search.delete_sheet(es_index_name, id)
-            except NewConnectionError as e:
-                logger.warn("Failed to connect to elastic search server on sheet delete.")
-            except AuthorizationException as e:
-                logger.warn("Failed to connect to elastic search server on sheet delete.")
+            # Queued rather than deleted directly: web pods only have read access to ES. The
+            # sheet is already gone from Mongo, so the queue consumer removes its search doc.
+            if SEARCH_INDEX_ON_SAVE:
+                try:
+                    search.add_sheet_to_index_queue(id)
+                except Exception as e:
+                    logger.error(f"Failed to queue deleted sheet {id} for search removal: {type(e).__name__}: {e}")
 
 
             return jsonResponse({"success": f"deleted sheet {sheet_id}"})
@@ -1457,6 +1457,13 @@ def spam_dashboard(request):
             db.sheets.update_many({"id": {"$in": reviewed_sheet_ids}}, {"$set": {"reviewed": True}})
             spammers = db.sheets.find({"id": {"$in": spam_sheet_ids}}, {"owner": 1}).distinct("owner")
             db.sheets.delete_many({"id": {"$in": spam_sheet_ids}})
+            if SEARCH_INDEX_ON_SAVE:
+                from sefaria.search import add_sheet_to_index_queue
+                for spam_sheet_id in spam_sheet_ids:
+                    try:
+                        add_sheet_to_index_queue(spam_sheet_id)
+                    except Exception as e:
+                        logger.error(f"Failed to queue spam sheet {spam_sheet_id} for search removal: {type(e).__name__}: {e}")
 
             for spammer in spammers:
                 try:
