@@ -4010,22 +4010,28 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 24px;
   cursor: pointer;
 }
-/* Fuzzy-search POC (sc-47189) */
+/* Search-query auto-correction (sc-47189) */
 .searchAutocorrectBanner {
   display: flex;
-  flex-wrap: wrap;
-  column-gap: 8px;
-  margin-bottom: 16px;
-  font-size: 14px;
+  flex-direction: column;
+  row-gap: 4px;
+  margin-bottom: 20px;
+  font-size: 16px;
+  color: var(--black);
+}
+.searchAutocorrectBanner-secondary {
   color: var(--dark-grey);
 }
-.searchAutocorrectBanner-line strong {
+.searchAutocorrectBanner-corrected {
   font-weight: bold;
-  color: var(--black);
+  color: var(--inline-link-blue);
+  text-decoration: underline;
 }
 .searchAutocorrectBanner-original {
   cursor: pointer;
-  color: var(--sefaria-blue);
+  color: var(--inline-link-blue);
+}
+.searchAutocorrectBanner-original:hover {
   text-decoration: underline;
 }
 .searchContent .tab-view .tab-list .tab .searchTabCount {
