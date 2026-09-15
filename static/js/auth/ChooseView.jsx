@@ -38,7 +38,7 @@ const ChooseView = ({
       <>
         <InterfaceText>auth.already_have_an_account</InterfaceText>
         {' '}
-        <a href="/login" onClick={switchFlow('login')}>
+        <a href="/login" data-signup-source="register_crosslink" onClick={switchFlow('login')}>
           <InterfaceText>auth.log_in_link</InterfaceText>
         </a>
       </>
