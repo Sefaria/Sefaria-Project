@@ -60,8 +60,9 @@ spec:
           memory: "400Mi"
           cpu: "400m"
         limits:
-          memory: "400Mi"
+          memory: "512Mi"
           cpu: "400m"
+      heapSize: 300
     varnish:
       secrets:
         varnish:
