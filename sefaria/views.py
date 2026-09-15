@@ -1425,12 +1425,21 @@ def purge_spammer_account_data(spammer_id, delete_from_crm=True):
         except Exception as e:
             logger.error(f'Failed to mark user as spam: {e}')
     sheets = db.sheets.find({"owner": spammer_id})
+    quarantined_sheet_ids = []
     for sheet in sheets:
         sheet["spam_sheet_quarantine"] = datetime.now()
         sheet["datePublished"] = None
         sheet["status"] = "unlisted"
         sheet["displayedCollection"] = None
         db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
+        quarantined_sheet_ids.append(sheet["id"])
+    # Unlisted sheets must leave search; the queue consumer removes them (web cannot write to ES).
+    if SEARCH_INDEX_ON_SAVE and quarantined_sheet_ids:
+        from sefaria.search import add_sheets_to_index_queue
+        try:
+            add_sheets_to_index_queue(quarantined_sheet_ids)
+        except Exception as e:
+            logger.error(f"Failed to queue quarantined sheets of spammer {spammer_id} for search removal: {type(e).__name__}: {e}")
     # Delete Notes
     db.notes.delete_many({"owner": spammer_id})
     # Delete Notifcations

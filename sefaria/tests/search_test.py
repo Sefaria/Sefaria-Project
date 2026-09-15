@@ -597,10 +597,15 @@ class _Pymongo4Collection:
         self.records = [dict(r, _id=i) for i, r in enumerate(records)]
 
     def find(self, *args, **kwargs):
-        return iter(list(self.records))
+        # copies, like a real cursor: later changes to stored records don't alter fetched ones
+        return iter([dict(r) for r in self.records])
 
     def delete_one(self, flt):
-        self.records = [r for r in self.records if r["_id"] != flt["_id"]]
+        # Mongo semantics: every filter key must match; {"generation": None} matches a missing field.
+        for i, r in enumerate(self.records):
+            if all(r.get(k) == v for k, v in flt.items()):
+                del self.records[i]
+                return
 
 
 def _queue_db(monkeypatch, records, sheets=None):
@@ -703,6 +708,63 @@ def test_add_sheets_to_index_queue_upserts_one_deduplicated_record_per_sheet(mon
     assert op._filter == {"lang": "sheet", "version": "sheet", "ref": "Sheet 747331"}
     assert op._upsert is True
     assert op._doc["$setOnInsert"]["type"] == "sheet"
+    # every enqueue must bump the generation, including for a record that already exists
+    assert op._doc["$set"]["generation"] != by_id[5]._doc["$set"]["generation"]
+
+
+def test_index_from_queue_keeps_sheet_record_requeued_while_it_was_being_synced(monkeypatch):
+    """A save landing between the consumer's Mongo read and its delete must not be lost."""
+    from sefaria import search
+
+    fake = _queue_db(monkeypatch,
+                     [{"type": "sheet", "sheet_id": 1, "ref": "Sheet 1", "version": "sheet", "lang": "sheet",
+                       "generation": "gen-1"}],
+                     {1: {"id": 1, "status": "public", "owner": 5}})
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type: {"current": "sheet-b"})
+
+    def sync_then_user_saves(index_name, sid):
+        fake.index_queue.records[0]["generation"] = "gen-2"  # add_sheets_to_index_queue during sync
+        return True
+    monkeypatch.setattr(search, "index_sheet", sync_then_user_saves)
+
+    search.index_from_queue()
+
+    assert [r["generation"] for r in fake.index_queue.records] == ["gen-2"]
+
+
+def test_clear_index_queue_keeps_sheet_records(monkeypatch):
+    from sefaria import search
+    from types import SimpleNamespace
+    filters = []
+    monkeypatch.setattr(search, "db", SimpleNamespace(index_queue=SimpleNamespace(
+        delete_many=lambda flt: filters.append(flt) or SimpleNamespace(deleted_count=0))))
+    search.clear_index_queue()
+    assert filters == [{"type": {"$ne": "sheet"}}]
+
+
+def test_purge_spammer_account_data_queues_quarantined_sheets(monkeypatch):
+    from sefaria import views
+    import sefaria.search as search
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    sheets = [{"_id": "a", "id": 11, "owner": 7, "status": "public"},
+              {"_id": "b", "id": 12, "owner": 7, "status": "unlisted"}]
+    fake_db = MagicMock()
+    fake_db.profiles.find_one.return_value = {"id": 7}
+    fake_db.sheets.find.return_value = iter(sheets)
+    monkeypatch.setattr(views, "db", fake_db)
+    monkeypatch.setattr(views, "SEARCH_INDEX_ON_SAVE", True)
+    queued = []
+    monkeypatch.setattr(search, "add_sheets_to_index_queue", lambda ids: queued.append(list(ids)))
+    fake_user = SimpleNamespace(is_active=True, save=lambda: None)
+    from django.contrib.auth.models import User
+    monkeypatch.setattr(User.objects, "get", lambda id: fake_user)
+
+    views.purge_spammer_account_data(7, delete_from_crm=False)
+
+    assert queued == [[11, 12]]
+    assert fake_user.is_active is False
 
 
 def test_add_sheets_to_index_queue_skips_empty_input(monkeypatch):

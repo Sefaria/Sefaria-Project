@@ -12,6 +12,7 @@ import sys
 import threading
 import bleach
 import pymongo
+from bson import ObjectId
 
 from collections import defaultdict
 import time as pytime
@@ -2391,16 +2392,21 @@ def add_sheets_to_index_queue(sheet_ids):
     The CronJob runs with the ES admin credentials, the same path text edits already use.
 
     One upsert per sheet, sent as a single bulk write: re-queuing a sheet that is already
-    waiting (every autosave of a public sheet) is a no-op rather than a duplicate-record
-    warning, and purging an account's sheets costs one round trip. ref/version/lang are
-    placeholders matching the queue's unique (lang, version, ref) index.
+    waiting (every autosave of a public sheet) updates its record rather than adding one,
+    and purging an account's sheets costs one round trip. ref/version/lang are placeholders
+    matching the queue's unique (lang, version, ref) index.
+
+    Every enqueue stamps a fresh `generation`. The consumer deletes a record only if the
+    generation is still the one it processed, so a save that lands while its sheet is being
+    synced keeps the record alive for the next run instead of being absorbed by it.
     """
     ops = []
     for sheet_id in {int(sid) for sid in sheet_ids}:
         key = {"lang": SHEET_QUEUE_TYPE, "version": SHEET_QUEUE_TYPE, "ref": f"Sheet {sheet_id}"}
         ops.append(pymongo.UpdateOne(
             key,
-            {"$setOnInsert": dict(key, type=SHEET_QUEUE_TYPE, sheet_id=sheet_id)},
+            {"$setOnInsert": dict(key, type=SHEET_QUEUE_TYPE, sheet_id=sheet_id),
+             "$set": {"generation": ObjectId()}},
             upsert=True,
         ))
     if ops:
@@ -2432,7 +2438,9 @@ def index_from_queue():
                 TextIndexer.index_ref(index_name, Ref(item.get("ref")), item.get("version"), item.get("lang"), item.get('languageFamilyName'), item.get('isPrimary'))
             # delete_one, not remove: Collection.remove was dropped in pymongo 4, so the old
             # call raised after every successful write and no record ever left the queue.
-            db.index_queue.delete_one({"_id": item["_id"]})
+            # Conditional on generation: a re-enqueue during processing bumps it, and that
+            # record must survive. Records without the field (text refs) match None.
+            db.index_queue.delete_one({"_id": item["_id"], "generation": item.get("generation")})
         except Exception as e:
             logger.error(f"Error indexing from queue ({item.get('ref')} / {item.get('version')} / {item.get('lang')}) : {type(e).__name__}: {e}")
 
@@ -2538,9 +2546,14 @@ def index_all(skip=0, debug=False):
 
 
 def clear_index_queue():
-    """Remove all entries from the index queue after a full reindex."""
+    """Remove text entries from the index queue after a full reindex.
+
+    Sheet entries are kept. They sync a sheet to its current state, so replaying one is
+    harmless, while dropping one queued after the sheet catch-up query ran would lose that
+    save until the next rebuild.
+    """
     logger.debug("Clearing stale index queue")
-    deleted = db.index_queue.delete_many({})
+    deleted = db.index_queue.delete_many({"type": {"$ne": SHEET_QUEUE_TYPE}})
     logger.debug(f"Cleared index queue - deleted_count: {deleted.deleted_count}")
     return deleted.deleted_count
 
