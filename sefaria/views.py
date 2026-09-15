@@ -1458,12 +1458,11 @@ def spam_dashboard(request):
             spammers = db.sheets.find({"id": {"$in": spam_sheet_ids}}, {"owner": 1}).distinct("owner")
             db.sheets.delete_many({"id": {"$in": spam_sheet_ids}})
             if SEARCH_INDEX_ON_SAVE:
-                from sefaria.search import add_sheet_to_index_queue
-                for spam_sheet_id in spam_sheet_ids:
-                    try:
-                        add_sheet_to_index_queue(spam_sheet_id)
-                    except Exception as e:
-                        logger.error(f"Failed to queue spam sheet {spam_sheet_id} for search removal: {type(e).__name__}: {e}")
+                from sefaria.search import add_sheets_to_index_queue
+                try:
+                    add_sheets_to_index_queue(spam_sheet_ids)
+                except Exception as e:
+                    logger.error(f"Failed to queue spam sheets {spam_sheet_ids} for search removal: {type(e).__name__}: {e}")
 
             for spammer in spammers:
                 try:

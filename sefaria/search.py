@@ -2381,27 +2381,36 @@ def add_ref_to_index_queue(ref, version, lang):
 SHEET_QUEUE_TYPE = "sheet"
 
 
-def add_sheet_to_index_queue(sheet_id):
+def add_sheets_to_index_queue(sheet_ids):
     """
-    Queue sheet `sheet_id` to be synced to search by the index-from-queue CronJob.
+    Queue sheets to be synced to search by the index-from-queue CronJob.
 
     Web pods must not write to Elasticsearch themselves: they authenticate as a read-only
     search user, so every direct index/delete from the save path was rejected (403) and
     swallowed, leaving new and edited sheets unsearchable until the weekly full rebuild.
     The CronJob runs with the ES admin credentials, the same path text edits already use.
 
-    ref/version/lang are placeholders that satisfy IndexQueue's required attrs and its
-    unique (lang, version, ref) index, which collapses repeat saves of a sheet into one record.
+    One upsert per sheet, sent as a single bulk write: re-queuing a sheet that is already
+    waiting (every autosave of a public sheet) is a no-op rather than a duplicate-record
+    warning, and purging an account's sheets costs one round trip. ref/version/lang are
+    placeholders matching the queue's unique (lang, version, ref) index.
     """
-    sheet_id = int(sheet_id)
-    qu.IndexQueue({
-        "ref": f"Sheet {sheet_id}",
-        "lang": SHEET_QUEUE_TYPE,
-        "version": SHEET_QUEUE_TYPE,
-        "type": SHEET_QUEUE_TYPE,
-        "sheet_id": sheet_id,
-    }).save()
-    return True
+    ops = []
+    for sheet_id in {int(sid) for sid in sheet_ids}:
+        key = {"lang": SHEET_QUEUE_TYPE, "version": SHEET_QUEUE_TYPE, "ref": f"Sheet {sheet_id}"}
+        ops.append(pymongo.UpdateOne(
+            key,
+            {"$setOnInsert": dict(key, type=SHEET_QUEUE_TYPE, sheet_id=sheet_id)},
+            upsert=True,
+        ))
+    if ops:
+        db.index_queue.bulk_write(ops, ordered=False)
+    return len(ops)
+
+
+def add_sheet_to_index_queue(sheet_id):
+    """Queue one sheet; see add_sheets_to_index_queue."""
+    return add_sheets_to_index_queue([sheet_id])
 
 
 def index_from_queue():

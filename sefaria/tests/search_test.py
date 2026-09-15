@@ -686,21 +686,32 @@ def test_index_from_queue_keeps_sheet_record_when_sync_fails(monkeypatch):
     assert len(fake.index_queue.records) == 1
 
 
-def test_add_sheet_to_index_queue_records_sheet_id(monkeypatch):
+def test_add_sheets_to_index_queue_upserts_one_deduplicated_record_per_sheet(monkeypatch):
     from sefaria import search
-    saved = []
+    from types import SimpleNamespace
+    written = []
+    monkeypatch.setattr(search, "db", SimpleNamespace(index_queue=SimpleNamespace(
+        bulk_write=lambda ops, ordered: written.append((ops, ordered)))))
 
-    class FakeIndexQueue:
-        def __init__(self, attrs):
-            self.attrs = attrs
-        def save(self):
-            saved.append(self.attrs)
-    monkeypatch.setattr(search.qu, "IndexQueue", FakeIndexQueue)
+    assert search.add_sheets_to_index_queue(["747331", 747331, 5]) == 2
 
-    search.add_sheet_to_index_queue("747331")
+    (ops, ordered), = written
+    assert ordered is False
+    by_id = {op._doc["$setOnInsert"]["sheet_id"]: op for op in ops}
+    assert set(by_id) == {747331, 5}
+    op = by_id[747331]
+    assert op._filter == {"lang": "sheet", "version": "sheet", "ref": "Sheet 747331"}
+    assert op._upsert is True
+    assert op._doc["$setOnInsert"]["type"] == "sheet"
 
-    assert saved == [{"ref": "Sheet 747331", "lang": "sheet", "version": "sheet",
-                      "type": "sheet", "sheet_id": 747331}]
+
+def test_add_sheets_to_index_queue_skips_empty_input(monkeypatch):
+    from sefaria import search
+    from types import SimpleNamespace
+    def must_not_write(*a, **k):
+        raise AssertionError("no bulk_write for an empty id list")
+    monkeypatch.setattr(search, "db", SimpleNamespace(index_queue=SimpleNamespace(bulk_write=must_not_write)))
+    assert search.add_sheets_to_index_queue([]) == 0
 
 
 def test_index_queue_persists_sheet_id():
@@ -710,10 +721,11 @@ def test_index_queue_persists_sheet_id():
 
 def test_delete_sheet_treats_missing_doc_as_success_and_reports_other_errors(monkeypatch):
     from sefaria import search
-    from elasticsearch import NotFoundError
+    from unittest.mock import MagicMock
 
     def not_found(index, id):
-        raise NotFoundError.__new__(NotFoundError)
+        # the exact class delete_sheet catches, constructed the way the ES 8 client raises it
+        raise search.NotFoundError("not_found", meta=MagicMock(status=404), body={"found": False})
     monkeypatch.setattr(search.es_client, "delete", not_found)
     assert search.delete_sheet("sheet-b", 1) is True
 
