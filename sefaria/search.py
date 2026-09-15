@@ -240,7 +240,9 @@ def index_sheet(index_name, id):
             "dateModified": dateModified,
             "views": sheet.get("views", 0)
         }
-        es_client.create(index=index_name, id=id, body=doc)
+        # index (upsert), not create: create 409s when the doc already exists, so every
+        # edit to an already-indexed sheet was silently dropped until the next full rebuild.
+        es_client.index(index=index_name, id=id, body=doc)
         return True
     except Exception as e:
         logger.warning(f"Failed to index sheet {id}: {type(e).__name__}: {e}")
@@ -2359,10 +2361,14 @@ def index_from_queue():
     Index every ref/version/lang found in the index queue.
     Delete queue records on success.
     """
-    index_name = get_new_and_current_index_names('text').get('current')
     queue = db.index_queue.find()
     for item in queue:
         try:
+            # Resolved per item, not once up front: a run can outlive a weekly alias swap,
+            # and a name captured before the swap points at the index finalize just deleted.
+            # Writing there makes Elasticsearch auto-create it with a dynamic mapping, which
+            # the next reindex_init then reuses as its "in-progress" index.
+            index_name = get_new_and_current_index_names('text').get('current')
             TextIndexer.index_ref(index_name, Ref(item.get("ref")), item.get("version"), item.get("lang"), item.get('languageFamilyName'), item.get('isPrimary'))
             db.index_queue.remove(item)
         except Exception as e:

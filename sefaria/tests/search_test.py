@@ -535,7 +535,7 @@ def test_index_sheet_indexes_legacy_sheet_without_summary(monkeypatch):
     monkeypatch.setattr(search, "CollectionSet", lambda q: [])
 
     created = {}
-    monkeypatch.setattr(search.es_client, "create",
+    monkeypatch.setattr(search.es_client, "index",
                         lambda index, id, body: created.update({"id": id, "body": body}))
 
     result = search.index_sheet("sheet-a", 7)
@@ -556,6 +556,64 @@ def test_index_sheet_returns_false_without_owner(monkeypatch):
 
     result = search.index_sheet("sheet-a", 99)
     assert result is False
+
+
+def test_index_sheet_overwrites_an_already_indexed_sheet(monkeypatch):
+    """Re-indexing an edited sheet must replace the existing doc, not 409 on it.
+
+    `create` fails with a conflict when the id already exists; index_sheet caught that and
+    returned False, so edits to published sheets never reached search until a full rebuild.
+    """
+    from sefaria import search
+    from unittest.mock import MagicMock
+
+    sheet = {"id": 8, "owner": 42, "title": "Edited title", "sources": []}
+    mock_db = MagicMock()
+    mock_db.sheets.find_one.return_value = sheet
+    monkeypatch.setattr(search, "db", mock_db)
+    monkeypatch.setattr(search, "public_user_data",
+                        lambda uid: {"name": "A", "imageUrl": "", "profileUrl": ""})
+    monkeypatch.setattr(search, "user_link", lambda uid: "<a>A</a>")
+    monkeypatch.setattr(search, "make_sheet_topics", lambda s: [])
+    monkeypatch.setattr(search, "CollectionSet", lambda q: [])
+
+    stored = {}
+    monkeypatch.setattr(search.es_client, "index",
+                        lambda index, id, body: stored.update({id: body}))
+
+    def create_conflicts(index, id, body):
+        raise AssertionError("index_sheet must not use create; it 409s on existing docs")
+    monkeypatch.setattr(search.es_client, "create", create_conflicts)
+
+    stored[8] = {"title": "Old title"}
+    assert search.index_sheet("sheet-b", 8) is True
+    assert stored[8]["title"] == "Edited title"
+
+
+def test_index_from_queue_resolves_current_index_per_item(monkeypatch):
+    """An alias swap mid-run must redirect later queue items to the new live index."""
+    from sefaria import search
+    from unittest.mock import MagicMock
+
+    items = [{"ref": "Genesis 1:1", "version": "v", "lang": "en"},
+             {"ref": "Genesis 1:2", "version": "v", "lang": "en"}]
+    mock_db = MagicMock()
+    mock_db.index_queue.find.return_value = iter(items)
+    monkeypatch.setattr(search, "db", mock_db)
+    monkeypatch.setattr(search, "Ref", lambda tref: tref)
+
+    live = iter(["text-a", "text-b"])  # swap happens between the two items
+    monkeypatch.setattr(search, "get_new_and_current_index_names",
+                        lambda type: {"current": next(live)})
+
+    written = []
+    monkeypatch.setattr(search.TextIndexer, "index_ref",
+                        classmethod(lambda cls, index_name, oref, *a: written.append((index_name, oref))))
+
+    search.index_from_queue()
+
+    assert written == [("text-a", "Genesis 1:1"), ("text-b", "Genesis 1:2")]
+    assert mock_db.index_queue.remove.call_count == 2
 
 
 def test_bulk_load_settings_disable_refresh_and_replicas(monkeypatch):

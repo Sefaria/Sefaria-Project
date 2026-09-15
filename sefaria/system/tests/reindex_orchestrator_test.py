@@ -433,3 +433,73 @@ def test_parse_shard_resources_accepts_valid_shape(monkeypatch):
     )
     result = orch.parse_shard_resources()
     assert result == {"requests": {"memory": "4Gi"}, "limits": {"memory": "8Gi"}}
+
+
+class _FakeApiException(Exception):
+    def __init__(self, status):
+        super().__init__(status)
+        self.status = status
+
+
+class _FakeBatch:
+    """Records calls; raises per-method from a script of outcomes."""
+    def __init__(self, delete_outcome=None, status_outcomes=()):
+        self.calls = []
+        self._delete_outcome = delete_outcome
+        self._status_outcomes = list(status_outcomes)
+
+    def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+        self.calls.append("delete")
+        if self._delete_outcome is not None:
+            raise self._delete_outcome
+
+    def read_namespaced_job_status(self, name, namespace):
+        self.calls.append("read_status")
+        outcome = self._status_outcomes.pop(0)
+        if outcome is not None:
+            raise outcome
+
+    def read_namespaced_job(self, name, namespace):
+        raise AssertionError("read_namespaced_job needs `get` on jobs, which the orchestrator Role does not grant")
+
+
+def test_delete_stale_shard_job_returns_true_when_no_prior_job():
+    spec.loader.exec_module(orch)
+    batch = _FakeBatch(delete_outcome=_FakeApiException(404))
+    assert orch.delete_stale_shard_job(batch, "j", "ns", _FakeApiException, sleep_fn=lambda s: None) is True
+    assert batch.calls == ["delete"]
+
+
+def test_delete_stale_shard_job_polls_status_until_gone():
+    """Regression: after a successful delete, the poll must use the granted jobs/status verb."""
+    spec.loader.exec_module(orch)
+    batch = _FakeBatch(status_outcomes=[None, None, _FakeApiException(404)])
+    assert orch.delete_stale_shard_job(batch, "j", "ns", _FakeApiException, sleep_fn=lambda s: None) is True
+    assert batch.calls == ["delete", "read_status", "read_status", "read_status"]
+
+
+def test_delete_stale_shard_job_gives_up_without_raising():
+    spec.loader.exec_module(orch)
+    batch = _FakeBatch(status_outcomes=[None] * 3)
+    logged = []
+    result = orch.delete_stale_shard_job(batch, "j", "ns", _FakeApiException, attempts=3,
+                                         sleep_fn=lambda s: None, log_fn=logged.append)
+    assert result is False
+    assert "did not confirm" in logged[0]
+
+
+def test_delete_stale_shard_job_propagates_forbidden():
+    spec.loader.exec_module(orch)
+    batch = _FakeBatch(status_outcomes=[_FakeApiException(403)])
+    with pytest.raises(_FakeApiException):
+        orch.delete_stale_shard_job(batch, "j", "ns", _FakeApiException, sleep_fn=lambda s: None)
+
+
+def test_orchestrator_only_reads_jobs_through_granted_rbac_verbs():
+    """The Role grants `get` on jobs/status only; a bare jobs read 403s in-cluster."""
+    import re as _re
+    src = pathlib.Path("scripts/scheduled/reindex_orchestrator.py").read_text()
+    code = "\n".join(line for line in src.splitlines() if not line.lstrip().startswith("#"))
+    assert not _re.search(r"\.read_namespaced_job\(", code)
+    rbac = pathlib.Path("helm-chart/sefaria/templates/rbac/reindex-orchestrator-rbac.yaml").read_text()
+    assert '"jobs/status"' in rbac
