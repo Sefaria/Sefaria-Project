@@ -41,7 +41,7 @@ static/js/
     │   └── fieldMetadata.js   # VERSION_FIELD_METADATA, INDEX_FIELD_METADATA
     └── components/
         ├── BulkVersionEditor.jsx      # Version metadata bulk editor
-        ├── BulkIndexEditor.jsx        # Index metadata (disabled)
+        ├── BulkIndexEditor.jsx        # Index metadata bulk editor
         ├── AutoLinkCommentaryTool.jsx # Commentary linker (disabled)
         ├── NodeTitleEditor.jsx        # Node title editor (disabled)
         └── shared/
@@ -96,9 +96,14 @@ Deletes links from CSV.
 Edit metadata across multiple Version records, or permanently delete selected versions.
 - Endpoints: `GET /api/version-indices`, `POST /api/version-bulk-edit`, `POST /api/version-rename`, `POST /api/version-bulk-delete`
 
+**8. Bulk Edit Index Metadata**
+Edit Index (text catalog) metadata across multiple texts, with auto-detection for commentary
+fields on "X on Y" titles. Saves run one index at a time, with a progress bar.
+- Endpoints: `POST /api/v2/raw/index/{title}?update=1` (form-encoded `json` body) per index,
+  then `GET /admin/reset/{title}` to clear caches
+
 ### Disabled Tools (Backend APIs Remain Functional)
 
-- **BulkIndexEditor**: Bulk edit index metadata
 - **AutoLinkCommentaryTool**: Auto-link commentaries
 - **NodeTitleEditor**: Edit schema node titles
 
