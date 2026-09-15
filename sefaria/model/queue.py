@@ -21,7 +21,8 @@ class IndexQueue(abst.AbstractMongoRecord):
         "ref"
     ]
     optional_attrs = [
-
+        "sheet_id",  # set on type="sheet" records; see sefaria.search.add_sheets_to_index_queue
+        "generation",  # bumped on every sheet enqueue; the consumer deletes only the generation it processed
     ]
 
     #todo: This is written generically.  Do we want elsewhere?

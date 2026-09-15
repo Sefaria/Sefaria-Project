@@ -33,8 +33,16 @@ def delete_user_account(uid, confirm=True):
 
     # Delete user's reading history
     user.delete_user_history(exclude_saved=False, exclude_last_place=False)
-    # Delete Sheets
+    # Delete Sheets, and queue their removal from search (web pods cannot write to ES)
+    owned_sheet_ids = db.sheets.find({"owner": uid}, {"id": 1}).distinct("id")
     db.sheets.delete_many({"owner": uid})
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    if SEARCH_INDEX_ON_SAVE:
+        from sefaria.search import add_sheets_to_index_queue
+        try:
+            add_sheets_to_index_queue(owned_sheet_ids)
+        except Exception as e:
+            logger.error("Failed to queue purged sheets for search removal", uid=uid, error=f"{type(e).__name__}: {e}")
     # Delete Notes
     db.notes.delete_many({"owner": uid})
     # Delete Notifcations
