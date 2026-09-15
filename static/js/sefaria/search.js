@@ -592,7 +592,7 @@ class Search {
       });
       return { availableFilters, registry: {}, orphans: [] };
     }
-    entitySearch(query, type, start = 0, {sort = "relevance", categoryPaths = []} = {}) {
+    entitySearch(query, type, start = 0, {sort = "relevance", categoryPaths = [], disableAutocorrect = false} = {}) {
         // Fetches one page of entity results (from `start`), so the tab panels can lazily
         // load more on scroll. `total` reports the full match count so the count badges and
         // "more to load" checks stay correct.
@@ -603,6 +603,12 @@ class Search {
         // `categoryPaths` (Books tab only; the API rejects it for other types) are category
         // paths like "Tanakh" or "Tanakh/Torah", OR'd together by the server.
         //
+        // `disableAutocorrect` (sc-47189) mirrors the Sources tab's `disable_autocorrect`
+        // flag: set once the user clicks "Search instead for <original query>" in the
+        // auto-correction banner, so every tab -- not just Sources -- re-searches the exact
+        // typed query. Belongs in the cache key for the same reason `sort`/`categoryPaths`
+        // do: it's a different request, not a different page of the same one.
+        //
         // Both belong in the cache key alongside `start`: page 1 sorted by year and page 1
         // sorted by relevance are different responses at the same offset, and caching them
         // under one key would serve whichever arrived first for both.
@@ -610,8 +616,9 @@ class Search {
         // Sorted so the key depends on which categories are selected, not on the order they
         // were clicked in.
         const paths = [...categoryPaths].sort();
-        const cacheKey = `entitySearch|${type}|${query}|${start}|${sort}|${paths.join("|")}`;
+        const cacheKey = `entitySearch|${type}|${query}|${start}|${sort}|${paths.join("|")}|${disableAutocorrect}`;
         let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&start=${start}&sort=${encodeURIComponent(sort)}`;
+        if (disableAutocorrect) { url += `&disable_autocorrect=true`; }
         paths.forEach(path => { url += `&filter=${encodeURIComponent(path)}`; });
         // Sefaria._cachedApiPromise is the shared helper for cached GETs: it returns the
         // stored value on a hit, and on a miss fetches, caches under `key`, and de-duplicates

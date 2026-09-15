@@ -497,6 +497,13 @@ class SearchPage extends Component {
       // previous result set — so rebuild the filter tree unselected before refetching.
       this.setState({bookCategoryFilters: this.makeBookCategoryFilters(), bookCategoryCounts: null},
                     () => this.resetEntityResults(ENTITY_TABS.map(t => t.type)));
+    } else if (prevProps.disableAutoCorrect !== this.props.disableAutoCorrect) {
+      // Fuzzy-search query auto-correction (sc-47189): clicking "Search instead for
+      // <original query>" in the banner (any tab) re-searches every tab uncorrected, not
+      // just the one the click happened on -- one query, one correction decision, applied
+      // everywhere. Same query, so category selections/counts stay valid; only what was
+      // actually searched changes.
+      this.resetEntityResults(ENTITY_TABS.map(t => t.type));
     }
   }
 
@@ -513,6 +520,7 @@ class SearchPage extends Component {
       Sefaria.search.entitySearch(query, type, 0, {
             sort: this.state.entitySort[type],
             categoryPaths: this.selectedCategoryPaths(type),
+            disableAutocorrect: this.props.disableAutoCorrect,
           })
           .then(data => {
             if (this._entityFetchTokens[type] !== token) { return; }  // a newer fetch superseded this one
@@ -573,6 +581,7 @@ class SearchPage extends Component {
     Sefaria.search.entitySearch(query, type, cur.hits.length, {
           sort: this.state.entitySort[type],
           categoryPaths: this.selectedCategoryPaths(type),
+          disableAutocorrect: this.props.disableAutoCorrect,
         })
         .then(data => {
           if (this._entityFetchTokens[type] !== token) { return; }  // superseded — these rows are stale
@@ -802,6 +811,11 @@ class SearchPage extends Component {
                 />
             }
           </div>
+          <SearchAutocorrectBanner
+              correctedQuery={this.props.correctedQuery}
+              originalQuery={this.props.query}
+              onSearchOriginal={this.props.onDisableAutoCorrect}
+          />
           <EntitySearchResults type={type} data={this.state.entityData[type]} query={this.props.query}
                                trackClicks={!this.props.compare}
                                loadMore={() => this.loadNextEntityPage(type)}
@@ -870,6 +884,7 @@ class SearchPage extends Component {
 SearchPage.propTypes = {
   query:                    PropTypes.string,
   correctedQuery:           PropTypes.string,
+  disableAutoCorrect:       PropTypes.bool,
   onDisableAutoCorrect:     PropTypes.func,
   tab:                      PropTypes.string,
   setTab:                   PropTypes.func,

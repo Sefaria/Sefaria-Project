@@ -473,6 +473,7 @@ class ElasticSearchQuerier extends Component {
                     searchTopMsg={isVoices && "search_page.results_for"}
                     query={this.props.query}
                     correctedQuery={this.state.correctedQuery}
+                    disableAutoCorrect={this.state.disableAutoCorrect}
                     onDisableAutoCorrect={this.disableAutoCorrect}
                     tab={this.props.tab}
                     setTab={this.props.setTab}
