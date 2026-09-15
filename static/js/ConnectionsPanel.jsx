@@ -31,6 +31,8 @@ import AboutBox from './AboutBox';
 import GuideBox from './GuideBox';
 import TranslationsBox from './TranslationsBox';
 import LinkerAdminBox from './LinkerAdminBox';
+import LexiconHeadwordEditBox from './LexiconHeadwordEditBox';
+import LexiconContentEditBox from './LexiconContentEditBox';
 import ExtendedNotes from './ExtendedNotes';
 import classNames from 'classnames';
 import Component from 'react-class';
@@ -445,6 +447,12 @@ class ConnectionsPanel extends Component {
         clearNamedEntity={this.props.clearNamedEntity}
         interfaceLang={this.props.interfaceLang} />);
 
+    } else if (this.props.mode === "LexiconHeadwordEdit") {
+      content = (<LexiconHeadwordEditBox currentlyVisibleRef={this.props.currentlyVisibleRef} />);
+
+    } else if (this.props.mode === "LexiconContentEdit") {
+      content = (<LexiconContentEditBox currentlyVisibleRef={this.props.currentlyVisibleRef} />);
+
     } else if (this.props.mode === "Topics") {
       content = (
         <TopicList
@@ -481,6 +489,7 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Advanced Tools") {
       content = (<AdvancedToolsList
         srefs={this.props.srefs}
+        currentlyVisibleRef={this.props.currentlyVisibleRef}
         toggleSignUpModal={this.props.toggleSignUpModal}
         canEditText={this.props.canEditText}
         setConnectionsMode={this.props.setConnectionsMode}
@@ -586,7 +595,7 @@ class ConnectionsPanel extends Component {
               />
     }
 
-    const marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) !== -1;
+    const marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts", "LexiconHeadwordEdit", "LexiconContentEdit"].indexOf(this.props.mode) !== -1;
     let classes = classNames({ connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel });
     return (
       <div className={classes} key={this.props.mode}>
@@ -1033,9 +1042,10 @@ WebPagesList.propTypes = {
   srefs: PropTypes.array.isRequired,
 };
 
-const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode, masterPanelLanguage, toggleSignUpModal}) => {
+const AdvancedToolsList = ({srefs, currentlyVisibleRef, canEditText, currVersions, setConnectionsMode, masterPanelLanguage, toggleSignUpModal}) => {
     const {textsData} = useContext(ReaderPanelContext);
-    const editText = canEditText && textsData ? function () {
+    const isDictionaryBook = Sefaria.ref(currentlyVisibleRef)?.categories?.includes("Dictionary");
+    const editText = canEditText && textsData && !isDictionaryBook ? function () {
       const isTranslation = masterPanelLanguage === 'english';
       const versionType = isTranslation ? 'translation' : 'primary';
       const langCode = textsData[`${versionType}Direction`] === 'ltr' ? 'en': 'he';
@@ -1078,12 +1088,15 @@ const AdvancedToolsList = ({srefs, canEditText, currVersions, setConnectionsMode
         <ToolsButton en="Add Translation" he="הוספת תרגום" image="tools-translate.svg" onClick={addTranslation} />
         <ToolsButton en="Add Connection" he="הוספת קישור לטקסט אחר" image="tools-add-connection.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.AddConnection) : setConnectionsMode("Add Connection")} />
         {editText ? (<ToolsButton en="Edit Text" he="עריכת טקסט" image="tools-edit-text.svg" onClick={editText} />) : null}
-        {Sefaria.is_moderator ? (<ToolsButton en="Linker Admin Tools" he="כלי ניהול לינקר" icon="wrench" onClick={openLinkerAdminTools} />) : null}
+        {Sefaria.is_moderator && <ToolsButton en="Linker Admin Tools" he="כלי ניהול לינקר" icon="wrench" onClick={openLinkerAdminTools} />}
+        {Sefaria.is_moderator && isDictionaryBook && <ToolsButton en="Change Lexicon Headword" he="שינוי ערך ראשי במילון" icon="pencil" onClick={() => setConnectionsMode("LexiconHeadwordEdit")} />}
+        {Sefaria.is_moderator && isDictionaryBook && <ToolsButton en="Edit Lexicon Content" he="עריכת תוכן ערך מילוני" icon="pencil" onClick={() => setConnectionsMode("LexiconContentEdit")} />}
       </div>
     );
 }
 AdvancedToolsList.propTypes = {
   srefs:                PropTypes.array.isRequired,  // an array of ref strings
+  currentlyVisibleRef:  PropTypes.string,
   canEditText:          PropTypes.bool,
   currVersions:         PropTypes.object,
   setConnectionsMode:   PropTypes.func.isRequired,
