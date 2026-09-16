@@ -1,6 +1,6 @@
 from typing import Iterable
 from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
-from sefaria.model.text import TextChunk, Ref
+from sefaria.model.text import Ref
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.system.database import db
 from html import escape
@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 from bisect import bisect_right
 import structlog
 from sefaria.system.progress_context import report_progress
+from sefaria.constants.model import get_direction_from_legacy_lang
 logger = structlog.get_logger(__name__)
 
 
@@ -62,6 +63,7 @@ class MarkedUpTextChunk(AbstractMongoRecord):
                     "ref": {"type": "string", "required": False},
                     "topicSlug": {"type": "string", "required": False},
                     "categoryPath": {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True},
+                    "deleted": {"type": "boolean", "required": False},
                 }
             },
             "required": True
@@ -73,7 +75,8 @@ class MarkedUpTextChunk(AbstractMongoRecord):
         oref = Ref(self.ref)
         if not oref.is_segment_level():
             raise InputError(type(self).__name__ + "._validate(): Ref must be at segment level: " + oref.normal())
-        tc = TextChunk(oref, lang=self.language, vtitle=self.versionTitle)
+        direction = get_direction_from_legacy_lang(self.language)
+        tc = oref.text(direction=direction, vtitle=self.versionTitle)
 
         if not tc.text:
             raise InputError(type(self).__name__ + "._validate(): Corresponding TextChunk is empty")
@@ -91,6 +94,8 @@ class MarkedUpTextChunk(AbstractMongoRecord):
                 raise InputError(f'{type(self).__name__}._validate(): Span must have "ref" attribute if type is "citation".')
             if span['type'] == MUTCSpanType.NAMED_ENTITY.value and 'topicSlug' not in span:
                 raise InputError(f'{type(self).__name__}._validate(): Span must have "topicSlug" attribute if type is "named_entity".')
+            if span.get("deleted"):
+                continue
             text = tc.text
             citation_text = text[span['charRange'][0]:span['charRange'][1]]
             if citation_text != span['text']:
@@ -166,6 +171,8 @@ class MarkedUpTextChunk(AbstractMongoRecord):
 
         out = text
         for ispan, sp in enumerate(self.get_span_objects(reverse=True)):
+            if sp.deleted and not sp._debug:
+                continue
             start, end = sp.char_range
 
             # Clamp & sanity check
@@ -183,6 +190,13 @@ class MarkedUpTextChunk(AbstractMongoRecord):
 
         return out
 
+    @classmethod
+    def process_version_title_change(cls, ver, **kwargs):
+        report_progress("Cascading Marked Up Text Chunk version title from {} to {}".format(kwargs['old'], kwargs['new']))
+        query = _version_title_change_query(ver, **kwargs)
+        update = _version_title_change_update(**kwargs)
+        db.marked_up_text_chunks.update_many(query, update)
+
 
 class MarkedUpTextChunkSet(AbstractMongoSet):
     recordClass = MarkedUpTextChunk
@@ -190,7 +204,9 @@ class MarkedUpTextChunkSet(AbstractMongoSet):
 
 class LinkerOutput(MarkedUpTextChunk):
     """
-    Track linker resolutions for debugging purposes.
+    Stores the full linker output for a text segment/version/language, including
+    failed, ambiguous, and successful resolutions. Used by linker debug mode and
+    downstream workflows such as disambiguation and admin review.
     """
     collection = "linker_output"
     criteria_field = "ref"
@@ -245,12 +261,20 @@ class LinkerOutput(MarkedUpTextChunk):
                     "llm_resolved_ref_but_rejected": {"type": "string", "required": False, "nullable": True},
                     "failed": {"type": "boolean", "required": True},
                     "ambiguous": {"type": "boolean", "required": True},
+                    "deleted": {"type": "boolean", "required": False},
                     **{k: {"type": "list", "schema": {"type": "string"}, "required": False, "nullable": True} for k in optional_list_str_schema_keys}
                 }
             },
             "required": True
         }
     }
+
+    @classmethod
+    def process_version_title_change(cls, ver, **kwargs):
+        report_progress("Cascading Linker Output version title from {} to {}".format(kwargs['old'], kwargs['new']))
+        query = _version_title_change_query(ver, **kwargs)
+        update = _version_title_change_update(**kwargs)
+        db.linker_output.update_many(query, update)
 
 
 class LinkerOutputSet(AbstractMongoSet):
@@ -263,18 +287,26 @@ class MUTCSpan(ABC):
         self.text = raw_span['text']
         self.failed = raw_span.get('failed', False)
         self.ambiguous = raw_span.get('ambiguous', False)
+        self.deleted = raw_span.get('deleted', False)
+        # The LLM disambiguator writes one of these when it resolves an ambiguous or non-segment
+        # citation to a concrete ref. Only citation spans ever carry them, so .get() is None otherwise.
+        self.disambiguated_ref = raw_span.get('llm_resolved_ref_non_segment') or raw_span.get('llm_resolved_ref_ambiguous')
         # these fields only appear for LinkerOutput and not MUTC and therefore indicate we are debugging
         self._debug = 'failed' in raw_span or 'ambiguous' in raw_span
-        
+
     @property
     def char_range_str(self) -> str:
         return f"{self.char_range[0]}-{self.char_range[1]}"
-    
+
     def get_debug_css_classes(self) -> str:
         if not self._debug:
             return ""
+        if self.deleted:
+            return "mutc spanDeleted"
         if self.failed:
             return "mutc spanFailed"
+        if self.disambiguated_ref:
+            return "mutc spanDisambiguated"
         if self.ambiguous:
             return "mutc spanAmbiguous"
         return "mutc spanSucceeded"
@@ -290,13 +322,17 @@ class CitationMUTCSpan(MUTCSpan):
         super().__init__(raw_span)
         tref = raw_span.get('ref')
         self.ref = Ref(tref) if tref else None
-    
+        # When the disambiguator resolved this citation, the link should target the resolved ref
+        # rather than the (ambiguous / non-segment) ref the linker originally caught.
+        self.resolved_ref = Ref(self.disambiguated_ref) if self.disambiguated_ref else None
+
     def wrap_span_in_a_tag(self) -> str:
         href, tref = "", ""
-        if self.ref:
-            href = self.ref.url()
-            tref = self.ref.normal()
-            if not self._debug and self.ref.is_book_level():
+        link_ref = self.resolved_ref or self.ref
+        if link_ref:
+            href = link_ref.url()
+            tref = link_ref.normal()
+            if not self._debug and link_ref.is_book_level():
                 return self.text  # don't link book-level refs in non-debug mode
         return (f'<a class="refLink {self.get_debug_css_classes()}"'
                 f' href="{href}" data-ref="{escape(tref)}"'
@@ -375,6 +411,21 @@ def process_index_delete(indx, **kwargs):
     pattern = prepare_index_regex_for_dependency_process(indx)
     MarkedUpTextChunkSet({"ref": {"$regex": pattern}}).delete()
     LinkerOutputSet({"ref": {"$regex": pattern}}).delete()
+
+
+def _version_title_change_query(ver, **kwargs):
+    patterns = Ref(ver.title).regex(as_list=True)
+    return {
+        "$and": [
+            {"versionTitle": kwargs["old"]},
+            {"language": ver.language},
+            {"$or": [{"ref": {"$regex": pattern}} for pattern in patterns]},
+        ]
+    }
+
+
+def _version_title_change_update(**kwargs):
+    return {"$set": {"versionTitle": kwargs["new"]}}
 
 
 def process_category_path_change(category, **kwargs):

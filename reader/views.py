@@ -26,7 +26,8 @@ from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
 from sefaria.helper import library_assistant
 from sefaria.utils.util import get_redirect_to_help_center
-from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY, \
+    get_direction_from_legacy_lang, get_legacy_lang_from_direction
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
@@ -67,13 +68,13 @@ from sefaria.history import text_history, get_maximal_collapsed_activity, top_co
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, is_int
-from sefaria.utils.views_utils import add_query_param
+from sefaria.utils.views_utils import add_query_param, AASA_EXCLUDED_PATHS, NO_APPLINK_PARAM
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
-    CHATBOT_API_BASE_URL, CELERY_ENABLED, APP_VERSION
+    CHATBOT_API_BASE_URL, CELERY_ENABLED, DISABLE_AUTOCOMPLETER, APP_VERSION
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -90,6 +91,7 @@ from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, 
     update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
     get_author_indexes
 from sefaria.helper.file import get_resized_file
+from sefaria.helper.skip_tracking import build_pathway
 from sefaria.image_generator import make_img_http_response, make_module_fallback_img_http_response, \
     make_static_img_http_response, normalize_social_image_module
 import sefaria.tracker as tracker
@@ -366,6 +368,7 @@ def base_props(request):
         "_debug_mode": request.GET.get("debug_mode", None),
         "appVersion": APP_VERSION,
     })
+    
     chatbot_version = request.session.get("chatbot_version")
     chatbot_version = chatbot_version if is_int(chatbot_version) else None
 
@@ -529,7 +532,7 @@ def old_versions_redirect(request, tref, lang, version):
 
 def get_connections_mode(filter):
     # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open", "Version Open", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide")
+    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open", "Version Open", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide", "LinkerAdmin")
     if filter[0] in sidebarModes:
         return filter[0], True
     elif filter[0].endswith(" ConnectionsList"):
@@ -1398,6 +1401,15 @@ def modtools(request):
     return menu_page(request, page="modtools", title=title)
 
 
+@ensure_csrf_cookie
+@staff_member_required
+@sanitize_get_params
+def linker_editor(request):
+    title = _("Linker Editor")
+    props = {"initialLinkerEditorBook": request.GET.get("book")}
+    return menu_page(request, props, page="linkerEditor", title=title)
+
+
 def canonical_url(request):
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return None
@@ -1510,10 +1522,14 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
 
 @ensure_csrf_cookie
 @sanitize_get_params
-def edit_text(request, ref=None, lang=None, version=None):
+def edit_text(request, ref=None, language_family_name=None, version=None):
     """
     Opens a view directly to adding, editing or translating a given text.
+    `language_family_name` (e.g. "english", "yiddish"), when given together with `version`,
+    identifies the exact existing version being edited.
     """
+    if version:
+        version = version.replace("_", " ")
     if ref is not None:
         try:
             oref = Ref(ref)
@@ -1522,12 +1538,46 @@ def edit_text(request, ref=None, lang=None, version=None):
                 initJSON = json.dumps({"mode": "add new", "newTitle": oref.normal()})
                 mode = "Add"
             else:
-                # Pull a particular section to edit
-                #text = get_text(ref, lang=lang, version=version)
-                text = TextFamily(Ref(ref), lang=lang, version=version).contents()
+                # Pull a particular section to edit: the specific named version (if any) plus the
+                # primary, for comparison/translating-from. If nothing's being edited yet (add/new
+                # flow), only the primary is needed.
+                if language_family_name and version:
+                    versions_params = [[language_family_name, version], [TextRequestAdapter.PRIMARY, '']]
+                else:
+                    versions_params = [[TextRequestAdapter.PRIMARY, '']]
+                # Zoom out to section level, matching TextFamily's old default (pad then context_ref
+                # level=1) -- editor.js expects a full section's worth of array data, with sections/
+                # toSections telling it which entry within that array is actually selected.
+                padded_oref = oref.padded_ref()
+                fetch_oref = padded_oref.context_ref()
+                adapter = TextRequestAdapter(fetch_oref, versions_params, fill_in_missing_segments=False)
+                text = adapter.get_versions_for_query()
+                # Position within that array must come from the padded (not further zoomed) ref,
+                # not the raw original one: padded_ref() leaves an already segment-level ref
+                # untouched (preserving the precise position context_ref()'s truncation would
+                # lose), but still pads a coarser-than-section-level ref (only possible at depth
+                # >= 3) up to the section-level length editor.js's postUrl-building loop requires
+                # -- the original ref alone could be shorter than that.
+                text['sections'] = padded_oref.sections[:]
+                text['toSections'] = padded_oref.toSections[:]
+                text['sectionRef'] = oref.section_ref().normal()
+                text['heSectionRef'] = oref.section_ref().he_normal()
+
+                # Sent as-is (real field names, incl. the full versions list) -- editor.js looks up
+                # the primary itself (isPrimary), and reads the specific one straight off the flag
+                # below, rather than the server pre-sorting them into a legacy en/he pair.
+                edited = next((v for v in text['versions']
+                               if version and v['languageFamilyName'] == language_family_name and v['versionTitle'] == version), None)
+                if edited:
+                    edited['isEdited'] = True
+
                 text["mode"] = request.path.split("/")[1]
                 mode = text["mode"].capitalize()
-                text["edit_lang"] = lang if lang is not None else request.contentLang
+                # sjs.langMode (the legacy en/he/bi toggle used throughout editor.js) is derived
+                # from the edited version's actual direction, not the family name string, so this
+                # also works correctly for non-English/Hebrew languages (e.g. Yiddish is rtl, so
+                # it must map to "he" here even though its family name isn't "hebrew").
+                text["edit_lang"] = get_legacy_lang_from_direction(edited['direction']) if edited else request.contentLang
                 text["edit_version"] = version
                 initJSON = json.dumps(text)
         except Exception as e:
@@ -1730,6 +1780,10 @@ def texts_api(request, tref):
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
+            # Legacy v1 texts API (superseded internally by the v3 TextRequestAdapter-backed API),
+            # kept live for external API consumers. Not called by our own client. Candidate for
+            # future deprecation.
+            from sefaria.model.legacy_text import TextFamily
             text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
                                       commentary=commentary, context=context, pad=pad, alts=alts,
                                       wrapLinks=wrapLinks, stripItags=stripItags,
@@ -1814,14 +1868,22 @@ def texts_api(request, tref):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             t = json.loads(j)
-            tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API", skip_links=skip_links, count_after=count_after)
-            return jsonResponse({"status": "ok"})
+            # Only derive direction from the legacy en/he bucket when `language` really is that
+            # bucket (callers that predate the `direction` field, e.g.
+            # scripts/pull_text_from_server.py). A caller sending a real ISO code (e.g. our own
+            # editor, or any future caller) must send direction itself -- guessing one from a
+            # real language via the binary en/he mapping would silently be wrong for any
+            # non-Hebrew rtl language.
+            direction = t.get("direction") or (get_direction_from_legacy_lang(t["language"]) if t["language"] in ("en", "he") else None)
+            chunk = tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], direction=direction, method="API", skip_links=skip_links, count_after=count_after)
+            return jsonResponse({"status": "ok", "versionTitle": chunk.vtitle})
         else:
             @csrf_protect
             def protected_post(request):
                 t = json.loads(j)
-                tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t.get("versionSource", None), skip_links=skip_links, count_after=count_after)
-                return jsonResponse({"status": "ok"})
+                direction = t.get("direction") or (get_direction_from_legacy_lang(t["language"]) if t["language"] in ("en", "he") else None)
+                chunk = tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t.get("versionSource", None), direction=direction, skip_links=skip_links, count_after=count_after)
+                return jsonResponse({"status": "ok", "versionTitle": chunk.vtitle})
             return protected_post(request)
 
     if request.method == "DELETE":
@@ -1944,14 +2006,10 @@ def social_image_api(request, tref):
         ref = Ref(tref)
         ref_str = ref.normal() if lang == "en" else ref.he_normal()
 
-        tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
-
-        he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
-        en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
-
-        text = en if lang == "en" else he
-        text = ' '.join(text)
-        cat = tf["primary_category"]
+        direction = get_direction_from_legacy_lang(lang)
+        chunk = ref.padded_ref().text(direction=direction, vtitle=version)
+        text = ' '.join(chunk.strip_itags(s) for s in chunk.ja().flatten_to_array())
+        cat = ref.primary_category
 
     except:
         text = None
@@ -1980,23 +2038,15 @@ def old_recent_redirect(request):
 
 @catch_error_as_json
 def parashat_hashavua_api(request):
+    # Documented as broken: consistent 504 timeouts during endpoint capture on 2026-05-05
+    # (see docs/decisions/documented_endpoints.md). No known caller in the current client or
+    # mobile app. Not actively maintained.
+    from sefaria.model.legacy_text import TextFamily
     callback = request.GET.get("callback", None)
     p = get_parasha(datetime.now(), request.diaspora)
     p["date"] = p["date"].isoformat()
-    #p.update(get_text(p["ref"]))
     p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
-
-def find_holiday_in_hebcal_results(response):
-    for hebcal_holiday in json.loads(response.text)['items']:
-        if hebcal_holiday['category'] != 'holiday':
-            continue
-        for result in get_name_completions(hebcal_holiday['hebrew'], 10, False)['completion_objects']:
-            if result['type'] == 'Topic':
-                topic = Topic.init(result['key'])
-                if topic:
-                    return topic.contents()
-    return None
 
 @catch_error_as_json
 def table_of_contents_api(request):
@@ -2307,12 +2357,13 @@ def text_preview_api(request, title):
     response['node_title'] = oref.index_node.full_title()
 
     def get_preview(prev_oref):
-        text = TextFamily(prev_oref, pad=False, commentary=False)
+        en_text = prev_oref.text(direction="ltr").text
+        he_text = prev_oref.text(direction="rtl").text
 
         if prev_oref.index_node.depth == 1:
             # Give deeper previews for texts with depth 1 (boring to look at otherwise)
-            text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
-        preview = text_preview(text.text, text.he) if (text.text or text.he) else []
+            en_text, he_text = [[i] for i in en_text], [[i] for i in he_text]
+        preview = text_preview(en_text, he_text) if (en_text or he_text) else []
         return preview if isinstance(preview, list) else [preview]
 
     if not oref.index_node.has_children():
@@ -3589,6 +3640,19 @@ def generate_topic_prompts_api(request, slug: str):
     return jsonResponse({"error": "This API only accepts POST requests."})
 
 
+def rebuild_full_auto_completer_across_servers():
+    """
+    Rebuilds the full auto completer locally and, when this server cannot serve
+    completion traffic itself (DISABLE_AUTOCOMPLETER), publishes the rebuild over
+    the multiserver channel so the name service picks it up.  When this server
+    holds its own completers the publish is skipped, preserving the historical
+    local-only rebuild semantics rather than triggering a fleet-wide build.
+    """
+    library.build_full_auto_completer()
+    if MULTISERVER_ENABLED and DISABLE_AUTOCOMPLETER:
+        server_coordinator.publish_event("library", "build_full_auto_completer")
+
+
 @staff_member_required
 def add_new_topic_api(request):
     if request.method == "POST":
@@ -3615,10 +3679,11 @@ def add_new_topic_api(request):
             t.image = data["image"]
 
         t.save()
-        library.build_full_auto_completer()
-        library.get_topic_toc(rebuild=True)
-        library.get_topic_toc_json(rebuild=True)
-        library.get_topic_toc_category_mapping(rebuild=True)
+        with build_pathway("topic_admin"):
+            rebuild_full_auto_completer_across_servers()
+            library.get_topic_toc(rebuild=True)
+            library.get_topic_toc_json(rebuild=True)
+            library.get_topic_toc_category_mapping(rebuild=True)
 
 
         def protected_index_post(request):
@@ -3632,10 +3697,11 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
-            library.build_full_auto_completer()
-            library.get_topic_toc(rebuild=True)
-            library.get_topic_toc_json(rebuild=True)
-            library.get_topic_toc_category_mapping(rebuild=True)
+            with build_pathway("topic_admin"):
+                rebuild_full_auto_completer_across_servers()
+                library.get_topic_toc(rebuild=True)
+                library.get_topic_toc_json(rebuild=True)
+                library.get_topic_toc_category_mapping(rebuild=True)
             return jsonResponse({"status": "OK"})
         else:
             return jsonResponse({"error": "Topic {} doesn't exist".format(topic)})
@@ -3665,9 +3731,10 @@ def topics_api(request, topic, v2=False):
         topic = Topic().load({'slug': topic_data["origSlug"]})
         topic_data["manual"] = True
         author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
-        topic = update_topic(topic, **topic_data)
-        if author_status_changed:
-            library.build_full_auto_completer()
+        with build_pathway("topic_admin"):
+            topic = update_topic(topic, **topic_data)
+            if author_status_changed:
+                rebuild_full_auto_completer_across_servers()
 
         def protected_index_post(request):
             return jsonResponse(topic.contents())
@@ -4878,7 +4945,7 @@ def search_wrapper_api(request, es6_compat=False):
     @param es6_compat: True to return API response that's compatible with an Elasticsearch 6 compatible client
     @return:
     """
-    from sefaria.helper.search import get_elasticsearch_client
+    from sefaria.helper.search import get_elasticsearch_client_for_online_search
 
     if request.method == "POST":
         if "json" in request.POST:
@@ -4886,7 +4953,7 @@ def search_wrapper_api(request, es6_compat=False):
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
-        es_client = get_elasticsearch_client()
+        es_client = get_elasticsearch_client_for_online_search()
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()
@@ -5022,6 +5089,28 @@ def annual_report(request, report_year=None):
         raise Http404
     # Renders a simple template, does not extend base.html
     return render(request, template_name='static/annualreport.html', context={'reportYear': report_year, 'pdfURL': pdfs[report_year]})
+
+
+@lru_cache(maxsize=1)
+def get_current_990_form_filename():
+    """Return the most recent Form 990 PDF in static/files for this process."""
+    files_dir = os.path.join(STATICFILES_DIRS[0], 'files')
+    form_990_pattern = re.compile(r'^Sefaria_(\d{4})_990_Public\.pdf$')
+    form_990_files = [
+        (int(match.group(1)), filename)
+        for filename in os.listdir(files_dir)
+        if (match := form_990_pattern.match(filename))
+    ]
+    if not form_990_files:
+        raise Http404
+    _, latest_form_990 = max(form_990_files)
+    return latest_form_990
+
+
+def current_990_form(request):
+    """Redirect to the most recent Form 990 PDF in static/files."""
+    latest_form_990 = get_current_990_form_filename()
+    return redirect(f'{STATIC_URL}files/{latest_form_990}')
 
 
 @ensure_csrf_cookie
@@ -5336,28 +5425,10 @@ def custom_server_error(request, template_name='500.html'):
     #return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
 
 
-# Paths iOS must NOT hand to the app as universal links. Everything else on the domain
-# still opens the app (see AASA_PATHS below).
-#
-# Auth flows have to stay in the browser: they depend on the session/CSRF cookies held by
-# the browser, which the app can't see. When the SSO round-trip returns from
-# appleid.apple.com or accounts.google.com, that final hop is a cross-domain navigation
-# into sefaria.org -- exactly the trigger for a universal link -- so without these
-# exclusions iOS yanks the user into the app mid-login. Sefaria-Mobile's DeepLinkRouter
-# has no route for these paths either; they fall through to its catchAll, which bounces
-# straight back out to a browser (Sefaria-Mobile/DeepLinkRouter.js).
-AASA_EXCLUDED_PATHS = [
-    "/accounts/*",          # allauth OAuth endpoints, incl. the Apple/Google callbacks
-    "/_allauth/*",          # allauth headless API
-    "/login",
-    "/login/",
-    "/register",
-    "/register/",
-    "/logout",
-    "/logout/",
-    "/password/reset*",     # reset request, emailed confirm link, done/complete pages
-]
-
+# AASA_EXCLUDED_PATHS statically excludes the OAuth callback paths (referer is always
+# external there -- see sefaria/utils/views_utils.py). Everything else that must stay in
+# the browser (e.g. the post-login landing page) is excluded dynamically instead, via
+# NO_APPLINK_PARAM, set by WebSessionRedirectMiddleware (sefaria/system/middleware.py).
 AASA_PATHS = ["NOT " + path for path in AASA_EXCLUDED_PATHS] + ["*"]
 
 
@@ -5378,6 +5449,7 @@ def apple_app_site_association(request):
                     "paths": AASA_PATHS,
                     "components": (
                         [{"/": path, "exclude": True} for path in AASA_EXCLUDED_PATHS]
+                        + [{"/": "*", "?": {NO_APPLINK_PARAM: "*"}, "exclude": True}]
                         + [{"/": "*"}]
                     ),
                 }

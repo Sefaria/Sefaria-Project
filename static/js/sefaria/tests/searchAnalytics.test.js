@@ -1,0 +1,439 @@
+import SearchAnalytics, { resultLinkAnalyticsAttrs, initialFlowSource, tabLabel } from '../searchAnalytics';
+
+// The module reads the global `gtag` (GA4) at call time, and generates ids via
+// makeUuid(), which reads `window.crypto.randomUUID`. Both are replaced with
+// deterministic mocks (in jsdom `global` is `window`).
+let uuidCounter;
+
+beforeEach(() => {
+    uuidCounter = 0;
+    global.gtag = jest.fn();
+    global.crypto = { randomUUID: () => `uuid-${uuidCounter++}` };
+    // Reset the singleton's state between tests.
+    SearchAnalytics._flow = null;
+    SearchAnalytics._query = null;
+    SearchAnalytics._nextFlowSource = 'deep_link';
+    SearchAnalytics._currentTab = null;
+});
+
+// gtag is called as gtag('event', name, params); return [name, params] pairs.
+const firedEvents = () => global.gtag.mock.calls.map(([, name, params]) => [name, params]);
+
+const reportAllApis = (counts = {sources: 933, books: 31, authors: 1, topics: 2}) => {
+    Object.entries(counts).forEach(([api, count]) => SearchAnalytics.recordApiResult(api, count));
+};
+
+describe('search_flow_started', () => {
+    test('fires with a flow_id and the default deep_link source', () => {
+        SearchAnalytics.startFlow();
+        expect(firedEvents()).toEqual([
+            ['search_flow_started', {transport_type: 'beacon', flow_id: 'uuid-0', source: 'deep_link'}],
+        ]);
+    });
+
+    test('uses the one-shot source hint, then falls back to unknown', () => {
+        SearchAnalytics.setNextFlowSource('nav_bar');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startFlow();  // no new hint set
+        const sources = firedEvents().map(([, params]) => params.source);
+        expect(sources).toEqual(['nav_bar', 'unknown']);
+    });
+});
+
+describe('search_query_executed', () => {
+    test('fires only once all four APIs have reported', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('mishna berachot');
+        SearchAnalytics.recordApiResult('sources', 933);
+        SearchAnalytics.recordApiResult('books', 31);
+        SearchAnalytics.recordApiResult('authors', 1);
+        expect(firedEvents().map(([name]) => name)).toEqual(['search_flow_started']);
+
+        SearchAnalytics.recordApiResult('topics', 2);
+        expect(firedEvents()[1]).toEqual(['search_query_executed', {
+            transport_type: 'beacon',
+            flow_id: 'uuid-0',
+            search_id: 'uuid-1',
+            search_text: 'mishna berachot',
+            status: 'success',
+            result_counts: JSON.stringify({sources: 933, books: 31, authors: 1, topics: 2}),
+        }]);
+    });
+
+    test('ignores duplicate reports from the same API (filter re-runs)', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('rashi');
+        SearchAnalytics.recordApiResult('sources', 10);
+        SearchAnalytics.recordApiResult('sources', 999);  // re-run; must not count or overwrite
+        SearchAnalytics.recordApiResult('books', 1);
+        SearchAnalytics.recordApiResult('authors', 1);
+        SearchAnalytics.recordApiResult('topics', 1);
+        const [, params] = firedEvents()[1];
+        expect(JSON.parse(params.result_counts).sources).toBe(10);
+        expect(firedEvents().length).toBe(2);  // started + executed, no extra event from the re-run
+    });
+
+    test('an API error yields status failure, a null count, and the error reason', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('moshe');
+        SearchAnalytics.recordApiResult('sources', 5);
+        SearchAnalytics.recordApiResult('books', null, 'HTTP 500');
+        SearchAnalytics.recordApiResult('authors', 1);
+        SearchAnalytics.recordApiResult('topics', 1);
+        const [, params] = firedEvents()[1];
+        expect(params.status).toBe('failure');
+        expect(params.error).toBe('books: HTTP 500');
+        expect(JSON.parse(params.result_counts)).toEqual({sources: 5, books: null, authors: 1, topics: 1});
+    });
+
+    test('a refined query gets a new search_id; the superseded query never fires', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('first');
+        SearchAnalytics.recordApiResult('sources', 1);  // only 1 of 4 returned
+        SearchAnalytics.startQuery('second');           // user refined before completion
+        reportAllApis();
+        const executed = firedEvents().filter(([name]) => name === 'search_query_executed');
+        expect(executed.length).toBe(1);
+        expect(executed[0][1].search_text).toBe('second');
+        expect(executed[0][1].flow_id).toBe('uuid-0');       // same flow
+        expect(executed[0][1].search_id).toBe('uuid-2');     // new search_id
+    });
+});
+
+describe('search_element_clicked', () => {
+    test('tab/filter clicks carry count but no result_position', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        SearchAnalytics.elementClicked({elementType: 'tab', elementValue: 'Books', count: 31});
+        const [name, params] = firedEvents()[1];
+        expect(name).toBe('search_element_clicked');
+        expect(params).toEqual({
+            transport_type: 'beacon',
+            flow_id: 'uuid-0',
+            search_id: 'uuid-1',
+            element_type: 'tab',
+            element_value: 'Books',
+            count: 31,
+        });
+        expect(params.result_position).toBeUndefined();
+    });
+
+    test('no-ops when no flow is active (compare panel, sidebar search)', () => {
+        SearchAnalytics.elementClicked({elementType: 'filter', elementValue: 'Talmud', count: 42});
+        expect(global.gtag).not.toHaveBeenCalled();
+    });
+});
+
+describe('search_flow_ended', () => {
+    test('resultClicked fires the click event and ends the flow with clicked_result', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        SearchAnalytics.resultClicked('Genesis 44:1', 3);
+        const names = firedEvents().map(([name]) => name);
+        expect(names).toEqual(['search_flow_started', 'search_element_clicked', 'search_flow_ended']);
+        const click = firedEvents()[1][1];
+        expect(click.element_type).toBe('result');
+        expect(click.element_value).toBe('Genesis 44:1');
+        expect(click.result_position).toBe(3);
+        expect(click.count).toBeUndefined();
+        expect(firedEvents()[2][1].reason).toBe('clicked_result');
+    });
+
+    test('a flow ends at most once', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.endFlow('abandoned');
+        SearchAnalytics.endFlow('abandoned');  // e.g. a second navigation handler
+        const ended = firedEvents().filter(([name]) => name === 'search_flow_ended');
+        expect(ended.length).toBe(1);
+    });
+
+    // The search page also ends its flow when it unmounts, which is how back-button exits and
+    // panel changes get caught. On a result click that unmount happens right after the card has
+    // already ended the flow, so the reason must stay 'clicked_result' and must not fire twice.
+    test('the unmount that follows a result click does not overwrite clicked_result', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        SearchAnalytics.resultClicked('Genesis 44:1', 3);   // card, before navigating
+        SearchAnalytics.endFlow('abandoned');               // ElasticSearchQuerier.componentWillUnmount
+        const ended = firedEvents().filter(([name]) => name === 'search_flow_ended');
+        expect(ended.length).toBe(1);
+        expect(ended[0][1].reason).toBe('clicked_result');
+    });
+
+    // Per the analytics spec: opening a result in a new tab leaves the user on the search
+    // page, so it is a click but not an exit.
+    test('a new-tab result click reports without ending the flow', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        SearchAnalytics.resultClicked('Genesis 44:1', 3, false);
+        expect(firedEvents().map(([name]) => name))
+            .toEqual(['search_flow_started', 'search_element_clicked']);
+        expect(SearchAnalytics.isFlowActive()).toBe(true);
+
+        // and the visit keeps reporting afterwards
+        SearchAnalytics.elementClicked({elementType: 'tab', elementValue: 'Books', count: 31});
+        expect(firedEvents()[2][0]).toBe('search_element_clicked');
+    });
+});
+
+describe('modified clicks reported from ReaderApp', () => {
+    // ReaderApp kills modified clicks in the document capture phase, before any React handler
+    // runs, so it reads what the card would have reported off the link's data-* attributes.
+    const makeLink = (attrs) => {
+        document.body.innerHTML = `<a href="/x" ${attrs}><span id="inner">go</span></a>`;
+        return document.getElementById('inner');  // the event target is usually inside the <a>
+    };
+
+    test('reads the value and position off the link and does not end the flow', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        const link = makeLink('data-search-result-value="Genesis 44:1" data-search-result-position="3"');
+        SearchAnalytics.reportModifiedResultLinkClick(link.closest('a'));
+
+        const [name, params] = firedEvents()[1];
+        expect(name).toBe('search_element_clicked');
+        expect(params.element_type).toBe('result');
+        expect(params.element_value).toBe('Genesis 44:1');
+        expect(params.result_position).toBe(3);          // a number, not the "3" string
+        expect(SearchAnalytics.isFlowActive()).toBe(true);
+    });
+
+    test('ignores links with no result attributes (ordinary nav links)', () => {
+        SearchAnalytics.startFlow();
+        const link = makeLink('class="someOtherLink"');
+        SearchAnalytics.reportModifiedResultLinkClick(link.closest('a'));
+        expect(firedEvents().map(([name]) => name)).toEqual(['search_flow_started']);
+    });
+
+    test('no-ops on a null link and when no flow is active', () => {
+        expect(() => SearchAnalytics.reportModifiedResultLinkClick(null)).not.toThrow();
+        const link = makeLink('data-search-result-value="Genesis 44:1" data-search-result-position="3"');
+        SearchAnalytics.reportModifiedResultLinkClick(link.closest('a'));  // no flow started
+        expect(global.gtag).not.toHaveBeenCalled();
+    });
+});
+
+describe('resultLinkAnalyticsAttrs', () => {
+    test('emits the attributes a card needs, and nothing when not opted in', () => {
+        expect(resultLinkAnalyticsAttrs('Genesis 44:1', 3)).toEqual({
+            'data-search-result-value': 'Genesis 44:1',
+            'data-search-result-position': 3,
+        });
+        // compare panel / sidebar search cards pass no position — they stay unmarked
+        expect(resultLinkAnalyticsAttrs('Genesis 44:1', undefined)).toEqual({});
+    });
+});
+
+test('all events are skipped silently when gtag is unavailable (ad blocker)', () => {
+    delete global.gtag;
+    expect(() => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        reportAllApis();
+        SearchAnalytics.endFlow('abandoned');
+    }).not.toThrow();
+});
+
+describe('initialFlowSource (back button that rebuilds the document)', () => {
+    // jsdom defines `performance` as a non-writable global, so plain assignment is
+    // silently ignored -- it has to be redefined.
+    const realPerformance = global.performance;
+    const setPerformance = (value) => Object.defineProperty(
+        global, 'performance', {value, configurable: true, writable: true});
+    const withNavType = (type) => setPerformance(
+        {getEntriesByType: (name) => name === 'navigation' ? [{type}] : []});
+    afterAll(() => setPerformance(realPerformance));
+
+    test("a back/forward navigation is a back_click, not a fresh arrival", () => {
+        withNavType('back_forward');
+        expect(initialFlowSource()).toBe('back_click');
+    });
+
+    test('an ordinary load is a deep_link', () => {
+        withNavType('navigate');
+        expect(initialFlowSource()).toBe('deep_link');
+        withNavType('reload');
+        expect(initialFlowSource()).toBe('deep_link');
+    });
+
+    test('falls back to deep_link where the timing API is unavailable', () => {
+        setPerformance({});                            // no getEntriesByType
+        expect(initialFlowSource()).toBe('deep_link');
+        setPerformance({getEntriesByType: () => []});  // no navigation entry
+        expect(initialFlowSource()).toBe('deep_link');
+    });
+});
+
+describe('sort and toggle clicks', () => {
+    test('report their own element_type with the visible label, and no count', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        SearchAnalytics.elementClicked({elementType: 'sort', elementValue: 'Chronological'});
+        SearchAnalytics.elementClicked({elementType: 'toggle', elementValue: 'Exact Phrase'});
+        const [sort, toggle] = firedEvents().slice(1).map(([, params]) => params);
+        expect(sort.element_type).toBe('sort');
+        expect(sort.element_value).toBe('Chronological');
+        expect(sort.count).toBeUndefined();
+        expect(sort.result_position).toBeUndefined();
+        expect(toggle.element_type).toBe('toggle');
+        expect(toggle.element_value).toBe('Exact Phrase');
+        // both belong to the query on screen, so they carry its search_id
+        expect(sort.search_id).toBe('uuid-1');
+        expect(toggle.search_id).toBe('uuid-1');
+    });
+});
+
+describe('tab', () => {
+    test('is the visible label, set from the tab id SearchPage is showing', () => {
+        expect(tabLabel('books')).toBe('Books');
+        expect(tabLabel('sources')).toBe('Sources');
+        SearchAnalytics.setCurrentTab('authors');
+        expect(SearchAnalytics._currentTab).toBe('Authors');
+    });
+
+    test('search_query_executed reports the tab the query was run from', () => {
+        SearchAnalytics.setCurrentTab('books');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('rashi');
+        reportAllApis();
+        expect(firedEvents()[1][1].tab).toBe('Books');
+    });
+
+    test('switching tabs while a query is still loading does not relabel it', () => {
+        SearchAnalytics.setCurrentTab('sources');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('rashi');
+        SearchAnalytics.recordApiResult('sources', 933);
+        // The user gets bored of waiting and clicks over to Books.
+        SearchAnalytics.elementClicked({elementType: 'tab', elementValue: 'Books', count: 31});
+        SearchAnalytics.setCurrentTab('books');
+        SearchAnalytics.recordApiResult('books', 31);
+        SearchAnalytics.recordApiResult('authors', 1);
+        SearchAnalytics.recordApiResult('topics', 2);
+
+        const [click] = firedEvents().filter(([name]) => name === 'search_element_clicked');
+        const [executed] = firedEvents().filter(([name]) => name === 'search_query_executed');
+        // The click happened on Sources (that is where they were standing) and named Books
+        // as its destination; the query still belongs to Sources, where its results are shown.
+        expect(click[1].tab).toBe('Sources');
+        expect(click[1].element_value).toBe('Books');
+        expect(executed[1].tab).toBe('Sources');
+    });
+
+    test('a refined query picks up the tab the user has since moved to', () => {
+        SearchAnalytics.setCurrentTab('sources');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('first');
+        reportAllApis();
+        SearchAnalytics.setCurrentTab('topics');
+        SearchAnalytics.startQuery('second');
+        reportAllApis();
+        const tabs = firedEvents().filter(([name]) => name === 'search_query_executed')
+                                  .map(([, params]) => params.tab);
+        expect(tabs).toEqual(['Sources', 'Topics']);
+    });
+
+    test('a history restore that changes query and tab together attributes the query to the new tab', () => {
+        // The browser restores one history entry holding BOTH a different query and a
+        // different tab, so React applies them in a single update. ElasticSearchQuerier
+        // runs first (render phase) and passes the incoming tab explicitly; SearchPage
+        // reports the tab move and updates the current tab afterwards (commit phase).
+        SearchAnalytics.setCurrentTab('sources');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('first');
+        reportAllApis();
+
+        SearchAnalytics.startQuery('restored', 'topics');           // parent, render phase
+        SearchAnalytics.elementClicked({elementType: 'tab', elementValue: 'Topics', count: 2});
+        SearchAnalytics.setCurrentTab('topics');                    // child, commit phase
+        reportAllApis();
+
+        const executed = firedEvents().filter(([name]) => name === 'search_query_executed');
+        const [click] = firedEvents().filter(([name]) => name === 'search_element_clicked');
+        // The restored query belongs to the tab it is displayed in...
+        expect(executed[1][1].tab).toBe('Topics');
+        // ...while the tab move still reads as "went from Sources to Topics".
+        expect(click[1].tab).toBe('Sources');
+        expect(click[1].element_value).toBe('Topics');
+    });
+
+    test('an invalid tabOverride is still stored, and omitting it keeps the current tab', () => {
+        SearchAnalytics.setCurrentTab('books');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('no override');
+        reportAllApis();
+        expect(SearchAnalytics._currentTab).toBe('Books');  // override never writes _currentTab
+
+        SearchAnalytics.startQuery('with override', 'topics');
+        reportAllApis();
+        expect(SearchAnalytics._currentTab).toBe('Books');
+
+        const tabs = firedEvents().filter(([name]) => name === 'search_query_executed')
+                                  .map(([, params]) => params.tab);
+        expect(tabs).toEqual(['Books', 'Topics']);
+    });
+
+    test('element clicks report the tab live, including result clicks', () => {
+        SearchAnalytics.setCurrentTab('topics');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        SearchAnalytics.elementClicked({elementType: 'filter', elementValue: 'Talmud', count: 42});
+        SearchAnalytics.resultClicked('Shabbat', 2);
+        const [filterClick, resultClick] = firedEvents()
+            .filter(([name]) => name === 'search_element_clicked').map(([, params]) => params);
+        expect(filterClick.tab).toBe('Topics');
+        expect(resultClick.tab).toBe('Topics');
+    });
+
+    test('is omitted entirely when no tab has been reported (out-of-scope pages)', () => {
+        SearchAnalytics.startFlow();
+        SearchAnalytics.startQuery('q');
+        SearchAnalytics.elementClicked({elementType: 'tab', elementValue: 'Books', count: 31});
+        reportAllApis();
+        firedEvents().forEach(([, params]) => expect('tab' in params).toBe(false));
+    });
+
+    test('survives a back-forward cache restore, which does not remount SearchPage', () => {
+        SearchAnalytics.setCurrentTab('authors');
+        SearchAnalytics.startFlow();
+        SearchAnalytics.endFlow('abandoned');   // pagehide
+        SearchAnalytics.startFlow();            // pageshow with persisted:true
+        SearchAnalytics.startQuery('q');
+        reportAllApis();
+        const [executed] = firedEvents().filter(([name]) => name === 'search_query_executed');
+        expect(executed[1].tab).toBe('Authors');
+    });
+});
+
+describe('id generation where crypto.randomUUID is unavailable', () => {
+    // startFlow() runs in componentDidMount, before _executeAllQueries(). A bare
+    // crypto.randomUUID() throws in non-secure contexts and on older Safari, which would
+    // blank the entire search page rather than merely losing an analytics event -- hence
+    // the guarded makeUuid() helper.
+    const withoutRandomUUID = (fn) => {
+        const real = global.crypto;
+        global.crypto = {};          // present, but no randomUUID -- the risky combination
+        try { fn(); } finally { global.crypto = real; }
+    };
+
+    test('startFlow still works and still emits a flow_id', () => {
+        withoutRandomUUID(() => {
+            expect(() => SearchAnalytics.startFlow()).not.toThrow();
+        });
+        const [[name, params]] = firedEvents();
+        expect(name).toBe('search_flow_started');
+        expect(typeof params.flow_id).toBe('string');
+        expect(params.flow_id.length).toBeGreaterThan(0);
+    });
+
+    test('a flow and its query get distinct ids', () => {
+        withoutRandomUUID(() => {
+            SearchAnalytics.startFlow();
+            SearchAnalytics.startQuery('moses');
+            reportAllApis();
+        });
+        const [[, started], [, executed]] = firedEvents();
+        expect(executed.search_id).toEqual(expect.any(String));
+        expect(executed.search_id).not.toBe(started.flow_id);
+    });
+});

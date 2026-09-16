@@ -3,6 +3,7 @@
 import pytest
 import pprint
 from sefaria.model import *
+from sefaria.model.legacy_text import LegacyTextChunk
 from sefaria.system.exceptions import InputError
 
 class Test_Schema(object):
@@ -834,12 +835,12 @@ class Test_Default_Nodes(object):
 
     def test_load_default_text_chunk(self):
         ref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1")
-        TextChunk(ref)
+        LegacyTextChunk(ref)
 
     def test_load_default_text_chunk(self):
         ref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1")
-        tc = TextChunk(ref, "en", "test_default_node")
+        tc = LegacyTextChunk(ref, "en", "test_default_node")
         tc.text = [["Foo", "Bar", "Blitz"],["Glam", "Blam", "Flam"]]
         tc.save()
         subref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1.2.3")
-        assert TextChunk(subref, "en", "test_default_node").text == "Flam"
+        assert LegacyTextChunk(subref, "en", "test_default_node").text == "Flam"

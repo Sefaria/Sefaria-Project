@@ -1,48 +1,84 @@
 import React, { useState, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
+import SearchAnalytics, { resultLinkAnalyticsAttrs } from './sefaria/searchAnalytics';
 import { InterfaceText } from './Misc';
 import BreadcrumbPath from './BreadcrumbPath';
 
-// Tracks whether a touch gesture is a tap (no/minimal movement) so we can show
-// a pressed state only for taps, not for scrolls that happen to start on a card.
+// How long the finger has to stay put before the card lights up. Short enough to feel
+// immediate on a real tap, long enough that a scroll flick never highlights anything.
+const PRESS_DELAY_MS = 100;
+// A tap shorter than PRESS_DELAY_MS still has to show feedback, so once the pressed state
+// goes on screen it stays there at least this long.
+const PRESS_MIN_MS = 150;
+// Finger drift, in pixels, still counted as a tap rather than the start of a scroll.
+const PRESS_MOVE_TOLERANCE = 10;
+
+// Tracks whether a touch gesture is a tap (finger stays put) so the card shows its pressed
+// state only for taps, never for a scroll that happens to start on a card.
 function usePressState() {
   const ref = useRef(null);
   const [pressed, setPressed] = useState(false);
-  const startPos = useRef(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
 
+    let startPos  = null;   // where the finger landed; null once the gesture ends or is ruled out
+    let showTimer = null;   // fires PRESS_DELAY_MS after touchstart
+    let hideTimer = null;   // holds a quick tap's highlight on screen for PRESS_MIN_MS
+    let shownAt   = null;   // when the pressed state actually went on screen
+
+    const clearTimers = () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+      showTimer = hideTimer = null;
+    };
+    const show = () => { shownAt = Date.now(); setPressed(true); };
+    const hide = () => { shownAt = null; setPressed(false); };
+
     const onStart = (e) => {
       const t = e.touches[0];
-      startPos.current = { x: t.clientX, y: t.clientY };
-      setPressed(true);
+      clearTimers();
+      hide();
+      startPos = { x: t.clientX, y: t.clientY };
+      showTimer = setTimeout(show, PRESS_DELAY_MS);
     };
     const onMove = (e) => {
-      if (!startPos.current) return;
+      if (!startPos) return;
       const t = e.touches[0];
-      if (Math.abs(t.clientX - startPos.current.x) > 10 ||
-          Math.abs(t.clientY - startPos.current.y) > 10) {
-        setPressed(false);
-        startPos.current = null;
+      if (Math.abs(t.clientX - startPos.x) > PRESS_MOVE_TOLERANCE ||
+          Math.abs(t.clientY - startPos.y) > PRESS_MOVE_TOLERANCE) {
+        // The finger is scrolling, not tapping — abandon the gesture without ever showing it.
+        startPos = null;
+        clearTimers();
+        hide();
       }
     };
     const onEnd = () => {
-      setPressed(false);
-      startPos.current = null;
+      if (!startPos) return;   // already ruled out as a scroll
+      startPos = null;
+      clearTimers();
+      if (shownAt === null) { show(); }   // finger lifted before the delay: flash it now
+      const remaining = PRESS_MIN_MS - (Date.now() - shownAt);
+      if (remaining > 0) { hideTimer = setTimeout(hide, remaining); } else { hide(); }
+    };
+    const onCancel = () => {
+      startPos = null;
+      clearTimers();
+      hide();
     };
 
-    el.addEventListener('touchstart',  onStart, { passive: true });
-    el.addEventListener('touchmove',   onMove,  { passive: true });
-    el.addEventListener('touchend',    onEnd,   { passive: true });
-    el.addEventListener('touchcancel', onEnd,   { passive: true });
+    el.addEventListener('touchstart',  onStart,  { passive: true });
+    el.addEventListener('touchmove',   onMove,   { passive: true });
+    el.addEventListener('touchend',    onEnd,    { passive: true });
+    el.addEventListener('touchcancel', onCancel, { passive: true });
     return () => {
+      clearTimers();
       el.removeEventListener('touchstart',  onStart);
       el.removeEventListener('touchmove',   onMove);
       el.removeEventListener('touchend',    onEnd);
-      el.removeEventListener('touchcancel', onEnd);
+      el.removeEventListener('touchcancel', onCancel);
     };
   }, []);
 
@@ -89,6 +125,7 @@ function SearchResultCard({
   openURL,
   query,
   accentColor,
+  analyticsPosition,
   // Sources-mode specific props
   snippet,
   snippetLang,
@@ -100,6 +137,26 @@ function SearchResultCard({
 }) {
   const [versionsOpen, setVersionsOpen] = useState(false);
   const [pressRef, isPressed] = usePressState();
+
+  // Reports a click anywhere on this card as a search_element_clicked (type 'result') GA4
+  // event, and — for clicks that navigate the current window — ends the search flow with
+  // reason 'clicked_result'. Must fire from the card itself: entity cards navigate via
+  // window.location.href and every link here stops propagation, so none of these paths
+  // reaches ReaderApp's central link handler. Only cards given an analyticsPosition (the
+  // main search page) report; compare-panel and sidebar-search cards stay silent.
+  //
+  // `elementValue` names what was clicked — the result's ref for the card and its title,
+  // the category or author name for the links inside it.
+  const fireResultClickAnalytics = (elementValue, endsFlow = true) => {
+    if (analyticsPosition) {
+      SearchAnalytics.resultClicked(elementValue, analyticsPosition, endsFlow);
+    }
+  };
+
+  // Stamped on every link in the card so that a modified click — which ReaderApp kills at
+  // the document capture phase, before any React handler runs — can still be attributed to
+  // this result. See SearchAnalytics.reportModifiedResultLinkClick.
+  const linkAnalyticsAttrs = (elementValue) => resultLinkAnalyticsAttrs(elementValue, analyticsPosition);
 
   // The single click path for every clickable part of the card. Opening a result has to
   // carry two things the ref alone can't: which version matched, and which words to
@@ -137,6 +194,7 @@ function SearchResultCard({
 
   const handleCardClick = () => {
     if (window.getSelection && window.getSelection().toString()) return;
+    fireResultClickAnalytics(tref ?? name);
     openResult(ownResult);
   };
 
@@ -145,9 +203,15 @@ function SearchResultCard({
   // differently depending on where you click.
   const handleLinkClick = (target) => (e) => {
     e.stopPropagation();  // the card's own onClick would fire too, opening the wrong version
+    // A modified click opens a new tab or window and leaves the user on the search page, so
+    // it reports the click but must not end the flow. Inside ReaderApp these clicks never
+    // get here at all (ReaderApp reports them itself, see linkAnalyticsAttrs above); the
+    // check keeps the card correct on its own, e.g. in Storybook.
+    const opensNewTab = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
+    fireResultClickAnalytics(tref ?? name, !opensNewTab);
     // Modified clicks, and cards with no in-app handler at all, fall through to the browser;
     // the href already points at the matched version with the query highlighted.
-    if ((!onResultClick && !openURL) || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    if ((!onResultClick && !openURL) || opensNewTab) return;
     e.preventDefault();
     openResult(target);
   };
@@ -155,10 +219,28 @@ function SearchResultCard({
   // Links to somewhere other than the result itself (the author under a book title, the
   // breadcrumb categories). They never open a result, so they don't go through openResult —
   // they just need the same "don't reload the page" treatment as the title link.
-  const handleSubLinkClick = (linkHref) => (e) => {
+  //
+  // These links lead away from search in the current window, so each is a result click that
+  // ends the flow. `elementValue` names what was clicked for analytics (the category or
+  // author name); `linkHref` is where it goes. A modified click opens a new tab and leaves
+  // the user on the search page, so it reports the click without ending the flow — the same
+  // split handleLinkClick makes.
+  const handleSubLinkClick = (elementValue, linkHref) => (e) => {
     e.stopPropagation();  // otherwise the card's onClick opens the result instead
-    if (!openURL || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+    const opensNewTab = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
+    fireResultClickAnalytics(elementValue, !opensNewTab);
+    if (!openURL || opensNewTab) return;
     if (openURL(linkHref)) { e.preventDefault(); }
+  };
+
+  // Middle-click opens the link in a new tab natively. Browsers dispatch `auxclick` rather
+  // than `click` for non-primary mouse buttons, so neither handleLinkClick nor
+  // handleSubLinkClick above ever runs for this gesture -- this is its only chance to be
+  // reported. Like a modified click it leaves the user on the search page, so it reports the
+  // click WITHOUT ending the flow, and the browser is left alone to open the tab.
+  const handleAuxClick = (elementValue) => (e) => {
+    if (e.button !== 1) { return; }   // 1 == middle; back/forward buttons aren't link clicks
+    fireResultClickAnalytics(elementValue, false);
   };
 
   const handleCardKeyDown = (e) => {
@@ -214,10 +296,20 @@ function SearchResultCard({
         )}
         <div className="searchResultCard-body">
           {crumbs && crumbs.length > 0 && (
-            <BreadcrumbPath crumbs={crumbs} onCrumbClick={handleSubLinkClick} />
+            <BreadcrumbPath
+              crumbs={crumbs}
+              getCrumbLinkProps={(crumb) => ({
+                ...linkAnalyticsAttrs(crumb.label),
+                onClick: handleSubLinkClick(crumb.label, crumb.href),
+                onAuxClick: handleAuxClick(crumb.label),
+              })}
+            />
           )}
           <div className="searchResultCard-header">
-            <a href={href} className="searchResultCard-titleLink" onClick={handleLinkClick(ownResult)}>
+            <a href={href} className="searchResultCard-titleLink"
+               {...linkAnalyticsAttrs(tref ?? name)}
+               onClick={handleLinkClick(ownResult)}
+               onAuxClick={handleAuxClick(tref ?? name)}>
               <div className="searchResultCard-titleRow">
                 <span className="searchResultCard-name">
                   <InterfaceText text={{ en: name, he: hebrewName }} />
@@ -242,7 +334,10 @@ function SearchResultCard({
                 {secondaryAuthor && (
                   <span className="searchResultCard-secondary-author">
                     {secondaryAuthorHref ? (
-                      <a href={secondaryAuthorHref} onClick={handleSubLinkClick(secondaryAuthorHref)}>
+                      <a href={secondaryAuthorHref}
+                         {...linkAnalyticsAttrs(secondaryAuthor)}
+                         onClick={handleSubLinkClick(secondaryAuthor, secondaryAuthorHref)}
+                         onAuxClick={handleAuxClick(secondaryAuthor)}>
                         <InterfaceText text={{ en: secondaryAuthor, he: hebrewSecondaryAuthor }} />
                       </a>
                     ) : (
@@ -293,7 +388,9 @@ function SearchResultCard({
                       key={i}
                       href={v.href}
                       className="searchResultCard-versionItem"
+                      {...linkAnalyticsAttrs(tref ?? name)}
                       onClick={handleLinkClick(v)}
+                      onAuxClick={handleAuxClick(tref ?? name)}
                     >
                       <div
                         className={`searchResultCard-snippet${v.snippetLang === 'he' ? ' he' : ' en'}`}
@@ -353,6 +450,7 @@ SearchResultCard.propTypes = {
   openURL:              PropTypes.func,
   query:                PropTypes.string,
   accentColor:          PropTypes.string,   // explicit override; skips palette lookup
+  analyticsPosition:    PropTypes.number,   // 1-based rank; presence opts the card into search analytics
   // Sources mode
   snippet:              PropTypes.string,
   snippetLang:          PropTypes.oneOf(['en', 'he']),

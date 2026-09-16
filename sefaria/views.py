@@ -32,7 +32,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from functools import wraps
@@ -41,7 +41,6 @@ from remote_config.keys import CURRENT_LINKER_VERSION
 from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
 import sefaria.system.cache as scache
-from sefaria.helper import library_assistant
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
@@ -64,13 +63,13 @@ from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
+from sefaria.helper.skip_tracking import build_pathway
 from sefaria.helper.webpages import normalize_url as normalize_webpage_url, domain_for_url as webpage_domain_for_url
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
 from sefaria.model.webpage import *
 from sefaria import tracker
-from sefaria.helper.skip_tracking import signal_and_reset_skip_counts
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
@@ -136,38 +135,6 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
                 return resolve_url(next_page)
         return super().get_next_page()
 
-
-class CustomPasswordResetDoneView(StaticViewMixin, PasswordResetDoneView):
-    pass
-
-class CustomPasswordResetCompleteView(StaticViewMixin, PasswordResetCompleteView):
-    pass
-
-class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
-    form_class = SefariaPasswordResetForm
-    email_template_name = 'registration/password_reset_email.txt'
-    html_email_template_name = 'registration/password_reset_email.html'
-    
-    def form_valid(self, form):
-        """
-        Override form_valid to set the correct domain for the email context.
-        """
-        # Get the current domain from the request
-        current_domain = self.request.get_host()
-        
-        # Call form.save with domain override - this sends the email
-        form.save(
-            request=self.request,
-            domain_override=current_domain,
-            use_https=self.request.is_secure(),
-            email_template_name=self.email_template_name,
-            subject_template_name=self.subject_template_name,
-            html_email_template_name=self.html_email_template_name,
-            from_email=self.from_email,
-            extra_email_context=self.extra_email_context,
-        )
-        # Don't call super().form_valid(form) as it would send the email again
-        return HttpResponseRedirect(self.get_success_url())
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm
@@ -242,10 +209,6 @@ def process_register_form(request, auth_method='session'):
             p.join_invited_collections()
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
-            # New accounts get the Library Assistant on. Written explicitly: the key is
-            # deliberately absent from the settings defaults, so a new account starts
-            # with no value at all unless one is written here.
-            p.settings[library_assistant.SETTING_KEY] = True
             p.save()
 
         import_gravatar(p)
@@ -648,7 +611,11 @@ def bundle_many_texts(refs, use_text_family=False, as_sized_string=False, min_ch
             oref = model.Ref(tref)
             lang = "he" if has_hebrew(tref) else "en"
             if use_text_family:
-                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
+                # Legacy: only reached via ?useTextFamily=1, which we don't send ourselves anymore --
+                # kept for templates/js/linker.v2.js, an old embed script possibly still live on
+                # third-party sites we don't control.
+                from sefaria.model.legacy_text import TextFamily
+                text_fam = TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
                                             lang="he", version=hebrew_version,
                                             lang2="en", version2=english_version)
                 he = text_fam.he
@@ -663,8 +630,11 @@ def bundle_many_texts(refs, use_text_family=False, as_sized_string=False, min_ch
                     'url': oref.url()
                 }
             else:
-                he_tc = model.TextChunk(oref, "he", vtitle=hebrew_version)
-                en_tc = model.TextChunk(oref, "en", actual_lang=translation_language_preference, vtitle=english_version)
+                # Keyed by direction, not real language -- TopicPage.jsx's source/translation
+                # toggle works on the old en/he-as-ltr/rtl dichotomy, not genuine isSource matching.
+                he_tc = oref.text(direction="rtl", vtitle=hebrew_version)
+                en_tc = oref.text(translation_language_preference, vtitle=english_version) if translation_language_preference \
+                    else oref.text(direction="ltr", vtitle=english_version)
                 if hebrew_version and he_tc.is_empty():
                   raise NoVersionFoundError(f"{oref.normal()} does not have the Hebrew version: {hebrew_version}")
                 if english_version and en_tc.is_empty():
@@ -803,7 +773,6 @@ def collections_image_upload(request, resize_image=True):
 @staff_member_required
 def reset_cache(request):
     model.library.rebuild()
-    signal_and_reset_skip_counts("reset_cache")
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "rebuild")
@@ -812,6 +781,28 @@ def reset_cache(request):
         invalidate_all()
 
     return HttpResponseRedirect("/?m=Cache-Reset")
+
+
+@staff_member_required
+def rebuild_linker_resolvers(request):
+    """
+    Enqueue an async rebuild of RefResolver and CategoryResolver for selected linker
+    languages. Used by /linker-editor after linker metadata edits. Runs on a worker
+    since walking the library to rebuild a resolver can take several seconds; poll the
+    returned task_id via /api/async/<task_id>.
+    """
+    try:
+        body = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except ValueError:
+        return jsonResponse({"error": "Invalid JSON."}, status=400)
+
+    from sefaria.helper import linker_editor
+    try:
+        task_id = linker_editor.enqueue_rebuild_linker_resolvers(body.get("langs", ["en", "he"]))
+    except InputError as e:
+        return jsonResponse({"error": str(e)}, status=400)
+
+    return jsonResponse({"task_id": task_id}, status=202)
 
 
 @staff_member_required
@@ -916,7 +907,6 @@ def delete_orphaned_counts(request):
 @staff_member_required
 def rebuild_toc(request):
     model.library.rebuild_toc()
-    signal_and_reset_skip_counts("reset_toc")
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "rebuild_toc")
@@ -926,9 +916,11 @@ def rebuild_toc(request):
 
 @staff_member_required
 def rebuild_auto_completer(request):
-    library.build_full_auto_completer()
-    library.build_lexicon_auto_completers()
-    library.build_cross_lexicon_auto_completer()
+    # Three builders, each of which wraps itself: group them so one click reports once.
+    with build_pathway("rebuild_auto_completer"):
+        library.build_full_auto_completer()
+        library.build_lexicon_auto_completers()
+        library.build_cross_lexicon_auto_completer()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_full_auto_completer")

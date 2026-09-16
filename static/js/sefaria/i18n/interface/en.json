@@ -243,6 +243,7 @@
     "licenses.cc0": "CC0",
     "licenses.cc_by": "CC-BY",
     "licenses.cc_by_nc": "CC-BY-NC",
+    "licenses.cc_by_nc_nd": "CC-BY-NC-ND",
     "licenses.cc_by_sa": "CC-BY-SA",
     "licenses.copyright_jps_1985": "Copyright: JPS, 1985",
     "licenses.public_domain": "Public Domain",
