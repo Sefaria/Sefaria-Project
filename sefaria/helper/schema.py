@@ -1141,7 +1141,7 @@ _SUPERSCRIPT_TRANS = str.maketrans('0123456789', '⁰¹²³⁴⁵⁶⁷⁸⁹')
 _SUPERSCRIPT_STRIP_RE = re.compile(r'[⁰¹²³⁴-⁹]+$')
 
 
-def get_available_lexicon_headword(parent_lexicon, headword):
+def get_available_lexicon_headword(parent_lexicon, headword, exclude_headword=None):
     """
     Returns `headword` stripped, NFC-normalized, and guaranteed free in `parent_lexicon`.
     Strips any trailing superscript-digit suffix first (so a resubmitted already-numbered
@@ -1149,12 +1149,17 @@ def get_available_lexicon_headword(parent_lexicon, headword):
     2 if the base collides -- matching the existing Jastrow/BDB superscript-homograph
     convention. Numbering doesn't need to be contiguous or sorted relative to other
     numbered homographs: if "b²" is taken but "b³" isn't, this returns "b³" as-is.
+
+    :param exclude_headword: the CURRENT headword of the entry being renamed, if any --
+        excluded from the collision check so resubmitting that same word in a different (but
+        NFC-equivalent) byte encoding resolves back to itself instead of being treated as a
+        collision against its own entry and bumped to a needless superscript.
     """
     headword = unicodedata.normalize('NFC', headword.strip())
     base = _SUPERSCRIPT_STRIP_RE.sub('', headword)
     n = 1
     candidate = base
-    while LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': candidate}):
+    while candidate != exclude_headword and LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': candidate}):
         n += 1
         candidate = f'{base}{str(n).translate(_SUPERSCRIPT_TRANS)}'
     return candidate

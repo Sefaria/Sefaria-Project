@@ -78,10 +78,12 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
         new_headword = body.get("new_headword")
         if not new_headword:
             return jsonResponse({"error": "'new_headword' is required."}, status=400)
-        if new_headword.strip() == entry.headword:
-            # Client asked for the headword it already has -- a legitimate no-op.
+        if unicodedata.normalize('NFC', new_headword.strip()) == entry.headword:
+            # Client asked for the headword it already has -- possibly byte-identical,
+            # possibly just a different (but NFC-equivalent) combining-mark encoding of the
+            # same word -- either way a legitimate no-op, not a rename.
             return jsonResponse({"status": "ok", "headword": entry.headword})
-        resolved = get_available_lexicon_headword(lexicon, new_headword)
+        resolved = get_available_lexicon_headword(lexicon, new_headword, exclude_headword=entry.headword)
         if resolved == entry.headword:
             # A real request that disambiguation collapsed back to the current value --
             # don't silently 200 as if nothing was asked for.

@@ -337,6 +337,29 @@ class Test_GetAvailableLexiconHeadword(object):
         make_lexicon_entry("stack", self.PARENT_LEXICON)
         assert get_available_lexicon_headword(self.PARENT_LEXICON, "stack²²") == "stack²"
 
+    # Two byte orderings of the same combining marks (sheva U+05B0 + dagesh U+05BC on the same
+    # base letter) that normalize to the identical NFC string despite being unequal as raw
+    # strings -- built from explicit codepoints, not typed literals, since two Hebrew strings
+    # that render identically can still differ in combining-mark byte order (the exact class
+    # of bug this fix addresses).
+    _ORDER_SHEVA_THEN_DAGESH = "\u05d1\u05b0\u05bc"
+    _ORDER_DAGESH_THEN_SHEVA = "\u05d1\u05bc\u05b0"
+
+    def test_without_exclude_headword_resubmitting_own_word_differently_encoded_gets_bumped(self, make_lexicon_entry):
+        # documents the bug this fixes: without telling the function which entry is being
+        # renamed, it finds the entry's own current headword via the DB query and treats it
+        # as an unrelated collision.
+        assert self._ORDER_SHEVA_THEN_DAGESH != self._ORDER_DAGESH_THEN_SHEVA
+        assert unicodedata.normalize("NFC", self._ORDER_SHEVA_THEN_DAGESH) == unicodedata.normalize("NFC", self._ORDER_DAGESH_THEN_SHEVA)
+        current = unicodedata.normalize("NFC", self._ORDER_SHEVA_THEN_DAGESH)
+        make_lexicon_entry(current, self.PARENT_LEXICON)
+        assert get_available_lexicon_headword(self.PARENT_LEXICON, self._ORDER_DAGESH_THEN_SHEVA) == current + "\u00b2"
+
+    def test_exclude_headword_resolves_own_word_differently_encoded_back_to_itself(self, make_lexicon_entry):
+        current = unicodedata.normalize("NFC", self._ORDER_SHEVA_THEN_DAGESH)
+        make_lexicon_entry(current, self.PARENT_LEXICON)
+        assert get_available_lexicon_headword(self.PARENT_LEXICON, self._ORDER_DAGESH_THEN_SHEVA, exclude_headword=current) == current
+
 
 class Test_ChangeLexiconHeadword(object):
     PARENT_LEXICON = "Test Lexicon Change Headword"
