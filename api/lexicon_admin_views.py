@@ -76,14 +76,19 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
         if not entry:
             return _not_found()
         new_headword = body.get("new_headword")
-        if not new_headword:
-            return jsonResponse({"error": "'new_headword' is required."}, status=400)
+        # A non-string JSON value would raise AttributeError at .strip() below. Also catches
+        # "missing" (None). Emptiness is get_available_lexicon_headword's own concern.
+        if not isinstance(new_headword, str):
+            return jsonResponse({"error": "'new_headword' is required and must be a string."}, status=400)
         if unicodedata.normalize('NFC', new_headword.strip()) == entry.headword:
             # Client asked for the headword it already has -- possibly byte-identical,
             # possibly just a different (but NFC-equivalent) combining-mark encoding of the
             # same word -- either way a legitimate no-op, not a rename.
             return jsonResponse({"status": "ok", "headword": entry.headword})
-        resolved = get_available_lexicon_headword(lexicon, new_headword, exclude_headword=entry.headword)
+        try:
+            resolved = get_available_lexicon_headword(lexicon, new_headword, exclude_headword=entry.headword)
+        except ValueError as e:
+            return jsonResponse({"error": str(e)}, status=400)
         if resolved == entry.headword:
             # A real request that disambiguation collapsed back to the current value --
             # don't silently 200 as if nothing was asked for.

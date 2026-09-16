@@ -337,6 +337,16 @@ class Test_GetAvailableLexiconHeadword(object):
         make_lexicon_entry("stack", self.PARENT_LEXICON)
         assert get_available_lexicon_headword(self.PARENT_LEXICON, "stack²²") == "stack²"
 
+    def test_whitespace_only_raises(self):
+        with pytest.raises(ValueError):
+            get_available_lexicon_headword(self.PARENT_LEXICON, "   ")
+
+    def test_bare_superscript_raises(self):
+        # "²" is non-empty as a raw string, but stripping it as a superscript suffix leaves
+        # nothing -- must raise, not silently return "".
+        with pytest.raises(ValueError):
+            get_available_lexicon_headword(self.PARENT_LEXICON, "²")
+
     # Two byte orderings of the same combining marks (sheva U+05B0 + dagesh U+05BC on the same
     # base letter) that normalize to the identical NFC string despite being unequal as raw
     # strings -- built from explicit codepoints, not typed literals, since two Hebrew strings

@@ -1154,9 +1154,18 @@ def get_available_lexicon_headword(parent_lexicon, headword, exclude_headword=No
         excluded from the collision check so resubmitting that same word in a different (but
         NFC-equivalent) byte encoding resolves back to itself instead of being treated as a
         collision against its own entry and bumped to a needless superscript.
+    :raises ValueError: if headword is empty after stripping whitespace and its superscript
+        suffix (covers both an empty/whitespace-only input and one that's nothing but a
+        superscript, e.g. a bare "²" -- stripping a superscript out of an already-empty
+        string is still empty, so checking once here after both steps covers either case).
+        Checked here, not left for a caller to catch on the final result, so this stays safe
+        even against a future change to the stripping logic introducing a new way to reach
+        empty.
     """
     headword = unicodedata.normalize('NFC', headword.strip())
     base = _SUPERSCRIPT_STRIP_RE.sub('', headword)
+    if not base:
+        raise ValueError('headword must not be empty')
     n = 1
     candidate = base
     while candidate != exclude_headword and LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': candidate}):
