@@ -70,7 +70,30 @@ http {
     listen 80;
     listen [::]:80;
     server_name {{ $rootDomain }};
-    return 301 https://{{ $wwwDomain }}$request_uri;
+
+    location /apple-app-site-association {
+      proxy_set_header Host {{ $wwwDomain }};
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://varnishupstream;
+    }
+
+    location /.well-known/apple-app-site-association {
+      proxy_set_header Host {{ $wwwDomain }};
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Port 443;
+      proxy_set_header X-Internal-Proxy 1;
+      proxy_pass http://varnishupstream;
+    }
+
+    location / {
+      return 301 https://{{ $wwwDomain }}$request_uri;
+    }
   }
 
   server {
@@ -108,20 +131,6 @@ http {
       access_log off;
       autoindex on;
       alias /app/robots.txt;
-    }
-
-    location /apple-app-site-association {
-      access_log off;
-      autoindex on;
-      default_type application/json;
-      return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
-    }
-
-    location /.well-known/apple-app-site-association {
-      access_log off;
-      autoindex on;
-      default_type application/json;
-      return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
     }
 
     location / {
@@ -212,20 +221,6 @@ http {
       access_log off;
       autoindex on;
       alias /app/robots.txt;
-    }
-
-    location /apple-app-site-association {
-      access_log off;
-      autoindex on;
-      default_type application/json;
-      return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
-    }
-
-    location /.well-known/apple-app-site-association {
-      access_log off;
-      autoindex on;
-      default_type application/json;
-      return 200 '{"applinks": {"apps": [], "details": [{"appID": "2626EW4BML.org.sefaria.sefariaApp", "paths": ["*"]}]}}';
     }
 
     location ~ ^/data\.\d+\.js$ {

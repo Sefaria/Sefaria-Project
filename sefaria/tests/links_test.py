@@ -5,6 +5,7 @@ from unittest.mock import patch
 from sefaria.client.wrapper import get_links
 from sefaria.helper.text import get_talmud_perek_ref_set, get_parasha_ref_set
 from sefaria.model import *
+from sefaria.model.legacy_text import TextFamily
 
 def setup_module(module):
     pass
@@ -76,6 +77,26 @@ class Test_get_links():
         assert parasha_ref_with_links not in anchor_refs, (
             f"Parasha ref {parasha_ref_with_links} should be excluded from link anchor refs"
         )
+
+    @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
+    def test_get_links_version_metadata_is_real_even_without_content_at_position(self, mock_collections):
+        """
+        A link can have no content at its own specific position, in a chapter that otherwise has
+        a real contributing version. get_links() should still report that version's real
+        metadata -- attribution belongs to a genuine contributing version, not a fake/arbitrary
+        one, and not None just because this exact position happens to be empty.
+        (Regression case for get_links()'s TextChunk.sources-based attribution.)
+        """
+        links = get_links("Genesis 1:1", with_text=True)
+        empty_with_version = [l for l in links if not l["text"] and l.get("versionTitle")]
+        assert empty_with_version, "Expected at least one link with empty text but real version metadata"
+
+        for link in empty_with_version:
+            index_title = Ref(link["ref"]).index.title
+            real_titles = {v.versionTitle for v in VersionSet({"title": index_title, "direction": "ltr"})}
+            assert link["versionTitle"] in real_titles, (
+                f"{link['ref']}: versionTitle {link['versionTitle']!r} is not a real version of {index_title}"
+            )
 
     @pytest.mark.skip(reason="flaky after CI job retry corruption")
     @patch('sefaria.client.wrapper.library.get_collections_in_library', return_value=[])
