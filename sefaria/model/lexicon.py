@@ -262,6 +262,13 @@ class LexiconEntry(abst.AbstractMongoRecord):
 
 
 class DictionaryEntry(LexiconEntry):
+    attr_schemas = {
+        'content': {
+            'type': 'dict',
+            'allow_unknown': True,
+            'schema': {'senses': {'type': 'list', 'schema': {'type': 'dict', 'allow_unknown': True}}},
+        },
+    }
 
     def get_sense(self, sense):
         text = ''

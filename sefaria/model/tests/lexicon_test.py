@@ -366,6 +366,31 @@ class Test_LexiconEntry_ReplaceContentAttrs(object):
         assert entry.quotes == ["q"]
 
 
+class Test_DictionaryEntry_ContentShapeValidation(object):
+    def test_non_dict_content_rejected(self, make_lexicon_entry):
+        with pytest.raises(InputError):
+            make_lexicon_entry("shape-test-1", "Test Lexicon Sanitize", cls=BDBEntry, rid="S1", content="not a dict")
+
+    def test_non_list_senses_rejected(self, make_lexicon_entry):
+        with pytest.raises(InputError):
+            make_lexicon_entry("shape-test-2", "Test Lexicon Sanitize", cls=BDBEntry, rid="S2", content={"senses": {"a": 1}})
+
+    def test_non_dict_sense_item_rejected(self, make_lexicon_entry):
+        with pytest.raises(InputError):
+            make_lexicon_entry("shape-test-3", "Test Lexicon Sanitize", cls=BDBEntry, rid="S3", content={"senses": ["not a dict"]})
+
+    def test_dict_content_with_other_keys_accepted(self, make_lexicon_entry):
+        entry = make_lexicon_entry("shape-test-4", "Test Lexicon Sanitize", cls=BDBEntry, rid="S4",
+                                    content={"morphology": "n.", "senses": [{"definition": "d"}]})
+        assert entry.content["morphology"] == "n."
+
+    def test_krupnik_string_content_still_accepted(self, make_lexicon_entry):
+        # KrupnikEntry overrides attr_schemas entirely with its own, which permits string
+        # content -- confirming DictionaryEntry's dict-only rule doesn't leak into it.
+        entry = make_lexicon_entry("shape-test-5", "Test Lexicon Sanitize", cls=KrupnikEntry, rid="S5", content="plain string")
+        assert entry.content == "plain string"
+
+
 class Test_GetAvailableLexiconHeadword(object):
     PARENT_LEXICON = "Test Lexicon Available Headword"
 
