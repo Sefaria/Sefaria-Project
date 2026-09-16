@@ -107,11 +107,21 @@ class CollectionPage extends Component {
       return  ai - bi;
     
     } else if (option == "Recent") {
-      return Date.parse(b.modified) - Date.parse(a.modified);
-  
+      // Sort on `created`, not `modified`: `modified` is truncated to a date with no
+      // time of day (see sheet_to_dict in sheets.py), so sheets edited on the same day
+      // all tie, and it isn't the date shown in the listing anyway. Undated sheets sort last.
+      const [at, bt] = [a, b].map(x => Date.parse(x.created) || -Infinity);
+      return bt - at;
+
     } else if (option === "Alphabetical") {
-      return a.title.stripHtml().trim().toLowerCase() > b.title.stripHtml().trim().toLowerCase() ? 1 : -1;
-  
+      // localeCompare, not `>`: `>` compares raw code point values, which scatters titles
+      // by their first character rather than alphabetically -- a straight quote (U+0022)
+      // sorts above every letter while a curly quote (U+201C) sorts below them, and Hebrew
+      // and accented titles sink to the bottom. Leading punctuation is dropped so a quoted
+      // title files under its first real letter.
+      const [at, bt] = [a, b].map(x => x.title.stripHtml().replace(/^[^\p{L}\p{N}]+/u, '').trim());
+      return at.localeCompare(bt);
+
     } else if (option === "Views") {
       return b.views - a.views;
     }
