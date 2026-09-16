@@ -201,4 +201,41 @@ describe('LexiconEntryEditBox', () => {
     });
     expect(container.textContent).toContain('אָב');
   });
+
+  test('an earlier-started but later-resolving resolution does not overwrite a newer one', async () => {
+    // Deferred promises so resolution order can be controlled explicitly, independent of
+    // which request was started first -- this is the exact race the stale-response guard in
+    // LexiconEntryEditBox's useEffect protects against.
+    let resolveA, resolveB;
+    const pendingA = new Promise((res) => { resolveA = res; });
+    const pendingB = new Promise((res) => { resolveB = res; });
+
+    Sefaria.ref.mockImplementation((ref) => ({
+      categories: ['Dictionary'],
+      indexTitle: ref === 'ref-a' ? 'IndexA' : 'IndexB',
+      sectionRef: ref === 'ref-a' ? 'IndexA, HeadwordA' : 'IndexB, HeadwordB',
+    }));
+    Sefaria.getIndexDetails.mockImplementation((indexTitle) => (indexTitle === 'IndexA' ? pendingA : pendingB));
+
+    mount(React.createElement(LexiconEntryEditBox, { currentlyVisibleRef: 'ref-a', children: (id) => id.headword }));
+    expect(container.textContent).toBe('loading');
+
+    // Navigate to ref-b before ref-a's request resolves.
+    await act(async () => {
+      ReactDOM.render(
+        React.createElement(LexiconEntryEditBox, { currentlyVisibleRef: 'ref-b', children: (id) => id.headword }),
+        container
+      );
+    });
+    expect(container.textContent).toBe('loading');
+
+    // ref-b resolves first (it's the current one).
+    await act(async () => { resolveB({ lexiconName: 'Lexicon B' }); });
+    expect(container.textContent).toContain('HeadwordB');
+
+    // ref-a's stale response finally arrives -- must not overwrite ref-b's already-applied identity.
+    await act(async () => { resolveA({ lexiconName: 'Lexicon A' }); });
+    expect(container.textContent).toContain('HeadwordB');
+    expect(container.textContent).not.toContain('HeadwordA');
+  });
 });

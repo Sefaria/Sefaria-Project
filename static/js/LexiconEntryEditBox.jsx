@@ -78,8 +78,15 @@ const LexiconEntryEditBox = ({ currentlyVisibleRef, children }) => {
   const [identity, setIdentity] = useState(undefined);  // undefined: loading, null: not a dictionary entry
 
   useEffect(() => {
+    let stale = false;
     setIdentity(undefined);
-    resolveLexiconEntryRef(currentlyVisibleRef).then(setIdentity);
+    resolveLexiconEntryRef(currentlyVisibleRef).then(resolved => {
+      // currentlyVisibleRef can change again before this resolves (e.g. the user navigates
+      // through several entries quickly) -- an earlier-started but later-resolving call must
+      // not overwrite the identity a more recent call already set.
+      if (!stale) { setIdentity(resolved); }
+    });
+    return () => { stale = true; };
   }, [currentlyVisibleRef]);
 
   if (identity === undefined) {

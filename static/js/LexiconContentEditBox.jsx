@@ -6,18 +6,24 @@ import { LoadingMessage } from './Misc';
 import LexiconEntryEditBox, { useLexiconEntrySave, CurrentHeadwordDisplay, SaveButton } from './LexiconEntryEditBox';
 
 
-const ContentEditor = ({ identity }) => {
+export const ContentEditor = ({ identity }) => {
   const [initialDraft, setInitialDraft] = useState(undefined);  // undefined: loading
 
   useEffect(() => {
+    let stale = false;
+    setInitialDraft(undefined);
     const url = `/api/lexicon-entry/${encodeURIComponent(identity.lexiconName)}/${encodeURIComponent(identity.headword)}`;
     Sefaria.apiRequestWithBody(url, null, null, "GET").then(data => {
+      // identity can change again before this resolves -- an earlier-started but
+      // later-resolving fetch must not overwrite content a more recent one already loaded.
+      if (stale) { return; }
       const draft = {};
       data.content_attr_names.forEach(attr => {
         if (attr in data.entry) { draft[attr] = data.entry[attr]; }
       });
       setInitialDraft(draft);
     });
+    return () => { stale = true; };
   }, [identity.lexiconName, identity.headword]);
 
   if (initialDraft === undefined) {

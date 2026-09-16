@@ -44,7 +44,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import Sefaria from '../sefaria/sefaria';
-import LexiconContentEditBox from '../LexiconContentEditBox';
+import LexiconContentEditBox, { ContentEditor } from '../LexiconContentEditBox';
 
 let container = null;
 
@@ -104,6 +104,47 @@ describe('loading the entry', () => {
     await mount('BDB, שָׁמַר');
 
     expect(editorData()).toEqual({ content: { senses: [] } });
+  });
+
+  test('an earlier-started but later-resolving GET does not overwrite a newer entry\'s content', async () => {
+    // Renders ContentEditor directly (not through LexiconContentEditBox/LexiconEntryEditBox):
+    // that wrapper resets its own identity state to undefined -- and therefore unmounts
+    // ContentEditor -- on every currentlyVisibleRef change, which would mask whether
+    // ContentEditor's OWN stale-response guard actually does anything (React silently drops
+    // a setState from an already-unmounted component regardless of any explicit guard).
+    // Rendering ContentEditor directly with a changing `identity` prop, with no unmount in
+    // between, is what actually exercises its guard.
+    let resolveFirst, resolveSecond;
+    const pendingFirst = new Promise((res) => { resolveFirst = res; });
+    const pendingSecond = new Promise((res) => { resolveSecond = res; });
+    const urlFor = (headword) => `/api/lexicon-entry/${encodeURIComponent('BDB Dictionary')}/${encodeURIComponent(headword)}`;
+    Sefaria.apiRequestWithBody.mockImplementation((url) => (url === urlFor('שָׁמַר') ? pendingFirst : pendingSecond));
+
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    await act(async () => {
+      ReactDOM.render(React.createElement(ContentEditor, { identity: { lexiconName: 'BDB Dictionary', headword: 'שָׁמַר' } }), container);
+    });
+    expect(container.textContent).toBe('loading');
+
+    // Same component instance, new identity prop -- no unmount, unlike going through the
+    // full LexiconContentEditBox tree.
+    await act(async () => {
+      ReactDOM.render(React.createElement(ContentEditor, { identity: { lexiconName: 'BDB Dictionary', headword: 'אָב' } }), container);
+    });
+    expect(container.textContent).toBe('loading');
+
+    // The second (current) entry's GET resolves first.
+    await act(async () => {
+      resolveSecond({ entry: { headword: 'אָב', content: { senses: ['second'] } }, content_attr_names: ['content'] });
+    });
+    expect(editorData()).toEqual({ content: { senses: ['second'] } });
+
+    // The first (stale) entry's GET finally resolves -- must not overwrite the current draft.
+    await act(async () => {
+      resolveFirst({ entry: { headword: 'שָׁמַר', content: { senses: ['first'] } }, content_attr_names: ['content'] });
+    });
+    expect(editorData()).toEqual({ content: { senses: ['second'] } });
   });
 });
 
