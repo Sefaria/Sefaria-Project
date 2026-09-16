@@ -45,7 +45,7 @@ from django.utils.translation import gettext as _, ngettext_lazy
 from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError
-from sefaria.constants.model import VOICES_MODULE
+from sefaria.constants.model import VOICES_MODULE, LIBRARY_ASSISTANT_SETTING_KEY
 from functools import reduce
 
 if not hasattr(sys, '_doc_build'):
@@ -60,7 +60,7 @@ if not hasattr(sys, '_doc_build'):
 from . import abstract as abst
 from sefaria.model.following import FollowersSet, FolloweesSet, general_follow_recommendations
 from sefaria.model.blocking import BlockersSet, BlockeesSet
-from sefaria.model.text import Ref, TextChunk
+from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
@@ -194,9 +194,11 @@ class UserHistory(abst.AbstractMongoRecord):
                 if ref.is_sheet():
                     d.update(get_sheet_listing_data(d["sheet_id"]))
                 else:
+                    # Keyed by direction, not real language -- this still carries the old en/he-as-
+                    # ltr/rtl dichotomy rather than genuine source/translation, unlike the main reader.
                     d["text"] = {
-                        "en": TextChunk(ref, "en").as_sized_string(),
-                        "he": TextChunk(ref, "he").as_sized_string()
+                        "en": ref.text(direction="ltr").as_sized_string(),
+                        "he": ref.text(direction="rtl").as_sized_string()
                     }
             except Exception as e:
                 logger.warning("Failed to retrieve text for history Ref: {}".format(d['ref']))
@@ -441,14 +443,22 @@ class UserProfile(object):
             # with the mongo database. This is an existing issue; a 'new user' will be populated with 'old user'
             # data from a nonexistent user (in postgres)
             self.update(profile, ignore_flags_on_init=True)
-        elif self.exists() and not user_registration:
-            # If we encounter a user that has a Django user record but not a profile document
-            # create a profile for them. This allows two enviornments to share a user database,
-            # while maintaining separate profiles (e.g. Sefaria and S4D).
-            self.show_editor_toggle = False
-            self.uses_new_editor = True
-            self.assign_slug()
-            self.save()
+        else:
+            # A profile being created for the first time starts with the Library Assistant
+            # on. Written here, the one point every creation path passes through, and not
+            # as a settings default: an existing doc without the key would read a default
+            # as its value and persist it on its next save. Reading the key from
+            # sefaria.constants rather than from sefaria.helper.library_assistant keeps
+            # this module free of an import back from the helper, which imports it.
+            self.settings[LIBRARY_ASSISTANT_SETTING_KEY] = True
+            if self.exists() and not user_registration:
+                # If we encounter a user that has a Django user record but not a profile document
+                # create a profile for them. This allows two enviornments to share a user database,
+                # while maintaining separate profiles (e.g. Sefaria and S4D).
+                self.show_editor_toggle = False
+                self.uses_new_editor = True
+                self.assign_slug()
+                self.save()
 
     @property
     def full_name(self):

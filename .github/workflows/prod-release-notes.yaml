@@ -1,0 +1,236 @@
+name: "Prod Release Notes"
+
+# Fires when the prod rollout-complete AnalysisTemplate (see
+# helm-chart/sefaria/templates/analysistemplate/rollout-complete.yaml) confirms
+# Argo Rollouts' post-promotion analysis passed for prod — i.e. the new
+# revision's pods are up and its health checks are green. That job relays a
+# repository_dispatch here, carrying the deployed `version` and `chartVersion`.
+#
+# From there this workflow is a strict pipeline of deterministic scripts, with
+# exactly one step handed to an LLM:
+#   1. build/ci/shipped_stories.py resolves the prod/* tag range for that
+#      version (chartVersion disambiguates a chart-only rollout, where several
+#      tags share the same app version), walks git log between the tags, and
+#      hydrates the Shortcut stories those commits reference.
+#   2. build/ci/mark_stories_deployed.py moves each of those stories from
+#      Deploy Ready -> Done via the Shortcut API. A failure here (missing
+#      token, API error, nothing to move) is surfaced as a warning but never
+#      blocks steps 3-4 — see "Mark shipped stories as deployed" below.
+#   3. The sefaria-release-notes skill (.claude/skills/sefaria-release-notes/)
+#      reads that JSON and writes prose only — it does not talk to GitHub or
+#      Shortcut.
+#   4. scripts/post_to_slack.py posts both generated files to Slack.
+#
+# Manual setup this depends on: see build/ci/README-prod-release-notes.md
+
+on:
+  repository_dispatch:
+    types: [prod-rollout-succeeded]
+  # repository_dispatch only ever runs the DEFAULT branch's copy of a
+  # workflow, so without workflow_dispatch there is no way to exercise this
+  # path at all before a change here merges, and no way to re-run it for a
+  # past release (e.g. after fixing a bug in one of the scripts below).
+  workflow_dispatch:
+    inputs:
+      # rollout-complete.yaml strips a leading "v" before building the
+      # repository_dispatch payload, so `inputs.version` is expected bare
+      # too (e.g. 6.111.0-prod.2, not v6.111.0-prod.2) -- both so the
+      # concurrency group below dedupes correctly across the two trigger
+      # paths, and for consistency with the dispatch payload. The Resolve
+      # step still strips a leading "v" defensively if one sneaks in.
+      version:
+        description: "Deployed prod version, e.g. 6.111.0-prod.2 (bare, no leading v)"
+        required: true
+        type: string
+      chart_version:
+        description: "Chart version, e.g. 0.87.5-prod.1 (optional -- disambiguates a chart-only rollout of the same version)"
+        required: false
+        type: string
+      dry_run:
+        description: "Run mark_stories_deployed.py with --dry-run (no Shortcut writes)"
+        required: false
+        type: boolean
+        default: true
+
+# A pod retry (the AnalysisTemplate Job has backoffLimit: 1) can re-fire the
+# repository_dispatch for the same version, and a manual workflow_dispatch
+# re-run could race a real dispatch for that same version. Serialize on
+# version so duplicate runs queue instead of double-posting to Slack.
+#
+# This group key is built from the RAW trigger value, before the Resolve
+# step below can strip a leading "v" -- GitHub Actions expressions have no
+# string-replace function, so normalization has to happen at the source
+# instead (rollout-complete.yaml strips "v" in the dispatch payload) for
+# repository_dispatch and workflow_dispatch to actually dedupe against each
+# other for the same release.
+concurrency:
+  group: prod-release-notes-${{ github.event.client_payload.version || inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  generate-and-post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          # shipped_stories.py resolves the shipped commit range from prod/*
+          # git tags, so the checkout needs the tags themselves, not just full
+          # commit history.
+          fetch-tags: true
+
+      - name: Resolve version
+        id: resolve
+        env:
+          DISPATCH_VERSION: ${{ github.event.client_payload.version }}
+          DISPATCH_CHART_VERSION: ${{ github.event.client_payload.chartVersion }}
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_CHART_VERSION: ${{ inputs.chart_version }}
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            RAW_VERSION="$INPUT_VERSION"
+            CHART_VERSION="$INPUT_CHART_VERSION"
+          else
+            RAW_VERSION="$DISPATCH_VERSION"
+            CHART_VERSION="$DISPATCH_CHART_VERSION"
+          fi
+
+          # rollout-complete.yaml's `version` arg is expected bare (it strips
+          # a leading "v" before building the dispatch payload -- see the
+          # concurrency.group comment above), but this strip stays as a
+          # defensive fallback in case a leading "v" ever sneaks in (e.g. a
+          # manual workflow_dispatch typo).
+          VERSION="${RAW_VERSION#v}"
+
+          if [[ -z "$VERSION" ]]; then
+            echo "ERROR: could not resolve a non-empty version from the trigger (repository_dispatch client_payload.version or workflow_dispatch input.version)." >&2
+            exit 1
+          fi
+
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "chart_version=${CHART_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: ${VERSION} (chart: ${CHART_VERSION:-none})"
+
+      - name: Determine shipped stories
+        id: shipped
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHORTCUT_API_TOKEN: ${{ secrets.SHORTCUT_API_TOKEN }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+          CHART_VERSION: ${{ steps.resolve.outputs.chart_version }}
+        run: |
+          ARGS=(--version "$VERSION" --out shipped-stories.json)
+          if [[ -n "$CHART_VERSION" ]]; then
+            ARGS+=(--chart-version "$CHART_VERSION")
+          fi
+          python3 build/ci/shipped_stories.py "${ARGS[@]}"
+
+      - name: Mark shipped stories as deployed
+        id: mark_deployed
+        # A Shortcut bookkeeping failure (missing token, API error, or the
+        # silent-no-op guard's sys.exit(2)) must never skip release-notes
+        # generation and Slack posting for an otherwise healthy rollout --
+        # moving stories to Done and announcing the release are independent
+        # concerns. continue-on-error surfaces the failure via
+        # steps.mark_deployed.outcome below instead of failing the job.
+        continue-on-error: true
+        env:
+          SHORTCUT_API_TOKEN: ${{ secrets.SHORTCUT_API_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          DRY_RUN_INPUT: ${{ inputs.dry_run }}
+        run: |
+          ARGS=(--input shipped-stories.json)
+          if [[ "$EVENT_NAME" == "workflow_dispatch" && "$DRY_RUN_INPUT" == "true" ]]; then
+            ARGS+=(--dry-run)
+          fi
+          python3 build/ci/mark_stories_deployed.py "${ARGS[@]}"
+
+      - name: Warn if Shortcut bookkeeping failed
+        if: steps.mark_deployed.outcome == 'failure'
+        run: |
+          echo "::warning::mark_stories_deployed.py failed -- shipped Shortcut stories were NOT moved Deploy Ready -> Done for this release. Release notes generation is continuing anyway. Check this run's 'Mark shipped stories as deployed' step and move the affected stories manually."
+
+      - name: Alert Slack if Shortcut bookkeeping failed
+        if: steps.mark_deployed.outcome == 'failure'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+        run: |
+          curl -s -X POST -H 'Content-type: application/json' \
+            --data "{\"text\": \":warning: Prod release notes for version ${VERSION:-unknown}: mark_stories_deployed.py failed -- shipped Shortcut stories were NOT moved Deploy Ready -> Done. Release notes generation is continuing. Check the workflow run and move the affected stories manually.\"}" \
+            "$SLACK_WEBHOOK_URL" || true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code
+
+      - name: Generate release notes (headless Claude Code)
+        id: generate
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [[ -z "$ANTHROPIC_API_KEY" ]]; then
+            echo "ERROR: ANTHROPIC_API_KEY is empty. Set that secret under repo Settings -> Secrets and variables -> Actions." >&2
+            exit 1
+          fi
+
+          mkdir -p release-notes-output
+          # --allowedTools instead of --dangerously-skip-permissions: the
+          # input (shipped-stories.json) embeds contributor-controlled text
+          # (commit subjects, branch names, Shortcut free text), which is a
+          # prompt-injection path. This agent must never hold Bash or
+          # network tools, so the fix is least-privilege tool scoping at the
+          # provisioning layer, not content filtering.
+          claude -p "Use the sefaria-release-notes skill (.claude/skills/sefaria-release-notes/SKILL.md). Generate release notes from the shipped-stories JSON file at shipped-stories.json. Output directory: release-notes-output/. Do not ask any clarifying questions — proceed with defaults documented in the skill's Edge Cases table." \
+            --allowedTools "Read,Write,Glob,Grep"
+
+          if [[ ! -s release-notes-output/release-notes-tech-slack.txt ]]; then
+            echo "ERROR: release-notes-tech-slack.txt missing or empty." >&2
+            exit 1
+          fi
+          echo "generated=true" >> "$GITHUB_OUTPUT"
+
+      - name: Post tech notes to Slack
+        if: steps.generate.outputs.generated == 'true'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+        run: |
+          python3 scripts/post_to_slack.py --file release-notes-output/release-notes-tech-slack.txt
+
+      - name: Post product notes to Slack
+        if: steps.generate.outputs.generated == 'true'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_PRODUCT_WEBHOOK }}
+        run: |
+          # Guarded in the script body, not in `if:` — a step's own `env` block
+          # is not reliably visible to that same step's `if` expression, so
+          # `env.SLACK_PRODUCT_WEBHOOK != ''` there silently evaluates empty and
+          # the step never runs. Until the second webhook exists this is a
+          # deliberate no-op that must not fail the workflow.
+          if [[ -z "$SLACK_WEBHOOK_URL" ]]; then
+            echo "SLACK_PRODUCT_WEBHOOK is not set — skipping the release announcement post."
+            exit 0
+          fi
+          if [[ ! -s release-notes-output/release-announcement-product-slack.txt ]]; then
+            echo "release-announcement-product-slack.txt missing or empty — the LLM wrote the tech notes but not the product notes. Skipping the product post (tech notes already posted)."
+            exit 0
+          fi
+          python3 scripts/post_to_slack.py --file release-notes-output/release-announcement-product-slack.txt
+
+      - name: Notify Slack on failure
+        if: failure()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_DEPLOY_WEBHOOK }}
+          VERSION: ${{ steps.resolve.outputs.version }}
+        run: |
+          curl -s -X POST -H 'Content-type: application/json' \
+            --data "{\"text\": \":warning: Prod rollout succeeded, but release-notes generation failed (version ${VERSION:-unknown}). Check the Prod Release Notes workflow run.\"}" \
+            "$SLACK_WEBHOOK_URL" || true

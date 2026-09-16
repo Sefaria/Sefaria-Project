@@ -2,7 +2,8 @@
 from typing import Optional
 
 import structlog
-from sefaria.model.text import Ref, TextChunk, Version
+from sefaria.model.text import Ref, Version
+from sefaria.constants.model import get_direction_from_legacy_lang
 
 
 logger = structlog.get_logger(__name__)
@@ -76,14 +77,16 @@ class MarkedUpTextChunkGenerator:
         lang_title_pairs = [(version.language, version.versionTitle)
                     for version in segment_ref.versionset().array()]
         for lang, vtitle in lang_title_pairs:
-            text_chunk = TextChunk(segment_ref, lang=lang, vtitle=vtitle)
+            direction = get_direction_from_legacy_lang(lang)
+            text_chunk = segment_ref.text(direction=direction, vtitle=vtitle)
             if not text_chunk.text:
                 logger.debug(f"No text found for {segment_ref.normal()}, {vtitle}, {lang}")
                 continue
             self.generate(segment_ref, lang, vtitle)
 
     def _generate_single_segment_version(self, segment_ref: Ref, lang: str, vtitle: str) -> None:
-        text_chunk = TextChunk(segment_ref, lang=lang, vtitle=vtitle)
+        direction = get_direction_from_legacy_lang(lang)
+        text_chunk = segment_ref.text(direction=direction, vtitle=vtitle)
         if not text_chunk.text:
             logger.debug(f"No text found for {segment_ref.normal()}, {vtitle}, {lang}")
             return

@@ -135,6 +135,7 @@ const buildLocalizedQueryBlock = (contentType, filtersExpression, fieldsSelectio
           ${locale}_${contentType}: ${contentType}(
             locale: "${locale}"
             filters: ${filtersExpression}
+            pagination: { limit: -1 }
           ) {
             ${fieldsSelection}
           }
