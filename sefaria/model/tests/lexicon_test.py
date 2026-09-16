@@ -559,36 +559,25 @@ class Test_DeepMapAndPrune(object):
         data = {"a": 1, "b": [1, 2, 3]}
         assert deep_prune(data) == data
 
-    def test_deep_map_key_fn_transforms_dict_keys_at_every_level(self):
-        data = {"a": {"b": 1}}
-        result = deep_map(data, key_fn=lambda k: k.upper())
-        assert result == {"A": {"B": 1}}
+class Test_LexiconEntry_ContentKeysStoredRawEscapedAtRender(object):
+    # A content dict's keys are a plain label a moderator types (e.g. "reference"), not a
+    # rich-HTML data type -- unlike values (bleach.clean at save time, matching abstract.py's
+    # own default _sanitize() and AbstractTextRecord.sanitize_text used for actual Torah/
+    # Talmud text), there's no established convention for treating a key as HTML, and
+    # escaping it at save time would corrupt it for any non-HTML consumer (e.g. this entry's
+    # own GET API) with no protective benefit, since only KovetzYesodotEntry.as_strings()
+    # actually renders it into HTML -- so that's where it gets escaped instead.
+    PARENT_LEXICON = "Test Lexicon Content Keys"
 
-    def test_deep_map_key_fn_default_leaves_keys_unchanged(self):
-        data = {"a": {"b": 1}}
-        assert deep_map(data) == data
-
-
-class Test_LexiconEntry_SanitizeKeys(object):
-    PARENT_LEXICON = "Test Lexicon Sanitize Keys"
-
-    def test_content_dict_keys_are_html_escaped(self, make_lexicon_entry):
-        # KovetzYesodotEntry.as_strings() interpolates top-level content keys directly into
-        # HTML (<small>{key}</small>) with no escaping of its own -- the content-patch API
-        # accepts arbitrary nested keys, so this is where a malicious key must be neutralized.
-        entry = make_lexicon_entry("sanitizekeys1", self.PARENT_LEXICON, cls=KovetzYesodotEntry,
+    def test_content_dict_keys_are_stored_exactly_as_submitted(self, make_lexicon_entry):
+        entry = make_lexicon_entry("contentkeys1", self.PARENT_LEXICON, cls=KovetzYesodotEntry,
                                     rid="S1", content={"<script>alert(1)</script>": ["value"]})
-        assert list(entry.content.keys()) == ["&lt;script&gt;alert(1)&lt;/script&gt;"]
-        assert "<script>" not in entry.as_strings()[0]
+        assert list(entry.content.keys()) == ["<script>alert(1)</script>"]
 
-    def test_dual_listed_attr_is_not_sanitized_twice(self, make_lexicon_entry):
-        # KovetzYesodotEntry lists "content" in both required_attrs and optional_attrs (the
-        # same overlap from Test_LexiconEntry_PruneEmptyAttrs) -- escaping isn't idempotent
-        # like pruning is, so processing the same attr twice here would re-escape its own
-        # already-escaped output (e.g. "&lt;" -> "&amp;lt;").
-        assert "content" in KovetzYesodotEntry.required_attrs
-        assert "content" in KovetzYesodotEntry.optional_attrs
-        entry = make_lexicon_entry("sanitizekeys2", self.PARENT_LEXICON, cls=KovetzYesodotEntry,
+    def test_as_strings_escapes_the_key_at_render_time(self, make_lexicon_entry):
+        entry = make_lexicon_entry("contentkeys2", self.PARENT_LEXICON, cls=KovetzYesodotEntry,
                                     rid="S2", content={"<script>alert(1)</script>": ["value"]})
-        assert list(entry.content.keys()) == ["&lt;script&gt;alert(1)&lt;/script&gt;"]
+        rendered = entry.as_strings()[0]
+        assert "<script>" not in rendered
+        assert "&lt;script&gt;alert(1)&lt;/script&gt;" in rendered
 

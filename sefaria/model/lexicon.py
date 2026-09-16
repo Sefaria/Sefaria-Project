@@ -210,15 +210,16 @@ class LexiconEntry(abst.AbstractMongoRecord):
     def _sanitize(self):
         # Recurses via deep_map because the inherited generic _sanitize() only bleaches
         # top-level string attrs -- content is a dict, so it would be skipped entirely.
-        # key_fn escapes dict keys too: KovetzYesodotEntry.as_strings() interpolates
-        # top-level content keys directly into HTML (<small>{key}</small>) with no escaping
-        # of its own, and the content-patch API accepts arbitrary nested keys -- html.escape
-        # rather than bleach.clean since a key is a plain label, never rich content, so there's
-        # no tag it should legitimately be allowed to contain.
+        # Dict keys are deliberately NOT escaped here: unlike values, a content dict's keys
+        # aren't a "rich HTML" data type with an established sanitize-at-save convention
+        # elsewhere in this codebase (bleach.clean on values matches abstract.py's own
+        # default _sanitize() and AbstractTextRecord.sanitize_text, used for actual Torah/
+        # Talmud text) -- a key is a plain label, and escaping it at save time would corrupt
+        # it for any non-HTML consumer (e.g. this entry's own GET API) for no benefit, since
+        # nothing reads it back and re-escapes it except the one place that actually renders
+        # it into HTML (KovetzYesodotEntry.as_strings(), which escapes it there instead).
         # set() dedupes: some subclasses list an attr (e.g. "content") in both required_attrs
-        # and optional_attrs -- escaping isn't idempotent like pruning is, so processing the
-        # same attr twice here would re-escape its own already-escaped output. Order doesn't
-        # matter: each attr is sanitized independently of every other.
+        # and optional_attrs -- harmless for idempotent bleach, but wasteful to process twice.
         # content_patch_excluded_attrs (headword, parent_lexicon, prev_hw, next_hw, rid,
         # quotes) are identity/pointer fields, not rich content -- bleaching them doesn't
         # protect anything (prev_hw/next_hw are never rendered raw, they're exact-match
@@ -231,7 +232,6 @@ class LexiconEntry(abst.AbstractMongoRecord):
                 setattr(self, attr, deep_map(
                     getattr(self, attr),
                     leaf_fn=lambda v: bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS) if isinstance(v, str) else v,
-                    key_fn=lambda k: html.escape(k) if isinstance(k, str) else k,
                 ))
 
     def content_attr_names(self):
@@ -494,7 +494,10 @@ class KovetzYesodotEntry(DictionaryEntry):
             strings.append(self.headword_string())
         for key, value in self.content.items():
             if key != 'reference':
-                strings.append(f'<br><small>{key}</small>')
+                # escaped here, not at save time: a content key is a plain label typed by a
+                # moderator, stored exactly as entered, and only needs to be safe at the one
+                # place it's actually interpolated into HTML -- here.
+                strings.append(f'<br><small>{html.escape(key)}</small>')
             strings += value
         return ['<br>'.join(strings)]
 
