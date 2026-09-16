@@ -1,5 +1,5 @@
 import { Page, expect } from "@playwright/test";
-import { LANGUAGES, testUser } from "../globals";
+import { LANGUAGES, t, testUser } from "../globals";
 import { HelperBase } from "./helperBase";
 import { changeLanguage, clickContinueWithEmail } from "../utils";
 
@@ -36,7 +36,30 @@ export class LoginPage extends HelperBase{
 
         // await for the page to load after login
         await this.page.waitForLoadState('domcontentloaded');
+
+        // The auth form posts via XHR and re-renders in place, so the browser can
+        // still be sitting on /login with no navigation pending when the click
+        // resolves — waitForLoadState() returns immediately in that state. Gate on
+        // the session cookie so callers (and changeLanguage's navigation below,
+        // which would otherwise cancel the in-flight POST) only run once the
+        // server has actually issued a session.
+        await this.waitForSession();
+
         await changeLanguage(this.page, this.language);
+    }
+
+    /** Poll until the login POST has issued a `sessionid` cookie. */
+    private async waitForSession(timeoutMs: number = t(30000)) {
+        const deadline = Date.now() + timeoutMs;
+        while (Date.now() < deadline) {
+            const cookies = await this.page.context().cookies();
+            if (cookies.some(c => c.name === 'sessionid' && c.value)) return;
+            await this.page.waitForTimeout(250);
+        }
+        throw new Error(
+            `Login did not produce a 'sessionid' cookie within ${timeoutMs}ms ` +
+            `(URL: ${this.page.url()}). The credentials were rejected or the form never submitted.`
+        );
     }
 
 }

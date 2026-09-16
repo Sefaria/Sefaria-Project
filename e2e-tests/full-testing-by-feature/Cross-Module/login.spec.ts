@@ -123,7 +123,7 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await libraryPage!.close();
   });
 
-  test('XMOD-L04: Multiple Library tabs - attempt login on second tab shows error', async ({ context }) => {
+  test('XMOD-L04: Multiple Library tabs - second tab is redirected off /login while logged in', async ({ context }) => {
     // XMOD-L04: Multiple Library tabs
     // Open first Library tab (not logged in)
     const libraryTab1 = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
@@ -152,14 +152,18 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await libraryTab2.goto(`${MODULE_URLS.EN.LIBRARY}/login?next=%2Ftexts`);
     await libraryTab2.waitForLoadState('domcontentloaded');
 
-    // Verify error message appears
-    const errorText = libraryTab2.locator('text=/You are already logged in as/i');
-    await expect(errorText).toBeVisible({ timeout: t(10000) });
+    // An already-authenticated visit to /login no longer renders a "You are already
+    // logged in as ..." interstitial — CustomLoginView.get (sefaria/views.py) now
+    // redirects an authenticated user straight to "/". Assert that contract: the
+    // second tab is bounced off /login and is recognised as logged in.
+    await expect(libraryTab2).not.toHaveURL(/\/login/, { timeout: t(10000) });
+    await hideAllModalsAndPopups(libraryTab2);
+    expect(await isUserLoggedIn(libraryTab2)).toBe(true);
 
     await libraryTab1.close();
     await libraryTab2.close();
   });
-  test('XMOD-L05: Multiple Voices tabs - attempt login on second tab shows error', async ({ context }) => {
+  test('XMOD-L05: Multiple Voices tabs - second tab is redirected off /login while logged in', async ({ context }) => {
     // XMOD-L05: Multiple Voices tabs
     // Open first Voices tab (not logged in)
     const voicesTab1 = await goToPageWithLang(context, MODULE_URLS.EN.VOICES, LANGUAGES.EN);
@@ -188,9 +192,13 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await voicesTab2.goto(`${MODULE_URLS.EN.VOICES}/login?next=%2F`);
     await voicesTab2.waitForLoadState('domcontentloaded');
 
-    // Verify error message appears
-    const errorTextVoices = voicesTab2.locator('text=/You are already logged in as/i');
-    await expect(errorTextVoices).toBeVisible({ timeout: t(10000) });
+    // An already-authenticated visit to /login no longer renders a "You are already
+    // logged in as ..." interstitial — CustomLoginView.get (sefaria/views.py) now
+    // redirects an authenticated user straight to "/". Assert that contract: the
+    // second tab is bounced off /login and is recognised as logged in.
+    await expect(voicesTab2).not.toHaveURL(/\/login/, { timeout: t(10000) });
+    await hideAllModalsAndPopups(voicesTab2);
+    expect(await isUserLoggedIn(voicesTab2)).toBe(true);
 
     await voicesTab1.close();
     await voicesTab2.close();
@@ -229,9 +237,12 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await voicesTab.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(voicesTab);
 
-    // Verify error message appears
-    const errorText1 = voicesTab.locator('text=/You are already logged in as/i');
-    await expect(errorText1).toBeVisible({ timeout: t(10000) });
+    // An already-authenticated visit to /login no longer renders a "You are already
+    // logged in as ..." interstitial — CustomLoginView.get (sefaria/views.py) now
+    // redirects an authenticated user straight to "/". Assert that contract: the
+    // second tab is bounced off /login and is recognised as logged in.
+    await expect(voicesTab).not.toHaveURL(/\/login/, { timeout: t(10000) });
+    expect(await isUserLoggedIn(voicesTab)).toBe(true);
 
     await libraryTab.close();
     await voicesTab.close();
@@ -269,9 +280,12 @@ test.describe('Cross-Module — Login & auth persistence', () => {
     await libraryTab2.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(libraryTab2);
 
-    // Verify error message appears
-    const errorText2 = libraryTab2.locator('text=/You are already logged in as/i');
-    await expect(errorText2).toBeVisible({ timeout: t(10000) });
+    // An already-authenticated visit to /login no longer renders a "You are already
+    // logged in as ..." interstitial — CustomLoginView.get (sefaria/views.py) now
+    // redirects an authenticated user straight to "/". Assert that contract: the
+    // second tab is bounced off /login and is recognised as logged in.
+    await expect(libraryTab2).not.toHaveURL(/\/login/, { timeout: t(10000) });
+    expect(await isUserLoggedIn(libraryTab2)).toBe(true);
 
     await libraryTab2.close();
     await voicesTab2.close();

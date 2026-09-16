@@ -6,7 +6,7 @@
  */
 
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups } from '../utils';
+import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups, clickContinueWithEmail } from '../utils';
 import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import {
@@ -112,9 +112,12 @@ test.describe('Library Module Header Tests - English', () => {
     // Dismiss any leftover overlays and give the login form time to render
     await hideAllModalsAndPopups(page);
     await page.waitForTimeout(t(500));
-    // Use placeholders which are reliable across login implementations
-    await expect(page.getByPlaceholder('Email Address')).toBeVisible({ timeout: t(15000) });
-    await expect(page.getByPlaceholder('Password')).toBeVisible({ timeout: t(15000) });
+    // /login opens on AuthPage's ChooseView — the email/password fields are only
+    // mounted after "Continue with Email". Assert on the labels, not placeholders:
+    // the placeholders are format hints ("you@example.com", "••••••••").
+    await clickContinueWithEmail(page, LANGUAGES.EN);
+    await expect(page.getByLabel('Email Address')).toBeVisible({ timeout: t(15000) });
+    await expect(page.getByLabel('Password')).toBeVisible({ timeout: t(15000) });
   });
 
   test('MOD-H008: Browser navigation controls (back/forward buttons)', async () => {

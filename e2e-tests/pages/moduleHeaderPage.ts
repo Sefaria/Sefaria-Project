@@ -1,6 +1,7 @@
 import { expect, Page } from '@playwright/test';
 import { HelperBase } from './helperBase';
 import { hideAllModalsAndPopups, changeLanguage } from '../utils';
+import { LoginPage } from './loginPage';
 import { LANGUAGES, t } from '../globals';
 import {
   MODULE_SELECTORS,
@@ -154,11 +155,13 @@ export class ModuleHeaderPage extends HelperBase {
     // Ensure any overlays are dismissed on the login page before interacting with the form
     await hideAllModalsAndPopups(this.page);
 
-    await this.page.getByPlaceholder('Email Address').fill(credentials.email);
-    await this.page.getByPlaceholder('Password').fill(credentials.password);
-    await this.page.getByRole('button', { name: 'Login' }).click();
-
-    await this.page.waitForLoadState('domcontentloaded');
+    // Delegate to LoginPage rather than re-implementing the form here. /login now
+    // opens on AuthPage's ChooseView (provider buttons + "Continue with Email"),
+    // so the email/password fields don't exist until that button is clicked — and
+    // the fields are labelled ("Email Address" / "Password") with placeholders that
+    // are just format hints ("you@example.com", "••••••••"), so the old
+    // getByPlaceholder('Email Address') / button "Login" selectors match nothing.
+    await new LoginPage(this.page, LANGUAGES.EN).loginAs(credentials);
   }
 
   async isLoggedIn(): Promise<boolean> {

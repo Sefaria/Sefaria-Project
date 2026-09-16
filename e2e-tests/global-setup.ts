@@ -40,6 +40,59 @@ const userGroups: { credentials: Credentials; profiles: Profile[]; label: string
   { label: 'testHeLAUser',  credentials: creds('PLAYWRIGHT_LA_USER_HE_EMAIL', 'PLAYWRIGHT_LA_USER_HE_PASSWORD'), profiles: [BROWSER_SETTINGS.heLAUser], site: 'IL' },
 ];
 
+// Sefaria canonicalizes a bare apex host to its `www.` form (sefariapreprod.org
+// -> www.sefariapreprod.org), so a strict hostname comparison flags that normal
+// redirect as a failure. What these guards actually care about is the *site*:
+// staying on `.org` vs. being geo-bounced to `.org.il`. Compare on the
+// www-stripped host so the apex->www hop is a no-op.
+const siteHost = (host: string) => host.replace(/^www\./, '');
+const sameSite = (a: string, b: string) => siteHost(a) === siteHost(b);
+
+// Wait until the login POST has actually issued a session.
+//
+// The auth form submits via XHR and re-renders in place, so the browser may still
+// be sitting on /login with no navigation pending when `loginAs` returns —
+// `waitForLoadState('domcontentloaded')` resolves immediately in that state.
+// Navigating before the POST settles cancels it and leaves the context
+// anonymous, so gate any post-login navigation on the cookie itself.
+async function waitForSessionCookie(page: any, timeoutMs: number) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const cookies = await page.context().cookies();
+    if (cookies.some((c: any) => c.name === 'sessionid' && c.value)) return;
+    await page.waitForTimeout(250);
+  }
+  throw new Error(
+    `No 'sessionid' cookie after ${timeoutMs}ms — the login form was submitted but the ` +
+    `server never issued a session (URL: ${page.url()}). Verify the credentials are valid.`
+  );
+}
+
+// Re-pin the logged-in account's *saved* Site-Language to the language of the
+// domain we just authenticated on.
+//
+// Sefaria's LanguageCookieMiddleware persists `interface_language` onto the user
+// profile on every authenticated `?set-language-cookie` hop (sefaria/system/
+// middleware.py). So any earlier run that drove a shared account through a
+// language switch leaves that choice saved on the account — enAdmin and heAdmin
+// are the SAME account, so one Hebrew switch permanently flips it. After that,
+// LanguageSettingsMiddleware bounces every `.org` page for that account to
+// `.org.il`, where the `.org` session cookie isn't sent and the user looks
+// logged out — global-setup's profile-pic oracle then times out even though the
+// login itself succeeded and issued a perfectly good `.org` session.
+//
+// Hitting the param explicitly re-pins the account to this domain's language and
+// makes setup self-healing regardless of how the previous run left the account.
+// LanguageCookieMiddleware is registered BEFORE LanguageSettingsMiddleware, so it
+// sees this request and rewrites the profile before the language router can
+// bounce us off-domain.
+async function pinAccountSiteLanguage(page: any, baseURL: string) {
+  await page.goto(`${baseURL}/texts?set-language-cookie`, {
+    waitUntil: 'domcontentloaded',
+    timeout: t(30000),
+  });
+}
+
 async function loginAndCaptureState(baseURL: string, credentials: Credentials) {
   const browser = await chromium.launch();
   try {
@@ -86,7 +139,7 @@ async function loginAndCaptureState(baseURL: string, credentials: Credentials) {
 
     // If geo still redirected us off-domain, fail loudly here rather than
     // time out later waiting for the email/password form.
-    if (new URL(page.url()).hostname !== baseHost) {
+    if (!sameSite(new URL(page.url()).hostname, baseHost)) {
       throw new Error(
         `[global-setup] /login redirected from ${baseHost} to ${new URL(page.url()).hostname}. ` +
         `Check that the interfaceLang cookie applied correctly on the parent domain.`
@@ -95,6 +148,9 @@ async function loginAndCaptureState(baseURL: string, credentials: Credentials) {
 
     const loginPage = new LoginPage(page, LANGUAGES.EN);
     await loginPage.loginAs(credentials);
+
+    await waitForSessionCookie(page, t(30000));
+    await pinAccountSiteLanguage(page, baseURL);
 
     // Authenticated-state oracle: the profile pic only renders for a logged-in
     // user. If this times out, the login failed — fail the whole suite now
@@ -155,7 +211,7 @@ async function loginAndCaptureStateIL(baseURL: string, credentials: Credentials)
     const loginPage = new LoginPage(page, LANGUAGES.HE);
     await loginPage.clickContinueWithEmail();
 
-    if (new URL(page.url()).hostname !== baseHost) {
+    if (!sameSite(new URL(page.url()).hostname, baseHost)) {
       throw new Error(
         `[global-setup] IL /login redirected from ${baseHost} to ${new URL(page.url()).hostname}. ` +
         `Check that the interfaceLang cookie applied on the parent domain.`
@@ -165,6 +221,10 @@ async function loginAndCaptureStateIL(baseURL: string, credentials: Credentials)
     await page.locator('input[name="email"]').first().fill(credentials.email);
     await page.locator('input[name="password"]').first().fill(credentials.password);
     await page.locator('input[name="password"]').first().press('Enter');
+    await page.waitForLoadState('domcontentloaded');
+
+    await waitForSessionCookie(page, t(30000));
+    await pinAccountSiteLanguage(page, baseURL);
 
     // Authenticated-state oracle: profile pic only renders for a logged-in user.
     try {
@@ -174,7 +234,7 @@ async function loginAndCaptureStateIL(baseURL: string, credentials: Credentials)
         .waitFor({ state: 'visible', timeout: t(30000) });
     } catch {
       const landedHost = new URL(page.url()).hostname;
-      if (landedHost !== baseHost) {
+      if (!sameSite(landedHost, baseHost)) {
         throw new Error(
           `IL login on ${baseHost} did not reach a logged-in state — after submitting the form ` +
           `the browser landed on ${landedHost} (URL: ${page.url()}). This is Sefaria's MDL ` +
