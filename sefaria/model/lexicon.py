@@ -180,7 +180,7 @@ class LexiconEntry(abst.AbstractMongoRecord):
             if not hasattr(self, attr):
                 continue
             pruned = deep_prune(getattr(self, attr))
-            if pruned in ("", {}, []) and attr not in self.required_attrs:
+            if pruned in ("", {}, [], None) and attr not in self.required_attrs:
                 delattr(self, attr)
             else:
                 setattr(self, attr, pruned)

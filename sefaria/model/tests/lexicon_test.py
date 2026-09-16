@@ -286,6 +286,14 @@ class Test_LexiconEntry_PruneEmptyAttrs(object):
         entry = make_lexicon_entry("prune-1", self.PARENT_LEXICON, notes="")
         assert not hasattr(entry, "notes")
 
+    def test_optional_attr_set_to_none_is_removed(self, make_lexicon_entry):
+        entry = make_lexicon_entry("prune-1b", self.PARENT_LEXICON, notes=None)
+        assert not hasattr(entry, "notes")
+
+    def test_nested_none_value_collapses_and_is_removed(self, make_lexicon_entry):
+        entry = make_lexicon_entry("prune-1c", self.PARENT_LEXICON, content={"morphology": None})
+        assert not hasattr(entry, "content")
+
     def test_nested_empty_content_collapses_and_is_removed(self, make_lexicon_entry):
         entry = make_lexicon_entry("prune-2", self.PARENT_LEXICON, content={"senses": [{"definition": ""}]})
         assert not hasattr(entry, "content")
@@ -579,6 +587,10 @@ class Test_DeepMapAndPrune(object):
     def test_deep_prune_removes_empty_leaves_and_collapsed_containers(self):
         data = {"a": {"b": ""}, "c": [1, "", {}], "d": "keep"}
         assert deep_prune(data) == {"c": [1], "d": "keep"}
+
+    def test_deep_prune_removes_none_values(self):
+        data = {"a": None, "b": [1, None, "keep"]}
+        assert deep_prune(data) == {"b": [1, "keep"]}
 
     def test_deep_prune_leaves_non_empty_untouched(self):
         data = {"a": 1, "b": [1, 2, 3]}

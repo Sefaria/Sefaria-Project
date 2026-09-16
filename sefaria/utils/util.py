@@ -163,7 +163,7 @@ def deep_map(value, leaf_fn=lambda v: v, after=lambda v: v):
     return leaf_fn(value)
 
 
-def deep_prune(value, is_empty=lambda v: v in ("", {}, [])):
+def deep_prune(value, is_empty=lambda v: v in ("", {}, [], None)):
     """
     Recursively rebuild a dict/list/leaf structure, dropping any dict/list entry whose
     (already-pruned) value is empty. Leaves are returned unchanged. Built on deep_map's
