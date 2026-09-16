@@ -173,12 +173,13 @@ class LexiconEntry(abst.AbstractMongoRecord):
 
     def _prune_empty_attrs(self):
         # Deletes optional attrs that end up empty (e.g. after clearing a value via the
-        # content editor). required_attrs are pruned internally but never deleted.
+        # content editor). required_attrs are pruned internally but never deleted -- takes
+        # precedence for attrs some subclasses list as both (e.g. "content").
         for attr in self.required_attrs + self.optional_attrs:
             if not hasattr(self, attr):
                 continue
             pruned = deep_prune(getattr(self, attr))
-            if pruned in ("", {}, []) and attr in self.optional_attrs:
+            if pruned in ("", {}, []) and attr not in self.required_attrs:
                 delattr(self, attr)
             else:
                 setattr(self, attr, pruned)

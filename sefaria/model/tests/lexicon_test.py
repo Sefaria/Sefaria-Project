@@ -277,6 +277,20 @@ class Test_LexiconEntry_PruneEmptyAttrs(object):
         assert hasattr(entry, "content")
         assert entry.content == {}
 
+    class _DualListedAttrEntry(LexiconEntry):
+        # Test-only: some real subclasses (Strongs, Rashi, Klein, KovetzYesodot, Krupnik)
+        # currently list "content" in both required_attrs and optional_attrs, which is a bug
+        # in its own right -- using a dedicated synthetic attr here instead of a real
+        # subclass so this test still holds if that duplication is ever cleaned up.
+        required_attrs = LexiconEntry.required_attrs + ["dual_attr"]
+        optional_attrs = LexiconEntry.optional_attrs + ["dual_attr"]
+
+    def test_required_attr_also_listed_as_optional_is_kept_not_deleted(self, make_lexicon_entry):
+        entry = make_lexicon_entry("prune-4", self.PARENT_LEXICON, cls=self._DualListedAttrEntry,
+                                    dual_attr={"a": ""})
+        assert hasattr(entry, "dual_attr")
+        assert entry.dual_attr == {}
+
 
 class Test_LexiconEntry_ReplaceContentAttrs(object):
     def test_rejects_excluded_attr(self):
