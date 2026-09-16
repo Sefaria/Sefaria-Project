@@ -80,6 +80,15 @@ describe('initial render', () => {
   });
 });
 
+describe('accessibility', () => {
+  test('the "New headword" label is associated with the input via htmlFor/id', async () => {
+    await mount('BDB, שָׁמַר');
+    const label = container.querySelector('.lexiconEditNewHeadwordLabel');
+    expect(label.htmlFor).toBe(input().id);
+    expect(input().id).toBeTruthy();
+  });
+});
+
 describe('enabling Save', () => {
   test('typing a different headword enables Save', async () => {
     await mount('BDB, שָׁמַר');

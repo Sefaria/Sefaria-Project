@@ -24,10 +24,11 @@ const HeadwordEditor = ({ identity }) => {
   return (
     <div>
       <CurrentHeadwordDisplay headword={savedHeadword} />
-      <label className="lexiconEditNewHeadwordLabel">
+      <label className="lexiconEditNewHeadwordLabel" htmlFor="lexiconEditNewHeadwordInput">
         <InterfaceText text={{en: "New headword", he: "ערך ראשי חדש"}} />
       </label>
       <input
+        id="lexiconEditNewHeadwordInput"
         type="text"
         className="lexiconEditHeadwordInput"
         value={value}
