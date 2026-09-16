@@ -95,7 +95,7 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
             return jsonResponse({"error": f"'{new_headword}' collides with this entry's own "
                                            f"current headword after disambiguation; no change made."}, status=409)
         try:
-            change_lexicon_headword(lexicon, entry.headword, resolved)
+            actual_headword = change_lexicon_headword(lexicon, entry.headword, resolved)
         except ValueError:
             # get_available_lexicon_headword already confirmed resolved was free -- the only
             # way this still fires is another write claiming it in between. Say that
@@ -107,4 +107,6 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
             # resolved for reasons get_available_lexicon_headword doesn't check itself (e.g.
             # ref-unsafe characters like a hyphen) -- a normal client input error, not a 500.
             return jsonResponse({"error": str(e)}, status=400)
-        return jsonResponse({"status": "ok", "headword": resolved})
+        # actual_headword rather than resolved: entry.save() inside change_lexicon_headword
+        # can still transform it (NFC-normalize), so resolved is only the pre-save candidate.
+        return jsonResponse({"status": "ok", "headword": actual_headword})

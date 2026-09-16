@@ -191,6 +191,13 @@ class LexiconEntry(abst.AbstractMongoRecord):
 
     def _validate(self):
         super(LexiconEntry, self)._validate()
+        # Unlike the ref-safety/uniqueness checks below, this applies regardless of
+        # is_rendered_as_text: headword_string() (BDBEntry, KovetzYesodotEntry) interpolates
+        # self.headword raw into HTML for every dictionary entry, lookup-only or not. Reject
+        # rather than silently bleach-clean it, so the persisted value always matches what
+        # the caller (and any API response built from it) thinks was saved.
+        if self.is_key_changed('headword') and bleach.clean(self.headword, tags=[], attributes={}) != self.headword:
+            raise InputError(f"Headword {self.headword!r} contains characters that would not render safely")
         lexicon = Lexicon().load({'name': self.parent_lexicon})
         is_rendered_as_text = bool(getattr(lexicon, 'index_title', None))
         if is_rendered_as_text and self.is_key_changed('headword'):
@@ -212,7 +219,14 @@ class LexiconEntry(abst.AbstractMongoRecord):
         # and optional_attrs -- escaping isn't idempotent like pruning is, so processing the
         # same attr twice here would re-escape its own already-escaped output. Order doesn't
         # matter: each attr is sanitized independently of every other.
-        for attr in set(self.required_attrs + self.optional_attrs):
+        # content_patch_excluded_attrs (headword, parent_lexicon, prev_hw, next_hw, rid,
+        # quotes) are identity/pointer fields, not rich content -- bleaching them doesn't
+        # protect anything (prev_hw/next_hw are never rendered raw, they're exact-match
+        # lookups against another entry's headword) and actively breaks that lookup if
+        # bleach rewrites so much as an "&". headword's own safety is enforced by rejecting
+        # an unsafe value in _validate() instead, so the persisted value always matches what
+        # the caller was told was saved.
+        for attr in set(self.required_attrs + self.optional_attrs) - set(self.content_patch_excluded_attrs):
             if hasattr(self, attr):
                 setattr(self, attr, deep_map(
                     getattr(self, attr),

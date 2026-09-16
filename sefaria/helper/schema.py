@@ -1017,7 +1017,8 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword, rebuild_
     :param new_headword: string
     :param rebuild_library: set False to skip the library.rebuild() call (e.g. when renaming many entries in a
         batch and rebuilding once afterward instead of once per rename)
-    :return: None
+    :return: the actually-persisted headword -- callers should use this, not their own
+        new_headword argument, since entry.save() can still transform it (NFC-normalize)
 
     Example: change_lexicon_headword('Jastrow Dictionary', 'אַפּוּכִי.1', 'אַפּוּכִי 1')
     """
@@ -1136,6 +1137,8 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword, rebuild_
         if quoted:
             print(f'Other entries in this lexicon with this old headword as ref: {", ".join(quoted)}')
         print('Warning: old ref can appear as wrapped ref in other places in the library.')
+
+    return new_headword
 
 
 _SUPERSCRIPT_TRANS = str.maketrans('0123456789', '⁰¹²³⁴⁵⁶⁷⁸⁹')

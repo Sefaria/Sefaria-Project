@@ -90,6 +90,25 @@ class Test_Lexicon_Save(object):
         assert l.content["senses"][0]["definition"] == """ as numeral letter, <i>one</i>, as <span dir="rtl">אות א׳</span> = <span dir="rtl">אות אחת</span> one letter. <a class="refLink" href="/Shabbat.104a" data-ref="Shabbat 104a">Sabb. 104ᵃ</a>; a. fr. [Editions and Mss. vary, according to space, between the full numeral and the numeral letter, <a dir="rtl" class="refLink" href="/Jastrow,_א׳.1" data-ref="Jastrow, א׳ 1">א׳</a> for <span dir="rtl">אחד</span>, <span dir="rtl">אחת</span>; <a dir="rtl" class="refLink" href="/Jastrow,_ב׳.1" data-ref="Jastrow, ב׳ 1">ב׳</a> for <a dir="rtl" class="refLink" href="/Jastrow,_שְׁנַיִם.1" data-ref="Jastrow, שְׁנַיִם 1">שנים</a>, <span dir="rtl">שתים</span>, <a dir="rtl" class="refLink" href="/Jastrow,_שתי.1" data-ref="Jastrow, שתי 1">שתי</a> &amp;c.]"""
         assert l.content["senses"][1]["definition"] == 'Seemingly ok definition... <a>Click me</a>'
 
+    def test_headword_with_unsafe_characters_is_rejected_not_rewritten(self):
+        # headword_string() (BDBEntry, KovetzYesodotEntry) interpolates self.headword raw
+        # into HTML -- an unsafe headword must be rejected, not silently bleach-rewritten:
+        # rewriting it would mean the caller (and any API response built from the value it
+        # passed in) no longer matches what was actually persisted.
+        entry = LexiconEntry({"headword": "foo & bar", "parent_lexicon": "Test Lexicon Sanitize"})
+        with pytest.raises(InputError):
+            entry.save()
+
+    def test_identity_and_pointer_fields_are_not_bleached(self, make_lexicon_entry):
+        # prev_hw/next_hw are exact-match lookups against another entry's headword, not
+        # rendered content -- bleaching them (e.g. rewriting "&" to "&amp;") would silently
+        # break that lookup. rid is an opaque external xref id with the same concern.
+        entry = make_lexicon_entry("sanitize-identity-fields", "Test Lexicon Sanitize",
+                                    prev_hw="a & b", next_hw="c & d", rid="R & 1")
+        assert entry.prev_hw == "a & b"
+        assert entry.next_hw == "c & d"
+        assert entry.rid == "R & 1"
+
 
 class Test_DictionaryNode_AllChildren(object):
     """
