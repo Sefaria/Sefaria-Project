@@ -292,7 +292,7 @@ const ChatbotExperimentBanner = ({ promoMaybeLaterJSON, promoSessionLengthSecond
           <span>{isActionPending ? Sefaria._("common.loading") : Sefaria._("site_wide_banner.try_it")}</span>
         </button>
       ) : (<>
-        <a className="button small white logInToTry" href={"/login" + nextParam} onClick={() => track("login")}>
+        <a className="button small white logInToTry" href={"/login" + nextParam} data-signup-source="la_banner" onClick={() => track("login")}>
           <span>{Sefaria._("site_wide_banner.log_in_to_try")}</span>
         </a>
       </>)}

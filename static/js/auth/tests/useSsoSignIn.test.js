@@ -1,15 +1,15 @@
 /* Testing done using Jest */
 // No React Testing Library in this repo — same hand-rolled ReactDOM+act() harness pattern
-// as useSignUpTracking.test.js. `tracking` is a hand-built fake (not the real hook) since
+// as useAuthTracking.test.js. `tracking` is a hand-built fake (not the real hook) since
 // this file tests useSsoSignIn.jsx's own click/abandonment-detection logic in isolation.
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { useProviderTriggers } from '../useSsoSignIn.jsx';
-import { persistPendingAttempt, SIGNUP_METHOD } from '../signupAnalytics.js';
+import { persistPendingAttempt, AUTH_METHOD } from '../authAnalytics.js';
 
-jest.mock('../signupAnalytics.js', () => ({
-  ...jest.requireActual('../signupAnalytics.js'),
+jest.mock('../authAnalytics.js', () => ({
+  ...jest.requireActual('../authAnalytics.js'),
   persistPendingAttempt: jest.fn(),
 }));
 
@@ -103,7 +103,7 @@ describe('click_listener wiring', () => {
 
     act(() => { clickListener(); });
 
-    expect(tracking.chooseMethod).toHaveBeenCalledWith(SIGNUP_METHOD.GOOGLE);
+    expect(tracking.chooseMethod).toHaveBeenCalledWith(AUTH_METHOD.GOOGLE);
     expect(tracking.startProcess).toHaveBeenCalled();
     expect(persistPendingAttempt).not.toHaveBeenCalled();
     expect(tracking.suppressFlowEndRef.current).toBe(false);
@@ -117,7 +117,7 @@ describe('click_listener wiring', () => {
     act(() => { clickListener(); });
 
     expect(persistPendingAttempt).toHaveBeenCalledWith({
-      flowId: 'flow-1', attemptId: 'attempt-1', method: SIGNUP_METHOD.GOOGLE,
+      flowId: 'flow-1', attemptId: 'attempt-1', method: AUTH_METHOD.GOOGLE,
     });
     expect(tracking.suppressFlowEndRef.current).toBe(true);
   });
@@ -126,13 +126,28 @@ describe('click_listener wiring', () => {
     mount();
     const clickListener = getClickListener();
     const config = getInitConfig();
-    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ outcome: 'existing_user_login' }) });
 
     act(() => { clickListener(); });
     await act(async () => { await config.callback({ credential: 'tok' }); });
 
     expect(tracking.chooseMethod).toHaveBeenCalledTimes(1);
-    expect(tracking.endProcess).toHaveBeenCalledWith('success', null);
+    expect(tracking.endProcess).toHaveBeenCalledWith('success', null, 'existing_user_login');
+  });
+
+  it('onGoogleResult posts to the Sefaria-owned Google callback endpoint with just {id_token}', async () => {
+    mount();
+    const clickListener = getClickListener();
+    const config = getInitConfig();
+    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ outcome: 'created_new_account' }) });
+
+    act(() => { clickListener(); });
+    await act(async () => { await config.callback({ credential: 'tok' }); });
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/auth/google/callback', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ id_token: 'tok' }),
+    }));
   });
 });
 
