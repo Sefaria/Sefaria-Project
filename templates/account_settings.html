@@ -21,6 +21,30 @@
             </button>
         </div>
     </div>
+    <div class="devPocDemoBar" id="developerPocDemoBar">
+        <div class="devPocDemoBarTitle">POC demo controls &mdash; nothing here is real</div>
+        <div class="devPocDemoBarRow">
+            <label class="devPocChoice">
+                <input type="checkbox" class="devPocSwitch" id="developerPocSsoSim" aria-label="Simulate SSO connected">
+                <span id="developerPocSsoSimLabel">Simulate: SSO connected</span>
+            </label>
+            <span class="devPocHelp" id="developerPocRealSso"></span>
+            <button type="button" class="devPocButton quiet" id="developerPocUseRealSso" style="display:none">Use real status</button>
+        </div>
+        <div class="devPocDemoBarRow">
+            <button type="button" class="devPocButton secondary" id="developerPocResetSample">Reset to sample data</button>
+            <button type="button" class="devPocButton secondary" id="developerPocResetEmpty">Reset to empty</button>
+            <button type="button" class="devPocButton quiet" id="developerPocCopyState">Copy state as JSON</button>
+        </div>
+        <div class="devPocDemoBarRow">
+            <span class="devPocHelp">Connecting Google or Apple in this POC is auto-approved: no sign-in happens and no account changes.</span>
+        </div>
+    </div>
+    <nav class="devPocNav" id="developerPocNav" aria-label="Settings" style="display:none">
+        <div class="devPocNavTitle">Settings</div>
+        <a href="/settings/account" aria-current="page">Account settings</a>
+        <a href="/settings/developer">Developer settings</a>
+    </nav>
 	<div id="emailNotifications" class="section">
 		<label class="control-elem">
             <span class="int-en">Notification Frequency (Maximum)</span>
@@ -148,6 +172,27 @@
 	</div>
     {% endif %}
 	{% endcomment %}
+    <div id="developerSettings" class="section" data-real-sso="{% if social_providers %}1{% else %}0{% endif %}" data-real-sso-label="{% if social_providers %}Your real account: {{ social_providers|join:" + " }} connected{% else %}Your real account: no Google or Apple connection{% endif %}">
+		<label class="control-elem">Developer Settings</label>
+		<div id="developerSettingsGate" class="devPocGate" style="display: none">
+			<strong>Connect Google or Apple to get started</strong>
+			<p>We need a verified email so we can reach you about your API access.</p>
+			<button class="button small white" type="button" data-developer-poc-connect="google">Connect Google</button>
+			<button class="button small white" type="button" data-developer-poc-connect="apple">Connect Apple</button>
+		</div>
+		<div id="developerSettingsToggleWrapper" style="display: none">
+			<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup" aria-label="Developer Settings">
+				<div role="radio" data-developer-poc-value="true" class="toggleOption" tabindex="-1" aria-checked="false">
+					<span>On</span>
+				</div>
+				<div role="radio" data-developer-poc-value="false" class="toggleOption on" tabindex="0" aria-checked="true">
+					<span>Off</span>
+				</div>
+			</div>
+			<div class="additional-info">Register your projects and get API keys for the Sefaria API.</div>
+			<p id="developerSettingsLink" style="display: none"><a href="/settings/developer">Open Developer settings</a></p>
+		</div>
+	</div>
     <div id="username-change" class="section">
         <label class="control-elem">
                 <span class="int-en">Login Method</span>
@@ -359,6 +404,69 @@
 					}
 				});
 			});
+		});
+	</script>
+	<script>
+		/* Developer settings, proof of concept. The state lives entirely in localStorage
+		   (see static/js/developerPocStore.js, shared through window.sefariaDeveloperPoc);
+		   nothing here changes the account or issues a key. */
+		$(function(){
+			const store = window.sefariaDeveloperPoc;
+			if (!store) { return; }
+			const $section = $("#developerSettings");
+			// ssoConnected() only looks at whether the list is empty.
+			const realProviders = $section.attr("data-real-sso") === "1" ? ["sso"] : [];
+
+			function render() {
+				const state = store.readState();
+				const connected = store.ssoConnected(state, realProviders);
+				$("#developerSettingsGate").toggle(!connected);
+				$("#developerSettingsToggleWrapper").toggle(connected);
+				const on = connected && !!state.developerEnabled;
+				$section.find("[data-developer-poc-value]").each(function(){
+					const isOn = $(this).attr("data-developer-poc-value") === String(on);
+					$(this).toggleClass("on", isOn).attr("tabIndex", isOn ? "0" : "-1").attr("aria-checked", isOn ? "true" : "false");
+				});
+				$("#developerSettingsLink").toggle(on);
+				$("#developerPocNav").toggle(on);
+				$("#developerPocSsoSim").prop("checked", connected);
+				$("#developerPocSsoSimLabel").text("Simulate: SSO " + (connected ? "connected" : "not connected"));
+				$("#developerPocRealSso").text($section.attr("data-real-sso-label") + (state.ssoOverride === null ? "" : " (simulated value in use)"));
+				$("#developerPocUseRealSso").toggle(state.ssoOverride !== null);
+			}
+
+			function mutate(change) {
+				const state = store.readState();
+				store.writeState(Object.assign(state, change));
+				render();
+			}
+
+			$section.on("click", "[data-developer-poc-value]", function(){
+				mutate({developerEnabled: $(this).attr("data-developer-poc-value") === "true"});
+			});
+			$section.on("click", "[data-developer-poc-connect]", function(){
+				mutate({ssoOverride: true});
+			});
+			$("#developerPocSsoSim").on("change", function(){
+				mutate({ssoOverride: this.checked});
+			});
+			$("#developerPocUseRealSso").on("click", function(){
+				mutate({ssoOverride: null});
+			});
+			$("#developerPocResetSample").on("click", function(){
+				store.writeState(store.sampleState());
+				render();
+			});
+			$("#developerPocResetEmpty").on("click", function(){
+				store.writeState(store.emptyState());
+				render();
+			});
+			$("#developerPocCopyState").on("click", function(){
+				const text = JSON.stringify(store.readState(), null, 2);
+				if (navigator.clipboard) { navigator.clipboard.writeText(text); }
+				$(this).text("Copied");
+			});
+			render();
 		});
 	</script>
 {% endblock %}
