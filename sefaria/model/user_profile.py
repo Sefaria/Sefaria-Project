@@ -418,6 +418,7 @@ class UserProfile(object):
         # flags that indicate a change needing a cascade after save
         self._name_updated      = False
         self._process_remove_history = False
+        self._public_data_updated = False
 
         # Followers
         self.followers = FollowersSet(self.id)
@@ -467,10 +468,20 @@ class UserProfile(object):
     def full_name(self):
         return self.first_name + " " + self.last_name
 
+    # The fields public_user_data() exposes to other users. A change to any of them
+    # has to be broadcast so other server processes drop their cached copy; changes
+    # to anything else (e.g. last_sync_web) are private and must not be broadcast.
+    public_data_fields = ["first_name", "last_name", "slug", "profile_pic_url_small",
+                          "position", "organization"]
+
     def _set_flags_on_update(self, obj):
         if "first_name" in obj or "last_name" in obj:
             if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
                 self._name_updated = True
+
+        # getattr default guards against a field not yet set on a partially built profile
+        if any(k in obj and obj[k] != getattr(self, k, None) for k in self.public_data_fields):
+            self._public_data_updated = True
 
         if "reading_history" in self.settings and self.settings["reading_history"] == True:
             if "settings" in obj and "reading_history" in obj["settings"] and obj["settings"]["reading_history"] == False:
@@ -566,7 +577,39 @@ class UserProfile(object):
             self.delete_user_history()
             self._process_remove_history = False
 
+        # Evict this user from the public_user_data cache so that name / pic / slug /
+        # position / organization changes are picked up on the next read. Without
+        # this, sheets, notes and collections keep rendering the pre-save values for
+        # the life of the worker process. Unconditional: cheap, and correct even for
+        # writes that bypassed update()'s flag bookkeeping.
+        invalidate_public_user_data_cache(self.id)
+
+        # The eviction above only clears *this* process. Tell the other servers too.
+        if self._public_data_updated:
+            self._publish_public_data_invalidation()
+            self._public_data_updated = False
+
         return self
+
+    def _publish_public_data_invalidation(self):
+        """
+        Broadcast a cache eviction for this user to the other server processes.
+
+        Deliberately gated on _public_data_updated rather than called on every save:
+        profile_sync_api saves a profile on every reading-history sync just to bump
+        last_sync_web, and the multiserver channel is sized for rare admin events
+        (index edits, ToC rebuilds). Every listener also publishes a confirmation
+        back, so an unguarded publish here would amplify routine sync traffic across
+        the cluster.
+
+        Best-effort by design: publish_event swallows Redis errors, and listeners
+        only sync every N requests, so a worker can briefly serve stale data.
+        """
+        from sefaria.settings import MULTISERVER_ENABLED
+        from sefaria.system.multiserver.coordinator import server_coordinator
+        if MULTISERVER_ENABLED:
+            server_coordinator.publish_event(
+                "user_profile", "invalidate_public_user_data_cache", [self.id])
 
     def errors(self):
         """
@@ -891,6 +934,19 @@ def public_user_data(uid, ignore_cache=False):
     }
     public_user_data_cache[uid] = data
     return data
+
+
+def invalidate_public_user_data_cache(uid):
+    """
+    Drop `uid`'s memoized public data so the next read rebuilds it from the DBs.
+
+    Called locally by UserProfile.save(), and remotely on every other server via the
+    multiserver coordinator, which resolves it as the "user_profile" target -- see
+    sefaria/system/multiserver/coordinator.py. Keep it importable at module level and
+    tolerant of a uid that isn't cached; remote callers have no idea what any given
+    process currently holds.
+    """
+    public_user_data_cache.pop(uid, None)
 
 
 def user_name(uid):
