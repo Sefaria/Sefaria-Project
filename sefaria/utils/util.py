@@ -149,17 +149,18 @@ def deep_update(dict1, dict2):
     return dict1
 
 
-def deep_map(value, leaf_fn=lambda v: v, after=lambda v: v):
+def deep_map(value, leaf_fn=lambda v: v, after=lambda v: v, key_fn=lambda k: k):
     """
     Recursively rebuild a dict/list/leaf structure: apply leaf_fn to every non-dict/list
-    value, and after to every freshly-rebuilt dict/list (children are already processed by
-    the time after runs, so after sees the bottom-up result -- container filtering, not
-    just leaf transforms, can hook in here via the after callback).
+    value, key_fn to every dict key, and after to every freshly-rebuilt dict/list (children
+    are already processed by the time after runs, so after sees the bottom-up result --
+    container filtering, not just leaf/key transforms, can hook in here via the after
+    callback).
     """
     if isinstance(value, dict):
-        return after({k: deep_map(v, leaf_fn, after) for k, v in value.items()})
+        return after({key_fn(k): deep_map(v, leaf_fn, after, key_fn) for k, v in value.items()})
     if isinstance(value, list):
-        return after([deep_map(v, leaf_fn, after) for v in value])
+        return after([deep_map(v, leaf_fn, after, key_fn) for v in value])
     return leaf_fn(value)
 
 

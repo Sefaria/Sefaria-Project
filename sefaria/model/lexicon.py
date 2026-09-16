@@ -3,6 +3,7 @@
 Writes to MongoDB Collection: word_form, lexicon_entry
 """
 import re
+import html
 import unicodedata
 import bleach
 from . import abstract as abst
@@ -202,10 +203,22 @@ class LexiconEntry(abst.AbstractMongoRecord):
     def _sanitize(self):
         # Recurses via deep_map because the inherited generic _sanitize() only bleaches
         # top-level string attrs -- content is a dict, so it would be skipped entirely.
-        for attr in self.required_attrs + self.optional_attrs:
+        # key_fn escapes dict keys too: KovetzYesodotEntry.as_strings() interpolates
+        # top-level content keys directly into HTML (<small>{key}</small>) with no escaping
+        # of its own, and the content-patch API accepts arbitrary nested keys -- html.escape
+        # rather than bleach.clean since a key is a plain label, never rich content, so there's
+        # no tag it should legitimately be allowed to contain.
+        # set() dedupes: some subclasses list an attr (e.g. "content") in both required_attrs
+        # and optional_attrs -- escaping isn't idempotent like pruning is, so processing the
+        # same attr twice here would re-escape its own already-escaped output. Order doesn't
+        # matter: each attr is sanitized independently of every other.
+        for attr in set(self.required_attrs + self.optional_attrs):
             if hasattr(self, attr):
-                setattr(self, attr, deep_map(getattr(self, attr),
-                    leaf_fn=lambda v: bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS) if isinstance(v, str) else v))
+                setattr(self, attr, deep_map(
+                    getattr(self, attr),
+                    leaf_fn=lambda v: bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS) if isinstance(v, str) else v,
+                    key_fn=lambda k: html.escape(k) if isinstance(k, str) else k,
+                ))
 
     def content_attr_names(self):
         return (set(self.required_attrs) | set(self.optional_attrs)) - set(self.content_patch_excluded_attrs)

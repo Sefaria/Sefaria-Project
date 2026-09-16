@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 from sefaria.model import *
 from sefaria.model.schema import DictionaryNode
-from sefaria.model.lexicon import LexiconEntrySet, LexiconEntry, BDBEntry, KrupnikEntry, LexiconEntrySubClassMapping
+from sefaria.model.lexicon import LexiconEntrySet, LexiconEntry, BDBEntry, KrupnikEntry, KovetzYesodotEntry, LexiconEntrySubClassMapping
 from sefaria.helper.schema import change_lexicon_headword, get_available_lexicon_headword
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import deep_map, deep_prune
@@ -516,4 +516,37 @@ class Test_DeepMapAndPrune(object):
     def test_deep_prune_leaves_non_empty_untouched(self):
         data = {"a": 1, "b": [1, 2, 3]}
         assert deep_prune(data) == data
+
+    def test_deep_map_key_fn_transforms_dict_keys_at_every_level(self):
+        data = {"a": {"b": 1}}
+        result = deep_map(data, key_fn=lambda k: k.upper())
+        assert result == {"A": {"B": 1}}
+
+    def test_deep_map_key_fn_default_leaves_keys_unchanged(self):
+        data = {"a": {"b": 1}}
+        assert deep_map(data) == data
+
+
+class Test_LexiconEntry_SanitizeKeys(object):
+    PARENT_LEXICON = "Test Lexicon Sanitize Keys"
+
+    def test_content_dict_keys_are_html_escaped(self, make_lexicon_entry):
+        # KovetzYesodotEntry.as_strings() interpolates top-level content keys directly into
+        # HTML (<small>{key}</small>) with no escaping of its own -- the content-patch API
+        # accepts arbitrary nested keys, so this is where a malicious key must be neutralized.
+        entry = make_lexicon_entry("sanitizekeys1", self.PARENT_LEXICON, cls=KovetzYesodotEntry,
+                                    rid="S1", content={"<script>alert(1)</script>": ["value"]})
+        assert list(entry.content.keys()) == ["&lt;script&gt;alert(1)&lt;/script&gt;"]
+        assert "<script>" not in entry.as_strings()[0]
+
+    def test_dual_listed_attr_is_not_sanitized_twice(self, make_lexicon_entry):
+        # KovetzYesodotEntry lists "content" in both required_attrs and optional_attrs (the
+        # same overlap from Test_LexiconEntry_PruneEmptyAttrs) -- escaping isn't idempotent
+        # like pruning is, so processing the same attr twice here would re-escape its own
+        # already-escaped output (e.g. "&lt;" -> "&amp;lt;").
+        assert "content" in KovetzYesodotEntry.required_attrs
+        assert "content" in KovetzYesodotEntry.optional_attrs
+        entry = make_lexicon_entry("sanitizekeys2", self.PARENT_LEXICON, cls=KovetzYesodotEntry,
+                                    rid="S2", content={"<script>alert(1)</script>": ["value"]})
+        assert list(entry.content.keys()) == ["&lt;script&gt;alert(1)&lt;/script&gt;"]
 
