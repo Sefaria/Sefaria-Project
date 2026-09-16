@@ -448,7 +448,7 @@ class ConnectionsPanel extends Component {
         interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.props.mode === "LexiconHeadwordEdit") {
-      content = (<LexiconHeadwordEditBox currentlyVisibleRef={this.props.currentlyVisibleRef} />);
+      content = (<LexiconHeadwordEditBox currentlyVisibleRef={this.props.currentlyVisibleRef} panelPosition={this.props.panelPosition} />);
 
     } else if (this.props.mode === "LexiconContentEdit") {
       content = (<LexiconContentEditBox currentlyVisibleRef={this.props.currentlyVisibleRef} />);

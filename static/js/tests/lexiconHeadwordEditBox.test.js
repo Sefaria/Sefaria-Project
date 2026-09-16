@@ -33,11 +33,11 @@ import LexiconHeadwordEditBox from '../LexiconHeadwordEditBox';
 
 let container = null;
 
-async function mount(currentlyVisibleRef) {
+async function mount(currentlyVisibleRef, panelPosition = 0) {
   container = document.createElement('div');
   document.body.appendChild(container);
   await act(async () => {
-    ReactDOM.render(React.createElement(LexiconHeadwordEditBox, { currentlyVisibleRef }), container);
+    ReactDOM.render(React.createElement(LexiconHeadwordEditBox, { currentlyVisibleRef, panelPosition }), container);
   });
 }
 
@@ -86,6 +86,19 @@ describe('accessibility', () => {
     const label = container.querySelector('.lexiconEditNewHeadwordLabel');
     expect(label.htmlFor).toBe(input().id);
     expect(input().id).toBeTruthy();
+  });
+
+  test('two simultaneously-open panels render distinct input ids', async () => {
+    // Sefaria's reader can show multiple panels at once -- a fixed id would make two open
+    // instances of this tool collide, leaving the label/htmlFor association ambiguous.
+    await mount('BDB, שָׁמַר', 0);
+    const firstId = input().id;
+    unmount();
+
+    await mount('BDB, שָׁמַר', 1);
+    const secondId = input().id;
+
+    expect(firstId).not.toBe(secondId);
   });
 });
 
