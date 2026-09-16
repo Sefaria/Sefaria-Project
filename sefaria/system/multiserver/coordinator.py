@@ -168,10 +168,9 @@ class ServerCoordinator(MessagingNode):
 
         data = json.loads(msg["data"])
 
-        obj = locals()[data["obj"]]
-        method = getattr(obj, data["method"])
-
         try:
+            obj = locals()[data["obj"]]
+            method = getattr(obj, data["method"])
             with _CACHE_MUTATION_LOCK:
                 method(*data["args"])
             logger.info("Processing succeeded for {} on {}:{}".format(self.event_description(data), host, pid))

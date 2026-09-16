@@ -200,6 +200,68 @@ def test_process_message_dispatch_is_serialized_under_lock(monkeypatch):
     )
 
 
+def test_process_message_with_unknown_obj_is_reported_not_raised(monkeypatch):
+    """
+    Regression test: an unresolvable obj/method name (e.g. a mismatched app version
+    publishing) must be caught and reported as a failed event, not raised out of
+    _process_message -- see test_listener_loop_survives_malformed_message below for why an
+    escaping exception here is worse than it looks.
+    """
+    published = []
+
+    class _FakeRedis:
+        def publish(self, channel, data):
+            published.append((channel, data))
+
+    coord = ServerCoordinator()
+    coord.redis_client = _FakeRedis()
+    msg = _message("no_such_object", "set", ["a", "1"])
+    coord._process_message(msg)  # must not raise
+
+    assert len(published) == 1
+    _, msg_data = published[0]
+    assert json.loads(msg_data)["status"] == "error"
+
+
+def test_listener_loop_survives_malformed_message_without_reconnecting(monkeypatch):
+    """
+    Regression test for the bug where `obj = locals()[data["obj"]]` /
+    `method = getattr(obj, data["method"])` lived outside _process_message's try/except: an
+    unknown obj name raised KeyError straight into _listener_loop's `except Exception`, which
+    tore down a perfectly good connection and forced a full RECONNECT_BACKOFF_SECONDS wait over
+    a message-shaped problem, not a connection one. Now a malformed message is caught and
+    reported, and the loop keeps draining the same connection -- proven here by the
+    well-formed message right after it still getting through.
+    """
+    processed = []
+    monkeypatch.setattr(in_memory_cache, "set", lambda key, val, timeout=None: processed.append((key, val)))
+
+    coord = ServerCoordinator()
+    coord._listener_redis_client = object()
+    coord._listener_pubsub = _FakePubSub([
+        _message("no_such_object", "set", ["bad", "1"]),
+        _message("in_memory_cache", "set", ["k", "v"]),
+    ])
+
+    sleep_calls = []
+
+    def fake_sleep(seconds):
+        sleep_calls.append(seconds)
+        raise _StopTestLoop()
+
+    monkeypatch.setattr(time, "sleep", fake_sleep)
+
+    with pytest.raises(_StopTestLoop):
+        coord._listener_loop()
+
+    # The malformed message didn't break out of the for-loop early -- the well-formed message
+    # right after it still got processed on the same connection.
+    assert processed == [("k", "v")]
+    # Only _FakePubSub's final simulated disconnect triggered the backoff -- not the malformed
+    # message.
+    assert sleep_calls == [coord.RECONNECT_BACKOFF_SECONDS]
+
+
 def test_start_background_listener_is_idempotent(monkeypatch):
     started = []
 
