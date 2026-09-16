@@ -14,7 +14,6 @@ jest.mock('../sefaria/sefaria', () => ({
     ref: jest.fn(),
     getIndexDetails: jest.fn(),
     apiRequestWithBody: jest.fn(),
-    apiRequestWithBodyAndAlert: jest.fn(),
     interfaceLang: 'english',
     _: (k) => k,
   },
@@ -71,6 +70,11 @@ const clickSave = async () => act(async () => { saveButton().dispatchEvent(new M
 
 const ENTRY_URL = `/api/lexicon-entry/${encodeURIComponent('BDB Dictionary')}/${encodeURIComponent('שָׁמַר')}`;
 
+// fetchLexiconApi reads apiRequestWithBody's raw Response (convertResponseToJSON=false),
+// not a plain parsed object -- these build the {ok, json()} shape it expects.
+const okResponse = (data) => ({ ok: true, json: () => Promise.resolve(data) });
+const errorResponse = (message) => ({ ok: false, json: () => Promise.resolve({ error: message }) });
+
 beforeEach(() => {
   jest.clearAllMocks();
   Sefaria.ref.mockReturnValue({ categories: ['Dictionary'], indexTitle: 'BDB', sectionRef: 'BDB, שָׁמַר' });
@@ -83,27 +87,38 @@ afterEach(() => {
 
 describe('loading the entry', () => {
   test('GETs the resolved entry\'s content', async () => {
-    Sefaria.apiRequestWithBody.mockResolvedValue({
+    Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({
       entry: { headword: 'שָׁמַר', content: { senses: [] } },
       content_attr_names: ['content'],
-    });
+    }));
 
     await mount('BDB, שָׁמַר');
 
-    expect(Sefaria.apiRequestWithBody).toHaveBeenCalledWith(ENTRY_URL, null, null, 'GET');
+    expect(Sefaria.apiRequestWithBody).toHaveBeenCalledWith(ENTRY_URL, null, null, 'GET', false);
   });
 
   test('the draft includes only content_attr_names keys, skipping ones absent from entry', async () => {
-    Sefaria.apiRequestWithBody.mockResolvedValue({
+    Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({
       // 'notes' is content-patchable per content_attr_names but this entry doesn't have one --
       // it must not appear in the draft as e.g. undefined.
       entry: { headword: 'שָׁמַר', content: { senses: [] }, parent_lexicon: 'BDB Dictionary' },
       content_attr_names: ['content', 'notes'],
-    });
+    }));
 
     await mount('BDB, שָׁמַר');
 
     expect(editorData()).toEqual({ content: { senses: [] } });
+  });
+
+  test('a 404 response shows an error instead of an indefinite spinner', async () => {
+    // Previously: no .catch() on the GET at all, so a rejection here was an unhandled
+    // promise, and the panel stayed on LoadingMessage forever with no explanation.
+    Sefaria.apiRequestWithBody.mockResolvedValue(errorResponse('Entry not found.'));
+
+    await mount('BDB, שָׁמַר');
+
+    expect(container.textContent).not.toBe('loading');
+    expect(container.textContent).toContain('Entry not found.');
   });
 
   test('an earlier-started but later-resolving GET does not overwrite a newer entry\'s content', async () => {
@@ -136,25 +151,37 @@ describe('loading the entry', () => {
 
     // The second (current) entry's GET resolves first.
     await act(async () => {
-      resolveSecond({ entry: { headword: 'אָב', content: { senses: ['second'] } }, content_attr_names: ['content'] });
+      resolveSecond(okResponse({ entry: { headword: 'אָב', content: { senses: ['second'] } }, content_attr_names: ['content'] }));
     });
     expect(editorData()).toEqual({ content: { senses: ['second'] } });
 
     // The first (stale) entry's GET finally resolves -- must not overwrite the current draft.
     await act(async () => {
-      resolveFirst({ entry: { headword: 'שָׁמַר', content: { senses: ['first'] } }, content_attr_names: ['content'] });
+      resolveFirst(okResponse({ entry: { headword: 'שָׁמַר', content: { senses: ['first'] } }, content_attr_names: ['content'] }));
     });
     expect(editorData()).toEqual({ content: { senses: ['second'] } });
   });
 });
 
 describe('editing and saving', () => {
+  let alertSpy;
+
+  // Argument-based dispatch (branching on `method`) rather than a call-order queue
+  // (mockResolvedValueOnce chains): each test's mount() does a GET, then some also PATCH via
+  // clickSave() -- a queue-based approach would leak into the next test if an assertion
+  // failed partway through, since jest.clearAllMocks() doesn't clear queued
+  // once-implementations, only call history.
+  const patchResponse = () => okResponse({ ok: true });
   beforeEach(() => {
-    Sefaria.apiRequestWithBody.mockResolvedValue({
-      entry: { headword: 'שָׁמַר', content: { senses: [] } },
-      content_attr_names: ['content'],
+    alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {});
+    Sefaria.apiRequestWithBody.mockImplementation((url, params, payload, method) => {
+      if (method === 'GET') {
+        return Promise.resolve(okResponse({ entry: { headword: 'שָׁמַר', content: { senses: [] } }, content_attr_names: ['content'] }));
+      }
+      return Promise.resolve(patchResponse());
     });
   });
+  afterEach(() => { alertSpy.mockRestore(); });
 
   test('editing via the JSON editor updates the value that would be saved', async () => {
     await mount('BDB, שָׁמַר');
@@ -163,19 +190,17 @@ describe('editing and saving', () => {
   });
 
   test('Save PATCHes the entry URL with {content: <current draft>}', async () => {
-    Sefaria.apiRequestWithBodyAndAlert.mockResolvedValue({ ok: true });
     await mount('BDB, שָׁמַר');
     mutate();
 
     await clickSave();
 
-    expect(Sefaria.apiRequestWithBodyAndAlert).toHaveBeenCalledWith(
-      ENTRY_URL, null, { content: { content: { senses: [] }, notes: 'edited via fake editor' } }, 'PATCH'
+    expect(Sefaria.apiRequestWithBody).toHaveBeenCalledWith(
+      ENTRY_URL, null, { content: { content: { senses: [] }, notes: 'edited via fake editor' } }, 'PATCH', false
     );
   });
 
   test('shows the generic "Saved." message on success', async () => {
-    Sefaria.apiRequestWithBodyAndAlert.mockResolvedValue({ ok: true });
     await mount('BDB, שָׁמַר');
 
     await clickSave();
@@ -183,12 +208,16 @@ describe('editing and saving', () => {
     expect(container.textContent).toContain('Saved.');
   });
 
-  test('a failed save (already alerted) does not show a success message', async () => {
-    Sefaria.apiRequestWithBodyAndAlert.mockRejectedValue(new Error('nope'));
+  test('a 4xx/409 response alerts the server\'s specific message and does not show a success message', async () => {
+    Sefaria.apiRequestWithBody.mockImplementation((url, params, payload, method) =>
+      Promise.resolve(method === 'GET'
+        ? okResponse({ entry: { headword: 'שָׁמַר', content: { senses: [] } }, content_attr_names: ['content'] })
+        : errorResponse('nope')));
     await mount('BDB, שָׁמַר');
 
     await clickSave();
 
+    expect(alertSpy).toHaveBeenCalledWith('nope');
     expect(container.textContent).not.toContain('Saved.');
   });
 });

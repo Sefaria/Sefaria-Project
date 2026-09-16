@@ -25,9 +25,25 @@ export const resolveLexiconEntryRef = async (ref) => {
   return (lexiconName && headword) ? { lexiconName, headword } : null;
 };
 
-// Shared by LexiconHeadwordEditBox and LexiconContentEditBox: manages the value being
-// edited, PATCHes it to `url` on save, and reports back either the server's success message
-// or lets `formatMessage` build a more specific one from the response.
+// Shared by LexiconHeadwordEditBox and LexiconContentEditBox. Sefaria.apiRequestWithBody
+// (and apiRequestWithBodyAndAlert, which wraps it) throws a generic message for any non-2xx
+// response without ever reading the body -- fine for endpoints that only ever return errors
+// as {"error": ...} with status 200 (the convention elsewhere in this codebase), but these
+// lexicon endpoints return the specific, actionable message on a real 400/404/409 status,
+// which would otherwise never reach the moderator. convertResponseToJSON=false skips
+// apiRequestWithBody's own status-checking entirely, so this reads the body itself
+// regardless of status.
+export const fetchLexiconApi = async (url, payload, method) => {
+  const response = await Sefaria.apiRequestWithBody(url, null, payload, method, false);
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || Sefaria._("sefaria.something_went_wrong_sorry"));
+  }
+  return data;
+};
+
+// Manages the value being edited, PATCHes it to `url` on save, and reports back either the
+// server's success message or lets `formatMessage` build a more specific one from the response.
 export const useLexiconEntrySave = (initialValue) => {
   const [value, setValue] = useState(initialValue);
   const [saving, setSaving] = useState(false);
@@ -41,11 +57,11 @@ export const useLexiconEntrySave = (initialValue) => {
   const save = async (url, payload, formatMessage) => {
     setSaving(true);
     try {
-      const data = await Sefaria.apiRequestWithBodyAndAlert(url, null, payload, "PATCH");
+      const data = await fetchLexiconApi(url, payload, "PATCH");
       setMessage(formatMessage ? formatMessage(data) : {en: "Saved.", he: "נשמר."});
       return data;
     } catch (e) {
-      // apiRequestWithBodyAndAlert already alerted the user with the server's error message.
+      alert(e.message);
       return null;
     } finally {
       setSaving(false);

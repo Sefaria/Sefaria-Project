@@ -11,7 +11,7 @@ jest.mock('../sefaria/sefaria', () => ({
   default: {
     ref: jest.fn(),
     getIndexDetails: jest.fn(),
-    apiRequestWithBodyAndAlert: jest.fn(),
+    apiRequestWithBody: jest.fn(),
     interfaceLang: 'english',
     _: (k) => k,
   },
@@ -30,6 +30,11 @@ import Sefaria from '../sefaria/sefaria';
 import LexiconEntryEditBox, { resolveLexiconEntryRef, useLexiconEntrySave } from '../LexiconEntryEditBox';
 
 let container = null;
+
+// fetchLexiconApi reads apiRequestWithBody's raw Response (convertResponseToJSON=false),
+// not a plain parsed object -- these build the {ok, json()} shape it expects.
+const okResponse = (data) => ({ ok: true, json: () => Promise.resolve(data) });
+const errorResponse = (message) => ({ ok: false, json: () => Promise.resolve({ error: message }) });
 
 function mount(el) {
   container = document.createElement('div');
@@ -123,8 +128,12 @@ describe('useLexiconEntrySave', () => {
     expect(hookApi.message).toBeNull();
   });
 
+  let alertSpy;
+  beforeEach(() => { alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {}); });
+  afterEach(() => { alertSpy.mockRestore(); });
+
   test('save PATCHes the given url/payload and stores formatMessage\'s result', async () => {
-    Sefaria.apiRequestWithBodyAndAlert.mockResolvedValue({ headword: 'saved-value' });
+    Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({ headword: 'saved-value' }));
     mount(React.createElement(Harness, { initialValue: 'alpha' }));
 
     let returned;
@@ -132,14 +141,15 @@ describe('useLexiconEntrySave', () => {
       returned = await hookApi.save('/api/x', { a: 1 }, (data) => ({ en: `got ${data.headword}`, he: 'x' }));
     });
 
-    expect(Sefaria.apiRequestWithBodyAndAlert).toHaveBeenCalledWith('/api/x', null, { a: 1 }, 'PATCH');
+    expect(Sefaria.apiRequestWithBody).toHaveBeenCalledWith('/api/x', null, { a: 1 }, 'PATCH', false);
     expect(hookApi.message).toEqual({ en: 'got saved-value', he: 'x' });
     expect(hookApi.saving).toBe(false);
     expect(returned).toEqual({ headword: 'saved-value' });
+    expect(alertSpy).not.toHaveBeenCalled();
   });
 
   test('save without formatMessage falls back to a generic "Saved." message', async () => {
-    Sefaria.apiRequestWithBodyAndAlert.mockResolvedValue({ ok: true });
+    Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({ ok: true }));
     mount(React.createElement(Harness, { initialValue: 'alpha' }));
 
     await act(async () => { await hookApi.save('/api/x', {}); });
@@ -147,9 +157,8 @@ describe('useLexiconEntrySave', () => {
     expect(hookApi.message).toEqual({ en: 'Saved.', he: 'נשמר.' });
   });
 
-  test('a rejected save leaves message untouched, resets saving, and does not throw', async () => {
-    // apiRequestWithBodyAndAlert already alerts the user itself before rejecting.
-    Sefaria.apiRequestWithBodyAndAlert.mockRejectedValue(new Error('server said no'));
+  test('a 4xx/409 response alerts the server\'s specific message, leaves message untouched, resets saving, and does not throw', async () => {
+    Sefaria.apiRequestWithBody.mockResolvedValue(errorResponse('server said no'));
     mount(React.createElement(Harness, { initialValue: 'alpha' }));
 
     let returned = 'not set';
@@ -160,6 +169,7 @@ describe('useLexiconEntrySave', () => {
     expect(returned).toBeNull();
     expect(hookApi.message).toBeNull();
     expect(hookApi.saving).toBe(false);
+    expect(alertSpy).toHaveBeenCalledWith('server said no');
   });
 });
 

@@ -13,7 +13,7 @@ jest.mock('../sefaria/sefaria', () => ({
   default: {
     ref: jest.fn(),
     getIndexDetails: jest.fn(),
-    apiRequestWithBodyAndAlert: jest.fn(),
+    apiRequestWithBody: jest.fn(),
     interfaceLang: 'english',
     _: (k) => k,
   },
@@ -46,6 +46,11 @@ function unmount() {
   document.body.removeChild(container);
   container = null;
 }
+
+// fetchLexiconApi reads apiRequestWithBody's raw Response (convertResponseToJSON=false),
+// not a plain parsed object -- these build the {ok, json()} shape it expects.
+const okResponse = (data) => ({ ok: true, json: () => Promise.resolve(data) });
+const errorResponse = (message) => ({ ok: false, json: () => Promise.resolve({ error: message }) });
 
 const input = () => container.querySelector('.lexiconEditHeadwordInput');
 const saveButton = () => container.querySelector('button.button');
@@ -124,21 +129,25 @@ describe('enabling Save', () => {
 });
 
 describe('saving', () => {
+  let alertSpy;
+  beforeEach(() => { alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {}); });
+  afterEach(() => { alertSpy.mockRestore(); });
+
   test('PATCHes headword/{lexicon}/{current headword} with the typed value', async () => {
-    Sefaria.apiRequestWithBodyAndAlert.mockResolvedValue({ headword: 'שָׁמוּר' });
+    Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({ headword: 'שָׁמוּר' }));
     await mount('BDB, שָׁמַר');
     typeHeadword('שָׁמוּר');
 
     await clickSave();
 
-    expect(Sefaria.apiRequestWithBodyAndAlert).toHaveBeenCalledWith(
+    expect(Sefaria.apiRequestWithBody).toHaveBeenCalledWith(
       `/api/lexicon-entry/headword/${encodeURIComponent('BDB Dictionary')}/${encodeURIComponent('שָׁמַר')}`,
-      null, { new_headword: 'שָׁמוּר' }, 'PATCH'
+      null, { new_headword: 'שָׁמוּר' }, 'PATCH', false
     );
   });
 
   test('shows a plain "Saved as" message when the server kept the typed headword as-is', async () => {
-    Sefaria.apiRequestWithBodyAndAlert.mockResolvedValue({ headword: 'שָׁמוּר' });
+    Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({ headword: 'שָׁמוּר' }));
     await mount('BDB, שָׁמַר');
     typeHeadword('שָׁמוּר');
 
@@ -152,7 +161,7 @@ describe('saving', () => {
     // e.g. get_available_lexicon_headword resolved a collision with a superscript, or
     // normalized the typed value -- either way the response headword differs from what
     // was typed.
-    Sefaria.apiRequestWithBodyAndAlert.mockResolvedValue({ headword: 'שָׁמוּר²' });
+    Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({ headword: 'שָׁמוּר²' }));
     await mount('BDB, שָׁמַר');
     typeHeadword('שָׁמוּר');
 
@@ -162,7 +171,7 @@ describe('saving', () => {
   });
 
   test('updates the displayed current headword after a successful save', async () => {
-    Sefaria.apiRequestWithBodyAndAlert.mockResolvedValue({ headword: 'שָׁמוּר' });
+    Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({ headword: 'שָׁמוּר' }));
     await mount('BDB, שָׁמַר');
     typeHeadword('שָׁמוּר');
 
@@ -173,13 +182,14 @@ describe('saving', () => {
     expect(saveButton().disabled).toBe(true);
   });
 
-  test('a failed save (already alerted by apiRequestWithBodyAndAlert) leaves the headword unchanged', async () => {
-    Sefaria.apiRequestWithBodyAndAlert.mockRejectedValue(new Error('collision'));
+  test('a 409 response alerts the server\'s specific message and leaves the headword unchanged', async () => {
+    Sefaria.apiRequestWithBody.mockResolvedValue(errorResponse('collision'));
     await mount('BDB, שָׁמַר');
     typeHeadword('שָׁמוּר');
 
     await clickSave();
 
+    expect(alertSpy).toHaveBeenCalledWith('collision');
     expect(container.textContent).not.toContain('Saved as');
     // The current-headword display still reads the original value, not the failed attempt.
     expect(container.querySelector('.lexiconEditCurrentHeadword').textContent).toBe('שָׁמַר');
