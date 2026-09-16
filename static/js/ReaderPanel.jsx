@@ -24,6 +24,7 @@ import { NotificationsPanel } from './NotificationsPanel';
 import { UserProfile }  from './UserProfile';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
+import DeveloperSettingsPage from './DeveloperSettingsPage';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
 import PublicCollectionsPage from './PublicCollectionsPage';
 import TranslationsPage from './TranslationsPage';
@@ -1074,6 +1075,13 @@ class ReaderPanel extends Component {
     }
     else if (this.state.menuOpen === "user_stats") {
       menu = (<UserStats />);
+
+    } else if (this.state.menuOpen === "developer") {
+      menu = (
+        <DeveloperSettingsPage
+          socialProviders={this.state.developerSocialProviders}
+          initialProjectId={this.state.developerProjectId} />
+      );
 
     } else if (this.state.menuOpen === "modtools") {
       menu = (

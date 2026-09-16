@@ -4511,6 +4511,21 @@ def account_settings(request):
     })
 
 
+@login_required
+@ensure_csrf_cookie
+def developer_settings(request, project_id=None):
+    """
+    Developer settings page. Proof of concept: every project and key the page shows
+    is mock data held in the browser, so this view only mounts the React page.
+    """
+    props = {
+        "initialDeveloperSocialProviders": list(request.user.socialaccount_set.values_list('provider', flat=True)),
+        "initialDeveloperProjectId": project_id,
+    }
+    return menu_page(request, props=props, page="developer", title="Developer Settings",
+                     desc="Register your projects and manage keys for the Sefaria API.")
+
+
 @ensure_csrf_cookie
 def home(request):
     """

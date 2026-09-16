@@ -16713,3 +16713,323 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   pointer-events: none;
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
+
+/* Developer settings POC (account settings section + /settings/developer) */
+.devPocPage {
+  --devPoc-ink: #252b32;
+  --devPoc-muted: #626971;
+  --devPoc-blue: #18345d;
+  --devPoc-line: #dce0e4;
+  color: var(--devPoc-ink);
+  font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
+  font-size: 15px;
+  line-height: 1.55;
+  text-align: left;
+}
+.readerNavMenu.devPocPage .content .contentInner {
+  width: 1100px;
+  max-width: 100%;
+  padding: 24px 24px 60px;
+  margin: 0 auto;
+}
+.devPocPage h1, .devPocPage h2, .devPocPage h3, .devPocPage p, .devPocPage ol {
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+  color: inherit;
+}
+.devPocPage h2, .devPocPage h3 { font-family: inherit; font-weight: 600; line-height: 1.4; }
+.devPocPage h2 { font-size: 20px; }
+.devPocPage h3 { font-size: 17px; }
+.devPocPage a { color: var(--devPoc-blue); }
+.devPocPage code {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.devPocDemoBar {
+  border: 2px dashed #b4801f;
+  border-radius: 6px;
+  background: repeating-linear-gradient(135deg, #fdf5e4, #fdf5e4 14px, #faecd0 14px, #faecd0 28px);
+  padding: 14px 18px;
+  margin-bottom: 28px;
+  color: #5c4713;
+  font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
+  font-size: 14px;
+  text-align: left;
+}
+.devPocDemoBarTitle { font-weight: 700; text-transform: uppercase; letter-spacing: .04em; font-size: 12px; margin-bottom: 10px; }
+.devPocDemoBarRow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 8px; }
+
+.devPocNav { font-size: 14px; text-align: left; }
+.devPocNavTitle { padding: 0 14px 12px; font-size: 13px; font-weight: 600; color: #626971; }
+.devPocNav a {
+  display: block;
+  padding: 10px 14px;
+  border-left: 3px solid transparent;
+  text-decoration: none;
+  color: #18345d;
+}
+.devPocNav a[aria-current="page"] { background: #eaf0f6; border-left-color: #18345d; font-weight: 600; }
+
+.readerNavMenu.devPocPage .devPocShell {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+}
+.devPocMain { min-width: 0; }
+.readerNavMenu.devPocPage .devPocShellNoNav { display: block; }
+.devPocPageHeader { margin-bottom: 28px; }
+.devPocPageHeader h1 { font-family: Georgia, "Times New Roman", serif; font-size: 32px; font-weight: 400; margin-bottom: 10px; }
+.devPocPageHeader p { color: var(--devPoc-muted); }
+.devPocPageHeader a { display: inline-block; margin-top: 10px; }
+
+.devPocHelp { display: block; font-size: 13px; color: #626971; line-height: 1.5; margin-top: 5px; }
+.devPocMuted { color: #626971; font-weight: 400; }
+
+.devPocProfile { border-top: 1px solid var(--devPoc-line); border-bottom: 1px solid var(--devPoc-line); padding: 18px 0; margin-bottom: 28px; }
+.devPocProfile h2 { margin-bottom: 14px; }
+.devPocProfileSummary { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+
+.devPocSectionHeading { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin: 24px 0 16px; }
+
+.devPocProject { border: 1px solid var(--devPoc-line); background: #fff; border-radius: 6px; margin-bottom: 18px; }
+.devPocProjectHeader { padding: 22px 24px; }
+.devPocProjectHeader h2 { display: inline-block; margin-right: 10px; }
+.devPocProjectActions { display: flex; gap: 8px; flex-shrink: 0; }
+.devPocHeading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 14px; }
+.devPocBadge {
+  display: inline-block;
+  border: 1px solid var(--devPoc-line);
+  border-radius: 20px;
+  padding: 2px 9px;
+  font-size: 12px;
+  color: #626971;
+  margin-right: 6px;
+}
+.devPocSection { padding: 22px 24px; border-top: 1px solid var(--devPoc-line); }
+
+.devPocKeyList { display: grid; gap: 14px; margin-top: 16px; }
+.devPocKey { padding: 16px; background: #f8f9fa; border: 1px solid #e3e6e9; border-radius: 4px; min-width: 0; }
+.devPocKeyHeading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.devPocKeyValue { display: flex; align-items: center; gap: 12px; margin: 10px 0; min-width: 0; }
+.devPocKeyValue code { flex: 1; min-width: 0; }
+.devPocKeyMeta { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 12px; color: #626971; }
+.devPocRestriction { margin-top: 14px; padding-top: 12px; border-top: 1px solid #e3e6e9; }
+.devPocInfoButton, .devPocTextButton {
+  border: 0;
+  padding: 0;
+  margin-top: 8px;
+  background: transparent;
+  color: var(--devPoc-blue);
+  text-decoration: underline;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.devPocPopover {
+  margin-top: 8px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid var(--devPoc-line);
+  border-radius: 4px;
+  font-size: 13px;
+  color: #3c444c;
+}
+
+.devPocStats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.devPocStat { border-right: 1px solid var(--devPoc-line); padding-right: 14px; }
+.devPocStat:last-child { border-right: 0; }
+.devPocStat strong { display: block; font-size: 23px; font-weight: 500; }
+.devPocStat span { font-size: 13px; color: #626971; }
+
+.devPocResult { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--devPoc-line); }
+.devPocListingSearch { margin-top: 14px; }
+
+.devPocEmpty { padding: 32px 28px; border: 1px solid var(--devPoc-line); border-radius: 6px; background: #fff; }
+.devPocEmpty h2 { margin-bottom: 10px; }
+.devPocEmpty p { color: #626971; max-width: 530px; }
+
+.devPocForm { display: grid; gap: 18px; }
+.devPocFormGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.devPocFieldset { margin: 0; padding: 0; border: 0; }
+.devPocFieldset legend { margin-bottom: 10px; font-weight: 500; font-size: 14px; }
+.devPocField { min-width: 0; }
+.devPocField > label { display: block; height: auto; min-height: 0; margin: 0 0 6px; font-size: 14px; font-weight: 500; line-height: 1.5; }
+.devPocField input, .devPocField select {
+  display: block;
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid #b9c0c7;
+  border-radius: 4px;
+  background: #fff;
+  color: #252b32;
+  font: inherit;
+  font-size: 14px;
+  box-shadow: none;
+}
+.devPocField input:disabled { background: #f2f3f4; color: #626971; }
+.devPocProfile .devPocField input, .devPocSection .devPocField input { max-width: 520px; }
+.devPocChoice { display: flex; align-items: flex-start; gap: 10px; height: auto; min-height: 0; margin: 0; font-size: 14px; font-weight: 400; line-height: 1.5; }
+.devPocChoice + .devPocChoice { margin-top: 12px; }
+.devPocChoice input[type="checkbox"]:not(.devPocSwitch), .devPocChoice input[type="radio"] {
+  appearance: auto;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  margin: 2px 0 0;
+  padding: 0;
+  box-shadow: none;
+  border-radius: 0;
+  accent-color: #18345d;
+  cursor: pointer;
+}
+input.devPocSwitch {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 40px;
+  min-width: 40px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: #9ca4ac;
+  box-shadow: none;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+input.devPocSwitch::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+}
+input.devPocSwitch:checked { background: #18345d; }
+input.devPocSwitch:checked::after { transform: translateX(16px); }
+
+.devPocNotice, .devPocWarning, .devPocSuccess {
+  border-radius: 4px;
+  padding: 14px 16px;
+  margin: 16px 0;
+  font-size: 14px;
+  background: #eef3f8;
+  border: 1px solid #d4dfea;
+  color: #23394f;
+}
+.devPocWarning { background: #fcf6e9; border-color: #e8d5a6; color: #69501e; }
+.devPocSuccess { background: #edf5f0; border-color: #c9dfd1; color: #305840; }
+.devPocGate { margin-top: 14px; padding: 18px; background: #eef3f8; border: 1px solid #d4dfea; border-radius: 6px; }
+.devPocGate p { font-size: 14px; margin: 8px 0 14px; }
+
+.devPocActions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.devPocButton {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 38px;
+  padding: 8px 15px;
+  border: 1px solid #18345d;
+  border-radius: 4px;
+  background: #18345d;
+  color: #fff;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: none;
+  flex-shrink: 0;
+}
+.devPocButton:hover { background: #264975; color: #fff; text-decoration: none; }
+.devPocButton.secondary { background: #fff; color: #18345d; border-color: #b9c5d2; }
+.devPocButton.quiet { background: transparent; color: #18345d; border-color: transparent; padding-inline: 8px; }
+.devPocButton.danger { background: #a43632; border-color: #a43632; color: #fff; }
+.devPocButton.quiet.danger { background: transparent; color: #a43632; border-color: transparent; }
+.devPocButton:disabled { opacity: .5; cursor: not-allowed; }
+
+.devPocModalStage {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px;
+  background: #14233770;
+  overflow-y: auto;
+}
+.devPocDialog {
+  width: 100%;
+  max-width: 600px;
+  padding: 26px;
+  background: #fff;
+  border: 1px solid #d9dee3;
+  border-radius: 6px;
+  text-align: left;
+  color: #252b32;
+  font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
+  font-size: 15px;
+}
+.devPocDialog h2 { font-family: Georgia, "Times New Roman", serif; font-size: 24px; font-weight: 400; margin: 0; text-align: left; }
+.devPocDialog p { margin: 12px 0 0; text-align: left; }
+.devPocDialogHeader { margin-bottom: 20px; }
+.devPocDialog .devPocActions { margin-top: 20px; }
+.devPocNoviceHelp ol { margin: 12px 0 0; padding-left: 22px; }
+.devPocNoviceHelp li { margin-bottom: 6px; }
+
+@media (max-width: 760px) {
+  .readerNavMenu.devPocPage .devPocShell { display: block; }
+  .readerNavMenu.devPocPage .content .contentInner { padding: 16px 16px 40px; }
+  .devPocNav { display: flex; flex-wrap: wrap; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
+  .devPocNavTitle { width: 100%; padding: 0 0 8px; }
+  .devPocNav a { border-left: 0; border-bottom: 3px solid transparent; padding: 10px; }
+  .devPocNav a[aria-current="page"] { background: transparent; border-bottom-color: #18345d; }
+  .devPocPageHeader h1 { font-size: 27px; }
+  .devPocProjectHeader, .devPocSection { padding: 18px; }
+  .devPocFormGrid { grid-template-columns: minmax(0, 1fr); }
+  .devPocStats { grid-template-columns: minmax(0, 1fr); }
+  .devPocStat { border-right: 0; }
+  .devPocHeading { flex-wrap: wrap; }
+  .devPocKeyValue { flex-wrap: wrap; }
+}
+
+/* Developer settings POC controls inside the account settings page, which styles all
+   its own inputs and labels full width. */
+#accountSettingsPage .devPocChoice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: auto;
+  margin: 0;
+}
+#accountSettingsPage .devPocDemoBar input.devPocSwitch,
+#accountSettingsPage .devPocDemoBar input[type="checkbox"] {
+  width: 40px;
+  min-width: 40px;
+  height: 24px;
+  padding: 0;
+  margin: 0;
+}
+#accountSettingsPage .devPocHelp { margin: 0; }
+#accountSettingsPage .devPocGate strong { display: block; margin-bottom: 6px; }
+#accountSettingsPage .devPocGate .button { width: auto; display: inline-block; }
+#accountSettingsPage .devPocNav {
+  margin: 0 0 28px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #dce0e4;
+}
+#accountSettingsPage .devPocNav a { margin: 0; padding: 8px 14px; }
+#developerSettings .additional-info { margin-top: 12px; }
+#developerSettings #developerSettingsLink { margin-top: 10px; }

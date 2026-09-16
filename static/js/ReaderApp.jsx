@@ -85,6 +85,8 @@ class ReaderApp extends Component {
         collectionTag:           props.initialCollectionTag,
         translationsSlug:        props.initialTranslationsSlug,
         collectionData:          props.initialCollectionData,
+        developerSocialProviders: props.initialDeveloperSocialProviders,
+        developerProjectId:      props.initialDeveloperProjectId,
       };
     }
 
@@ -173,6 +175,8 @@ class ReaderApp extends Component {
       collectionTag:           state.collectionTag           || null,
       translationsSlug:        state.translationsSlug        || null,
       collectionData:          state.collectionData          || null,
+      developerSocialProviders: state.developerSocialProviders || [],
+      developerProjectId:      state.developerProjectId      || null,
       searchQuery:             state.searchQuery             || null,
       showHighlight:           state.showHighlight           || null,
       searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),
@@ -608,6 +612,11 @@ class ReaderApp extends Component {
             hist.title = Sefaria.getPageTitle("header.learning_schedules");
             hist.url = "calendars";
             hist.mode = "calendars";
+            break;
+          case "developer":
+            hist.title = Sefaria.getPageTitle("Developer Settings");
+            hist.url = "settings/developer" + (state.developerProjectId ? "/projects/" + state.developerProjectId : "");
+            hist.mode = "developer";
             break;
           case "sheets":
             hist.url = "";
