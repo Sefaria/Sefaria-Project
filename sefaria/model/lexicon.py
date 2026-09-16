@@ -257,13 +257,14 @@ class DictionaryEntry(LexiconEntry):
     def as_strings(self, with_headword=True):
         new_content = ""
         next_line = ""
+        content = getattr(self, 'content', {})
 
         if with_headword:
             next_line = self.headword_string()
 
         for field in ['morphology']:
-            if field in self.content:
-                next_line += " " + self.content[field]
+            if field in content:
+                next_line += " " + content[field]
 
         lang = ''
         if hasattr(self, 'language_code'):
@@ -275,7 +276,10 @@ class DictionaryEntry(LexiconEntry):
         if lang:
             next_line += lang
 
-        for sense in self.content['senses']:
+        # senses may be absent (content is optional for some subclasses) or present but
+        # empty (e.g. an entry whose real content is in notes/morphology instead) -- neither
+        # is a crash, both should just contribute nothing here.
+        for sense in content.get('senses', []):
             if 'grammar' in sense:
                 # This is where we would start a new segment for the new form
                 new_content += next_line
@@ -436,12 +440,16 @@ class BDBEntry(DictionaryEntry):
 
     def as_strings(self, with_headword=True):
         strings = []
-        for sense in self.content['senses']:
+        # senses may be absent or empty (e.g. an entry whose real content is in
+        # notes/morphology instead) -- not a crash, just nothing to add here.
+        for sense in self.content.get('senses', []):
             sense = self.get_sense(sense)
             if type(sense) == list:
                 strings.append(' '.join(sense))
             else:
                 strings.append(sense)
+        if not strings:
+            strings = ['']  # keeps strings[0] below safe when there were no senses
         if with_headword:
             strings[0] = self.headword_string() + ' ' + strings[0]
         return ['<br>'.join(strings)]

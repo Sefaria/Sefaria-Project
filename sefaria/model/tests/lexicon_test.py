@@ -292,6 +292,35 @@ class Test_LexiconEntry_PruneEmptyAttrs(object):
         assert entry.dual_attr == {}
 
 
+class Test_DictionaryEntry_AsStrings_EmptySenses(object):
+    # A present-but-empty (or entirely absent) senses list is legitimate data, not a bug --
+    # e.g. a real Klein Dictionary entry whose actual content lives in notes/morphology
+    # instead (etymology-only loanwords). as_strings() must render that gracefully rather
+    # than crash, both for the shared DictionaryEntry implementation and BDBEntry's own.
+    PARENT_LEXICON = "Test Lexicon AsStrings"
+
+    def test_dictionary_entry_empty_senses_with_notes_renders_without_crash(self):
+        entry = KleinDictionaryEntry({
+            "headword": "acoustics", "parent_lexicon": self.PARENT_LEXICON, "rid": "T1",
+            "content": {"morphology": "f.n.", "senses": []}, "notes": "etymology text",
+        })
+        assert entry.as_strings() == ['<strong dir="rtl">acoustics</strong> f.n. etymology text']
+
+    def test_dictionary_entry_absent_content_renders_without_crash(self):
+        entry = KleinDictionaryEntry({"headword": "bare", "parent_lexicon": self.PARENT_LEXICON, "rid": "T2"})
+        assert entry.as_strings() == ['<strong dir="rtl">bare</strong>']
+
+    def test_bdb_entry_empty_senses_renders_headword_only_without_crash(self):
+        entry = BDBEntry({"headword": "bare-bdb", "parent_lexicon": self.PARENT_LEXICON,
+                           "rid": "T3", "content": {"senses": []}})
+        assert entry.as_strings() == ['<big><span dir="rtl">bare-bdb</span></big> ']
+
+    def test_bdb_entry_missing_senses_key_renders_headword_only_without_crash(self):
+        entry = BDBEntry({"headword": "bare-bdb-2", "parent_lexicon": self.PARENT_LEXICON,
+                           "rid": "T4", "content": {}})
+        assert entry.as_strings() == ['<big><span dir="rtl">bare-bdb-2</span></big> ']
+
+
 class Test_LexiconEntry_ReplaceContentAttrs(object):
     def test_rejects_excluded_attr(self):
         entry = LexiconEntry({"headword": "x", "parent_lexicon": "y"})
