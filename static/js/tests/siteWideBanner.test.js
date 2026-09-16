@@ -11,12 +11,8 @@ describe("isChatbotBannerExcludedPath", function () {
     "/register",
     "/register/",
     "/register/?next=%2Ftexts#top",
-    "/password/reset",
-    "/password/reset/",
-    "/password/reset?next=%2Ftexts",
-    "/password/reset/done/",
-    "/password/reset/complete/",
     "/password/reset/confirm/user-id/token/",
+    "/password/reset/confirm/user-id/token/?next=%2Ftexts",
   ])("excludes %s", function (path) {
     expect(isChatbotBannerExcludedPath(path, moduleUrl)).toBe(true);
   });
@@ -30,6 +26,7 @@ describe("isChatbotBannerExcludedPath", function () {
     "/login-help",
     "/register-interest",
     "/password",
+    "/password/reset",
     "/passwords/reset",
     "/password/resetting",
     "/texts?next=%2Flogin",

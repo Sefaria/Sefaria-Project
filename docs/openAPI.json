@@ -27857,14 +27857,11 @@
             "default": 10
           },
           "sort_fields": {
-            "description": "List of fields to sort on. If `sort_method = 'score'` this list should have exactly one item. Common fields to sort on are `comp_date` (which list results from titles published chronologically), `order` (which list results based on Sefaria's table of contents structure), `pagesheetrank` (most relevant results based on the Sheet Rank algorithm), `dateCreated` (for sheet results returned chronologically), `views` (for sheet results based on popularity).",
+            "description": "List of fields to sort on. **Required when `sort_method = 'score'`** — omitting it causes the server to skip pagesheetrank weighting and return raw BM25 scores instead. When `sort_method = 'score'` this list must have exactly one item. Common fields to sort on are `comp_date` (which list results from titles published chronologically), `order` (which list results based on Sefaria's table of contents structure), `pagesheetrank` (most relevant results based on the pagerank algorithm), `dateCreated` (for sheet results returned chronologically), `views` (for sheet results based on popularity).",
             "type": "array",
             "items": {
               "type": "string"
-            },
-            "default": [
-              "pagesheetrank"
-            ]
+            }
           },
           "sort_method": {
             "description": "How to sort results. If sort, the values are sorted according to `sort_fields`. If `score`, the value in `sort_fields` is multiplied with the default ElasticSearch score.",
