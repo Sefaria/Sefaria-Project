@@ -1,6 +1,81 @@
 /* Testing done using Jest */
-import { buildInAppAdsFromSidebarAds } from "../sidebarAds";
+import { buildInAppAdsFromSidebarAds, adMatchesKeywords, parseKeywords, isLightBackground } from "../sidebarAds";
 import { groupByDocumentId, LOCALIZED_FIELDS } from "../strapiLocalization";
+
+// The truth table for the keyword gate (strict semantics, 2026-09-01). Each test names the one
+// rule it proves; together they pin the semantics documented on adMatchesKeywords itself.
+describe("adMatchesKeywords", function () {
+  const trigger = (keywords) => parseKeywords(keywords);
+
+  it("passes everywhere when the ad has no keywords at all — including keyword-less pages", function () {
+    // The honest replacement for the old '!nowhere' hack: an empty field means no restriction.
+    expect(adMatchesKeywords(trigger(""), [])).toBe(true);
+    expect(adMatchesKeywords(trigger(""), ["torah"])).toBe(true);
+  });
+
+  it("requires an include keyword to appear among the page's keywords", function () {
+    expect(adMatchesKeywords(trigger("torah, shabbat"), ["torah"])).toBe(true);
+    expect(adMatchesKeywords(trigger("torah, shabbat"), ["kabbalah"])).toBe(false);
+  });
+
+  it("never matches an include-keyword ad on a keyword-less page", function () {
+    expect(adMatchesKeywords(trigger("torah"), [])).toBe(false);
+  });
+
+  it("lets an exclusion-only ad show on keyword-bearing pages that avoid the excluded keyword", function () {
+    expect(adMatchesKeywords(trigger("!social-issues"), ["prayer"])).toBe(true);
+    expect(adMatchesKeywords(trigger("!social-issues"), ["social-issues"])).toBe(false);
+  });
+
+  it("keeps an exclusion-only ad OFF keyword-less pages — exclusions subtract, they don't mean everywhere", function () {
+    // The strict half of the 2026-09-01 change: '!x' no longer doubles as an all-pages rule on
+    // pages that produce no keywords (homepage, calendars, notifications, the new slots…).
+    expect(adMatchesKeywords(trigger("!social-issues"), [])).toBe(false);
+  });
+
+  it("requires BOTH rules for a mixed ad — include must match and exclusion must not", function () {
+    // The old gate ORed the two branches, so "a, !b" matched a page carrying both a AND b.
+    expect(adMatchesKeywords(trigger("torah, !shabbat"), ["torah"])).toBe(true);
+    expect(adMatchesKeywords(trigger("torah, !shabbat"), ["torah", "shabbat"])).toBe(false);
+    expect(adMatchesKeywords(trigger("torah, !shabbat"), ["kabbalah"])).toBe(false);
+  });
+});
+
+describe("isLightBackground", function () {
+  it("treats whitish colors as light — they keep the ad's default styling", function () {
+    ["#FFFFFF", "#F8F8F8", "#fff", "#EEE"].forEach((color) =>
+      expect(isLightBackground(color)).toBe(true),
+    );
+  });
+
+  it("treats dark colors as dark — they trigger the white-text colored treatment", function () {
+    // #004E5F is the old hasBlueBackground blue: entering it must reproduce the old look.
+    ["#004E5F", "#000000", "#333", "#7B1FA2"].forEach((color) =>
+      expect(isLightBackground(color)).toBe(false),
+    );
+  });
+
+  it("fails toward the readable default for missing or unparseable values", function () {
+    [null, undefined, "", "not-a-color", "#12"].forEach((value) =>
+      expect(isLightBackground(value)).toBe(true),
+    );
+  });
+});
+
+describe("parseKeywords", function () {
+  it("treats null, empty, and whitespace-only fields as no restriction", function () {
+    [null, undefined, "", "  ", " , "].forEach((raw) =>
+      expect(parseKeywords(raw)).toEqual({ keywordTargets: [], excludeKeywordTargets: [] }),
+    );
+  });
+
+  it("drops blank entries from stray commas instead of turning them into unmatchable includes", function () {
+    expect(parseKeywords("torah,, shabbat,")).toEqual({
+      keywordTargets: ["torah", "shabbat"],
+      excludeKeywordTargets: [],
+    });
+  });
+});
 
 describe("buildInAppAdsFromSidebarAds", function () {
   const makeSidebarAd = (overrides = {}) => ({
@@ -8,7 +83,7 @@ describe("buildInAppAdsFromSidebarAds", function () {
     keywords: "Torah, Shabbat, !skip",
     buttonIcon: "icon.png",
     buttonAboveOrBelow: "above",
-    hasBlueBackground: true,
+    sidebarAdBackgroundColor: "#004E5F",
     isNewsletterSubscriptionInputForm: false,
     newsletterMailingLists: [{ newsletterName: "General" }],
     showTo: "everyone",
@@ -64,6 +139,43 @@ describe("buildInAppAdsFromSidebarAds", function () {
     expect(withoutLists.newsletterMailingLists).toEqual([]);
   });
 
+  it("preserves inner spaces in multi-word keywords", function () {
+    // The lever for targeting a specific collection TOC: category-derived context keywords are
+    // lowercased category names WITH spaces ("covenant and conversation"), and a Strapi editor
+    // types the same thing into the comma-separated keywords field. Only commas split; spaces
+    // inside an entry are content.
+    const [ad] = buildInAppAdsFromSidebarAds([
+      makeSidebarAd({ locales: ["en"], keywords: "Covenant and Conversation, !skip" }),
+    ]);
+
+    expect(ad.trigger.keywordTargets).toEqual(["covenant and conversation"]);
+    expect(ad.trigger.excludeKeywordTargets).toEqual(["skip"]);
+  });
+
+  it("defaults trigger.pageType to all_pages when the document predates the field", function () {
+    // makeSidebarAd carries no pageType, exactly like a Strapi document created before the field
+    // existed (or fetched via the legacy-Strapi retry) — such ads must keep behaving as before.
+    const [ad] = buildInAppAdsFromSidebarAds([makeSidebarAd({ locales: ["en"] })]);
+    expect(ad.trigger.pageType).toBe("all_pages");
+  });
+
+  it("maps sidebarAdBackgroundColor onto the ad as backgroundColor", function () {
+    const [ad] = buildInAppAdsFromSidebarAds([makeSidebarAd({ locales: ["en"] })]);
+    expect(ad.backgroundColor).toBe("#004E5F");
+
+    const [plain] = buildInAppAdsFromSidebarAds([
+      makeSidebarAd({ locales: ["en"], sidebarAdBackgroundColor: null }),
+    ]);
+    expect(plain.backgroundColor).toBeNull();
+  });
+
+  it("carries the Strapi pageType value onto the trigger when present", function () {
+    const [ad] = buildInAppAdsFromSidebarAds([
+      makeSidebarAd({ locales: ["en"], pageType: "book_toc" }),
+    ]);
+    expect(ad.trigger.pageType).toBe("book_toc");
+  });
+
   it("flattens multiple sidebar ads, each contributing their own locale-ads, into a single array", function () {
     const ads = buildInAppAdsFromSidebarAds([
       makeSidebarAd({ internalCampaignId: "camp-1", locales: ["en"] }),
@@ -88,7 +200,7 @@ describe("buildInAppAdsFromSidebarAds", function () {
           internalCampaignId: "camp-3",
           keywords: "kabbalah",
           buttonAboveOrBelow: "below",
-          hasBlueBackground: false,
+          sidebarAdBackgroundColor: null,
           showTo: "everyone",
           startTime: "2026-01-01T00:00:00Z",
           endTime: "2026-02-01T00:00:00Z",

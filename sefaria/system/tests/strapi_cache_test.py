@@ -187,8 +187,16 @@ def test_strapi_graphql_cache_functionality(client):
     # Test the complete flow for caching including cache hit and miss
     from sefaria.system.cache import get_cache_elem, set_cache_elem
 
+    import hashlib
+
+    from sefaria.views import STRAPI_SCHEMA_VERSION
+
     query = get_sample_graphql_query("2023-01-01T00:00:00Z", "2023-01-31T23:59:59Z")
-    cache_key = "strapi_graphql_v5_2023-01-01_2023-01-31"
+    # Derived with the view's own formula (version + dates + query-body hash) rather than
+    # hardcoded, so this test keeps proving "the response landed in the cache" across version
+    # bumps instead of breaking on every one.
+    query_hash = hashlib.sha1(query.encode("utf-8")).hexdigest()[:12]
+    cache_key = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_2023-01-01_2023-01-31_{query_hash}"
 
     # Mock Strapi response
     mock_response = Mock()
@@ -235,13 +243,71 @@ def test_strapi_graphql_cache_functionality(client):
             assert data1 == data2
 
 
+def test_different_query_bodies_do_not_share_a_cache_slot(client):
+    """A stale-bundle client's smaller query must never poison the slot new clients read.
+
+    During a deploy window, browsers running the previous frontend bundle post the previous
+    (smaller) GraphQL query to this endpoint. If the cache key ignored the query body, the old
+    query's response — missing newly added fields — would be cached under the same key the new
+    bundle reads, silently stripping those fields for every visitor until the TTL. The query-body
+    hash in the key is what prevents that; this test pins it.
+    """
+    legacy_query = get_sample_graphql_query("2023-01-01T00:00:00Z", "2023-01-31T23:59:59Z")
+    # The "new bundle" query: same dates, one extra field — the smallest realistic divergence.
+    current_query = legacy_query.replace("documentId", "documentId\n        pageType", 1)
+    assert legacy_query != current_query
+
+    legacy_body = {"data": {"banners": [{"documentId": "legacy-row"}], "modals": []}}
+    current_body = {"data": {"banners": [{"documentId": "current-row", "pageType": "all_pages"}], "modals": []}}
+
+    def respond_for(body):
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.text = json.dumps(body)
+        mock_response.json.return_value = body
+        return mock_response
+
+    url = "/api/strapi/graphql-cache?start_date=2023-01-01&end_date=2023-01-31"
+
+    with patch("django.conf.settings.STRAPI_LOCATION", "http://localhost"), patch(
+        "django.conf.settings.STRAPI_PORT", "1337"
+    ):
+        # The legacy client fetches first and its response is cached.
+        with patch("requests.post", return_value=respond_for(legacy_body)):
+            response1 = client.post(url, data=legacy_query, content_type="text/plain")
+        assert json.loads(response1.content) == legacy_body
+
+        # The new client posts its own query for the SAME dates. It must reach Strapi (its slot
+        # is empty) and receive its own response — not the legacy client's cached one.
+        with patch("requests.post", return_value=respond_for(current_body)) as second_fetch:
+            response2 = client.post(url, data=current_query, content_type="text/plain")
+        second_fetch.assert_called_once()
+        assert json.loads(response2.content) == current_body
+
+        # And each slot now serves its own audience from cache.
+        with patch("requests.post") as no_fetch:
+            replay_legacy = client.post(url, data=legacy_query, content_type="text/plain")
+            replay_current = client.post(url, data=current_query, content_type="text/plain")
+        no_fetch.assert_not_called()
+        assert json.loads(replay_legacy.content) == legacy_body
+        assert json.loads(replay_current.content) == current_body
+
+
 def test_strapi_graphql_error_response_not_cached(client):
     # A GraphQL error response (HTTP 200 with an "errors" body) must not be cached
     # Otherwise, a transient error or a query/schema mismatch would be served from the cache for the full TTL.
     from sefaria.system.cache import get_cache_elem
 
+    import hashlib
+
+    from sefaria.views import STRAPI_SCHEMA_VERSION
+
     query = get_sample_graphql_query("2023-01-01T00:00:00Z", "2023-01-31T23:59:59Z")
-    cache_key = "strapi_graphql_v5_2023-01-01_2023-01-31"
+    # The REAL key the view would cache under (version + dates + query-body hash). Checking an
+    # old-format literal here would let this test pass even if errors WERE cached — emptiness of
+    # a key nothing writes to proves nothing.
+    query_hash = hashlib.sha1(query.encode("utf-8")).hexdigest()[:12]
+    cache_key = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_2023-01-01_2023-01-31_{query_hash}"
 
     error_body = {"errors": [{"message": 'Cannot query field "documentId"'}]}
     mock_response = Mock()
@@ -349,11 +415,17 @@ def test_strapi_cache_invalidate_with_valid_webhook_auth(client):
             assert response.status_code == 200
 
 def test_cache_key_generation():
-    # Test that cache keys are generated consistently.
-    from sefaria.system.cache import get_cache_elem, set_cache_elem
+    # A Redis round-trip smoke on a key in the CURRENT format (version + dates + query hash).
+    # This does not re-derive the view's formula — the poisoning-prevention and error-path tests
+    # above exercise the real key through the view itself; this only proves set/get works for a
+    # key of the shape production writes.
+    import hashlib
 
-    # Test that same dates generate same cache key
-    cache_key = "strapi_graphql_v5_2023-01-01_2023-12-31"
+    from sefaria.system.cache import get_cache_elem, set_cache_elem
+    from sefaria.views import STRAPI_SCHEMA_VERSION
+
+    sample_hash = hashlib.sha1(b"sample query").hexdigest()[:12]
+    cache_key = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_2023-01-01_2023-12-31_{sample_hash}"
     test_data = {"test": "data"}
 
     # Set cache

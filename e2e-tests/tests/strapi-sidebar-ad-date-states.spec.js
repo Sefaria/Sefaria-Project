@@ -12,9 +12,11 @@
  *   sidebar ad   → Promotions  `.filter()` — rejects each inactive ad
  *
  * WHAT MAKES THE ASSERTION MEAN SOMETHING. All three ads are identical apart from their titles and
- * windows: same `keywords: '!everywhere'` (an exclude-only rule, so all three are eligible on any
- * page), same showTo, same debug flag, same locale. The date is therefore the only thing that can
- * separate them, and if the filter were ignored all three would render. The active ad is its own
+ * windows: same `keywords: '!everywhere'` (frozen recorded data — under the strict 2026-09-01
+ * semantics an exclusion-only rule matches keyword-BEARING pages only, which is why the scenario
+ * navigates a topic category page rather than '/'), same showTo, same debug flag, same locale.
+ * The date is therefore the only thing that can separate them, and if the filter were ignored all
+ * three would render. The active ad is its own
  * positive control — it proves the payload arrived and rendering works, in the same assertion pass
  * that shows the other two are absent.
  *
@@ -28,11 +30,11 @@
  *   The standard entry helpers (goToPageWithLang / goToPageWithUser) call
  *   installOverlaySuppression(), which short-circuits /api/strapi/graphql-cache with an empty
  *   payload — i.e. it suppresses exactly what this spec asserts on (see e2e-tests/CLAUDE.md §3).
- *   So it intentionally uses a bare page.goto plus routeFromHAR, keeping Strapi ON.
+ *   So it intentionally uses a bare page.goto plus a synthetic Strapi route, keeping Strapi ON.
  */
 
 import { test, expect } from '@playwright/test';
-import { routeWithStrapiHarFixture, expectStrapiServedFromHar } from '../support/strapi-har-fixture.js';
+import { routeWithStrapiPayload, expectStrapiServed } from '../support/strapi-payload-fixture.js';
 import {
   SCENARIOS,
   prepareStrapiPage,
@@ -47,12 +49,12 @@ const { expired, active, future } = scenario.expected.ads;
 const adTitled = (page, title) => page.locator('.sidebarPromo', { hasText: title });
 
 test.describe('Strapi Sidebar Ad — date states', () => {
-  let har;
+  let served;
   /** The Strapi payload as the page actually received it. */
   let payload;
 
   test.beforeEach(async ({ page, context }) => {
-    har = await routeWithStrapiHarFixture(context, scenario.har);
+    served = await routeWithStrapiPayload(context, scenario.payload);
     await prepareStrapiPage(page, scenario);
     await useInterfaceLanguage(page, LANGUAGES.EN);
 
@@ -64,7 +66,7 @@ test.describe('Strapi Sidebar Ad — date states', () => {
   });
 
   test.afterEach(() => {
-    expectStrapiServedFromHar(har);
+    expectStrapiServed(served);
   });
 
   test('all three are delivered, and only the active one is displayed', async ({ page }) => {
