@@ -1073,6 +1073,7 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword, rebuild_
     print('Updating entry')
     entry.headword = new_headword
     entry.save()
+    new_headword = entry.headword  # save() may have NFC-normalized it in place
 
     # change prev and next
     print('Updating previous and next entries')

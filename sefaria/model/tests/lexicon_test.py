@@ -5,7 +5,7 @@ from unittest.mock import patch
 import pytest
 from sefaria.model import *
 from sefaria.model.schema import DictionaryNode
-from sefaria.model.lexicon import LexiconEntrySet, LexiconEntry, BDBEntry, KrupnikEntry, KovetzYesodotEntry, LexiconEntrySubClassMapping
+from sefaria.model.lexicon import LexiconEntrySet, LexiconEntry, BDBEntry, KrupnikEntry, KovetzYesodotEntry, WordForm, LexiconEntrySubClassMapping
 from sefaria.helper.schema import change_lexicon_headword, get_available_lexicon_headword
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import deep_map, deep_prune
@@ -441,6 +441,29 @@ class Test_ChangeLexiconHeadword(object):
         make_lexicon_entry("existing-b", self.PARENT_LEXICON)
         with pytest.raises(ValueError):
             change_lexicon_headword(self.PARENT_LEXICON, "existing-b", "existing-a")
+
+    def test_word_form_lookup_uses_normalized_headword_not_raw_argument(self, make_lexicon_entry):
+        # word_form is updated via a raw pymongo update_many, not through the model layer --
+        # unlike prev_hw/next_hw on a neighbor LexiconEntry, there's no LexiconEntry.save()
+        # here to independently re-normalize it, so this directly exercises whether
+        # change_lexicon_headword itself uses the actual persisted (post-normalize) value.
+        order_dagesh_then_sheva = "\u05d1\u05bc\u05b0"
+        nfc = unicodedata.normalize("NFC", order_dagesh_then_sheva)
+        assert order_dagesh_then_sheva != nfc
+
+        make_lexicon_entry("word-form-target", self.PARENT_LEXICON)
+        word_form = WordForm({"form": "wf-test-form", "lookups": [
+            {"parent_lexicon": self.PARENT_LEXICON, "headword": "word-form-target"}
+        ]})
+        word_form.save()
+        try:
+            with patch("sefaria.helper.schema.library"):
+                change_lexicon_headword(self.PARENT_LEXICON, "word-form-target", order_dagesh_then_sheva)
+
+            reloaded = WordForm().load({"form": "wf-test-form"})
+            assert reloaded.lookups[0]["headword"] == nfc
+        finally:
+            word_form.delete()
 
 
 class Test_LexiconEntry_ValidateUniqueness(object):
