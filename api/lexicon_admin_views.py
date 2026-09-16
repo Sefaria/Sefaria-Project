@@ -102,4 +102,9 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
             # directly rather than passing through the generic "already exists" message,
             # which would read as if the client's input was simply wrong.
             return jsonResponse({"error": f"'{resolved}' was just claimed by another change; please retry."}, status=409)
+        except InputError as e:
+            # entry.save() inside change_lexicon_headword runs _validate(), which can reject
+            # resolved for reasons get_available_lexicon_headword doesn't check itself (e.g.
+            # ref-unsafe characters like a hyphen) -- a normal client input error, not a 500.
+            return jsonResponse({"error": str(e)}, status=400)
         return jsonResponse({"status": "ok", "headword": resolved})
