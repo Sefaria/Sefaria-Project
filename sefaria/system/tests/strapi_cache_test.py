@@ -195,7 +195,7 @@ def test_strapi_graphql_cache_functionality(client):
     # Derived with the view's own formula (version + dates + query-body hash) rather than
     # hardcoded, so this test keeps proving "the response landed in the cache" across version
     # bumps instead of breaking on every one.
-    query_hash = hashlib.sha1(query.encode("utf-8")).hexdigest()[:12]
+    query_hash = hashlib.sha256(query.encode("utf-8")).hexdigest()
     cache_key = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_2023-01-01_2023-01-31_{query_hash}"
 
     # Mock Strapi response
@@ -306,7 +306,7 @@ def test_strapi_graphql_error_response_not_cached(client):
     # The REAL key the view would cache under (version + dates + query-body hash). Checking an
     # old-format literal here would let this test pass even if errors WERE cached — emptiness of
     # a key nothing writes to proves nothing.
-    query_hash = hashlib.sha1(query.encode("utf-8")).hexdigest()[:12]
+    query_hash = hashlib.sha256(query.encode("utf-8")).hexdigest()
     cache_key = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_2023-01-01_2023-01-31_{query_hash}"
 
     error_body = {"errors": [{"message": 'Cannot query field "documentId"'}]}
@@ -424,7 +424,7 @@ def test_cache_key_generation():
     from sefaria.system.cache import get_cache_elem, set_cache_elem
     from sefaria.views import STRAPI_SCHEMA_VERSION
 
-    sample_hash = hashlib.sha1(b"sample query").hexdigest()[:12]
+    sample_hash = hashlib.sha256(b"sample query").hexdigest()
     cache_key = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_2023-01-01_2023-12-31_{sample_hash}"
     test_data = {"test": "data"}
 

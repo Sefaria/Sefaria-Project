@@ -1599,7 +1599,10 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
         # the hash, its response — missing the newly added fields — would be cached under the key that freshly
         # deployed clients read, silently stripping the new fields from every visitor for the cache TTL.
         # Distinct query shapes therefore get distinct slots; identical clients still share one slot per date range.
-        query_hash: str = hashlib.sha1(query.encode("utf-8")).hexdigest()[:12]
+        # Full SHA-256 digest, untruncated: the key must NEVER collide (a collision silently serves one
+        # query shape's payload to a client that sent a different one — the exact poisoning this exists
+        # to prevent), and Redis key length is not a constraint worth trading that guarantee for.
+        query_hash: str = hashlib.sha256(query.encode("utf-8")).hexdigest()
         cache_key: str = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_{start_date}_{end_date}_{query_hash}"
 
         # Try to get from cache first
