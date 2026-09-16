@@ -176,7 +176,9 @@ const FIELD_DEFAULTS = {
     pageType: 'all_pages',
     showTo: 'all',
     debug: false,
-    hasBlueBackground: false,
+    // Mirrors bannerBackgroundColor: hex string or null (null = default look; whitish values
+    // keep default text styling, dark values trigger the white-text colored treatment).
+    sidebarAdBackgroundColor: null,
     isNewsletterSubscriptionInputForm: false,
     newsletterMailingLists: [],
     locale: null,

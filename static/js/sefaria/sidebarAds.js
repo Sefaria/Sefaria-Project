@@ -43,6 +43,23 @@ const adMatchesKeywords = ({ keywordTargets, excludeKeywordTargets }, pageKeywor
   return includesPass && excludesPass;
 };
 
+// Is a CSS hex color light enough that dark text stays readable on it?
+//
+// Drives the ad's "colored treatment": a DARK background (like the old blue ads) flips the title,
+// body, and button to the white-on-color look, while a WHITISH background keeps the ad's default
+// styling — same text and button as an ad with no color at all, per the design decision
+// (2026-09-15) that light tints must not change how the ad reads. Uses the standard perceived-
+// luminance weights (ITU-R BT.601); the 0.7 threshold is a judgment line, not physics — tune it
+// if an editor ever picks a mid-tone that lands on the wrong side.
+const isLightBackground = (hexColor) => {
+  if (!hexColor) return true; // no color -> default styling, same as light
+  const hex = hexColor.replace("#", "");
+  const full = hex.length === 3 ? [...hex].map((c) => c + c).join("") : hex;
+  if (!/^[0-9a-f]{6}$/i.test(full)) return true; // unparseable -> fail toward readable default
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16));
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.7;
+};
+
 // sidebarAds: array of grouped docs from groupByDocumentId (each carrying byLocale/locales).
 // One in-app ad per locale actually present on the document, so a locale with no
 // counterpart in another locale (e.g. Hebrew-only) is no longer skipped.
@@ -60,7 +77,9 @@ const buildInAppAdsFromSidebarAds = (sidebarAds) =>
         buttonURL: localizedFields.buttonURL,
         buttonIcon: sidebarAd.buttonIcon,
         buttonLocation: sidebarAd.buttonAboveOrBelow,
-        hasBlueBackground: sidebarAd.hasBlueBackground,
+        // Mirrors the banner's bannerBackgroundColor: a hex string applied inline, null = the
+        // default look (replaced the old hasBlueBackground boolean, 2026-09-15).
+        backgroundColor: sidebarAd.sidebarAdBackgroundColor,
         isNewsletterSubscriptionInputForm: sidebarAd.isNewsletterSubscriptionInputForm,
         newsletterMailingLists:
           sidebarAd.newsletterMailingLists?.map((mailingLists) => mailingLists.newsletterName) ?? [],
@@ -80,4 +99,4 @@ const buildInAppAdsFromSidebarAds = (sidebarAds) =>
     });
   });
 
-export { buildInAppAdsFromSidebarAds, adMatchesKeywords, parseKeywords };
+export { buildInAppAdsFromSidebarAds, adMatchesKeywords, parseKeywords, isLightBackground };

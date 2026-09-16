@@ -1527,7 +1527,9 @@ def index_sheets_by_timestamp(request):
 # of the query body (see strapi_graphql_cache), so even same-version clients posting different
 # query shapes — e.g. a stale browser bundle during a deploy window — can never poison the slot
 # that up-to-date clients read.
-STRAPI_SCHEMA_VERSION = "v6"
+# v7: sidebar ads' hasBlueBackground (boolean) replaced by sidebarAdBackgroundColor (hex string,
+# mirroring bannerBackgroundColor).
+STRAPI_SCHEMA_VERSION = "v7"
 
 @csrf_exempt
 def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:

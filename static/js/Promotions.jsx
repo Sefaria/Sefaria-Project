@@ -1,6 +1,6 @@
 import React, {useState, useContext, useEffect, useRef} from "react";
 import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
-import { buildInAppAdsFromSidebarAds, adMatchesKeywords } from "./sefaria/sidebarAds";
+import { buildInAppAdsFromSidebarAds, adMatchesKeywords, isLightBackground } from "./sefaria/sidebarAds";
 import { adMatchesPageTypes } from "./sefaria/pageTypes";
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
@@ -164,9 +164,15 @@ const GDocAdvertBox = React.memo(() => {
 // Don't continuously rerender a SidebarAd if the parent component decides to rerender
 // This is done to prevent multiple views from registering from OnInView
 const SidebarAd = React.memo(({ context, matchingAd }) => {
+  // The background color mirrors the banner: a hex string from Strapi applied inline, nothing
+  // when null. The "colored" treatment (padding, white title/body, white button) applies only
+  // when the color is DARK — a whitish background keeps the ad's default styling, so a light
+  // tint reads exactly like an uncolored ad (design decision 2026-09-15).
+  const backgroundColor = matchingAd.backgroundColor;
+  const useColoredTreatment = !!backgroundColor && !isLightBackground(backgroundColor);
   const classes = classNames({
     sidebarPromo: 1,
-    blue: matchingAd.hasBlueBackground,
+    colored: useColoredTreatment,
   });
 
   function getButton() {
@@ -175,6 +181,9 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
         className="button small"
         href={matchingAd.buttonURL}
         onClick={() => trackSidebarAdClick(matchingAd)}
+        // Under the colored treatment the button is white with text in the ad's own color —
+        // the generalization of the old blue ads' white-button-blue-text look.
+        style={useColoredTreatment ? { color: backgroundColor } : undefined}
       >
         {matchingAd.buttonIcon ? (
           <img
@@ -213,7 +222,7 @@ const SidebarAd = React.memo(({ context, matchingAd }) => {
 
     return (
       <OnInView onVisible={() => trackSidebarAdImpression(matchingAd)}>
-        <div className={classes}>
+        <div className={classes} style={backgroundColor ? { backgroundColor } : undefined}>
           <h3 className={getLanguageClass()}>{matchingAd.title}</h3>
           {matchingAd.buttonLocation === "below" ? (
             matchingAd.isNewsletterSubscriptionInputForm ? (

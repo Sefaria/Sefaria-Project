@@ -12,9 +12,9 @@
  * one silently breaks the promise that these scenarios describe payloads Strapi really produced,
  * and the specs' `expected` blocks in strapi.fixtures.js are pinned to them. Two safe kinds of
  * change: adding a NEW scenario (build it from the factory; it makes no recording claim), and
- * fields the factory adds over time (a new query field appears here automatically as its factory
- * DEFAULT — that is correct and expected; a recorded document predates the field, and the
- * default is defined to mean exactly what absence meant).
+ * fields the factory adds or removes over time (a new query field appears here automatically as
+ * its factory DEFAULT — correct, since a recorded document predates the field and each default
+ * is defined to mean what absence meant; a REMOVED field simply stops being emitted).
  *
  * WHY THE SPECS ROUTE THROUGH THESE RATHER THAN THE RECORDINGS (decision 2026-08-31):
  *   routeFromHAR matches on the GraphQL POST body, so ANY change to the query in

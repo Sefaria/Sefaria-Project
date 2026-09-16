@@ -101,7 +101,7 @@ const SIDEBAR_AD_FIELD_LIST = [
   "createdAt",
   "debug",
   "endTime",
-  "hasBlueBackground",
+  "sidebarAdBackgroundColor",
   "internalCampaignId",
   "keywords",
   "locale",

@@ -1,5 +1,5 @@
 /* Testing done using Jest */
-import { buildInAppAdsFromSidebarAds, adMatchesKeywords, parseKeywords } from "../sidebarAds";
+import { buildInAppAdsFromSidebarAds, adMatchesKeywords, parseKeywords, isLightBackground } from "../sidebarAds";
 import { groupByDocumentId, LOCALIZED_FIELDS } from "../strapiLocalization";
 
 // The truth table for the keyword gate (strict semantics, 2026-09-01). Each test names the one
@@ -41,6 +41,27 @@ describe("adMatchesKeywords", function () {
   });
 });
 
+describe("isLightBackground", function () {
+  it("treats whitish colors as light — they keep the ad's default styling", function () {
+    ["#FFFFFF", "#F8F8F8", "#fff", "#EEE"].forEach((color) =>
+      expect(isLightBackground(color)).toBe(true),
+    );
+  });
+
+  it("treats dark colors as dark — they trigger the white-text colored treatment", function () {
+    // #004E5F is the old hasBlueBackground blue: entering it must reproduce the old look.
+    ["#004E5F", "#000000", "#333", "#7B1FA2"].forEach((color) =>
+      expect(isLightBackground(color)).toBe(false),
+    );
+  });
+
+  it("fails toward the readable default for missing or unparseable values", function () {
+    [null, undefined, "", "not-a-color", "#12"].forEach((value) =>
+      expect(isLightBackground(value)).toBe(true),
+    );
+  });
+});
+
 describe("parseKeywords", function () {
   it("treats null, empty, and whitespace-only fields as no restriction", function () {
     [null, undefined, "", "  ", " , "].forEach((raw) =>
@@ -62,7 +83,7 @@ describe("buildInAppAdsFromSidebarAds", function () {
     keywords: "Torah, Shabbat, !skip",
     buttonIcon: "icon.png",
     buttonAboveOrBelow: "above",
-    hasBlueBackground: true,
+    sidebarAdBackgroundColor: "#004E5F",
     isNewsletterSubscriptionInputForm: false,
     newsletterMailingLists: [{ newsletterName: "General" }],
     showTo: "everyone",
@@ -138,6 +159,16 @@ describe("buildInAppAdsFromSidebarAds", function () {
     expect(ad.trigger.pageType).toBe("all_pages");
   });
 
+  it("maps sidebarAdBackgroundColor onto the ad as backgroundColor", function () {
+    const [ad] = buildInAppAdsFromSidebarAds([makeSidebarAd({ locales: ["en"] })]);
+    expect(ad.backgroundColor).toBe("#004E5F");
+
+    const [plain] = buildInAppAdsFromSidebarAds([
+      makeSidebarAd({ locales: ["en"], sidebarAdBackgroundColor: null }),
+    ]);
+    expect(plain.backgroundColor).toBeNull();
+  });
+
   it("carries the Strapi pageType value onto the trigger when present", function () {
     const [ad] = buildInAppAdsFromSidebarAds([
       makeSidebarAd({ locales: ["en"], pageType: "book_toc" }),
@@ -169,7 +200,7 @@ describe("buildInAppAdsFromSidebarAds", function () {
           internalCampaignId: "camp-3",
           keywords: "kabbalah",
           buttonAboveOrBelow: "below",
-          hasBlueBackground: false,
+          sidebarAdBackgroundColor: null,
           showTo: "everyone",
           startTime: "2026-01-01T00:00:00Z",
           endTime: "2026-02-01T00:00:00Z",
