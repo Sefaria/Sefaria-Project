@@ -94,17 +94,13 @@ class ServerCoordinator(MessagingNode):
 
     def start_background_listener(self):
         """
-        Start a persistent daemon thread that blocks on a dedicated multiserver pubsub
-        connection (see MessagingNode.connect_listener()) and applies events as they arrive,
-        instead of waiting for MultiServerEventListenerMiddleware's every-20th-request poll.
-        Idempotent -- safe to call more than once (e.g. a re-entrant post_fork hook) since it's
-        a no-op if a listener thread is already running.
+        Start a persistent daemon thread that blocks on a dedicated pubsub connection (see
+        MessagingNode.connect_listener()) and applies events as they arrive, instead of
+        waiting for MultiServerEventListenerMiddleware's every-20th-request poll. Idempotent
+        -- a no-op if a listener thread is already running.
 
-        Must only be started from a place that runs after fork -- i.e. gunicorn's post_fork
-        hook, never from code that can run before fork (see the module docs in
-        reader/startup.py / gunicorn.conf.py about the pre-fork-connection hazard this avoids).
-        The thread connects lazily via _check_listener_initialization() on its first loop
-        iteration, so it doesn't matter whether connect_listener() has already been called.
+        Must only be called after fork (e.g. gunicorn's post_fork hook) -- see the
+        pre-fork-connection hazard documented in reader/startup.py / gunicorn.conf.py.
         """
         if getattr(self, "_listener_thread", None) and self._listener_thread.is_alive():
             return
@@ -115,18 +111,15 @@ class ServerCoordinator(MessagingNode):
 
     def _listener_loop(self):
         """
-        Blocking loop: waits on the dedicated listener pubsub connection and applies each event
-        as it arrives, self-healing on any connection failure. Runs for the life of the process.
-        `pubsub.listen()` raises out of its generator when the connection drops, which the outer
-        except catches -- clearing the (now-dead) listener client/pubsub so the next
-        _check_listener_initialization() call reconnects, same backoff as every other caller of
-        this class.
+        Blocking loop: waits on the dedicated listener connection and applies each event as it
+        arrives, self-healing on any connection failure. `listen()` raises out of its generator
+        when the connection drops, which the outer except catches -- clearing the (now-dead)
+        listener client/pubsub so the next _check_listener_initialization() call reconnects.
 
-        Uses its own connection (self._listener_redis_client / self._listener_pubsub), never
-        self.redis_client / self.pubsub -- those belong to connect()/sync()/publish_event() and
-        must keep working as MultiServerEventListenerMiddleware's fallback even while this loop
-        is reconnecting. See MessagingNode.connect_listener() for why the socket_timeout differs
-        too.
+        Uses self._listener_redis_client / self._listener_pubsub, never self.redis_client /
+        self.pubsub -- those back MultiServerEventListenerMiddleware's fallback poll and must
+        keep working even while this loop is reconnecting. See connect_listener() for why the
+        socket_timeout differs too.
         """
         while True:
             try:
@@ -135,7 +128,6 @@ class ServerCoordinator(MessagingNode):
                     time.sleep(self.RECONNECT_BACKOFF_SECONDS)
                     continue
                 for message in self._listener_pubsub.listen():
-                    self._listener_heartbeat = time.time()
                     if message["type"] == "message":
                         self._process_message(message)
             except Exception:

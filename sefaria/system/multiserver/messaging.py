@@ -39,26 +39,17 @@ class MessagingNode(object):
 
     def connect_listener(self):
         """
-        (Re)build a second, independent connection dedicated to a long-lived blocking
-        pubsub.listen() loop (ServerCoordinator._listener_loop). This must NOT reuse connect()'s
-        client/pubsub or its CONNECT_TIMEOUT_SECONDS socket_timeout:
+        (Re)build a second, independent connection dedicated to the long-lived blocking
+        pubsub.listen() loop (ServerCoordinator._listener_loop). Kept as separate state
+        (_listener_redis_client / _listener_pubsub / _last_listener_connect_attempt) from
+        connect()'s redis_client/pubsub so the two are independent failure domains -- a
+        listener-side reconnect never tears down the connection sync()'s poll depends on as
+        its fallback, and vice versa.
 
-        listen() does a genuinely blocking socket read, unlike get_message()'s non-blocking
-        poll. With a short socket_timeout, any CONNECT_TIMEOUT_SECONDS of silence on the channel
-        (completely normal -- multiserver events are infrequent) raises redis.exceptions.
-        TimeoutError, which looks exactly like a dead connection to the caller. That was caught
-        by _listener_loop's `except Exception`, torn down, and left to sit through a full
-        RECONNECT_BACKOFF_SECONDS before reconnecting -- so the listener was actually capable of
-        receiving an event only during the ~CONNECT_TIMEOUT_SECONDS right after each reconnect,
-        i.e. a small fraction of the time, silently. socket_timeout=None here lets an idle
-        listen() block indefinitely, as intended; a real disconnect still surfaces as
-        ConnectionError from the socket layer and is handled the same way.
-
-        Kept as separate state (_listener_redis_client / _listener_pubsub /
-        _last_listener_connect_attempt) rather than sharing connect()'s redis_client/pubsub, so
-        the two are independent failure domains: a listener-side reconnect never tears down the
-        connection MultiServerEventListenerMiddleware's sync() poll depends on (the documented
-        "zero-cost fallback" if the listener thread ever dies), and vice versa.
+        Uses socket_timeout=None, unlike connect(): listen() blocks on a genuinely idle
+        socket, so a short timeout would misread ordinary channel silence as a dead
+        connection. A real disconnect still surfaces as ConnectionError and is handled the
+        same way.
         """
         self._last_listener_connect_attempt = time.time()
         try:
