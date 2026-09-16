@@ -10,7 +10,18 @@ export const resolveLexiconEntryRef = async (ref) => {
   if (!oref?.categories?.includes("Dictionary")) { return null; }
   const indexData = await Sefaria.getIndexDetails(oref.indexTitle);
   const lexiconName = indexData?.lexiconName;
-  const headword = oref.sectionRef.replace(oref.indexTitle, "").replace(/^,\s*/, "");
+  // oref.indexTitle is the Index's own title (server-side: self._inode.index.title), while
+  // oref.sectionRef is built from the ref's node's full_title() (self.index_node.full_title,
+  // see Ref._get_normal in sefaria/model/text.py) -- for a simple, flat dictionary these are
+  // the same string, but for one nested under a more complex multi-part Index they can
+  // genuinely differ. A plain String.replace(indexTitle, "") silently no-ops when the two
+  // diverge, since a non-regex first argument only replaces a literal match if one exists --
+  // leaving the whole "indexTitle, headword" text as a bogus "headword". Checking the prefix
+  // explicitly means an unexpected shape fails safely (null, same as "not a dictionary
+  // entry") instead of silently corrupting the returned headword.
+  const prefix = `${oref.indexTitle}, `;
+  if (!oref.sectionRef?.startsWith(prefix)) { return null; }
+  const headword = oref.sectionRef.slice(prefix.length);
   return (lexiconName && headword) ? { lexiconName, headword } : null;
 };
 

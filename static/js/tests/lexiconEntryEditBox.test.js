@@ -79,6 +79,18 @@ describe('resolveLexiconEntryRef', () => {
     Sefaria.getIndexDetails.mockResolvedValue({});
     expect(await resolveLexiconEntryRef('BDB, שָׁמַר')).toBeNull();
   });
+
+  test('returns null (rather than a corrupted headword) when sectionRef does not start with indexTitle', async () => {
+    // Simulates a dictionary nested under a more complex multi-part Index, where
+    // sectionRef (built from the ref node's full_title()) can genuinely differ from
+    // indexTitle (the bare Index title) -- a plain String.replace would silently leave the
+    // whole "Some Bigger Work, Appendix: Glossary, שָׁמַר" text as the "headword" instead.
+    Sefaria.ref.mockReturnValue({
+      categories: ['Dictionary'], indexTitle: 'BDB', sectionRef: 'Some Bigger Work, Appendix: Glossary, שָׁמַר',
+    });
+    Sefaria.getIndexDetails.mockResolvedValue({ lexiconName: 'BDB Dictionary' });
+    expect(await resolveLexiconEntryRef('some ref')).toBeNull();
+  });
 });
 
 describe('useLexiconEntrySave', () => {
