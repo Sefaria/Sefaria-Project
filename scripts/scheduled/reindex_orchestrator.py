@@ -262,6 +262,10 @@ def delete_stale_shard_job(batch, job_name, namespace, api_exception_cls,
 
     Returns True once the Job is confirmed absent (or never existed), False if it still
     exists after `attempts` polls. Any non-404 ApiException propagates to the caller.
+    A 404 from delete is expected: ttlSecondsAfterFinished usually removes completed
+    shard Jobs before the next run. The orchestrator deletes unconditionally before
+    recreating the Job instead of checking first, so "never existed" still means no
+    stale Job remains.
 
     The absence poll must use read_namespaced_job_status: the orchestrator Role grants
     `get` on `jobs/status` only, not on `jobs`. Polling with read_namespaced_job 403'd on
@@ -269,11 +273,14 @@ def delete_stale_shard_job(batch, job_name, namespace, api_exception_cls,
     died in seconds with a misleading "Failed to delete" error (backoffLimit: 1 was
     effectively 0).
     """
-    log = log_fn or (lambda msg: logger.warning(msg))
+    warn = log_fn or (lambda msg: logger.warning(msg))
+    note = log_fn or (lambda msg: logger.info(msg))
     try:
         batch.delete_namespaced_job(job_name, namespace, propagation_policy="Background")
     except api_exception_cls as exc:
         if exc.status == 404:
+            note(f"No stale shard job to delete; it never existed, or ttlSecondsAfterFinished "
+                 f"already removed it - job_name: {job_name}")
             return True
         raise
     for _ in range(attempts):
@@ -284,7 +291,7 @@ def delete_stale_shard_job(batch, job_name, namespace, api_exception_cls,
                 return True
             raise
         sleep_fn(2)
-    log(f"Stale shard job deletion did not confirm within {attempts * 2}s, proceeding anyway - job_name: {job_name}")
+    warn(f"Stale shard job deletion did not confirm within {attempts * 2}s, proceeding anyway - job_name: {job_name}")
     return False
 
 

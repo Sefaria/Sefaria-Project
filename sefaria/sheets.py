@@ -615,7 +615,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
     # based on the sheet's state when it runs. Web pods only have read access to ES.
     if (sheet["status"] == "public" or status_changed) and SEARCH_INDEX_ON_SAVE and not search_override:
         try:
-            search.add_sheet_to_index_queue(sheet["id"])
+            search.queue_sheet_sync(sheet["id"])
         except Exception as e:
             logger.error("Failed to queue sheet for search indexing", sheet_id=sheet["id"], error=f"{type(e).__name__}: {e}")
 

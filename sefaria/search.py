@@ -148,11 +148,16 @@ def delete_version(index, version, lang, old_title=None):
 
 def delete_sheet(index_name, id):
     """Remove sheet `id` from the index. Returns True when the doc is gone (including
-    when it was never indexed), False when the delete failed and should be retried."""
+    when it was never indexed), False when the delete failed and should be retried.
+
+    NotFoundError means there is no such document in that index; the desired final
+    state is already true, so the caller does not need to retry.
+    """
     try:
         es_client.delete(index=index_name, id=id)
         return True
     except NotFoundError:
+        logger.info(f"Sheet {id} had no document in {index_name}; nothing to delete")
         return True
     except Exception as e:
         logger.error(f"Failed to delete sheet {id} from {index_name}: {type(e).__name__}: {e}")
@@ -2382,7 +2387,7 @@ def add_ref_to_index_queue(ref, version, lang):
 SHEET_QUEUE_TYPE = "sheet"
 
 
-def add_sheets_to_index_queue(sheet_ids):
+def queue_sheets_sync(sheet_ids):
     """
     Queue sheets to be synced to search by the index-from-queue CronJob.
 
@@ -2414,9 +2419,9 @@ def add_sheets_to_index_queue(sheet_ids):
     return len(ops)
 
 
-def add_sheet_to_index_queue(sheet_id):
-    """Queue one sheet; see add_sheets_to_index_queue."""
-    return add_sheets_to_index_queue([sheet_id])
+def queue_sheet_sync(sheet_id):
+    """Queue one sheet; see queue_sheets_sync."""
+    return queue_sheets_sync([sheet_id])
 
 
 INDEX_QUEUE_BATCH_SIZE = 100
@@ -2644,22 +2649,22 @@ def reindex_init(type, debug=False):
             raise ValueError(
                 f"reindex_init failed for {type}: could not read doc count for in-progress index {new_index}"
             )
-        managed = _index_has_managed_settings(new_index)
-        if doc_count > 0 and managed:
-            logger.info(
-                f"reindex_init reusing in-progress index - type: {type}, new_index: {new_index}, doc_count: {doc_count}"
-            )
-            set_index_bulk_load_settings(new_index)
-            return names
         if doc_count > 0:
-            # Not created by create_index: Elasticsearch auto-created it when something wrote
-            # to the name after finalize deleted it. Its dynamic mapping has no analyzers and
-            # maps `path` as text, so it can never serve search; in prod (2026-09-11) reusing
-            # one grew it to 39 GB on a single node and filled the disk.
-            logger.error(
-                f"reindex_init discarding auto-created index with dynamic mapping - type: {type}, "
-                f"new_index: {new_index}, doc_count: {doc_count}"
-            )
+            if _index_has_managed_settings(new_index):
+                logger.info(
+                    f"reindex_init reusing in-progress index - type: {type}, new_index: {new_index}, doc_count: {doc_count}"
+                )
+                set_index_bulk_load_settings(new_index)
+                return names
+            else:
+                # Not created by create_index: Elasticsearch auto-created it when something wrote
+                # to the name after finalize deleted it. Its dynamic mapping has no analyzers and
+                # maps `path` as text, so it can never serve search; in prod (2026-09-11) reusing
+                # one grew it to 39 GB on a single node and filled the disk.
+                logger.error(
+                    f"reindex_init discarding auto-created index with dynamic mapping - type: {type}, "
+                    f"new_index: {new_index}, doc_count: {doc_count}"
+                )
         else:
             logger.info(f"reindex_init recreating empty index - type: {type}, new_index: {new_index}")
         create_index(new_index, type, force=True)

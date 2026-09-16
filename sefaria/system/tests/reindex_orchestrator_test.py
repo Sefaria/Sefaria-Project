@@ -466,8 +466,11 @@ class _FakeBatch:
 def test_delete_stale_shard_job_returns_true_when_no_prior_job():
     spec.loader.exec_module(orch)
     batch = _FakeBatch(delete_outcome=_FakeApiException(404))
-    assert orch.delete_stale_shard_job(batch, "j", "ns", _FakeApiException, sleep_fn=lambda s: None) is True
+    logged = []
+    assert orch.delete_stale_shard_job(batch, "j", "ns", _FakeApiException,
+                                       sleep_fn=lambda s: None, log_fn=logged.append) is True
     assert batch.calls == ["delete"]
+    assert "No stale shard job to delete" in logged[0]
 
 
 def test_delete_stale_shard_job_polls_status_until_gone():

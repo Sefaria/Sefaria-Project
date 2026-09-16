@@ -38,9 +38,9 @@ def delete_user_account(uid, confirm=True):
     db.sheets.delete_many({"owner": uid})
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
-        from sefaria.search import add_sheets_to_index_queue
+        from sefaria.search import queue_sheets_sync
         try:
-            add_sheets_to_index_queue(owned_sheet_ids)
+            queue_sheets_sync(owned_sheet_ids)
         except Exception as e:
             logger.error("Failed to queue purged sheets for search removal", uid=uid, error=f"{type(e).__name__}: {e}")
     # Delete Notes

@@ -21,7 +21,7 @@ class IndexQueue(abst.AbstractMongoRecord):
         "ref"
     ]
     optional_attrs = [
-        "sheet_id",  # set on type="sheet" records; see sefaria.search.add_sheets_to_index_queue
+        "sheet_id",  # set on type="sheet" records; see sefaria.search.queue_sheets_sync
         "generation",  # bumped on every sheet enqueue; the consumer deletes only the generation it processed
     ]
 

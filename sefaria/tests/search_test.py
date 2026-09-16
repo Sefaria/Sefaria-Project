@@ -743,14 +743,14 @@ def test_index_from_queue_keeps_sheet_record_when_sync_fails(monkeypatch):
     assert len(fake.index_queue.records) == 1
 
 
-def test_add_sheets_to_index_queue_upserts_one_deduplicated_record_per_sheet(monkeypatch):
+def test_queue_sheets_sync_upserts_one_deduplicated_record_per_sheet(monkeypatch):
     from sefaria import search
     from types import SimpleNamespace
     written = []
     monkeypatch.setattr(search, "db", SimpleNamespace(index_queue=SimpleNamespace(
         bulk_write=lambda ops, ordered: written.append((ops, ordered)))))
 
-    assert search.add_sheets_to_index_queue(["747331", 747331, 5]) == 2
+    assert search.queue_sheets_sync(["747331", 747331, 5]) == 2
 
     (ops, ordered), = written
     assert ordered is False
@@ -775,7 +775,7 @@ def test_index_from_queue_keeps_sheet_record_requeued_while_it_was_being_synced(
     monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type: {"current": "sheet-b"})
 
     def sync_then_user_saves(index_name, sid):
-        fake.index_queue.records[0]["generation"] = "gen-2"  # add_sheets_to_index_queue during sync
+        fake.index_queue.records[0]["generation"] = "gen-2"  # queue_sheets_sync during sync
         return True
     monkeypatch.setattr(search, "index_sheet", sync_then_user_saves)
 
@@ -808,7 +808,7 @@ def test_purge_spammer_account_data_queues_quarantined_sheets(monkeypatch):
     monkeypatch.setattr(views, "db", fake_db)
     monkeypatch.setattr(views, "SEARCH_INDEX_ON_SAVE", True)
     queued = []
-    monkeypatch.setattr(search, "add_sheets_to_index_queue", lambda ids: queued.append(list(ids)))
+    monkeypatch.setattr(search, "queue_sheets_sync", lambda ids: queued.append(list(ids)))
     fake_user = SimpleNamespace(is_active=True, save=lambda: None)
     from django.contrib.auth.models import User
     monkeypatch.setattr(User.objects, "get", lambda id: fake_user)
@@ -819,13 +819,13 @@ def test_purge_spammer_account_data_queues_quarantined_sheets(monkeypatch):
     assert fake_user.is_active is False
 
 
-def test_add_sheets_to_index_queue_skips_empty_input(monkeypatch):
+def test_queue_sheets_sync_skips_empty_input(monkeypatch):
     from sefaria import search
     from types import SimpleNamespace
     def must_not_write(*a, **k):
         raise AssertionError("no bulk_write for an empty id list")
     monkeypatch.setattr(search, "db", SimpleNamespace(index_queue=SimpleNamespace(bulk_write=must_not_write)))
-    assert search.add_sheets_to_index_queue([]) == 0
+    assert search.queue_sheets_sync([]) == 0
 
 
 def test_index_queue_persists_sheet_id():

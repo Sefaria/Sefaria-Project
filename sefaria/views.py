@@ -1396,7 +1396,7 @@ def delete_sheet_by_id(request):
             # sheet is already gone from Mongo, so the queue consumer removes its search doc.
             if SEARCH_INDEX_ON_SAVE:
                 try:
-                    search.add_sheet_to_index_queue(id)
+                    search.queue_sheet_sync(id)
                 except Exception as e:
                     logger.error(f"Failed to queue deleted sheet {id} for search removal: {type(e).__name__}: {e}")
 
@@ -1435,9 +1435,9 @@ def purge_spammer_account_data(spammer_id, delete_from_crm=True):
         quarantined_sheet_ids.append(sheet["id"])
     # Unlisted sheets must leave search; the queue consumer removes them (web cannot write to ES).
     if SEARCH_INDEX_ON_SAVE and quarantined_sheet_ids:
-        from sefaria.search import add_sheets_to_index_queue
+        from sefaria.search import queue_sheets_sync
         try:
-            add_sheets_to_index_queue(quarantined_sheet_ids)
+            queue_sheets_sync(quarantined_sheet_ids)
         except Exception as e:
             logger.error(f"Failed to queue quarantined sheets of spammer {spammer_id} for search removal: {type(e).__name__}: {e}")
     # Delete Notes
@@ -1467,9 +1467,9 @@ def spam_dashboard(request):
             spammers = db.sheets.find({"id": {"$in": spam_sheet_ids}}, {"owner": 1}).distinct("owner")
             db.sheets.delete_many({"id": {"$in": spam_sheet_ids}})
             if SEARCH_INDEX_ON_SAVE:
-                from sefaria.search import add_sheets_to_index_queue
+                from sefaria.search import queue_sheets_sync
                 try:
-                    add_sheets_to_index_queue(spam_sheet_ids)
+                    queue_sheets_sync(spam_sheet_ids)
                 except Exception as e:
                     logger.error(f"Failed to queue spam sheets {spam_sheet_ids} for search removal: {type(e).__name__}: {e}")
 
