@@ -47,6 +47,21 @@ entries:
     - https://Sefaria.github.io/Sefaria-Project/sefaria-0.88.4-master.1.tgz
     version: 0.88.4-master.1
   - apiVersion: v2
+    appVersion: v7.1.17
+    created: "2026-09-16T08:56:50.672365374Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 9c96f9ff085611d0d2cce3d66fa102dfb7112716db2c08ff8718827ecd0cdaeb
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.88.4-fixenvoy-client-traffic-policy-listeners-clean.1.tgz
+    version: 0.88.4-fixenvoy-client-traffic-policy-listeners-clean.1
+  - apiVersion: v2
     appVersion: v7.1.15
     created: "2026-09-15T09:07:20.488618004Z"
     description: Chart to deploy complete Sefaria environment
@@ -21480,4 +21495,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-09-16T08:54:45.785197371Z"
+generated: "2026-09-16T08:56:50.669746393Z"
