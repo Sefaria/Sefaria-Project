@@ -245,6 +245,51 @@ test.describe('Strapi Sidebar Ad — page-type gate boundaries', () => {
     await expect(promoTitled(page, 'Ad targeting homepage')).toBeVisible();
   });
 
+  test('client-side navigation swaps WHICH ad shows when two ads differ only in page type', async ({ page, context }) => {
+    // The other reactivity test proves one ad leaves and returns across navigation; this one
+    // proves matching RE-DECIDES BETWEEN COMPETING ADS on every transition. Two ads carry
+    // identical keywords — include 'tanakh' (satisfied on both pages) plus the exclusion
+    // '!kabbalah' (vetoing neither, but keeping the exclusion branch of the gate live) — and
+    // differ only in page type. A stale-state regression that kept the previous page's matches,
+    // or merged instead of replaced them, would show the wrong ad or both ads after navigating;
+    // the single-ad reactivity test cannot see either failure.
+    served = await routeWithStrapiPayload(
+      context,
+      strapiPayload({
+        sidebarAds: [
+          typedAd('book_toc', { title: 'Book Kind Ad', keywords: 'tanakh, !kabbalah' }),
+          typedAd('category_toc', { title: 'Category Kind Ad', keywords: 'tanakh, !kabbalah' }),
+        ],
+      }),
+    );
+    // (The wrong answer for the FIRST page — the book ad — is listed first, so payload order can
+    // never explain the winner there. Titles share no substring: promoTitled matches by hasText,
+    // which is substring-based, so overlapping names would let an absence assertion match the
+    // visible sibling.)
+    await prepareStrapiPage(page, scenario);
+
+    await page.goto('/texts/Tanakh/Torah');
+    await expect(promoTitled(page, 'Category Kind Ad')).toBeVisible();
+    await expect(promoTitled(page, 'Book Kind Ad')).toHaveCount(0);
+
+    // Click into Genesis — a client-side navigation to its book TOC (the Strapi counter proving
+    // no reload, same as the other reactivity test).
+    const responsesBeforeNavigation = await strapiResponseCount(page);
+    await page.locator('a[href="/Genesis"]').first().click();
+    await expect(page).toHaveURL(/\/Genesis/);
+
+    // Same keywords still pass here; only the page kind changed — so the ads must swap.
+    await expect(promoTitled(page, 'Book Kind Ad')).toBeVisible();
+    await expect(promoTitled(page, 'Category Kind Ad')).toHaveCount(0);
+    expect(await strapiResponseCount(page)).toBe(responsesBeforeNavigation);
+
+    // And the reverse direction: back to the category page swaps them again.
+    await page.goBack();
+    await expect(page).toHaveURL(/Tanakh\/Torah/);
+    await expect(promoTitled(page, 'Category Kind Ad')).toBeVisible();
+    await expect(promoTitled(page, 'Book Kind Ad')).toHaveCount(0);
+  });
+
   test('an unknown pageType value matches no page — fails closed', async ({ page, context }) => {
     // A CMS typo must show the ad NOWHERE (noticed and fixed), never EVERYWHERE (a silent
     // site-wide campaign) — the client passes unknown values through so they can't match.
