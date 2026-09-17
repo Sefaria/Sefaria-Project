@@ -17284,10 +17284,12 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   grid-template-columns: 190px minmax(0, 1fr);
   gap: 40px;
   align-items: start;
-  max-width: 950px;
+  max-width: 890px;
 }
 .devPocShell.devPocShellNoNav { display: block; }
-.devPocMain, .devPocSettingsBody { min-width: 0; max-width: 720px; }
+.devPocMain, .devPocSettingsBody { min-width: 0; max-width: 660px; }
+/* the tab column widens the account page's 660px band instead of narrowing the settings */
+#accountSettingsPage .inner:has(.devPocShell:not(.devPocShellNoNav)) { max-width: 890px; }
 .devPocPageHeader { margin-bottom: var(--devPoc-s4); }
 .devPocPageHeader h1 { font-size: 26px; font-weight: 600; margin-bottom: var(--devPoc-s1); }
 .devPocPageHeader p { color: var(--devPoc-muted); }
