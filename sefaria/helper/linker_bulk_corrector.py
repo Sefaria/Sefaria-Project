@@ -437,27 +437,37 @@ def _navigate_without_reparsing(dataset: dict, all_items: list[CitationItem], di
     render and so the displayed status/snippet coloring reflects that live parse rather
     than a possibly-stale stored failed/ambiguous flag - but that fresh result is not
     persisted, and skips the up-to-200-item scan-and-persist walk the normal auto-correcting
-    navigation does, which is the actual expensive/side-effecting part."""
-    filtered = _filtered_items(all_items, dataset)
-    if not filtered:
+    navigation does, which is the actual expensive/side-effecting part.
+
+    The cursor is located in the full (unfiltered) item list, not the status-filtered one:
+    re-parsing the current citation (via the 'r' shortcut) can flip its own status so it no
+    longer matches the active filter, and locating the cursor in an already-filtered list
+    would then fail to find it - silently restarting navigation from the beginning/end of
+    the book instead of continuing from where the user was."""
+    if not all_items:
         return {"found": False, "continuationCursor": None, "checked": 0}
+    statuses = set(dataset["status"])
     cursor = _cursor_key(raw_cursor)
     if cursor is None:
-        idx = -1 if direction == "forward" else len(filtered)
+        idx = -1 if direction == "forward" else len(all_items)
     else:
-        matching_indices = [i for i, item in enumerate(filtered) if _cursor_matches(item, cursor)]
-        idx = matching_indices[0] if matching_indices else (-1 if direction == "forward" else len(filtered))
-    target = idx + (1 if direction == "forward" else -1)
-    if not (0 <= target < len(filtered)):
-        return {"found": False, "continuationCursor": None, "checked": 0}
-    item = filtered[target]
-    parse_result = linker_resource_panel_admin.parse_linker_citation_sync(_parts_payload_from_item(item))
-    return {
-        "found": True,
-        "item": serialize_citation_result(_item_with_fresh_status(item, parse_result), dataset, parse_result),
-        "position": target,
-        "checked": 1,
-    }
+        matching_indices = [i for i, item in enumerate(all_items) if _cursor_matches(item, cursor)]
+        idx = matching_indices[0] if matching_indices else (-1 if direction == "forward" else len(all_items))
+    step = 1 if direction == "forward" else -1
+    current = idx + step
+    while 0 <= current < len(all_items):
+        if all_items[current].status in statuses:
+            item = all_items[current]
+            parse_result = linker_resource_panel_admin.parse_linker_citation_sync(_parts_payload_from_item(item))
+            position = sum(1 for it in all_items[:current] if it.status in statuses)
+            return {
+                "found": True,
+                "item": serialize_citation_result(_item_with_fresh_status(item, parse_result), dataset, parse_result),
+                "position": position,
+                "checked": 1,
+            }
+        current += step
+    return {"found": False, "continuationCursor": None, "checked": 0}
 
 
 def navigate_dataset(payload: dict) -> dict:
