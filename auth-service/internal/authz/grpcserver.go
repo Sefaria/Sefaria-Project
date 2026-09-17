@@ -52,7 +52,6 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 					hdr("x-sefaria-tier", d.Tier),
 					hdr("x-sefaria-auth-result", d.Result),
 				},
-				HeadersToRemove:         []string{"x-sefaria-project", "x-sefaria-tier", "x-sefaria-auth-result"},
 				QueryParametersToRemove: []string{"api_key"},
 			}},
 		}, nil

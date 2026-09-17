@@ -19,8 +19,6 @@ type Options struct {
 	Verifier JWTVerifier
 }
 
-const identityHeaders = "x-sefaria-project, x-sefaria-tier, x-sefaria-auth-result"
-
 func decideRequest(l Lookup, o Options, r Request) Decision {
 	d := Decide(l, o.Cfg, r)
 	if d.Result == "jwt_pending" && o.Verifier != nil {
@@ -42,7 +40,6 @@ func NewHTTPHandler(l Lookup, o Options, rec Recorder) http.Handler {
 		d := decideRequest(l, o, req)
 		rec.Observe(d.Result, d.Allow, time.Since(t0))
 		if d.Allow {
-			w.Header().Set("x-envoy-auth-headers-to-remove", identityHeaders)
 			w.Header().Set("x-sefaria-project", d.Project)
 			w.Header().Set("x-sefaria-tier", d.Tier)
 			w.Header().Set("x-sefaria-auth-result", d.Result)

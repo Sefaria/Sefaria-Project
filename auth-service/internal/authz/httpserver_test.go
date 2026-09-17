@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestHTTPHandlerAllowStampsAndRemoves(t *testing.T) {
+func TestHTTPHandlerAllowStampsWithoutRemoval(t *testing.T) {
 	h := NewHTTPHandler(reg, Options{Cfg: enforce}, NopRecorder{})
 	r := httptest.NewRequest("GET", "/api/texts/Genesis.1", nil)
 	r.Header.Set("x-api-key", alpha)
@@ -16,8 +16,8 @@ func TestHTTPHandlerAllowStampsAndRemoves(t *testing.T) {
 	if w.Code != 200 || w.Header().Get("x-sefaria-project") != "proj_alpha" || w.Header().Get("x-sefaria-tier") != "developer" || w.Header().Get("x-sefaria-auth-result") != "ok" {
 		t.Fatalf("code=%d headers=%v", w.Code, w.Header())
 	}
-	if !strings.Contains(w.Header().Get("x-envoy-auth-headers-to-remove"), "x-sefaria-tier") {
-		t.Fatal("missing removal")
+	if w.Header().Get("x-envoy-auth-headers-to-remove") != "" {
+		t.Fatal("identity headers must not be removed")
 	}
 }
 func TestHTTPHandlerClasses(t *testing.T) {
@@ -45,6 +45,15 @@ func TestHTTPHandlerClasses(t *testing.T) {
 		}
 		if c.code == 200 && w.Header().Get("x-sefaria-auth-result") != c.res {
 			t.Fatal("result")
+		}
+		if c.code == 200 && w.Header().Get("x-sefaria-project") != "" {
+			t.Fatalf("project=%q", w.Header().Get("x-sefaria-project"))
+		}
+		if c.code == 200 && w.Header().Get("x-envoy-auth-headers-to-remove") != "" {
+			t.Fatal("identity headers must not be removed")
+		}
+		if c.code == 200 && (len(w.Header().Values("x-sefaria-project")) != 1 || len(w.Header().Values("x-sefaria-tier")) != 1 || len(w.Header().Values("x-sefaria-auth-result")) != 1) {
+			t.Fatalf("missing identity header: %v", w.Header())
 		}
 		if c.code != 200 && (w.Header().Get("Content-Type") != "application/json" || w.Body.Len() == 0 || w.Header().Get("x-sefaria-project") != "" || (c.code == 401 && w.Header().Get("WWW-Authenticate") == "")) {
 			t.Fatal("deny shape")
