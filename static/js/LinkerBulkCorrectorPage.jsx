@@ -303,6 +303,7 @@ const LinkerBulkCorrectorPage = () => {
   const [statsBookTitle, setStatsBookTitle] = useState(stored.statsBookTitle || stored.dataset?.bookTitle || '');
   const [history, setHistory] = useState(loadStored(HISTORY_KEY, []));
   const [loading, setLoading] = useState(false);
+  const [activeAction, setActiveAction] = useState(null);
   const [reparsing, setReparsing] = useState(false);
   const [bulkTask, setBulkTask] = useState(null);
   const [error, setError] = useState(null);
@@ -352,6 +353,7 @@ const LinkerBulkCorrectorPage = () => {
   const search = useCallback(async (nextPage = 0) => {
     if (!normalizedDataset.bookTitle) { return; }
     setLoading(true);
+    setActiveAction('search');
     setError(null);
     try {
       const data = await apiPost('/_api/linker-bulk-corrector/search', {dataset: normalizedDataset, page: nextPage, pageSize: 1});
@@ -360,6 +362,7 @@ const LinkerBulkCorrectorPage = () => {
       setError(e.message || String(e));
     } finally {
       setLoading(false);
+      setActiveAction(null);
     }
   }, [normalizedDataset, applySearchResponse]);
 
@@ -369,6 +372,7 @@ const LinkerBulkCorrectorPage = () => {
       return;
     }
     setLoading(true);
+    setActiveAction(direction);
     setError(null);
     try {
       let cursor = {ref: item.ref, charRange: item.charRange};
@@ -387,6 +391,7 @@ const LinkerBulkCorrectorPage = () => {
       setError(e.message || String(e));
     } finally {
       setLoading(false);
+      setActiveAction(null);
     }
   }, [item, normalizedDataset, rememberItem, search]);
 
@@ -507,8 +512,13 @@ const LinkerBulkCorrectorPage = () => {
               <StatusToggle key={status} status={status} selected={(dataset.status || []).includes(status)} onClick={() => toggleStatus(status)} />
             ))}
           </div>
-          <button type="button" className="button" onClick={() => search(0)} disabled={loading}>
-            {loading ? <span className="lbcSpinner" /> : 'Search'}
+          <button
+            type="button"
+            className={classNames('button', {disabled: loading && activeAction !== 'search'})}
+            onClick={() => search(0)}
+            disabled={loading}
+          >
+            {activeAction === 'search' ? <span className="lbcSpinner" /> : 'Search'}
           </button>
           <button type="button" className="button" onClick={reparseDataset} disabled={loading}>Re-parse Results</button>
         </div>
@@ -517,12 +527,22 @@ const LinkerBulkCorrectorPage = () => {
         <ResultDetails item={item} onReparse={reparseCurrent} reparsing={reparsing} />
       </main>
       <nav className="lbcNavOverlay">
-        <button type="button" className="button" onClick={() => navigate('backward')} disabled={loading}>
-          {loading ? <span className="lbcSpinner" /> : 'Back'}
+        <button
+          type="button"
+          className={classNames('button', {disabled: loading && activeAction !== 'backward'})}
+          onClick={() => navigate('backward')}
+          disabled={loading}
+        >
+          {activeAction === 'backward' ? <span className="lbcSpinner" /> : 'Back'}
         </button>
         <span>{item ? `${page + 1} / ${total || '?'} (${statusLabel})` : 'No item'}</span>
-        <button type="button" className="button" onClick={() => navigate('forward')} disabled={loading}>
-          {loading ? <span className="lbcSpinner" /> : 'Forward'}
+        <button
+          type="button"
+          className={classNames('button', {disabled: loading && activeAction !== 'forward'})}
+          onClick={() => navigate('forward')}
+          disabled={loading}
+        >
+          {activeAction === 'forward' ? <span className="lbcSpinner" /> : 'Forward'}
         </button>
       </nav>
     </div>
