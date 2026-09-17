@@ -191,7 +191,10 @@ class CollectionPage extends Component {
   }
   render() {
     const collection = this.state.collectionData;
-    const sidebarModules = [];
+    // Promo first: the sidebar-ad slot (pageType "collection_page") renders even while the
+    // collection itself is still loading — the module is self-contained and needs no collection
+    // data, unlike the conditional pushes below.
+    const sidebarModules = [{type: "Promo"}];
 
     let content;
 

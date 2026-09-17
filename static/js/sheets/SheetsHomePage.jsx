@@ -34,7 +34,9 @@ const SheetsHomePageSidebar = ({includeFooter = false}) => {
     const sidebarModules = [
     {type: "WhatIsSefariaVoices"},
     {type: "CreateASheet"},
-    {"type": "VoicesNewsletterSignUp"}
+    {"type": "VoicesNewsletterSignUp"},
+    // Sidebar-ad slot — makes this page targetable by ads (pageType "voices_home").
+    {type: "Promo"}
   ];
     return <NavSidebar sidebarModules={sidebarModules} includeFooter={includeFooter} />
 }
