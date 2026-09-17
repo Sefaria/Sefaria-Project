@@ -19,7 +19,10 @@ import {
 
 const KEY_SETUP_MS = 4000;
 
-const maskKey = (value) => value.split("_").slice(0, 2).join("_") + "_••••••••";
+const maskKey = (value) => {
+  const prefix = value.match(/^sfr_(?:test_)?/);
+  return (prefix ? prefix[0] : "") + "••••••••••••";
+};
 
 const formatDate = (iso) => {
   if (!iso) { return "Never"; }
@@ -681,7 +684,7 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
         created = makeKey(wanted);
         return {
           ...s,
-          projects: s.projects.map(p => p.id === project.id ? {...p, keys: [...p.keys, created]} : p),
+          projects: s.projects.map(p => p.id === project.id ? {...p, keys: [created, ...p.keys]} : p),
         };
       });
       if (failed) { setPhase("error"); return; }
@@ -789,12 +792,12 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
 
 const listingStatus = (project) => {
   if (project.listingRequest) {
-    return "Powered by Sefaria: link to " + project.listingRequest.name + " requested, awaiting confirmation.";
+    return "Link to " + project.listingRequest.name + " requested, awaiting Sefaria's confirmation.";
   }
   if (project.visibility === "public") {
-    return "Powered by Sefaria: not linked to an existing listing.";
+    return "Public: may be listed on Powered by Sefaria.";
   }
-  return "Powered by Sefaria: this project is private, so it is not listed.";
+  return "Not listed on Powered by Sefaria.";
 };
 
 
@@ -809,6 +812,7 @@ const UsageChart = ({series}) => {
     <svg
       className="devPocChart"
       viewBox={"0 0 " + CHART_WIDTH + " " + CHART_HEIGHT}
+      preserveAspectRatio="none"
       role="img"
       aria-label="Daily requests over the last 30 days"
     >
