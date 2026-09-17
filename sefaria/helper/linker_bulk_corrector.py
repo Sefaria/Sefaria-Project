@@ -273,7 +273,7 @@ def search_citations(payload: dict) -> dict:
         "total": len(filtered),
         "stats": stats,
         "results": [
-            serialize_citation_result(item, dataset, parse_result)
+            serialize_citation_result(_item_with_fresh_status(item, parse_result), dataset, parse_result)
             for item, parse_result in zip(page_items, parse_results)
         ],
     }
@@ -371,6 +371,24 @@ def _status_from_parse_result(parse_result: dict) -> str:
     return "parsed"
 
 
+def _item_with_fresh_status(item: CitationItem, parse_result: dict) -> CitationItem:
+    """Build a display-only CitationItem reflecting a live parse result that's already been
+    computed (e.g. to populate refParts/parsings), without persisting anything to Mongo.
+    Used wherever we show a citation's status/snippet coloring but only did the cheap,
+    non-persisting path (fast/no-auto-correct navigation, search) - so a stale DB-persisted
+    failed/ambiguous flag doesn't visually contradict a live parse we already ran and are
+    already showing ref-parts detail for."""
+    return CitationItem(
+        ref=item.ref,
+        versionTitle=item.versionTitle,
+        language=item.language,
+        charRange=item.charRange,
+        spans=_debug_spans_from_parse_result(item, parse_result),
+        order=item.order,
+        status=_status_from_parse_result(parse_result),
+    )
+
+
 def _ref_parts(parse_result: dict) -> list[dict]:
     return parse_result.get("input", {}).get("parts") or []
 
@@ -415,8 +433,10 @@ def _cursor_matches(item: CitationItem, key: tuple[str, tuple[int, int]]) -> boo
 def _navigate_without_reparsing(dataset: dict, all_items: list[CitationItem], direction: str, raw_cursor: dict) -> dict:
     """Step to the next/previous item already matching the status filter, using stored
     (not freshly re-parsed) status to decide *which* item to land on. Still does a single
-    live parse of just that one landed-on item (so ref parts / options considered still
-    render), but skips the up-to-200-item scan-and-persist walk the normal auto-correcting
+    live parse of just that one landed-on item, both so ref parts / options considered
+    render and so the displayed status/snippet coloring reflects that live parse rather
+    than a possibly-stale stored failed/ambiguous flag - but that fresh result is not
+    persisted, and skips the up-to-200-item scan-and-persist walk the normal auto-correcting
     navigation does, which is the actual expensive/side-effecting part."""
     filtered = _filtered_items(all_items, dataset)
     if not filtered:
@@ -434,7 +454,7 @@ def _navigate_without_reparsing(dataset: dict, all_items: list[CitationItem], di
     parse_result = linker_resource_panel_admin.parse_linker_citation_sync(_parts_payload_from_item(item))
     return {
         "found": True,
-        "item": serialize_citation_result(item, dataset, parse_result),
+        "item": serialize_citation_result(_item_with_fresh_status(item, parse_result), dataset, parse_result),
         "position": target,
         "checked": 1,
     }
