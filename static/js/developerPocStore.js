@@ -1,15 +1,16 @@
 /*
  * Mock state for the Developer settings proof of concept.
  *
- * Nothing here talks to a server. Every project, key and usage number lives in one
- * localStorage blob so product people can click through the flow; the key values are
- * random strings generated in the browser and authorize nothing. The floating POC test
- * controls reset this store and can override the account's real SSO status.
- *
- * localStorage is read lazily (never at module load) so server-side rendering is safe.
+ * Nothing here talks to the real API. Every project, key and usage number lives in one
+ * blob saved per user through api/developer-poc/state, so product people can click
+ * through the flow; the key values are random strings generated in the browser and
+ * authorize nothing. The floating POC test controls reset this store and can override
+ * the account's real SSO status.
  */
 
-export const DEVELOPER_POC_STORAGE_KEY = "sefariaDeveloperPoc";
+import { getCsrfToken } from './sefaria/csrf';
+
+export const DEVELOPER_POC_STATE_URL = "/api/developer-poc/state";
 export const DEVELOPER_POC_VERSION = 1;
 export const MAX_KEYS_PER_PROJECT = 5;
 
@@ -134,54 +135,25 @@ export const sampleState = () => {
   };
 };
 
-/* The settings nav has to render on the server, which cannot read localStorage, so the
-   two values it depends on are mirrored into cookies on every read and write. */
-export const DEVELOPER_POC_ON_COOKIE = "sefariaDeveloperPocOn";
-export const DEVELOPER_POC_SSO_COOKIE = "sefariaDeveloperPocSso";
-
-const mirrorStateToCookies = (state) => {
-  if (typeof document === "undefined") { return state; }
-  const ssoOverride = state.ssoOverride === null || state.ssoOverride === undefined
-    ? "" : (state.ssoOverride ? "1" : "0");
-  document.cookie = DEVELOPER_POC_ON_COOKIE + "=" + (state.developerEnabled ? "1" : "0") + "; path=/; SameSite=Lax";
-  document.cookie = DEVELOPER_POC_SSO_COOKIE + "=" + ssoOverride + "; path=/; SameSite=Lax";
-  return state;
-};
-
-export const readState = () => {
-  if (typeof window === "undefined" || !window.localStorage) { return emptyState(); }
-  try {
-    const raw = window.localStorage.getItem(DEVELOPER_POC_STORAGE_KEY);
-    if (!raw) { return mirrorStateToCookies(emptyState()); }
-    const parsed = JSON.parse(raw);
-    if (!parsed || parsed.version !== DEVELOPER_POC_VERSION) { return mirrorStateToCookies(emptyState()); }
-    return mirrorStateToCookies({...emptyState(), ...parsed});
-  } catch (e) {
-    return emptyState();
-  }
-};
-
+/* The UI updates optimistically and the write is fire and forget; the returned promise
+   rejects so the caller can show a notice. */
 export const writeState = (state) => {
-  if (typeof window === "undefined" || !window.localStorage) { return state; }
-  try {
-    window.localStorage.setItem(DEVELOPER_POC_STORAGE_KEY, JSON.stringify(state));
-  } catch (e) { /* private browsing, quota: the POC keeps working in memory */ }
-  mirrorStateToCookies(state);
-  return state;
+  if (typeof window === "undefined") { return Promise.resolve(state); }
+  return fetch(DEVELOPER_POC_STATE_URL, {
+    method: "POST",
+    mode: "same-origin",
+    credentials: "same-origin",
+    headers: {"Content-Type": "application/json", "X-CSRFToken": getCsrfToken()},
+    body: JSON.stringify(state),
+  }).then(response => {
+    if (!response.ok) { throw new Error("Could not save the POC state"); }
+    return state;
+  });
 };
 
 export const ssoConnected = (state, realProviders) => (
   state.ssoOverride === null ? (realProviders || []).length > 0 : !!state.ssoOverride
 );
-
-/* The account settings page is a Django template with jQuery, not React, and shares this
-   store with the developer page. It reaches it through this global. */
-if (typeof window !== "undefined") {
-  window.sefariaDeveloperPoc = {
-    readState, writeState, emptyState, sampleState, ssoConnected,
-    STORAGE_KEY: DEVELOPER_POC_STORAGE_KEY,
-  };
-}
 
 export const websiteHost = (url) => {
   if (!url) { return ""; }

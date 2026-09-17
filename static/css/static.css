@@ -1102,7 +1102,7 @@ p.registration-links a:hover{
   color: var(--dark-grey);
   font-weight: 700;
 }
-#accountSettingsPage input[disabled="disabled"] {
+#accountSettingsPage input[disabled] {
   background-color: #FBFBFA;
 }
 #accountSettingsPage input::placeholder{

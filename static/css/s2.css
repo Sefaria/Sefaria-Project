@@ -17055,7 +17055,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
 
-/* Developer settings POC (account settings section + /settings/developer) */
+/* Settings page POC: the developer tab, and the developer controls on the account tab */
 .devPocPage {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
@@ -17075,14 +17075,17 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   line-height: 1.55;
   text-align: left;
 }
-/* Left aligned on the same edge as #accountSettingsPage .inner, so the two settings
-   pages line up when you move between their tabs. */
-.readerNavMenu.devPocPage .content .contentInner {
+/* Both settings tabs sit in one menu page, which carries the page padding the account
+   settings template used to apply to its own .inner. */
+.readerNavMenu.settingsPage .content .contentInner {
   width: auto;
   max-width: none;
   padding: 60px 20px 100px 100px;
   margin: 0;
 }
+.settingsPage #accountSettingsPage .inner { padding: 0; }
+/* The account tab keeps the page background of the static page it replaces. */
+.readerNavMenu.settingsPage:not(.settingsPageDeveloper) { background-color: #FBFBFA; }
 /* Spacing goes through :where() so it stays at .devPocPage specificity and the component
    rules further down can set their own margins. The appearance resets have to outrank the
    reader's own heading rules, so they keep full specificity. */
@@ -17107,8 +17110,8 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 }
 
 /* POC test controls. A floating panel, pinned to the viewport and deliberately foreign
-   to the Sefaria palette so nobody reads it as product UI. The React developer page and
-   the account settings template both render this markup. */
+   to the Sefaria palette so nobody reads it as product UI. The settings page renders it
+   once, for both tabs. */
 .devPocPanel {
   position: fixed;
   right: 16px;
@@ -17249,8 +17252,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   cursor: pointer;
 }
 
-/* The settings tabs: one vertical list in a left column, identical markup and styling on
-   the account settings template and the React developer page. */
+/* The settings tabs: one vertical list in a left column, shared by both tabs. */
 .devPocNav {
   font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
   font-size: 16px;
@@ -17702,7 +17704,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 
 @media (max-width: 760px) {
   .devPocShell { display: block; max-width: none; }
-  .readerNavMenu.devPocPage .content .contentInner { padding: 40px 22px 60px; }
+  .readerNavMenu.settingsPage .content .contentInner { padding: 40px 22px 60px; }
   .devPocNav { display: flex; flex-wrap: wrap; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
   .devPocNavTitle { width: 100%; padding: 0 0 8px; }
   .devPocNav a { border-inline-start: 0; border-bottom: 3px solid transparent; padding: 10px; }
@@ -17730,8 +17732,8 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   }
 }
 
-/* Developer settings POC controls inside the account settings page, which styles all
-   its own inputs and labels full width. */
+/* Developer settings POC controls inside the account tab, which styles all its own
+   inputs and labels full width. */
 #accountSettingsPage .devPocChoice {
   display: flex;
   align-items: center;

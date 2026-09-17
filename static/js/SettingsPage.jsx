@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
+import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
+import { InterfaceText } from './Misc';
 import {
   MAX_KEYS_PER_PROJECT,
   POWERED_BY_LISTINGS,
   emptyState,
   makeKey,
   makeProject,
-  readState,
   sampleState,
   ssoConnected,
   usageSeries,
@@ -14,8 +15,9 @@ import {
   writeState,
 } from './developerPocStore';
 
-/* Developer settings, proof of concept. Every value on this page is mock data held in
-   localStorage; no key here authorizes anything. See developerPocStore.js. */
+/* Account and developer settings, one page with two tabs. Everything the developer tab
+   shows is mock data saved through api/developer-poc/state; no key here authorizes
+   anything. See developerPocStore.js. */
 
 const KEY_SETUP_MS = 4000;
 
@@ -201,11 +203,28 @@ const PocTestPanel = ({state, realProviders, update, reset, showSimulate}) => {
 };
 
 
-const SettingsNav = () => (
+const SETTINGS_TABS = [
+  {tab: "account", url: "/settings/account", label: "Account settings"},
+  {tab: "developer", url: "/settings/developer", label: "Developer settings"},
+];
+
+/* Tabs, not links: clicking switches the mounted tab and pushes the matching URL. The
+   anchors keep the addresses linkable, so opening one in a new tab still works. */
+const SettingsNav = ({tab, onSelect}) => (
   <nav className="devPocNav" aria-label="Settings">
     <div className="devPocNavTitle">Settings</div>
-    <a href="/settings/account">Account settings</a>
-    <a href="/settings/developer" aria-current="page">Developer settings</a>
+    {SETTINGS_TABS.map(t => (
+      <a
+        key={t.tab}
+        href={t.url}
+        aria-current={tab === t.tab ? "page" : null}
+        onClick={e => {
+          if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) { return; }
+          e.preventDefault();
+          onSelect(t.tab);
+        }}
+      >{t.label}</a>
+    ))}
   </nav>
 );
 
@@ -1109,45 +1128,8 @@ const ConfirmDialog = ({confirm, onClose}) => (
 );
 
 
-const DeveloperSettingsPage = ({socialProviders, initialProjectId, initialNavOn}) => {
-  const [state, setState] = useState(null);   // null until mounted: the server has no localStorage
-  const [showNewProject, setShowNewProject] = useState(false);
-  const [editingProfile, setEditingProfile] = useState(false);
-  const [confirm, setConfirm] = useState(null);
-  const [notice, setNotice] = useState("");
-
-  useEffect(() => {
-    const loaded = readState();
-    if (initialProjectId && loaded.projects.some(p => p.id === initialProjectId)) {
-      loaded.expandedProjectId = initialProjectId;
-    }
-    setState(loaded);
-  }, [initialProjectId]);
-
-  const update = (fn) => setState(prev => writeState(fn(prev)));
-  const reset = (next) => {
-    setState(writeState(next));
-    setShowNewProject(false);
-    setEditingProfile(false);
-    setConfirm(null);
-    setNotice("");
-  };
-
-  if (state === null) {
-    // The server renders this pass. The nav visibility comes from the cookie the store
-    // mirrors, so the shell does not shift once localStorage is read.
-    return (
-      <div className="readerNavMenu devPocPage" key="developerSettings">
-        <div className="content"><div className="contentInner">
-          <div className={"devPocShell" + (initialNavOn ? "" : " devPocShellNoNav")}>
-            {initialNavOn ? <SettingsNav /> : null}
-            <main className="devPocMain"><p>Loading developer settings&hellip;</p></main>
-          </div>
-        </div></div>
-      </div>
-    );
-  }
-
+const DeveloperTab = ({state, socialProviders, navOn, update, setConfirm, notice, setNotice,
+                       editingProfile, setEditingProfile, onNewProject, onSelectTab, setProjectId}) => {
   const connected = ssoConnected(state, socialProviders);
   const off = !connected || !state.developerEnabled;
   const novice = !!(state.profile && state.profile.notADeveloper);
@@ -1156,9 +1138,628 @@ const DeveloperSettingsPage = ({socialProviders, initialProjectId, initialNavOn}
     ? "Finish your profile first. The API terms are part of it."
     : "Save your developer profile first. The API terms are part of it.";
 
+  const toggleExpand = (project) => {
+    const expandedProjectId = state.expandedProjectId === project.id ? null : project.id;
+    update(s => ({...s, expandedProjectId}));
+    setProjectId(expandedProjectId);
+  };
+
+  return (
+    <div className="devPocPage">
+      <div className={"devPocShell" + (navOn ? "" : " devPocShellNoNav")}>
+        {navOn ? <SettingsNav tab="developer" onSelect={onSelectTab} /> : null}
+        <main className="devPocMain">
+          <header className="devPocPageHeader">
+            <h1>Developer settings</h1>
+            <p>
+              {novice
+                ? "Tell us what you're building, and get a key for it."
+                : "Register your projects and manage their API keys."}
+            </p>
+            <a href="https://developers.sefaria.org" target="_blank" rel="noreferrer">
+              {novice ? "API documentation (for developers)" : "API documentation"}
+            </a>
+          </header>
+
+          {off ?
+            <div className="devPocEmpty">
+              <h2>Developer settings are off</h2>
+              <p>Turn them on in <a href="/settings/account" onClick={e => { e.preventDefault(); onSelectTab("account"); }}>Account settings</a>.</p>
+            </div> :
+            !state.profile ?
+            <ProfileOnboarding onSave={profile => update(s => ({...s, profile}))} /> :
+            <React.Fragment>
+              {notice ?
+                <div className="devPocNotice" role="status">
+                  <p>{notice}</p>
+                  <button type="button" className="button small transparent" onClick={() => setNotice("")}>Dismiss</button>
+                </div> : null}
+
+              <section className="devPocProfile">
+                {editingProfile ?
+                  <React.Fragment>
+                    <h2>Developer profile</h2>
+                    <ProfileForm
+                      profile={state.profile}
+                      onSave={profile => { update(s => ({...s, profile})); setEditingProfile(false); }}
+                      onCancel={() => setEditingProfile(false)}
+                    />
+                  </React.Fragment> :
+                  <div className="devPocProfileSummary">
+                    <span>
+                      <strong>{state.profile.developerName}</strong>
+                      <span className="devPocHelp">{Sefaria._email}{state.profile.description ? " · " + state.profile.description : ""}</span>
+                    </span>
+                    <button type="button" className="button small transparent" onClick={() => setEditingProfile(true)}>Edit profile</button>
+                  </div>}
+              </section>
+
+              <div className="devPocSectionHeading">
+                <h2>Projects</h2>
+                {state.projects.length ?
+                  <button
+                    type="button"
+                    className="button small white"
+                    disabled={!profileReady}
+                    onClick={onNewProject}
+                  >New project</button> : null}
+              </div>
+              {state.projects.length > 0 && !profileReady ?
+                <p className="devPocHelp">{profileFirst}</p> : null}
+
+              {state.projects.length === 0 ?
+                <div className="devPocEmpty">
+                  <h2>{novice ? "Your first project starts here" : "No projects yet"}</h2>
+                  <p>
+                    {novice
+                      ? "Tell us what you're building. You'll get a key on the next step."
+                      : "Create a project, then add a key to it."}
+                  </p>
+                  <div className="devPocActions">
+                    <button
+                      type="button"
+                      className="button small blue"
+                      disabled={!profileReady}
+                      onClick={onNewProject}
+                    >{novice ? "Create your first project" : "New project"}</button>
+                  </div>
+                  {profileReady ? null : <p className="devPocHelp">{profileFirst}</p>}
+                  <p className="devPocHelp">A project can also be listed on Powered by Sefaria without an API key.</p>
+                </div> :
+                state.projects.map(p => (
+                  <ProjectCard
+                    key={p.id}
+                    project={p}
+                    expanded={state.expandedProjectId === p.id}
+                    novice={novice}
+                    update={update}
+                    setConfirm={setConfirm}
+                    notice={setNotice}
+                    onToggleExpand={() => toggleExpand(p)}
+                  />
+                ))}
+            </React.Fragment>}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+
+/* The mock provider chooser. It stands in for the Google or Apple sign-in window. */
+const MockSsoDialog = ({provider, onCancel, onContinue}) => {
+  const continueRef = useRef(null);
+
+  useEffect(() => {
+    if (continueRef.current) { continueRef.current.focus(); }
+    const onKeyDown = (e) => { if (e.key === "Escape") { onCancel(); } };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onCancel]);
+
+  return (
+    <div className="devPocMockSso" role="dialog" aria-modal="true" aria-label="Choose an account">
+      <div className="devPocMockSsoBackdrop" onClick={onCancel} />
+      <div className="devPocMockSsoDialog">
+        <p className="devPocMockSsoBanner">MOCK &mdash; no real sign-in happens</p>
+        <div className="devPocMockSsoBody">
+          <p className="devPocMockSsoBrand">{provider}</p>
+          <h2>Choose an account</h2>
+          <p className="devPocMockSsoSub">to continue to Sefaria</p>
+          <div className="devPocMockSsoAccount">
+            <span className="devPocMockSsoAvatar" aria-hidden="true">TL</span>
+            <span className="devPocMockSsoAccountText">
+              <strong>Tova Levi</strong>
+              <span>tova@example.org</span>
+            </span>
+          </div>
+          <div className="devPocMockSsoActions">
+            <button type="button" className="devPocMockSsoCancel" onClick={onCancel}>Cancel</button>
+            <button type="button" className="devPocMockSsoContinue" ref={continueRef} onClick={onContinue}>Continue</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+/* ---- Account settings tab ---- */
+
+const navigateBack = () => {
+  if (window.history.length > 2) {
+    window.history.back();
+  } else {
+    window.history.replaceState(null, null, '/texts');
+    window.location.reload();
+  }
+};
+
+/* Arrow keys move between the options of one toggle and pick the one they land on. */
+const toggleKeyUp = (e) => {
+  const sibling = e.keyCode === 39 ? e.currentTarget.nextElementSibling
+    : e.keyCode === 37 ? e.currentTarget.previousElementSibling : null;
+  if (sibling && sibling.classList.contains("toggleOption")) {
+    sibling.focus();
+    sibling.click();
+  }
+};
+
+const SettingToggle = ({optionClass, options, value, ariaLabel, onChange, children}) => (
+  <div
+    className={"toggleSet toggleSetToggleBox blueStyle " + optionClass + " control-elem"}
+    role="radiogroup"
+    aria-label={ariaLabel}
+  >
+    {options.map(option => {
+      const on = option.value === value;
+      return (
+        <div
+          key={option.value}
+          role="radio"
+          data-name={option.name}
+          data-value={option.value}
+          className={"toggleOption" + (on ? " on" : "")}
+          tabIndex={on ? 0 : -1}
+          aria-checked={on}
+          onClick={() => onChange(option.value)}
+          onKeyUp={toggleKeyUp}
+        >{option.content}</div>
+      );
+    })}
+    {children}
+  </div>
+);
+
+const SettingSection = ({id, label, children}) => (
+  <div id={id} className="section">
+    <label className="control-elem">{label}</label>
+    {children}
+  </div>
+);
+
+const LoginMethodText = ({method, email}) => {
+  const hebrew = Sefaria.interfaceLang === "hebrew";
+  return (
+    <span className={hebrew ? "int-he" : "int-en"}>
+      <span className="loginMethodText">{hebrew ? method.he : method.en}</span>{" "}
+      <span className="loginMethodEmail">{email}</span>
+    </span>
+  );
+};
+
+const loginMethod = (socialProviders) => {
+  const google = socialProviders.includes("google");
+  const apple = socialProviders.includes("apple");
+  if (google && apple) { return {en: "Google & Apple Sign-In with", he: "התחברות דרך גוגל ואפל עם"}; }
+  if (google) { return {en: "Google Sign-In with", he: "התחברות דרך גוגל עם"}; }
+  return {en: "Apple Sign-In with", he: "התחברות דרך אפל עם"};
+};
+
+const AccountTab = ({settings, pocState, socialProviders, navOn, update, onSelectTab,
+                     onConnectSso, connectedMessage}) => {
+  const torahSpecific = !!settings.torahSpecific;
+  const translationLanguages = settings.translationLanguages || [];
+
+  const [emailNotifications, setEmailNotifications] = useState(settings.emailNotifications);
+  const [interfaceLanguage, setInterfaceLanguage] = useState(settings.interfaceLanguage);
+  const [translationLanguage, setTranslationLanguage] = useState(settings.translationLanguagePreference);
+  const [readingHistory, setReadingHistory] = useState(settings.readingHistory === false ? "false" : "true");
+  const [textualCustom, setTextualCustom] = useState(settings.textualCustom);
+  const [libraryAssistant, setLibraryAssistant] = useState(settings.libraryAssistantEnabled ? "true" : "false");
+
+  /* The values saving compares against. Textual custom moves to the saved value, because
+     a second save should only re-fetch the calendars if it changed again. */
+  const saved = useRef({
+    interfaceLanguage: settings.interfaceLanguage,
+    libraryAssistant: settings.libraryAssistantEnabled ? "true" : "false",
+    translationLanguage: settings.translationLanguagePreference,
+    textualCustom: settings.textualCustom,
+  });
+
+  const [email, setEmail] = useState(settings.email);
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [emailFields, setEmailFields] = useState({email: "", confirmEmail: "", confirmPassword: ""});
+  const [emailError, setEmailError] = useState("");
+  const [emailOk, setEmailOk] = useState("");
+
+  const [gauthEmail, setGauthEmail] = useState((settings.sheetsExport && settings.sheetsExport.gauthEmail) || "");
+  const [gauthError, setGauthError] = useState("");
+
+  const connected = ssoConnected(pocState, socialProviders);
+  const developerOn = connected && !!pocState.developerEnabled;
+
+  const save = () => {
+    const transPref = translationLanguages.length ? translationLanguage : undefined;
+    const profile = {
+      settings: {
+        email_notifications: emailNotifications,
+        interface_language: torahSpecific ? interfaceLanguage : undefined,
+        textual_custom: torahSpecific ? textualCustom : undefined,
+        reading_history: (torahSpecific ? readingHistory : undefined) === "true",
+        translation_language_preference: torahSpecific ? transPref : undefined,
+        translation_language_preference_suggested: true,
+      },
+    };
+    // Only send library_assistant when the toggle was actually changed. The toggle
+    // renders the *effective* value, so submitting it unconditionally would persist
+    // the setting for users whose profiles don't carry the key yet — and a profile
+    // that has the key is skipped by the opt-out migration.
+    if (libraryAssistant !== saved.current.libraryAssistant) {
+      profile.settings.library_assistant = libraryAssistant === "true";
+    }
+    // see trans pref in cookie in case user is logged out
+    if (profile.settings.translation_language_preference !== undefined) {
+      $.cookie("translation_language_preference", profile.settings.translation_language_preference, {path: "/"});
+    }
+    $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
+    $.post("/api/profile", {json: JSON.stringify(profile)}, (data) => {
+      if ("error" in data) {
+        alert(data.error);
+        return;
+      }
+      alert(Sefaria._("Settings Saved"));
+      Sefaria.track.event("Settings", "Settings Save", emailNotifications);
+      const languageChanged = interfaceLanguage !== saved.current.interfaceLanguage;
+      if (languageChanged) {
+        Sefaria.track.setInterfaceLanguage("interface language account settings", interfaceLanguage);
+      }
+      // Interface language or Library Assistant changed → reload (interface language affects RTL/LTR and server-rendered content; the assistant needs a fresh chatbot_user_token and script tag)
+      if (languageChanged || libraryAssistant !== saved.current.libraryAssistant) {
+        window.location.reload();
+        return;
+      }
+      if (transPref !== saved.current.translationLanguage) {
+        Sefaria.track.event("Reader", "Set Translation Language Preference", transPref);
+        saved.current.translationLanguage = transPref;
+      }
+      const detail = {
+        translationLanguagePreference: profile.settings.translation_language_preference,
+        readingHistory: profile.settings.reading_history,
+      };
+      const newTextualCustom = profile.settings.textual_custom;
+      if (newTextualCustom !== saved.current.textualCustom) {  // only check change here because it triggers an API call to re-fetch calendars
+        detail.textualCustom = newTextualCustom;
+        detail.diaspora = settings.diaspora ? "1" : "0";
+        saved.current.textualCustom = newTextualCustom;
+      }
+      document.dispatchEvent(new CustomEvent('sefaria:settings-updated', {detail}));
+    });
+  };
+
+  const updateEmail = () => {
+    $.post("/settings/account/user", {json: JSON.stringify(emailFields)}, (data) => {
+      if ("error" in data) {
+        setEmailError(data.error);
+        return;
+      }
+      setEmailError("");
+      setEmail(emailFields.email);
+      setEmailOk(Sefaria._("Email was successfully changed!"));
+      setEditingEmail(false);
+    });
+  };
+
+  const disconnectGauth = () => {
+    $.get("/unlink-gauth?redirect=0", (data) => {
+      if ("error" in data) { setGauthError(data.error); }
+      else { setGauthError(""); setGauthEmail(""); }
+    });
+  };
+
+  const saveButton = (
+    <button type="button" className="button small blue control-elem saveAccountSettingsBtn" onClick={save}>
+      <InterfaceText text={{en: "Save", he: "שמירה"}} />
+    </button>
+  );
+  const cancelButton = (extraClass) => (
+    <button type="button" className={"button " + extraClass + " control-elem"} onClick={navigateBack}>
+      <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
+    </button>
+  );
+
+  return (
+    <div className="inner">
+      <div className="headerWithButtons">
+        <h1>
+          <InterfaceText text={{en: "Account Settings", he: "הגדרות חשבון"}} />
+        </h1>
+        <div className="end">
+          {cancelButton("small transparent")}
+          {saveButton}
+        </div>
+      </div>
+      <div className={"devPocShell" + (navOn ? "" : " devPocShellNoNav")}>
+        {navOn ? <SettingsNav tab="account" onSelect={onSelectTab} /> : null}
+        <div className="devPocSettingsBody">
+          <SettingSection
+            id="emailNotifications"
+            label={<InterfaceText text={{en: "Notification Frequency (Maximum)", he: "תדירות שליחת הודעות (מקסימלית)"}} />}
+          >
+            <SettingToggle
+              optionClass="tripleOption"
+              value={emailNotifications}
+              onChange={setEmailNotifications}
+              options={[
+                {value: "daily", content: <InterfaceText text={{en: "Daily", he: "יומית"}} />},
+                {value: "weekly", content: <InterfaceText text={{en: "Weekly", he: "שבועית"}} />},
+                {value: "never", content: <InterfaceText text={{en: "Never", he: "לעולם לא"}} />},
+              ]}
+            />
+          </SettingSection>
+
+          {torahSpecific ?
+            <React.Fragment>
+              <SettingSection
+                id="siteLanguage"
+                label={<InterfaceText text={{en: "Site Language", he: "שפת ממשק"}} />}
+              >
+                <SettingToggle
+                  optionClass="doubleOption"
+                  value={interfaceLanguage}
+                  onChange={setInterfaceLanguage}
+                  options={[
+                    {value: "english", content: <span className="int-bi">English</span>},
+                    {value: "hebrew", content: <span className="int-bi">עברית</span>},
+                  ]}
+                />
+              </SettingSection>
+
+              {translationLanguages.length ?
+                <SettingSection
+                  id="translationLanguagePreference"
+                  label={<InterfaceText text={{en: "Preferred Translation Language", he: "שפה מועדפת לתרגום"}} />}
+                >
+                  <SettingToggle
+                    optionClass="quadrupleOption"
+                    value={translationLanguage}
+                    onChange={setTranslationLanguage}
+                    options={translationLanguages.map(lang => (
+                      {value: lang.code, content: <span className="int-bi">{lang.name}</span>}
+                    ))}
+                  />
+                </SettingSection> : null}
+
+              <SettingSection
+                id="readingHistory"
+                label={<InterfaceText text={{en: "Reading History", he: "היסטורית קריאה"}} />}
+              >
+                <SettingToggle
+                  optionClass="doubleOption"
+                  value={readingHistory}
+                  onChange={setReadingHistory}
+                  options={[
+                    {value: "true", name: "reading-history", content: <InterfaceText text={{en: "On", he: "פעילה"}} />},
+                    {value: "false", name: "reading-history", content: <InterfaceText text={{en: "Off", he: "כבויה"}} />},
+                  ]}
+                >
+                  <span id="reading-history-warning" className={readingHistory === "false" ? "on" : null}>
+                    {readingHistory === "false" ? Sefaria._("Turning this feature off will permanently delete your reading history.") : null}
+                  </span>
+                </SettingToggle>
+              </SettingSection>
+
+              <SettingSection
+                id="textualCustom"
+                label={<InterfaceText text={{en: "Preferred Custom (Weekly Haftarot)", he: "מנהג מועדף (להפטרות)"}} />}
+              >
+                <SettingToggle
+                  optionClass="doubleOption"
+                  value={textualCustom}
+                  onChange={setTextualCustom}
+                  options={[
+                    {value: "sephardi", content: <InterfaceText text={{en: "Sephardi", he: "עדות המזרח"}} />},
+                    {value: "ashkenazi", content: <InterfaceText text={{en: "Ashkenazi", he: "אשכנז"}} />},
+                  ]}
+                />
+              </SettingSection>
+            </React.Fragment> : null}
+
+          {/* The Library Assistant is a plain user setting, shown to every logged-in user. Its
+              value is the effective one: users who are on through the pre-migration rule carry
+              no setting key yet. */}
+          <SettingSection
+            id="libraryAssistantSetting"
+            label={<InterfaceText text={{en: "Library Assistant", he: "עוזר הספרייה"}} />}
+          >
+            <SettingToggle
+              optionClass="doubleOption"
+              value={libraryAssistant}
+              onChange={setLibraryAssistant}
+              options={[
+                {value: "true", content: <InterfaceText text={{en: "On", he: "פעיל"}} />},
+                {value: "false", content: <InterfaceText text={{en: "Off", he: "כבוי"}} />},
+              ]}
+            />
+          </SettingSection>
+
+          <div id="developerSettings" className="section">
+            <label className="control-elem">Developer Settings</label>
+            {connected ? null :
+              <div id="developerSettingsGate" className="devPocGate">
+                <strong>Connect Google or Apple to get started</strong>
+                <p>We need a verified email so we can reach you about your API access.</p>
+                <button className="button small white" type="button" onClick={() => onConnectSso("Google")}>Connect Google</button>
+                <button className="button small white" type="button" onClick={() => onConnectSso("Apple")}>Connect Apple</button>
+              </div>}
+            {connected && connectedMessage ?
+              <p className="devPocConnected">{connectedMessage}</p> : null}
+            {connected ?
+              <div id="developerSettingsToggleWrapper">
+                <SettingToggle
+                  optionClass="doubleOption"
+                  ariaLabel="Developer Settings"
+                  value={pocState.developerEnabled ? "true" : "false"}
+                  onChange={value => update(s => ({...s, developerEnabled: value === "true"}))}
+                  options={[
+                    {value: "true", content: <span>On</span>},
+                    {value: "false", content: <span>Off</span>},
+                  ]}
+                />
+                <div className="additional-info">Register your projects and get API keys for the Sefaria API.</div>
+                {developerOn ?
+                  <p id="developerSettingsLink">
+                    <a href="/settings/developer" onClick={e => { e.preventDefault(); onSelectTab("developer"); }}>
+                      Open Developer settings
+                    </a>
+                  </p> : null}
+              </div> : null}
+          </div>
+
+          <div id="username-change" className="section">
+            <label className="control-elem">
+              <InterfaceText text={{en: "Login Method", he: "אמצעי התחברות"}} />
+            </label>
+            {socialProviders.length ?
+              <div className="form-section">
+                <LoginMethodText method={loginMethod(socialProviders)} email={email} />
+              </div> :
+              <React.Fragment>
+                <div id="username-change-display" className="form-section" style={editingEmail ? {display: "none"} : null}>
+                  <input id="email-display" type="text" disabled="disabled" value={email} readOnly />
+                  <button id="change-email" type="button" className="button blue fillWidth" onClick={() => setEditingEmail(true)}>
+                    <InterfaceText text={{en: "Change Email", he: "שינוי כתובת דוא״ל"}} />
+                  </button>
+                  <span id="email-edit-ok" style={emailOk ? null : {display: "none"}}>{emailOk}</span>
+                </div>
+                <div id="username-change-edit" className="form-section" style={editingEmail ? null : {display: "none"}}>
+                  <input
+                    id="email"
+                    type="text"
+                    placeholder={Sefaria._("New Email")}
+                    autoComplete="off"
+                    value={emailFields.email}
+                    onChange={e => setEmailFields({...emailFields, email: e.target.value})}
+                  />
+                  <input
+                    id="confirmEmail"
+                    type="text"
+                    placeholder={Sefaria._("Confirm New Email")}
+                    autoComplete="off"
+                    value={emailFields.confirmEmail}
+                    onChange={e => setEmailFields({...emailFields, confirmEmail: e.target.value})}
+                  />
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder={Sefaria._("Password")}
+                    autoComplete="new-password"
+                    value={emailFields.confirmPassword}
+                    onChange={e => setEmailFields({...emailFields, confirmPassword: e.target.value})}
+                  />
+                  <button id="update-email" type="button" className="button blue fillWidth" onClick={updateEmail}>
+                    <InterfaceText text={{en: "Update Email", he: 'עדכון כתובת דוא"ל'}} />
+                  </button>
+                  <span id="email-edit-errors">{emailError}</span>
+                </div>
+              </React.Fragment>}
+          </div>
+
+          <div id="gauth-email-change" className="section" style={gauthEmail ? null : {display: "none"}}>
+            <label className="control-elem">
+              <InterfaceText text={{en: "Sheets Export: Google Drive Connected", he: "ייצוא דפי מקורות: גוגל דרייב מחובר"}} />
+            </label>
+            <div id="gauth-email-disconnect-display" className="form-section">
+              <input id="gauth-email-display" type="text" disabled="disabled" value={gauthEmail} readOnly />
+              <button id="disconnect-gauth-email" type="button" className="button blue fillWidth" onClick={disconnectGauth}>
+                <InterfaceText text={{en: "Disconnect", he: "ניתוק"}} />
+              </button>
+              <span id="gauth-disconnect-messages">{gauthError}</span>
+            </div>
+          </div>
+          <div id="gauth-email-disconnected" className="section" style={gauthEmail ? {display: "none"} : null}>
+            <label className="control-elem">
+              <InterfaceText text={{en: "Sheets Export: No Google Drive Connected", he: "ייצוא דפי מקורות: גוגל דרייב אינו מחובר"}} />
+            </label>
+            <div className="additional-info">
+              <InterfaceText text={{
+                en: "No Google Drive connected. You can link one the next time you export a sheet.",
+                he: "גוגל דרייב אינו מחובר. ניתן לחבר אותו בפעם הבאה שתייצאו דף מקורות.",
+              }} />
+            </div>
+          </div>
+
+          <div className="saveCancel">
+            {saveButton}
+            {cancelButton("transparent small")}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+const SAVE_FAILED = "Couldn't save the POC state. Your changes are only in this browser tab.";
+const CONNECTED_MS = 4000;
+
+const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, setTab, setProjectId}) => {
+  const settings = accountSettings || {};
+  const socialProviders = settings.socialProviders || [];
+
+  const [pocState, setPocState] = useState(() => {
+    const loaded = {...emptyState(), ...(initialDeveloperPoc || {})};
+    if (projectId && loaded.projects.some(p => p.id === projectId)) {
+      loaded.expandedProjectId = projectId;
+    }
+    return loaded;
+  });
+  const [showNewProject, setShowNewProject] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [confirm, setConfirm] = useState(null);
+  const [notice, setNotice] = useState("");
+  const [mockSso, setMockSso] = useState(null);
+  const [connectedMessage, setConnectedMessage] = useState("");
+  const connectedTimer = useRef(null);
+
+  useEffect(() => () => clearTimeout(connectedTimer.current), []);
+
+  /* The UI updates first and the write follows; a failed write only leaves a notice.
+     Updates read through a ref, so a change made while a key is being "created" still
+     builds on the newest state. */
+  const stateRef = useRef(pocState);
+  stateRef.current = pocState;
+  const persist = (next) => {
+    stateRef.current = next;
+    writeState(next).catch(() => setNotice(SAVE_FAILED));
+    return next;
+  };
+  const update = (fn) => setPocState(persist(fn(stateRef.current)));
+  const reset = (next) => {
+    setPocState(persist(next));
+    setShowNewProject(false);
+    setEditingProfile(false);
+    setConfirm(null);
+    setNotice("");
+  };
+
+  const novice = !!(pocState.profile && pocState.profile.notADeveloper);
+  const navOn = ssoConnected(pocState, socialProviders) && !!pocState.developerEnabled;
+
   const createProject = (fields) => {
     const project = makeProject(fields);
     update(s => ({...s, projects: [...s.projects, project], expandedProjectId: project.id}));
+    setProjectId(project.id);
     setShowNewProject(false);
   };
 
@@ -1167,116 +1768,64 @@ const DeveloperSettingsPage = ({socialProviders, initialProjectId, initialNavOn}
     setConfirm(null);
   };
 
+  const finishMockSso = () => {
+    const provider = mockSso;
+    setMockSso(null);
+    update(s => ({...s, ssoOverride: true}));
+    setConnectedMessage(provider + " connected.");
+    clearTimeout(connectedTimer.current);
+    connectedTimer.current = setTimeout(() => setConnectedMessage(""), CONNECTED_MS);
+  };
+
   return (
-    <div className="readerNavMenu devPocPage" key="developerSettings">
+    <div className={"readerNavMenu settingsPage" + (tab === "developer" ? " settingsPageDeveloper" : "")} key="settings">
       <div className="content">
         <div className="contentInner">
-          <div className={"devPocShell" + (off ? " devPocShellNoNav" : "")}>
-            {off ? null : <SettingsNav />}
-            <main className="devPocMain">
-              <header className="devPocPageHeader">
-                <h1>Developer settings</h1>
-                <p>
-                  {novice
-                    ? "Tell us what you're building, and get a key for it."
-                    : "Register your projects and manage their API keys."}
-                </p>
-                <a href="https://developers.sefaria.org" target="_blank" rel="noreferrer">
-                  {novice ? "API documentation (for developers)" : "API documentation"}
-                </a>
-              </header>
-
-              {off ?
-                <div className="devPocEmpty">
-                  <h2>Developer settings are off</h2>
-                  <p>Turn them on in <a href="/settings/account">Account settings</a>.</p>
-                </div> :
-                !state.profile ?
-                <ProfileOnboarding onSave={profile => update(s => ({...s, profile}))} /> :
-                <React.Fragment>
-                  {notice ?
-                    <div className="devPocNotice" role="status">
-                      <p>{notice}</p>
-                      <button type="button" className="button small transparent" onClick={() => setNotice("")}>Dismiss</button>
-                    </div> : null}
-
-                  <section className="devPocProfile">
-                    {editingProfile ?
-                      <React.Fragment>
-                        <h2>Developer profile</h2>
-                        <ProfileForm
-                          profile={state.profile}
-                          onSave={profile => { update(s => ({...s, profile})); setEditingProfile(false); }}
-                          onCancel={() => setEditingProfile(false)}
-                        />
-                      </React.Fragment> :
-                      <div className="devPocProfileSummary">
-                        <span>
-                          <strong>{state.profile.developerName}</strong>
-                          <span className="devPocHelp">{Sefaria._email}{state.profile.description ? " · " + state.profile.description : ""}</span>
-                        </span>
-                        <button type="button" className="button small transparent" onClick={() => setEditingProfile(true)}>Edit profile</button>
-                      </div>}
-                  </section>
-
-                  <div className="devPocSectionHeading">
-                    <h2>Projects</h2>
-                    {state.projects.length ?
-                      <button
-                        type="button"
-                        className="button small white"
-                        disabled={!profileReady}
-                        onClick={() => setShowNewProject(true)}
-                      >New project</button> : null}
-                  </div>
-                  {state.projects.length > 0 && !profileReady ?
-                    <p className="devPocHelp">{profileFirst}</p> : null}
-
-                  {state.projects.length === 0 ?
-                    <div className="devPocEmpty">
-                      <h2>{novice ? "Your first project starts here" : "No projects yet"}</h2>
-                      <p>
-                        {novice
-                          ? "Tell us what you're building. You'll get a key on the next step."
-                          : "Create a project, then add a key to it."}
-                      </p>
-                      <div className="devPocActions">
-                        <button
-                          type="button"
-                          className="button small blue"
-                          disabled={!profileReady}
-                          onClick={() => setShowNewProject(true)}
-                        >{novice ? "Create your first project" : "New project"}</button>
-                      </div>
-                      {profileReady ? null : <p className="devPocHelp">{profileFirst}</p>}
-                      <p className="devPocHelp">A project can also be listed on Powered by Sefaria without an API key.</p>
-                    </div> :
-                    state.projects.map(p => (
-                      <ProjectCard
-                        key={p.id}
-                        project={p}
-                        expanded={state.expandedProjectId === p.id}
-                        novice={novice}
-                        update={update}
-                        setConfirm={setConfirm}
-                        notice={setNotice}
-                        onToggleExpand={() => update(s => ({
-                          ...s, expandedProjectId: s.expandedProjectId === p.id ? null : p.id,
-                        }))}
-                      />
-                    ))}
-                </React.Fragment>}
-            </main>
+          <div
+            id="accountSettingsPage"
+            className="static biReady"
+            style={tab === "account" ? null : {display: "none"}}
+          >
+            <AccountTab
+              settings={settings}
+              pocState={pocState}
+              socialProviders={socialProviders}
+              navOn={navOn}
+              update={update}
+              onSelectTab={setTab}
+              onConnectSso={setMockSso}
+              connectedMessage={connectedMessage}
+            />
+          </div>
+          <div style={tab === "developer" ? null : {display: "none"}}>
+            <DeveloperTab
+              state={pocState}
+              socialProviders={socialProviders}
+              navOn={navOn}
+              update={update}
+              setConfirm={setConfirm}
+              notice={notice}
+              setNotice={setNotice}
+              editingProfile={editingProfile}
+              setEditingProfile={setEditingProfile}
+              onNewProject={() => setShowNewProject(true)}
+              onSelectTab={setTab}
+              setProjectId={setProjectId}
+            />
           </div>
         </div>
       </div>
-      {showNewProject ?
-        <NewProjectDialog novice={novice} onCreate={createProject} onCancel={() => setShowNewProject(false)} /> : null}
-      {confirm ? <ConfirmDialog confirm={confirm} onClose={closeConfirm} /> : null}
-      <PocTestPanel state={state} realProviders={socialProviders} update={update} reset={reset} showSimulate={true} />
+      <div className="devPocPage">
+        {showNewProject ?
+          <NewProjectDialog novice={novice} onCreate={createProject} onCancel={() => setShowNewProject(false)} /> : null}
+        {confirm ? <ConfirmDialog confirm={confirm} onClose={closeConfirm} /> : null}
+        {mockSso ?
+          <MockSsoDialog provider={mockSso} onCancel={() => setMockSso(null)} onContinue={finishMockSso} /> : null}
+        <PocTestPanel state={pocState} realProviders={socialProviders} update={update} reset={reset} showSimulate={true} />
+      </div>
     </div>
   );
 };
 
 
-export default DeveloperSettingsPage;
+export default SettingsPage;
