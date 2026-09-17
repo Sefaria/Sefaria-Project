@@ -209,8 +209,8 @@ const ProfileForm = ({profile, onSave, onCancel}) => {
       </label>
       {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
       <div className="devPocActions">
-        <button type="submit" className="devPocButton">Save profile</button>
-        {onCancel ? <button type="button" className="devPocButton quiet" onClick={onCancel}>Cancel</button> : null}
+        <button type="submit" className="button small blue">Save profile</button>
+        {onCancel ? <button type="button" className="button small transparent" onClick={onCancel}>Cancel</button> : null}
       </div>
     </form>
   );
@@ -285,8 +285,8 @@ const NewProjectDialog = ({onCreate, onCancel}) => {
           <p className="devPocNotice">This project belongs to your account and cannot be transferred.</p>
           {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
           <div className="devPocActions">
-            <button type="submit" className="devPocButton">Create project</button>
-            <button type="button" className="devPocButton quiet" onClick={onCancel}>Cancel</button>
+            <button type="submit" className="button small blue">Create project</button>
+            <button type="button" className="button small transparent" onClick={onCancel}>Cancel</button>
           </div>
         </form>
       </section>
@@ -315,9 +315,9 @@ const EditProjectForm = ({project, onSave, onCancel, onDelete}) => {
       <ProjectFields fields={fields} set={set} />
       {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
       <div className="devPocActions">
-        <button type="submit" className="devPocButton">Save project</button>
-        <button type="button" className="devPocButton quiet" onClick={onCancel}>Cancel</button>
-        <button type="button" className="devPocButton quiet danger" onClick={onDelete}>Delete project</button>
+        <button type="submit" className="button small blue">Save project</button>
+        <button type="button" className="button small transparent" onClick={onCancel}>Cancel</button>
+        <button type="button" className="button small transparent devPocDanger" onClick={onDelete}>Delete project</button>
       </div>
     </form>
   );
@@ -329,24 +329,28 @@ const RestrictionToggle = ({project, apiKey, onToggle}) => {
   const host = websiteHost(project.websiteUrl);
   return (
     <div className="devPocRestriction">
-      <label className="devPocChoice">
-        <input
-          type="checkbox"
-          className="devPocSwitch"
-          checked={!!apiKey.restrictToWebsite}
-          onChange={e => onToggle(e.target.checked)}
-          aria-label={"Restrict " + apiKey.label + " to " + host}
-        />
-        <span>
-          Only accept requests from <code>{host}</code>. Requests with this key from any other website are refused.
-        </span>
-      </label>
-      <button
-        type="button"
-        className="devPocInfoButton"
-        aria-expanded={popoverOpen}
-        onClick={() => setPopoverOpen(o => !o)}
-      >What does this do?</button>
+      <div className="devPocRestrictionRow">
+        <label className="devPocChoice">
+          <input
+            type="checkbox"
+            className="devPocSwitch"
+            checked={!!apiKey.restrictToWebsite}
+            onChange={e => onToggle(e.target.checked)}
+            aria-label={"Restrict " + apiKey.label + " to " + host}
+          />
+          <span>
+            Only accept requests from <code>{host}</code>. Requests with this key from any other website are refused.
+          </span>
+        </label>
+        <button
+          type="button"
+          className="devPocInfoButton"
+          aria-expanded={popoverOpen}
+          aria-label="What does this do?"
+          title="What does this do?"
+          onClick={() => setPopoverOpen(o => !o)}
+        >i</button>
+      </div>
       {popoverOpen ?
         <p className="devPocPopover" role="note">
           This protects against someone copying your key into their own website. It does not stop a
@@ -358,20 +362,20 @@ const RestrictionToggle = ({project, apiKey, onToggle}) => {
 };
 
 
-const KeyRow = ({project, apiKey, novice, onToggleRestriction, onRevoke}) => {
+const KeyRow = ({project, apiKey, novice, isNew, onToggleRestriction, onRevoke}) => {
   const [copyLabel, setCopyLabel] = useState("Copy");
   const codeRef = useRef(null);
   return (
-    <article className="devPocKey">
+    <article className={"devPocKey" + (isNew ? " devPocKeyNew" : "")}>
       <div className="devPocKeyHeading">
         <strong>{apiKey.label}</strong>
-        <button type="button" className="devPocButton quiet danger" onClick={onRevoke}>Revoke key</button>
+        <button type="button" className="button small transparent devPocDanger" onClick={onRevoke}>Revoke key</button>
       </div>
       <div className="devPocKeyValue">
         <code ref={codeRef}>{apiKey.value}</code>
         <button
           type="button"
-          className="devPocButton secondary"
+          className="button small white"
           onClick={() => copyToClipboard(apiKey.value, codeRef.current, setCopyLabel)}
         >{copyLabel}</button>
       </div>
@@ -380,6 +384,7 @@ const KeyRow = ({project, apiKey, novice, onToggleRestriction, onRevoke}) => {
         <span>Last used: {formatDate(apiKey.lastUsed)}</span>
         <span>{apiKey.requests30.toLocaleString()} requests / 30 days (sample data)</span>
       </div>
+      {isNew ? <p className="devPocKeyReady" role="status">Ready to use.</p> : null}
       {project.websiteUrl ?
         <RestrictionToggle project={project} apiKey={apiKey} onToggle={onToggleRestriction} /> :
         <p className="devPocHelp">Add a website URL to this project to restrict this key to it.</p>}
@@ -390,14 +395,18 @@ const KeyRow = ({project, apiKey, novice, onToggleRestriction, onRevoke}) => {
 };
 
 
+const KEY_HIGHLIGHT_MS = 4000;
+
 const KeysSection = ({project, novice, update, setConfirm}) => {
   const [creating, setCreating] = useState(false);   // showing the label form
   const [label, setLabel] = useState("");
   const [phase, setPhase] = useState("idle");        // idle | setting-up | error
   const [error, setError] = useState("");
+  const [newKeyId, setNewKeyId] = useState(null);
   const timer = useRef(null);
+  const highlightTimer = useRef(null);
 
-  useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(() => () => { clearTimeout(timer.current); clearTimeout(highlightTimer.current); }, []);
 
   const atLimit = project.keys.length >= MAX_KEYS_PER_PROJECT;
 
@@ -409,15 +418,23 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
     const wanted = label.trim();
     timer.current = setTimeout(() => {
       let failed = false;
+      let created = null;
       update(s => {
         failed = !!s.failNextKey;
         if (failed) { return {...s, failNextKey: false}; }
+        created = makeKey(wanted);
         return {
           ...s,
-          projects: s.projects.map(p => p.id === project.id ? {...p, keys: [...p.keys, makeKey(wanted)]} : p),
+          projects: s.projects.map(p => p.id === project.id ? {...p, keys: [...p.keys, created]} : p),
         };
       });
-      if (failed) { setPhase("error"); } else { setPhase("idle"); setCreating(false); setLabel(""); }
+      if (failed) { setPhase("error"); return; }
+      setPhase("idle"); setCreating(false); setLabel("");
+      if (created) {
+        setNewKeyId(created.id);
+        clearTimeout(highlightTimer.current);
+        highlightTimer.current = setTimeout(() => setNewKeyId(null), KEY_HIGHLIGHT_MS);
+      }
     }, KEY_SETUP_MS);
   };
 
@@ -448,7 +465,7 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
         {creating ? null :
           <button
             type="button"
-            className="devPocButton"
+            className="button small blue"
             disabled={atLimit}
             onClick={() => { setCreating(true); setPhase("idle"); setError(""); }}
           >Create key</button>}
@@ -468,20 +485,20 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
           </div>
           {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
           <div className="devPocActions">
-            <button type="submit" className="devPocButton">Create key</button>
-            <button type="button" className="devPocButton quiet" onClick={() => { setCreating(false); setError(""); }}>Cancel</button>
+            <button type="submit" className="button small blue">Create key</button>
+            <button type="button" className="button small transparent" onClick={() => { setCreating(false); setError(""); }}>Cancel</button>
           </div>
         </form> : null}
       {phase === "setting-up" ?
         <div className="devPocNotice" role="status">
-          <strong>Setting up your key</strong>
-          <p>It appears here as soon as it works.</p>
+          <strong>Setting up your key&hellip;</strong>
+          <p>This usually takes a few seconds.</p>
         </div> : null}
       {phase === "error" ?
         <div className="devPocWarning" role="alert">
           <strong>We couldn't create your key.</strong>
           <p>No key was created. Please try again.</p>
-          <button type="button" className="devPocButton secondary" onClick={() => setPhase("idle")}>Try again</button>
+          <button type="button" className="button small white" onClick={() => setPhase("idle")}>Try again</button>
         </div> : null}
 
       <div className="devPocKeyList">
@@ -493,6 +510,7 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
             project={project}
             apiKey={k}
             novice={novice}
+            isNew={k.id === newKeyId}
             onToggleRestriction={on => toggleRestriction(k.id, on)}
             onRevoke={() => revoke(k)}
           />
@@ -508,9 +526,10 @@ const ListingSection = ({project, update}) => {
   const [query, setQuery] = useState("");
   const isPublic = project.visibility === "public";
   const normalized = query.trim().toLowerCase();
-  const results = normalized
+  const searchable = normalized.length >= 2;
+  const results = searchable
     ? POWERED_BY_LISTINGS.filter(l => (l.name + " " + l.url).toLowerCase().includes(normalized))
-    : POWERED_BY_LISTINGS;
+    : [];
 
   const requestLink = (listing) => update(s => ({
     ...s,
@@ -538,29 +557,36 @@ const ListingSection = ({project, update}) => {
         <div className="devPocSuccess" role="status">
           <strong>Link requested, awaiting confirmation</strong>
           <p>You asked to link <strong>{project.listingRequest.name}</strong> ({project.listingRequest.url}) to this project.</p>
-          <button type="button" className="devPocButton quiet" onClick={cancelLink}>Cancel request</button>
+          <button type="button" className="button small transparent" onClick={cancelLink}>Cancel request</button>
         </div> :
         searching ?
           <div className="devPocListingSearch">
             <div className="devPocField">
               <label htmlFor="devPocListingSearch">Search existing listings by name or website</label>
-              <input id="devPocListingSearch" type="search" value={query} onChange={e => setQuery(e.target.value)} />
+              <input
+                id="devPocListingSearch"
+                type="search"
+                placeholder="Search by project name or website"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+              />
             </div>
-            {results.length === 0 ? <p className="devPocHelp">No matching listings. Try another name or website.</p> : null}
+            {searchable && results.length === 0 ?
+              <p className="devPocHelp">No matching listings. Try another name or website.</p> : null}
             {results.map(l => (
               <div className="devPocResult" key={l.url}>
                 <div>
                   <strong>{l.name}</strong>
                   <p className="devPocHelp">{l.url}</p>
                 </div>
-                <button type="button" className="devPocButton secondary" onClick={() => requestLink(l)}>Request link</button>
+                <button type="button" className="button small white" onClick={() => requestLink(l)}>Request link</button>
               </div>
             ))}
             <p className="devPocHelp">
               Sefaria confirms the connection, because someone else may have submitted the listing. The listing and your project stay linked, not merged.
             </p>
             <div className="devPocActions">
-              <button type="button" className="devPocButton quiet" onClick={() => setSearching(false)}>Close</button>
+              <button type="button" className="button small transparent" onClick={() => setSearching(false)}>Close</button>
             </div>
           </div> :
           <button type="button" className="devPocTextButton" onClick={() => setSearching(true)}>
@@ -587,10 +613,6 @@ const UsageSection = ({project}) => (
       <div className="devPocStat">
         <strong>{formatDate(project.usage.lastUsed)}</strong>
         <span>Last request</span>
-      </div>
-      <div className="devPocStat">
-        <strong>{project.keys.length}</strong>
-        <span>Keys in this project</span>
       </div>
     </div>
   </section>
@@ -643,10 +665,10 @@ const ProjectCard = ({project, expanded, novice, update, setConfirm, onToggleExp
           </div>
           <div className="devPocProjectActions">
             {expanded ?
-              <button type="button" className="devPocButton quiet" onClick={() => setEditing(e => !e)}>
+              <button type="button" className="button small transparent" onClick={() => setEditing(e => !e)}>
                 {editing ? "Close editor" : "Edit project"}
               </button> : null}
-            <button type="button" className="devPocButton secondary" onClick={onToggleExpand}>
+            <button type="button" className="button small white" onClick={onToggleExpand}>
               {expanded ? "Collapse" : "Open"}
             </button>
           </div>
@@ -670,7 +692,7 @@ const ProjectCard = ({project, expanded, novice, update, setConfirm, onToggleExp
       {expanded ?
         <React.Fragment>
           <KeysSection project={project} novice={novice} update={update} setConfirm={setConfirm} />
-          <UsageSection project={project} />
+          {project.keys.length ? <UsageSection project={project} /> : null}
           <ListingSection project={project} update={update} />
         </React.Fragment> : null}
     </article>
@@ -684,8 +706,8 @@ const ConfirmDialog = ({confirm, onClose}) => (
       <h2>{confirm.title}</h2>
       <p>{confirm.body}</p>
       <div className="devPocActions">
-        <button type="button" className="devPocButton secondary" onClick={() => onClose(false)}>Cancel</button>
-        <button type="button" className="devPocButton danger" onClick={() => onClose(true)}>{confirm.actionLabel}</button>
+        <button type="button" className="button small white" onClick={() => onClose(false)}>Cancel</button>
+        <button type="button" className="button small devPocDanger" onClick={() => onClose(true)}>{confirm.actionLabel}</button>
       </div>
     </section>
   </div>
@@ -727,6 +749,8 @@ const DeveloperSettingsPage = ({socialProviders, initialProjectId}) => {
   const connected = ssoConnected(state, socialProviders);
   const off = !connected || !state.developerEnabled;
   const novice = !!(state.profile && state.profile.notADeveloper);
+  const profileReady = !!(state.profile && state.profile.termsAccepted);
+  const profileFirst = "Save your developer profile first (the API terms are part of it).";
 
   const createProject = (fields) => {
     const project = makeProject(fields);
@@ -761,7 +785,7 @@ const DeveloperSettingsPage = ({socialProviders, initialProjectId}) => {
                   {notice ?
                     <div className="devPocNotice" role="status">
                       <p>{notice}</p>
-                      <button type="button" className="devPocButton quiet" onClick={() => setNotice("")}>Dismiss</button>
+                      <button type="button" className="button small transparent" onClick={() => setNotice("")}>Dismiss</button>
                     </div> : null}
 
                   <section className="devPocProfile">
@@ -779,23 +803,36 @@ const DeveloperSettingsPage = ({socialProviders, initialProjectId}) => {
                           <strong>{state.profile.developerName}</strong>
                           <span className="devPocHelp">{Sefaria._email}{state.profile.description ? " · " + state.profile.description : ""}</span>
                         </span>
-                        <button type="button" className="devPocButton quiet" onClick={() => setEditingProfile(true)}>Edit profile</button>
+                        <button type="button" className="button small transparent" onClick={() => setEditingProfile(true)}>Edit profile</button>
                       </div>}
                   </section>
 
                   <div className="devPocSectionHeading">
                     <h2>Projects</h2>
                     {state.projects.length ?
-                      <button type="button" className="devPocButton secondary" onClick={() => setShowNewProject(true)}>New project</button> : null}
+                      <button
+                        type="button"
+                        className="button small white"
+                        disabled={!profileReady}
+                        onClick={() => setShowNewProject(true)}
+                      >New project</button> : null}
                   </div>
+                  {state.projects.length > 0 && !profileReady ?
+                    <p className="devPocHelp">{profileFirst}</p> : null}
 
                   {state.projects.length === 0 ?
                     <div className="devPocEmpty">
                       <h2>Your first project starts here</h2>
                       <p>Register what you're building, then create an API key for it.</p>
                       <div className="devPocActions">
-                        <button type="button" className="devPocButton" onClick={() => setShowNewProject(true)}>Create your first project</button>
+                        <button
+                          type="button"
+                          className="button small blue"
+                          disabled={!profileReady}
+                          onClick={() => setShowNewProject(true)}
+                        >Create your first project</button>
                       </div>
+                      {profileReady ? null : <p className="devPocHelp">{profileFirst}</p>}
                       <p className="devPocHelp">A project can also be listed on Powered by Sefaria without an API key.</p>
                     </div> :
                     state.projects.map(p => (
