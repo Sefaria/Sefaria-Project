@@ -26,9 +26,15 @@
   font-weight: 600;
 }
 
+.lbcStatBook {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
 .lbcStatNumber {
   font-size: 24px;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .lbcProgress {

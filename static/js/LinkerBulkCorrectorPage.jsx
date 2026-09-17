@@ -452,14 +452,17 @@ const LinkerBulkCorrectorPage = () => {
   };
 
   const parsedPct = stats.totalCitations ? Math.round((stats.parsedCitations / stats.totalCitations) * 100) : 0;
+  const statusLabel = (dataset.status || []).join(' + ') || 'no status selected';
 
   return (
     <div className="linkerBulkCorrector sans-serif">
       <aside className="lbcSidebar">
         <section>
           <h2>Stats</h2>
-          <div className="lbcStatNumber">{stats.parsedCitations} / {stats.totalCitations}</div>
+          {dataset.bookTitle ? <div className="lbcStatBook">{dataset.bookTitle}</div> : null}
+          <div className="lbcStatNumber">{stats.parsedCitations} / {stats.totalCitations} parsed</div>
           <div className="lbcProgress"><span style={{width: `${parsedPct}%`}} /></div>
+          <div className="lbcMeta">Across all citations in the book, regardless of status filter</div>
           {stats.citationsPassed != null ? (
             <div className="lbcStatPassed">{stats.citationsPassed} passed to reach jump point</div>
           ) : null}
@@ -511,7 +514,7 @@ const LinkerBulkCorrectorPage = () => {
       </main>
       <nav className="lbcNavOverlay">
         <button type="button" onClick={() => navigate('backward')} disabled={loading}>Back</button>
-        <span>{item ? `${page + 1} / ${total || '?'}` : 'No item'}</span>
+        <span>{item ? `${page + 1} / ${total || '?'} (${statusLabel})` : 'No item'}</span>
         <button type="button" onClick={() => navigate('forward')} disabled={loading}>Forward</button>
       </nav>
     </div>
