@@ -47,8 +47,9 @@ func main() {
 	promReg.MustRegister(keysGauge, versionGauge, reloads, pushes, startup)
 
 	cfg := authz.Config{
-		Mode:    authz.Mode(envOr("AUTH_MODE", "enforce")),
-		HelpURL: envOr("HELP_URL", "https://developers.sefaria.org/help/"),
+		Mode:          authz.Mode(envOr("AUTH_MODE", "enforce")),
+		HelpURL:       envOr("HELP_URL", "https://developers.sefaria.org/help/"),
+		JWTCookieName: envOr("JWT_COOKIE_NAME", "sefaria_jwt"),
 	}
 	if gp := os.Getenv("GATED_PATHS"); gp != "" {
 		cfg.GatedPaths = strings.Split(gp, ",")

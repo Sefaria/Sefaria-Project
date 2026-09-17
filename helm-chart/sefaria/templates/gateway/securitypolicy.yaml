@@ -17,7 +17,7 @@ spec:
   extAuth:
     failOpen: {{ .Values.authService.extAuth.failOpen }}        # v2 §4: auth service down → anonymous bucket
     timeout: {{ .Values.authService.extAuth.timeout }}          # EG default is 10s
-    headersToExtAuth: [x-api-key, authorization, origin]
+    headersToExtAuth: [x-api-key, authorization, cookie, origin]
     {{- if eq .Values.authService.transport "grpc" }}
     grpc:
       backendRefs:

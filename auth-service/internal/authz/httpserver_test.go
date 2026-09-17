@@ -69,3 +69,14 @@ func TestHTTPHandlerGated(t *testing.T) {
 		t.Fatalf("code=%d body=%s", w.Code, w.Body.String())
 	}
 }
+
+func TestHTTPHandlerJWTFromCookie(t *testing.T) {
+	h := NewHTTPHandler(reg, Options{Cfg: enforce, Verifier: fakeVerifier{}}, NopRecorder{})
+	r := httptest.NewRequest("GET", "/api/texts/Genesis.1", nil)
+	r.Header.Set("Cookie", "sefaria_jwt=cookie-token")
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, r)
+	if w.Code != 200 || w.Header().Get("x-sefaria-tier") != "firstparty" || w.Header().Get("x-sefaria-project") != "sefaria-web" {
+		t.Fatalf("code=%d headers=%v", w.Code, w.Header())
+	}
+}

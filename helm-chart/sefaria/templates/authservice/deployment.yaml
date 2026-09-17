@@ -46,6 +46,7 @@ spec:
             - { name: JWKS_URL, value: {{ include "sefaria.authService.jwksURL" . | quote }} }
             - { name: JWT_ISSUER, value: {{ include "sefaria.authService.issuer" . | quote }} }
             - { name: JWT_AUDIENCE, value: {{ .Values.authService.jwt.audience | quote }} }
+            - { name: JWT_COOKIE_NAME, value: {{ .Values.authService.jwt.cookieName | quote }} }
             - name: PG_DSN
               valueFrom:
                 secretKeyRef:

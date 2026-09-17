@@ -35,8 +35,10 @@ func NewHTTPHandler(l Lookup, o Options, rec Recorder) http.Handler {
 			Path:          r.URL.Path,
 			APIKey:        r.Header.Get("x-api-key"),
 			Authorization: r.Header.Get("authorization"),
+			Cookie:        r.Header.Get("cookie"),
 			Origin:        r.Header.Get("origin"),
 		}
+		req.Authorization = JWTAuthorization(req.Authorization, req.Cookie, o.Cfg.JWTCookieName)
 		d := decideRequest(l, o, req)
 		rec.Observe(d.Result, d.Allow, time.Since(t0))
 		if d.Allow {

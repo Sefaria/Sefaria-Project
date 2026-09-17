@@ -40,7 +40,7 @@ type Lookup interface {
 }
 
 type Request struct {
-	Method, Path, APIKey, Authorization, Origin string
+	Method, Path, APIKey, Authorization, Cookie, Origin string
 }
 
 type Decision struct {
@@ -54,9 +54,10 @@ type Decision struct {
 }
 
 type Config struct {
-	Mode       Mode
-	GatedPaths []string
-	HelpURL    string
+	Mode          Mode
+	GatedPaths    []string
+	HelpURL       string
+	JWTCookieName string
 }
 
 func allow(project, tier, result string) Decision {
@@ -149,4 +150,20 @@ func DecideJWT(v JWTVerifier, authorization string) Decision {
 		return allow("", TierAnonymous, "jwt_invalid")
 	}
 	return allow(c.Sub, c.Tier, "ok")
+}
+
+func JWTAuthorization(authorization, cookie, cookieName string) string {
+	if _, ok := BearerToken(authorization); ok {
+		return authorization
+	}
+	if cookieName == "" {
+		cookieName = "sefaria_jwt"
+	}
+	for _, part := range strings.Split(cookie, ";") {
+		name, value, ok := strings.Cut(strings.TrimSpace(part), "=")
+		if ok && name == cookieName && strings.TrimSpace(value) != "" {
+			return "Bearer " + strings.TrimSpace(value)
+		}
+	}
+	return authorization
 }

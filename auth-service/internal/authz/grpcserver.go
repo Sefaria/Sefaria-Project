@@ -40,7 +40,8 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 	if i := strings.IndexByte(path, '?'); i >= 0 {
 		path = path[:i]
 	}
-	r := Request{Method: httpReq.GetMethod(), Path: path, APIKey: h["x-api-key"], Authorization: h["authorization"], Origin: h["origin"]}
+	r := Request{Method: httpReq.GetMethod(), Path: path, APIKey: h["x-api-key"], Authorization: h["authorization"], Cookie: h["cookie"], Origin: h["origin"]}
+	r.Authorization = JWTAuthorization(r.Authorization, r.Cookie, s.o.Cfg.JWTCookieName)
 	d := decideRequest(s.l, s.o, r)
 	s.rec.Observe(d.Result, d.Allow, time.Since(t0))
 	if d.Allow {

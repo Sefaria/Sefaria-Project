@@ -137,6 +137,18 @@ func TestDecideJWT(t *testing.T) {
 	}
 }
 
+func TestJWTAuthorizationPrefersBearerAndExtractsConfiguredCookie(t *testing.T) {
+	if got := JWTAuthorization("Bearer header-token", "sefaria_jwt=cookie-token", "sefaria_jwt"); got != "Bearer header-token" {
+		t.Fatalf("got %q", got)
+	}
+	if got := JWTAuthorization("", "other=x; custom_jwt=cookie-token; tail=y", "custom_jwt"); got != "Bearer cookie-token" {
+		t.Fatalf("got %q", got)
+	}
+	if got := JWTAuthorization("", "other=x", "custom_jwt"); got != "" {
+		t.Fatalf("got %q", got)
+	}
+}
+
 func TestGatedPathEncodedAndDoubleSlash(t *testing.T) {
 	cfg := Config{GatedPaths: []string{"/api/knn-search"}}
 	for _, p := range []string{"/api/knn-search", "/api/%6bnn-search", "//api/knn-search", "/api/./knn-search", "/api/knn-search%2Fx"} {
