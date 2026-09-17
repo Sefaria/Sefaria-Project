@@ -527,7 +527,7 @@ const LinkerBulkCorrectorPage = () => {
             onClick={() => window.open(`/linker-editor?book=${encodeURIComponent(statsBookTitle || normalizedDataset.bookTitle)}`, '_blank', 'noopener')}
             disabled={!(statsBookTitle || normalizedDataset.bookTitle)}
           >
-            Open Linker Editor
+            Linker Editor
           </button>
         </div>
         {error ? <div className="lbcError">{error}</div> : null}
