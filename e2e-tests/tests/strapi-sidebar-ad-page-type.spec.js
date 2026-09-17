@@ -258,6 +258,41 @@ test.describe('Strapi Sidebar Ad — page-type gate boundaries', () => {
     await expect(promoTitled(page, 'Ad targeting hompage')).toHaveCount(0);
   });
 
+  test('three ads sharing one keyword but differing in page type each show only on their own kind of page', async ({ page, context }) => {
+    // The inverse of the conjunction test below: there the PAGE TYPE matched everywhere and the
+    // KEYWORD discriminated; here the keyword gate passes identically for every ad — both pages
+    // under test carry the keyword 'tanakh' in their context — so page type is the ONLY thing
+    // separating the ads. Per suite convention the wrong-answer ads are listed FIRST in the
+    // payload, so position can never explain a winner. The all_pages ad doubles as the positive
+    // control: it proves the shared keyword, dates, and rendering all pass on both pages, so a
+    // missing typed ad can only mean its page-type gate said no.
+    served = await routeWithStrapiPayload(
+      context,
+      strapiPayload({
+        sidebarAds: [
+          typedAd('book_toc', { keywords: 'tanakh' }),
+          typedAd('category_toc', { keywords: 'tanakh' }),
+          typedAd('all_pages', { keywords: 'tanakh' }),
+        ],
+      }),
+    );
+    await prepareStrapiPage(page, scenario);
+
+    // A category TOC: its context keywords include 'tanakh' (and 'torah').
+    await page.goto('/texts/Tanakh/Torah');
+    await expect(promoTitled(page, 'Ad targeting category_toc')).toBeVisible();
+    await expect(promoTitled(page, 'Ad targeting all_pages')).toBeVisible();
+    await expect(promoTitled(page, 'Ad targeting book_toc')).toHaveCount(0);
+
+    // A book TOC in the same corpus: 'tanakh' still matches, but the page kind flipped.
+    const responsesBeforeNavigation = await strapiResponseCount(page);
+    await page.goto('/Genesis?tab=contents');
+    await waitForStrapiResponse(page, responsesBeforeNavigation);
+    await expect(promoTitled(page, 'Ad targeting book_toc')).toBeVisible();
+    await expect(promoTitled(page, 'Ad targeting all_pages')).toBeVisible();
+    await expect(promoTitled(page, 'Ad targeting category_toc')).toHaveCount(0);
+  });
+
   test('pageType and a multi-word keyword must BOTH match — the collection TOC scenario', async ({ page, context }) => {
     // The flagship conjunction: "Covenant and Conversation" is a plain Category record (a
     // collection TOC is structurally indistinguishable from a canon category), so the specific
