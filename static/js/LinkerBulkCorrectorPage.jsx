@@ -294,7 +294,7 @@ const ResultDetails = ({item, onReparse, reparsing}) => {
       </div>
       {datasetMessage ? <div className="linkerAdminMessage">{datasetMessage}</div> : null}
       {datasetError ? <div className="lbcError">{datasetError}</div> : null}
-      <div className="lbcSnippet" dangerouslySetInnerHTML={{__html: item.snippet?.html || ''}} />
+      <div className="lbcSnippet" dir={item.language === 'he' ? 'rtl' : 'ltr'} dangerouslySetInnerHTML={{__html: item.snippet?.html || ''}} />
       <div className="lbcColumns">
         <section>
           <h3>Ref Parts</h3>
