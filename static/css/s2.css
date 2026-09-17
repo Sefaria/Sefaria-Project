@@ -7405,6 +7405,7 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .linkerAdminSection {
     margin-bottom: 14px;
+    margin-top: 14px;
 }
 .linkerAdminSectionTitle {
     font-size: 12px;
