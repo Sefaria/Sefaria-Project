@@ -42,7 +42,7 @@ const copyToClipboard = (text, node, onDone) => {
     const selection = window.getSelection();
     selection.removeAllRanges();
     selection.addRange(range);
-    onDone("Selected — press ⌘C");
+    onDone("Selected: press ⌘C");
     return;
   }
   onDone("Copy failed");
@@ -215,32 +215,46 @@ const emptyProfile = () => ({
   termsAccepted: false, notADeveloper: false,
 });
 
-const AboutYouFields = ({fields, set}) => (
+const ABOUT_YOU_HELP = "Helps us understand your project if we need to contact you.";
+
+/* Non-developers get the explanations inline; developers get them behind the "i". */
+const AboutYouFields = ({fields, set, novice}) => (
   <React.Fragment>
+    <label className="devPocChoice">
+      <input type="checkbox" checked={fields.notADeveloper} onChange={e => set("notADeveloper", e.target.checked)} />
+      <span>
+        I'm not a developer
+        <span className="devPocHelp">We add extra explanations for building with AI tools or without code.</span>
+      </span>
+    </label>
     <div className="devPocField">
-      <label htmlFor="devPocName">Developer name</label>
+      <label htmlFor="devPocName">Your name</label>
       <input id="devPocName" value={fields.developerName} onChange={e => set("developerName", e.target.value)} />
-      <p className="devPocHelp">Your name, as Sefaria should address you.</p>
+      <p className="devPocHelp">Your name, or your team's name.</p>
     </div>
     <div className="devPocField">
       <div className="devPocLabelRow">
         <label htmlFor="devPocDescription">About yourself <span className="devPocMuted">(optional)</span></label>
-        <InfoTip label="Why we ask about you">
-          Sefaria uses this to understand your project and its needs, if something goes wrong or
-          we want to get in touch.
-        </InfoTip>
+        {novice ? null : <InfoTip label="Why we ask about you">{ABOUT_YOU_HELP}</InfoTip>}
       </div>
       <input id="devPocDescription" value={fields.description} onChange={e => set("description", e.target.value)} />
+      {novice ? <p className="devPocHelp">{ABOUT_YOU_HELP}</p> : null}
     </div>
     <div className="devPocField">
       <label htmlFor="devPocAccountEmail">Account email</label>
       <input id="devPocAccountEmail" value={Sefaria._email || ""} disabled readOnly />
-      <p className="devPocHelp">We use your account email to contact you. Change it in Account settings.</p>
+      <p className="devPocHelp">
+        {novice ? "We'll contact you here. Change it in Account settings." : "Change it in Account settings."}
+      </p>
     </div>
     <div className="devPocField">
       <label htmlFor="devPocEmail2">Additional email <span className="devPocMuted">(optional)</span></label>
       <input id="devPocEmail2" type="email" value={fields.additionalEmail} onChange={e => set("additionalEmail", e.target.value)} />
-      <p className="devPocHelp">Someone else we should contact, or a different work or personal address of yours.</p>
+      <p className="devPocHelp">
+        {novice
+          ? "Another address we can reach, yours or a colleague's."
+          : "A second contact, or a work address."}
+      </p>
     </div>
   </React.Fragment>
 );
@@ -255,13 +269,6 @@ const TermsFields = ({fields, set, accepted}) => (
           <span><strong>I accept the API terms</strong> and agree to receive email about API changes.</span>
         </label>
       </div>}
-    <label className="devPocChoice">
-      <input type="checkbox" checked={fields.notADeveloper} onChange={e => set("notADeveloper", e.target.checked)} />
-      <span>
-        I'm not a developer
-        <span className="devPocHelp">We add extra explanations for building with AI tools or without code.</span>
-      </span>
-    </label>
   </React.Fragment>
 );
 
@@ -274,14 +281,14 @@ const ProfileOnboarding = ({onSave}) => {
 
   const next = (e) => {
     e.preventDefault();
-    if (!fields.developerName.trim()) { setError("Developer name is required."); return; }
+    if (!fields.developerName.trim()) { setError("Enter your name."); return; }
     setError("");
     setStep(2);
   };
 
   const finish = (e) => {
     e.preventDefault();
-    if (!fields.termsAccepted) { setError("You need to accept the API terms."); return; }
+    if (!fields.termsAccepted) { setError("Accept the API terms to continue."); return; }
     setError("");
     onSave({...fields, developerName: fields.developerName.trim()});
   };
@@ -292,7 +299,7 @@ const ProfileOnboarding = ({onSave}) => {
       <p className="devPocStepper">Step {step} of 2 · {step === 1 ? "About you" : "Terms"}</p>
       <form className="devPocForm" onSubmit={step === 1 ? next : finish}>
         {step === 1 ?
-          <AboutYouFields fields={fields} set={set} /> :
+          <AboutYouFields fields={fields} set={set} novice={fields.notADeveloper} /> :
           <TermsFields fields={fields} set={set} accepted={false} />}
         {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
         <div className="devPocActions">
@@ -312,15 +319,15 @@ const ProfileForm = ({profile, onSave, onCancel}) => {
 
   const submit = (e) => {
     e.preventDefault();
-    if (!fields.developerName.trim()) { setError("Developer name is required."); return; }
-    if (!fields.termsAccepted) { setError("You need to accept the API terms."); return; }
+    if (!fields.developerName.trim()) { setError("Enter your name."); return; }
+    if (!fields.termsAccepted) { setError("Accept the API terms to continue."); return; }
     setError("");
     onSave({...fields, developerName: fields.developerName.trim()});
   };
 
   return (
     <form className="devPocForm" onSubmit={submit}>
-      <AboutYouFields fields={fields} set={set} />
+      <AboutYouFields fields={fields} set={set} novice={fields.notADeveloper} />
       <TermsFields fields={fields} set={set} accepted={!!(profile && profile.termsAccepted)} />
       {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
       <div className="devPocActions">
@@ -332,7 +339,7 @@ const ProfileForm = ({profile, onSave, onCancel}) => {
 };
 
 
-const ListingPicker = ({listing, onPick, onClear}) => {
+const ListingPicker = ({listing, novice, onPick, onClear}) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const normalized = query.trim().toLowerCase();
@@ -381,8 +388,9 @@ const ListingPicker = ({listing, onPick, onClear}) => {
         </div>
       ))}
       <p className="devPocHelp">
-        Sefaria confirms the connection, because someone else may have submitted the listing. The
-        listing and your project stay linked, not merged.
+        {novice
+          ? "Sefaria checks the link, because someone else may have added the listing."
+          : "Sefaria confirms the connection, because someone else may have submitted the listing. The listing and your project stay linked, not merged."}
       </p>
       <button type="button" className="devPocTextButton" onClick={() => setOpen(false)}>Close</button>
     </div>
@@ -399,14 +407,17 @@ const ProjectFields = ({fields, set, novice}) => (
     <div className="devPocField">
       <label htmlFor="devPocProjectDescription">One-line description</label>
       <input id="devPocProjectDescription" value={fields.description} onChange={e => set("description", e.target.value)} />
-      <p className="devPocHelp">What are you building?</p>
+      {novice ?
+        <p className="devPocHelp">One sentence, for example: a daily study tracker for my shul.</p> : null}
     </div>
     <label className="devPocChoice">
       <input type="checkbox" checked={fields.aiAssisted} onChange={e => set("aiAssisted", e.target.checked)} />
       <span>
         Built with AI assistance
         <span className="devPocHelp">
-          For example, built with an AI coding assistant. It helps us understand how people build on Sefaria.
+          {novice
+            ? "Tick this if an AI tool wrote the code. It just helps us learn how people build."
+            : "Helps us see how people build on Sefaria."}
         </span>
       </span>
     </label>
@@ -415,12 +426,14 @@ const ProjectFields = ({fields, set, novice}) => (
       <input id="devPocProjectOrg" value={fields.organization} onChange={e => set("organization", e.target.value)} />
     </div>
     <div className="devPocField">
-      <label htmlFor="devPocProjectUrl">Website URL <span className="devPocMuted">(optional)</span></label>
+      <label htmlFor="devPocProjectUrl">
+        {novice ? "Website address " : "Website URL "}<span className="devPocMuted">(optional)</span>
+      </label>
       <input id="devPocProjectUrl" value={fields.websiteUrl} onChange={e => set("websiteUrl", e.target.value)} />
       <p className="devPocHelp">
         {novice
-          ? "The address people type to visit your site, for example https://example.org."
-          : "A website lets you restrict individual keys to it."}
+          ? "The address people type to visit your project, like https://example.org."
+          : "Needed only if you want to lock a key to a client-only site: front-end code with no backend of its own."}
       </p>
     </div>
     <fieldset className="devPocFieldset">
@@ -443,6 +456,7 @@ const ProjectFields = ({fields, set, novice}) => (
         <div className="devPocListingArea">
           <ListingPicker
             listing={fields.listingRequest}
+            novice={novice}
             onPick={l => set("listingRequest", l)}
             onClear={() => set("listingRequest", null)}
           />
@@ -452,14 +466,26 @@ const ProjectFields = ({fields, set, novice}) => (
 );
 
 
-const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => (
-  <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-label="Save without a website?">
+const NoWebsiteDialog = ({novice, onAddWebsite, onSaveAnyway}) => (
+  <div
+    className="devPocModalStage devPocConfirmStage"
+    role="dialog"
+    aria-label={novice ? "Add a website address?" : "Save without a website?"}
+  >
     <section className="devPocDialog">
-      <h2>Save without a website?</h2>
-      <p>A website address does two things:</p>
+      <h2>{novice ? "Add a website address?" : "Save without a website?"}</h2>
+      {novice ? <p>A website address helps in two ways:</p> : null}
       <ul className="devPocList">
-        <li>It lets you restrict a key, so the key only works on your own site.</li>
-        <li>It helps Sefaria understand who we serve.</li>
+        <li>
+          {novice
+            ? "If your project has a web address, we can lock your key to it, so nobody else can use your key."
+            : "Lets you lock a key to your site's origin, for keys that live in front-end code."}
+        </li>
+        <li>
+          {novice
+            ? "It helps Sefaria see who we're serving."
+            : "Tells Sefaria who is building on the API."}
+        </li>
       </ul>
       <div className="devPocActions">
         <button type="button" className="button small white" onClick={onAddWebsite}>Add a website</button>
@@ -486,8 +512,8 @@ const NewProjectDialog = ({novice, onCreate, onCancel}) => {
 
   const submit = (e) => {
     e.preventDefault();
-    if (!fields.name.trim()) { setError("Project name is required."); return; }
-    if (!fields.description.trim()) { setError("A one-line description is required."); return; }
+    if (!fields.name.trim()) { setError("Enter a project name."); return; }
+    if (!fields.description.trim()) { setError("Enter a one-line description."); return; }
     setError("");
     if (!fields.websiteUrl.trim()) { setAskWebsite(true); return; }
     save();
@@ -499,7 +525,7 @@ const NewProjectDialog = ({novice, onCreate, onCancel}) => {
         <section className="devPocDialog">
           <header className="devPocDialogHeader">
             <h2>New project</h2>
-            <p>Tell us what you're building. You can add a key next.</p>
+            <p>{novice ? "Tell us what you're building. You'll add a key next." : "You can add a key next."}</p>
           </header>
           <form className="devPocForm" onSubmit={submit}>
             <ProjectFields fields={fields} set={set} novice={novice} />
@@ -513,7 +539,7 @@ const NewProjectDialog = ({novice, onCreate, onCancel}) => {
         </section>
       </div>
       {askWebsite ?
-        <NoWebsiteDialog onAddWebsite={() => setAskWebsite(false)} onSaveAnyway={save} /> : null}
+        <NoWebsiteDialog novice={novice} onAddWebsite={() => setAskWebsite(false)} onSaveAnyway={save} /> : null}
     </React.Fragment>
   );
 };
@@ -535,7 +561,8 @@ const EditProjectForm = ({project, novice, onSave, onCancel, onDelete}) => {
 
   const submit = (e) => {
     e.preventDefault();
-    if (!fields.name.trim() || !fields.description.trim()) { setError("Name and one-line description are required."); return; }
+    if (!fields.name.trim()) { setError("Enter a project name."); return; }
+    if (!fields.description.trim()) { setError("Enter a one-line description."); return; }
     setError("");
     if (!fields.websiteUrl.trim()) { setAskWebsite(true); return; }
     save();
@@ -553,7 +580,7 @@ const EditProjectForm = ({project, novice, onSave, onCancel, onDelete}) => {
         </div>
       </form>
       {askWebsite ?
-        <NoWebsiteDialog onAddWebsite={() => setAskWebsite(false)} onSaveAnyway={save} /> : null}
+        <NoWebsiteDialog novice={novice} onAddWebsite={() => setAskWebsite(false)} onSaveAnyway={save} /> : null}
     </React.Fragment>
   );
 };
@@ -572,25 +599,27 @@ const RestrictionToggle = ({project, apiKey, novice, onToggle}) => {
             onChange={e => onToggle(e.target.checked)}
             aria-label={"Restrict " + apiKey.label + " to " + host}
           />
-          <span>Only accept requests from <code>{host}</code></span>
+          <span>
+            {novice ? "Only let this key work on " : "Only accept requests from "}<code>{host}</code>
+          </span>
         </label>
-        <InfoTip label="What does the website restriction do?" wide={true}>
-          {novice ?
-            <React.Fragment>
-              If your key sits inside your website's code, anyone who views the page can copy it.
-              Turn this on so the key only works on {host}. If your tool runs somewhere else — a
-              server, a script, an app you installed — leave it off, or your own requests will be
-              blocked.
-            </React.Fragment> :
-            <React.Fragment>
-              Only accept requests from {host}. Requests that come from any other website are
-              refused. Use this when the key is embedded in a website's front-end code, where anyone
-              can read it. Leave it off if your requests come from a server, a script or an app:
-              they have no website origin and would be refused. An origin can be faked, so this
-              limits casual misuse; it is not a security guarantee.
-            </React.Fragment>}
-        </InfoTip>
+        {novice ? null :
+          <InfoTip label="What does the website restriction do?">
+            Use it when the key ships in front-end code. Leave it off for servers, scripts and
+            apps: they send no origin and would be refused. Origins can be faked, so this stops
+            casual copying, not a determined attacker.
+          </InfoTip>}
       </div>
+      {novice ?
+        <React.Fragment>
+          <p className="devPocHelp">
+            Turn this on if your key is inside a website people can visit. It stops anyone who
+            copies it from using it elsewhere.
+          </p>
+          <p className="devPocHelp">
+            Leave it off if your key runs anywhere else, or your own project will stop working.
+          </p>
+        </React.Fragment> : null}
     </div>
   );
 };
@@ -646,10 +675,17 @@ const KeyRow = ({project, apiKey, novice, isNew, onToggleRestriction, onDelete})
       <span>Last used: {formatDate(apiKey.lastUsed)}</span>
       <span>{apiKey.requests30.toLocaleString()} requests / 30 days</span>
     </div>
-    {isNew ? <p className="devPocKeyReady" role="status">Ready to use.</p> : null}
+    {isNew ?
+      <p className="devPocKeyReady" role="status">
+        {novice ? "Ready to use. Copy it into your tool now." : "Ready to use."}
+      </p> : null}
     {project.websiteUrl ?
       <RestrictionToggle project={project} apiKey={apiKey} novice={novice} onToggle={onToggleRestriction} /> :
-      <p className="devPocHelp">Add a website URL to this project to restrict this key to it.</p>}
+      novice ? null :
+      <p className="devPocHelp">
+        Add a website URL to the project to lock this key to it. Worth doing if the key ships in
+        front-end code with no backend.
+      </p>}
   </article>
 );
 
@@ -668,10 +704,12 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
   useEffect(() => () => { clearTimeout(timer.current); clearTimeout(highlightTimer.current); }, []);
 
   const atLimit = project.keys.length >= MAX_KEYS_PER_PROJECT;
+  const firstKeyPrompt = project.keys.length === 0 && !creating && phase === "idle";
+  const startCreating = () => { setCreating(true); setPhase("idle"); setError(""); };
 
   const startCreate = (e) => {
     e.preventDefault();
-    if (!label.trim()) { setError("A label is required."); return; }
+    if (!label.trim()) { setError(novice ? "Give the key a name." : "Enter a label."); return; }
     setError("");
     setPhase("setting-up");
     const wanted = label.trim();
@@ -706,7 +744,9 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
 
   const deleteKey = (apiKey) => setConfirm({
     title: "Delete “" + apiKey.label + "”?",
-    body: "This key for " + project.name + " will stop working immediately. Anything using it loses access. This cannot be undone.",
+    body: novice
+      ? "This key stops working right away. Anything using it will break. This cannot be undone."
+      : "This key for " + project.name + " stops working immediately. This cannot be undone.",
     actionLabel: "Delete key",
     onConfirm: () => update(s => ({
       ...s,
@@ -720,31 +760,35 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
         <div>
           <h3>API keys</h3>
           <p className="devPocHelp">{project.keys.length} of {MAX_KEYS_PER_PROJECT} keys used</p>
+          {novice ?
+            <p className="devPocHelp">
+              A key is like a password for your project. Paste it into your tool wherever it asks
+              for a Sefaria API key, and don't share it.
+            </p> :
+            <p className="devPocHelp">Send the key in the <code>x-api-key</code> header. Keys stay viewable here.</p>}
         </div>
-        {creating ? null :
+        {creating || (novice && firstKeyPrompt) ? null :
           <button
             type="button"
             className="button small blue"
             disabled={atLimit}
-            onClick={() => { setCreating(true); setPhase("idle"); setError(""); }}
+            onClick={startCreating}
           >Create key</button>}
       </div>
       {atLimit ?
-        <p className="devPocNotice">This project has {MAX_KEYS_PER_PROJECT} keys, the maximum. Delete a key you no longer use before creating another.</p> : null}
-      {novice ?
-        <p className="devPocHelp">An API key is like a password that lets your app use Sefaria's texts. Keep it private.</p> :
-        <p className="devPocHelp">Send your key in the <code>x-api-key</code> header. Keys stay available here.</p>}
+        <p className="devPocNotice">
+          {novice
+            ? "You have " + MAX_KEYS_PER_PROJECT + " keys, the most allowed. Delete one you don't use to make room."
+            : MAX_KEYS_PER_PROJECT + " of " + MAX_KEYS_PER_PROJECT + " keys. Delete one before creating another."}
+        </p> : null}
 
       {creating && phase === "idle" ?
         <form className="devPocForm devPocCreateKey" onSubmit={startCreate}>
           <div className="devPocField">
-            <label htmlFor="devPocKeyLabel">Key label</label>
+            <label htmlFor="devPocKeyLabel">{novice ? "Name this key" : "Key label"}</label>
             <input id="devPocKeyLabel" value={label} onChange={e => setLabel(e.target.value)} />
-            <p className="devPocHelp">
-              {novice
-                ? "A name you'll recognize later, such as “Local development”, “Production” or “My website”."
-                : "Choose a name you'll recognize, such as Production or Staging."}
-            </p>
+            {novice ?
+              <p className="devPocHelp">A name just for you, so you can tell your keys apart.</p> : null}
           </div>
           {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
           <div className="devPocActions">
@@ -767,24 +811,30 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
           <button type="button" className="button small white" onClick={() => setPhase("idle")}>Try again</button>
         </div> : null}
 
-      {project.keys.length === 0 && !creating && phase === "idle" ?
-        <React.Fragment>
-          <p className="devPocHelp">Your project is ready.</p>
-          <div className="devPocNotice">Create a key to start using the API.</div>
-        </React.Fragment> : null}
-      <div className="devPocKeyList">
-        {project.keys.map(k => (
-          <KeyRow
-            key={k.id}
-            project={project}
-            apiKey={k}
-            novice={novice}
-            isNew={k.id === newKeyId}
-            onToggleRestriction={on => toggleRestriction(k.id, on)}
-            onDelete={() => deleteKey(k)}
-          />
-        ))}
-      </div>
+      {firstKeyPrompt ?
+        <div className="devPocInset devPocInsetEmpty">
+          {novice ?
+            <div className="devPocActions">
+              <button type="button" className="button small blue" onClick={startCreating}>Create your first key</button>
+            </div> :
+            <p>Create a key to start using the API.</p>}
+        </div> : null}
+      {project.keys.length ?
+        <div className="devPocInset">
+          <div className="devPocKeyList">
+            {project.keys.map(k => (
+              <KeyRow
+                key={k.id}
+                project={project}
+                apiKey={k}
+                novice={novice}
+                isNew={k.id === newKeyId}
+                onToggleRestriction={on => toggleRestriction(k.id, on)}
+                onDelete={() => deleteKey(k)}
+              />
+            ))}
+          </div>
+        </div> : null}
     </section>
   );
 };
@@ -803,6 +853,63 @@ const listingStatus = (project) => {
 
 const CHART_WIDTH = 320;
 const CHART_HEIGHT = 72;
+
+/* Five tints of --devPoc-blue, dark to light, so up to five keys stay tellable apart. */
+const KEY_COLORS = ["#18345d", "#2f6193", "#5b8dbd", "#93b6d6", "#c5d7e8"];
+
+const DONUT_SIZE = 132;
+const DONUT_OUTER = 62;
+const DONUT_INNER = 38;
+
+const polarPoint = (radius, degrees) => {
+  const radians = (degrees - 90) * Math.PI / 180;
+  const center = DONUT_SIZE / 2;
+  return [center + radius * Math.cos(radians), center + radius * Math.sin(radians)];
+};
+
+const donutSlicePath = (startDeg, endDeg) => {
+  const large = endDeg - startDeg > 180 ? 1 : 0;
+  const [x1, y1] = polarPoint(DONUT_OUTER, startDeg);
+  const [x2, y2] = polarPoint(DONUT_OUTER, endDeg);
+  const [x3, y3] = polarPoint(DONUT_INNER, endDeg);
+  const [x4, y4] = polarPoint(DONUT_INNER, startDeg);
+  return [
+    "M", x1, y1,
+    "A", DONUT_OUTER, DONUT_OUTER, 0, large, 1, x2, y2,
+    "L", x3, y3,
+    "A", DONUT_INNER, DONUT_INNER, 0, large, 0, x4, y4,
+    "Z",
+  ].join(" ");
+};
+
+/* One ring per key. A lone key (or a key holding every request) draws as a full ring,
+   because a 360° arc collapses to nothing. */
+const UsageDonut = ({slices, total}) => {
+  const center = DONUT_SIZE / 2;
+  const ringWidth = DONUT_OUTER - DONUT_INNER;
+  const ringRadius = (DONUT_OUTER + DONUT_INNER) / 2;
+  const drawn = slices.filter(s => s.value > 0);
+  let angle = 0;
+  return (
+    <svg
+      className="devPocDonut"
+      viewBox={"0 0 " + DONUT_SIZE + " " + DONUT_SIZE}
+      role="img"
+      aria-label="Requests by key over the last 30 days"
+    >
+      {total === 0 || drawn.length === 0 ?
+        <circle cx={center} cy={center} r={ringRadius} fill="none" stroke="#e3e6e9" strokeWidth={ringWidth} /> :
+        drawn.length === 1 ?
+        <circle cx={center} cy={center} r={ringRadius} fill="none" stroke={drawn[0].color} strokeWidth={ringWidth} /> :
+        drawn.map((slice) => {
+          const sweep = slice.value / total * 360;
+          const path = donutSlicePath(angle, angle + sweep);
+          angle += sweep;
+          return <path key={slice.id} d={path} fill={slice.color} />;
+        })}
+    </svg>
+  );
+};
 
 const UsageChart = ({series}) => {
   const max = Math.max(1, ...series);
@@ -825,7 +932,7 @@ const UsageChart = ({series}) => {
             y={CHART_HEIGHT - height}
             width={barWidth}
             height={height}
-            fill="#18345d"
+            fill={KEY_COLORS[0]}
           />
         );
       })}
@@ -834,12 +941,15 @@ const UsageChart = ({series}) => {
 };
 
 
-const UsageSection = ({project}) => {
+const UsageSection = ({project, novice}) => {
   const perKey = project.keys.map(k => ({key: k, series: usageSeries(k.id, k.requests30)}));
   const total = perKey.reduce((sum, k) => sum + k.key.requests30, 0);
   const daily = perKey.length
     ? perKey[0].series.map((_, day) => perKey.reduce((sum, k) => sum + k.series[day], 0))
     : [];
+  const slices = perKey.map(({key}, i) => ({
+    id: key.id, label: key.label, value: key.requests30, color: KEY_COLORS[i % KEY_COLORS.length],
+  }));
 
   return (
     <section className="devPocSection">
@@ -849,30 +959,38 @@ const UsageSection = ({project}) => {
       <div className="devPocStats">
         <div className="devPocStat">
           <strong>{total.toLocaleString()}</strong>
-          <span>Requests in the last 30 days</span>
+          <span>{novice ? "Times your project used Sefaria in the last 30 days" : "Requests in the last 30 days"}</span>
         </div>
         <div className="devPocStat">
           <strong>{formatDate(project.usage.lastUsed)}</strong>
-          <span>Last request</span>
+          <span>{novice ? "Last used" : "Last request"}</span>
         </div>
       </div>
       <div className="devPocChartBlock">
+        <p className="devPocChartTitle">Requests per day</p>
         <UsageChart series={daily} />
         <div className="devPocChartAxis">
           <span>30 days ago</span>
           <span>Today</span>
         </div>
       </div>
-      <div className="devPocKeyUsage">
-        {perKey.map(({key}) => (
-          <div className="devPocKeyUsageRow" key={key.id}>
-            <span>{key.label}</span>
-            <span className="devPocKeyUsageBar" aria-hidden="true">
-              <span style={{width: (total ? Math.round(key.requests30 / total * 100) : 0) + "%"}} />
-            </span>
-            <span>{key.requests30.toLocaleString()}</span>
-          </div>
-        ))}
+      <div className="devPocChartBlock">
+        <p className="devPocChartTitle">Requests by key</p>
+        <div className="devPocSplit">
+          <UsageDonut slices={slices} total={total} />
+          <ul className="devPocLegend">
+            {slices.map(slice => (
+              <li className="devPocLegendRow" key={slice.id}>
+                <span className="devPocSwatch" style={{background: slice.color}} aria-hidden="true" />
+                <span className="devPocLegendLabel">{slice.label}</span>
+                <span className="devPocLegendValue">{slice.value.toLocaleString()}</span>
+                <span className="devPocLegendPercent">
+                  {total ? Math.round(slice.value / total * 100) : 0}%
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </section>
   );
@@ -897,15 +1015,21 @@ const ProjectCard = ({project, expanded, novice, update, setConfirm, onToggleExp
     }));
     setEditing(false);
     if (losingUrl && restrictedKeys.length) {
-      notice("Website restriction was turned off on " + restrictedKeys.join(", ") + ", because this project no longer has a website URL.");
+      notice(novice
+        ? restrictedKeys.join(", ") + " is no longer locked to your website, because you removed the website address."
+        : "Website restriction turned off on " + restrictedKeys.join(", ") + ": the project no longer has a website URL.");
     }
   };
 
   const deleteProject = () => setConfirm({
     title: "Delete " + project.name + "?",
     body: project.keys.length
-      ? "These keys stop working immediately: " + project.keys.map(k => k.label).join(", ") + ". The project and its keys cannot be recovered."
-      : "This project has no keys. It cannot be recovered.",
+      ? (novice
+        ? "These keys stop working right away: " + project.keys.map(k => k.label).join(", ") + ". You can't get the project or its keys back."
+        : "These keys stop working immediately: " + project.keys.map(k => k.label).join(", ") + ". The project and its keys cannot be recovered.")
+      : (novice
+        ? "This project has no keys. You can't get it back."
+        : "This project has no keys. It cannot be recovered."),
     actionLabel: "Delete project",
     onConfirm: () => update(s => ({
       ...s,
@@ -929,38 +1053,43 @@ const ProjectCard = ({project, expanded, novice, update, setConfirm, onToggleExp
               <span>{project.name}</span>
             </button>
           </h2>
-          <div className="devPocProjectActions">
-            <span className="devPocBadge">{project.visibility === "public" ? "Public" : "Private"}</span>
-            {project.aiAssisted ? <span className="devPocBadge">Built with AI assistance</span> : null}
-            {expanded ?
-              <button type="button" className="button small transparent" onClick={() => setEditing(e => !e)}>
-                {editing ? "Close editor" : "Edit project"}
-              </button> : null}
-          </div>
         </div>
-        <p>{project.description}</p>
-        <p className="devPocHelp">
+        <p className="devPocProjectDescription">{project.description}</p>
+        <p className="devPocProjectMeta">
           {project.organization ? project.organization + " · " : ""}
           {project.keys.length} {project.keys.length === 1 ? "key" : "keys"}
           {project.websiteUrl ? " · " + websiteHost(project.websiteUrl) : ""}
         </p>
-        {expanded ? <p className="devPocHelp">{listingStatus(project)}</p> : null}
+        <p className="devPocProjectMeta">{listingStatus(project)}</p>
+        <div className="devPocProjectBadgeRow">
+          <div className="devPocBadges">
+            <span className="devPocBadge">{project.visibility === "public" ? "Public" : "Private"}</span>
+            {project.aiAssisted ? <span className="devPocBadge">Built with AI assistance</span> : null}
+          </div>
+          {expanded ?
+            <button type="button" className="button small transparent devPocProjectEdit" onClick={() => setEditing(e => !e)}>
+              {editing ? "Close editor" : "Edit project"}
+            </button> : null}
+        </div>
       </header>
-      {expanded && editing ?
-        <section className="devPocSection">
-          <EditProjectForm
-            project={project}
-            novice={novice}
-            onSave={saveProject}
-            onCancel={() => setEditing(false)}
-            onDelete={deleteProject}
-          />
-        </section> : null}
       {expanded ?
-        <React.Fragment>
+        <div className="devPocProjectBody">
+          {editing ?
+            <section className="devPocSection">
+              <div className="devPocHeading">
+                <div><h3>Project details</h3></div>
+              </div>
+              <EditProjectForm
+                project={project}
+                novice={novice}
+                onSave={saveProject}
+                onCancel={() => setEditing(false)}
+                onDelete={deleteProject}
+              />
+            </section> : null}
           <KeysSection project={project} novice={novice} update={update} setConfirm={setConfirm} />
-          {project.keys.length ? <UsageSection project={project} /> : null}
-        </React.Fragment> : null}
+          {project.keys.length ? <UsageSection project={project} novice={novice} /> : null}
+        </div> : null}
     </article>
   );
 };
@@ -1023,7 +1152,9 @@ const DeveloperSettingsPage = ({socialProviders, initialProjectId, initialNavOn}
   const off = !connected || !state.developerEnabled;
   const novice = !!(state.profile && state.profile.notADeveloper);
   const profileReady = !!(state.profile && state.profile.termsAccepted);
-  const profileFirst = "Save your developer profile first (the API terms are part of it).";
+  const profileFirst = novice
+    ? "Finish your profile first. The API terms are part of it."
+    : "Save your developer profile first. The API terms are part of it.";
 
   const createProject = (fields) => {
     const project = makeProject(fields);
@@ -1045,8 +1176,14 @@ const DeveloperSettingsPage = ({socialProviders, initialProjectId, initialNavOn}
             <main className="devPocMain">
               <header className="devPocPageHeader">
                 <h1>Developer settings</h1>
-                <p>Register what you're building and manage its API keys.</p>
-                <a href="https://developers.sefaria.org" target="_blank" rel="noreferrer">API documentation</a>
+                <p>
+                  {novice
+                    ? "Tell us what you're building, and get a key for it."
+                    : "Register your projects and manage their API keys."}
+                </p>
+                <a href="https://developers.sefaria.org" target="_blank" rel="noreferrer">
+                  {novice ? "API documentation (for developers)" : "API documentation"}
+                </a>
               </header>
 
               {off ?
@@ -1097,15 +1234,19 @@ const DeveloperSettingsPage = ({socialProviders, initialProjectId, initialNavOn}
 
                   {state.projects.length === 0 ?
                     <div className="devPocEmpty">
-                      <h2>Your first project starts here</h2>
-                      <p>Register what you're building, then create an API key for it.</p>
+                      <h2>{novice ? "Your first project starts here" : "No projects yet"}</h2>
+                      <p>
+                        {novice
+                          ? "Tell us what you're building. You'll get a key on the next step."
+                          : "Create a project, then add a key to it."}
+                      </p>
                       <div className="devPocActions">
                         <button
                           type="button"
                           className="button small blue"
                           disabled={!profileReady}
                           onClick={() => setShowNewProject(true)}
-                        >Create your first project</button>
+                        >{novice ? "Create your first project" : "New project"}</button>
                       </div>
                       {profileReady ? null : <p className="devPocHelp">{profileFirst}</p>}
                       <p className="devPocHelp">A project can also be listed on Powered by Sefaria without an API key.</p>

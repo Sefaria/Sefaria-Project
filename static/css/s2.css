@@ -17299,7 +17299,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocMuted { color: #626971; font-weight: 400; }
 
 .devPocOnboarding {
-  padding: var(--devPoc-s4);
+  padding: var(--devPoc-s3);
   border: 1px solid var(--devPoc-line);
   border-radius: 6px;
   background: #fff;
@@ -17321,21 +17321,33 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   background: #f5f8fb;
 }
 
+/* No inline padding, so the profile row starts on the page header's left edge. */
 .devPocProfile { border-top: 1px solid var(--devPoc-line); border-bottom: 1px solid var(--devPoc-line); padding: var(--devPoc-s3) 0; margin-bottom: var(--devPoc-s4); }
 .devPocProfile h2 { margin-bottom: var(--devPoc-s2); }
 .devPocProfileSummary { display: flex; justify-content: space-between; align-items: center; gap: var(--devPoc-s3); }
+.devPocProfileSummary > span { min-width: 0; }
+.devPocProfileSummary .devPocHelp { margin-top: 2px; }
 
 .devPocSectionHeading { display: flex; justify-content: space-between; align-items: center; gap: var(--devPoc-s3); margin: var(--devPoc-s4) 0 var(--devPoc-s3); }
 
+/* The project is the container; its sections and keys sit inside it. The header is a
+   sand band, the body is white, and the keys sit in an inset panel inside a section, so
+   the eye reads project > section > key. */
 .devPocProject {
-  border: 1px solid var(--devPoc-line);
-  background: var(--devPoc-surface);
+  border: 1px solid #cfd5db;
+  background: #fff;
   border-radius: 8px;
-  margin-bottom: var(--devPoc-s3);
+  margin-bottom: var(--devPoc-s4);
+  overflow: hidden;
 }
-.devPocProjectHeader { padding: var(--devPoc-s3) var(--devPoc-s3) var(--devPoc-s2); }
+.devPocProjectHeader {
+  padding: var(--devPoc-s3);
+  background: var(--devPoc-surface);
+}
+.devPocProject.expanded .devPocProjectHeader { border-bottom: 1px solid #cfd5db; }
 .devPocProjectBar { display: flex; justify-content: space-between; align-items: center; gap: var(--devPoc-s2); }
-.devPocProjectTitle { flex: 1; min-width: 0; margin: 0; }
+.devPocProjectTitle { flex: 1; min-width: 0; margin: 0; font-size: 22px; font-weight: 600; }
+.devPocProjectBody { padding: 0 var(--devPoc-s3) var(--devPoc-s3); }
 .devPocProjectToggle {
   display: flex;
   align-items: center;
@@ -17356,29 +17368,66 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   transition: transform 0.15s ease;
 }
 .devPocChevron[data-open="true"] { transform: rotate(0deg); }
-.devPocProjectHeader > p { margin-top: var(--devPoc-s1); }
-.devPocProjectActions { display: flex; align-items: center; gap: var(--devPoc-s1); flex-shrink: 0; }
-.devPocHeading { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--devPoc-s3); margin-bottom: var(--devPoc-s2); }
+/* Everything in the header starts on the same left edge as the project title's text, so
+   the collapsed and expanded cards read as one block. */
+.devPocProjectDescription { margin-top: var(--devPoc-s1); font-size: 15px; }
+.devPocProjectMeta { margin-top: var(--devPoc-s1); font-size: 13px; color: var(--devPoc-muted); line-height: 1.5; }
+.devPocProjectBadgeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--devPoc-s2);
+  min-height: 30px;
+  margin-top: var(--devPoc-s2);
+}
+.devPocBadges { display: flex; flex-wrap: wrap; align-items: center; gap: var(--devPoc-s1); min-width: 0; }
+.devPocProjectEdit { flex-shrink: 0; }
+.devPocHeading { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--devPoc-s3); margin-bottom: var(--devPoc-s3); }
+.devPocHeading > div { min-width: 0; }
+.devPocHeading .devPocHelp:first-of-type { margin-top: var(--devPoc-s1); }
 .devPocBadge {
   display: inline-block;
-  border: 1px solid var(--devPoc-line);
+  border: 1px solid #cfd5db;
   border-radius: 20px;
   padding: 2px 9px;
   font-size: 12px;
   color: #626971;
-  margin-right: 6px;
+  background: #fff;
 }
-.devPocSection { padding: var(--devPoc-s3); border-top: 1px solid var(--devPoc-line); }
+/* Sections are subordinate to the project: a small uppercase label, no surface of their
+   own, separated by a hairline. */
+.devPocSection { padding: var(--devPoc-s3) 0 0; }
+.devPocSection + .devPocSection { margin-top: var(--devPoc-s3); border-top: 1px solid var(--devPoc-line); }
+.devPocProject .devPocSection h3 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--devPoc-muted);
+}
+/* The inset panel that holds a section's items. The rail on its inline start is the
+   third step of the hierarchy. */
+.devPocInset {
+  margin-top: var(--devPoc-s3);
+  padding: var(--devPoc-s2);
+  border: 1px solid #e6e4df;
+  border-inline-start: 3px solid #cfd5db;
+  border-radius: 6px;
+  background: #faf9f7;
+}
+.devPocInsetEmpty { padding: var(--devPoc-s3); }
+.devPocInsetEmpty .devPocHelp { margin-top: 0; margin-bottom: var(--devPoc-s1); }
 
-.devPocKeyList { display: grid; gap: var(--devPoc-s2); margin-top: var(--devPoc-s3); }
+.devPocKeyList { display: grid; gap: var(--devPoc-s2); }
 .devPocKey {
-  padding: var(--devPoc-s3);
+  padding: var(--devPoc-s2);
   background: #fff;
   border: 1px solid #e3e6e9;
   border-radius: 6px;
   min-width: 0;
 }
-.devPocKeyHeading { display: flex; justify-content: space-between; align-items: center; gap: var(--devPoc-s2); margin-bottom: var(--devPoc-s2); }
+.devPocKeyHeading { display: flex; justify-content: space-between; align-items: center; gap: var(--devPoc-s2); margin-bottom: var(--devPoc-s1); }
+.devPocKeyHeading strong { font-size: 15px; font-weight: 600; }
 .devPocKeyValue { display: flex; align-items: center; gap: var(--devPoc-s1); margin-bottom: var(--devPoc-s2); min-width: 0; }
 .devPocKeyValue code { flex: 1; min-width: 0; }
 .devPocIconButton {
@@ -17463,7 +17512,8 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   z-index: 5;
   top: calc(100% + 6px);
   inset-inline-start: 0;
-  width: 280px;
+  width: max-content;
+  max-width: min(300px, calc(100vw - 32px));
   padding: var(--devPoc-s2);
   background: #fff;
   border: 1px solid var(--devPoc-line);
@@ -17474,7 +17524,10 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   line-height: 1.5;
   color: #3c444c;
 }
-.devPocPopoverWide { width: 340px; }
+/* Anchored to the icon, and flipped to the trailing side when the icon sits at the end
+   of a row so the popover cannot run past the card. */
+.devPocPopoverWide { max-width: min(300px, calc(100vw - 32px)); }
+.devPocRestrictionRow .devPocPopover { inset-inline-start: auto; inset-inline-end: 0; }
 
 .devPocStats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--devPoc-s3); }
 .devPocStat { border-right: 1px solid var(--devPoc-line); padding-right: var(--devPoc-s2); }
@@ -17483,24 +17536,36 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocStat span { font-size: 13px; color: #626971; }
 
 .devPocChartBlock { margin-top: var(--devPoc-s3); }
+.devPocPage .devPocChartTitle {
+  margin-bottom: var(--devPoc-s2);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--devPoc-ink);
+}
 .devPocChart { display: block; width: 100%; height: 72px; }
 .devPocChartAxis { display: flex; justify-content: space-between; margin-top: var(--devPoc-s1); font-size: 12px; color: #626971; }
-.devPocKeyUsage { display: grid; gap: var(--devPoc-s1); margin-top: var(--devPoc-s3); }
-.devPocKeyUsageRow {
+.devPocSplit { display: flex; align-items: center; gap: var(--devPoc-s4); }
+.devPocDonut { display: block; flex-shrink: 0; width: 132px; height: 132px; }
+.devPocLegend { flex: 1; min-width: 0; margin: 0; padding: 0; list-style: none; }
+.devPocLegendRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+  grid-template-columns: 12px minmax(0, 1fr) auto 44px;
   align-items: center;
   gap: var(--devPoc-s2);
+  padding: 5px 0;
   font-size: 13px;
 }
-.devPocKeyUsageBar { display: block; height: 8px; border-radius: 4px; background: #e3e6e9; }
-.devPocKeyUsageBar span { display: block; height: 100%; border-radius: 4px; background: var(--devPoc-blue); }
+.devPocLegendRow + .devPocLegendRow { border-top: 1px solid var(--devPoc-line); }
+.devPocSwatch { display: block; width: 12px; height: 12px; border-radius: 3px; }
+.devPocLegendLabel { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.devPocLegendValue { font-variant-numeric: tabular-nums; }
+.devPocLegendPercent { color: var(--devPoc-muted); text-align: right; font-variant-numeric: tabular-nums; }
 
 .devPocResult { display: flex; justify-content: space-between; align-items: center; gap: var(--devPoc-s3); padding: var(--devPoc-s2) 0; border-bottom: 1px solid var(--devPoc-line); }
 .devPocListingSearch { margin-top: var(--devPoc-s2); }
 .devPocListingArea { margin: var(--devPoc-s2) 0 0 26px; }
 
-.devPocEmpty { padding: var(--devPoc-s4); border: 1px solid var(--devPoc-line); border-radius: 6px; background: #fff; }
+.devPocEmpty { padding: var(--devPoc-s3); border: 1px solid var(--devPoc-line); border-radius: 6px; background: #fff; }
 .devPocEmpty h2 { margin-bottom: var(--devPoc-s1); }
 .devPocEmpty p { color: #626971; max-width: 530px; }
 .devPocList { margin: var(--devPoc-s2) 0 0; padding-inline-start: 22px; font-size: 14px; }
@@ -17589,7 +17654,9 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocGate { margin-top: 14px; padding: 18px; background: #eef3f8; border: 1px solid #d4dfea; border-radius: 6px; }
 .devPocGate p { font-size: 14px; margin: 8px 0 14px; }
 
-.devPocActions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+/* One button grid everywhere: primary first, secondary beside it, destructive at the end. */
+.devPocActions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--devPoc-s2); }
+.devPocActions > .devPocDanger { margin-inline-start: auto; }
 .devPocPage .button { margin: 0; flex-shrink: 0; }
 .devPocPage .button.white { border: 1px solid #ccc; }
 .devPocPage .button.devPocDanger { background-color: #a43632; color: #fff; }
@@ -17617,7 +17684,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   max-width: 640px;
   max-height: 90vh;
   overflow-y: auto;
-  padding: var(--devPoc-s4);
+  padding: var(--devPoc-s3);
   background: #fff;
   border: 1px solid #d9dee3;
   border-radius: 6px;
@@ -17626,6 +17693,8 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
   font-size: 15px;
 }
+/* Confirms are a question and two buttons; they stay narrow rather than filling the band. */
+.devPocConfirmStage .devPocDialog { max-width: 440px; }
 .devPocDialog h2 { font-size: 20px; font-weight: 600; margin: 0; text-align: left; }
 .devPocDialog p { margin: 12px 0 0; text-align: left; }
 .devPocDialogHeader { margin-bottom: var(--devPoc-s3); }
@@ -17639,9 +17708,14 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   .devPocNav a { border-inline-start: 0; border-bottom: 3px solid transparent; padding: 10px; }
   .devPocNav a[aria-current="page"] { background: transparent; border-bottom-color: #18345d; }
   .devPocPageHeader h1 { font-size: 22px; }
-  .devPocProjectHeader, .devPocSection { padding: var(--devPoc-s2); }
+  .devPocProjectHeader { padding: var(--devPoc-s2); }
+  .devPocProjectBody { padding: 0 var(--devPoc-s2) var(--devPoc-s2); }
+  .devPocProjectTitle { font-size: 19px; }
+  .devPocProjectBadgeRow { flex-wrap: wrap; }
+  .devPocSplit { flex-direction: column; align-items: stretch; gap: var(--devPoc-s3); }
+  .devPocDonut { margin: 0 auto; }
   .devPocStats { grid-template-columns: minmax(0, 1fr); }
-  .devPocPopover, .devPocPopoverWide { width: min(280px, 70vw); }
+  .devPocPopover, .devPocPopoverWide { max-width: min(280px, 70vw); }
   .devPocStat { border-right: 0; }
   .devPocHeading { flex-wrap: wrap; }
   .devPocKeyValue { flex-wrap: wrap; }
