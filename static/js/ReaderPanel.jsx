@@ -1100,7 +1100,8 @@ class ReaderPanel extends Component {
       menu = (
         <DeveloperSettingsPage
           socialProviders={this.state.developerSocialProviders}
-          initialProjectId={this.state.developerProjectId} />
+          initialProjectId={this.state.developerProjectId}
+          initialNavOn={this.state.developerNavOn} />
       );
 
     } else if (this.state.menuOpen === "modtools") {

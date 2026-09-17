@@ -4553,6 +4553,20 @@ def edit_profile(request):
     })
 
 
+def developer_poc_nav_on(request, social_providers):
+    """
+    Whether the settings nav belongs on the page. The developer settings proof of concept
+    keeps its state in localStorage and mirrors the two values this depends on into
+    cookies, so the nav can be rendered server-side instead of appearing after mount.
+    """
+    if request.COOKIES.get("sefariaDeveloperPocOn") != "1":
+        return False
+    sso_override = request.COOKIES.get("sefariaDeveloperPocSso", "")
+    if sso_override:
+        return sso_override == "1"
+    return bool(social_providers)
+
+
 @login_required
 @ensure_csrf_cookie
 def account_settings(request):
@@ -4563,11 +4577,13 @@ def account_settings(request):
     # TEMPORARY (goes with the experiments framework): only gates the parked
     # Experiments toggle in the template, not the Library Assistant one.
     experiments_available = user_has_experiments(request.user)
+    social_providers = list(request.user.socialaccount_set.values_list('provider', flat=True))
     return render_template(request,'account_settings.html', {"headerMode": True}, {
         'user': request.user,
         'profile': profile,
         'experiments_available': experiments_available,
-        'social_providers': list(request.user.socialaccount_set.values_list('provider', flat=True)),
+        'social_providers': social_providers,
+        'developer_poc_on': developer_poc_nav_on(request, social_providers),
         # The toggle must render the *effective* value: a user who is on through the
         # legacy rule has no setting key yet, and must still see "On".
         'library_assistant_enabled': library_assistant.is_enabled(profile),
@@ -4585,9 +4601,11 @@ def developer_settings(request, project_id=None):
     Developer settings page. Proof of concept: every project and key the page shows
     is mock data held in the browser, so this view only mounts the React page.
     """
+    social_providers = list(request.user.socialaccount_set.values_list('provider', flat=True))
     props = {
-        "initialDeveloperSocialProviders": list(request.user.socialaccount_set.values_list('provider', flat=True)),
+        "initialDeveloperSocialProviders": social_providers,
         "initialDeveloperProjectId": project_id,
+        "initialDeveloperNavOn": developer_poc_nav_on(request, social_providers),
     }
     return menu_page(request, props=props, page="developer", title="Developer Settings",
                      desc="Register your projects and manage keys for the Sefaria API.")

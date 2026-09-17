@@ -89,6 +89,7 @@ class ReaderApp extends Component {
         linkerEditorBook:        props.initialLinkerEditorBook,
         developerSocialProviders: props.initialDeveloperSocialProviders,
         developerProjectId:      props.initialDeveloperProjectId,
+        developerNavOn:          props.initialDeveloperNavOn,
       };
     }
 
@@ -180,6 +181,7 @@ class ReaderApp extends Component {
       collectionData:          state.collectionData          || null,
       developerSocialProviders: state.developerSocialProviders || [],
       developerProjectId:      state.developerProjectId      || null,
+      developerNavOn:          state.developerNavOn          || false,
       searchQuery:             state.searchQuery             || null,
       showHighlight:           state.showHighlight           || null,
       searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),

@@ -1043,6 +1043,7 @@ p.registration-links a:hover{
   align-items: center;
   gap: 16px;
   margin-top: 57px;
+  max-width: 950px;
 }
 #accountSettingsPage .headerWithButtons h1 {
   flex: 0 0 auto;

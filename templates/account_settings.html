@@ -21,11 +21,13 @@
             </button>
         </div>
     </div>
-    <nav class="devPocNav" id="developerPocNav" aria-label="Settings" style="display:none">
+    <div class="devPocShell{% if not developer_poc_on %} devPocShellNoNav{% endif %}" id="developerPocShell">
+    <nav class="devPocNav" id="developerPocNav" aria-label="Settings"{% if not developer_poc_on %} style="display:none"{% endif %}>
         <div class="devPocNavTitle">Settings</div>
         <a href="/settings/account" aria-current="page">Account settings</a>
         <a href="/settings/developer">Developer settings</a>
     </nav>
+    <div class="devPocSettingsBody">
 	<div id="emailNotifications" class="section">
 		<label class="control-elem">
             <span class="int-en">Notification Frequency (Maximum)</span>
@@ -172,7 +174,6 @@
 				</div>
 			</div>
 			<div class="additional-info">Register your projects and get API keys for the Sefaria API.</div>
-			<div class="additional-info">Applies immediately.</div>
 			<p id="developerSettingsLink" style="display: none"><a href="/settings/developer">Open Developer settings</a></p>
 		</div>
 	</div>
@@ -247,7 +248,31 @@
             </button>
         </div>
     </div>
+    </div>
 	</div>
+</div>
+
+<div class="devPocMockSso" id="developerPocMockSso" style="display:none" role="dialog" aria-modal="true" aria-labelledby="developerPocMockSsoTitle">
+    <div class="devPocMockSsoBackdrop" data-developer-poc-mock-close="1"></div>
+    <div class="devPocMockSsoDialog">
+        <p class="devPocMockSsoBanner">MOCK &mdash; no real sign-in happens</p>
+        <div class="devPocMockSsoBody">
+            <p class="devPocMockSsoBrand" id="developerPocMockSsoBrand">Google</p>
+            <h2 id="developerPocMockSsoTitle">Choose an account</h2>
+            <p class="devPocMockSsoSub">to continue to Sefaria</p>
+            <div class="devPocMockSsoAccount">
+                <span class="devPocMockSsoAvatar" aria-hidden="true">TL</span>
+                <span class="devPocMockSsoAccountText">
+                    <strong>Tova Levi</strong>
+                    <span>tova@example.org</span>
+                </span>
+            </div>
+            <div class="devPocMockSsoActions">
+                <button type="button" class="devPocMockSsoCancel" data-developer-poc-mock-close="1">Cancel</button>
+                <button type="button" class="devPocMockSsoContinue" id="developerPocMockSsoContinue">Continue</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="devPocPanel" id="developerPocPanel" data-open="false">
@@ -277,7 +302,6 @@
             <div class="devPocPanelRow">
                 <button type="button" class="devPocPanelButton" id="developerPocResetSample">Reset to sample data</button>
                 <button type="button" class="devPocPanelButton" id="developerPocResetEmpty">Reset to empty</button>
-                <button type="button" class="devPocPanelButton" id="developerPocCopyState">Copy state as JSON</button>
             </div>
         </div>
     </div>
@@ -446,6 +470,7 @@
 				});
 				$("#developerSettingsLink").toggle(on);
 				$("#developerPocNav").toggle(on);
+				$("#developerPocShell").toggleClass("devPocShellNoNav", !on);
 				$("#developerPocSsoSim").prop("checked", connected);
 				$("#developerPocSsoSimLabel").text("Simulate: SSO " + (connected ? "connected" : "not connected"));
 				$("#developerPocRealSso").text($section.attr("data-real-sso-label") + (state.ssoOverride === null ? "" : " (simulated value in use)"));
@@ -462,10 +487,22 @@
 				mutate({developerEnabled: $(this).attr("data-developer-poc-value") === "true"});
 			});
 			let connectedTimer = null;
+			let mockProvider = "Google";
+			function closeMockSso() { $("#developerPocMockSso").hide(); }
 			$section.on("click", "[data-developer-poc-connect]", function(){
-				const provider = $(this).attr("data-developer-poc-connect") === "apple" ? "Apple" : "Google";
+				mockProvider = $(this).attr("data-developer-poc-connect") === "apple" ? "Apple" : "Google";
+				$("#developerPocMockSsoBrand").text(mockProvider);
+				$("#developerPocMockSso").css("display", "flex");
+				$("#developerPocMockSsoContinue").focus();
+			});
+			$("#developerPocMockSso").on("click", "[data-developer-poc-mock-close]", closeMockSso);
+			$(document).on("keydown.devPocMockSso", function(e){
+				if (e.key === "Escape") { closeMockSso(); }
+			});
+			$("#developerPocMockSsoContinue").on("click", function(){
+				closeMockSso();
 				mutate({ssoOverride: true});
-				$("#developerSettingsConnected").text(provider + " connected.").show();
+				$("#developerSettingsConnected").text(mockProvider + " connected.").show();
 				clearTimeout(connectedTimer);
 				connectedTimer = setTimeout(function(){ $("#developerSettingsConnected").fadeOut(400); }, 4000);
 			});
@@ -483,12 +520,6 @@
 				store.writeState(store.emptyState());
 				render();
 			});
-			$("#developerPocCopyState").on("click", function(){
-				const text = JSON.stringify(store.readState(), null, 2);
-				if (navigator.clipboard) { navigator.clipboard.writeText(text); }
-				$(this).text("Copied");
-			});
-
 			const PANEL_OPEN_KEY = "sefariaDeveloperPocPanelOpen";
 			function setPanelOpen(open) {
 				$("#developerPocPanel").attr("data-open", open ? "true" : "false");
