@@ -169,3 +169,6 @@ scripts/debug_cache/
 # API auth POC: measurement artefacts are filed to the wiki, never committed here
 auth-service/poc-results/
 auth-service/bin/
+
+# API auth POC: the registry schema is source, copied into the image by build/auth-service/Dockerfile
+!auth-service/internal/registry/schema.sql
