@@ -414,9 +414,10 @@ def _cursor_matches(item: CitationItem, key: tuple[str, tuple[int, int]]) -> boo
 
 def _navigate_without_reparsing(dataset: dict, all_items: list[CitationItem], direction: str, raw_cursor: dict) -> dict:
     """Step to the next/previous item already matching the status filter, using stored
-    (not freshly re-parsed) status. No re-parsing or persisting, so this is much faster
-    than the normal scan, at the cost of not catching citations whose live parse would
-    now resolve differently than what's stored."""
+    (not freshly re-parsed) status to decide *which* item to land on. Still does a single
+    live parse of just that one landed-on item (so ref parts / options considered still
+    render), but skips the up-to-200-item scan-and-persist walk the normal auto-correcting
+    navigation does, which is the actual expensive/side-effecting part."""
     filtered = _filtered_items(all_items, dataset)
     if not filtered:
         return {"found": False, "continuationCursor": None, "checked": 0}
@@ -429,9 +430,11 @@ def _navigate_without_reparsing(dataset: dict, all_items: list[CitationItem], di
     target = idx + (1 if direction == "forward" else -1)
     if not (0 <= target < len(filtered)):
         return {"found": False, "continuationCursor": None, "checked": 0}
+    item = filtered[target]
+    parse_result = linker_resource_panel_admin.parse_linker_citation_sync(_parts_payload_from_item(item))
     return {
         "found": True,
-        "item": serialize_citation_result(filtered[target], dataset),
+        "item": serialize_citation_result(item, dataset, parse_result),
         "position": target,
         "checked": 1,
     }
