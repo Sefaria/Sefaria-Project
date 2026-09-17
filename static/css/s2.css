@@ -17083,7 +17083,165 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   padding: 60px 20px 100px 100px;
   margin: 0;
 }
-.settingsPage #accountSettingsPage .inner { padding: 0; }
+/* The account tab renders inside a reader panel, where static.css is not served and
+   the reader's own type and layout rules reach in. This block is the styling the
+   account settings page carried on its own page, plus the resets that keep the reader
+   out: the panel's serif font variables, and the narrow default .toggleSet. */
+.settingsPage #accountSettingsPage {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  text-align: start;
+}
+.settingsPage #accountSettingsPage .headerWithButtons h1 {
+  text-transform: none;
+  letter-spacing: normal;
+}
+.settingsPage #accountSettingsPage .toggleSet {
+  margin: 0;
+}
+/* Account settings tab - desktop */
+.settingsPage #accountSettingsPage .inner {
+  position: relative;
+  width: 100%;
+  max-width: 660px;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+  padding: 0;
+}
+.settingsPage #accountSettingsPage .headerWithButtons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 57px;
+  max-width: 890px;
+}
+.settingsPage #accountSettingsPage .headerWithButtons h1 {
+  flex: 0 0 auto;
+  text-align: start;
+  font-family: var(--english-sans-serif-font-family);
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 100%;
+  color: var(--dark-grey);
+  margin: 0;
+}
+.settingsPage #accountSettingsPage .headerWithButtons .end {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+.settingsPage #accountSettingsPage .headerWithButtons .button.small {
+  flex: 0 0 auto;
+  height: 50px;
+  padding: 0 20px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 100%;
+  border-radius: 6px;
+}
+.settingsPage #accountSettingsPage .headerWithButtons .button.small.transparent {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+.settingsPage #accountSettingsPage label {
+  margin-bottom: 15px;
+}
+.settingsPage #accountSettingsPage .toggleSet {
+  width: 100%;
+  text-align: center;
+}
+.settingsPage #accountSettingsPage input {
+  width: 100%;
+  color: var(--medium-grey);
+  box-sizing: border-box;
+  padding: 15px 12px;
+  border: none;
+  margin-bottom: 10px;
+}
+.settingsPage #accountSettingsPage .form-section{
+  margin: 2px auto 20px 1px;
+}
+.settingsPage #accountSettingsPage .loginMethodText {
+  color: var(--dark-grey);
+  font-weight: 400;
+}
+.settingsPage #accountSettingsPage .loginMethodEmail {
+  color: var(--dark-grey);
+  font-weight: 700;
+}
+.settingsPage #accountSettingsPage input[disabled] {
+  background-color: #FBFBFA;
+}
+.settingsPage #accountSettingsPage input::placeholder{
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+  color: var(--medium-grey);
+  padding-bottom: 15px;
+  font-style: normal;
+}
+.settingsPage #accountSettingsPage [id^="email-edit"]{
+  padding: 15px;
+  text-align: center;
+  display: block;
+  width: 100%;
+  margin: 10px;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+}
+.settingsPage #accountSettingsPage #email-edit-errors, .settingsPage #accountSettingsPage #reading-history-warning {
+  color: #CB6158;
+}
+.settingsPage #accountSettingsPage #email-edit-ok{
+  color: var(--dark-grey);
+}
+.settingsPage #accountSettingsPage #reading-history-warning{
+  display: none;
+}
+.settingsPage #accountSettingsPage #reading-history-warning.active{
+  margin: 10px;
+  display: inline-block;
+}
+/* Account settings tab - mobile/tablet */
+@media screen and (max-width: 700px) {
+  .settingsPage #accountSettingsPage .headerWithButtons {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+  }
+  .settingsPage #accountSettingsPage .headerWithButtons h1 {
+    margin-bottom: 0;
+  }
+  .settingsPage #accountSettingsPage .headerWithButtons .end {
+    text-align: end;
+    gap: 4px;
+  }
+  .settingsPage #accountSettingsPage .headerWithButtons .button.small {
+    height: 30px;
+    padding: 0 12px;
+    font-size: 14px;
+    line-height: 18px;
+    margin: 0;
+  }
+}
+
+/* Account settings tab - very narrow screens */
+@media screen and (max-width: 360px) {
+  .settingsPage #accountSettingsPage .headerWithButtons {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .settingsPage #accountSettingsPage .headerWithButtons h1 {
+    width: 100%;
+  }
+  .settingsPage #accountSettingsPage .headerWithButtons .end {
+    text-align: start;
+    justify-content: flex-start;
+  }
+}
 /* The account tab keeps the page background of the static page it replaces. */
 .readerNavMenu.settingsPage:not(.settingsPageDeveloper) { background-color: #FBFBFA; }
 /* Spacing goes through :where() so it stays at .devPocPage specificity and the component

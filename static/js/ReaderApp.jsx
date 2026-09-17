@@ -460,6 +460,8 @@ class ReaderApp extends Component {
           (!Sefaria.areBothVersionsEqual(prev.currVersions, next.currVersions)) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.tab !== next.tab) ||
+          (prev.settingsTab !== next.settingsTab) ||
+          (next.menuOpen === "settings" && prev.developerProjectId !== next.developerProjectId) ||
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
