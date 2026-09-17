@@ -13347,7 +13347,7 @@
                       "items": {
                         "type": "string"
                       },
-                      "description": "Names of this entry's attrs considered its editable content, as opposed to identity/navigation fields (headword, parent_lexicon, prev_hw, next_hw, rid, quotes). Informational only -- every attr is present in `entry` regardless."
+                      "description": "Names of the attrs this entry's dictionary subclass can have as editable content, as opposed to identity/navigation fields (headword, parent_lexicon, prev_hw, next_hw, rid, quotes). Lists every content attr the subclass supports, not just the ones this particular entry actually has set -- most entries only populate a handful of these."
                     }
                   }
                 }
