@@ -22,6 +22,7 @@
 }
 
 .lbcSidebar {
+  box-sizing: border-box;
   border-right: 1px solid #ddd8cf;
   background: #fff;
   padding: 20px;
@@ -30,7 +31,10 @@
   gap: 28px;
   position: sticky;
   top: 0;
-  height: calc(100vh - 60px);
+  align-self: start;
+  min-height: 0;
+  max-height: 100vh; /* fallback for browsers that don't support dvh */
+  max-height: 100dvh;
   overflow-y: auto;
 }
 
