@@ -13325,6 +13325,92 @@
         }
       ]
     },
+    "/api/lexicon-entry/{lexicon}/{headword}": {
+      "get": {
+        "operationId": "get-lexicon-entry",
+        "tags": [
+          "Lexicon"
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "entry": {
+                      "type": "object",
+                      "description": "The full, raw lexicon entry document (shape varies by lexicon/dictionary subclass)."
+                    },
+                    "content_attr_names": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Names of the attrs this entry's dictionary subclass can have as editable content, as opposed to identity/navigation fields (headword, parent_lexicon, prev_hw, next_hw, rid, quotes). Lists every content attr the subclass supports, not just the ones this particular entry actually has set -- most entries only populate a handful of these."
+                    }
+                  }
+                }
+              }
+            },
+            "description": "The matching lexicon entry."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "description": "No entry found for this (lexicon, headword) pair."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "description": "More than one entry currently matches this headword (a pre-existing data duplicate) -- resolve the duplicate before continuing."
+          }
+        },
+        "summary": "Get a lexicon entry",
+        "description": "Looks up a single lexicon entry by its exact parent lexicon and headword (NFC-normalized before matching). Unlike `/api/words/{word}`, this does not do fuzzy/inflected-form lookup -- it's meant for addressing one specific entry directly."
+      },
+      "parameters": [
+        {
+          "name": "lexicon",
+          "description": "The parent lexicon's name (e.g. \"Klein Dictionary\"), matching LexiconEntry.parent_lexicon.",
+          "schema": {
+            "type": "string",
+            "default": "Klein Dictionary"
+          },
+          "in": "path",
+          "required": true
+        },
+        {
+          "name": "headword",
+          "description": "The entry's exact headword.",
+          "schema": {
+            "type": "string"
+          },
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
     "/api/words/completion/{word}/{lexicon}": {
       "description": "Serves primarily as an autocompleter, returning potential lexicon entries for a given input. \n\nReturns an array of arrays, each containing two strings. The first is a completion entry in Hebrew without vowels,, and the second is an entry with vowels.",
       "get": {
