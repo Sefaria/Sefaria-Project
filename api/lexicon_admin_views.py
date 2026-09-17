@@ -3,7 +3,7 @@ import unicodedata
 from django.views import View
 
 from sefaria.client.util import jsonResponse
-from sefaria.model.lexicon import LexiconEntrySet
+from sefaria.model.lexicon import LexiconEntry, LexiconEntrySet
 from sefaria.helper.schema import change_lexicon_headword, get_available_lexicon_headword
 from sefaria.system.exceptions import InputError
 from .views import _load_json_body, StaffRequiredMixin
@@ -96,12 +96,17 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
                                            f"current headword after disambiguation; no change made."}, status=409)
         try:
             actual_headword = change_lexicon_headword(lexicon, entry.headword, resolved)
-        except ValueError:
-            # get_available_lexicon_headword already confirmed resolved was free -- the only
-            # way this still fires is another write claiming it in between. Say that
-            # directly rather than passing through the generic "already exists" message,
-            # which would read as if the client's input was simply wrong.
-            return jsonResponse({"error": f"'{resolved}' was just claimed by another change; please retry."}, status=409)
+        except ValueError as e:
+            # change_lexicon_headword raises plain ValueError for two unrelated reasons: a
+            # genuine collision (get_available_lexicon_headword already confirmed resolved
+            # was free, so this only fires if another write claimed it in between -- a real,
+            # retryable race) or a corrupted prev_hw/next_hw pointer on the entry being
+            # renamed (pre-existing bad data, unrelated to this request, not fixed by
+            # retrying). Distinguish by re-checking whether resolved is actually taken, so
+            # the message matches what's actually true instead of always claiming a race.
+            if LexiconEntry().load({'parent_lexicon': lexicon, 'headword': resolved}):
+                return jsonResponse({"error": f"'{resolved}' was just claimed by another change; please retry."}, status=409)
+            return jsonResponse({"error": str(e)}, status=500)
         except InputError as e:
             # entry.save() inside change_lexicon_headword runs _validate(), which can reject
             # resolved for reasons get_available_lexicon_headword doesn't check itself (e.g.
