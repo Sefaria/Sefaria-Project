@@ -337,8 +337,19 @@ section_capacity() {
   fi
 }
 
+section_latency() {
+  section '9. Varnish-hit latency' 'Task 25 measures the added latency of auth enforcement on a cacheable anonymous request and compares credentialed arms.'
+  local result="$AUTH_SERVICE/poc-results/25-latency.md"
+  if [[ -f "$result" ]]; then
+    awk '/^## Summary[[:space:]]*$/{found=1; next} found && /^## /{exit} found{print}' "$result" | sanitize
+    printf '%sEvidence:%s %s\n' "$GREEN" "$RESET" "$result"
+  else
+    unavailable 'Task 25 result is not available yet'
+  fi
+}
+
 section_read_more() {
-  section '9. Where to read more' 'The implementation, infrastructure rollout, and execution status each have a durable place for follow-up.'
+  section '10. Where to read more' 'The implementation, infrastructure rollout, and execution status each have a durable place for follow-up.'
   printf '%sDraft PR:%s https://github.com/Sefaria/Sefaria-Project/pull/3736\n' "$GREEN" "$RESET"
   printf '%sInfra PR:%s https://github.com/Sefaria/infrastructure/pull/687\n' "$GREEN" "$RESET"
   printf '%sWiki status:%s https://github.com/Sefaria/sefaria-wiki/wiki/projects/api-key-program/poc-execution-status.md\n' "$GREEN" "$RESET"
@@ -356,5 +367,6 @@ section_jwt
 section_modes
 section_drills
 section_capacity
+section_latency
 section_measured
 section_read_more
