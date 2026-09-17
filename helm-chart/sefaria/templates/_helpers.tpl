@@ -265,3 +265,20 @@ spec:
 {{- end }}
 {{- toYaml $map }}
 {{- end }}
+
+{{- define "sefaria.secrets.authServicePg" }}
+{{- if .Values.authService.postgres.secrets.dsn.ref -}}
+{{- .Values.authService.postgres.secrets.dsn.ref }}
+{{- else -}}
+auth-service-pg-{{ .Values.deployEnv }}
+{{- end }}
+{{- end }}
+
+{{- define "sefaria.authService.jwksURL" -}}
+{{- $svc := default (printf "mint-%s" .Values.deployEnv) .Values.authService.jwt.jwks.service -}}
+http://{{ $svc }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.authService.jwt.jwks.port }}{{ .Values.authService.jwt.jwks.path }}
+{{- end }}
+
+{{- define "sefaria.authService.issuer" -}}
+{{- default (printf "https://mint-%s.%s.svc.cluster.local" .Values.deployEnv .Release.Namespace) .Values.authService.jwt.issuer -}}
+{{- end }}

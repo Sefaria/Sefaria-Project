@@ -1,0 +1,42 @@
+{{- if and .Values.authService.enabled .Values.authService.postgres.builtin }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service-postgres-{{ .Values.deployEnv }}
+  labels:
+    app: auth-service-postgres-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: auth-service-postgres
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels:
+      app: auth-service-postgres-{{ .Values.deployEnv }}
+  template:
+    metadata:
+      labels:
+        app: auth-service-postgres-{{ .Values.deployEnv }}
+        deployEnv: "{{ .Values.deployEnv }}"
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:16-alpine
+          envFrom: [{ secretRef: { name: auth-service-pg-{{ .Values.deployEnv }} } }]
+          ports: [{ name: pg, containerPort: 5432 }]
+          resources: { requests: { cpu: 100m, memory: 128Mi }, limits: { memory: 512Mi } }
+          readinessProbe: { exec: { command: [pg_isready, -U, postgres] }, periodSeconds: 5 }
+          volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
+      volumes: [{ name: data, emptyDir: {} }]   # POC: disposable; keyadmin re-seeds (Task 24 relies on this)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service-postgres-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  selector:
+    app: auth-service-postgres-{{ .Values.deployEnv }}
+  ports: [{ name: pg, port: 5432, targetPort: pg }]
+{{- end }}

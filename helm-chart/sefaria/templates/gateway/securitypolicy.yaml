@@ -1,0 +1,58 @@
+{{- if and .Values.authService.enabled .Values.gateway.enabled }}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: {{ .Values.deployEnv }}-auth
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: {{ .Values.deployEnv }}
+  # ext_authz runs before jwt_authn in Envoy Gateway's filter chain (order 6 vs 10), on every request.
+  # The auth service classifies the request and stamps x-sefaria-*; jwt_authn (below) overwrites the
+  # tier/project on a valid first-party token via claimToHeaders.
+  extAuth:
+    failOpen: {{ .Values.authService.extAuth.failOpen }}        # v2 §4: auth service down → anonymous bucket
+    timeout: {{ .Values.authService.extAuth.timeout }}          # EG default is 10s
+    headersToExtAuth: [x-api-key, authorization, origin]
+    {{- if eq .Values.authService.transport "grpc" }}
+    grpc:
+      backendRefs:
+        - name: auth-service-{{ .Values.deployEnv }}
+          port: 9090
+    {{- else }}
+    http:
+      backendRefs:
+        - name: auth-service-{{ .Values.deployEnv }}
+          port: 8080
+      headersToBackend: [x-sefaria-project, x-sefaria-tier, x-sefaria-auth-result]
+    {{- end }}
+  {{- if and .Values.authService.jwt.enabled (eq .Values.authService.jwt.mode "envoy") }}
+  jwt:
+    {{- if .Values.authService.jwt.failOpen }}
+    failOpen: true            # [EG >= 1.9] allow_missing_or_failed: invalid token rides the anonymous tier
+    {{- else }}
+    optional: true            # allow_missing: missing token OK, invalid token is 401 from Envoy
+    {{- end }}
+    providers:
+      - name: sefaria-firstparty
+        issuer: {{ include "sefaria.authService.issuer" . | quote }}
+        audiences: [{{ .Values.authService.jwt.audience | quote }}]
+        remoteJWKS:
+          uri: {{ include "sefaria.authService.jwksURL" . | quote }}   # cluster-internal, never the public hostname
+          backendRefs:
+            - name: {{ default (printf "mint-%s" .Values.deployEnv) .Values.authService.jwt.jwks.service }}
+              port: {{ .Values.authService.jwt.jwks.port }}
+          cacheDuration: {{ .Values.authService.jwt.cacheDuration }}   # [EG >= 1.6]; Envoy ignores Cache-Control
+        claimToHeaders:
+          - { claim: tier, header: x-sefaria-tier }
+          - { claim: sub, header: x-sefaria-project }
+        extractFrom:
+          headers:
+            - { name: Authorization, valuePrefix: "Bearer " }
+          cookies: [{{ .Values.authService.jwt.cookieName | quote }}]
+  {{- end }}
+{{- end }}

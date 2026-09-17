@@ -1,0 +1,60 @@
+{{- if .Values.authService.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-service-{{ .Values.deployEnv }}
+  labels:
+    app: auth-service-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: auth-service
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.authService.replicaCount }}
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: { maxUnavailable: 0, maxSurge: 1 }   # this pod gates every request on the route
+  selector:
+    matchLabels:
+      app: auth-service-{{ .Values.deployEnv }}
+      {{- include "sefaria.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        app: auth-service-{{ .Values.deployEnv }}
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: auth-service
+        {{- include "sefaria.selectorLabels" . | nindent 8 }}
+    spec:
+      affinity:
+        nodeAffinity:
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
+      containers:
+        - name: auth-service
+          image: "{{ .Values.authService.containerImage.imageRegistry }}:{{ .Values.authService.containerImage.tag }}"
+          imagePullPolicy: Always
+          env:
+            - { name: HTTP_ADDR, value: ":8080" }
+            - { name: GRPC_ADDR, value: ":9090" }
+            - { name: AUTH_MODE, value: {{ .Values.authService.mode | quote }} }
+            - { name: GATED_PATHS, value: {{ .Values.authService.gatedPaths | quote }} }
+            - { name: HELP_URL, value: {{ .Values.authService.helpURL | quote }} }
+            - { name: RELOAD_INTERVAL, value: {{ .Values.authService.reloadInterval | quote }} }
+            - { name: REDIS_ADDR, value: "redis-{{ .Values.deployEnv }}:6379" }
+            - { name: PUSH_CHANNEL, value: {{ .Values.authService.push.channel | quote }} }
+            - { name: JWT_MODE, value: {{ .Values.authService.jwt.mode | quote }} }
+            - { name: JWKS_URL, value: {{ include "sefaria.authService.jwksURL" . | quote }} }
+            - { name: JWT_ISSUER, value: {{ include "sefaria.authService.issuer" . | quote }} }
+            - { name: JWT_AUDIENCE, value: {{ .Values.authService.jwt.audience | quote }} }
+            - name: PG_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "sefaria.secrets.authServicePg" . }}
+                  key: {{ .Values.authService.postgres.secrets.dsn.key }}
+          ports:
+            - { name: http, containerPort: 8080, protocol: TCP }
+            - { name: grpc, containerPort: 9090, protocol: TCP }
+          readinessProbe: { httpGet: { path: /readyz, port: http }, periodSeconds: 3 }
+          livenessProbe: { httpGet: { path: /healthz, port: http }, periodSeconds: 10 }
+          resources: {{ toYaml .Values.authService.resources | nindent 12 }}
+{{- end }}

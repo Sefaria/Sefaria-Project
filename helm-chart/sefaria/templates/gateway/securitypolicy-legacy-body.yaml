@@ -1,0 +1,35 @@
+# templates/gateway/securitypolicy-legacy-body.yaml — measures whether Envoy can hand a body-borne legacy apikey to the auth service.
+# NEVER copy bodyToExtAuth to the route-wide policy: over maxRequestBytes Envoy returns 413 and skips the auth call, and that overrides failOpen.
+{{- if and .Values.authService.enabled .Values.gateway.enabled .Values.authService.legacyBodyArm.enabled }}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: {{ .Values.deployEnv }}-auth-legacy-body
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: {{ .Values.deployEnv }}
+      sectionName: legacy-body-auth
+  extAuth:
+    failOpen: {{ .Values.authService.extAuth.failOpen }}
+    timeout: {{ .Values.authService.extAuth.timeout }}
+    headersToExtAuth: [x-api-key, authorization, origin, content-type]
+    bodyToExtAuth:
+      maxRequestBytes: {{ .Values.authService.legacyBodyArm.maxRequestBytes }}   # [EG >= 1.3]
+    {{- if eq .Values.authService.transport "grpc" }}
+    grpc:
+      backendRefs:
+        - name: auth-service-{{ .Values.deployEnv }}
+          port: 9090
+    {{- else }}
+    http:
+      backendRefs:
+        - name: auth-service-{{ .Values.deployEnv }}
+          port: 8080
+      headersToBackend: [x-sefaria-project, x-sefaria-tier, x-sefaria-auth-result]
+    {{- end }}
+{{- end }}
