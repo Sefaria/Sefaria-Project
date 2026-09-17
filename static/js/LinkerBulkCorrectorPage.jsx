@@ -505,7 +505,9 @@ const LinkerBulkCorrectorPage = () => {
               <StatusToggle key={status} status={status} selected={(dataset.status || []).includes(status)} onClick={() => toggleStatus(status)} />
             ))}
           </div>
-          <button type="button" className="button" onClick={() => search(0)} disabled={loading}>Search</button>
+          <button type="button" className="button" onClick={() => search(0)} disabled={loading}>
+            {loading ? <span className="lbcSpinner" /> : 'Search'}
+          </button>
           <button type="button" className="button" onClick={reparseDataset} disabled={loading}>Re-parse Results</button>
         </div>
         {error ? <div className="lbcError">{error}</div> : null}
