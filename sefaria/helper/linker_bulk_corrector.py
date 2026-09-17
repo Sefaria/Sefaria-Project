@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from typing import Optional
 from urllib.parse import unquote
 
+from django.core.cache import cache
+
 from sefaria import tracker
 from sefaria.helper import linker_resource_panel_admin
 from sefaria.helper.linker import tasks as linker_tasks
@@ -156,8 +158,34 @@ def group_citation_spans(docs: list[LinkerOutput]) -> list[CitationItem]:
     return sorted(items, key=lambda item: (item.order, item.ref, item.versionTitle, item.language, item.charRange[0]))
 
 
+_ITEMS_CACHE_TTL = 600  # seconds; correctness relies on generation bumps below, this is just a safety net
+
+
+def _items_cache_generation(book_title: str) -> int:
+    return cache.get(f"lbc:items:gen:{book_title}") or 0
+
+
+def _bump_items_cache_generation(book_title: str) -> None:
+    """Invalidate every cached item list for this book (any versionTitle/lang combo),
+    since fetching+grouping the whole book's citations is expensive and re-run on
+    every Search/Forward/Back click otherwise. Called whenever a citation's stored
+    spans change."""
+    key = f"lbc:items:gen:{book_title}"
+    try:
+        cache.incr(key)
+    except ValueError:
+        cache.set(key, 1, None)
+
+
 def _full_grouped_items(dataset: dict) -> list[CitationItem]:
-    return group_citation_spans(resolve_book_dataset_docs(dataset))
+    gen = _items_cache_generation(dataset["bookTitle"])
+    cache_key = f"lbc:items:{dataset['bookTitle']}:{dataset.get('versionTitle') or ''}:{dataset.get('lang') or ''}:{gen}"
+    items = cache.get(cache_key)
+    if items is not None:
+        return items
+    items = group_citation_spans(resolve_book_dataset_docs(dataset))
+    cache.set(cache_key, items, _ITEMS_CACHE_TTL)
+    return items
 
 
 def _stats(items: list[CitationItem]) -> dict:
@@ -603,6 +631,7 @@ def persist_citation_resolution(ref: str, versionTitle: str, language: str, char
         }).save()
 
     _update_generated_link(ref, old_refs, parsed_ref, versionTitle, language, charRange)
+    _bump_items_cache_generation(Ref(ref).index.title)
     fresh_item = _load_item(ref, versionTitle, language, charRange)
     return serialize_citation_result(fresh_item, parse_result)
 
