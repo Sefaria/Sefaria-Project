@@ -27,4 +27,5 @@ helm-matrix:
 	echo "== jwt authsvc"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.jwt.mode=authsvc | yq 'select(.kind=="SecurityPolicy") | .spec.jwt' | grep -qx null; \
 	echo "== jwt failOpen"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.jwt.failOpen=true | yq 'select(.kind=="SecurityPolicy") | .spec.jwt | has("optional")' | grep -qx false; \
 	echo "== ratelimit multiplier"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.rateLimit.enabled=true --set authService.rateLimit.testLimitsMultiplier=100 | yq 'select(.kind=="BackendTrafficPolicy") | .spec.rateLimit.global.rules[0].limit.requests' | grep -qx 1000; \
+	echo "== chart schema copy matches the service schema"; cmp ../auth-service/internal/registry/schema.sql $$C/files/auth-service-schema.sql; \
 	echo "helm-matrix OK"

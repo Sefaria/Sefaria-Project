@@ -26,8 +26,26 @@ spec:
           ports: [{ name: pg, containerPort: 5432 }]
           resources: { requests: { cpu: 100m, memory: 128Mi }, limits: { memory: 512Mi } }
           readinessProbe: { exec: { command: [pg_isready, -U, postgres] }, periodSeconds: 5 }
-          volumeMounts: [{ name: data, mountPath: /var/lib/postgresql/data }]
-      volumes: [{ name: data, emptyDir: {} }]   # POC: disposable; keyadmin re-seeds (Task 24 relies on this)
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/postgresql/data }
+            - { name: initdb, mountPath: /docker-entrypoint-initdb.d, readOnly: true }
+      volumes:
+        - { name: data, emptyDir: {} }   # POC: disposable; keyadmin re-seeds (Task 24 relies on this)
+        # The schema must exist before the auth service can report ready (it only turns ready after a successful load),
+        # and Flux waits for readiness, so it cannot wait for a post-deploy keyadmin init-schema run.
+        - { name: initdb, configMap: { name: auth-service-pg-init-{{ .Values.deployEnv }} } }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-service-pg-init-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: auth-service-postgres
+data:
+  # Copy of auth-service/internal/registry/schema.sql (charts cannot read outside their directory); `make helm-matrix` fails on drift.
+  01-schema.sql: |-
+{{ .Files.Get "files/auth-service-schema.sql" | indent 4 }}
 ---
 apiVersion: v1
 kind: Service
