@@ -32,7 +32,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
-from django.http import Http404, QueryDict, FileResponse
+from django.http import Http404, QueryDict, FileResponse, JsonResponse
 from django.urls import Resolver404, resolve
 from django_hosts.resolvers import get_host
 from django.contrib.auth.decorators import login_required
@@ -4553,62 +4553,95 @@ def edit_profile(request):
     })
 
 
-def developer_poc_nav_on(request, social_providers):
-    """
-    Whether the settings nav belongs on the page. The developer settings proof of concept
-    keeps its state in localStorage and mirrors the two values this depends on into
-    cookies, so the nav can be rendered server-side instead of appearing after mount.
-    """
-    if request.COOKIES.get("sefariaDeveloperPocOn") != "1":
-        return False
-    sso_override = request.COOKIES.get("sefariaDeveloperPocSso", "")
-    if sso_override:
-        return sso_override == "1"
-    return bool(social_providers)
+DEVELOPER_POC_SESSION_KEY = "developer_poc_state"
+DEVELOPER_POC_MAX_BYTES = 64 * 1024
 
 
-@login_required
-@ensure_csrf_cookie
-def account_settings(request):
+def _account_settings_props(request, profile):
     """
-    Page for managing a user's account settings.
+    The values the account tab of the settings page renders.
     """
-    profile = UserProfile(id=request.user.id)
-    # TEMPORARY (goes with the experiments framework): only gates the parked
-    # Experiments toggle in the template, not the Library Assistant one.
-    experiments_available = user_has_experiments(request.user)
-    social_providers = list(request.user.socialaccount_set.values_list('provider', flat=True))
-    return render_template(request,'account_settings.html', {"headerMode": True}, {
-        'user': request.user,
-        'profile': profile,
-        'experiments_available': experiments_available,
-        'social_providers': social_providers,
-        'developer_poc_on': developer_poc_nav_on(request, social_providers),
+    translation_languages = [
+        {"code": lang, "name": Locale(lang).languages[lang].capitalize()}
+        for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']
+    ]
+    return {
+        "emailNotifications": profile.settings.get("email_notifications"),
+        "interfaceLanguage": profile.settings.get("interface_language"),
+        "translationLanguagePreference": profile.settings.get("translation_language_preference")
+            or request.COOKIES.get("translation_language_preference", None),
+        "translationLanguages": translation_languages,
+        "readingHistory": profile.settings.get("reading_history", True),
+        "textualCustom": profile.settings.get("textual_custom"),
         # The toggle must render the *effective* value: a user who is on through the
         # legacy rule has no setting key yet, and must still see "On".
-        'library_assistant_enabled': library_assistant.is_enabled(profile),
-        'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
-        'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),
-        'diaspora': request.diaspora,
-        "renderStatic": True
-    })
+        "libraryAssistantEnabled": library_assistant.is_enabled(profile),
+        # TEMPORARY (goes with the experiments framework): only gates the parked
+        # Experiments toggle.
+        "experimentsAvailable": user_has_experiments(request.user),
+        "email": request.user.email,
+        "socialProviders": list(request.user.socialaccount_set.values_list('provider', flat=True)),
+        "sheetsExport": {"gauthEmail": profile.gauth_email or None},
+        "torahSpecific": SITE_SETTINGS["TORAH_SPECIFIC"],
+        "diaspora": request.diaspora,
+    }
 
 
 @login_required
 @ensure_csrf_cookie
-def developer_settings(request, project_id=None):
+def settings_page(request, tab="account", project_id=None):
     """
-    Developer settings page. Proof of concept: every project and key the page shows
-    is mock data held in the browser, so this view only mounts the React page.
+    Account and developer settings, as one React page. The developer tab shows a
+    browser-facing mock held in the session, not real projects or keys.
     """
-    social_providers = list(request.user.socialaccount_set.values_list('provider', flat=True))
+    profile = UserProfile(id=request.user.id)
     props = {
-        "initialDeveloperSocialProviders": social_providers,
+        "initialSettingsTab": tab,
         "initialDeveloperProjectId": project_id,
-        "initialDeveloperNavOn": developer_poc_nav_on(request, social_providers),
+        "initialAccountSettings": _account_settings_props(request, profile),
+        "initialDeveloperPoc": request.session.get(DEVELOPER_POC_SESSION_KEY),
     }
-    return menu_page(request, props=props, page="developer", title="Developer Settings",
-                     desc="Register your projects and manage keys for the Sefaria API.")
+    titles = {
+        "account": "Account Settings",
+        "developer": "Developer Settings",
+    }
+    descs = {
+        "account": "Manage your Sefaria account settings.",
+        "developer": "Register your projects and manage keys for the Sefaria API.",
+    }
+    return menu_page(request, props=props, page="settings", title=titles[tab], desc=descs[tab])
+
+
+@login_required
+@catch_error_as_json
+def developer_poc_state_api(request):
+    """
+    Stores the developer settings mock. The state is browser-facing make-believe kept
+    in the session so the page can be rendered server-side.
+    """
+    if request.method == "GET":
+        return JsonResponse(request.session.get(DEVELOPER_POC_SESSION_KEY), safe=False)
+
+    if request.method == "POST":
+        body = request.body
+        if len(body) > DEVELOPER_POC_MAX_BYTES:
+            return jsonResponse({"error": "State is too large."}, status=400)
+        try:
+            state = json.loads(body)
+        except ValueError:
+            return jsonResponse({"error": "Could not parse JSON."}, status=400)
+        if not isinstance(state, dict):
+            return jsonResponse({"error": "State must be a JSON object."}, status=400)
+        request.session[DEVELOPER_POC_SESSION_KEY] = state
+        request.session.modified = True
+        return jsonResponse({"ok": True})
+
+    if request.method == "DELETE":
+        request.session.pop(DEVELOPER_POC_SESSION_KEY, None)
+        request.session.modified = True
+        return jsonResponse({"ok": True})
+
+    return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
 
 
 @ensure_csrf_cookie

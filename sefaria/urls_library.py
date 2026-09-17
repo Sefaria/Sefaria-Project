@@ -43,11 +43,12 @@ urlpatterns = [
     path('visualize/timeline', reader_views.visualize_timeline),
     re_path(r'^visualize/unique-words-by-commentator', reader_views.unique_words_viz),
 
-    re_path(r'^settings/account?$', reader_views.account_settings),
+    re_path(r'^settings/account/?$', partial(reader_views.settings_page, tab="account")),
     path('settings/account/user', reader_views.account_user_update),
     re_path(r'^settings/profile/?$', reader_views.settings_profile_redirect),
-    re_path(r'^settings/developer/?$', reader_views.developer_settings),
-    path('settings/developer/projects/<str:project_id>', reader_views.developer_settings),
+    re_path(r'^settings/developer/?$', partial(reader_views.settings_page, tab="developer")),
+    path('settings/developer/projects/<str:project_id>', partial(reader_views.settings_page, tab="developer")),
+    path('api/developer-poc/state', reader_views.developer_poc_state_api),
 
     re_path(r'^community/?$', reader_views.community_to_voices_redirect),
 
