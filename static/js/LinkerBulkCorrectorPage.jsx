@@ -375,7 +375,7 @@ const LinkerBulkCorrectorPage = () => {
     setLoading(true);
     setActiveAction(direction);
     setError(null);
-    const autoCorrect = !(direction === 'forward' && fastForward);
+    const autoCorrect = !fastForward;
     try {
       let cursor = {ref: item.ref, charRange: item.charRange};
       for (let i = 0; i < 20; i += 1) {
@@ -545,21 +545,21 @@ const LinkerBulkCorrectorPage = () => {
         >
           {activeAction === 'backward' ? <span className="lbcSpinner" /> : 'Back'}
         </button>
-        <span>{item ? `${page + 1} / ${total || '?'} (${statusLabel})` : 'No item'}</span>
-        <div className="lbcForwardGroup">
-          <button
-            type="button"
-            className={classNames('button', {disabled: loading && activeAction !== 'forward'})}
-            onClick={() => navigate('forward')}
-            disabled={loading}
-          >
-            {activeAction === 'forward' ? <span className="lbcSpinner" /> : 'Forward'}
-          </button>
+        <div className="lbcNavStatusGroup">
+          <span>{item ? `${page + 1} / ${total || '?'} (${statusLabel})` : 'No item'}</span>
           <label className="lbcFastForward">
             <input type="checkbox" checked={fastForward} onChange={e => setFastForward(e.target.checked)} />
             fast (no auto-correct)
           </label>
         </div>
+        <button
+          type="button"
+          className={classNames('button', {disabled: loading && activeAction !== 'forward'})}
+          onClick={() => navigate('forward')}
+          disabled={loading}
+        >
+          {activeAction === 'forward' ? <span className="lbcSpinner" /> : 'Forward'}
+        </button>
       </nav>
     </div>
   );

@@ -344,7 +344,7 @@
   min-width: 84px;
 }
 
-.lbcForwardGroup {
+.lbcNavStatusGroup {
   display: flex;
   flex-direction: column;
   align-items: center;
