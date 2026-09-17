@@ -40,6 +40,12 @@
   background: #3d6f68;
 }
 
+.lbcStatPassed {
+  color: #777;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
 .lbcHistory {
   flex: 1;
   overflow: auto;

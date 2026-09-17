@@ -71,7 +71,8 @@ const IndexTitleAutocomplete = ({value, onChange}) => {
   const select = async (item) => {
     try {
       const d = await Sefaria.getName(item.name);
-      onChange((d.index || d.book || item.name || '').trim());
+      const value = (d.is_ref && !d.is_book) ? d.ref : (d.index || d.book || item.name);
+      onChange((value || '').trim());
     } catch (e) {
       onChange((item.name || '').trim());
     }
@@ -79,7 +80,7 @@ const IndexTitleAutocomplete = ({value, onChange}) => {
   const renderInput = (highlightedIndex, highlightedSuggestion, getInputProps, setInputValue, suggestions) => {
     const inputProps = getInputProps({
       className: 'lbcSearchInput',
-      placeholder: 'Book title',
+      placeholder: 'Book title or ref',
       defaultValue: value || '',
       onKeyDown: (event) => {
         if (event.key !== 'Enter') { return; }
@@ -334,13 +335,16 @@ const LinkerBulkCorrectorPage = () => {
     });
   }, []);
 
-  const applySearchResponse = useCallback((data, nextPage) => {
+  const applySearchResponse = useCallback((data) => {
     const nextItem = data.results?.[0] || null;
-    setPage(nextPage);
+    setPage(data.page || 0);
     setTotal(data.total || 0);
     setStats(data.stats || {totalCitations: 0, parsedCitations: 0});
     setItem(nextItem);
     rememberItem(nextItem);
+    setDataset(prev => (data.dataset?.bookTitle && data.dataset.bookTitle !== prev.bookTitle)
+      ? {...prev, bookTitle: data.dataset.bookTitle}
+      : prev);
   }, [rememberItem]);
 
   const search = useCallback(async (nextPage = 0) => {
@@ -349,7 +353,7 @@ const LinkerBulkCorrectorPage = () => {
     setError(null);
     try {
       const data = await apiPost('/_api/linker-bulk-corrector/search', {dataset: normalizedDataset, page: nextPage, pageSize: 1});
-      applySearchResponse(data, nextPage);
+      applySearchResponse(data);
     } catch (e) {
       setError(e.message || String(e));
     } finally {
@@ -456,6 +460,9 @@ const LinkerBulkCorrectorPage = () => {
           <h2>Stats</h2>
           <div className="lbcStatNumber">{stats.parsedCitations} / {stats.totalCitations}</div>
           <div className="lbcProgress"><span style={{width: `${parsedPct}%`}} /></div>
+          {stats.citationsPassed != null ? (
+            <div className="lbcStatPassed">{stats.citationsPassed} passed to reach jump point</div>
+          ) : null}
         </section>
         <section className="lbcHistory">
           <h2>Previous 10</h2>

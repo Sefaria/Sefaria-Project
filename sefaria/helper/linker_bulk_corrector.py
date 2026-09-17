@@ -9,7 +9,7 @@ from sefaria.helper.linker import tasks as linker_tasks
 from sefaria.model import Link, LinkSet, Ref, library, log_linker_editor_action
 from sefaria.model.marked_up_text_chunk import LinkerOutput, LinkerOutputSet, MarkedUpTextChunk, MarkedUpTextChunkSet, MUTCSpanType
 from sefaria.model.text import TextChunk, prepare_index_regex_for_dependency_process
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, BookNameError
 
 
 VALID_STATUSES = {"parsed", "unparsed", "ambiguous"}
@@ -29,7 +29,22 @@ class CitationItem:
     status: str
 
 
-def parse_dataset_definition(raw: dict) -> dict:
+def _resolve_index_or_ref(book_title: str) -> tuple:
+    """Resolve a dataset "bookTitle" field which may be a bare index title or any parseable ref.
+    Returns (index, ref) where ref is None when the input was a bare book title, and the ref
+    the input resolved to otherwise (used to seed a "jump to this point in the book" search)."""
+    try:
+        return library.get_index(book_title), None
+    except BookNameError:
+        pass
+    try:
+        ref = Ref(book_title)
+    except InputError:
+        raise BookNameError(f'Unrecognized book title or ref: "{book_title}"')
+    return ref.index, ref
+
+
+def parse_dataset_definition(raw: dict) -> tuple:
     if not isinstance(raw, dict):
         raise InputError("dataset must be an object")
     dataset_type = raw.get("type")
@@ -40,7 +55,7 @@ def parse_dataset_definition(raw: dict) -> dict:
         book_title = book_title.strip()
     if not isinstance(book_title, str) or not book_title:
         raise InputError("Missing required field: dataset.bookTitle")
-    index = library.get_index(book_title)
+    index, jump_ref = _resolve_index_or_ref(book_title)
     version_title = raw.get("versionTitle")
     if version_title == "":
         version_title = None
@@ -62,7 +77,7 @@ def parse_dataset_definition(raw: dict) -> dict:
         "versionTitle": version_title,
         "lang": lang,
         "status": statuses,
-    }
+    }, jump_ref
 
 
 def _book_query(dataset: dict) -> dict:
@@ -128,6 +143,14 @@ def _stats(items: list[CitationItem]) -> dict:
     }
 
 
+def _jump_order_id(ref: Ref) -> str:
+    if ref.is_spanning():
+        ref = ref.first_spanned_ref()
+    if ref.is_range():
+        ref = ref.starting_ref()
+    return ref.order_id()
+
+
 def _filtered_items(items: list[CitationItem], dataset: dict) -> list[CitationItem]:
     statuses = set(dataset["status"])
     return [item for item in items if item.status in statuses]
@@ -154,11 +177,19 @@ def _normalize_page_size(raw_page_size) -> int:
 
 
 def search_citations(payload: dict) -> dict:
-    dataset = parse_dataset_definition(payload.get("dataset"))
+    dataset, jump_ref = parse_dataset_definition(payload.get("dataset"))
     page = _normalize_page(payload.get("page"))
     page_size = _normalize_page_size(payload.get("pageSize"))
     all_items = _full_grouped_items(dataset)
     filtered = _filtered_items(all_items, dataset)
+
+    stats = _stats(all_items)
+    if jump_ref is not None:
+        jump_order = _jump_order_id(jump_ref)
+        stats = {**stats, "citationsPassed": sum(1 for item in all_items if item.order < jump_order)}
+        start_index = next((i for i, item in enumerate(filtered) if item.order >= jump_order), len(filtered))
+        page = start_index // page_size
+
     start = page * page_size
     page_items = filtered[start:start + page_size]
     parse_results = linker_resource_panel_admin.parse_linker_citations_batch_sync([
@@ -169,7 +200,7 @@ def search_citations(payload: dict) -> dict:
         "page": page,
         "pageSize": page_size,
         "total": len(filtered),
-        "stats": _stats(all_items),
+        "stats": stats,
         "results": [
             serialize_citation_result(item, parse_result)
             for item, parse_result in zip(page_items, parse_results)
@@ -316,7 +347,7 @@ def _cursor_matches(item: CitationItem, key: tuple[str, tuple[int, int]]) -> boo
 
 
 def navigate_dataset(payload: dict) -> dict:
-    dataset = parse_dataset_definition(payload.get("dataset"))
+    dataset, _ = parse_dataset_definition(payload.get("dataset"))
     direction = payload.get("direction")
     if direction not in {"forward", "backward"}:
         raise InputError("direction must be 'forward' or 'backward'")
@@ -526,14 +557,14 @@ def persist_citation_resolution(ref: str, versionTitle: str, language: str, char
 
 
 def enqueue_bulk_reparse_dataset(payload: dict, user_id: Optional[int]) -> dict:
-    dataset = parse_dataset_definition(payload.get("dataset"))
+    dataset, _ = parse_dataset_definition(payload.get("dataset"))
     from sefaria.celery_setup.config import CeleryQueue
     async_result = linker_tasks.bulk_reparse_dataset_task.apply_async(args=(dataset, user_id), queue=CeleryQueue.TASKS.value)
     return {"task_id": async_result.id}
 
 
 def bulk_reparse_dataset(dataset: dict, user_id: Optional[int] = None, task=None) -> dict:
-    dataset = parse_dataset_definition(dataset)
+    dataset, _ = parse_dataset_definition(dataset)
     items = _filtered_items(_full_grouped_items(dataset), dataset)
     total = len(items)
     skipped = []
