@@ -521,6 +521,14 @@ const LinkerBulkCorrectorPage = () => {
             {activeAction === 'search' ? <span className="lbcSpinner" /> : 'Search'}
           </button>
           <button type="button" className="button" onClick={reparseDataset} disabled={loading}>Re-parse Results</button>
+          <button
+            type="button"
+            className="button"
+            onClick={() => window.open(`/linker-editor?book=${encodeURIComponent(statsBookTitle || normalizedDataset.bookTitle)}`, '_blank', 'noopener')}
+            disabled={!(statsBookTitle || normalizedDataset.bookTitle)}
+          >
+            Open Linker Editor
+          </button>
         </div>
         {error ? <div className="lbcError">{error}</div> : null}
         {bulkTask ? <div className="lbcTask">Re-parse: {bulkTask.current || 0} / {bulkTask.total || '?'} ({bulkTask.state}){bulkTask.skipped ? `, skipped ${bulkTask.skipped}` : ''}</div> : null}
