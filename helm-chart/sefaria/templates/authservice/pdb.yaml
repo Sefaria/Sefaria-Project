@@ -1,0 +1,13 @@
+{{- if .Values.authService.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: auth-service-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: auth-service-{{ .Values.deployEnv }}
+{{- end }}

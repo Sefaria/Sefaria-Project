@@ -1,0 +1,62 @@
+{{- if and .Values.authService.enabled .Values.gateway.enabled .Values.authService.rateLimit.enabled }}
+{{- $rl := .Values.authService.rateLimit }}
+{{- $m := int $rl.testLimitsMultiplier }}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: {{ .Values.deployEnv }}-auth-ratelimit
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: {{ .Values.deployEnv }}
+  rateLimit:
+    type: Global                                   # counters in the controller's Redis, shared by all Envoy replicas
+    global:
+      rules:
+        - clientSelectors:                         # developer tier: per project
+            - headers:
+                - { name: x-sefaria-tier, type: Exact, value: developer }
+                - { name: x-sefaria-project, type: Distinct }
+          limit: { requests: {{ mul $rl.developerPerProject $m }}, unit: Minute }
+        - clientSelectors:                         # partner tier: per project
+            - headers:
+                - { name: x-sefaria-tier, type: Exact, value: partner }
+                - { name: x-sefaria-project, type: Distinct }
+          limit: { requests: {{ mul $rl.partnerPerProject $m }}, unit: Minute }
+        - clientSelectors:                         # first party: per subject
+            - headers:
+                - { name: x-sefaria-tier, type: Exact, value: firstparty }
+                - { name: x-sefaria-project, type: Distinct }
+          limit: { requests: {{ mul $rl.firstpartyPerSub $m }}, unit: Minute }
+        - clientSelectors:                         # embed class: per Origin
+            - headers:
+                - { name: x-sefaria-tier, type: Exact, value: embed }
+                - { name: origin, type: Distinct }
+          limit: { requests: {{ mul $rl.embedPerOrigin $m }}, unit: Minute }
+        - clientSelectors:                         # anonymous: best-effort per client IP
+            - headers:
+                - { name: x-sefaria-tier, type: Exact, value: anonymous }
+              sourceCIDR: { type: Distinct, value: 0.0.0.0/0 }
+          limit: { requests: {{ mul $rl.anonymousPerIP $m }}, unit: Minute }
+        - clientSelectors:                         # anonymous: the shared overall cap
+            - headers:
+                - { name: x-sefaria-tier, type: Exact, value: anonymous }
+          limit: { requests: {{ mul $rl.anonymousShared $m }}, unit: Minute }
+  responseOverride:                                # agent-readable 429 (product spec); body supports Envoy command operators
+    - match:
+        statusCodes:
+          - { type: Value, value: 429 }
+      response:
+        contentType: application/json
+        statusCode: 429
+        header:
+          set:
+            - { name: Retry-After, value: {{ $rl.retryAfterSeconds | quote }} }
+        body:
+          type: Inline
+          inline: '{"error":"Too many requests for this identity in the current window.","code":"rate_limited","help":"{{ .Values.authService.helpURL }}rate_limited","project":"%REQ(x-sefaria-project)%","tier":"%REQ(x-sefaria-tier)%"}'
+{{- end }}

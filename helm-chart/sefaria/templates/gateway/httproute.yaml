@@ -95,6 +95,16 @@ spec:
       backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
+    {{- if and .Values.authService.enabled .Values.authService.legacyBodyArm.enabled }}
+    - name: legacy-body-auth
+      matches:
+        - path:
+            type: PathPrefix
+            value: {{ .Values.authService.legacyBodyArm.pathPrefix }}
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
+    {{- end }}
     - backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
