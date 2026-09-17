@@ -515,9 +515,13 @@ const LinkerBulkCorrectorPage = () => {
         <ResultDetails item={item} onReparse={reparseCurrent} reparsing={reparsing} />
       </main>
       <nav className="lbcNavOverlay">
-        <button type="button" onClick={() => navigate('backward')} disabled={loading}>Back</button>
+        <button type="button" className="button" onClick={() => navigate('backward')} disabled={loading}>
+          {loading ? <span className="lbcSpinner" /> : 'Back'}
+        </button>
         <span>{item ? `${page + 1} / ${total || '?'} (${statusLabel})` : 'No item'}</span>
-        <button type="button" onClick={() => navigate('forward')} disabled={loading}>Forward</button>
+        <button type="button" className="button" onClick={() => navigate('forward')} disabled={loading}>
+          {loading ? <span className="lbcSpinner" /> : 'Forward'}
+        </button>
       </nav>
     </div>
   );
