@@ -1,6 +1,6 @@
-// k6/replicas.js — 30 sequential requests with one identity; counts 200 vs 429; prints the first 429's headers and body.
 import http from 'k6/http';
 import { Counter } from 'k6/metrics';
+
 const ok = new Counter('ok_200'), limited = new Counter('limited_429');
 export const options = { vus: 1, iterations: 30 };
 let printed = false;
