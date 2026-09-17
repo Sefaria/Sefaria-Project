@@ -300,6 +300,7 @@ const LinkerBulkCorrectorPage = () => {
   const [item, setItem] = useState(stored.item || null);
   const [total, setTotal] = useState(stored.total || 0);
   const [stats, setStats] = useState(stored.stats || {totalCitations: 0, parsedCitations: 0});
+  const [statsBookTitle, setStatsBookTitle] = useState(stored.statsBookTitle || stored.dataset?.bookTitle || '');
   const [history, setHistory] = useState(loadStored(HISTORY_KEY, []));
   const [loading, setLoading] = useState(false);
   const [reparsing, setReparsing] = useState(false);
@@ -315,9 +316,9 @@ const LinkerBulkCorrectorPage = () => {
 
   const persistState = useCallback((next = {}) => {
     if (typeof localStorage === 'undefined') { return; }
-    const state = {dataset: normalizedDataset, page, item, total, stats, ...next};
+    const state = {dataset: normalizedDataset, page, item, total, stats, statsBookTitle, ...next};
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [normalizedDataset, page, item, total, stats]);
+  }, [normalizedDataset, page, item, total, stats, statsBookTitle]);
 
   useEffect(() => {
     persistState();
@@ -342,6 +343,7 @@ const LinkerBulkCorrectorPage = () => {
     setStats(data.stats || {totalCitations: 0, parsedCitations: 0});
     setItem(nextItem);
     rememberItem(nextItem);
+    setStatsBookTitle(data.dataset?.bookTitle || '');
     setDataset(prev => (data.dataset?.bookTitle && data.dataset.bookTitle !== prev.bookTitle)
       ? {...prev, bookTitle: data.dataset.bookTitle}
       : prev);
@@ -459,7 +461,7 @@ const LinkerBulkCorrectorPage = () => {
       <aside className="lbcSidebar">
         <section>
           <h2>Stats</h2>
-          {dataset.bookTitle ? <div className="lbcStatBook">{dataset.bookTitle}</div> : null}
+          {statsBookTitle ? <div className="lbcStatBook">{statsBookTitle}</div> : null}
           <div className="lbcStatNumber">{stats.parsedCitations} / {stats.totalCitations} parsed</div>
           <div className="lbcProgress"><span style={{width: `${parsedPct}%`}} /></div>
           <div className="lbcMeta">Across all citations in the book, regardless of status filter</div>
