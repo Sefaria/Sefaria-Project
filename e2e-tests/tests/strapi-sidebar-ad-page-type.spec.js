@@ -293,6 +293,35 @@ test.describe('Strapi Sidebar Ad — page-type gate boundaries', () => {
     await expect(promoTitled(page, 'Ad targeting category_toc')).toHaveCount(0);
   });
 
+  test('an exclusion keyword vetoes every ad it appears on, even when include keyword and page type both match', async ({ page, context }) => {
+    // The veto case in its purest form: on /texts/Tanakh/Torah the page context carries BOTH
+    // 'tanakh' and 'torah'. Two ads (same page type, deliberately more than one — a regression
+    // that lets the veto skip after the first rejected ad would pass a single-ad test) match on
+    // include keyword ('tanakh') AND page type (category_toc), but carry '!torah' — and under
+    // the strict AND semantics the exclusion must still block them. The third ad is the control:
+    // identical in every way except the exclusion, it must render — proving page kind, keyword,
+    // dates, and rendering all pass here, so the two absences can only be the exclusion's veto.
+    // (The recorded social-issues spec does NOT cover this: there the include keywords already
+    // fail on the excluded page, so the exclusion is never the deciding gate.)
+    served = await routeWithStrapiPayload(
+      context,
+      strapiPayload({
+        sidebarAds: [
+          typedAd('category_toc', { title: 'Vetoed Ad One', keywords: 'tanakh, !torah' }),
+          typedAd('category_toc', { title: 'Control Ad', keywords: 'tanakh' }),
+          typedAd('category_toc', { title: 'Vetoed Ad Two', keywords: 'tanakh, !torah' }),
+        ],
+      }),
+    );
+    await prepareStrapiPage(page, scenario);
+
+    await page.goto('/texts/Tanakh/Torah');
+
+    await expect(promoTitled(page, 'Control Ad')).toBeVisible();
+    await expect(promoTitled(page, 'Vetoed Ad One')).toHaveCount(0);
+    await expect(promoTitled(page, 'Vetoed Ad Two')).toHaveCount(0);
+  });
+
   test('pageType and a multi-word keyword must BOTH match — the collection TOC scenario', async ({ page, context }) => {
     // The flagship conjunction: "Covenant and Conversation" is a plain Category record (a
     // collection TOC is structurally indistinguishable from a canon category), so the specific
