@@ -315,8 +315,19 @@ section_modes() {
   fi
 }
 
+section_drills() {
+  section '7. Failure drills' 'Task 24 records how auth-service, rate-limit Redis, JWKS, and Postgres outages behaved in the dev cauldron.'
+  local result="$AUTH_SERVICE/poc-results/24-drills.md"
+  if [[ -f "$result" ]]; then
+    awk '/^## Summary[[:space:]]*$/{found=1; next} found && /^## /{exit} found{print}' "$result" | sanitize
+    printf '%sEvidence:%s %s\n' "$GREEN" "$RESET" "$result"
+  else
+    unavailable 'Task 24 result is not available yet'
+  fi
+}
+
 section_read_more() {
-  section '7. Where to read more' 'The implementation, infrastructure rollout, and execution status each have a durable place for follow-up.'
+  section '8. Where to read more' 'The implementation, infrastructure rollout, and execution status each have a durable place for follow-up.'
   printf '%sDraft PR:%s https://github.com/Sefaria/Sefaria-Project/pull/3736\n' "$GREEN" "$RESET"
   printf '%sInfra PR:%s https://github.com/Sefaria/infrastructure/pull/687\n' "$GREEN" "$RESET"
   printf '%sWiki status:%s https://github.com/Sefaria/sefaria-wiki/wiki/projects/api-key-program/poc-execution-status.md\n' "$GREEN" "$RESET"
@@ -332,5 +343,6 @@ else
 fi
 section_jwt
 section_modes
+section_drills
 section_measured
 section_read_more
