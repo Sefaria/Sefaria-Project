@@ -2,6 +2,7 @@ import copy
 import re
 from dataclasses import dataclass
 from typing import Optional
+from urllib.parse import unquote
 
 from sefaria import tracker
 from sefaria.helper import linker_resource_panel_admin
@@ -29,19 +30,42 @@ class CitationItem:
     status: str
 
 
-def _resolve_index_or_ref(book_title: str) -> tuple:
-    """Resolve a dataset "bookTitle" field which may be a bare index title or any parseable ref.
-    Returns (index, ref) where ref is None when the input was a bare book title, and the ref
-    the input resolved to otherwise (used to seed a "jump to this point in the book" search)."""
+_SEFARIA_URL_PREFIX_RE = re.compile(r'^(?:https?://)?(?:www\.)?sefaria\.org(?:\.il)?/', re.IGNORECASE)
+
+
+def _strip_sefaria_url(text: str) -> str:
+    """Turn a pasted Sefaria URL (or a bare, already URL-encoded ref segment) into a
+    Ref()-parseable string: strips a sefaria.org(.il) domain prefix if present, drops
+    any query string/fragment, and undoes percent-encoding (e.g. %2C -> ,)."""
+    stripped = _SEFARIA_URL_PREFIX_RE.sub('', text.strip())
+    stripped = stripped.split('?', 1)[0].split('#', 1)[0].strip('/')
+    stripped = stripped.split('/', 1)[0]  # drop a trailing /<lang>/<version> path, if any
+    return unquote(stripped)
+
+
+def _resolve_book_title(text: str) -> Optional[tuple]:
+    """Try to resolve `text` as a bare index title, then as a parseable ref.
+    Returns (index, ref_or_None) on success, or None if neither resolves."""
     try:
-        return library.get_index(book_title), None
+        return library.get_index(text), None
     except BookNameError:
         pass
     try:
-        ref = Ref(book_title)
+        ref = Ref(text)
     except InputError:
-        raise BookNameError(f'Unrecognized book title or ref: "{book_title}"')
+        return None
     return ref.index, ref
+
+
+def _resolve_index_or_ref(book_title: str) -> tuple:
+    """Resolve a dataset "bookTitle" field which may be a bare index title, any parseable ref,
+    or a Sefaria URL / URL-encoded ref segment. Returns (index, ref) where ref is None when the
+    input was a bare book title, and the ref the input resolved to otherwise (used to seed a
+    "jump to this point in the book" search)."""
+    resolved = _resolve_book_title(book_title) or _resolve_book_title(_strip_sefaria_url(book_title))
+    if resolved is None:
+        raise BookNameError(f'Unrecognized book title or ref: "{book_title}"')
+    return resolved
 
 
 def parse_dataset_definition(raw: dict) -> tuple:

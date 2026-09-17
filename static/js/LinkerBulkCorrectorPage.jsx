@@ -80,7 +80,7 @@ const IndexTitleAutocomplete = ({value, onChange}) => {
   const renderInput = (highlightedIndex, highlightedSuggestion, getInputProps, setInputValue, suggestions) => {
     const inputProps = getInputProps({
       className: 'lbcSearchInput',
-      placeholder: 'Book title or ref',
+      placeholder: 'Book title, ref, or Sefaria URL',
       defaultValue: value || '',
       onKeyDown: (event) => {
         if (event.key !== 'Enter') { return; }
