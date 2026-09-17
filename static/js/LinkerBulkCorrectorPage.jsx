@@ -45,6 +45,18 @@ const loadStored = (key, fallback) => {
 
 const resultKey = (item) => item ? `${item.ref}|${item.versionTitle}|${item.language}|${item.charRange?.join('-')}` : '';
 
+// CRRD test string (paste into linker_test.py). item.refParts already has RANGE parts flattened
+// into NUMBERED/RANGE_SYMBOL/NUMBERED (mirrors LinkerAdminBox's linkerPartsFromSpan), so no range
+// sections need to be passed through separately here.
+const getCrrdTestString = (item) => {
+  if (!item?.refParts?.length) { return null; }
+  const parts = Sefaria._getLinkerTestStringForParts(
+    item.refParts.map(part => part.text),
+    item.refParts.map(part => part.type),
+  );
+  return `crrd([${parts}]${item.language === 'he' ? ')' : ", lang='en')"}`;
+};
+
 const SmallMeta = ({item}) => (
   <div className="lbcMeta">{item.versionTitle} ({item.language})</div>
 );
@@ -175,17 +187,36 @@ const ResultDetails = ({item, onReparse, reparsing}) => {
   const [datasetBusy, setDatasetBusy] = useState(false);
   const [datasetMessage, setDatasetMessage] = useState(null);
   const [datasetError, setDatasetError] = useState(null);
+  const [testStringCopied, setTestStringCopied] = useState(false);
 
   useEffect(() => {
     setDatasetAction(null);
     setDatasetReason('');
     setDatasetMessage(null);
     setDatasetError(null);
+    setTestStringCopied(false);
   }, [resultKey(item)]);
 
   if (!item) {
     return <div className="lbcEmpty">Search for a book to load citations.</div>;
   }
+
+  const testStringCrrd = getCrrdTestString(item);
+  const copyTestString = () => {
+    if (!testStringCrrd) { return; }
+    const input = document.getElementById("lbcTestString");
+    if (input) {
+      input.select();
+      input.setSelectionRange(0, 99999); // for mobile devices
+    }
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(testStringCrrd);
+    } else { // fallback if navigator.clipboard is unavailable
+      document.execCommand('copy');
+    }
+    setTestStringCopied(true);
+    setTimeout(() => setTestStringCopied(false), 2000);
+  };
 
   const openDatasetAction = (action) => {
     setDatasetAction(action);
@@ -226,7 +257,7 @@ const ResultDetails = ({item, onReparse, reparsing}) => {
     <div className="lbcResult">
       <div className="lbcResultHeader">
         <div>
-          <h2>{item.ref}</h2>
+          <h2><a className="linkerAdminRefValue" href={`/${Sefaria.normRef(item.ref)}`} target="_blank">{item.ref}</a></h2>
           <SmallMeta item={item} />
         </div>
         <div className={`lbcStatus ${item.status}`}>{item.status}</div>
@@ -270,6 +301,22 @@ const ResultDetails = ({item, onReparse, reparsing}) => {
           <div className="linkerAdminParts">
             {(item.refParts || []).map((part, i) => <LinkerPartChip key={i} part={part} />)}
           </div>
+          {testStringCrrd ? (
+            <div className="linkerAdminSection">
+              <div className="linkerAdminSectionTitle">CRRD Test String</div>
+              <div className="linkerAdminTestStringBox" onClick={copyTestString} title="Click to copy">
+                <input
+                  id="lbcTestString"
+                  className="linkerAdminTestStringInput"
+                  type="text"
+                  readOnly
+                  value={testStringCrrd}
+                />
+                <img src="/static/icons/copy.svg" className="linkerAdminCopyIcon" aria-hidden="true" alt="" />
+              </div>
+              {testStringCopied ? <div className="linkerAdminMessage">Copied to clipboard</div> : null}
+            </div>
+          ) : null}
         </section>
         <section>
           <h3>Options Considered</h3>
