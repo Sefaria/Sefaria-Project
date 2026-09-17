@@ -161,6 +161,7 @@
 			<button class="button small white" type="button" data-developer-poc-connect="google">Connect Google</button>
 			<button class="button small white" type="button" data-developer-poc-connect="apple">Connect Apple</button>
 		</div>
+		<p id="developerSettingsConnected" class="devPocConnected" style="display: none"></p>
 		<div id="developerSettingsToggleWrapper" style="display: none">
 			<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup" aria-label="Developer Settings">
 				<div role="radio" data-developer-poc-value="true" class="toggleOption" tabindex="-1" aria-checked="false">
@@ -171,6 +172,7 @@
 				</div>
 			</div>
 			<div class="additional-info">Register your projects and get API keys for the Sefaria API.</div>
+			<div class="additional-info">Applies immediately.</div>
 			<p id="developerSettingsLink" style="display: none"><a href="/settings/developer">Open Developer settings</a></p>
 		</div>
 	</div>
@@ -436,6 +438,7 @@
 				const connected = store.ssoConnected(state, realProviders);
 				$("#developerSettingsGate").toggle(!connected);
 				$("#developerSettingsToggleWrapper").toggle(connected);
+				if (!connected) { $("#developerSettingsConnected").hide(); }
 				const on = connected && !!state.developerEnabled;
 				$section.find("[data-developer-poc-value]").each(function(){
 					const isOn = $(this).attr("data-developer-poc-value") === String(on);
@@ -458,8 +461,13 @@
 			$section.on("click", "[data-developer-poc-value]", function(){
 				mutate({developerEnabled: $(this).attr("data-developer-poc-value") === "true"});
 			});
+			let connectedTimer = null;
 			$section.on("click", "[data-developer-poc-connect]", function(){
+				const provider = $(this).attr("data-developer-poc-connect") === "apple" ? "Apple" : "Google";
 				mutate({ssoOverride: true});
+				$("#developerSettingsConnected").text(provider + " connected.").show();
+				clearTimeout(connectedTimer);
+				connectedTimer = setTimeout(function(){ $("#developerSettingsConnected").fadeOut(400); }, 4000);
 			});
 			$("#developerPocSsoSim").on("change", function(){
 				mutate({ssoOverride: this.checked});
