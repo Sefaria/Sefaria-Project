@@ -128,16 +128,16 @@ def _citation_status(spans: list[dict]) -> str:
     return "parsed"
 
 
-def group_citation_spans(docs: list[LinkerOutput]) -> list[CitationItem]:
+def group_citation_spans(spans_by_key: dict) -> list[CitationItem]:
     grouped: dict[tuple[str, str, str, tuple[int, int]], list[dict]] = {}
-    for doc in docs:
-        for span in doc.spans:
+    for (ref, version_title, language), spans in spans_by_key.items():
+        for span in spans:
             if span.get("type") != MUTCSpanType.CITATION.value or span.get("deleted"):
                 continue
             char_range = span.get("charRange")
             if not isinstance(char_range, list) or len(char_range) != 2:
                 continue
-            key = (doc.ref, doc.versionTitle, doc.language, tuple(char_range))
+            key = (ref, version_title, language, tuple(char_range))
             grouped.setdefault(key, []).append(span)
 
     items = []
@@ -177,13 +177,32 @@ def _bump_items_cache_generation(book_title: str) -> None:
         cache.set(key, 1, None)
 
 
+def _dataset_cache_key(prefix: str, dataset: dict, gen: int) -> str:
+    return f"{prefix}:{dataset['bookTitle']}:{dataset.get('versionTitle') or ''}:{dataset.get('lang') or ''}:{gen}"
+
+
+def _cached_spans_by_key(dataset: dict) -> dict:
+    """Map (ref, versionTitle, language) -> that segment's full span list, cached per book
+    generation. This is the single Mongo fetch for the whole book; both the sorted item
+    list and per-citation snippet rendering are derived from it, instead of each citation
+    re-querying its own LinkerOutput doc from Mongo individually."""
+    gen = _items_cache_generation(dataset["bookTitle"])
+    cache_key = _dataset_cache_key("lbc:docspans", dataset, gen)
+    spans_by_key = cache.get(cache_key)
+    if spans_by_key is not None:
+        return spans_by_key
+    spans_by_key = {(doc.ref, doc.versionTitle, doc.language): doc.spans for doc in resolve_book_dataset_docs(dataset)}
+    cache.set(cache_key, spans_by_key, _ITEMS_CACHE_TTL)
+    return spans_by_key
+
+
 def _full_grouped_items(dataset: dict) -> list[CitationItem]:
     gen = _items_cache_generation(dataset["bookTitle"])
-    cache_key = f"lbc:items:{dataset['bookTitle']}:{dataset.get('versionTitle') or ''}:{dataset.get('lang') or ''}:{gen}"
+    cache_key = _dataset_cache_key("lbc:items", dataset, gen)
     items = cache.get(cache_key)
     if items is not None:
         return items
-    items = group_citation_spans(resolve_book_dataset_docs(dataset))
+    items = group_citation_spans(_cached_spans_by_key(dataset))
     cache.set(cache_key, items, _ITEMS_CACHE_TTL)
     return items
 
@@ -254,13 +273,13 @@ def search_citations(payload: dict) -> dict:
         "total": len(filtered),
         "stats": stats,
         "results": [
-            serialize_citation_result(item, parse_result)
+            serialize_citation_result(item, dataset, parse_result)
             for item, parse_result in zip(page_items, parse_results)
         ],
     }
 
 
-def render_citation_snippet(item: CitationItem) -> dict:
+def render_citation_snippet(item: CitationItem, dataset: dict) -> dict:
     tc = TextChunk(Ref(item.ref), lang=item.language, vtitle=item.versionTitle)
     text = tc.text or ""
     start, end = item.charRange
@@ -268,12 +287,7 @@ def render_citation_snippet(item: CitationItem) -> dict:
     window_end = min(len(text), end + SNIPPET_RADIUS)
     snippet_text = text[window_start:window_end]
 
-    linker_output = LinkerOutput().load({
-        "ref": item.ref,
-        "versionTitle": item.versionTitle,
-        "language": item.language,
-    })
-    source_spans = linker_output.spans if linker_output else item.spans
+    source_spans = _cached_spans_by_key(dataset).get((item.ref, item.versionTitle, item.language)) or item.spans
     spans_by_range = {}
     for span in source_spans:
         if span.get("type") != MUTCSpanType.CITATION.value or span.get("deleted"):
@@ -361,7 +375,7 @@ def _ref_parts(parse_result: dict) -> list[dict]:
     return parse_result.get("input", {}).get("parts") or []
 
 
-def serialize_citation_result(item: CitationItem, parse_result: Optional[dict] = None) -> dict:
+def serialize_citation_result(item: CitationItem, dataset: dict, parse_result: Optional[dict] = None) -> dict:
     parse_result = parse_result or {"input": {"parts": []}, "parsings": []}
     return {
         "ref": item.ref,
@@ -369,7 +383,7 @@ def serialize_citation_result(item: CitationItem, parse_result: Optional[dict] =
         "language": item.language,
         "charRange": list(item.charRange),
         "status": item.status,
-        "snippet": render_citation_snippet(item),
+        "snippet": render_citation_snippet(item, dataset),
         "refParts": _ref_parts(parse_result),
         "parsings": parse_result.get("parsings") or [],
     }
@@ -417,7 +431,7 @@ def _navigate_without_reparsing(dataset: dict, all_items: list[CitationItem], di
         return {"found": False, "continuationCursor": None, "checked": 0}
     return {
         "found": True,
-        "item": serialize_citation_result(filtered[target]),
+        "item": serialize_citation_result(filtered[target], dataset),
         "position": target,
         "checked": 1,
     }
@@ -463,7 +477,7 @@ def navigate_dataset(payload: dict) -> dict:
         if fresh_status in set(dataset["status"]):
             return {
                 "found": True,
-                "item": serialize_citation_result(fresh_item, parse_result),
+                "item": serialize_citation_result(fresh_item, dataset, parse_result),
                 "position": current,
                 "checked": checked,
             }
@@ -631,9 +645,10 @@ def persist_citation_resolution(ref: str, versionTitle: str, language: str, char
         }).save()
 
     _update_generated_link(ref, old_refs, parsed_ref, versionTitle, language, charRange)
-    _bump_items_cache_generation(Ref(ref).index.title)
+    book_title = Ref(ref).index.title
+    _bump_items_cache_generation(book_title)
     fresh_item = _load_item(ref, versionTitle, language, charRange)
-    return serialize_citation_result(fresh_item, parse_result)
+    return serialize_citation_result(fresh_item, {"bookTitle": book_title, "versionTitle": versionTitle, "lang": language}, parse_result)
 
 
 def enqueue_bulk_reparse_dataset(payload: dict, user_id: Optional[int]) -> dict:
