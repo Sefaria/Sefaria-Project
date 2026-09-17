@@ -293,6 +293,17 @@ section_measured() {
   done < <(find "$AUTH_SERVICE/poc-results" -maxdepth 1 -type f -name '[0-9][0-9]-*.md' -print 2>/dev/null | sort)
 }
 
+section_jwt() {
+  section '5. First-party JWT arm' 'The live JWT matrix and rotation result distinguish Envoy fail-open from auth-service verification.'
+  local result="$AUTH_SERVICE/poc-results/20-jwt-arm.md"
+  if [[ -f "$result" ]]; then
+    awk '/^## Summary[[:space:]]*$/{found=1; next} found && /^## /{exit} found{print}' "$result" | sanitize
+    printf '%sEvidence:%s %s\n' "$GREEN" "$RESET" "$result"
+  else
+    unavailable 'Task 20 result is not available yet'
+  fi
+}
+
 section_read_more() {
   section '6. Where to read more' 'The implementation, infrastructure rollout, and execution status each have a durable place for follow-up.'
   printf '%sDraft PR:%s https://github.com/Sefaria/Sefaria-Project/pull/3736\n' "$GREEN" "$RESET"
@@ -308,5 +319,6 @@ else
   section_enforced
   section_safe
 fi
+section_jwt
 section_measured
 section_read_more
