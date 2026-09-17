@@ -307,6 +307,7 @@ const LinkerBulkCorrectorPage = () => {
   const [reparsing, setReparsing] = useState(false);
   const [bulkTask, setBulkTask] = useState(null);
   const [error, setError] = useState(null);
+  const [fastForward, setFastForward] = useState(!!stored.fastForward);
 
   const normalizedDataset = useMemo(() => ({
     ...dataset,
@@ -317,9 +318,9 @@ const LinkerBulkCorrectorPage = () => {
 
   const persistState = useCallback((next = {}) => {
     if (typeof localStorage === 'undefined') { return; }
-    const state = {dataset: normalizedDataset, page, item, total, stats, statsBookTitle, ...next};
+    const state = {dataset: normalizedDataset, page, item, total, stats, statsBookTitle, fastForward, ...next};
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [normalizedDataset, page, item, total, stats, statsBookTitle]);
+  }, [normalizedDataset, page, item, total, stats, statsBookTitle, fastForward]);
 
   useEffect(() => {
     persistState();
@@ -374,10 +375,11 @@ const LinkerBulkCorrectorPage = () => {
     setLoading(true);
     setActiveAction(direction);
     setError(null);
+    const autoCorrect = !(direction === 'forward' && fastForward);
     try {
       let cursor = {ref: item.ref, charRange: item.charRange};
       for (let i = 0; i < 20; i += 1) {
-        const data = await apiPost('/_api/linker-bulk-corrector/navigate', {dataset: normalizedDataset, direction, cursor});
+        const data = await apiPost('/_api/linker-bulk-corrector/navigate', {dataset: normalizedDataset, direction, cursor, autoCorrect});
         if (data.found) {
           setItem(data.item);
           rememberItem(data.item);
@@ -393,7 +395,7 @@ const LinkerBulkCorrectorPage = () => {
       setLoading(false);
       setActiveAction(null);
     }
-  }, [item, normalizedDataset, rememberItem, search]);
+  }, [item, normalizedDataset, rememberItem, search, fastForward]);
 
   const reparseCurrent = useCallback(async () => {
     if (!item) { return; }
@@ -544,14 +546,20 @@ const LinkerBulkCorrectorPage = () => {
           {activeAction === 'backward' ? <span className="lbcSpinner" /> : 'Back'}
         </button>
         <span>{item ? `${page + 1} / ${total || '?'} (${statusLabel})` : 'No item'}</span>
-        <button
-          type="button"
-          className={classNames('button', {disabled: loading && activeAction !== 'forward'})}
-          onClick={() => navigate('forward')}
-          disabled={loading}
-        >
-          {activeAction === 'forward' ? <span className="lbcSpinner" /> : 'Forward'}
-        </button>
+        <div className="lbcForwardGroup">
+          <button
+            type="button"
+            className={classNames('button', {disabled: loading && activeAction !== 'forward'})}
+            onClick={() => navigate('forward')}
+            disabled={loading}
+          >
+            {activeAction === 'forward' ? <span className="lbcSpinner" /> : 'Forward'}
+          </button>
+          <label className="lbcFastForward">
+            <input type="checkbox" checked={fastForward} onChange={e => setFastForward(e.target.checked)} />
+            fast (no auto-correct)
+          </label>
+        </div>
       </nav>
     </div>
   );

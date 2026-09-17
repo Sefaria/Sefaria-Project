@@ -370,6 +370,31 @@ def _cursor_matches(item: CitationItem, key: tuple[str, tuple[int, int]]) -> boo
     return item.ref == key[0] and item.charRange == key[1]
 
 
+def _navigate_without_reparsing(dataset: dict, all_items: list[CitationItem], direction: str, raw_cursor: dict) -> dict:
+    """Step to the next/previous item already matching the status filter, using stored
+    (not freshly re-parsed) status. No re-parsing or persisting, so this is much faster
+    than the normal scan, at the cost of not catching citations whose live parse would
+    now resolve differently than what's stored."""
+    filtered = _filtered_items(all_items, dataset)
+    if not filtered:
+        return {"found": False, "continuationCursor": None, "checked": 0}
+    cursor = _cursor_key(raw_cursor)
+    if cursor is None:
+        idx = -1 if direction == "forward" else len(filtered)
+    else:
+        matching_indices = [i for i, item in enumerate(filtered) if _cursor_matches(item, cursor)]
+        idx = matching_indices[0] if matching_indices else (-1 if direction == "forward" else len(filtered))
+    target = idx + (1 if direction == "forward" else -1)
+    if not (0 <= target < len(filtered)):
+        return {"found": False, "continuationCursor": None, "checked": 0}
+    return {
+        "found": True,
+        "item": serialize_citation_result(filtered[target]),
+        "position": target,
+        "checked": 1,
+    }
+
+
 def navigate_dataset(payload: dict) -> dict:
     dataset, _ = parse_dataset_definition(payload.get("dataset"))
     direction = payload.get("direction")
@@ -378,6 +403,8 @@ def navigate_dataset(payload: dict) -> dict:
     items = _full_grouped_items(dataset)
     if not items:
         return {"found": False, "continuationCursor": None, "checked": 0}
+    if not payload.get("autoCorrect", True):
+        return _navigate_without_reparsing(dataset, items, direction, payload.get("cursor") or {})
     cursor = _cursor_key(payload.get("cursor") or {})
     if cursor is None:
         idx = -1 if direction == "forward" else len(items)
