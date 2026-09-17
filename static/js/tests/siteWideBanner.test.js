@@ -1,4 +1,7 @@
 /* Testing done using Jest */
+// SiteWideBanner imports the Sefaria singleton; give it a minimal one so Sefaria._ works.
+jest.mock("../sefaria/sefaria", () => ({ __esModule: true, default: { _: (k) => k, util: { getCookieDomain: () => "" } } }));
+jest.mock("../sefaria/sefariaJquery", () => ({ __esModule: true, default: { cookie: jest.fn() } }));
 import { isChatbotBannerExcludedPath } from "../SiteWideBanner";
 
 describe("isChatbotBannerExcludedPath", function () {
@@ -43,5 +46,30 @@ describe("isChatbotBannerExcludedPath", function () {
 
   it("returns false instead of throwing on an unparseable path", function () {
     expect(isChatbotBannerExcludedPath("http://", false)).toBe(false);
+  });
+});
+
+describe("SiteWideBanner in a browser", function () {
+  // Companion to siteWideBanner.ssr.test.js: after mounting client-side the banner
+  // must still appear and still record the promo session in localStorage.
+  const React = require("react");
+  const ReactDOM = require("react-dom");
+  const { act } = require("react-dom/test-utils");
+  const { SiteWideBanner } = require("../SiteWideBanner");
+  let container;
+  beforeEach(() => { container = document.createElement("div"); document.body.appendChild(container); localStorage.clear(); global.gtag = jest.fn(); });
+  afterEach(() => { act(() => { ReactDOM.unmountComponentAtNode(container); }); container.remove(); });
+
+  it("shows the banner after mount and records the session counter", function () {
+    act(() => {
+      ReactDOM.render(
+        React.createElement(SiteWideBanner, {
+          mainText: "Hello", actionButtons: () => null, cookieName: "test_banner", gtagParams: {}, enableBackoffDismissal: true,
+        }),
+        container
+      );
+    });
+    expect(container.querySelector(".siteWideBanner")).not.toBeNull();
+    expect(localStorage.getItem("promo_backoff_test_banner_session_counter")).toBe("1");
   });
 });
