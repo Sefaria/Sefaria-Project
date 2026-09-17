@@ -9,9 +9,9 @@
  * - Workflowy OPML outline upload
  * - Links management (upload/download/remove)
  * - Bulk editing of Version metadata
+ * - Bulk editing of Index metadata (BulkIndexEditor)
  *
  * NOTE: The following tools are temporarily disabled (open tickets to reintroduce):
- * - Bulk editing of Index metadata (BulkIndexEditor)
  * - Auto-linking commentaries to base texts (AutoLinkCommentaryTool)
  * - Editing node titles in Index schemas (NodeTitleEditor)
  *
@@ -32,11 +32,11 @@ import DownloadLinks from './modtools/components/DownloadLinks';
 import RemoveLinksFromCsv from './modtools/components/RemoveLinksFromCsv';
 import BulkVersionEditor from './modtools/components/BulkVersionEditor';
 
+import BulkIndexEditor from './modtools/components/BulkIndexEditor';
+
 // TODO: The following tools are temporarily disabled. There are open tickets to reintroduce them:
-// - BulkIndexEditor: Bulk edit index metadata
 // - AutoLinkCommentaryTool: Auto-link commentaries to base texts
 // - NodeTitleEditor: Edit node titles within an Index schema
-// import BulkIndexEditor from './modtools/components/BulkIndexEditor';
 // import AutoLinkCommentaryTool from './modtools/components/AutoLinkCommentaryTool';
 // import NodeTitleEditor from './modtools/components/NodeTitleEditor';
 
@@ -79,8 +79,7 @@ function ModeratorToolsPanel() {
         <RemoveLinksFromCsv />
 
         {/* Bulk Editing Tools */}
-        {/* TODO: BulkIndexEditor temporarily disabled - open ticket to reintroduce */}
-        {/* <BulkIndexEditor /> */}
+        <BulkIndexEditor />
         <BulkVersionEditor />
 
         {/* Commentary Tools - temporarily disabled, open ticket to reintroduce */}
