@@ -93,6 +93,10 @@ spec:
           - name: DISABLE_AUTOCOMPLETER
             value: "true"
           {{- end }}
+          # task/Celery pods never serve search_wrapper_api, so there's no reason to load the
+          # string warehouse (search-query auto-correction, sc-47189) into their memory
+          - name: DISABLE_STRING_WAREHOUSE
+            value: "true"
           - name: REDIS_HOST
             value: "redis-{{ .Values.deployEnv }}"
           - name: NODEJS_HOST
