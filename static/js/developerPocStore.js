@@ -3,8 +3,8 @@
  *
  * Nothing here talks to a server. Every project, key and usage number lives in one
  * localStorage blob so product people can click through the flow; the key values are
- * random strings generated in the browser and authorize nothing. The demo bar on the
- * page resets this store and can override the account's real SSO status.
+ * random strings generated in the browser and authorize nothing. The floating POC test
+ * controls reset this store and can override the account's real SSO status.
  *
  * localStorage is read lazily (never at module load) so server-side rendering is safe.
  */

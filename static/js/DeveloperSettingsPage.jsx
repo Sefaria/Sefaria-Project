@@ -43,51 +43,100 @@ const copyToClipboard = (text, node, onDone) => {
 };
 
 
-const DemoBar = ({state, realProviders, update, reset}) => {
+const PANEL_OPEN_KEY = "sefariaDeveloperPocPanelOpen";
+
+const readPanelOpen = () => {
+  try { return window.localStorage.getItem(PANEL_OPEN_KEY) === "1"; } catch (e) { return false; }
+};
+
+const writePanelOpen = (open) => {
+  try { window.localStorage.setItem(PANEL_OPEN_KEY, open ? "1" : "0"); } catch (e) { /* ignore */ }
+};
+
+/* The POC test controls. Deliberately unlike the product: a floating panel pinned to the
+   corner of the viewport, in colours the site never uses. Nothing in it is product UI. */
+const PocTestPanel = ({state, realProviders, update, reset, showSimulate}) => {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => { setOpen(readPanelOpen()); }, []);
+
+  const toggle = (next) => { setOpen(next); writePanelOpen(next); };
+
   const realLabel = (realProviders || []).length
-    ? "Your real account: " + realProviders.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" + ") + " connected"
-    : "Your real account: no Google or Apple connection";
+    ? "Real account: " + realProviders.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" + ") + " connected"
+    : "Real account: no Google or Apple connection";
   const pretending = state.ssoOverride !== null;
   const connected = ssoConnected(state, realProviders);
+
   return (
-    <div className="devPocDemoBar">
-      <div className="devPocDemoBarTitle">POC demo controls &mdash; nothing here is real</div>
-      <div className="devPocDemoBarRow">
-        <label className="devPocChoice">
-          <input
-            type="checkbox"
-            className="devPocSwitch"
-            checked={connected}
-            onChange={e => update(s => ({...s, ssoOverride: e.target.checked}))}
-            aria-label="Simulate SSO connected"
-          />
-          <span>Simulate: SSO {connected ? "connected" : "not connected"}</span>
-        </label>
-        <span className="devPocHelp">{realLabel}{pretending ? " (simulated value in use)" : ""}</span>
-        {pretending ?
-          <button type="button" className="devPocButton quiet" onClick={() => update(s => ({...s, ssoOverride: null}))}>
-            Use real status
-          </button> : null}
-      </div>
-      <div className="devPocDemoBarRow">
-        <button type="button" className="devPocButton secondary" onClick={() => reset(sampleState())}>Reset to sample data</button>
-        <button type="button" className="devPocButton secondary" onClick={() => reset(emptyState())}>Reset to empty</button>
-        <button type="button" className="devPocButton quiet" onClick={() => {
-          copyToClipboard(JSON.stringify(state, null, 2), null, () => {});
-        }}>Copy state as JSON</button>
-        <label className="devPocChoice">
-          <input
-            type="checkbox"
-            checked={!!state.failNextKey}
-            onChange={e => update(s => ({...s, failNextKey: e.target.checked}))}
-          />
-          <span>Simulate failure on next key creation</span>
-        </label>
-      </div>
-      <div className="devPocDemoBarRow">
-        <span className="devPocHelp">
-          Connecting Google or Apple in this POC is auto-approved: no sign-in happens and no account changes.
-        </span>
+    <div className="devPocPanel" data-open={open ? "true" : "false"}>
+      <button
+        type="button"
+        className="devPocPanelPill"
+        aria-expanded={open}
+        onClick={() => toggle(true)}
+      >🧪 POC test controls</button>
+      <div className="devPocPanelBody">
+        <div className="devPocPanelHeader">
+          <div>
+            <p className="devPocPanelTitle">POC TEST CONTROLS</p>
+            <p className="devPocPanelSub">Temporary. Not part of the product. Nothing here is real.</p>
+          </div>
+          <button
+            type="button"
+            className="devPocPanelClose"
+            aria-label="Collapse POC test controls"
+            onClick={() => toggle(false)}
+          >Hide</button>
+        </div>
+
+        <div className="devPocPanelGroup">
+          <div className="devPocPanelGroupLabel">Account state</div>
+          <label className="devPocPanelChoice">
+            <input
+              type="checkbox"
+              className="devPocSwitch"
+              checked={connected}
+              onChange={e => update(s => ({...s, ssoOverride: e.target.checked}))}
+              aria-label="Simulate SSO connected"
+            />
+            <span>Simulate: SSO {connected ? "connected" : "not connected"}</span>
+          </label>
+          <p className="devPocPanelNote">{realLabel}{pretending ? " (simulated value in use)" : ""}</p>
+          {pretending ?
+            <div className="devPocPanelRow">
+              <button type="button" className="devPocPanelButton" onClick={() => update(s => ({...s, ssoOverride: null}))}>
+                Use real status
+              </button>
+            </div> : null}
+          <p className="devPocPanelNote">
+            Connecting Google or Apple in this POC is auto-approved: no sign-in happens and no account changes.
+          </p>
+        </div>
+
+        <div className="devPocPanelGroup">
+          <div className="devPocPanelGroupLabel">Mock data</div>
+          <div className="devPocPanelRow">
+            <button type="button" className="devPocPanelButton" onClick={() => reset(sampleState())}>Reset to sample data</button>
+            <button type="button" className="devPocPanelButton" onClick={() => reset(emptyState())}>Reset to empty</button>
+            <button type="button" className="devPocPanelButton" onClick={() => {
+              copyToClipboard(JSON.stringify(state, null, 2), null, () => {});
+            }}>Copy state as JSON</button>
+          </div>
+        </div>
+
+        {showSimulate ?
+          <div className="devPocPanelGroup">
+            <div className="devPocPanelGroupLabel">Simulate</div>
+            <label className="devPocPanelChoice">
+              <input
+                type="checkbox"
+                checked={!!state.failNextKey}
+                onChange={e => update(s => ({...s, failNextKey: e.target.checked}))}
+              />
+              <span>Failure on next key creation</span>
+            </label>
+          </div> : null}
       </div>
     </div>
   );
@@ -694,7 +743,6 @@ const DeveloperSettingsPage = ({socialProviders, initialProjectId}) => {
     <div className="readerNavMenu devPocPage" key="developerSettings">
       <div className="content">
         <div className="contentInner">
-          <DemoBar state={state} realProviders={socialProviders} update={update} reset={reset} />
           <div className={"devPocShell" + (off ? " devPocShellNoNav" : "")}>
             {off ? null : <SettingsNav />}
             <main className="devPocMain">
@@ -782,6 +830,7 @@ const DeveloperSettingsPage = ({socialProviders, initialProjectId}) => {
       </div>
       {showNewProject ? <NewProjectDialog onCreate={createProject} onCancel={() => setShowNewProject(false)} /> : null}
       {confirm ? <ConfirmDialog confirm={confirm} onClose={closeConfirm} /> : null}
+      <PocTestPanel state={state} realProviders={socialProviders} update={update} reset={reset} showSimulate={true} />
     </div>
   );
 };

@@ -21,25 +21,6 @@
             </button>
         </div>
     </div>
-    <div class="devPocDemoBar" id="developerPocDemoBar">
-        <div class="devPocDemoBarTitle">POC demo controls &mdash; nothing here is real</div>
-        <div class="devPocDemoBarRow">
-            <label class="devPocChoice">
-                <input type="checkbox" class="devPocSwitch" id="developerPocSsoSim" aria-label="Simulate SSO connected">
-                <span id="developerPocSsoSimLabel">Simulate: SSO connected</span>
-            </label>
-            <span class="devPocHelp" id="developerPocRealSso"></span>
-            <button type="button" class="devPocButton quiet" id="developerPocUseRealSso" style="display:none">Use real status</button>
-        </div>
-        <div class="devPocDemoBarRow">
-            <button type="button" class="devPocButton secondary" id="developerPocResetSample">Reset to sample data</button>
-            <button type="button" class="devPocButton secondary" id="developerPocResetEmpty">Reset to empty</button>
-            <button type="button" class="devPocButton quiet" id="developerPocCopyState">Copy state as JSON</button>
-        </div>
-        <div class="devPocDemoBarRow">
-            <span class="devPocHelp">Connecting Google or Apple in this POC is auto-approved: no sign-in happens and no account changes.</span>
-        </div>
-    </div>
     <nav class="devPocNav" id="developerPocNav" aria-label="Settings" style="display:none">
         <div class="devPocNavTitle">Settings</div>
         <a href="/settings/account" aria-current="page">Account settings</a>
@@ -172,7 +153,7 @@
 	</div>
     {% endif %}
 	{% endcomment %}
-    <div id="developerSettings" class="section" data-real-sso="{% if social_providers %}1{% else %}0{% endif %}" data-real-sso-label="{% if social_providers %}Your real account: {{ social_providers|join:" + " }} connected{% else %}Your real account: no Google or Apple connection{% endif %}">
+    <div id="developerSettings" class="section" data-real-sso="{% if social_providers %}1{% else %}0{% endif %}" data-real-sso-label="{% if social_providers %}Real account: {{ social_providers|join:" + " }} connected{% else %}Real account: no Google or Apple connection{% endif %}">
 		<label class="control-elem">Developer Settings</label>
 		<div id="developerSettingsGate" class="devPocGate" style="display: none">
 			<strong>Connect Google or Apple to get started</strong>
@@ -265,6 +246,39 @@
         </div>
     </div>
 	</div>
+</div>
+
+<div class="devPocPanel" id="developerPocPanel" data-open="false">
+    <button type="button" class="devPocPanelPill" id="developerPocPanelOpen" aria-expanded="false">&#129514; POC test controls</button>
+    <div class="devPocPanelBody">
+        <div class="devPocPanelHeader">
+            <div>
+                <p class="devPocPanelTitle">POC TEST CONTROLS</p>
+                <p class="devPocPanelSub">Temporary. Not part of the product. Nothing here is real.</p>
+            </div>
+            <button type="button" class="devPocPanelClose" id="developerPocPanelClose" aria-label="Collapse POC test controls">Hide</button>
+        </div>
+        <div class="devPocPanelGroup">
+            <div class="devPocPanelGroupLabel">Account state</div>
+            <label class="devPocPanelChoice">
+                <input type="checkbox" class="devPocSwitch" id="developerPocSsoSim" aria-label="Simulate SSO connected">
+                <span id="developerPocSsoSimLabel">Simulate: SSO connected</span>
+            </label>
+            <p class="devPocPanelNote" id="developerPocRealSso"></p>
+            <div class="devPocPanelRow" id="developerPocUseRealSsoRow" style="display:none">
+                <button type="button" class="devPocPanelButton" id="developerPocUseRealSso">Use real status</button>
+            </div>
+            <p class="devPocPanelNote">Connecting Google or Apple in this POC is auto-approved: no sign-in happens and no account changes.</p>
+        </div>
+        <div class="devPocPanelGroup">
+            <div class="devPocPanelGroupLabel">Mock data</div>
+            <div class="devPocPanelRow">
+                <button type="button" class="devPocPanelButton" id="developerPocResetSample">Reset to sample data</button>
+                <button type="button" class="devPocPanelButton" id="developerPocResetEmpty">Reset to empty</button>
+                <button type="button" class="devPocPanelButton" id="developerPocCopyState">Copy state as JSON</button>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock %}
@@ -432,7 +446,7 @@
 				$("#developerPocSsoSim").prop("checked", connected);
 				$("#developerPocSsoSimLabel").text("Simulate: SSO " + (connected ? "connected" : "not connected"));
 				$("#developerPocRealSso").text($section.attr("data-real-sso-label") + (state.ssoOverride === null ? "" : " (simulated value in use)"));
-				$("#developerPocUseRealSso").toggle(state.ssoOverride !== null);
+				$("#developerPocUseRealSsoRow").toggle(state.ssoOverride !== null);
 			}
 
 			function mutate(change) {
@@ -466,6 +480,19 @@
 				if (navigator.clipboard) { navigator.clipboard.writeText(text); }
 				$(this).text("Copied");
 			});
+
+			const PANEL_OPEN_KEY = "sefariaDeveloperPocPanelOpen";
+			function setPanelOpen(open) {
+				$("#developerPocPanel").attr("data-open", open ? "true" : "false");
+				$("#developerPocPanelOpen").attr("aria-expanded", open ? "true" : "false");
+				try { window.localStorage.setItem(PANEL_OPEN_KEY, open ? "1" : "0"); } catch (e) { /* ignore */ }
+			}
+			$("#developerPocPanelOpen").on("click", function(){ setPanelOpen(true); });
+			$("#developerPocPanelClose").on("click", function(){ setPanelOpen(false); });
+			let panelOpen = false;
+			try { panelOpen = window.localStorage.getItem(PANEL_OPEN_KEY) === "1"; } catch (e) { /* ignore */ }
+			setPanelOpen(panelOpen);
+
 			render();
 		});
 	</script>

@@ -17091,19 +17091,145 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   overflow-wrap: anywhere;
 }
 
-.devPocDemoBar {
-  border: 2px dashed #b4801f;
-  border-radius: 6px;
-  background: repeating-linear-gradient(135deg, #fdf5e4, #fdf5e4 14px, #faecd0 14px, #faecd0 28px);
-  padding: 14px 18px;
-  margin-bottom: 28px;
-  color: #5c4713;
-  font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
-  font-size: 14px;
+/* POC test controls. A floating panel, pinned to the viewport and deliberately foreign
+   to the Sefaria palette so nobody reads it as product UI. The React developer page and
+   the account settings template both render this markup. */
+.devPocPanel {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 100001;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  direction: ltr;
   text-align: left;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  font-size: 13px;
 }
-.devPocDemoBarTitle { font-weight: 700; text-transform: uppercase; letter-spacing: .04em; font-size: 12px; margin-bottom: 10px; }
-.devPocDemoBarRow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; margin-top: 8px; }
+.devPocPanel *, .devPocPanel *::before, .devPocPanel *::after { box-sizing: border-box; }
+/* fonts.css names a font on every element through a universal rule, so the panel has to
+   name its own on its descendants instead of relying on inheritance. */
+.devPocPanel, .devPocPanel * { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace; }
+.devPocPanelPill {
+  appearance: none;
+  -webkit-appearance: none;
+  width: auto;
+  margin: 0;
+  padding: 9px 16px;
+  border: 2px solid #ff2d95;
+  border-radius: 999px;
+  background: #1f2430;
+  color: #ff2d95;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 6px 18px #0000004d;
+}
+.devPocPanelPill:hover { background: #2b3242; color: #ff2d95; }
+.devPocPanelBody {
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  padding: 14px 16px 16px;
+  background: #1f2430;
+  border: 2px solid #ff2d95;
+  border-radius: 10px;
+  color: #e6e8ee;
+  box-shadow: 0 12px 34px #00000059;
+}
+.devPocPanel[data-open="false"] .devPocPanelBody { display: none; }
+.devPocPanel[data-open="true"] .devPocPanelPill { display: none; }
+.devPocPanelHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.devPocPanel .devPocPanelTitle {
+  margin: 0;
+  color: #ff2d95;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+.devPocPanel .devPocPanelSub { margin: 6px 0 0; color: #9aa1b1; font-size: 11px; line-height: 1.5; }
+.devPocPanelClose {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: auto;
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid #ff2d95;
+  border-radius: 4px;
+  background: transparent;
+  color: #ff2d95;
+  font-size: 11px;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  cursor: pointer;
+}
+.devPocPanelClose:hover { background: #ff2d95; color: #1f2430; }
+.devPocPanelGroup { margin-top: 14px; padding-top: 12px; border-top: 1px solid #ff2d9540; }
+.devPocPanel .devPocPanelGroupLabel {
+  margin-bottom: 8px;
+  color: #ff2d95;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.devPocPanelRow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.devPocPanelRow + .devPocPanelRow { margin-top: 8px; }
+.devPocPanel .devPocPanelNote { margin: 8px 0 0; color: #9aa1b1; font-size: 11px; line-height: 1.5; }
+.devPocPanel .devPocPanelChoice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  color: #e6e8ee;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.devPocPanelButton {
+  appearance: none;
+  -webkit-appearance: none;
+  width: auto;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid #ff2d9580;
+  border-radius: 4px;
+  background: #2b3242;
+  color: #e6e8ee;
+  font-size: 12px;
+  line-height: 1.3;
+  cursor: pointer;
+}
+.devPocPanelButton:hover { background: #ff2d95; border-color: #ff2d95; color: #1f2430; }
+.devPocPanel input.devPocSwitch { width: 34px; min-width: 34px; height: 20px; background: #4a5162; }
+.devPocPanel input.devPocSwitch::after { width: 14px; height: 14px; }
+.devPocPanel input.devPocSwitch:checked { background: #ff2d95; }
+.devPocPanel input.devPocSwitch:checked::after { transform: translateX(14px); }
+.devPocPanel input[type="checkbox"]:not(.devPocSwitch) {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  flex-shrink: 0;
+  width: 14px;
+  min-width: 14px;
+  height: 14px;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+  accent-color: #ff2d95;
+  cursor: pointer;
+}
 
 .devPocNav { font-size: 14px; text-align: left; }
 .devPocNavTitle { padding: 0 14px 12px; font-size: 13px; font-weight: 600; color: #626971; }
@@ -17344,6 +17470,15 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   .devPocStat { border-right: 0; }
   .devPocHeading { flex-wrap: wrap; }
   .devPocKeyValue { flex-wrap: wrap; }
+  .devPocPanel { right: 0; left: 0; bottom: 0; }
+  .devPocPanel[data-open="false"] { padding: 0 12px 12px; }
+  .devPocPanelBody {
+    width: 100%;
+    max-width: none;
+    max-height: 60vh;
+    border-width: 2px 0 0;
+    border-radius: 0;
+  }
 }
 
 /* Developer settings POC controls inside the account settings page, which styles all
@@ -17353,14 +17488,6 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   align-items: center;
   gap: 10px;
   width: auto;
-  margin: 0;
-}
-#accountSettingsPage .devPocDemoBar input.devPocSwitch,
-#accountSettingsPage .devPocDemoBar input[type="checkbox"] {
-  width: 40px;
-  min-width: 40px;
-  height: 24px;
-  padding: 0;
   margin: 0;
 }
 #accountSettingsPage .devPocHelp { margin: 0; }
