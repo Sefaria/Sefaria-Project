@@ -33,14 +33,46 @@ export const emptyState = () => ({
 
 const randomId = () => Math.random().toString(36).slice(2, 10);
 
-const KEY_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+/* Key values in this POC are obviously fake, so nobody mistakes one for a credential.
+   The prefix marks them as test values; the suffix is a joke from the beit midrash. */
+export const TEST_KEY_SUFFIXES = [
+  "daf_yomi_or_bust", "teiku_unresolved", "eilu_veilu_both_valid", "gematria_613",
+  "hava_amina_only", "kal_vachomer", "gezeirah_shavah", "lo_bashamayim_hi",
+  "rashi_says_see_here", "tosafot_disagrees", "mah_nishtana_this_key", "bava_kamma_79b",
+  "shnayim_mikra_echad_key", "ein_mukdam_umeuchar", "bli_neder", "amud_bet_cliffhanger",
+  "hadran_alach", "siyum_in_2711_daf", "chad_gadya_chad_key", "dayenu_enough_requests",
+  "maaser_10_percent", "shmita_every_7th_call", "tikkun_leil_deploy", "lamed_vav_hidden",
+  "pilpul_not_included", "shma_koleinu_200_ok", "yored_lesof_daati", "mesorah_v2",
+  "mi_shebeirach_my_uptime", "sugya_still_loading", "machloket_leshem_shamayim",
+  "omer_day_33",
+];
 
-export const makeKeyValue = () => {
-  let value = "";
-  for (let i = 0; i < 32; i++) {
-    value += KEY_CHARS[Math.floor(Math.random() * KEY_CHARS.length)];
+export const makeKeyValue = () => (
+  "sfr_test_" + TEST_KEY_SUFFIXES[Math.floor(Math.random() * TEST_KEY_SUFFIXES.length)]
+);
+
+const hashSeed = (seed) => {
+  let h = 2166136261;
+  const text = String(seed);
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 16777619);
   }
-  return "sfr_" + value;
+  return (h >>> 0) || 1;
+};
+
+/* A stable per-key daily series, so the usage chart looks the same on every render. */
+export const usageSeries = (seed, total, days = 30) => {
+  let h = hashSeed(seed);
+  const weights = [];
+  let sum = 0;
+  for (let i = 0; i < days; i++) {
+    h = (Math.imul(h, 1664525) + 1013904223) >>> 0;
+    const weight = 0.25 + (h % 1000) / 1000;
+    weights.push(weight);
+    sum += weight;
+  }
+  return weights.map(w => Math.round((total || 0) * w / sum));
 };
 
 export const makeKey = (label) => ({
@@ -94,7 +126,6 @@ export const sampleState = () => {
       developerName: "Tova Levi",
       description: "Small learning tools for daily study.",
       additionalEmail: "",
-      phone: "",
       termsAccepted: true,
       notADeveloper: false,
     },
@@ -103,14 +134,28 @@ export const sampleState = () => {
   };
 };
 
+/* The settings nav has to render on the server, which cannot read localStorage, so the
+   two values it depends on are mirrored into cookies on every read and write. */
+export const DEVELOPER_POC_ON_COOKIE = "sefariaDeveloperPocOn";
+export const DEVELOPER_POC_SSO_COOKIE = "sefariaDeveloperPocSso";
+
+const mirrorStateToCookies = (state) => {
+  if (typeof document === "undefined") { return state; }
+  const ssoOverride = state.ssoOverride === null || state.ssoOverride === undefined
+    ? "" : (state.ssoOverride ? "1" : "0");
+  document.cookie = DEVELOPER_POC_ON_COOKIE + "=" + (state.developerEnabled ? "1" : "0") + "; path=/; SameSite=Lax";
+  document.cookie = DEVELOPER_POC_SSO_COOKIE + "=" + ssoOverride + "; path=/; SameSite=Lax";
+  return state;
+};
+
 export const readState = () => {
   if (typeof window === "undefined" || !window.localStorage) { return emptyState(); }
   try {
     const raw = window.localStorage.getItem(DEVELOPER_POC_STORAGE_KEY);
-    if (!raw) { return emptyState(); }
+    if (!raw) { return mirrorStateToCookies(emptyState()); }
     const parsed = JSON.parse(raw);
-    if (!parsed || parsed.version !== DEVELOPER_POC_VERSION) { return emptyState(); }
-    return {...emptyState(), ...parsed};
+    if (!parsed || parsed.version !== DEVELOPER_POC_VERSION) { return mirrorStateToCookies(emptyState()); }
+    return mirrorStateToCookies({...emptyState(), ...parsed});
   } catch (e) {
     return emptyState();
   }
@@ -121,6 +166,7 @@ export const writeState = (state) => {
   try {
     window.localStorage.setItem(DEVELOPER_POC_STORAGE_KEY, JSON.stringify(state));
   } catch (e) { /* private browsing, quota: the POC keeps working in memory */ }
+  mirrorStateToCookies(state);
   return state;
 };
 
