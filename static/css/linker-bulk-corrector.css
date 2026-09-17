@@ -13,6 +13,10 @@
   display: flex;
   flex-direction: column;
   gap: 28px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
 }
 
 .lbcSidebar h2,
@@ -327,6 +331,9 @@
   .lbcSidebar {
     border-right: 0;
     border-bottom: 1px solid #ddd8cf;
+    position: static;
+    height: auto;
+    overflow-y: visible;
   }
 
   .lbcSearch,

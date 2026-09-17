@@ -384,7 +384,8 @@ def parse_linker_citations_batch(payloads: list[dict]) -> list[dict]:
 # ---------------------------------------------------------------------------
 
 def _upsert_dataset_example(example_type: str, text: str, entities: list, ref: str, lang: str,
-                            version_title: str, user_id: Optional[int], reason: Optional[str] = None) -> dict:
+                            version_title: str, user_id: Optional[int], reason: Optional[str] = None,
+                            possibly_bad_citation: Optional[list] = None) -> dict:
     """
     Store (or overwrite) one gold training example. Uniqueness is (type, ref, text) so
     re-clicking a button refreshes the labels rather than creating duplicates.
@@ -404,6 +405,10 @@ def _upsert_dataset_example(example_type: str, text: str, entities: list, ref: s
         example.reason = reason
     elif hasattr(example, "reason"):
         delattr(example, "reason")
+    if possibly_bad_citation:
+        example.possiblyBadCitation = possibly_bad_citation
+    elif hasattr(example, "possiblyBadCitation"):
+        delattr(example, "possiblyBadCitation")
     example.save()
     return {
         "ok": True,
@@ -455,7 +460,18 @@ def add_ref_dataset_example(payload: dict, user_id: Optional[int]) -> dict:
         entities.append([norm_start, norm_end, label])
 
     entities.sort(key=lambda e: (e[0], e[1]))
-    return _upsert_dataset_example("ref", normalized_text, entities, ref, lang, version_title, user_id, payload.get("reason"))
+
+    possibly_bad_citation = None
+    raw_char_range = payload.get("charRange")
+    if raw_char_range not in (None, ""):
+        possibly_bad_citation = list(normalizer.norm_to_unnorm_indices(
+            original_text, [tuple(_normalize_char_range(raw_char_range))], reverse=True
+        )[0])
+
+    return _upsert_dataset_example(
+        "ref", normalized_text, entities, ref, lang, version_title, user_id,
+        payload.get("reason"), possibly_bad_citation,
+    )
 
 
 def _expand_ref_parts(span: dict) -> list:

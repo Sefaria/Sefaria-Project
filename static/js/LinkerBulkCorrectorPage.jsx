@@ -209,7 +209,7 @@ const ResultDetails = ({item, onReparse, reparsing}) => {
           lang: item.language,
           versionTitle: item.versionTitle,
           reason,
-          ...(isRefPart ? {charRange: item.charRange} : {}),
+          charRange: item.charRange,
         },
       );
       setDatasetMessage(`Saved ${isRefPart ? 'Ref Part' : 'Ref'} dataset example (${result.numEntities} labels)`);

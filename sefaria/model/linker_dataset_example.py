@@ -31,6 +31,7 @@ class LinkerDatasetExample(AbstractMongoRecord):
         "added_by",
         "added_at",
         "reason",
+        "possiblyBadCitation",
     ]
 
     attr_schemas = {
@@ -42,6 +43,13 @@ class LinkerDatasetExample(AbstractMongoRecord):
         "added_by": {"type": "integer", "required": False, "nullable": True},
         "added_at": {"type": "integer", "required": False},
         "reason": {"type": "string", "required": False},
+        "possiblyBadCitation": {
+            "type": "list",
+            "required": False,
+            "schema": {"type": "integer"},
+            "minlength": 2,
+            "maxlength": 2,
+        },
         "labels": {
             "type": "dict",
             "required": True,
