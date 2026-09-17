@@ -307,7 +307,6 @@ const LinkerBulkCorrectorPage = () => {
   const [reparsing, setReparsing] = useState(false);
   const [bulkTask, setBulkTask] = useState(null);
   const [error, setError] = useState(null);
-  const [fastForward, setFastForward] = useState(!!stored.fastForward);
 
   const normalizedDataset = useMemo(() => ({
     ...dataset,
@@ -318,9 +317,9 @@ const LinkerBulkCorrectorPage = () => {
 
   const persistState = useCallback((next = {}) => {
     if (typeof localStorage === 'undefined') { return; }
-    const state = {dataset: normalizedDataset, page, item, total, stats, statsBookTitle, fastForward, ...next};
+    const state = {dataset: normalizedDataset, page, item, total, stats, statsBookTitle, ...next};
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [normalizedDataset, page, item, total, stats, statsBookTitle, fastForward]);
+  }, [normalizedDataset, page, item, total, stats, statsBookTitle]);
 
   useEffect(() => {
     persistState();
@@ -375,19 +374,13 @@ const LinkerBulkCorrectorPage = () => {
     setLoading(true);
     setActiveAction(direction);
     setError(null);
-    const autoCorrect = !fastForward;
     try {
-      let cursor = {ref: item.ref, charRange: item.charRange};
-      for (let i = 0; i < 20; i += 1) {
-        const data = await apiPost('/_api/linker-bulk-corrector/navigate', {dataset: normalizedDataset, direction, cursor, autoCorrect});
-        if (data.found) {
-          setItem(data.item);
-          rememberItem(data.item);
-          setPage(data.position || 0);
-          return;
-        }
-        if (!data.continuationCursor) { return; }
-        cursor = data.continuationCursor;
+      const cursor = {ref: item.ref, charRange: item.charRange};
+      const data = await apiPost('/_api/linker-bulk-corrector/navigate', {dataset: normalizedDataset, direction, cursor});
+      if (data.found) {
+        setItem(data.item);
+        rememberItem(data.item);
+        setPage(data.position || 0);
       }
     } catch (e) {
       setError(e.message || String(e));
@@ -395,7 +388,7 @@ const LinkerBulkCorrectorPage = () => {
       setLoading(false);
       setActiveAction(null);
     }
-  }, [item, normalizedDataset, rememberItem, search, fastForward]);
+  }, [item, normalizedDataset, rememberItem, search]);
 
   const reparseCurrent = useCallback(async () => {
     if (!item) { return; }
@@ -547,10 +540,6 @@ const LinkerBulkCorrectorPage = () => {
         </button>
         <div className="lbcNavStatusGroup">
           <span>{item ? `${page + 1} / ${total || '?'} (${statusLabel})` : 'No item'}</span>
-          <label className="lbcFastForward">
-            <input type="checkbox" checked={fastForward} onChange={e => setFastForward(e.target.checked)} />
-            fast (no auto-correct)
-          </label>
         </div>
         <button
           type="button"

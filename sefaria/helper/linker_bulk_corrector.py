@@ -17,7 +17,6 @@ from sefaria.system.exceptions import InputError, BookNameError
 
 VALID_STATUSES = {"parsed", "unparsed", "ambiguous"}
 VALID_LANGS = {"he", "en"}
-NAVIGATION_SCAN_LIMIT = 200
 SNIPPET_RADIUS = 300
 
 
@@ -375,7 +374,7 @@ def _item_with_fresh_status(item: CitationItem, parse_result: dict) -> CitationI
     """Build a display-only CitationItem reflecting a live parse result that's already been
     computed (e.g. to populate refParts/parsings), without persisting anything to Mongo.
     Used wherever we show a citation's status/snippet coloring but only did the cheap,
-    non-persisting path (fast/no-auto-correct navigation, search) - so a stale DB-persisted
+    non-persisting path (navigation, search) - so a stale DB-persisted
     failed/ambiguous flag doesn't visually contradict a live parse we already ran and are
     already showing ref-parts detail for."""
     return CitationItem(
@@ -422,32 +421,32 @@ def _cursor_key(cursor: dict) -> Optional[tuple[str, tuple[int, int]]]:
         raise InputError("cursor.charRange values must be integers")
 
 
-def _cursor_for_item(item: CitationItem) -> dict:
-    return {"ref": item.ref, "charRange": list(item.charRange)}
-
-
 def _cursor_matches(item: CitationItem, key: tuple[str, tuple[int, int]]) -> bool:
     return item.ref == key[0] and item.charRange == key[1]
 
 
-def _navigate_without_reparsing(dataset: dict, all_items: list[CitationItem], direction: str, raw_cursor: dict) -> dict:
+def navigate_dataset(payload: dict) -> dict:
     """Step to the next/previous item already matching the status filter, using stored
     (not freshly re-parsed) status to decide *which* item to land on. Still does a single
     live parse of just that one landed-on item, both so ref parts / options considered
     render and so the displayed status/snippet coloring reflects that live parse rather
     than a possibly-stale stored failed/ambiguous flag - but that fresh result is not
-    persisted, and skips the up-to-200-item scan-and-persist walk the normal auto-correcting
-    navigation does, which is the actual expensive/side-effecting part.
+    persisted.
 
     The cursor is located in the full (unfiltered) item list, not the status-filtered one:
     re-parsing the current citation (via the 'r' shortcut) can flip its own status so it no
     longer matches the active filter, and locating the cursor in an already-filtered list
     would then fail to find it - silently restarting navigation from the beginning/end of
     the book instead of continuing from where the user was."""
+    dataset, _ = parse_dataset_definition(payload.get("dataset"))
+    direction = payload.get("direction")
+    if direction not in {"forward", "backward"}:
+        raise InputError("direction must be 'forward' or 'backward'")
+    all_items = _full_grouped_items(dataset)
     if not all_items:
-        return {"found": False, "continuationCursor": None, "checked": 0}
+        return {"found": False, "checked": 0}
     statuses = set(dataset["status"])
-    cursor = _cursor_key(raw_cursor)
+    cursor = _cursor_key(payload.get("cursor") or {})
     if cursor is None:
         idx = -1 if direction == "forward" else len(all_items)
     else:
@@ -467,59 +466,7 @@ def _navigate_without_reparsing(dataset: dict, all_items: list[CitationItem], di
                 "checked": 1,
             }
         current += step
-    return {"found": False, "continuationCursor": None, "checked": 0}
-
-
-def navigate_dataset(payload: dict) -> dict:
-    dataset, _ = parse_dataset_definition(payload.get("dataset"))
-    direction = payload.get("direction")
-    if direction not in {"forward", "backward"}:
-        raise InputError("direction must be 'forward' or 'backward'")
-    items = _full_grouped_items(dataset)
-    if not items:
-        return {"found": False, "continuationCursor": None, "checked": 0}
-    if not payload.get("autoCorrect", True):
-        return _navigate_without_reparsing(dataset, items, direction, payload.get("cursor") or {})
-    cursor = _cursor_key(payload.get("cursor") or {})
-    if cursor is None:
-        idx = -1 if direction == "forward" else len(items)
-    else:
-        matching_indices = [i for i, item in enumerate(items) if _cursor_matches(item, cursor)]
-        idx = matching_indices[0] if matching_indices else (-1 if direction == "forward" else len(items))
-
-    step = 1 if direction == "forward" else -1
-    current = idx + step
-    checked = 0
-    last_scanned = None
-    while 0 <= current < len(items) and checked < NAVIGATION_SCAN_LIMIT:
-        item = items[current]
-        parse_result = linker_resource_panel_admin.parse_linker_citation_sync(_parts_payload_from_item(item))
-        fresh_status = _status_from_parse_result(parse_result)
-        fresh_item = CitationItem(
-            ref=item.ref,
-            versionTitle=item.versionTitle,
-            language=item.language,
-            charRange=item.charRange,
-            spans=item.spans,
-            order=item.order,
-            status=fresh_status,
-        )
-        persist_citation_resolution(item.ref, item.versionTitle, item.language, list(item.charRange), parse_result)
-        checked += 1
-        last_scanned = item
-        if fresh_status in set(dataset["status"]):
-            return {
-                "found": True,
-                "item": serialize_citation_result(fresh_item, dataset, parse_result),
-                "position": current,
-                "checked": checked,
-            }
-        current += step
-    return {
-        "found": False,
-        "continuationCursor": _cursor_for_item(last_scanned) if last_scanned else None,
-        "checked": checked,
-    }
+    return {"found": False, "checked": 0}
 
 
 def _load_item(ref: str, version_title: str, language: str, char_range: list[int]) -> CitationItem:

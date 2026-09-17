@@ -355,16 +355,6 @@
   gap: 4px;
 }
 
-.lbcFastForward {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: #666;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
 @media (max-width: 900px) {
   .linkerBulkCorrector {
     grid-template-columns: 1fr;
