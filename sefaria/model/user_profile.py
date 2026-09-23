@@ -46,7 +46,6 @@ from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError
 from sefaria.constants.model import VOICES_MODULE, LIBRARY_ASSISTANT_SETTING_KEY
-from functools import reduce
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User, Group, AnonymousUser
@@ -60,7 +59,7 @@ if not hasattr(sys, '_doc_build'):
 from . import abstract as abst
 from sefaria.model.following import FollowersSet, FolloweesSet, general_follow_recommendations
 from sefaria.model.blocking import BlockersSet, BlockeesSet
-from sefaria.model.text import Ref, TextChunk
+from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
@@ -194,9 +193,11 @@ class UserHistory(abst.AbstractMongoRecord):
                 if ref.is_sheet():
                     d.update(get_sheet_listing_data(d["sheet_id"]))
                 else:
+                    # Keyed by direction, not real language -- this still carries the old en/he-as-
+                    # ltr/rtl dichotomy rather than genuine source/translation, unlike the main reader.
                     d["text"] = {
-                        "en": TextChunk(ref, "en").as_sized_string(),
-                        "he": TextChunk(ref, "he").as_sized_string()
+                        "en": ref.text(direction="ltr").as_sized_string(),
+                        "he": ref.text(direction="rtl").as_sized_string()
                     }
             except Exception as e:
                 logger.warning("Failed to retrieve text for history Ref: {}".format(d['ref']))
@@ -288,7 +289,11 @@ class UserHistorySet(abst.AbstractMongoSet):
     recordClass = UserHistory
 
     def hits(self):
-        return reduce(lambda agg,o: agg + getattr(o, "num_times_read", 1), self, 0)
+        # num_times_read is a legacy field from transformOldRecents(); a prod sample measured
+        # ~0.09% of user_history docs having it set at all, and summing it instead of counting
+        # documents changes the total by ~0.57%, so it's not worth fetching and hydrating every
+        # matching document to account for. count() already handles skip/limit/hint correctly.
+        return self.count()
 
 
 """

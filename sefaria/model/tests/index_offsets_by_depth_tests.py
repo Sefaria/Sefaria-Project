@@ -1,5 +1,6 @@
 import pytest
 from sefaria.model import *
+from sefaria.model.legacy_text import TextFamily
 from sefaria.system.exceptions import InputError
 
 @pytest.fixture()

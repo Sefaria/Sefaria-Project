@@ -109,6 +109,8 @@ const AuthPage = ({
       <ForgotView
         emailValue={fields.email} setField={setField} csrf={csrf}
         onSuccess={() => setView('forgot-sent')} onBack={() => setView('email')}
+        registerGoogleTarget={registerGoogleTarget} triggerApple={triggerApple}
+        setActiveErrorHandler={setActiveErrorHandler}
       />
     );
   } else if (view === 'forgot-sent') {
