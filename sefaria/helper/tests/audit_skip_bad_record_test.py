@@ -490,7 +490,10 @@ CASES = [
          collection="category",
          doc={"path": ["ZZAuditNoParent", "ZZAuditChild"], "lastPath": "ZZAuditChild",
               "depth": 2},
-         trigger=_toc_tree, expect=CAUGHT, error_type="KeyError"),
+         trigger=_toc_tree, expect=CAUGHT,
+         note="reported via log_skip (error_type None), not a caught KeyError: a missing "
+              "parent is checked explicitly so that N siblings under one dropped parent do "
+              "not produce N identical KeyError signatures and trip the signature breaker"),
     case(site="S5", operation="TocTree._add_category",
          corruption="category with an empty `path`",
          collection="category", doc={"path": [], "lastPath": "", "depth": 0},

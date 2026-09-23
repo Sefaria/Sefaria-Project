@@ -206,9 +206,12 @@ class _FakeGuard(object):
 
     def __init__(self, exceptions=Exception):
         self.exceptions = exceptions
-        self.skipped = []
+        self.skipped = []   # (operation, record, exception name) per swallowed exception
+        self.calls = []     # (pathway, operation, record, level) per guard entry, swallowed or not
 
     def __call__(self, pathway, operation, record=None, level="warning"):
+        self.calls.append((pathway, operation, record, level))
+
         @contextlib.contextmanager
         def guard():
             try:
@@ -283,6 +286,32 @@ class TestWithSkipGuard(object):
             s.with_skip_guard(_FakeGuard(InputError), "startup", "op")
             access(s)                     # must not raise
             assert s.max == 1
+
+    def test_pathway_and_level_are_forwarded_to_the_guard(self):
+        """`pathway` groups the end-of-build Slack summary and `level="error"` is what makes
+        that summary error-severity (text.py's _build_index_maps and category.py's TocTree
+        index loop rely on it), so with_skip_guard() must pass both through untouched."""
+        guard = _FakeGuard(InputError)
+        s = self._failing_set([{"title": "good"}, {"title": "bad"}])
+        list(s.with_skip_guard(guard, "reset_cache,startup", "op", level="error"))
+        assert guard.calls == [("reset_cache,startup", "op", "good", "error"),
+                               ("reset_cache,startup", "op", "bad", "error")]
+
+    def test_level_defaults_to_warning(self):
+        guard = _FakeGuard()
+        list(self._failing_set([{"title": "a"}]).with_skip_guard(guard, "startup", "op"))
+        assert guard.calls == [("startup", "op", "a", "warning")]
+
+    def test_an_instantiate_that_returns_none_is_kept_not_mistaken_for_a_skip(self):
+        """Only a guard-swallowed failure drops a record. An instantiate function that returns
+        None for a valid document keeps that None in the set, exactly as the unguarded path
+        would -- otherwise it would vanish with no skip recorded, the silent failure the guard
+        exists to prevent."""
+        guard = _FakeGuard(InputError)
+        s = self._set_of([{"title": "a"}, {"title": "b"}], lambda raw: None)
+        assert list(s.with_skip_guard(guard, "startup", "op")) == [None, None]
+        assert guard.skipped == []
+        assert s.max == 2
 
     def test_returns_self_so_it_reads_inline(self):
         s = self._failing_set([{"title": "a"}])

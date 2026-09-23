@@ -4805,10 +4805,8 @@ class Library(object):
         unexplored_top_level = False    # example would be the first case of 'Holidays' encountered as it is top level,
                                         # this variable will allow us to force all top level categories to have children
         if topic is None:
-            ts = TopicSet({"isTopLevelDisplay": True})
-            # This top-level call is outside the per-child guard below, so build the
-            # top-level slug list record-by-record: one malformed top-level topic must
-            # not abort the whole topic-ToC build.
+            ts = TopicSet({"isTopLevelDisplay": True}).with_skip_guard(
+                skip_bad_record, "reset_toc,startup", "get_topic_toc_json_recursive top-level topic")
             children = []
             for t in ts:
                 with skip_bad_record("reset_toc,startup", "get_topic_toc_json_recursive top-level topic",
