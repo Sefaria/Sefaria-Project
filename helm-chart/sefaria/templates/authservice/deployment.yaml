@@ -40,8 +40,11 @@ spec:
             - { name: GATED_PATHS, value: {{ .Values.authService.gatedPaths | quote }} }
             - { name: HELP_URL, value: {{ .Values.authService.helpURL | quote }} }
             - { name: RELOAD_INTERVAL, value: {{ .Values.authService.reloadInterval | quote }} }
+            - { name: PG_NOTIFY_CHANNEL, value: {{ .Values.authService.push.pgChannel | quote }} }
+            {{- if .Values.authService.push.redis }}
             - { name: REDIS_ADDR, value: "redis-{{ .Values.deployEnv }}:6379" }
             - { name: PUSH_CHANNEL, value: {{ .Values.authService.push.channel | quote }} }
+            {{- end }}
             - { name: JWT_MODE, value: {{ .Values.authService.jwt.mode | quote }} }
             - { name: JWKS_URL, value: {{ include "sefaria.authService.jwksURL" . | quote }} }
             - { name: JWT_ISSUER, value: {{ include "sefaria.authService.issuer" . | quote }} }

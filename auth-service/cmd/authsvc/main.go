@@ -111,6 +111,38 @@ func main() {
 			slog.Warn("redis push", "err", err)
 		})
 	}
+	if channel := os.Getenv("PG_NOTIFY_CHANNEL"); channel != "" {
+		// The registry's triggers NOTIFY on every committed key/tier/origin change, whoever wrote it. Each notice
+		// schedules one coalesced full reload on the query pool (never on the listener's own connection).
+		co := registry.NewCoalescer(50*time.Millisecond, func() {
+			t0 := time.Now()
+			keys, err := load(ctx)
+			if err == nil {
+				err = replace(keys)
+			} else {
+				reloads.WithLabelValues("error").Inc()
+			}
+			if err != nil {
+				pushes.WithLabelValues("postgres", "error").Inc()
+				slog.Warn("notify reload failed; keeping in-memory set", "err", err)
+				return
+			}
+			pushes.WithLabelValues("postgres", "ok").Inc()
+			slog.Info("notify reload", "keys", reg.Len(), "took", time.Since(t0))
+		})
+		go co.Run(ctx)
+		go registry.ListenPostgres(ctx, registry.ListenConfig{
+			DSN: os.Getenv("PG_DSN"), Channel: channel, AppName: "authsvc-listener",
+			MinBackoff: time.Second, MaxBackoff: 30 * time.Second, WaitTimeout: 30 * time.Second,
+			// LISTEN is active before this runs, so a reload here cannot miss a change made while disconnected.
+			OnEstablished: func(context.Context) { slog.Info("postgres listener established", "channel", channel); co.Signal() },
+			OnNotify: func(n registry.Notice) {
+				slog.Info("notify received", "table", n.Table, "op", n.Op, "age", n.Age)
+				co.Signal()
+			},
+			OnErr: func(err error) { slog.Warn("postgres listener", "err", err) },
+		})
+	}
 	interval, _ := time.ParseDuration(envOr("RELOAD_INTERVAL", "60s"))
 	go registry.PeriodicReload(ctx, interval, func(ctx context.Context) ([]registry.Key, error) {
 		k, err := load(ctx)

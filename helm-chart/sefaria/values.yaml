@@ -206,7 +206,13 @@ authService:
     timeout: 200ms
   reloadInterval: 60s       # full reload from Postgres; also the revocation SLA when push is down
   push:
-    channel: sefaria.apikeys  # Redis pub/sub on this environment's redis-<env>
+    # Key changes reach every auth service in the cluster through Postgres LISTEN/NOTIFY on the key registry:
+    # triggers in the registry schema NOTIFY on this channel whatever the writer. The name is fixed in the schema.
+    pgChannel: sefaria_apikeys
+    # Legacy POC path: Redis pub/sub on this environment's own redis-<env> (one cauldron only, and it ties the auth
+    # service to the app's Redis). Off unless a writer still publishes there.
+    redis: false
+    channel: sefaria.apikeys
   postgres:
     # The cluster's one key registry: a database in the cluster's shared Postgres (postgres-18),
     # read by every auth service in the cluster at startup. The chart never runs a Postgres of its
