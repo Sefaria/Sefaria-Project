@@ -5,7 +5,7 @@ logger = structlog.get_logger(__name__)
 
 from sefaria.system.database import db
 from sefaria.system.exceptions import BookNameError, InputError, DuplicateRecordError
-from sefaria.helper.skip_tracking import bad_record_guard
+from sefaria.helper.skip_tracking import bad_record_guard, log_skip
 skip_bad_record = bad_record_guard(logger)
 from . import abstract as abstract
 from . import schema as schema
@@ -297,7 +297,11 @@ class TocTree(object):
                 self._path_hash[tuple(i.categories + [i.title])] = node
 
         # Include Collections in TOC that has a `toc` field set. Skip-and-log per collection.
-        collections = collection.CollectionSet({"toc": {"$exists": True}, "listed": True, "slug": {"$exists": True}})
+        # Same two-guard shape as the CategorySet and IndexSet loops above: with_skip_guard()
+        # covers CONSTRUCTING each Collection, the inner `with` covers USING it.
+        collections = collection.CollectionSet(
+            {"toc": {"$exists": True}, "listed": True, "slug": {"$exists": True}}
+        ).with_skip_guard(skip_bad_record, "reset_toc,startup", "TocTree collection", level="error")
         for c in collections:
             with skip_bad_record("reset_toc,startup", "TocTree collection", record=getattr(c, "slug", None), level="error"):
                 self._collections_in_library.append(c.slug)
@@ -364,14 +368,32 @@ class TocTree(object):
         return TocTextIndex(d, index_object=index)
 
     def _add_category(self, cat):
-        # One malformed or orphaned category (get_primary_title raises, or its parent isn't
-        # yet in the path hash -> KeyError) is skipped+signaled rather than aborting the
-        # whole TocTree build.
-        with skip_bad_record("reset_toc,startup", "TocTree._add_category", record='/'.join(getattr(cat, "path", []) or [])):
+        # Two malformed shapes are checked here rather than left to raise: an empty `path`
+        # raises nowhere at all, and a missing parent gives every sibling the SAME error
+        # message, which trips the signature breaker. Both report via log_skip, which counts
+        # toward the volume backstop only. Why, and the data behind it, in the wiki:
+        # wiki/meta/decision-2026-09-23-toctree-category-guard-placement.md
+        path = getattr(cat, "path", None) or []
+        # Built before the `with`: `record=` is an argument, so a raise here escapes the guard
+        # it feeds -- see toc_node_id() above. Empty path joins to "", hence the _id fallback.
+        record = '/'.join(path) if path else "_id={!r}".format(getattr(cat, "_id", None))
+        with skip_bad_record("reset_toc,startup", "TocTree._add_category", record=record):
+            if not path:
+                log_skip(logger, "reset_toc,startup", "TocTree._add_category",
+                         "category has an empty `path`; dropping it rather than adding a "
+                         "nameless entry to the top level of the ToC", record=record)
+                return
+            parent_path = tuple(path[:-1])
+            if parent_path and parent_path not in self._path_hash:
+                log_skip(logger, "reset_toc,startup", "TocTree._add_category",
+                         "parent category {!r} is missing (skipped or never stored); dropping "
+                         "{!r} and its subtree".format('/'.join(parent_path), record),
+                         record=record)
+                return
             tc = TocCategory(category_object=cat)
-            parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
+            parent = self._path_hash[parent_path] if parent_path else self._root
             parent.append(tc)
-            self._path_hash[tuple(cat.path)] = tc
+            self._path_hash[tuple(path)] = tc
 
     def get_root(self):
         return self._root

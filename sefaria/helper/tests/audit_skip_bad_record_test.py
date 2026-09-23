@@ -491,14 +491,23 @@ CASES = [
          collection="category",
          doc={"path": ["ZZAuditNoParent", "ZZAuditChild"], "lastPath": "ZZAuditChild",
               "depth": 2},
-         trigger=_toc_tree, expect=CAUGHT, error_type="KeyError"),
+         trigger=_toc_tree, expect=CAUGHT,
+         note="reported via log_skip (error_type None), not a caught KeyError: a missing "
+              "parent is checked explicitly so that N siblings under one dropped parent do "
+              "not produce N identical KeyError signatures and trip the signature breaker"),
     case(site="S5", operation="TocTree._add_category",
          corruption="category with an empty `path`",
          collection="category", doc={"path": [], "lastPath": "", "depth": 0},
-         trigger=_toc_tree, expect=WRONG_SITE,
-         note="the empty path attaches to root without raising here, but the malformed "
-              "category then breaks an index lookup in the TocTree index loop, which now "
-              "catches it -- a skip is recorded, at a different site than this one"),
+         trigger=_toc_tree, expect=CAUGHT,
+         note="reported via log_skip (error_type None), not a caught exception: an empty path "
+              "raises nowhere. It attached to the root with an empty title and shipped as a "
+              "blank top-level ToC entry, and lookup() returns None for a missing key rather "
+              "than raising, so nothing downstream rejected it either. _add_category now "
+              "checks for it explicitly. The WRONG_SITE this case expected until then was an "
+              "artefact of case ORDER, not of this document: a preceding S3 index case whose "
+              "guard CAUGHT its error leaves the bad index in library._index_map (run_case "
+              "only restores the baseline when a case raises), and the next TocTree build "
+              "skips that leftover at the `TocTree index` site"),
 
     # -- category.py:464  TocTree.serialize node -----------------------------------
     case(site="S6", operation="TocTree.serialize node",

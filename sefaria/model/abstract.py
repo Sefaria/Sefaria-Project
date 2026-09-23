@@ -310,6 +310,12 @@ class AbstractMongoRecord(object):
 _RAW_IDENTIFIER_FIELDS = ("title", "slug", "name", "lastPath", "headword", "path", "_id")
 
 
+# Marker for "instantiate() did not complete" inside _build_records(). A private object rather
+# than None so a guard-swallowed failure is never confused with an instantiate function that
+# legitimately returned None -- the latter would otherwise be dropped with no skip recorded.
+_NOT_BUILT = object()
+
+
 def _raw_record_identifier(raw):
     """Best-effort human-readable id for a raw Mongo doc that could not be instantiated."""
     for field in _RAW_IDENTIFIER_FIELDS:
@@ -414,11 +420,11 @@ class AbstractMongoSet(collections.abc.Iterable):
                 self.records.append(instantiate(raw))
             else:
                 guard, pathway, operation, level = self._skip_guard
-                record = None
+                record = _NOT_BUILT
                 with guard(pathway, operation,
                            record=_raw_record_identifier(raw), level=level):
                     record = instantiate(raw)
-                if record is not None:
+                if record is not _NOT_BUILT:
                     self.records.append(record)
         self.max = len(self.records)
 

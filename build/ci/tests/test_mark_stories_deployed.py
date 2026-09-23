@@ -473,3 +473,4 @@ def test_all_already_done_does_not_warn_or_exit_nonzero(monkeypatch, tmp_path, c
 
     err = capsys.readouterr().err
     assert "silent no-op" not in err
+
