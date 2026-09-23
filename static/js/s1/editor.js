@@ -3506,11 +3506,14 @@ sjs.showNewText = function () {
 
 	$(window).scrollLeft(0).unbind("scroll.update");
 
-	// Title
-	var title = sjs.editing.book.replace(/_/g, " ");
-	for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
-		title += " : " + sjs.editing.sectionNames[i] + " " + sjs.editing.sections[i];
-	}	
+	// Title -- sections may be internal integers (daf 2a = 3), so prefer the normalized sectionRef
+	var title = sjs.editing.sectionRef;
+	if (!title) {
+		title = sjs.editing.book.replace(/_/g, " ");
+		for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
+			title += " : " + sjs.editing.sectionNames[i] + " " + sjs.editing.sections[i];
+		}
+	}
 	$("#editTitle").text(title);
 
 	// Compare Text -- always the primary version, as a reference to translate from/compare against
@@ -4156,9 +4159,14 @@ function readNewVersion() {
 	// Called "new version" by legacy when a text was referred to as a 'version'.
 	var version = {};
 
-	version.postUrl = sjs.editing.book.replace(/ /g, "_");
-	for (var i= 0 ; i < sjs.editing.sectionNames.length - 1; i++) {
-		version.postUrl += "." + sjs.editing.sections[i];
+	// sections may be internal integers (daf 2a = 3), so build the URL from the normalized sectionRef
+	if (sjs.editing.sectionRef) {
+		version.postUrl = sjs.editing.sectionRef.replace(/ /g, "_").replace(/:/g, ".");
+	} else {
+		version.postUrl = sjs.editing.book.replace(/ /g, "_");
+		for (var i= 0 ; i < sjs.editing.sectionNames.length - 1; i++) {
+			version.postUrl += "." + sjs.editing.sections[i];
+		}
 	}
 	
 	if ($("#originalRadio").prop("checked")) {
