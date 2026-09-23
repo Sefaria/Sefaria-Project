@@ -520,6 +520,25 @@ jobs:
         assert len(corpus_calls) == 1
         assert corpus_calls[0].get("SEFARIA_MOCK_MONGO") == "1"
         assert "DEPLOY_ENV" not in corpus_calls[0]
+        # The sandbox job runs against real Mongo, so it keeps manifest tests too.
+        assert corpus_calls[0].get(ci_parity.PARITY_BASELINE_ENV) == "1"
+
+    def test_baseline_keeps_manifest_tests_but_mocked_jobs_do_not(self, tmp_path, monkeypatch):
+        # conftest deselects _not-mockable.json tests under the mock unless
+        # SEFARIA_PARITY_BASELINE=1; the baseline must set it and a mocked job must not,
+        # so a manifest test that no job runs shows up as missing.
+        _write_workflow(tmp_path, SIMPLE_WORKFLOW)
+        manifest_test = "sefaria/tests/a_test.py::test_manifest"
+
+        def _fake_collect(argv, env, root):
+            ids = {"sefaria/tests/a_test.py::test_a"}
+            if env.get(ci_parity.PARITY_BASELINE_ENV) == "1":
+                ids.add(manifest_test)
+            return ids
+
+        monkeypatch.setattr(ci_parity, "collect", _fake_collect)
+        rc = ci_parity.main(["--root", str(tmp_path), "--baseline-paths", "./sefaria", "--json"])
+        assert rc == 1
 
     def test_existing_ordinary_job_tests_still_pass(self):
         # Sanity check that sandbox-support additions didn't change ordinary

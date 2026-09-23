@@ -67,9 +67,9 @@ def context_to_nodeid(ctx, index=None, ambiguous=None):
         rel = index.get(mod)
         if rel:
             return rel + "::" + "::".join(parts[1:])
-    return None
-
-    parts = nodeid.split(".")
+    # A dotted package path (`sefaria.tests.modtools_test.Class.test`): packages
+    # with __init__.py are imported under their full name, so the first part is
+    # not a test-module basename. Take the longest prefix that is a real file.
     for i in range(len(parts) - 1, 0, -1):
         relpath = os.path.join(*parts[:i]) + ".py"
         if os.path.exists(os.path.join(REPO_ROOT, relpath)):

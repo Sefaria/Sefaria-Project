@@ -36,6 +36,24 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 # needs a reason, and the burden is on the entry: if you cannot say why the
 # computed name can never reach the subsystem, it does not belong here and the
 # analysis should fail open instead.
+# Files no test imports but every test runs under: pytest config and hooks,
+# dependencies, test fixtures and the CI runner setup. A change to any of them
+# can break a linker test without appearing in an import closure, so it always
+# counts as "affected".
+TEST_ENVIRONMENT_GLOBS = (
+    "requirements*.txt",
+    "setup.py",
+    "pyproject.toml",
+    "pytest.ini",
+    "*conftest.py",
+    "sefaria/local_settings*.py",
+    "sefaria/settings.py",
+    "sefaria/tests/fixtures/*",
+    "build/ci/prepare-pytest-runner.sh",
+    ".github/workflows/continuous.yaml",
+    "scripts/test_impact/*",
+)
+
 DYNAMIC_ALLOWLIST = {
     # __import__(SITE_PACKAGE + ".site_settings") -- SITE_PACKAGE is a settings
     # string naming a directory under sites/; every candidate is a flat settings
@@ -82,7 +100,10 @@ def imports_of(path):
     except (SyntaxError, UnicodeDecodeError):
         return set(), True  # unparseable -> treat as unresolved, fail open
     found = set()
-    pkg = module_name_for(path, REPO_ROOT).rsplit(".", 1)[0]
+    # A package's __init__.py is already named after the package itself; any other
+    # module's package is its name minus the last component.
+    own_name = module_name_for(path, REPO_ROOT)
+    pkg = own_name if os.path.basename(path) == "__init__.py" else own_name.rsplit(".", 1)[0]
     dynamic = False
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
@@ -190,10 +211,13 @@ def main():
     if args.changed_file:
         changed = set(args.changed_file)
         hit = sorted(changed & set(trigger_rel))
+        env_hit = sorted(f for f in changed
+                         if any(fnmatch.fnmatch(f, g) for g in TEST_ENVIRONMENT_GLOBS))
         # FAIL OPEN: unresolved analysis means we cannot prove the tests are
         # unaffected, so we say they are affected.
         result["changed_in_closure"] = hit
-        result["affected"] = bool(hit) or result["fail_open"]
+        result["changed_test_environment"] = env_hit
+        result["affected"] = bool(hit) or bool(env_hit) or result["fail_open"]
 
     if args.format == "json":
         print(json.dumps(result, indent=2))

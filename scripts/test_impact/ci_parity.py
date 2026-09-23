@@ -81,6 +81,8 @@ def _pytest_run_commands(job):
 # don't run `python -m pytest` on the GitHub runner directly, they kick off a k8s
 # Job that runs pytest inside a sandbox pod. See build/ci/createJobFromRollout.sh.
 SANDBOX_LAUNCHER_SCRIPT = "createJobFromRollout.sh"
+# Read by sefaria/conftest.py: keep tests listed in _not-mockable.json collected.
+PARITY_BASELINE_ENV = "SEFARIA_PARITY_BASELINE"
 
 # Mirrors the defaults baked into createJobFromRollout.sh itself.
 SANDBOX_DEFAULT_MARK_EXPR = "not deep and not failing"
@@ -315,6 +317,12 @@ def main(argv=None):
         ordinary_specs = [spec for spec in jobs.values() if not spec.get("_sandbox")]
         source_spec = ordinary_specs[0] if ordinary_specs else next(iter(jobs.values()))
         baseline_env = dict(source_spec["env"])
+    # The baseline stands in for master's real-Mongo run, which had no
+    # not-mockable manifest. Without this, a test listed in
+    # sefaria/tests/fixtures/mongo/_not-mockable.json would be deselected from the
+    # baseline and from every mocked job alike, and never show up as missing. The
+    # sandbox job reuses this env for the same reason: it runs against real Mongo.
+    baseline_env[PARITY_BASELINE_ENV] = "1"
 
     job_nodeids = {}
     for job_id, spec in jobs.items():
