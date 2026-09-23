@@ -7,7 +7,7 @@ _kk() { kubectl --context "$CTX" -n default "$@"; }
 keyadmin_run() {
   local img dsn push
   img=$(_kk get deploy "$ENV-auth-service" -o jsonpath='{.spec.template.spec.containers[0].image}')
-  dsn=$(_kk get secret "auth-service-pg-$ENV" -o jsonpath='{.data.AUTH_PG_DSN}' | base64 -d)
+  dsn=$(_kk get secret "${DSN_SECRET:-auth-service-registry}" -o jsonpath='{.data.AUTH_PG_DSN}' | base64 -d)
   push=$(_kk get endpoints "auth-service-$ENV-headless" -o jsonpath='{range .subsets[0].addresses[*]}http://{.ip}:8080/internal/keys/apply,{end}' | sed 's/,$//')
   _kk run "keyadmin-$RANDOM" --rm -i --restart=Never --image="$img" --command \
     --env="PG_DSN=$dsn" --env="REDIS_ADDR=redis-$ENV:6379" --env="HTTP_PUSH_URLS=$push" \

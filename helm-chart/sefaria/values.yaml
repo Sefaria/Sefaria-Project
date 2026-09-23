@@ -208,13 +208,12 @@ authService:
   push:
     channel: sefaria.apikeys  # Redis pub/sub on this environment's redis-<env>
   postgres:
-    # builtin: an in-chart single-pod Postgres with an emptyDir — POC only, state is disposable.
-    # false: read the DSN from secrets.dsn.ref (key AUTH_PG_DSN); which database that is remains
-    # open question 1 of the programme.
-    builtin: false
+    # The cluster's one key registry: a database in the cluster's shared Postgres (postgres-18),
+    # read by every auth service in the cluster at startup. The chart never runs a Postgres of its
+    # own. The Secret is a cluster-level object from the infrastructure repo, not per release.
     secrets:
       dsn:
-        ref: ""
+        ref: auth-service-registry
         key: AUTH_PG_DSN
   jwt:
     enabled: true

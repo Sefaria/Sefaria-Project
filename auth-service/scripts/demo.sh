@@ -162,7 +162,7 @@ section_deployed() {
   fi
 
   output=$(new_tmp)
-  if ! capture "$output" "${k[@]}" get deploy authpoc-auth-service authpoc-auth-service-postgres authpoc-mint -o 'custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,DESIRED:.spec.replicas,AVAILABLE:.status.availableReplicas' --no-headers; then
+  if ! capture "$output" "${k[@]}" get deploy authpoc-auth-service authpoc-mint -o 'custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,DESIRED:.spec.replicas,AVAILABLE:.status.availableReplicas' --no-headers; then
     unavailable 'auth-service, mint, or postgres deployments are not readable'
   fi
 

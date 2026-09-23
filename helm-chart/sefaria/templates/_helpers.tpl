@@ -267,11 +267,7 @@ spec:
 {{- end }}
 
 {{- define "sefaria.secrets.authServicePg" }}
-{{- if .Values.authService.postgres.secrets.dsn.ref -}}
-{{- .Values.authService.postgres.secrets.dsn.ref }}
-{{- else -}}
-auth-service-pg-{{ .Values.deployEnv }}
-{{- end }}
+{{- required "authService.postgres.secrets.dsn.ref: the cluster key-registry Secret" .Values.authService.postgres.secrets.dsn.ref }}
 {{- end }}
 
 {{- define "sefaria.authService.jwksURL" -}}
