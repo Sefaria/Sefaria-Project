@@ -4,6 +4,8 @@ import requests
 
 
 API_BASE_URL = os.environ.get("API_BASE_URL", "https://www.sefaria.org")
+# Identifies this suite in the Sefaria nginx logs (API Key Program Phase 0 convention).
+USER_AGENT = "Sefaria/api-tests (+https://github.com/Sefaria/Sefaria-Project)"
 
 
 @pytest.fixture(scope="session")
@@ -15,7 +17,7 @@ def base_url():
 def api(base_url):
     """Session-scoped requests session with base URL helper."""
     session = requests.Session()
-    session.headers.update({"Accept": "application/json"})
+    session.headers.update({"Accept": "application/json", "User-Agent": USER_AGENT})
     session.base_url = base_url
 
     class ApiClient:
