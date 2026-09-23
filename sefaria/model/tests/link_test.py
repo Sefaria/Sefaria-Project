@@ -78,6 +78,7 @@ class Test_Link_Save(object):
         l1 = Link().load({"refs": ["Psalms 1:1", 'Siddur Ashkenaz, Weekday, Maariv, Vehu Rachum 1']})
         assert not l1
 
+    @pytest.mark.needs_corpus
     def test_ranged_link_when_section_link_exists(self):
         link1 = Link({"auto": True,
                      "generated_by": "link_tester",
@@ -94,6 +95,7 @@ class Test_Link_Save(object):
             link2.save()
         l1.delete()
 
+    @pytest.mark.needs_corpus
     def test_section_link_when_ranged_link_exists(self):
         link1 = Link({"auto": True,
                      "generated_by": "link_tester",
@@ -110,6 +112,7 @@ class Test_Link_Save(object):
             link2.save()
         l1.delete()
 
+    @pytest.mark.needs_corpus
     def test_section_link_when_ranged_link_exists_reverse(self):
         link1 = Link({"auto": True,
                       "generated_by": "link_tester",

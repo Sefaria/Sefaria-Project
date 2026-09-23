@@ -77,5 +77,6 @@ class Test_Toc(object):
         indx2.save()
         verify_existence_across_tocs(indx2.title, expected_toc_location=indx2.categories)
 
+    @pytest.mark.needs_corpus
     def test_text_change(self):
         pass

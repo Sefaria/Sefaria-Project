@@ -277,6 +277,7 @@ class Test_AutoLinker(object):
         if v:
             v.delete()
 
+    @pytest.mark.needs_corpus
     def test_rebuild_commentary_links(self):
         #test simple adding links
         title = 'Rashi on Genesis'
@@ -286,6 +287,7 @@ class Test_AutoLinker(object):
         found = linker.rebuild_links()
         assert len(found) == desired_link_count
 
+    @pytest.mark.needs_corpus
     def test_rebuild_commentary_links_complex(self):
         title = 'Kos Eliyahu on Pesach Haggadah'
         rf = Ref(title)
@@ -294,6 +296,7 @@ class Test_AutoLinker(object):
         found = linker.rebuild_links()
         assert len(found) == desired_link_count
 
+    @pytest.mark.needs_corpus
     def test_rebuild_same_quantity_of_links_for_many_to_one_default_only(self):
         title = 'Many to One on Genesis'
         rf = Ref(title)
@@ -302,6 +305,7 @@ class Test_AutoLinker(object):
         found = linker.rebuild_links()
         assert len(found) == desired_link_count
 
+    @pytest.mark.needs_corpus
     def test_rebuild_same_quantity_of_links_for_one_to_one_default_only(self):
         title = 'One to One on Genesis'
         rf = Ref(title)
@@ -310,6 +314,7 @@ class Test_AutoLinker(object):
         found = linker.rebuild_links()
         assert len(found) == desired_link_count
 
+    @pytest.mark.needs_corpus
     def test_rebuild_same_link_content_for_many_to_one_default_only(self):
         title_ref = 'Many to One on Genesis 3:1:3'
         base_ref = "Genesis 3:1"
@@ -329,6 +334,7 @@ class Test_AutoLinker(object):
         new_link = Link().load(query)
         assert new_link
 
+    @pytest.mark.needs_corpus
     def test_rebuild_same_link_content_for_one_to_one_default_only(self):
         title_ref = "One to One on Genesis 3:3"
         base_ref = "Genesis 3:3"
@@ -348,6 +354,7 @@ class Test_AutoLinker(object):
         new_link = Link().load(query)
         assert new_link
 
+    @pytest.mark.needs_corpus
     def test_refresh_commentary_links(self):
         #test that there are the same number of links before and after
         title = 'Rashi on Genesis'
@@ -359,6 +366,7 @@ class Test_AutoLinker(object):
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert desired_link_count == link_count
 
+    @pytest.mark.needs_corpus
     def test_refresh_commentary_links_complex(self):
         #test that there are the same number of links before and after
         title = 'Kos Eliyahu on Pesach Haggadah'
@@ -370,6 +378,7 @@ class Test_AutoLinker(object):
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert desired_link_count == link_count
 
+    @pytest.mark.needs_corpus
     def test_refresh_commentary_links_one_to_one_default_node(self):
         title = "One to One on Genesis"
         base = "Genesis"
@@ -389,6 +398,7 @@ class Test_AutoLinker(object):
         link_count = LinkSet({"generated_by": linker._generated_by_string, "refs": {"$regex": regex}}).count()
         assert desired_link_count == link_count
 
+    @pytest.mark.needs_corpus
     def test_refresh_commentary_links_many_to_one_default_node(self):
         title = "Many to One on Genesis"
         base = "Genesis"
@@ -528,6 +538,7 @@ class Test_AutoLinker(object):
         assert higher_link_count == (desired_link_count+2)
         assert lower_link_count == desired_link_count
 
+    @pytest.mark.needs_corpus
     def test_bulk_refresh_links_with_text_save_complex(self):
         title = 'Kos Eliyahu on Pesach Haggadah'
         section_tref = 'Kos Eliyahu on Pesach Haggadah, Kadesh 1'

@@ -75,11 +75,15 @@ if _MOCK_MONGO_ENABLED:
     if os.path.isfile(_MONGO_BASE_FIXTURE):
         with open(_MONGO_BASE_FIXTURE) as f:
             payload = json_util.loads(f.read())
+        # insert_many, not replace_one per doc: the base now carries the whole
+        # Tanakh/Mishnah/Talmud index family (~7,700 documents). Measured on this
+        # payload, per-document replace_one into mongomock costs 12.8s against
+        # 0.6s for insert_many, and _seed_mock_mongo repeats the seed for every
+        # needs_mongo test. The target collections are empty here (fresh client),
+        # so upsert semantics are not needed.
         for collection, docs in payload.get("collections", {}).items():
-            for doc in docs:
-                _MOCK_MONGO_CLIENT[_sefaria_settings.SEFARIA_DB][collection].replace_one(
-                    {"_id": doc["_id"]}, doc, upsert=True
-                )
+            if docs:
+                _MOCK_MONGO_CLIENT[_sefaria_settings.SEFARIA_DB][collection].insert_many(docs)
     patch("pymongo.MongoClient", return_value=_MOCK_MONGO_CLIENT).start()
 
 # NOTE: sefaria.system.database is NOT imported here at module load time.
@@ -130,18 +134,32 @@ def _mongo_fixture_path(nodeid):
     return os.path.join(_MONGO_FIXTURE_DIR, _sanitize_nodeid(nodeid) + ".json")
 
 
+_fixture_cache = {}
+
+
 def _load_fixture(path):
     from bson import json_util
 
-    with open(path) as f:
-        return json_util.loads(f.read())
+    # Cached because _seed_mock_mongo reloads the shared base for every
+    # needs_mongo test. mongomock deep-copies documents on both insert and
+    # read, so a cached payload cannot be mutated by a test.
+    if path not in _fixture_cache:
+        with open(path) as f:
+            _fixture_cache[path] = json_util.loads(f.read())
+    return _fixture_cache[path]
 
 
-def _insert_fixture(active_db, payload):
+def _insert_fixture(active_db, payload, bulk=False):
+    # `bulk` is for a seed into freshly dropped collections, where upsert
+    # semantics are unnecessary: insert_many is ~20x faster than per-document
+    # replace_one on the shared base (measured: 0.6s vs 12.8s).
     for collection, docs in payload.get("collections", {}).items():
         if docs:
-            for doc in docs:
-                active_db[collection].replace_one({"_id": doc["_id"]}, doc, upsert=True)
+            if bulk:
+                active_db[collection].insert_many(docs)
+            else:
+                for doc in docs:
+                    active_db[collection].replace_one({"_id": doc["_id"]}, doc, upsert=True)
         else:
             active_db.create_collection(collection)
 
@@ -313,7 +331,7 @@ def _seed_mock_mongo(request):
     active_db = database.db
     for collection in active_db.list_collection_names():
         active_db.drop_collection(collection)
-    _insert_fixture(active_db, _load_fixture(_MONGO_BASE_FIXTURE))
+    _insert_fixture(active_db, _load_fixture(_MONGO_BASE_FIXTURE), bulk=True)
     _insert_fixture(active_db, _load_fixture(path))
 
     # `library` builds its title maps when sefaria.model is imported -- which, under
@@ -328,6 +346,57 @@ def _seed_mock_mongo(request):
     for collection in active_db.list_collection_names():
         active_db.drop_collection(collection)
     library.rebuild(include_toc=True)
+
+_DUMMY_CACHE_BACKEND = "django.core.cache.backends.dummy.DummyCache"
+_LOCMEM_CACHE_BACKEND = "django.core.cache.backends.locmem.LocMemCache"
+
+
+def _replace_dummy_caches(dj_settings):
+    """Swap DummyCache aliases for LocMemCache, each with its own LOCATION.
+
+    A distinct LOCATION per alias keeps "default" and "shared" as separate
+    stores, as they are under Redis. django.core.cache.caches memoises both the
+    settings dict and any backend already instantiated during django.setup(),
+    so both are dropped to make the new backends take effect.
+    """
+    from django.core.cache import caches
+
+    replaced = []
+    for alias, config in dj_settings.CACHES.items():
+        if config.get("BACKEND") == _DUMMY_CACHE_BACKEND:
+            dj_settings.CACHES[alias] = {
+                "BACKEND": _LOCMEM_CACHE_BACKEND,
+                "LOCATION": f"sefaria-pytest-{alias}",
+            }
+            replaced.append(alias)
+    if not replaced:
+        return
+    caches.__dict__.pop("settings", None)
+    for alias in replaced:
+        try:
+            delattr(caches._connections, alias)
+        except AttributeError:
+            pass  # never instantiated
+
+
+def _write_webpack_stats_stubs(dj_settings):
+    """Write a minimal 'build succeeded, no assets' stats file per webpack loader.
+
+    Mirrors build/ci/prepare-pytest-runner.sh so a local run behaves like CI.
+    `chunks` must contain every bundle name a template renders, or
+    webpack_loader raises WebpackBundleLookupError; `main` is the only one used
+    (templates/base.html, templates/edit_text.html). An empty chunk list renders
+    no script/link tags, which is what a test that never loads JS wants.
+    """
+    stub = {"status": "done", "chunks": {"main": []}, "assets": {}, "publicPath": "/static/"}
+    for config in (getattr(dj_settings, "WEBPACK_LOADER", None) or {}).values():
+        stats_file = config.get("STATS_FILE")
+        if not stats_file or os.path.exists(stats_file):
+            continue
+        os.makedirs(os.path.dirname(stats_file), exist_ok=True)
+        with open(stats_file, "w") as f:
+            json.dump(stub, f, indent=2, sort_keys=True)
+
 
 mock_topics_pool = {'sheets_topic_only': ['sheets', 'general_en', 'torah_tab'],
  'library_topic_only': ['library'],
@@ -361,6 +430,38 @@ def pytest_configure(config):
     _dj_settings.DATABASES.pop("vector_db", None)
     # Bust the ConnectionHandler's cached settings so the popped alias is really gone.
     _dj_connections.__dict__.pop("settings", None)
+
+    # Tests drive the request factory with the real production host names they
+    # are asserting about -- www.sefaria.org, voices.sef-stage.org,
+    # chiburim.localsefaria-il.xyz:8000 and a dozen more. None of them are in
+    # local_settings_example.ALLOWED_HOSTS (which is what CI copies in), so
+    # HttpRequest.get_host() raised DisallowedHost and 28 tests failed on the
+    # host check instead of exercising the middleware under test.
+    #
+    # This widens the *Django settings object* only, for the pytest session.
+    # sefaria.settings.ALLOWED_HOSTS -- the module-level list reader/views.py
+    # imports by value and passes to url_has_allowed_host_and_scheme() for the
+    # post-login redirect check -- is deliberately left alone, so the tests that
+    # assert an unsafe `next` URL is rejected keep their real allowlist.
+    _dj_settings.ALLOWED_HOSTS = ["*"]
+
+    # CI copies local_settings_example.py, whose CACHES are DummyCache, so every
+    # set/get round-trip returns None (strapi_cache_test). Master's sandbox ran
+    # these tests against django_redis RedisCache (helm-chart local-settings
+    # configmap), so DummyCache here is a regression of the CI move, not of the
+    # code. For the pytest session only, swap each DummyCache alias for an
+    # in-process LocMemCache -- a real cache with no external service. Aliases
+    # with any other backend, and production settings, are left untouched.
+    _replace_dummy_caches(_dj_settings)
+
+    # django-webpack-loader reads its stats JSON from disk at render time and
+    # raises OSError when the file is absent. The pytest jobs never run the
+    # webpack build, so any test that renders a template with {% render_bundle %}
+    # died on a missing artifact rather than on anything it asserts. Write a
+    # stub for each configured loader if -- and only if -- no real stats file is
+    # already there, so a developer with a real build keeps it. CI gets the same
+    # stubs from build/ci/prepare-pytest-runner.sh before pytest starts.
+    _write_webpack_stats_stubs(_dj_settings)
 
     # Disable Varnish cache invalidation for the entire test session. With
     # USE_VARNISH on (as in the CI sandbox), invalidate_linked() on a large

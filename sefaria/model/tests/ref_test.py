@@ -135,6 +135,7 @@ class Test_Ref(object):
         assert Ref("Shabbat 7b").is_talmud()
         assert Ref("Rashi on Shabbat 2a:1:1").is_talmud()
 
+    @pytest.mark.needs_corpus
     def test_all_context_refs(self):
         assert Ref('Rashi on Genesis 2:3:4').all_context_refs() == [Ref('Rashi on Genesis 2:3:4'), Ref('Rashi on Genesis 2:3'), Ref('Rashi on Genesis 2')]
         assert Ref('Rashi on Genesis 2:3:4').all_context_refs(include_self = False, include_book = True) == [Ref('Rashi on Genesis 2:3'), Ref('Rashi on Genesis 2'), Ref('Rashi on Genesis')]
@@ -172,6 +173,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Genesis 1:2:3").top_section_ref().normal() == "Rashi on Genesis 1"
         assert Ref("Genesis").top_section_ref().normal() == "Genesis 1"
 
+    @pytest.mark.needs_corpus
     def test_next_ref(self):
         assert Ref("Job 4:5").next_section_ref().normal() == "Job 5"
         assert Ref("Shabbat 4b").next_section_ref().normal() == "Shabbat 5a"
@@ -180,6 +182,7 @@ class Test_Ref(object):
         assert Ref("Berakhot 64a").next_section_ref() is None
         assert Ref("Rif Chullin 43a").next_section_ref().normal() == "Rif Chullin 44b"
 
+    @pytest.mark.needs_corpus
     def test_complex_next_ref(self): #at time of test we only had complex commentaries stable to test with
         assert Ref('Pesach Haggadah, Kadesh').next_section_ref().normal() == 'Pesach Haggadah, Urchatz'
         assert Ref('Orot, Lights from Darkness, Lights of Rebirth 72').next_section_ref().normal() == 'Orot, Lights from Darkness, Great Calling'
@@ -191,6 +194,7 @@ class Test_Ref(object):
         assert Ref("Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4").next_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Barech, Pour Out Thy Wrath 2"
         assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Second Cup of Wine 2").next_section_ref() is Ref('Kos Eliyahu on Pesach Haggadah, Barech, Pour Out Thy Wrath 2')
 
+    @pytest.mark.needs_corpus
     def test_prev_ref(self):
         assert Ref("Job 4:5").prev_section_ref().normal() == "Job 3"
         assert Ref("Shabbat 4b").prev_section_ref().normal() == "Shabbat 4a"
@@ -199,6 +203,7 @@ class Test_Ref(object):
         assert Ref("Berakhot 2a").prev_section_ref() is None
         assert Ref("Rif Chullin 44b").prev_section_ref().normal() == "Rif Chullin 43a"
 
+    @pytest.mark.needs_corpus
     def test_complex_prev_ref(self):
         assert Ref('Pesach Haggadah, Urchatz').prev_section_ref().normal() == 'Pesach Haggadah, Kadesh'
         assert Ref('Orot, Lights from Darkness, Great Calling').prev_section_ref().normal() == 'Orot, Lights from Darkness, Lights of Rebirth 72'
@@ -210,6 +215,7 @@ class Test_Ref(object):
         assert Ref("Ephod Bad on Pesach Haggadah, Hallel, Second Half of Hallel 2").prev_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Barech, Pour Out Thy Wrath 2"
         assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Ha Lachma Anya 3").prev_section_ref() is None
 
+    @pytest.mark.needs_corpus
     def test_next_segment_ref(self):
         assert Ref("Exodus 4:1").next_segment_ref() == Ref("Exodus 4:2")
         assert Ref("Exodus 3:22").next_segment_ref() == Ref("Exodus 4:1")
@@ -222,6 +228,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Shabbat 6a:1:1").next_segment_ref() == Ref("Rashi on Shabbat 6a:3:1")
         assert Ref("Rashi on Shabbat 5b:10:1").next_segment_ref() == Ref("Rashi on Shabbat 6a:1:1")
 
+    @pytest.mark.needs_corpus
     def test_prev_segment_ref(self):
         assert Ref("Exodus 4:3").prev_segment_ref() == Ref("Exodus 4:2")
         assert Ref("Exodus 4:1").prev_segment_ref() == Ref("Exodus 3:22")
@@ -234,6 +241,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Shabbat 6a:3:1").prev_segment_ref() == Ref("Rashi on Shabbat 6a:1:1")
         assert Ref("Rashi on Shabbat 6a:1:1").prev_segment_ref() == Ref("Rashi on Shabbat 5b:10:1")
 
+    @pytest.mark.needs_corpus
     def test_last_segment_ref(self):
         assert Ref("Exodus").last_segment_ref() == Ref('Exodus 40:38')
         assert Ref("Rashi on Exodus").last_segment_ref() == Ref('Rashi on Exodus 40:38:1')
@@ -288,6 +296,7 @@ class Test_Ref(object):
         with pytest.raises(InputError):
             r = Ref("Leviticus 15:3 - 15:1")
 
+    @pytest.mark.needs_corpus
     def test_to_section_segment(self):
         r = Ref("Leviticus 15")
         s = Ref("Leviticus 16:3")
@@ -301,6 +310,7 @@ class Test_Ref(object):
         assert t.sections == [15,3]
         assert t.toSections == [16, 34]
 
+    @pytest.mark.needs_corpus
     def test_pad_to_last_segment_ref(self):
         r = Ref("Leviticus 16")
         assert r.pad_to_last_segment_ref().sections == [16,34]
@@ -327,6 +337,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Exodus 3:1-4:1").span_size() == 2
         assert Ref("Rashi on Exodus 3:1-4:10").span_size() == 2
 
+    @pytest.mark.needs_corpus
     def test_split_spanning_ref(self):
         assert Ref("Leviticus 15:3 - 17:12").split_spanning_ref() == [Ref('Leviticus 15:3-33'), Ref('Leviticus 16'), Ref('Leviticus 17:1-12')]
         assert Ref("Leviticus 15-17").split_spanning_ref() == [Ref('Leviticus 15'), Ref('Leviticus 16'), Ref('Leviticus 17')]
@@ -342,6 +353,7 @@ class Test_Ref(object):
         refs = r.split_spanning_ref()
         assert refs[0] == Ref("Rashi on Genesis 21:3")
 
+    @pytest.mark.needs_corpus
     def test_first_spanned_ref(self):
         tests = [
             Ref("Exodus 15:3 - 17:12"),
@@ -358,6 +370,7 @@ class Test_Ref(object):
     def test_split_spanning_ref_expanded(self):
         assert Ref("Leviticus 15:3 - 17:12").split_spanning_ref() == [Ref('Leviticus 15:3-33'), Ref('Leviticus 16:1-34'), Ref('Leviticus 17:1-12')]
 
+    @pytest.mark.needs_corpus
     def test_range_list(self):
         assert Ref("Leviticus 15:12-17").range_list() ==  [Ref('Leviticus 15:12'), Ref('Leviticus 15:13'), Ref('Leviticus 15:14'), Ref('Leviticus 15:15'), Ref('Leviticus 15:16'), Ref('Leviticus 15:17')]
         assert Ref("Shabbat 15b:5-8").range_list() ==  [Ref('Shabbat 15b:5'), Ref('Shabbat 15b:6'), Ref('Shabbat 15b:7'), Ref('Shabbat 15b:8')]
@@ -374,6 +387,7 @@ class Test_Ref(object):
                                                         Ref('Shabbat 15b:1'),
                                                         Ref('Shabbat 15b:2')]
 
+    @pytest.mark.needs_corpus
     def test_range_list_first_and_last_segment(self):
         assert Ref("Shabbat 15a:9-15b:1").range_list() == [Ref('Shabbat 15a:9'),
                                                             Ref('Shabbat 15a:10'),
@@ -391,6 +405,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Berakhot 3a:2:1-5:1").starting_refs_of_span() == [Ref("Rashi on Berakhot 3a:2:1")]
         assert Ref("Rashi on Berakhot 3a:4:1-6:1").starting_refs_of_span(True) == [Ref("Rashi on Berakhot 3a:4:1"), Ref("Rashi on Berakhot 3a:5"), Ref("Rashi on Berakhot 3a:6")]
 
+    @pytest.mark.needs_corpus
     def test_as_ranged_segment_ref(self):
         assert Ref("Rashi on Berakhot").as_ranged_segment_ref() == Ref("Rashi on Berakhot 2a:1:1-64a:15:1")
         assert Ref("Berakhot").as_ranged_segment_ref() == Ref("Berakhot 2a:1-64a:15")
@@ -423,6 +438,7 @@ class Test_Ref(object):
         assert Ref("Rashi on Exodus 5").subref([5,5]) == Ref("Rashi on Exodus 5:5:5")
         assert Ref("Rashi on Exodus").subref([5,5,5]) == Ref("Rashi on Exodus 5:5:5")
 
+    @pytest.mark.needs_corpus
     def test_negative_subref(self):
         assert Ref("Exodus").subref(-1) == Ref("Exodus 40")
         assert Ref("Exodus").subref(-3).subref(-4) == Ref("Exodus 38:28")
@@ -433,6 +449,7 @@ class Test_Ref(object):
         assert Ref("Exodus").subref([5, -1]) == Ref("Exodus 5:23")
         assert Ref("Rashi on Exodus 5").subref([5, -1]) == Ref("Rashi on Exodus 5:5:1")
 
+    @pytest.mark.needs_corpus
     def test_all_subrefs(self):
         assert Ref("Genesis").all_subrefs()[49] == Ref("Genesis 50")
         assert Ref("Genesis 40").all_subrefs()[22] == Ref("Genesis 40:23")
@@ -444,10 +461,12 @@ class Test_Ref(object):
         assert Ref("Yoma 14a:12-15").regex() == '^Yoma( 14a:12$| 14a:12:| 14a:12 \\d| 14a:13$| 14a:13:| 14a:13 \\d| 14a:14$| 14a:14:| 14a:14 \\d| 14a:15$| 14a:15:| 14a:15 \\d)'
         assert Ref("Yoma").regex() == '^Yoma($|:| \\d)'  # This is as legacy had it
 
+    @pytest.mark.needs_corpus
     def test_spanning_ref_regex(self):
         assert Ref("Exodus 4:30-6:2").regex() == '^Exodus( 4:30$| 4:30:| 4:30 \\d| 4:31$| 4:31:| 4:31 \\d| 5$| 5:| 5 \\d| 6:1$| 6:1:| 6:1 \\d| 6:2$| 6:2:| 6:2 \\d)'
 
     #todo: devise a better test of version_list()
+    @pytest.mark.needs_corpus
     def test_version_list(self):
         assert len(Ref("Exodus").version_list()) > 3
         assert len(Ref("Exodus").version_list()) > len(Ref("Exodus 5").version_list())
@@ -488,6 +507,7 @@ class Test_Ref(object):
         Ref("Tamid 25b")  # First amud
         Ref("Tamid 33b")  # Last amud
 
+    @pytest.mark.needs_corpus
     def test_surrounding_ref(self):
         assert Ref("Genesis 3.3").surrounding_ref() == Ref("Genesis 3.2-4")
         assert Ref("Genesis 3.3").surrounding_ref(2) == Ref("Genesis 3.1-5")
@@ -501,6 +521,7 @@ class Test_Ref(object):
         # Used to short circuit, fail to resolve to Malachi, and fail
         assert Ref("Malbim Beur Hamilot on Ezekiel")
 
+    @pytest.mark.needs_corpus
     def test_distance(self):
         r1 = Ref("Genesis 1:3")
         r2 = Ref("Genesis 3:4")
@@ -643,6 +664,7 @@ class Test_normal_forms(object):
         assert oref.normal() == "Zohar 1:25-2:27"
         assert oref.he_normal() == "ספר הזהר א׳:כ״ה-ב׳:כ״ז"
 
+    @pytest.mark.needs_corpus
     def test_first_available_section_ref(self):
         assert Ref('Genesis').first_available_section_ref() == Ref('Genesis 1')
         assert Ref('Siddur Ashkenaz').first_available_section_ref() == Ref('Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani')
@@ -714,6 +736,7 @@ class Test_comparisons(object):
         assert Ref("Genesis 1:10-4:10").overlaps(Ref("Genesis 3:15-5:5"))
 
 
+    @pytest.mark.needs_corpus
     def test_contains(self):
         assert Ref("Genesis 5:10-20").contains(Ref("Genesis 5:10-20"))
         assert Ref("Genesis 5:10-20").contains(Ref("Genesis 5:13-18"))
@@ -997,6 +1020,7 @@ class Test_set_construction_from_ref(object):
 
 
 class Test_Order_Id(object):
+    @pytest.mark.needs_corpus
     def test_order_id_processes(self):
         assert Ref("Klein Dictionary, א").order_id()
         assert Ref("Shabbat 17b").order_id()
@@ -1013,6 +1037,7 @@ class Test_Order_Id(object):
     def test_ordering_of_complex_texts(self):
         assert Ref("Meshekh Chokhmah, Vaera 2").order_id() > Ref("Meshekh Chokhmah, Shemot 6").order_id()
 
+    @pytest.mark.needs_corpus
     def test_ordering_of_dictionary(self):
         i = library.get_index("Klein Dictionary")
         first = i.nodes.get_default_child().first_child()
