@@ -3193,7 +3193,7 @@ const MobilePageHeader = () => (
                 </h1>
                 <SimpleInterfaceBlock classes="staticPageHeaderText mobile"
                     en="The Jewish Library — Free, Anywhere, Anytime."
-                    he="ספריית מקורות היהדות זמין בכללותו, בכל עת ובכל מקום." />
+                    he="ספרייה של כל מקורות היהדות זמינה בכל עת ובכל מקום." />
                 <MobileDownloadButtons />
             </div>
             <div className="staticPageHeaderImg">
@@ -3218,7 +3218,7 @@ const MobileAppPage = () => (
         </EnBlock>
         <HeBlock padded={true}>
             <p className="staticPageAboutText" style={{fontSize: "18px", lineHeight: "1.7", margin: "50px 0"}}>
-                תהנו מגישה חופשית למאגר נרחב של כותרים בשפות המקור ובמגוון תרגומים. ספריית ספריא כוללת מקורות ממיני קטגוריות טקסט – תנ״ך, תלמוד, משנה, קבלה, ליטורגיה ועוד. יישומון ספריית ספריא מאפשר לכם להתעמק במקורות החוצים את גבולות הזמן והמקום, כולם מקושרים ומצוטטים על מנת לאפשר למידה עשירה. בנוסף, ניתן להוריד את מרבית הכותרים למכשיר האישי על מנת ללמוד בכל מקום – גם ללא חיבור לאינטרנט.
+                היישומון מאפשר גישה חופשית למאגר נרחב של כותרים בשפות המקור ובמגוון תרגומים. ספריית ספריא כוללת מקורות בקטגוריות שונות: תנ"ך, תלמוד, משנה, קבלה, תפילה ועוד. יישומון ספריית ספריא מאפשר לכם להעמיק במקורות ללא  גבולות זמן ומקום. המקורות כולם מקושרים ביניהם ובכך הלמידה רחבה יותר ועשירה. בנוסף, ניתן להוריד את מרבית הכותרים למכשיר האישי על מנת ללמוד בכל מקום - גם ללא חיבור לאינטרנט.
             </p>
         </HeBlock>
         <div className="colorLine" />
@@ -3238,7 +3238,7 @@ const MobileAppPage = () => (
                     enTitle="Look up education resources on the go"
                     heTitle="חיפוש מהיר של מקורות, בכל זמן"
                     enText={`"I use Sefaria all the time - prepping for class, learning on the go, in the middle of a conversation and want to find a source. It has been an amazing tool in my life."`}
-                    heText={`״אני משתמשת ב[יישומון של] ספריא כל הזמן – בין אם אני מתכננת שיעור, לומדת על הדרך, או פתאום צריכה לחפש מקור באמצע שיחה. זה כלי מדהים שממש מעשיר את החיים שלי.״`}
+                    heText={`"אני משתמשת ביישומון של ספריא כל הזמן - בין אם אני מתכננת שיעור, לומדת על הדרך, או פתאום צריכה מקור באמצע שיחה. זה כלי מדהים שממש מעשיר את החיים שלי."`}
                     enAttrib="Jaclyn S, Educator"
                     heAttrib="ג׳קלין ס., מחנכת"
                 />
@@ -3256,7 +3256,7 @@ const MobileAppPage = () => (
         <div class="mobileFeatures">
             <Feature
                 enTitle="Calendar"
-                heTitle="לוח השנה העברי בגישה מהירה"
+                heTitle="לוח לימוד יומי"
                 enText="Check the daily calendar to find current readings for the weekly Torah portion, Daf Yomi, 929, and more."
                 heText="בעזרת לוח הלימוד היומי של ספריית ספריא תוכלו למצוא את הקריאות הרלוונטיות בתורה, את הדף היומי בתלמוד, את 929 ועוד."
                 enImg="/static/img/mobile-landing-page/calmock.png"
@@ -3270,7 +3270,7 @@ const MobileAppPage = () => (
                 enTitle="Commentaries"
                 heTitle="פרשנויות, מדרשים ועוד"
                 enText="Learn with a variety of commentaries and explore the interconnections between texts. Torah commentaries include Rashi, Ibn Ezra, Ramban, Sforno, Abarbanel, and more. Talmud Bavli commentaries include Rashi, Tosafot, Rashba, Rosh, and more."
-                heText="בספריית ספריא תוכלו לעיין במגוון פרשנויות, מדרשים ועוד ולהנות מקישוריות המחברות בין מקורות שמצטטים זה את זה או שיש ביניהם קשר תמטי. אלו כוללים את כתביהם של רש״י, אבן עזרא, רמב״ן, ספורנו, אברבנאל ועוד אודות התנ״ך, ואת כתבים של רש״י, רשב״א, ועוד אודות התלמוד."
+                heText={`בספריית ספריא תוכלו לעיין במקוון פרשנויות, מדרשים ועוד, וליהנות מקישוריות המחברת בין המקורות שמצטטים זה את זה או שיש ביניהם קשר תמטי. אלה כוללים את כתביהם של רש"י, אבן עזרא, רמב"ן, ספורנו, אברבנאל ועוד אודות התנ"ך, ואת פירושי רש"י , רשב"א ועוד רבים אחרים על התלמוד.`}
                 enImg="/static/img/mobile-landing-page/commmock.png"
                 enImgAlt="Screenshot of commentary panel on app"
                 heImg="/static/img/mobile-landing-page/commmockHEB.png"
@@ -3279,9 +3279,9 @@ const MobileAppPage = () => (
             />
             <Feature
                 enTitle="Search"
-                heTitle="חיפוש מקיף בכמה הקשות מהירות"
+                heTitle="חיפוש מקיף בכמה לחיצות מהירות"
                 enText="Use the search tool to find topics, words, and phrases in both Hebrew and English. Filter your search by book, category, or relevance."
-                heText="בעזרת שורת החיפוש, תוכלו לחפש נושאים, מילות מפתח ופראזות בעברית ובאנגלית. ניתן אף לצמצם את תוצאות החיפוש על ידי בחירה בתנאי חיפוש מסוימים, כגון כרונולוגיה, רלוונטיות או השתייכות לכותר מסוים."
+                heText="בעזרת שורת החיפוש, תוכלו לחפש נושאי, מילות מפתח ופיסקאות בעברית ובאנגלית. ניתן אף לצמצם את תוצאות החיפוש באמצעות סינון ומיון כגון כרונולוגיה של המקורות או השתייכות לכותר מסוים."
                 enImg="/static/img/mobile-landing-page/searchmock.png"
                 enImgAlt="Screenshot of search on app"
                 heImg="/static/img/mobile-landing-page/searchmockHEB.png"
