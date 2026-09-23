@@ -1038,6 +1038,7 @@ class TestLinksUploadAPI:
         assert 'error' in data
         assert 'Unsupported Method' in data['error']
 
+    @pytest.mark.needs_corpus
     @pytest.mark.needs_linker
     @pytest.mark.needs_mongo
     @pytest.mark.django_db

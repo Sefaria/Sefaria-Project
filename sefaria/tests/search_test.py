@@ -908,6 +908,7 @@ def test_shard_selection_is_deterministic_partition():
     assert max(counts) - min(counts) <= 1
 
 
+@pytest.mark.needs_corpus
 @pytest.mark.needs_mongo
 def test_index_all_calls_select_shard_keys_when_sharding(monkeypatch):
     """When shard_index/shard_count are passed, index_all must select this shard's keys
