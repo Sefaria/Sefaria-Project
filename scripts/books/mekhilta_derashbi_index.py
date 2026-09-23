@@ -12,7 +12,7 @@ from sefaria.model import *
 apikey = ''
 server = 'dev.sefaria.org'
 # Identifies this script in the Sefaria nginx logs (API Key Program Phase 0 convention).
-SEFARIA_USER_AGENT = "Sefaria/scripts (+https://github.com/Sefaria/Sefaria-Project)"
+SEFARIA_USER_AGENT = "Sefaria/scripts"
 
 def post_texts_api(text_obj, ref):
     url = 'http://' + server + '/api/v2/raw/index/{}'.format(ref)

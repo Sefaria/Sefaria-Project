@@ -34,7 +34,7 @@ from sefaria.model import *
 import requests
 
 # Identifies this script in the Sefaria nginx logs (API Key Program Phase 0 convention).
-SEFARIA_USER_AGENT = "Sefaria/scripts (+https://github.com/Sefaria/Sefaria-Project)"
+SEFARIA_USER_AGENT = "Sefaria/scripts"
 
 
 def run_on_books(cb, *args, **kwargs):

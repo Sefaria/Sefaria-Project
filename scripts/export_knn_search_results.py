@@ -27,7 +27,7 @@ DEFAULT_INPUT = Path("data/private/dataset_natural_language_search.csv")
 DEFAULT_OUTPUT = Path("data/private/dataset_natural_language_search_knn_results.csv")
 DEFAULT_API_URL = "https://www.sefaria.org/api/knn-search"
 # Identifies this script in the Sefaria nginx logs (API Key Program Phase 0 convention).
-SEFARIA_USER_AGENT = "Sefaria/scripts (+https://github.com/Sefaria/Sefaria-Project)"
+SEFARIA_USER_AGENT = "Sefaria/scripts"
 DEFAULT_QUERY_COLUMN = "Simplified Search"
 RAW_QUERY_COLUMN = "User Query (click to open in Braintrust)"
 OUTPUT_FIELDS = [

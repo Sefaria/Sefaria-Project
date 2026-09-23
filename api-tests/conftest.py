@@ -5,7 +5,7 @@ import requests
 
 API_BASE_URL = os.environ.get("API_BASE_URL", "https://www.sefaria.org")
 # Identifies this suite in the Sefaria nginx logs (API Key Program Phase 0 convention).
-USER_AGENT = "Sefaria/api-tests (+https://github.com/Sefaria/Sefaria-Project)"
+USER_AGENT = "Sefaria/api-tests"
 
 
 @pytest.fixture(scope="session")
