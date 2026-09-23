@@ -298,13 +298,17 @@ class Test_Toc_Node_Id(object):
         assert c.toc_node_id(Broken()) is None
 
 
-class Test_Toc_Add_Category_Missing_Parent(object):
-    """A dropped parent category must not cascade into a signature-breaker trip.
+class Test_Toc_Add_Category_Guards(object):
+    """The two malformed-category conditions TocTree._add_category checks for explicitly.
 
-    Categories build parents-first, so when one parent is skipped every direct child fails
-    the parent lookup in TocTree._add_category. Left to raise KeyError inside skip_bad_record,
-    all those children share one error message (the parent's path), and ten of them trip the
-    signature breaker -- aborting the build for what is one bad record, not broken code.
+    A dropped parent must not cascade into a signature-breaker trip: categories build
+    parents-first, so when one parent is skipped every direct child fails the parent lookup.
+    Left to raise KeyError inside skip_bad_record, all those children share one error message
+    (the parent's path), and ten of them trip the signature breaker -- aborting the build for
+    what is one bad record, not broken code.
+
+    An empty `path` is the opposite failure: it raises nothing at all, so without a check it
+    ships as a blank top-level entry in the ToC with nothing recorded anywhere.
     """
 
     def _bare_toc_tree(self):
@@ -338,6 +342,30 @@ class Test_Toc_Add_Category_Missing_Parent(object):
         assert all(r.error_type is None for r in ours), "should be soft skips, not caught KeyErrors"
         assert tree._path_hash == {}
         assert tree._root.children == []
+
+    def test_a_category_with_an_empty_path_is_dropped_and_recorded(self):
+        from sefaria.helper import skip_tracking
+
+        class _Cat(object):
+            path = []
+            _id = "zz-empty-path"
+
+        tree = self._bare_toc_tree()
+        skip_tracking.reset_skip_counts()
+        try:
+            tree._add_category(_Cat())
+            records = skip_tracking.get_skip_records()
+        finally:
+            skip_tracking.reset_skip_counts()
+
+        ours = [r for r in records if r.operation == "TocTree._add_category"]
+        assert len(ours) == 1, "an empty path must not pass silently"
+        assert ours[0].error_type is None, "should be a soft skip, not a caught exception"
+        assert "zz-empty-path" in ours[0].record, "the log must name the record by _id"
+        # The blank entry this check exists to prevent: nothing attached to the root, and
+        # nothing keyed under the empty tuple.
+        assert tree._root.children == []
+        assert () not in tree._path_hash
 
     def test_a_child_with_a_present_parent_still_attaches(self):
         from sefaria.helper import skip_tracking
