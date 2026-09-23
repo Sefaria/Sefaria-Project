@@ -371,3 +371,162 @@ class TestCollectHelpers:
         p.write_text(json.dumps([{"nodeid": "x::y", "reason": "z"}]))
         entries = ci_parity.load_allowlist(str(p))
         assert entries == [{"nodeid": "x::y", "reason": "z"}]
+
+
+# ---------------------------------------------------------------------------
+# sandbox ("corpus") jobs: pytest launched via createJobFromRollout.sh inside
+# a Kubernetes Job, not `python -m pytest` on the runner directly.
+# ---------------------------------------------------------------------------
+
+SANDBOX_WORKFLOW_YAML = """
+env:
+  CORPUS_MARK_EXPR: "needs_corpus and not deep and not failing"
+jobs:
+  pytest-corpus-job:
+    name: "Continuous Testing: PyTest (corpus)"
+    steps:
+      - name: Start Job
+        run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV corpus
+        env:
+          DEPLOY_ENV: sandbox-${{ steps.get-sha.outputs.sha_short }}
+          PYTEST_MARK_EXPR: ${{ env.CORPUS_MARK_EXPR }}
+"""
+
+
+def load_sandbox_sample():
+    return yaml.safe_load(SANDBOX_WORKFLOW_YAML)
+
+
+class TestSandboxJobs:
+    def test_sandbox_step_parsed_with_env_resolution(self):
+        workflow = load_sandbox_sample()
+        jobs = ci_parity.extract_pytest_jobs(workflow)
+        spec = jobs["pytest-corpus-job"]
+        assert spec["argv"] == [
+            "-m", "needs_corpus and not deep and not failing",
+            "./sefaria", "./sso", "./reader", "./powered_by",
+        ]
+
+    def test_sandbox_defaults_when_mark_expr_and_targets_absent(self):
+        workflow_yaml = """
+jobs:
+  pytest-corpus-job:
+    steps:
+      - run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV corpus
+"""
+        workflow = yaml.safe_load(workflow_yaml)
+        jobs = ci_parity.extract_pytest_jobs(workflow)
+        spec = jobs["pytest-corpus-job"]
+        assert spec["argv"] == [
+            "-m", ci_parity.SANDBOX_DEFAULT_MARK_EXPR,
+        ] + ci_parity.SANDBOX_DEFAULT_TARGETS.split()
+
+    def test_sandbox_targets_override_is_split(self):
+        workflow_yaml = """
+jobs:
+  pytest-corpus-job:
+    steps:
+      - run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV corpus
+        env:
+          PYTEST_TARGETS: "./sefaria/datatype ./sso"
+"""
+        workflow = yaml.safe_load(workflow_yaml)
+        jobs = ci_parity.extract_pytest_jobs(workflow)
+        spec = jobs["pytest-corpus-job"]
+        assert spec["argv"][2:] == ["./sefaria/datatype", "./sso"]
+
+    def test_unresolvable_expression_raises(self):
+        workflow_yaml = """
+jobs:
+  pytest-corpus-job:
+    steps:
+      - run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV corpus
+        env:
+          PYTEST_MARK_EXPR: ${{ env.MISSING_VAR }}
+"""
+        workflow = yaml.safe_load(workflow_yaml)
+        import pytest
+
+        with pytest.raises(ci_parity.UnresolvedExpressionError):
+            ci_parity.extract_pytest_jobs(workflow)
+
+    def test_unresolvable_expression_surfaces_as_exit_2_via_main(self, tmp_path, monkeypatch):
+        workflow_yaml = """
+jobs:
+  pytest-corpus-job:
+    steps:
+      - run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV corpus
+        env:
+          PYTEST_MARK_EXPR: ${{ env.MISSING_VAR }}
+"""
+        _write_workflow(tmp_path, workflow_yaml)
+
+        def _fail_if_called(*args, **kwargs):
+            raise AssertionError("collect() should not be reached: parsing must fail first")
+
+        monkeypatch.setattr(ci_parity, "collect", _fail_if_called)
+        rc = ci_parity.main(["--root", str(tmp_path)])
+        assert rc == 2
+
+    def test_deploy_env_steps_expression_is_ignored_not_an_error(self):
+        # DEPLOY_ENV uses ${{ steps.get-sha.outputs.sha_short }}, which this
+        # script cannot and need not resolve -- only PYTEST_MARK_EXPR /
+        # PYTEST_TARGETS are read at all.
+        workflow = load_sandbox_sample()
+        jobs = ci_parity.extract_pytest_jobs(workflow)  # must not raise
+        assert "pytest-corpus-job" in jobs
+
+    def test_sandbox_job_uses_baseline_env_for_collection(self, tmp_path, monkeypatch):
+        workflow_yaml = """
+jobs:
+  pytest-ordinary-job:
+    env:
+      SEFARIA_MOCK_MONGO: "1"
+    steps:
+      - run: python -m pytest -q -m "not deep" ./sefaria
+  pytest-corpus-job:
+    steps:
+      - run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV corpus
+        env:
+          DEPLOY_ENV: sandbox-abc123
+          PYTEST_MARK_EXPR: "needs_corpus"
+          PYTEST_TARGETS: "./sefaria"
+"""
+        _write_workflow(tmp_path, workflow_yaml)
+        ordinary_argv = ("-q", "-m", "not deep", "./sefaria")
+        corpus_argv = ("-m", "needs_corpus", "./sefaria")
+        baseline_argv = ("-m", ci_parity.DEFAULT_BASELINE_EXPR, "./sefaria")
+
+        calls = []
+
+        def _fake_collect(argv, env, root):
+            calls.append((tuple(argv), dict(env)))
+            key = tuple(argv)
+            if key == ordinary_argv:
+                return {"sefaria/tests/a_test.py::test_a"}
+            if key == corpus_argv:
+                return {"sefaria/tests/a_test.py::test_a"}
+            if key == baseline_argv:
+                return {"sefaria/tests/a_test.py::test_a"}
+            raise AssertionError(f"unexpected argv {argv!r}")
+
+        monkeypatch.setattr(ci_parity, "collect", _fake_collect)
+        rc = ci_parity.main(["--root", str(tmp_path), "--baseline-paths", "./sefaria"])
+        assert rc == 0
+
+        # find the call made for the corpus job and confirm it used the
+        # ordinary job's env (SEFARIA_MOCK_MONGO), not DEPLOY_ENV from its own step.
+        corpus_calls = [env for argv, env in calls if argv == corpus_argv]
+        assert len(corpus_calls) == 1
+        assert corpus_calls[0].get("SEFARIA_MOCK_MONGO") == "1"
+        assert "DEPLOY_ENV" not in corpus_calls[0]
+
+    def test_existing_ordinary_job_tests_still_pass(self):
+        # Sanity check that sandbox-support additions didn't change ordinary
+        # job extraction behaviour (full regression covered by TestExtractPytestJobs
+        # above; this is a quick smoke check colocated with the sandbox tests).
+        workflow = load_sample()
+        jobs = ci_parity.extract_pytest_jobs(workflow)
+        assert "-m" in jobs["pytest-job"]["argv"]
+        expr_idx = jobs["pytest-job"]["argv"].index("-m") + 1
+        assert jobs["pytest-job"]["argv"][expr_idx] == "not deep and not failing and needs_mongo"
