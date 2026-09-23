@@ -190,7 +190,9 @@ authService:
   # Comma-separated path prefixes that require a key (401 api_key_required without one).
   gatedPaths: "/api/knn-search"
   helpURL: https://developers.sefaria.org/help/
-  replicaCount: 2
+  # One is enough for a cauldron (failOpen covers the restart gap); production sets more. A PDB is
+  # rendered only when this is > 1.
+  replicaCount: 1
   containerImage:
     imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-auth-service
     tag: latest

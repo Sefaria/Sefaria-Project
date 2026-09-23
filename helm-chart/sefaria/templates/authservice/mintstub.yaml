@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mint-{{ .Values.deployEnv }}
+  name: {{ .Values.deployEnv }}-mint
   labels:
     app: mint-{{ .Values.deployEnv }}
     deployEnv: "{{ .Values.deployEnv }}"

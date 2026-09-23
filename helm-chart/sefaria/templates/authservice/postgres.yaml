@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-service-postgres-{{ .Values.deployEnv }}
+  name: {{ .Values.deployEnv }}-auth-service-postgres
   labels:
     app: auth-service-postgres-{{ .Values.deployEnv }}
     deployEnv: "{{ .Values.deployEnv }}"

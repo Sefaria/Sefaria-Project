@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth-service-{{ .Values.deployEnv }}
+  name: {{ .Values.deployEnv }}-auth-service
   labels:
     app: auth-service-{{ .Values.deployEnv }}
     deployEnv: "{{ .Values.deployEnv }}"

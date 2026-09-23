@@ -21,7 +21,9 @@ shellcheck:
 	shellcheck -S warning scripts/*.sh
 helm-matrix:
 	@set -e; C=../helm-chart/sefaria; \
-	echo "== flag off: no auth objects"; helm template x $$C --set deployEnv=x | yq 'select(.kind == "SecurityPolicy" or (.metadata.name | test("auth-service|mint-"))) | .kind' | grep -c . | grep -qx 0; \
+	echo "== flag off: no auth objects"; helm template x $$C --set deployEnv=x | yq 'select(.kind == "SecurityPolicy" or (.metadata.name | test("auth-service|mint"))) | .kind' | grep -c . | grep -qx 0; \
+	echo "== one replica: no PDB"; helm template x $$C --set deployEnv=x --set authService.enabled=true | yq 'select(.kind=="PodDisruptionBudget" and (.metadata.name | test("auth-service"))) | .kind' | grep -c . | grep -qx 0; \
+	echo "== two replicas: PDB minAvailable 1"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.replicaCount=2 | yq 'select(.kind=="PodDisruptionBudget" and (.metadata.name | test("auth-service"))) | .spec.minAvailable' | grep -qx 1; \
 	echo "== grpc"; helm template x $$C --set deployEnv=x --set authService.enabled=true | yq 'select(.kind=="SecurityPolicy") | .spec.extAuth.grpc.backendRefs[0].port' | grep -qx 9090; \
 	echo "== http"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.transport=http | yq 'select(.kind=="SecurityPolicy") | .spec.extAuth.http.headersToBackend | length' | grep -qx 3; \
 	echo "== jwt authsvc"; helm template x $$C --set deployEnv=x --set authService.enabled=true --set authService.jwt.mode=authsvc | yq 'select(.kind=="SecurityPolicy") | .spec.jwt' | grep -qx null; \
