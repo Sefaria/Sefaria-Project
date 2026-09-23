@@ -3507,10 +3507,10 @@ sjs.showNewText = function () {
 	$(window).scrollLeft(0).unbind("scroll.update");
 
 	// Title -- sections may be internal integers (daf 2a = 3), so prefer the normalized sectionRef
-	var title = sjs.editing.sectionRef;
+	let title = sjs.editing.sectionRef;
 	if (!title) {
 		title = sjs.editing.book.replace(/_/g, " ");
-		for (var i = 0; i < sjs.editing.sectionNames.length-1; i++) {
+		for (const i = 0; i < sjs.editing.sectionNames.length-1; i++) {
 			title += " : " + sjs.editing.sectionNames[i] + " " + sjs.editing.sections[i];
 		}
 	}
