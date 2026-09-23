@@ -63,8 +63,13 @@ export function useAuthTracking({ flow, source }) {
     const attempt = attemptRef.current;
     // A no-op only while genuinely still in flight (started, not yet ended) -- once an
     // attempt has concluded (success or failure), a retry on the same chosen method
-    // re-arms it: same attempt_id, fresh process_started, and endProcess unblocked again.
+    // re-arms it as a brand-new sub-attempt: fresh attempt_id, its own method_chosen
+    // (same method), fresh process_started, and endProcess unblocked again.
     if (!attempt || (attempt.started && !attempt.ended)) return;
+    if (attempt.ended) {
+      attempt.attemptId = makeUuid();
+      fireMethodChosen(flowIdRef.current, attempt.attemptId, attempt.method);
+    }
     attempt.started = true;
     attempt.ended = false;
     attempt.status = null;

@@ -156,20 +156,38 @@ describe('chooseMethod / startProcess / endProcess', () => {
     expect(fireProcessEnded).toHaveBeenCalledWith('id-1', attemptId, 'success', null, 'created_new_account');
   });
 
-  it('a retry after a failed attempt re-arms the same attempt_id: fresh process_started, and the retry\'s outcome is not swallowed', () => {
-    mount({ flow: 'register', source: 'nav_bar' });
-    const attemptId = hookApi.chooseMethod('email');
+  it('a retry after a failed attempt gets its own fresh attempt_id, with its own matching method_chosen', () => {
+    mount({ flow: 'register', source: 'nav_bar' }); // startFlow consumes 'id-1' as the flowId
+    const firstAttemptId = hookApi.chooseMethod('email'); // consumes 'id-2'
     hookApi.startProcess();
     hookApi.endProcess('failure', 'invalid_credentials');
-    expect(fireProcessEnded).toHaveBeenLastCalledWith('id-1', attemptId, 'failure', 'invalid_credentials', null);
+    expect(fireProcessEnded).toHaveBeenLastCalledWith('id-1', firstAttemptId, 'failure', 'invalid_credentials', null);
 
-    // user retries without leaving the form -- no new chooseMethod, just startProcess again
+    // user retries without leaving the form -- startProcess alone re-arms as a brand-new
+    // sub-attempt: fresh attempt_id ('id-3'), and its own method_chosen (same method).
     hookApi.startProcess();
-    expect(fireProcessStarted).toHaveBeenLastCalledWith('id-1', attemptId);
-    expect(fireMethodChosen).toHaveBeenCalledTimes(1); // still the same sub-flow, no re-choice
+    expect(fireMethodChosen).toHaveBeenLastCalledWith('id-1', 'id-3', 'email');
+    expect(fireMethodChosen).toHaveBeenCalledTimes(2);
+    expect(fireProcessStarted).toHaveBeenLastCalledWith('id-1', 'id-3');
 
     hookApi.endProcess('success', null, 'existing_user_login');
-    expect(fireProcessEnded).toHaveBeenLastCalledWith('id-1', attemptId, 'success', null, 'existing_user_login');
+    expect(fireProcessEnded).toHaveBeenLastCalledWith('id-1', 'id-3', 'success', null, 'existing_user_login');
+    expect('id-3').not.toBe(firstAttemptId);
+  });
+
+  it('a second retry keeps minting fresh attempt_ids (not just alternating between two)', () => {
+    mount({ flow: 'register', source: 'nav_bar' }); // 'id-1' flowId
+    hookApi.chooseMethod('email'); // 'id-2'
+    hookApi.startProcess();
+    hookApi.endProcess('failure', 'invalid_credentials');
+
+    hookApi.startProcess(); // retry 1 -> 'id-3'
+    hookApi.endProcess('failure', 'invalid_credentials');
+
+    hookApi.startProcess(); // retry 2 -> 'id-4'
+    expect(fireMethodChosen).toHaveBeenLastCalledWith('id-1', 'id-4', 'email');
+    expect(fireProcessStarted).toHaveBeenLastCalledWith('id-1', 'id-4');
+    expect(fireMethodChosen).toHaveBeenCalledTimes(3);
   });
 
   it('a retry that ultimately succeeds is reflected in auth_flow_ended, not stuck on the earlier failure', () => {
