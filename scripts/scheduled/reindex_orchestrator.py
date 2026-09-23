@@ -256,6 +256,45 @@ def run_barrier_loop(
         sleep_fn(poll_interval_seconds)
 
 
+def delete_stale_shard_job(batch, job_name, namespace, api_exception_cls,
+                           attempts=30, sleep_fn=time.sleep, log_fn=None):
+    """Delete a prior shard Job and wait until it is actually gone.
+
+    Returns True once the Job is confirmed absent (or never existed), False if it still
+    exists after `attempts` polls. Any non-404 ApiException propagates to the caller.
+    A 404 from delete is expected: ttlSecondsAfterFinished usually removes completed
+    shard Jobs before the next run. The orchestrator deletes unconditionally before
+    recreating the Job instead of checking first, so "never existed" still means no
+    stale Job remains.
+
+    The absence poll must use read_namespaced_job_status: the orchestrator Role grants
+    `get` on `jobs/status` only, not on `jobs`. Polling with read_namespaced_job 403'd on
+    the first read after a successful delete, so every retry that followed a failed run
+    died in seconds with a misleading "Failed to delete" error (backoffLimit: 1 was
+    effectively 0).
+    """
+    warn = log_fn or (lambda msg: logger.warning(msg))
+    note = log_fn or (lambda msg: logger.info(msg))
+    try:
+        batch.delete_namespaced_job(job_name, namespace, propagation_policy="Background")
+    except api_exception_cls as exc:
+        if exc.status == 404:
+            note(f"No stale shard job to delete; it never existed, or ttlSecondsAfterFinished "
+                 f"already removed it - job_name: {job_name}")
+            return True
+        raise
+    for _ in range(attempts):
+        try:
+            batch.read_namespaced_job_status(job_name, namespace)
+        except api_exception_cls as exc:
+            if exc.status == 404:
+                return True
+            raise
+        sleep_fn(2)
+    warn(f"Stale shard job deletion did not confirm within {attempts * 2}s, proceeding anyway - job_name: {job_name}")
+    return False
+
+
 def parse_shard_resources():
     """Parse SHARD_RESOURCES JSON env var into a Kubernetes resources dict.
     Validates shape, not just that the env var is set: `json.loads("{}")` returns `{}`,
@@ -389,23 +428,10 @@ def main():
     # so this poll is a bounded backstop, not the only thing standing between delete and
     # create.
     try:
-        batch.delete_namespaced_job(job_name, namespace, propagation_policy="Background")
-        deleted = False
-        for _ in range(30):  # 30 x 2s = 60s bound
-            try:
-                batch.read_namespaced_job(job_name, namespace)
-                time.sleep(2)
-            except client.exceptions.ApiException as exc:
-                if exc.status == 404:
-                    deleted = True
-                    break
-                raise
-        if not deleted:
-            logger.warning(f"Stale shard job deletion did not confirm within 60s, proceeding anyway - job_name: {job_name}")
+        delete_stale_shard_job(batch, job_name, namespace, client.exceptions.ApiException)
     except client.exceptions.ApiException as exc:
-        if exc.status != 404:
-            logger.error(f"Failed to delete stale shard job - status: {exc.status}, reason: {exc.reason}")
-            sys.exit(1)
+        logger.error(f"Failed to clear stale shard job - status: {exc.status}, reason: {exc.reason}")
+        sys.exit(1)
 
     logger.info("Orchestrator: running init (pagesheetrank + create indexes)")
     update_pagesheetrank()
