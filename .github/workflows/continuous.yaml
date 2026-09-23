@@ -255,11 +255,9 @@ jobs:
   # patch cannot silently talk to a real mongod.
   #
   # pytest-job keeps the required check name "Continuous Testing: PyTest".
-  # Two needs_mongo tests in sefaria/tests/fixtures/mongo/_not-mockable.json
-  # (1 oversized, 1 partial-library) are deselected by sefaria/conftest.py -- that
-  # manifest has held exactly these two entries since it was created, despite an
-  # earlier version of this comment claiming twenty. Both also carry needs_corpus,
-  # so they run in pytest-corpus-job against the full dump.
+  # sefaria/tests/fixtures/mongo/_not-mockable.json is empty: tests the mock cannot
+  # represent carry needs_corpus instead, so every job's collection (and the parity
+  # check) still sees them.
   #
   # Tests that the mocked library genuinely cannot represent (they need the full
   # ~6,600-index corpus, real Elasticsearch, or a Mongo feature mongomock does not
