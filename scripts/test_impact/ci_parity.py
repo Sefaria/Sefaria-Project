@@ -16,7 +16,12 @@ this tool is built to surface.
 
 Method: parse the workflow YAML for every step that invokes `python -m pytest`,
 run `--collect-only` for each job's argv (with that job's env layered over the
-current environment) and for the baseline invocation, then diff nodeid sets.
+current environment) and for the baseline invocation, then diff nodeid sets. A
+job may instead run pytest indirectly, inside a Kubernetes Job launched by
+`build/ci/createJobFromRollout.sh` (the "corpus"/sandbox style jobs) -- for
+those, argv/env are reconstructed from the step's `PYTEST_MARK_EXPR` /
+`PYTEST_TARGETS` env (resolving `${{ env.NAME }}` references against the
+workflow/job env) and the script's own defaults.
 Collection itself runs in a real pytest subprocess -- no import of Django or
 Sefaria happens in this process, so `--help` and the YAML-parsing tests work
 without either.
@@ -26,6 +31,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shlex
 import subprocess
 import sys
@@ -71,16 +77,86 @@ def _pytest_run_commands(job):
         yield step.get("env") or {}, run
 
 
+# The Kubernetes-Job-launcher script used by "sandbox"/corpus-style CI jobs: they
+# don't run `python -m pytest` on the GitHub runner directly, they kick off a k8s
+# Job that runs pytest inside a sandbox pod. See build/ci/createJobFromRollout.sh.
+SANDBOX_LAUNCHER_SCRIPT = "createJobFromRollout.sh"
+
+# Mirrors the defaults baked into createJobFromRollout.sh itself.
+SANDBOX_DEFAULT_MARK_EXPR = "not deep and not failing"
+SANDBOX_DEFAULT_TARGETS = "./sefaria ./sso ./reader ./powered_by"
+
+_ENV_EXPR_RE = re.compile(r"^\$\{\{\s*env\.([A-Za-z0-9_]+)\s*\}\}$")
+
+
+class UnresolvedExpressionError(RuntimeError):
+    """Raised when a PYTEST_MARK_EXPR / PYTEST_TARGETS value contains a GitHub
+    Actions expression (`${{ ... }}`) this script cannot resolve."""
+
+
+def _resolve_env_expr(value, resolve_env):
+    """If `value` is exactly `${{ env.NAME }}` (whitespace-tolerant), resolve it
+    against `resolve_env`. Any other literal value is returned unchanged, EXCEPT
+    a value that contains `${{` in some other form (e.g. `${{ steps.x.outputs.y }}`),
+    which we cannot resolve and must not silently pass through -- that raises."""
+    if not isinstance(value, str):
+        return value
+    stripped = value.strip()
+    match = _ENV_EXPR_RE.match(stripped)
+    if match:
+        name = match.group(1)
+        if name not in resolve_env:
+            raise UnresolvedExpressionError(
+                f"cannot resolve {value!r}: {name!r} is not set in the workflow/job env"
+            )
+        return resolve_env[name]
+    if "${{" in value:
+        raise UnresolvedExpressionError(f"unresolvable expression: {value!r}")
+    return value
+
+
+def _sandbox_job_spec(job, workflow_env, job_env):
+    """If `job` launches pytest via createJobFromRollout.sh (a k8s Job, not an
+    in-runner `python -m pytest` step), build its {"env", "argv"} spec.
+
+    PYTEST_MARK_EXPR / PYTEST_TARGETS are read from the step/job/workflow env
+    (falling back to the launcher script's own defaults), resolving any
+    `${{ env.NAME }}` reference against the *workflow-level env, then job env*
+    (not the step env itself -- that's what's being resolved). Other env values
+    (e.g. DEPLOY_ENV, which references `${{ steps... }}`) are left untouched;
+    only these two variables need resolving here. Returns None if `job` has no
+    such step.
+    """
+    resolve_env = {**workflow_env, **job_env}
+    for step in job.get("steps", []) or []:
+        run = step.get("run")
+        if not run or SANDBOX_LAUNCHER_SCRIPT not in run:
+            continue
+        step_env = step.get("env") or {}
+        merged_env = {**workflow_env, **job_env, **step_env}
+        mark_expr = merged_env.get("PYTEST_MARK_EXPR", SANDBOX_DEFAULT_MARK_EXPR)
+        targets = merged_env.get("PYTEST_TARGETS", SANDBOX_DEFAULT_TARGETS)
+        mark_expr = _resolve_env_expr(mark_expr, resolve_env)
+        targets = _resolve_env_expr(targets, resolve_env)
+        argv = ["-m", mark_expr] + targets.split()
+        return {"env": merged_env, "argv": argv, "_sandbox": True}
+    return None
+
+
 def extract_pytest_jobs(workflow, exclude_jobs=()):
     """Parse a loaded workflow YAML dict. Returns {job_id: {"env": {...}, "argv": [...]}}
-    for every job that has a `python -m pytest` step, skipping ids in `exclude_jobs`."""
+    for every job that has a `python -m pytest` step (first one wins) or, failing
+    that, a createJobFromRollout.sh sandbox-launcher step, skipping ids in
+    `exclude_jobs`. A job has at most one kind of pytest invocation."""
+    workflow_env = workflow.get("env") or {}
     jobs = {}
     for job_id, job in (workflow.get("jobs") or {}).items():
         if job_id in exclude_jobs:
             continue
         job_env = job.get("env") or {}
+        found = False
         for step_env, run_text in _pytest_run_commands(job):
-            merged_env = {**job_env, **step_env}
+            merged_env = {**workflow_env, **job_env, **step_env}
             tokens = shlex.split(run_text)
             # Drop everything up to and including "pytest" (handles "python -m pytest",
             # "python3 -m pytest", leading shell noise is not expected in this workflow).
@@ -90,7 +166,13 @@ def extract_pytest_jobs(workflow, exclude_jobs=()):
             else:
                 argv = tokens
             jobs[job_id] = {"env": merged_env, "argv": argv}
+            found = True
             break  # one pytest step per job in this workflow; first one wins
+        if found:
+            continue
+        sandbox_spec = _sandbox_job_spec(job, workflow_env, job_env)
+        if sandbox_spec is not None:
+            jobs[job_id] = sandbox_spec
     return jobs
 
 
@@ -213,7 +295,11 @@ def main(argv=None):
     workflow_path = args.workflow if os.path.isabs(args.workflow) else os.path.join(root, args.workflow)
 
     workflow = load_workflow(workflow_path)
-    jobs = extract_pytest_jobs(workflow, exclude_jobs=set(args.exclude_job))
+    try:
+        jobs = extract_pytest_jobs(workflow, exclude_jobs=set(args.exclude_job))
+    except UnresolvedExpressionError as exc:
+        print(f"Failed to parse pytest jobs from {workflow_path}: {exc}", file=sys.stderr)
+        return 2
 
     if not jobs:
         print(f"No pytest jobs found in {workflow_path}", file=sys.stderr)
@@ -223,13 +309,22 @@ def main(argv=None):
     if args.baseline_env is not None:
         baseline_env = parse_env_kv(args.baseline_env)
     else:
-        first_job = next(iter(jobs.values()))
-        baseline_env = dict(first_job["env"])
+        # Prefer an ordinary (in-runner) pytest job's env; a sandbox job's env
+        # (see _sandbox_job_spec) describes a k8s pod, not this runner, so it's
+        # a poor default for collection here.
+        ordinary_specs = [spec for spec in jobs.values() if not spec.get("_sandbox")]
+        source_spec = ordinary_specs[0] if ordinary_specs else next(iter(jobs.values()))
+        baseline_env = dict(source_spec["env"])
 
     job_nodeids = {}
     for job_id, spec in jobs.items():
+        # A sandbox job's own env describes a k8s pod that doesn't exist on this
+        # runner (e.g. DEPLOY_ENV); collect-only just needs imports to resolve,
+        # so use the baseline env instead -- same rationale as the baseline_env
+        # default above.
+        collect_env = baseline_env if spec.get("_sandbox") else spec["env"]
         try:
-            job_nodeids[job_id] = collect(spec["argv"], spec["env"], root)
+            job_nodeids[job_id] = collect(spec["argv"], collect_env, root)
         except CollectionError as exc:
             print(f"Collection failed for job {job_id!r} (exit {exc.returncode})", file=sys.stderr)
             print("--- stdout tail ---", file=sys.stderr)
