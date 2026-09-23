@@ -32,8 +32,7 @@ It will be easiest to just hardcode the segment numbers that contain the footnot
 import re
 from sefaria.model import *
 import requests
-
-SEFARIA_USER_AGENT = "Sefaria/scripts"
+from sefaria.constants.http import SEFARIA_USER_AGENT
 
 
 def run_on_books(cb, *args, **kwargs):

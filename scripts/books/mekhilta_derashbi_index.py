@@ -8,10 +8,10 @@ import json
 
 sys.path.append("C:\\Users\\Izzy\\git\\Sefaria-Project")
 from sefaria.model import *
+from sefaria.constants.http import SEFARIA_USER_AGENT
 
 apikey = ''
 server = 'dev.sefaria.org'
-SEFARIA_USER_AGENT = "Sefaria/scripts"
 
 def post_texts_api(text_obj, ref):
     url = 'http://' + server + '/api/v2/raw/index/{}'.format(ref)

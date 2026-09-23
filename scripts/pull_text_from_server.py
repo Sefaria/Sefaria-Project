@@ -16,8 +16,7 @@ from sefaria.system.exceptions import InputError
 # from sefaria.export import import_versions_from_stream
 from sefaria.tracker import modify_text
 from sefaria.model import *
-
-SEFARIA_USER_AGENT = "Sefaria/scripts"
+from sefaria.constants.http import SEFARIA_USER_AGENT
 
 
 def version_url(server: str, book_title: str, version_title: str, lang: str) -> str:

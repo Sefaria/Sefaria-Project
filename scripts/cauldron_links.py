@@ -3,8 +3,7 @@ import requests
 import argparse
 from tqdm import tqdm
 import os.path
-
-SEFARIA_USER_AGENT = "Sefaria/scripts"
+from sefaria.constants.http import SEFARIA_USER_AGENT
 
 
 def delete_link(id_or_ref, server="", API_KEY="", VERBOSE=False):

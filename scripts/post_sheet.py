@@ -8,8 +8,7 @@ import urllib.request, urllib.parse, urllib.error
 import urllib.request, urllib.error, urllib.parse
 
 from sefaria.sheets import get_sheet
-
-SEFARIA_USER_AGENT = "Sefaria/scripts"
+from sefaria.constants.http import SEFARIA_USER_AGENT
 
 try:
   from sefaria.local_settings import SEFARIA_API_KEY

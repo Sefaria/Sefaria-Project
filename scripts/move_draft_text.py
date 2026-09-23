@@ -11,13 +11,12 @@ import requests
 
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
+from sefaria.constants.http import SEFARIA_USER_AGENT
 
 try:
     from sefaria.local_settings import SEFARIA_BOT_API_KEY
 except ImportError:
     SEFARIA_BOT_API_KEY = None
-
-SEFARIA_USER_AGENT = "Sefaria/scripts"
 
 
 class ServerTextCopier(object):
