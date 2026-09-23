@@ -22,6 +22,10 @@ concurrency:
   group: ${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Marker expression for the sandbox corpus job (pytest-corpus-job).
+  CORPUS_MARK_EXPR: "needs_corpus and not deep and not failing"
+
 jobs:
   build-generic:
     if: ${{ github.event_name == 'pull_request' || github.event_name == 'push' }}
@@ -254,13 +258,13 @@ jobs:
   # Two needs_mongo tests in sefaria/tests/fixtures/mongo/_not-mockable.json
   # (1 oversized, 1 partial-library) are deselected by sefaria/conftest.py -- that
   # manifest has held exactly these two entries since it was created, despite an
-  # earlier version of this comment claiming twenty. A GitHub Mongo service cannot
-  # run them without restoring a multi-GB dump.
+  # earlier version of this comment claiming twenty. Both also carry needs_corpus,
+  # so they run in pytest-corpus-job against the full dump.
   #
   # Tests that the mocked library genuinely cannot represent (they need the full
   # ~6,600-index corpus, real Elasticsearch, or a Mongo feature mongomock does not
   # implement) carry `needs_corpus` and are excluded from all three jobs here. They
-  # run in the Kubernetes sandbox job against the full dump.
+  # run in pytest-corpus-job, in the Kubernetes sandbox, against the full dump.
 
   pytest-no-mongo-job:
     name: "Continuous Testing: PyTest (no Mongo)"
@@ -309,9 +313,8 @@ jobs:
           scripts/pytest_minimal_dataset/test_export_mongo_fixtures.py
       - name: Check CI parity with master's pytest selection
         # Fails if any test master's baseline selects is collected by none of the
-        # pytest jobs in this workflow. Tests marked needs_corpus are "missing"
-        # here until the sandbox job that runs them is added to this workflow;
-        # once it is, its collection covers them and no --allow list is needed.
+        # pytest jobs in this workflow, including pytest-corpus-job (read from its
+        # createJobFromRollout.sh step's PYTEST_MARK_EXPR).
         run: python scripts/test_impact/ci_parity.py
   pytest-job:
     name: "Continuous Testing: PyTest"
@@ -374,12 +377,158 @@ jobs:
           python -m pytest -q --reuse-db
           -m "not deep and not failing and needs_linker and not needs_corpus"
           ./sefaria ./sso ./reader ./powered_by
+  sandbox-deploy:
+    name: "Continuous Testing: Sandbox Deploy"
+    concurrency:
+      group: dev-mongo
+      cancel-in-progress: false
+    needs: [ build-derived, check-python-files ]
+    if: >
+      github.event.pull_request.draft == false &&
+      needs.check-python-files.outputs.python_files_changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.DEV_GKE_SA }}'
+      - name: Setup GCloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.DEV_PROJECT }}
+          install_components: 'gke-gcloud-auth-plugin'
+      - name: Get branch name
+        id: branch-raw
+        uses: tj-actions/branch-names@v5.1
+      - name: Format branch name
+        id: branch-name
+        run: >-
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
+          | awk '{print tolower($0)}'
+          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
+          | sed 's/[^a-z0-9\.\-]//g')
+          >> $GITHUB_OUTPUT
+      - name: Set outputs
+        id: get-sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Set up yq
+        uses: frenck/action-setup-yq@v1
+      - name: Authenticate GHA Runner To Target Cluster
+        uses: google-github-actions/get-gke-credentials@v3
+        with:
+          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
+          location: ${{secrets.DEV_GKE_REGION}}
+          project_id: ${{secrets.DEV_GCP_PROJECT}}
+      - name: Deploy Sandbox
+        run: ./build/ci/sandbox-helm-deploy.sh build/ci/sandbox-values.yaml
+        env:
+          GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
+          BRANCH: "${{ steps.branch-name.outputs.current_branch }}"
+          PROJECT_ID: "${{ secrets.DEV_PROJECT }}"
+          NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
+  sandbox-ready:
+    if: >
+      github.event.pull_request.draft == false &&
+      needs.check-python-files.outputs.python_files_changed == 'true'
+    needs: sandbox-deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set outputs
+        id: get-sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Wait for test sandbox to become available
+        # https://gist.github.com/rgl/f90ff293d56dbb0a1e0f7e7e89a81f42
+        run: ./build/ci/waitForSandbox.bash
+        env:
+          WAIT_DURATION: "3000"
+          GIT_COMMIT: "${{ steps.get-sha.outputs.sha_short }}"
+  # Tests marked needs_corpus: the mocked library cannot represent them (full
+  # ~6,600-index corpus, texts/links content, mongomock gaps). They run on every PR
+  # against the full dump in the Kubernetes sandbox, as master's single pytest job did.
+  pytest-corpus-job:
+    name: "Continuous Testing: PyTest (corpus)"
+    concurrency:
+      group: dev-mongo
+      cancel-in-progress: false
+    needs: [ sandbox-ready, check-python-files ]
+    if: >
+      github.event.pull_request.draft == false &&
+      needs.check-python-files.outputs.python_files_changed == 'true'
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.DEV_GKE_SA }}'
+      - name: Setup GCloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.DEV_PROJECT }}
+          install_components: 'gke-gcloud-auth-plugin'
+      - name: Authenticate GHA Runner To Target Cluster
+        uses: google-github-actions/get-gke-credentials@v3
+        with:
+          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
+          location: ${{secrets.DEV_GKE_REGION}}
+          project_id: ${{secrets.DEV_GCP_PROJECT}}
+      - name: Set outputs
+        id: get-sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: Get branch name
+        id: branch-raw
+        uses: tj-actions/branch-names@v5.1
+      - name: Format branch name
+        id: branch-name
+        run: >-
+          echo "current_branch="$(echo ${{ steps.branch-raw.outputs.current_branch }}
+          | awk '{print tolower($0)}'
+          | sed 's|.*/\([^/]*\)/.*|\1|; t; s|.*|\0|'
+          | sed 's/[^a-z0-9\.\-]//g')
+          >> $GITHUB_OUTPUT
+      - name: Start Job
+        run: ./build/ci/createJobFromRollout.sh $GITHUB_RUN_ID $DEPLOY_ENV corpus
+        env:
+          # dependent on GITHUB_RUN_ID, which is implicitly passed in
+          DEPLOY_ENV: sandbox-${{ steps.get-sha.outputs.sha_short }}
+          # scripts/test_impact/ci_parity.py reads this to count the job's selection.
+          PYTEST_MARK_EXPR: ${{ env.CORPUS_MARK_EXPR }}
+      - name: Wait For Job To Finish
+        run: ./build/ci/waitForCIJob.bash
+        timeout-minutes: 45
+        env:
+          # dependent on GITHUB_RUN_ID, which is implicitly passed in
+          TEST_NAME: pytest-corpus
+      - name: Get Logs From Cluster and propogate test result
+        if: always()
+        run: kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest-corpus 2>/dev/null || echo "(no pod logs available)"
+      - name: Cleanup pyTest Pod
+        run: kubectl delete jobs -l ci-run=$GITHUB_RUN_ID,test-name=pytest-corpus
+        if: always()
   ending-notification:
     name: "Continuous Testing: Notifications"
     runs-on: ubuntu-latest
     if: ${{ always() && (github.event.pull_request.draft == false) }}
     needs:
       - pytest-job
+      - pytest-corpus-job
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v2
@@ -394,6 +543,48 @@ jobs:
           SLACK_TEST_FAILURE_WEBHOOK_URL: ${{secrets.SLACK_TEST_FAILURE_WEBHOOK_URL}}
           GITUSER_SLACK_MAP: ${{secrets.GITUSER_SLACK_MAP}}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  sandbox-cleanup:
+    name: "Continuous Testing: Clean up"
+    if: ${{ always() && (github.event.pull_request.draft == false) }}
+    needs:
+      - pytest-corpus-job
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.DEV_GKE_SA }}'
+      - name: Setup GCloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.DEV_PROJECT }}
+          install_components: 'gke-gcloud-auth-plugin'
+      - name: Authenticate GHA Runner To Target Cluster
+        uses: google-github-actions/get-gke-credentials@v3
+        with:
+          cluster_name: ${{secrets.DEV_GKE_CLUSTER}}
+          location: ${{secrets.DEV_GKE_REGION}}
+          project_id: ${{secrets.DEV_GCP_PROJECT}}
+      - name: Set outputs
+        id: get-sha
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+      - name: check helm
+        id: get-helm
+        run: echo "count=$(helm list -n $NAMESPACE | grep $NAME | wc -l)" >> $GITHUB_OUTPUT
+        env:
+          NAMESPACE: ${{ secrets.DEV_SANDBOX_NAMESPACE }}
+          NAME: sandbox-${{ steps.get-sha.outputs.sha_short }}
+      - name: Uninstall
+        run: helm delete sandbox-${{ steps.get-sha.outputs.sha_short }} -n ${{ secrets.DEV_SANDBOX_NAMESPACE }} --debug --timeout 10m0s
+        if: steps.get-helm.outputs.count > 0
   continuous-branch-protection:
     needs:
       - build-generic
@@ -402,6 +593,9 @@ jobs:
       - pytest-no-mongo-job
       - pytest-job
       - pytest-linker-job
+      - sandbox-deploy
+      - sandbox-ready
+      - pytest-corpus-job
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -418,7 +612,10 @@ jobs:
           if [ "${{ github.event.pull_request.draft }}" == "false" ]; then
             if [ "${{ needs.check-python-files.outputs.python_files_changed }}" == "true" ]; then
               if [ "${{ needs.pytest-no-mongo-job.result }}" != "success" ] || \
-                 [ "${{ needs.pytest-job.result }}" != "success" ]; then
+                 [ "${{ needs.pytest-job.result }}" != "success" ] || \
+                 [ "${{ needs.sandbox-deploy.result }}" != "success" ] || \
+                 [ "${{ needs.sandbox-ready.result }}" != "success" ] || \
+                 [ "${{ needs.pytest-corpus-job.result }}" != "success" ]; then
                 echo "One or more Python-related test jobs failed"
                 exit 1
               fi

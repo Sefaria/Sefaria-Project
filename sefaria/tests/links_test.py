@@ -11,6 +11,7 @@ import pytest
 from unittest.mock import patch
 
 from sefaria.client.wrapper import get_links
+from sefaria.model.legacy_text import TextFamily
 from sefaria.model import Index, IndexSet, Link, LinkSet, Ref, VersionSet, VersionState, library
 
 
@@ -173,3 +174,13 @@ class Test_get_links:
             assert link["versionTitle"] in real_titles, (
                 f"{link['ref']}: versionTitle {link['versionTitle']!r} is not a real version of {index_title}"
             )
+
+
+@pytest.mark.needs_corpus
+class Test_links_from_get_text():
+
+    def test_links_from_padded_ref(self):
+        t1 = TextFamily(Ref("Exodus ")).contents()
+        t2 = TextFamily(Ref("Exodus 1")).contents()
+
+        assert len(t1["commentary"]) == len(t2["commentary"])
