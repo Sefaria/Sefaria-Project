@@ -156,29 +156,24 @@ export class SheetEditorPage extends HelperBase {
    */
 
   async clickPlusButton() {
-    const editorInterface = this.page.locator('.editorAddInterface');
-
-    try {
-      const box = await editorInterface.boundingBox({ timeout: t(2000) });
-      if (box) {
-        await this.page.mouse.click(box.x - 31, box.y + box.height / 2);
-        return;
-      }
-    } catch (error) {
-      // Fallback: position cursor at end and retry
-      await this.page.getByRole('textbox').first().click({ force: true });
-      await this.page.keyboard.press('End');
-
-      try {
-        const box = await editorInterface.boundingBox({ timeout: t(1000) });
-        if (box) {
-          await this.page.mouse.click(box.x - 31, box.y + box.height / 2);
-        }
-      } catch (retryError) {
-        // Create new line if plus button unavailable
-        await this.page.keyboard.press('Enter');
-      }
+    // The plus is a ::before on .editorAddInterface (30px, offset -46px, top-aligned).
+    // Buttons inside stay display:none until that control has .active.
+    const plus = this.page.getByRole('button', { name: 'Add a source, image, or other media' }).first();
+    const closeMenu = this.page.getByRole('button', { name: 'Close menu' }).first();
+    if (await closeMenu.isVisible().catch(() => false)) {
+      return;
     }
+
+    await plus.waitFor({ state: 'visible', timeout: t(10000) });
+    const box = await plus.boundingBox();
+    if (box) {
+      // Hit the plus itself. A tall interface box makes a vertical-center click miss it.
+      await this.page.mouse.click(box.x - 31, box.y + 15);
+    }
+    if (!(await closeMenu.isVisible().catch(() => false))) {
+      await plus.evaluate((el: HTMLElement) => el.click());
+    }
+    await expect(this.page.locator('.editorAddInterface.active #addMediaButton')).toBeVisible({ timeout: t(5000) });
   }
 
   async clickAddSomething() {
@@ -187,17 +182,17 @@ export class SheetEditorPage extends HelperBase {
 
   async clickAddSource() {
     await this.clickPlusButton();
-    await this.addSourceButton().click();
+    await this.page.locator('.editorAddInterface.active #addSourceButton').click();
   }
 
   async clickAddMedia() {
     await this.clickPlusButton();
-    await this.addMediaButton().click();
+    await this.page.locator('.editorAddInterface.active #addMediaButton').click();
   }
 
   async clickAddImage() {
     await this.clickPlusButton();
-    await this.addImageButton().click();
+    await this.page.locator('.editorAddInterface.active #addImageButton').click();
   }
 
   async clickSidebarToggle() {

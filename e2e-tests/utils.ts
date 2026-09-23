@@ -741,27 +741,25 @@ export const selectDropdownOption = async (
  */
 export const isUserLoggedIn = async (page: Page): Promise<boolean> => {
   try {
-    // Wait for potential logged-out icon or profile pic to load (whichever appears first)
     await page.waitForLoadState('domcontentloaded', { timeout: t(4000) }).catch(() => { /* continue if it times out */ });
-
-    // Check if logged-out icon is visible
-    const loggedOutIcon = page.locator(MODULE_SELECTORS.ICONS.USER_MENU);
-    const isLoggedOut = await loggedOutIcon.isVisible({ timeout: t(2000) });
-    if (isLoggedOut) {
-      // log that logged out icon is visible for debugging purposes
-      // console.log(`User is not logged in (logged-out icon visible)`);
-      return false;
-    }
-
-    // Check if profile pic is visible (logged in)
+    // Positive check: the logged-out icon can stay in the DOM (and match) on a
+    // logged-in header, so its visibility is not proof of being logged out.
     const profilePic = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
-    const isLoggedIn = await profilePic.isVisible({ timeout: t(2000) }).catch(() => false);
-    if (isLoggedIn) {
-      // console.log('User is logged in (profile pic visible)');
-    }
-    return isLoggedIn;
+    return await profilePic.isVisible({ timeout: t(2000) }).catch(() => false);
   } catch {
     return false;
+  }
+};
+
+/**
+ * Close the Library Assistant when it is open. It mounts `default-open` on the
+ * right and covers the connections panel for whitelisted accounts.
+ * Safe to call when the component is absent.
+ */
+export const dismissLibraryAssistant = async (page: Page): Promise<void> => {
+  const close = page.locator('lc-chatbot').getByRole('button', { name: 'Close' });
+  if (await close.isVisible().catch(() => false)) {
+    await close.click({ force: true });
   }
 };
 

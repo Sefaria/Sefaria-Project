@@ -110,8 +110,7 @@ test.describe.serial('User Menu', () => {
 
     // Removes new Modularization popups
     await page.evaluate(() => {
-      const overlays = document.querySelectorAll('.floating-ui-popover-content, [id^="downshift-"], #s2');
-      overlays.forEach(el => el.remove());
+      document.querySelectorAll('.floating-ui-popover-content, [id^="downshift-"]').forEach((el) => el.remove());
     }).catch(() => { });
     // Save profile changes
     await editProfilePage.saveProfile();
@@ -120,7 +119,7 @@ test.describe.serial('User Menu', () => {
 
     // Verify we're back on profile page (#main is hidden, check .content instead)
     await expect(page.locator('.content')).toBeVisible({ timeout: t(20000) });
-    await expect(page.locator('.title.sub-title')).toContainText(`QA Automation ${timestamp}`);
+    await expect(page.locator('#position, .profile-summary .title.sub-title').first()).toContainText(`QA Automation ${timestamp}`);
   });
 
   // =================================================================
@@ -174,7 +173,7 @@ test.describe.serial('User Menu', () => {
 
     // Verify language changed to Hebrew
     await expect(page.locator('body')).toHaveClass(/interface-hebrew/);
-    await expect(page.getByRole('link', { name: 'מקורות' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'טקסטים' })).toBeVisible();
 
     // Switch back to English (uses dropdown with cookie fallback)
     await changeLanguage(page, LANGUAGES.EN);
