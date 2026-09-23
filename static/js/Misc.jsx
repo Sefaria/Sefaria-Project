@@ -2157,7 +2157,7 @@ const InterruptingMessage = ({
         shouldShowModal = true;
     }
     if (!shouldShowModal) return false;
-    const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    const excludedPaths = ["/donate", "/mobile", "/ways-to-give"];
     // Don't show the modal on pages where the button link goes to since you're already there
     if (strapi.modal.buttonURL) {
       if (strapi.modal.buttonURL.en) {
@@ -2339,7 +2339,7 @@ const Banner = ({ onClose }) => {
         shouldShowBanner = true;
     }
     if (!shouldShowBanner) return false;
-    const excludedPaths = ["/donate", "/mobile", "/app", "/ways-to-give"];
+    const excludedPaths = ["/donate", "/mobile", "/ways-to-give"];
     // Don't show the banner on pages where the button link goes to since you're already there
     if (strapi.banner.buttonURL) {
       if (strapi.banner.buttonURL.en) {
