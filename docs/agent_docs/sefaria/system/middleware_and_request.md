@@ -29,7 +29,6 @@ Handles the Django request/response pipeline: middleware classes that enrich req
 - **`catch_error_as_json`**: Catches `InputError` exceptions and returns them as `{"error": "..."}` JSON. The primary error-handling decorator for API views.
 - **`catch_error_as_http`**: Catches `InputError` as 404, other exceptions as a generic error page. Used for HTML-rendering views.
 - **`sanitize_get_params`**: Bleach-cleans all GET parameters and string URL args to prevent XSS.
-- **`conditional_graceful_exception`**: Catches exceptions and logs them (instead of raising) when `FAIL_GRACEFULLY=True`. Used during server startup to prevent one bad text/ref from crashing the whole server. When `FAIL_GRACEFULLY=False` (e.g., during data import), exceptions propagate normally.
 - **`memoized`**: Class-based decorator for in-memory function result caching. Supports instance methods via `__get__`. Cache is per-decorator-instance (not shared).
 - **`cors_allow_all`**: Adds permissive CORS headers and handles OPTIONS preflight. Also applies `csrf_exempt`.
 - **`json_response_decorator`**: Wraps return value in `jsonResponse()` with optional JSONP callback support.
@@ -69,7 +68,7 @@ Handles the Django request/response pipeline: middleware classes that enrich req
 
 - **`LanguageSettingsMiddleware` can return a redirect response** from `process_request`, short-circuiting the entire middleware chain. This happens when the user's language doesn't match the current domain's pinned language.
 - **`SharedCacheMiddleware` uses a two-flag pattern** (`last_cached` + `regenerating`) to coordinate cache rebuilds across concurrent requests without explicit locking.
-- **`conditional_graceful_exception` is controlled by a global setting**, not per-call. The same decorated function behaves differently on prod (fail gracefully) vs during data import (fail loudly). This is the `FAIL_GRACEFULLY` setting.
+- **`conditional_graceful_exception` and the `FAIL_GRACEFULLY` setting were removed** (sc-46786). Its one user, `AbstractTitledOrTermedObject._process_terms`, now decides per call site instead of per deployment: the load path records a skip via `sefaria/helper/skip_tracking.py` and keeps going, while the write paths raise. See `agent_docs/` on the skip-tracking guards.
 - **`SessionCookieDomainMiddleware` works around a Django limitation** (ticket #10554) where you cannot set multiple cookies with the same name. It injects raw `Set-Cookie` headers via `response._headers` with unique internal keys to expire legacy cookies.
 - **The `memoized` decorator's cache is never invalidated**. It grows unboundedly for the lifetime of the process.
 - **Context processors use path-based gating** to avoid expensive operations. If you add a new URL pattern, check whether it matches any of the exclusion patterns in `@builtin_only`, `@data_only`, or `@user_only`.

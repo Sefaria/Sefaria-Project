@@ -63,4 +63,3 @@ localSettings:
   GLOBAL_WARNING: false
   GLOBAL_WARNING_MESSAGE: "Sefaria will be in <b>Read-Only</b> mode for scheduled maintenance from 4:45pm-6:45pm Pacific time. Edits will <b>not</b> be saved during that time."
   CRM_TYPE: "NONE"
-  FAIL_GRACEFULLY: "False"

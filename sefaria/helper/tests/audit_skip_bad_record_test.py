@@ -516,16 +516,18 @@ CASES = [
          doc={"path": ["Tanakh", "ZZAuditSerialize"], "lastPath": "ZZAuditSerialize",
               "depth": 2, "sharedTitle": "ZZNoSuchTerm"},
          trigger=_toc_tree_serialize, expect=WRONG_SITE,
-         note="a missing term raises out of _process_terms during _set_derived_attributes, "
-              "i.e. while CategorySet() instantiates the record, so the category is dropped "
-              "before any tree exists to serialize. TocTree's construction guard "
-              "(category.py:254) catches it -- a skip is recorded, at a different site than "
-              "this one. Was PROPAGATED before with_skip_guard() existed. "
+         note="a missing term no longer RAISES on the load path: since FAIL_GRACEFULLY was "
+              "removed (sc-46786), _process_terms reports a soft skip via log_skip and the "
+              "category builds with whatever titles it has. So a skip is still recorded at "
+              "a site other than this one -- but at `_process_terms`, NOT at TocTree's "
+              "construction guard (category.py:254), which no longer sees anything to catch. "
+              "History: PROPAGATED before with_skip_guard() existed, then caught by that "
+              "construction guard, now a soft skip. "
               "COVERAGE GAP: this is the only case at the serialize site, so that guard is "
-              "now unexercised. Reaching it needs a document that BUILDS cleanly and fails "
-              "only during serialize -- per that guard's own docstring, a broken title_group "
-              "or an index whose author lookup raises under include_authors. No such "
-              "corruption is known yet: Category validates eagerly, at load time"),
+              "still unexercised. Note this document now IS the 'builds cleanly' shape the "
+              "gap called for -- it survives construction with an EMPTY title_group -- but "
+              "it still does not reach the guard, because serializing a blank title does "
+              "not raise; it just renders a nameless ToC entry"),
 
     # -- text.py:5036  _build_index_maps index record ------------------------------
     case(site="S7", operation="_build_index_maps index record",

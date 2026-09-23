@@ -6,7 +6,6 @@ from typing import Optional, List
 import structlog
 from functools import reduce
 import re2 as re
-from sefaria.system.decorators import conditional_graceful_exception
 
 logger = structlog.get_logger(__name__)
 
@@ -16,8 +15,26 @@ from sefaria.system.database import db
 from sefaria.model.lexicon import LexiconEntrySet
 from sefaria.model.linker.has_match_template import MatchTemplateMixin
 from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
+from sefaria.helper.skip_tracking import log_skip
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
 from sefaria.utils.talmud import daf_to_section
+
+
+def _titled_object_id(obj):
+    """Best-effort id for a record with a dangling sharedTitle, for the skip summary.
+
+    Defensive for the same reason as category.toc_node_id: this is an ARGUMENT to
+    log_skip, so it is evaluated before the skip is recorded, and anything raised here
+    would escape the very reporting path it is meant to annotate.
+    """
+    try:
+        return (getattr(obj, "title", None)
+                or "/".join(getattr(obj, "path", None) or [])
+                or getattr(obj, "key", None)
+                or getattr(obj, "sharedTitle", None))
+    except Exception:
+        return None
+
 
 """
                 -----------------------------------------
@@ -208,11 +225,26 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
             self.title_group.load(serial=self.titles)
             del self.__dict__["titles"]
 
-        self._process_terms()
+        self._process_terms(soft=True)
 
-    @conditional_graceful_exception()
-    def _process_terms(self):
-        # To be called after raw data load
+    def _process_terms(self, soft=False):
+        """Resolve `sharedTitle` into this object's title group.
+
+        `soft` separates the two ways this is reached. On the LOAD path (_load_title_group,
+        during _set_derived_attributes) a dangling term is one bad record in a library-wide
+        build, so it is recorded as a skip and the object keeps whatever titles it already
+        has. On the WRITE paths (add_shared_term, Category.change_key_name) it is a caller
+        error, so it still raises. That split is what the FAIL_GRACEFULLY flag used to do
+        process-wide, decided per call site instead of per deployment.
+
+        The soft case reports via log_skip() -- volume backstop only -- rather than raising
+        into a skip guard, because this is the cascade shape described in
+        sefaria/helper/skip_tracking.py. One Term is shared by many records (385 indexes
+        reference "Introduction"), and the message names the TERM, not the record that
+        failed, so every affected record yields a byte-identical error signature. Raising
+        would trip the signature breaker at 10 and abort the whole build, reporting broken
+        code for what is a single missing Term.
+        """
         from sefaria.model import library
 
         if self.sharedTitle:
@@ -220,7 +252,11 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
             try:
                 self.title_group = term.title_group
             except AttributeError:
-                raise IndexError("Failed to load term named {}.".format(self.sharedTitle))
+                if not soft:
+                    raise IndexError("Failed to load term named {}.".format(self.sharedTitle))
+                log_skip(logger, "reset_cache,reset_toc,startup", "_process_terms",
+                         "term '{}' does not exist; keeping local titles.".format(self.sharedTitle),
+                         record=_titled_object_id(self))
 
     def add_shared_term(self, term):
         self.sharedTitle = term
