@@ -232,18 +232,22 @@ jobs:
         id: changed
         run: |
           BASE="${{ github.event.pull_request.base.sha }}"
-          git diff --name-only "$BASE"...HEAD > changed.txt || git diff --name-only HEAD~1 HEAD > changed.txt
-          echo "--- changed files ---"; cat changed.txt
+          # NUL-separated and unquoted (core.quotepath=off): paths with spaces or
+          # Hebrew characters must reach import_closure.py intact.
+          git -c core.quotepath=off diff --name-only -z "$BASE"...HEAD > changed.z \
+            || git -c core.quotepath=off diff --name-only -z HEAD~1 HEAD > changed.z
+          echo "--- changed files ---"; tr '\0' '\n' < changed.z
       - name: Is any linker-reachable file touched?
         id: impact
         run: |
-          ARGS=$(sed 's/^/--changed-file /' changed.txt | tr '\n' ' ')
+          ARGS=()
+          while IFS= read -r -d '' f; do ARGS+=(--changed-file "$f"); done < changed.z
           RESULT=$(python scripts/test_impact/import_closure.py \
             --subsystem-glob 'sefaria/model/linker/*' \
             --subsystem-glob 'sefaria/helper/linker/*' \
             --subsystem-glob 'sefaria/model/linker_*.py' \
             --subsystem-glob 'sefaria/helper/linker_*.py' \
-            $ARGS --format json)
+            "${ARGS[@]}" --format json)
           echo "$RESULT" | python -c "import json,sys; d=json.load(sys.stdin); print('affected:', d.get('affected')); print('fail_open:', d['fail_open'])"
           AFFECTED=$(echo "$RESULT" | python -c "import json,sys; print(str(json.load(sys.stdin).get('affected', True)).lower())")
           echo "linker_affected=$AFFECTED" >> $GITHUB_OUTPUT
@@ -526,7 +530,9 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ always() && (github.event.pull_request.draft == false) }}
     needs:
+      - pytest-no-mongo-job
       - pytest-job
+      - pytest-linker-job
       - pytest-corpus-job
     steps:
       - uses: actions/checkout@v4
