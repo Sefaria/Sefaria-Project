@@ -32,7 +32,14 @@ LINK_SAMPLE_SAFE = {
     # the 'has_dependencies' and 'dependent_indices' keys. It never reads the count.
     "sefaria/tests/modtools_test.py::TestCheckIndexDependenciesAPI::test_check_dependencies_returns_info",
 }
-MAX_BASE_BYTES = 8 * 1024 * 1024
+# Raised from 8 MiB. _base.json now carries whole library families (see
+# BASE_LIBRARY_CATEGORIES) so that the ~1,200 tests which resolve refs but issue
+# no Mongo command of their own can run under mongomock instead of nowhere. The
+# binding ceiling is the 20 MiB total for sefaria/tests/fixtures/mongo in
+# .team/fixture-size-spec.md; the overlays occupy ~2.9 MiB, which leaves ~17 MiB
+# here. See check_total_budget() -- the total, not this number, is the hard line.
+MAX_BASE_BYTES = 17 * 1024 * 1024
+MAX_TOTAL_BYTES = 20 * 1024 * 1024
 NOT_MOCKABLE_MANIFEST = os.path.join(DEFAULT_FIXTURE_DIR, "_not-mockable.json")
 _oversized_fixtures = []
 LINK_RESPONSE_FIELDS = {
@@ -68,7 +75,47 @@ TEXT_CONTENT_TITLES = {
 # per-test fixtures are loaded (e.g. Test_AutoLinker eager class attributes).
 BASE_EXTRA_TITLES = [
     "Kos Eliyahu on Pesach Haggadah",
+    # Named by ref/schema/link/library tests outside the three families below.
+    # ~220 KB together; each one is cited by at least one test.
+    "Chafetz Chaim",
+    "Hadran",
+    "Orot",
+    "Orot HaKodesh",
+    "Pesach Haggadah",
+    "Shulchan Arukh, Even HaEzer",
+    "Shulchan Arukh, Orach Chayim",
+    "Siddur Ashkenaz",
+    "The Book of Susanna",
 ]
+
+# Whole top-level library families copied into _base.json, with their
+# commentaries. Most of the suite never issues a Mongo command itself -- it
+# resolves refs through the `library` singleton, which is built once from
+# whatever `index` documents the mock holds. A per-test title list cannot serve
+# those tests, because a ref they never name (a link target, a commentary, a
+# Hebrew alt title) still has to resolve. These three families are what the
+# unmarked suite actually cites, and together they fit the size budget; adding
+# Halakhah as well would cost another 6.5 MiB and break the 20 MiB total.
+BASE_LIBRARY_CATEGORIES = ("Tanakh", "Mishnah", "Talmud")
+
+# Debris in the local dump, not real corpus data: an `index` document left
+# behind by a crashed test run. It sits directly under the Tanakh category,
+# where the real corpus has no text at all, and it breaks
+# autospell_test.py::TestSearchCategories, which asserts exactly that.
+BASE_EXCLUDED_INDEX_TITLES = frozenset({"Delete Me"})
+
+# Small collections copied whole. `term` and `category` complete the library
+# metadata for the families above (a partial `category` set silently reshapes
+# the TOC). `topic_link_types` supplies the `is-a` slug that TopicSet graph
+# queries validate against, and `websites` supplies the bad-url rules
+# WebPage.should_be_excluded() consults -- with it absent, a page that should be
+# excluded is saved instead, and the test passes or fails for the wrong reason.
+# `topic_data_sources` (11 docs) supplies the `sefaria` data source every
+# topic-link fixture validates against.
+BASE_WHOLE_COLLECTIONS = ("term", "category", "topic_link_types", "topic_data_sources", "websites")
+
+# Collections whose keys _base.json is allowed to hold.
+BASE_COLLECTIONS = ("index", "category", "term", "topic_data_sources", "topic_link_types", "websites", "topics")
 
 sys.path.insert(0, SCRIPT_DIR)
 from generate_minimal_dataset import (  # noqa: E402
@@ -375,9 +422,76 @@ def write_fixture(output_dir, nodeid, collections, records=None):
 
 def write_base_fixture(output_dir, collections):
     """Write the shared library metadata fixture from a prepared union."""
-    allowed = {"index", "category", "term"}
-    trimmed = {key: docs for key, docs in collections.items() if key in allowed}
+    trimmed = {key: docs for key, docs in collections.items() if key in BASE_COLLECTIONS}
     return write_fixture(output_dir, "_base", trimmed)
+
+
+def enrich_base_with_library_families(source_db, accumulator):
+    """Add whole library families and small reference collections to _base.json.
+
+    Deterministic for a given source database: every selection is a full query
+    result, never a sample, and write_fixture sorts by _id.
+    """
+    for doc in source_db["index"].find(
+        {"categories.0": {"$in": list(BASE_LIBRARY_CATEGORIES)}}
+    ).sort("_id", 1):
+        accumulator["index"][str(doc["_id"])] = doc
+    for key in [k for k, doc in accumulator["index"].items()
+                if doc.get("title") in BASE_EXCLUDED_INDEX_TITLES]:
+        del accumulator["index"][key]
+
+    # A commentary whose base text is absent makes the TOC build log a
+    # "No book named ..." skip for it, which the skip-tracking audit tests read
+    # as corruption. Close over base_text_titles until nothing new is found.
+    while True:
+        have = {doc.get("title") for doc in accumulator["index"].values()}
+        wanted = sorted({
+            title
+            for doc in accumulator["index"].values()
+            for title in (doc.get("base_text_titles") or [])
+            if title not in have and title not in BASE_EXCLUDED_INDEX_TITLES
+        })
+        added = 0
+        for doc in source_db["index"].find({"title": {"$in": wanted}}).sort("_id", 1) if wanted else []:
+            if str(doc["_id"]) not in accumulator["index"]:
+                accumulator["index"][str(doc["_id"])] = doc
+                added += 1
+        if not added:
+            break
+
+    for collection in BASE_WHOLE_COLLECTIONS:
+        for doc in source_db[collection].find({}).sort("_id", 1):
+            accumulator[collection][str(doc["_id"])] = doc
+
+    # TopicLinkType._validate() requires every slug in validFrom/validTo to be
+    # an existing Topic. The full `topics` collection is ~11 MB, so copy only
+    # the topics those link types name.
+    slugs = set()
+    for doc in accumulator.get("topic_link_types", {}).values():
+        slugs.update(doc.get("validFrom") or [])
+        slugs.update(doc.get("validTo") or [])
+    if slugs:
+        for doc in source_db["topics"].find({"slug": {"$in": sorted(slugs)}}).sort("_id", 1):
+            accumulator["topics"][str(doc["_id"])] = doc
+
+
+def fixture_dir_bytes(output_dir):
+    return sum(
+        os.path.getsize(os.path.join(output_dir, name))
+        for name in os.listdir(output_dir)
+        if os.path.isfile(os.path.join(output_dir, name))
+    )
+
+
+def check_total_budget(output_dir):
+    """Fail loudly when the committed fixture payload exceeds the 20 MiB total."""
+    total = fixture_dir_bytes(output_dir)
+    if total > MAX_TOTAL_BYTES:
+        raise SystemExit(
+            f"fixture payload under {output_dir} is {total} bytes (> {MAX_TOTAL_BYTES}); "
+            "shrink BASE_LIBRARY_CATEGORIES before committing"
+        )
+    return total
 
 
 def enrich_base_with_extra_titles(source_db, accumulator):
@@ -417,7 +531,7 @@ def enrich_base_with_extra_titles(source_db, accumulator):
 
 def merge_base_docs(accumulator, collections):
     for collection, docs in collections.items():
-        if collection not in {"index", "category", "term"}:
+        if collection not in BASE_COLLECTIONS:
             continue
         for doc in docs:
             accumulator[collection][str(doc.get("_id"))] = doc
@@ -428,30 +542,52 @@ def load_existing_base(path):
         return {}
     try:
         with open(path) as f:
-            payload = json.load(f)
+            payload = json_util.loads(f.read())
     except (ValueError, OSError):
         return {}
     collections = payload.get("collections") or {}
-    if not set(collections) <= {"index", "category", "term"}:
+    if not set(collections) <= set(BASE_COLLECTIONS):
         return {}
     return collections
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("test_files", nargs="+", help="pytest file path(s) to export, e.g. sefaria/tests/recommendation_test.py")
+    ap.add_argument("test_files", nargs="*", help="pytest file path(s) to export, e.g. sefaria/tests/recommendation_test.py")
     ap.add_argument("--artifact-dir", default=DEFAULT_ARTIFACT_DIR)
     ap.add_argument("--output-dir", default=DEFAULT_FIXTURE_DIR)
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=27018)
     ap.add_argument("--source-db", default="sefaria")
+    ap.add_argument(
+        "--base-only", action="store_true",
+        help="rebuild _base.json only (existing base + library families); "
+             "leave per-test overlays and _not-mockable.json untouched",
+    )
     args = ap.parse_args()
 
     if args.host != "127.0.0.1":
         raise SystemExit("refusing to export fixtures from a non-loopback Mongo host")
+    if not args.base_only and not args.test_files:
+        ap.error("test_files is required unless --base-only is given")
 
     client = pymongo.MongoClient(args.host, args.port, serverSelectionTimeoutMS=5000)
     source_db = client[args.source_db]
+
+    if args.base_only:
+        base_acc = defaultdict(dict)
+        merge_base_docs(base_acc, load_existing_base(os.path.join(args.output_dir, "_base.json")))
+        enrich_base_with_extra_titles(source_db, base_acc)
+        enrich_base_with_library_families(source_db, base_acc)
+        path = write_base_fixture(
+            args.output_dir,
+            {collection: list(docs.values()) for collection, docs in base_acc.items()},
+        )
+        if path is None:
+            raise SystemExit(f"_base.json was NOT rewritten: it would exceed MAX_BASE_BYTES ({MAX_BASE_BYTES})")
+        total = check_total_budget(args.output_dir)
+        print(f"{path} ({os.path.getsize(path)} bytes; fixture total {total} bytes)")
+        return
 
     existing_manifest = {}
     partial_library_manifest = {}
@@ -491,10 +627,12 @@ def main():
 
     if base_acc:
         enrich_base_with_extra_titles(source_db, base_acc)
+        enrich_base_with_library_families(source_db, base_acc)
         write_base_fixture(
             args.output_dir,
             {collection: list(docs.values()) for collection, docs in base_acc.items()},
         )
+        check_total_budget(args.output_dir)
 
     for path in written:
         print(path)

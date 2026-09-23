@@ -149,10 +149,12 @@ class Test_Category_Editor(object):
             assert run["deep_diff"](orig_toc, new_toc), f"Deep Diff test failed for {run['term'].get_primary_title('en')}"
 
 
+    @pytest.mark.needs_corpus
     def test_title_change_and_parent_change(self, create_new_main_cat_shared_title, create_new_terms, create_new_cats, create_new_collection, create_fake_indices):
         new_categories = ["Midrash", create_new_main_cat_shared_title.name]
         Test_Category_Editor.modify_and_reverse(new_categories, create_new_main_cat_shared_title, create_new_terms, create_new_cats, create_new_collection, create_fake_indices)
 
+    @pytest.mark.needs_corpus
     def test_title_change_only(self, create_new_main_cat_shared_title, create_new_terms, create_new_cats, create_new_collection, create_fake_indices):
         main_cat = create_new_cats[0]
         orig_contents = copy.deepcopy(main_cat.contents())
@@ -283,6 +285,7 @@ class Test_Toc_Node_Id(object):
         # The point of the fix: enough distinct ids for the breaker to be reachable at all.
         assert len(set(ids)) > SIGNATURE_BREAKER_THRESHOLD
 
+    @pytest.mark.needs_corpus
     def test_id_is_a_readable_path(self):
         node = library.get_toc_tree().lookup(["Tanakh", "Torah", "Genesis"])
         assert c.toc_node_id(node) == "Tanakh/Torah/Genesis"

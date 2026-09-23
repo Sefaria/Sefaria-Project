@@ -251,9 +251,16 @@ jobs:
   # patch cannot silently talk to a real mongod.
   #
   # pytest-job keeps the required check name "Continuous Testing: PyTest".
-  # Twenty needs_mongo tests in sefaria/tests/fixtures/mongo/_not-mockable.json
-  # (8 oversized, 12 partial-library) are deselected by sefaria/conftest.py. A
-  # GitHub Mongo service cannot run them without restoring a multi-GB dump.
+  # Two needs_mongo tests in sefaria/tests/fixtures/mongo/_not-mockable.json
+  # (1 oversized, 1 partial-library) are deselected by sefaria/conftest.py -- that
+  # manifest has held exactly these two entries since it was created, despite an
+  # earlier version of this comment claiming twenty. A GitHub Mongo service cannot
+  # run them without restoring a multi-GB dump.
+  #
+  # Tests that the mocked library genuinely cannot represent (they need the full
+  # ~6,600-index corpus, real Elasticsearch, or a Mongo feature mongomock does not
+  # implement) carry `needs_corpus` and are excluded from all three jobs here. They
+  # run in the Kubernetes sandbox job against the full dump.
 
   pytest-no-mongo-job:
     name: "Continuous Testing: PyTest (no Mongo)"
@@ -262,7 +269,10 @@ jobs:
       github.event.pull_request.draft == false &&
       needs.check-python-files.outputs.python_files_changed == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Local wall clock on an M3: ~1.5-2.5 min for the tests, ~40 s for the parity
+    # step (four --collect-only passes: three jobs plus master's baseline).
+    # Hosted runners are several times slower.
+    timeout-minutes: 45
     env:
       SEFARIA_MOCK_MONGO: "1"
       SEFARIA_TEST_MONGO: "1"
@@ -280,25 +290,29 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run no-Mongo pytest tests
-        # Helper/reader suites still need a live library, webpack stats, or a real
-        # PyMongo client. Keep this job to unit tests proven green under mongomock.
+        # The complement of the other two jobs: everything master's single
+        # `-m "not deep and not failing"` run selected that is not needs_mongo,
+        # needs_linker or needs_corpus. It resolves refs through the library
+        # built from sefaria/tests/fixtures/mongo/_base.json. This used to be a
+        # hand-kept file allowlist, which left ~1,200 tests running nowhere.
+        #
+        # ./semantic_search is outside master's baseline paths but ran in this
+        # job's old allowlist; it stays so this change drops no coverage. The two
+        # scripts/ test files are passed by path, which pytest collects even
+        # though pytest.ini's python_files does not list scripts/.
         run: >
           python -m pytest -q --reuse-db
-          -m "not deep and not failing and not needs_mongo and not needs_linker"
-          ./sefaria/datatype
-          ./sefaria/tests/forms_test.py
-          ./sefaria/system/tests/reindex_cronjob_test.py
-          ./sefaria/system/tests/reindex_orchestrator_test.py
-          ./sefaria/system/tests/reindex_pipeline_test.py
-          ./sefaria/system/tests/test_decorators.py
-          ./sefaria/system/tests/test_varnish.py
-          ./sefaria/system/tests/test_language_module_switching.py
-          ./sefaria/system/tests/interface_language_test.py
-          ./sefaria/system/tests/ref_data_index_test.py
-          ./sso
-          ./powered_by
+          -m "not deep and not failing and not needs_mongo and not needs_linker and not needs_corpus"
+          ./sefaria ./sso ./reader ./powered_by
           ./semantic_search
+          scripts/test_impact/test_ci_parity.py
           scripts/pytest_minimal_dataset/test_export_mongo_fixtures.py
+      - name: Check CI parity with master's pytest selection
+        # Fails if any test master's baseline selects is collected by none of the
+        # pytest jobs in this workflow. Tests marked needs_corpus are "missing"
+        # here until the sandbox job that runs them is added to this workflow;
+        # once it is, its collection covers them and no --allow list is needed.
+        run: python scripts/test_impact/ci_parity.py
   pytest-job:
     name: "Continuous Testing: PyTest"
     needs: [ check-python-files ]
@@ -306,7 +320,9 @@ jobs:
       github.event.pull_request.draft == false &&
       needs.check-python-files.outputs.python_files_changed == 'true'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # ~7.5 min locally: every needs_mongo test reseeds the ~17 MB shared base
+    # and rebuilds the library (~5 s each). Hosted runners are slower.
+    timeout-minutes: 45
     env:
       SEFARIA_MOCK_MONGO: "1"
       SEFARIA_TEST_MONGO: "1"
@@ -326,7 +342,7 @@ jobs:
       - name: Run mocked Mongo pytest tests
         run: >
           python -m pytest -q --reuse-db
-          -m "not deep and not failing and needs_mongo and not needs_linker"
+          -m "not deep and not failing and needs_mongo and not needs_linker and not needs_corpus"
           ./sefaria ./sso ./reader ./powered_by
   pytest-linker-job:
     name: "Continuous Testing: PyTest (linker)"
@@ -356,7 +372,7 @@ jobs:
       - name: Run linker pytest tests
         run: >
           python -m pytest -q --reuse-db
-          -m "not deep and not failing and needs_linker"
+          -m "not deep and not failing and needs_linker and not needs_corpus"
           ./sefaria ./sso ./reader ./powered_by
   ending-notification:
     name: "Continuous Testing: Notifications"

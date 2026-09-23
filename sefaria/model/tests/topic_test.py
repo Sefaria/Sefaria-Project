@@ -165,6 +165,7 @@ class TestTopics(object):
         ls = ts['1'].link_set(_class=None)
         assert {getattr(l, 'ref', getattr(l, 'topic', None)) for l in ls} == (trefs | {_ms('2')})
 
+    @pytest.mark.needs_corpus
     def test_merge(self, topic_graph_to_merge):
         ts = topic_graph_to_merge['topics']
         ts['20'].merge(ts['40'])

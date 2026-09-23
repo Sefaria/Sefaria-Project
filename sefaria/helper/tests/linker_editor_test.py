@@ -842,6 +842,7 @@ def test_search_empty_query_returns_empty():
     assert le.search_non_unique_terms("   ", 5) == []
 
 
+@pytest.mark.needs_corpus
 def test_get_non_unique_term_titles():
     titles = le.get_non_unique_term_titles(["bavli"])
     assert "bavli" in titles
