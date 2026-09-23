@@ -3,9 +3,12 @@ import unicodedata
 from django.views import View
 
 from sefaria.client.util import jsonResponse
-from sefaria.model.lexicon import LexiconEntry, LexiconEntrySet
+from sefaria.model.lexicon import LexiconEntry, LexiconEntrySet, Lexicon
+from sefaria.model.text import Ref
 from sefaria.helper.schema import change_lexicon_headword, get_available_lexicon_headword
 from sefaria.system.exceptions import InputError
+from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.settings import MULTISERVER_ENABLED
 from .views import _load_json_body, StaffRequiredMixin
 
 
@@ -61,6 +64,17 @@ class LexiconEntryView(View):
             entry.save()
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
+        # DictionaryEntryNode embeds the loaded entry inside itself, so a cached Ref for it
+        # would otherwise keep serving pre-edit content until the process restarts. This
+        # process's own cache is cleared directly; other pods behind the same deployment
+        # each carry their own copy of the same cache and only hear about the edit via
+        # the multiserver event.
+        lex = Lexicon().load({"name": lexicon})
+        if lex and getattr(lex, "index_title", None):
+            tref = f"{lex.index_title}, {entry.headword}"
+            Ref.remove_ref_from_cache(lex.index_title, tref)
+            if MULTISERVER_ENABLED:
+                server_coordinator.publish_event("Ref", "remove_ref_from_cache", [lex.index_title, tref])
         return jsonResponse({"status": "ok", "entry": entry.contents()})
 
 
