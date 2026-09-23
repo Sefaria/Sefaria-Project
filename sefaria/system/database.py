@@ -2,7 +2,6 @@
 database.py -- connection to MongoDB
 The system attribute _called_from_test is set in the py.test conftest.py file
 """
-import os
 import sys
 import threading
 import pymongo
@@ -33,15 +32,17 @@ class QueryCounter(monitoring.CommandListener):
     _record_lock = threading.Lock()
 
     def started(self, event):
-        if self.tracked_commands is not None and event.command_name not in self.tracked_commands:
-            return
-        import traceback
-        QueryCounter.count += 1
-        QueryCounter.queries.append({
-            'command': event.command_name,
-            'collection': event.command.get(event.command_name),
-            'traceback': ''.join(traceback.format_stack()[-6:-1])
-        })
+        # Counting is opt-in: a test calls reset(tracked_commands=...) first (see
+        # api/tests.py). Otherwise every command of every test session would format a
+        # stack trace and keep it in `queries` until the process exits.
+        if self.tracked_commands is not None and event.command_name in self.tracked_commands:
+            import traceback
+            QueryCounter.count += 1
+            QueryCounter.queries.append({
+                'command': event.command_name,
+                'collection': event.command.get(event.command_name),
+                'traceback': ''.join(traceback.format_stack()[-6:-1])
+            })
 
         if QueryCounter.current_nodeid is None:
             return
@@ -180,14 +181,7 @@ else:
     TEST_DB = SEFARIA_DB
 
     #If we have jsut a single instance mongo (such as for development) the MONGO_HOST param should contain jsut the host string e.g "localhost")
-    # Only a Mongo-usage recording run (SEFARIA_RECORD_MONGO=1, see sefaria/conftest.py)
-    # needs the listener. Attached on every test run, it formats a stack trace for
-    # each command and keeps it in QueryCounter.queries for the whole session.
-    _event_listeners = (
-        [QueryCounter()]
-        if hasattr(sys, '_called_from_test') and os.environ.get('SEFARIA_RECORD_MONGO') == '1'
-        else []
-    )
+    _event_listeners = [QueryCounter()] if hasattr(sys, '_called_from_test') else []
 
     if MONGO_REPLICASET_NAME is None:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:

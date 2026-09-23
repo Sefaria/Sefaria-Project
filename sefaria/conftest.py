@@ -213,6 +213,11 @@ def pytest_collection_modifyitems(session, config, items):
     if not _recording_enabled():
         yield
         return
+    # Everything below runs after `yield`, i.e. after pytest's own -m / -k /
+    # --deselect filtering, so it only touches tests that will actually run. Before
+    # the yield, a `-m needs_mongo` recording run would zero the measurements of
+    # every test it deselected.
+    yield
     # Clear stale artifacts ONLY for the tests this run actually collected, so a
     # run scoped to one suite cannot destroy another suite's measurements.
     #
@@ -233,7 +238,6 @@ def pytest_collection_modifyitems(session, config, items):
     # is the "made zero Mongo calls" signal, not just a missing key).
     for item in items:
         _recorder_index.setdefault(item.nodeid, {'commands': 0, 'collections': set(), 'total_docs': 0})
-    yield
 
 
 @pytest.hookimpl(hookwrapper=True)

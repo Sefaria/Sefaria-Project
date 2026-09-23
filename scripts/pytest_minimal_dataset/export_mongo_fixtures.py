@@ -120,7 +120,6 @@ BASE_COLLECTIONS = ("index", "category", "term", "topic_data_sources", "topic_li
 sys.path.insert(0, SCRIPT_DIR)
 from generate_minimal_dataset import (  # noqa: E402
     extract_match_filter,
-    needs_doc_id_fallback,
     normalize_filters,
     to_object_id,
 )
@@ -225,7 +224,14 @@ def collect_docs(source_db, records):
         ):
             touched_titles.add(filt["title"])
         filters_to_replay[collection].extend(normalize_filters(record))
-        if needs_doc_id_fallback(record):
+        # Also copy the reply's doc_ids when a filter was replayed: recorded filters
+        # are JSON with default=str, so ObjectId / regex / datetime values come back
+        # as plain strings and replaying them matches nothing. The dedupe below only
+        # fetches ids the replay did not already return. Inserted documents are the
+        # test's own and have nothing to copy; sampled `links` stay capped.
+        if record.get("command") != "insert" and not (
+            collection == "links" and record.get("nodeid") in LINK_SAMPLE_SAFE
+        ):
             ids_to_copy[collection].update(record.get("doc_ids") or [])
 
     docs_by_collection = defaultdict(dict)
