@@ -1,0 +1,243 @@
+{{- if .Values.nameService.enabled }}
+---
+# The standalone name (autocomplete) service.  Runs the web image with
+# NAME_SERVICE=true so every host serves only the completion endpoints
+# (sefaria/urls_name.py).  varnish routes /api/name and the other completion
+# paths here (see configmap/varnish-config.yaml); web pods run with
+# DISABLE_AUTOCOMPLETER=true and no longer build autocompleters.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: {{ .Values.deployEnv }}-name
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+    app: name-{{ .Values.deployEnv }}
+  annotations:
+    rollout.argoproj.io/revision: "{{ .Release.Revision }}"
+spec:
+  strategy:
+    blueGreen:
+      activeService: name-{{ .Values.deployEnv }}
+      autoPromotionEnabled: true
+      {{- if .Values.rollouts.prePromotionAnalysis }}
+      # Same end-to-end gate as web/nodejs: hold promotion until the new
+      # revision answers healthz-rollout through its own nginx, so the name
+      # rollout flips (or aborts) in lockstep with the rest of the stack and
+      # never scales down the old revision's pods while varnish still pins them.
+      prePromotionAnalysis:
+        templates:
+          - templateName: rollout-ready-{{ .Values.deployEnv }}
+        args:
+          - name: healthcheck-hostname
+            value: "nginx-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+      {{- end }}
+  selector:
+    matchLabels:
+      app: name-{{ .Values.deployEnv }}
+  revisionHistoryLimit: 2
+  replicas: {{ .Values.nameService.replicaCount }}
+  progressDeadlineSeconds: 1200
+  template:
+    metadata:
+      labels:
+        app: name-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        # not "django": CI scripts select pytest/selenium pods by stackRole=django
+        stackRole: name
+        releaseRevision: "{{ .Release.Revision }}"
+        {{- if .Values.datadog.enabled }}
+        tags.datadoghq.com/env: {{ .Values.deployEnv | quote }}
+        tags.datadoghq.com/service: "name"
+        tags.datadoghq.com/version: {{ .Values.web.containerImage.tag | quote }}
+        admission.datadoghq.com/enabled: "true"
+        {{- end }}
+      {{- if .Values.datadog.enabled }}
+      annotations:
+        ad.datadoghq.com/name.logs: '[{"source":"python","service":"{{ .Values.deployEnv }}-name"}]'
+        admission.datadoghq.com/python-lib.version: "v4.7.1"
+      {{- end }}
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - mongo
+            topologyKey: kubernetes.io/hostname
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - "name-{{ .Values.deployEnv }}"
+              topologyKey: kubernetes.io/hostname
+        nodeAffinity:
+          {{- include "sefaria.nodeAffinities" . | nindent 10 }}
+      containers:
+      - name: name
+        image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+        imagePullPolicy: Always
+        args: [ "gunicorn sefaria.wsgi --access-logfile - --error-logfile - --timeout 420 --threads {{ .Values.nameService.resources.gunicornThreadCount }} --worker-tmp-dir /dev/shm -b 0.0.0.0:80" ]
+        env:
+          # WEB_CONCURRENCY is used for determining the number of server workers
+          - name: WEB_CONCURRENCY
+            value: "{{ .Values.nameService.resources.gunicornWorkerCount }}"
+          - name: randomstringtoforceredeployments
+            value: {{ randAlphaNum 8 }}
+          - name: GOOGLE_APPLICATION_CREDENTIALS
+            value: /app/logging-secret.json
+          - name: ENV_NAME
+            value: "{{ .Values.deployEnv }}"
+          - name: STACK_COMPONENT
+            value: name
+          - name: NAME_SERVICE
+            value: "true"
+          # The name service is the one place autocompleters must build, even if
+          # a shared configmap disables them for the rest of the stack.
+          - name: DISABLE_AUTOCOMPLETER
+            value: "false"
+          {{- if .Values.datadog.enabled }}
+          - name: DD_LOGS_INJECTION
+            value: "true"
+          - name: DD_RUNTIME_METRICS_ENABLED
+            value: "true"
+          - name: DD_ENTITY_ID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
+          {{- end }}
+          - name: REDIS_HOST
+            value: "redis-{{ .Values.deployEnv }}"
+          # not used on the completion path, but the mounted local_settings lists
+          # them as required env and degrades noisily without them
+          - name: NODEJS_HOST
+            value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: VARNISH_HOST
+            value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+          - name: HELM_REVISION
+            value: "{{ .Release.Revision }}"
+          {{- if .Values.mongo.enabled }}
+          - name: MONGO_HOST
+            value: {{ .Values.deployEnv }}-mongo
+          {{- end }}
+        envFrom:
+          {{- if .Values.tasks.enabled }}
+          - secretRef:
+              name: {{ .Values.tasks.redis.sentinelPassword.ref }}
+          - secretRef:
+              name: {{ .Values.tasks.redis.redisPassword.ref }}
+          {{- end }}
+          - secretRef:
+              name: {{ template "sefaria.secrets.elasticUser" . }}
+          - secretRef:
+              name: {{ .Values.secrets.localSettings.ref }}
+              optional: true
+          - configMapRef:
+              name: local-settings-{{ .Values.deployEnv }}
+          - secretRef:
+              name: local-settings-secrets-{{ .Values.deployEnv }}
+              optional: true
+          - configMapRef:
+              name: local-settings-name-{{ .Values.deployEnv }}
+              optional: true
+          - secretRef:
+              name: local-settings-name-secrets-{{ .Values.deployEnv }}
+              optional: true
+        ports:
+          - containerPort: 80
+            protocol: TCP
+        resources: {{ toYaml .Values.nameService.resources.resources | nindent 10 }}
+        startupProbe:
+          httpGet:
+            path: /healthz-rollout
+            port: 80
+          failureThreshold: 40 # 40 attempts x 15 secs = 10 minutes for the pod to successfully start
+          periodSeconds: 15
+          timeoutSeconds: 10
+        # multiserver rebuild events are processed synchronously in-request, so a
+        # worker can legitimately be blocked for several minutes rebuilding the
+        # completers.  The probes are split: liveness stays generous so kubelet
+        # does not kill a pod mid-rebuild (it will return to service on its own),
+        # while readiness fails fast so a blocked pod is taken out of rotation
+        # quickly and re-enters as soon as it answers again.
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          periodSeconds: 60
+          timeoutSeconds: 60
+          failureThreshold: 10
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 80
+          periodSeconds: 15
+          timeoutSeconds: 10
+          failureThreshold: 2
+        volumeMounts:
+        - mountPath: /app/sefaria/local_settings.py
+          name: local-settings
+          subPath: local_settings.py
+          readOnly: true
+        - mountPath: /varnish-secret
+          name: varnish-secret
+          readOnly: true
+        - mountPath: /school-lookup-data
+          name: school-lookup-data
+          readOnly: true
+        - mountPath: /client-secret
+          name: client-secret
+          readOnly: true
+        - mountPath: /google-cloud-secret
+          name: backup-manager-secret
+          readOnly: true
+        - mountPath: /app/logging-secret.json
+          name: logging-secret
+          subPath: logging-secret.json
+          readOnly: true
+        - name: gunicorn-config
+          mountPath: /app/gunicorn.conf.py
+          subPath: gunicorn.conf.py
+          readOnly: true
+        - name: elastic-cert
+          mountPath: /etc/ssl/certs/elastic
+          readOnly: true
+      volumes:
+        - name:  local-settings
+          configMap:
+            name: local-settings-file-{{ .Values.deployEnv }}
+            items:
+              - key: local_settings.py
+                path: local_settings.py
+        - name: elastic-cert
+          secret:
+            secretName: {{ template "sefaria.secrets.elasticCertificate" . }}
+            optional: true
+        - name: client-secret
+          secret:
+            secretName: {{ template "sefaria.secrets.googleClient" . }}
+        - name: backup-manager-secret  # used to access google cloud
+          secret:
+            secretName: {{ template "sefaria.secrets.backupManager" . }}
+        - name: logging-secret
+          secret:
+            secretName: {{ template "sefaria.secrets.logging" . }}
+            optional: true
+        - name: varnish-secret
+          secret:
+            secretName: {{ template "sefaria.secrets.varnish" . }}
+        - name: school-lookup-data
+          secret:
+            secretName: {{ template "sefaria.secrets.schoolLookup" . }}
+            optional: true
+        - name: gunicorn-config
+          configMap:
+            name: gunicorn-config-{{ .Values.deployEnv }}
+{{- end }}

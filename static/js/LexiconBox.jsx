@@ -115,9 +115,9 @@ class LexiconBox extends Component {
           // TODO. remove hard-coding
           let dataSourceText = "";
           if (this.props.srefs[0].indexOf("Jerusalem Talmud") !== -1) {
-            dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(this.props.srefs[0])}" ${Sefaria._('by')} ${Sefaria._('Sefaria')}.`;
+            dataSourceText = `${Sefaria._("common.this_topic_is_connected_to")}"${Sefaria._r(this.props.srefs[0])}" ${Sefaria._("common.by")} ${Sefaria._('Sefaria')}.`;
           } else {
-            dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(this.props.srefs[0])}" ${Sefaria._('based on')} ${Sefaria._('research of Dr. Michael Sperling')}.`;
+            dataSourceText = `${Sefaria._("common.this_topic_is_connected_to")}"${Sefaria._r(this.props.srefs[0])}" ${Sefaria._("lexicon_box.based_on")} ${Sefaria._("lexicon_box.research_of_dr_michael_sperling")}.`;
           }
           
           const neArray = this.state.namedEntity.possibilities || [this.state.namedEntity]; 

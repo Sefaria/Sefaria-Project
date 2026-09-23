@@ -7,7 +7,7 @@
  * Backend endpoint: POST /modtools/links (with action=DELETE)
  */
 import React, { useState } from 'react';
-import Cookies from 'js-cookie';
+import { getCsrfToken } from '../../sefaria/csrf';
 import { saveAs } from 'file-saver';
 import ModToolsSection from './shared/ModToolsSection';
 import { stripHtmlTags } from '../utils';
@@ -105,7 +105,7 @@ const RemoveLinksFromCsv = () => {
     data.append('action', 'DELETE');
     const request = new Request(
       '/modtools/links',
-      { headers: { 'X-CSRFToken': Cookies.get('csrftoken') } }
+      { headers: { 'X-CSRFToken': getCsrfToken() } }
     );
     fetch(request, {
       method: 'POST',

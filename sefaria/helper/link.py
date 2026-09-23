@@ -136,58 +136,46 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
         # of the book
         return context_ref.normal().replace(self._title, self._linked_title)
 
-    def _build_links_internal(self, oref, text=None, **kwargs):
+    def _build_links_internal(self, oref, vstate=None, **kwargs):
         tref = oref.normal()
         found_links = []
         # This is a special case, where the sections length is 0 and that means this is
         # a whole text or complex text node that has been posted. So we get each leaf node
         if not oref.sections:
-            vs = StateNode(tref).versionState
-            if not vs.is_new_state:
-                vs.refresh()  # Needed when saving multiple nodes in a complex text.  This may be moderately inefficient.
+            vstate = vstate or StateNode(tref).versionState
+            if not vstate.is_new_state:
+                vstate.refresh()  # Needed when saving multiple nodes in a complex text.  This may be moderately inefficient.
             content_nodes = oref.index_node.get_leaf_nodes()
             if self._default_only:
                 content_nodes = [node for node in content_nodes if node.key == "default" and getattr(node, "default", False) is True]
             for r in content_nodes:
                 cn_oref = r.ref()
-                text = TextFamily(cn_oref, commentary=0, context=0, pad=False).contents()
-                length = cn_oref.get_state_ja().length()
-                for i, sr in enumerate(cn_oref.subrefs(length)):
-                    stext = {"sections": sr.sections,
-                            "sectionNames": text['sectionNames'],
-                            "text": text["text"][i] if i < len(text["text"]) else "",
-                            "he": text["he"][i] if i < len(text["he"]) else ""
-                            }
-                    found_links += self._build_links_internal(sr, stext, **kwargs)
+                length = cn_oref.get_state_ja(vstate=vstate).length()
+                for sr in cn_oref.subrefs(length):
+                    found_links += self._build_links_internal(sr, vstate, **kwargs)
 
         else:
-            if not text:
-                try:
-                    text = TextFamily(oref, commentary=0, context=0, pad=False).contents()
-                except AssertionError:
-                    logger.warning("Structure node passed to add_commentary_links: {}".format(oref.normal()))
-                    return
+            try:
+                depth = oref.index_node.depth
+            except AttributeError:
+                logger.warning("Structure node passed to add_commentary_links: {}".format(oref.normal()))
+                return
 
             if self._default_only and (oref.index_node.key != "default" or getattr(oref.index_node, "default", False) is False):
                 return
 
-            if len(text["sectionNames"]) > len(text["sections"]) > 0:
+            if depth > len(oref.sections) > 0:
                 # any other case where the posted ref sections do not match the length of the parent texts sections
                 # this is a larger group of comments meaning it needs to be further broken down
                 # in order to be able to match the commentary to the basic parent text units,
                 # recur on each section
-                length = max(len(text["text"]), len(text["he"]))
-                for i,r in enumerate(oref.subrefs(length)):
-                    stext = {"sections": r.sections,
-                            "sectionNames": text['sectionNames'],
-                            "text": text["text"][i] if i < len(text["text"]) else "",
-                            "he": text["he"][i] if i < len(text["he"]) else ""
-                            }
-                    found_links += self._build_links_internal(r, stext, **kwargs)
+                length = oref.get_subrefs_count(oref.get_state_ja(vstate=vstate))
+                for r in oref.subrefs(length):
+                    found_links += self._build_links_internal(r, vstate, **kwargs)
 
             # this is a single comment, trim the last section number (comment) from ref
-            elif len(text["sections"]) == len(text["sectionNames"]):
-                if len(text['he']) or len(text['text']): #only if there is actually text
+            elif len(oref.sections) == depth:
+                if not oref.is_empty(vstate=vstate): #only if there is actually text
                     #base_tref = base_tref[0:base_tref.rfind(":")]
                     base_tref = self._generate_specific_base_tref(oref)
                     found_links += [tref]

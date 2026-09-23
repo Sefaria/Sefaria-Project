@@ -23,6 +23,7 @@ urlpatterns = [
     re_path(r'^calendars/?$', reader_views.calendars),
     re_path(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
     re_path(r'^modtools/?$', reader_views.modtools),
+    re_path(r'^linker-editor/?$', reader_views.linker_editor),
     path('modtools/upload_text', sefaria_views.modtools_upload_workflowy),
     path('modtools/links', sefaria_views.links_upload_api),
     path('modtools/links/<path:tref1>/<path:tref2>', sefaria_views.get_csv_links_by_refs_api),
@@ -57,7 +58,7 @@ urlpatterns = [
     path('translate/<path:ref>', reader_views.edit_text),
     path('edit/terms/<path:term>', reader_views.terms_editor),
     path('add/terms/<path:term>', reader_views.terms_editor),
-    re_path(r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.edit_text),
+    re_path(r'^edit/(?P<ref>.+)/(?P<language_family_name>[a-z]+)/(?P<version>.+)$', reader_views.edit_text),
     path('edit/<path:ref>', reader_views.edit_text),
 
     re_path(r'^dashboard/?$', reader_views.dashboard),

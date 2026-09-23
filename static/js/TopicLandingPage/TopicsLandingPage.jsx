@@ -27,7 +27,7 @@ export const TopicsLandingPage = ({openTopic}) => {
                 <div className="sidebarLayout">
                     <div className="contentInner mainColumn topic-landing-page-content">
                         <h1 className="topic-landing-header">
-                            <InterfaceText>{pageTitle}</InterfaceText>
+                            <InterfaceText>topics_page.explore_by_topic</InterfaceText>
                         </h1>
                         <div className="topic-landing-section first-section">
                             <TopicLandingSearch openTopic={openTopic} numOfTopics={Sefaria.numLibraryTopics}/>

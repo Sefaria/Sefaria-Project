@@ -4,6 +4,7 @@ from copy import deepcopy
 import pytest
 
 import sefaria.model as model
+from sefaria.model.legacy_text import LegacyTextChunk
 from sefaria.system.exceptions import InputError
 from sefaria.system.testing import test_uid
 
@@ -531,6 +532,58 @@ def dep_counts(name, indx):
     return ret
 
 
+def test_index_rename_migrates_versions():
+    """Renaming an Index must migrate all of its versions to the new title,
+    leaving none stranded under the old one — including non-primary versions.
+
+    This is the behavior that broke (the rename cascade once stranded versions
+    when a non-primary version was processed first). We assert the user-facing
+    outcome through index.save() rather than the cascade's internals, so the
+    test survives future refactors of how the migration is performed.
+    Complements test_index_title_setter, which renames an index with no versions.
+    """
+    from sefaria.system.database import db
+
+    old = "Test Rename Versions"
+    new = "Test Rename Versions NEW"
+    chapter = [['1'], ['2'], ["original text", "2nd"]]
+
+    index = model.Index({
+        "title": old,
+        "heTitle": "כותרת בדיקה",
+        "titleVariants": [old],
+        "sectionNames": ["Chapter", "Paragraph"],
+        "categories": ["Musar"],
+    }).save()
+
+    # Insert raw to skip Version._validate during setup and include a non-primary version.
+    # actualLanguage/languageFamilyName are set explicitly since raw insert skips
+    # Version._normalize(), which would otherwise backfill them from language --
+    # Ref.text(lang=...) below matches on both.
+    db.texts.insert_many([
+        {"title": old, "versionTitle": "Secondary TEST", "versionSource": "blabla",
+         "language": "en", "actualLanguage": "en", "languageFamilyName": "english",
+         "isPrimary": False, "direction": "ltr", "chapter": chapter},
+        {"title": old, "versionTitle": "Primary TEST", "versionSource": "blabla",
+         "language": "he", "actualLanguage": "he", "languageFamilyName": "hebrew",
+         "isPrimary": True, "direction": "rtl", "chapter": chapter},
+    ])
+
+    try:
+        assert model.VersionSet({"title": old}).count() == 2
+
+        index.title = new
+        index.save()
+
+        assert model.VersionSet({"title": old}).count() == 0
+        assert model.VersionSet({"title": new}).count() == 2
+        # The text itself is still reachable under the new title.
+        assert model.Ref(f"{new} 3:1").text("en").text == "original text"
+    finally:
+        model.IndexSet({"title": {"$in": [old, new]}}).delete()
+        model.VersionSet({"title": {"$in": [old, new]}}).delete()
+
+
 def test_version_word_count():
     #simple
     assert model.Version().load({"title": "Genesis", "language": "he", "versionTitle": "Tanach with Ta'amei Hamikra"}).word_count() == 20813
@@ -547,7 +600,7 @@ def test_version_word_count():
 def test_version_walk_thru_contents():
     def action(segment_str, tref, heTref, version):
         r = model.Ref(tref)
-        tc = model.TextChunk(r, lang=version.language, vtitle=version.versionTitle)
+        tc = LegacyTextChunk(r, lang=version.language, vtitle=version.versionTitle)
         assert tc.text == segment_str
         assert tref == r.normal()
         assert heTref == r.he_normal()
@@ -828,6 +881,6 @@ class TestVersionActualLanguage:
                          ])
 
 def test_remove_html(text_with_html, text_without_html):
-    assert model.TextChunk.remove_html(text_with_html) == text_without_html
+    assert LegacyTextChunk.remove_html(text_with_html) == text_without_html
 
 

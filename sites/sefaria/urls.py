@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from django.urls import re_path
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.views.generic.base import RedirectView
 import reader.views as reader_views
+import dedications.views as dedications_views
 from sefaria.settings import STATIC_URL
 from sites.sefaria.site_settings import SITE_SETTINGS
 
@@ -41,7 +42,6 @@ static_pages = [
     "ramban-sponsorships",
     "contest",
     "design-system",
-    "powered-by",
     "word-by-word",
     "cloudflare_site_is_down_en",
     "cloudflare_site_is_down_he",
@@ -52,7 +52,8 @@ static_pages = [
     "updates",
     "pioneers",
     "ai",
-    "metrics"
+    "metrics",
+    "fleishman-hirsch-on-torah-in-english"
 ]
 
 static_pages_by_lang = [
@@ -63,6 +64,7 @@ static_pages_by_lang = [
 
 # Static and Semi Static Content
 site_urlpatterns = [
+    # Unlike a plain HttpResponsePermanentRedirect, query_string=True preserves UTM campaign parameters.
     re_path(r'^app/?$', RedirectView.as_view(url='/mobile', permanent=True, query_string=True)),
     re_path(r'^metrics/?$', reader_views.metrics),
     re_path(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
@@ -71,8 +73,10 @@ site_urlpatterns = [
     re_path(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),
     re_path(r'^\.well-known/apple-app-site-association/?$', reader_views.apple_app_site_association),
     re_path(r'^\.well-known/assetlinks.json/?$', reader_views.android_asset_links_json),
+    re_path(r'^llms\.txt/?$', reader_views.serve_llms_txt),
     re_path(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
-    re_path(r'^(%s)/?$' % "|".join(static_pages_by_lang), reader_views.serve_static_by_lang),
+    re_path(r'^(%s)/?$' % "|".join(static_pages_by_lang), reader_views.serve_static, {"by_lang": True}),
+    re_path(r'^dedication/(?P<slug>[\w-]+)/?$', dedications_views.dedication),
     re_path(r'^healthz/?$', reader_views.application_health_api),  # this oddly is returning 'alive' when it's not.  is k8s jumping in the way?
     re_path(r'^health-check/?$', reader_views.application_health_api),
     re_path(r'^healthz-rollout/?$', reader_views.rollout_health_api),
@@ -83,6 +87,7 @@ site_urlpatterns = [
 site_urlpatterns += [
     re_path(r'^donate/mobile?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/english?c_src=App' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he?c_src=App')),
     re_path(r'^donate/?$', lambda x: HttpResponseRedirect('https://donate.sefaria.org/english' if x.interfaceLang == 'english' else 'https://donate.sefaria.org/he')),
+    re_path(r'^powered-by/?$', lambda x: HttpResponsePermanentRedirect('https://developers.sefaria.org/docs/powered-by-sefaria')),
     re_path(r'^wiki/?$', lambda x: HttpResponseRedirect('https://developers.sefaria.org/docs/welcome')),
     re_path(r'^developers/?$', lambda x: HttpResponseRedirect('https://developers.sefaria.org')),
     re_path(r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),
@@ -110,4 +115,5 @@ site_urlpatterns +=[
     re_path(r'^strategicplan/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Strategic_Plan.pdf')),
     re_path(r'^annualreport2021?$', lambda x: HttpResponseRedirect('/annualreport/2021')), # Added for backwards compatability for old links that might still point to this
     re_path(r'^annualreport(/(?P<report_year>\d+)/?|/?)$', reader_views.annual_report),
+    re_path(r'^current-990-form/?$', reader_views.current_990_form),
 ]

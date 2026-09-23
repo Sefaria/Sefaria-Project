@@ -8,10 +8,10 @@ const SheetsTopicsTOC = ({handleClick}) => {
                              setNavTopic={handleClick}/>;
     }));
     return (
-    <div className="sheetsTopicTOC">
-        <TOCCardsWrapper title={Sefaria._("Browse Topic Categories")}>{categoryListings}</TOCCardsWrapper>
-    </div>
-  );
+      <div className="sheetsTopicTOC">
+        <TOCCardsWrapper title={Sefaria._("sheets_home_page_topics_toc.browse_topic_categories")}>{categoryListings}</TOCCardsWrapper>
+      </div>
+    );
 }
 
 const TOCCardsWrapper = ({title, children}) => {
@@ -48,10 +48,12 @@ const SheetsHoliday = ({handleClick}) => {
 }
 
 const SheetsTopicsCalendar = ({handleClick}) => {
-    return <div className="sheetsTopicsCalendar table">
-                <TOCCardsWrapper title={Sefaria._("This Week’s Torah Portion")}><SheetsParashah handleClick={handleClick}/></TOCCardsWrapper>
-                <TOCCardsWrapper title={Sefaria._("On the Jewish Calendar")}><SheetsHoliday handleClick={handleClick}/></TOCCardsWrapper>
-          </div>
+    return (
+      <div className="sheetsTopicsCalendar table">
+                  <TOCCardsWrapper title={Sefaria._("common.this_week_s_torah_portion")}><SheetsParashah handleClick={handleClick}/></TOCCardsWrapper>
+                  <TOCCardsWrapper title={Sefaria._("common.on_the_jewish_calendar")}><SheetsHoliday handleClick={handleClick}/></TOCCardsWrapper>
+            </div>
+    );
 }
 
 export { SheetsTopicsCalendar, SheetsTopicsTOC }

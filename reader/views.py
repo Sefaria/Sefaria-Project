@@ -11,6 +11,7 @@ from bson.json_util import dumps
 import socket
 import bleach
 from collections import OrderedDict
+from enum import Enum
 import pytz
 from html import unescape
 import redis
@@ -18,18 +19,24 @@ import os
 import re
 import uuid
 from dataclasses import asdict
+from functools import lru_cache
 
+from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_KEY
 from remote_config import remoteConfigCache
-from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, SHOW_JOIN_CHATBOT_BANNER
-from sefaria.system.context_processors import _is_user_in_experiment
+from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
+from sefaria.helper import library_assistant
 from sefaria.utils.util import get_redirect_to_help_center
-from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
+from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY, \
+    get_direction_from_legacy_lang, get_legacy_lang_from_direction
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
 from django.http import Http404, QueryDict, FileResponse
+from django.urls import Resolver404, resolve
+from django_hosts.resolvers import get_host
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
 from django.utils.translation import gettext as _
@@ -61,13 +68,13 @@ from sefaria.history import text_history, get_maximal_collapsed_activity, top_co
 from sefaria.sefaria_tasks_interace.history_change import LinkChange, VersionChange
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import text_preview, short_to_long_lang_code, epoch_time, get_short_lang, is_int
-from sefaria.utils.views_utils import add_query_param
+from sefaria.utils.views_utils import add_query_param, AASA_EXCLUDED_PATHS, NO_APPLINK_PARAM
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
-from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_MODULES, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
+from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
     MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
-    CHATBOT_API_BASE_URL, CELERY_ENABLED
+    CHATBOT_API_BASE_URL, CELERY_ENABLED, DISABLE_AUTOCOMPLETER, APP_VERSION
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
@@ -84,7 +91,9 @@ from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, 
     update_order_of_topic_sources, delete_ref_topic_link, update_authors_place_and_time, get_num_library_topics, \
     get_author_indexes
 from sefaria.helper.file import get_resized_file
-from sefaria.image_generator import make_img_http_response
+from sefaria.helper.skip_tracking import build_pathway
+from sefaria.image_generator import make_img_http_response, make_module_fallback_img_http_response, \
+    make_static_img_http_response, normalize_social_image_module
 import sefaria.tracker as tracker
 
 from sefaria.settings import NODE_TIMEOUT, DEBUG
@@ -104,6 +113,13 @@ if USE_VARNISH:
 
 import structlog
 logger = structlog.get_logger(__name__)
+
+
+class SocialImagePageType(Enum):
+    """Kinds of social images supported by /api/img-gen/."""
+    REF = "ref"
+    STATIC = "static"
+    MODULE_FALLBACK = "module_fallback"
 
 
 class PageTypes:
@@ -210,21 +226,21 @@ def render_template(request, template_name='base.html', app_props=None, template
     propsJSON = json.dumps(props, ensure_ascii=False)
     template_context["propsJSON"] = propsJSON
     if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
-        html = render_react_component("ReaderApp", propsJSON)
+        html = render_react_component("ReaderApp", propsJSON, request=request)
         template_context["html"] = html
     else:
         template_context["renderStatic"] = True
     return render(request, template_name=template_name, context=template_context, content_type=content_type, status=status, using=using)
 
 
-def render_react_component(component, props):
+def render_react_component(component, props, request):
     """
     Asks the Node Server to render `component` with `props`.
     `props` may either be JSON (to save reencoding) or a dictionary.
     Returns HTML.
     """
     if not USE_NODE:
-        return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
+        return render_to_string("elements/loading.html", request=request)
 
     propsJSON = json.dumps(props, ensure_ascii=False) if isinstance(props, dict) else props
     cache_key = "todo" # zlib.compress(propsJSON)
@@ -262,11 +278,11 @@ def render_react_component(component, props):
                     "Logged In" if props.get("loggedIn", False) else "Logged Out",
                     props.get("interfaceLang")
             ))
-            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
+            return render_to_string("elements/loading.html", request=request)
         else:
             # If anything else goes wrong with Node, just fall back to client-side rendering
             logger.warning("Node error: Fell back to client-side rendering.")
-            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
+            return render_to_string("elements/loading.html", request=request)
 
 
 def base_props(request):
@@ -331,7 +347,8 @@ def base_props(request):
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
-        "domainModules": DOMAIN_MODULES,
+        "countryCode": request.country_code,
+        "domainModules": settings.DOMAIN_MODULES,
         "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
         "initialSettings": {
             "language":          getattr(request, "contentLang", "english"),
@@ -349,7 +366,9 @@ def base_props(request):
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
         "_debug_mode": request.GET.get("debug_mode", None),
+        "appVersion": APP_VERSION,
     })
+    
     chatbot_version = request.session.get("chatbot_version")
     chatbot_version = chatbot_version if is_int(chatbot_version) else None
 
@@ -362,15 +381,27 @@ def base_props(request):
         'chatbot_max_input_chars': remoteConfigCache.get(CHATBOT_MAX_INPUT_CHARS, default=10000),
         'chatbot_max_prompts': remoteConfigCache.get(CHATBOT_MAX_PROMPTS, default=100),
         'chatbot_promo_learn_more_urls': remoteConfigCache.get(CHATBOT_PROMO_LEARN_MORE_URLS, default=None),
+        'chatbot_promo_maybe_later_json': remoteConfigCache.get(CHATBOT_PROMO_MAYBE_LATER_JSON, default=None),
         "chatbot_origin": f"sefaria-{os.getenv('SENTRY_ENVIRONMENT', 'local')}",
+        "chatbot_promo_session_length_seconds": remoteConfigCache.get(CHATBOT_PROMO_SESSION_LENGTH_SECONDS, default=30*60),
         'show_join_chatbot_banner': remoteConfigCache.get(SHOW_JOIN_CHATBOT_BANNER, default=False),
     }
-    if user_has_experiments(request.user):
-        chatbot_data["in_chatbot_experiment"] = True
-        if _is_user_in_experiment(request):
+    if request.user.is_authenticated:
+        if library_assistant.is_enabled(profile):
             chatbot_data["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
             chatbot_data["chatbot_enabled"] = True
+        # TEMPORARY (goes with the experiments framework): `in_chatbot_experiment`
+        # suppresses the "try the Library Assistant" promo banner for users who have
+        # already made a choice about the assistant — whether they are using it or
+        # deliberately turned it off.
+        if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
+            chatbot_data["in_chatbot_experiment"] = True
     user_data.update(chatbot_data)
+    user_data.update({
+        "googleClientId": getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
+        "appleClientId": getattr(settings, "APPLE_SSO_CLIENT_ID", ""),
+        "recaptchaSiteKey": getattr(settings, "RECAPTCHA_PUBLIC_KEY", TEST_RECAPTCHA_PUBLIC_KEY if settings.DEBUG else None),
+    })
     return user_data
 
 
@@ -390,20 +421,68 @@ def user_credentials(request):
         return {"user_type": "API", "user_id": apikey["uid"]}
 
 
-def _reader_redirect_add_languages(request, tref):
-    versions = Ref(tref).version_list()
+def _reader_redirect_versions(request, tref, current_versions, normalized_versions):
+    """
+    Redirect to a URL with normalized version query params.
+    Replaces version params that have a normalized form and removes those that don't match any known version.
+    """
     query_params = QueryDict(request.GET.urlencode(), mutable=True)
-    for vlang, direction in [('ven', 'ltr'), ('vhe', 'rtl')]:
-        version_title = request.GET.get(vlang)
-        if version_title:
-            version_title = version_title.replace('_', ' ')
-            version = next((v for v in versions if v['direction'] == direction and v['versionTitle'] == version_title), None)
-            if version is not None:
-                query_params[vlang] = f'{version["languageFamilyName"]}|{version["versionTitle"]}'
-            else:
-                query_params.pop(vlang)
-    return redirect(f'/{tref}/?{urllib.parse.urlencode(query_params)}')
+    for version in current_versions:
+        if version in normalized_versions:
+            query_params[version] = normalized_versions[version]
+        else:
+            query_params.pop(version, None)
+    return redirect(f'/{tref}/?{query_params.urlencode()}')
 
+
+def _get_normalized_versions(tref, ven, vhe):
+    """
+    Normalize version params for a single ref into the canonical 'language|version_title' format.
+    Matches each param against known versions by title and/or language, falling back to partial matches
+    (language-only or title-only) when an exact match isn't found. Returns None for unmatched params.
+    """
+    if not ven and not vhe:
+        return [None, None] # saves `version_list()` db query
+    versions = Ref(tref).version_list()
+    normalized = []
+    for version_param, direction in [(ven, 'ltr'), (vhe, 'rtl')]:
+        if not version_param:
+            normalized.append(None)
+            continue
+        if '|' in version_param:
+            lang, vtitle = version_param.split('|', 1)
+        else:
+            lang, vtitle = None, version_param  # Legacy url with only version title
+        vtitle = vtitle.replace('_', ' ')
+        candidates = [v for v in versions if v['direction'] == direction]
+        version = (next((v for v in candidates if v['versionTitle'] == vtitle and v['languageFamilyName'] == lang), None)
+                   or next((v for v in candidates if v['languageFamilyName'] == lang), None)
+                   or next((v for v in candidates if v['versionTitle'] == vtitle), None))
+        if version:
+            normalized.append(f'{version["languageFamilyName"]}|{version["versionTitle"].replace(" ", "_")}')
+        else:
+            normalized.append(None)
+    return normalized
+
+
+def _get_current_and_normalized_versions(request, tref):
+    """
+    Extract current version query params (ven/vhe) from the request for each panel and normalize them.
+    Normalization resolves legacy or partial version params (e.g. title-only without language) to the
+    canonical 'language|version_title' format by matching against known versions in the database.
+    Returns two dicts mapping param names to their current and normalized values respectively.
+    """
+    current_versions, normalized_versions = {}, {}
+    tref_mappings = {k[1:]: v for k, v in request.GET.items() if re.match(r'^p\d+$', k)}
+    tref_mappings[''] = tref
+    tref_mappings = dict(sorted(tref_mappings.items()))
+    for panel_num, tref in tref_mappings.items():
+        ven = request.GET.get(f'ven{panel_num}')
+        vhe = request.GET.get(f'vhe{panel_num}')
+        norm_ven, norm_vhe = _get_normalized_versions(tref, ven, vhe)
+        current_versions.update({k: v for k, v in [(f'ven{panel_num}', ven), (f'vhe{panel_num}', vhe)] if v})
+        normalized_versions.update({k: v for k, v in [(f'ven{panel_num}', norm_ven), (f'vhe{panel_num}', norm_vhe)] if v})
+    return current_versions, normalized_versions
 
 
 @ensure_csrf_cookie
@@ -414,9 +493,9 @@ def catchall(request, tref, sheet=None):
     """
     active_module = getattr(request, "active_module", LIBRARY_MODULE)
 
-    for version in ['ven', 'vhe']:
-        if request.GET.get(version) and '|' not in request.GET.get(version):
-            return _reader_redirect_add_languages(request, tref)
+    current_versions, normalized_versions = _get_current_and_normalized_versions(request, tref)
+    if current_versions != normalized_versions:
+        return _reader_redirect_versions(request, tref, current_versions, normalized_versions)
 
     if sheet is None:
         # Validate ref first
@@ -453,7 +532,7 @@ def old_versions_redirect(request, tref, lang, version):
 
 def get_connections_mode(filter):
     # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open", "Version Open", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide")
+    sidebarModes = ("Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open", "Version Open", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide", "LinkerAdmin")
     if filter[0] in sidebarModes:
         return filter[0], True
     elif filter[0].endswith(" ConnectionsList"):
@@ -567,6 +646,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
         "menuOpen": "search",
         "searchQuery": search_params["query"],
         "searchType": search_params["tab"],
+        "tab": search_params["search_tab"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -655,7 +735,7 @@ def _extract_version_params(request, key):
     return {'languageFamilyName': languageFamilyName, 'versionTitle': versionTitle}
 
 
-def _extract_version_title_param(request, key):
+def _extract_version_title_param(request, key: str) -> str | None:
     """
     Accept both the current ReaderApp URL shape, languageFamilyName|versionTitle,
     and older links that pass only the version title.
@@ -668,6 +748,55 @@ def _extract_version_title_param(request, key):
         _, version_title = params.split("|", 1)
         return version_title or None
     return params
+
+
+@lru_cache(maxsize=512)
+def _classify_social_image_path(tref: str, module: str) -> SocialImagePageType:
+    """
+    Decide what kind of image /api/img-gen/ should return for this path.
+
+    The image API receives one free-form path string. It may be a text ref
+    like "Genesis.1.1", a normal static page like "jobs", or a module page
+    like "topics/shabbat". We classify the string with Django routing before
+    trying Ref(...), so non-text pages do not accidentally become broken ref
+    images.
+    """
+    # Cache common paths to avoid repeating Django route resolution for every
+    # social image request.
+    if not tref:
+        # /api/img-gen/ with no path is valid. It means "give me the default
+        # fallback image for the current host/module."
+        return SocialImagePageType.MODULE_FALLBACK
+
+    path = f"/{tref.lstrip('/')}"
+    try:
+        # The same path can mean different things on different Sefaria modules.
+        # Resolve against the module's own URLconf (defined in sefaria/hosts.py)
+        # so that /topics, /sheets, etc. are classified the same way Django
+        # would classify them for that host. get_host() looks up the host
+        # definition by module name — 'library' or 'voices' — and .urlconf
+        # gives the dotted path of the URLconf it uses (e.g. sefaria.urls_library).
+        match = resolve(path, urlconf=get_host(module).urlconf)
+    except Resolver404:
+        # Unknown paths get the module fallback instead of raising an error.
+        # This keeps Open Graph images available even when a page cannot be
+        # represented by a custom image.
+        return SocialImagePageType.MODULE_FALLBACK
+
+    if match.func is serve_static:
+        # Static pages are shared between modules and should use the simple
+        # Sefaria fallback image, not Library or Voices module branding.
+        return SocialImagePageType.STATIC
+
+    if module == LIBRARY_MODULE and match.func == catchall:
+        # Only the Library module should generate text-ref images. A ref-like
+        # string on Voices should stay module-branded because Voices pages are
+        # not currently supported by the text image generator.
+        return SocialImagePageType.REF
+
+    # Topics, sheets, and other module pages do not have custom image builders
+    # yet, so they use the module fallback image.
+    return SocialImagePageType.MODULE_FALLBACK
 
 
 @sanitize_get_params
@@ -846,7 +975,7 @@ def _reduce_ranged_ref_text_to_first_section(text_list):
 
 
 @sanitize_get_params
-def texts_category_list(request, cats):
+def texts_category_list(request, cats=None):
     """
     List of texts in a category.
     """
@@ -882,7 +1011,7 @@ def texts_category_list(request, cats):
 
 
 @sanitize_get_params
-def topics_category_page(request, topicCategory):
+def topics_category_page(request, topicCategory=None):
     """
     List of topics in a category.
     """
@@ -937,7 +1066,7 @@ def get_search_params(get_dict, i=None):
     if get_dict.get('tab') == 'text':
         filters = get_filters("t", "path")
         sort = get_dict.get(get_param("tsort", i), None)
-        agg_types = [None for _ in filters] # currently unused. just needs to be equal len as filters
+        agg_types = ["path" for _ in filters]  # text search always filters on the "path" field
         field = ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else ""
     else:
         for filter_type in sheet_filters_types:
@@ -948,6 +1077,9 @@ def get_search_params(get_dict, i=None):
     return {
         "query": urllib.parse.unquote(get_dict.get(get_param("q", i), "")),
         "tab": urllib.parse.unquote(get_dict.get(get_param("tab", i), "text")),
+        # `tab` is the text/sheet search type; `search_tab` is the active results tab
+        # on the search page (sources/books/authors/topics).
+        "search_tab": urllib.parse.unquote(get_dict.get(get_param("search_tab", i), "")) or None,
         "field": field,
         "sort": sort,
         "filters": filters,
@@ -988,6 +1120,7 @@ def search(request):
     props={
         "initialMenu": "search",
         "initialQuery": search_params["query"],
+        "initialSearchTab": search_params["search_tab"],
         "initialSearchFilters": search_params["filters"],
         "initialSearchFilterAggTypes": search_params["filterAggTypes"],
         "initialSearchField": search_params["field"],
@@ -1105,7 +1238,7 @@ def edit_collection_page(request, slug=None):
         "noindex": True
     })
     
-def groups_redirect(request, group):
+def groups_redirect(request, group=None):
     """
     Redirect legacy groups URLs to collections.
     """
@@ -1268,6 +1401,15 @@ def modtools(request):
     return menu_page(request, page="modtools", title=title)
 
 
+@ensure_csrf_cookie
+@staff_member_required
+@sanitize_get_params
+def linker_editor(request):
+    title = _("Linker Editor")
+    props = {"initialLinkerEditorBook": request.GET.get("book")}
+    return menu_page(request, props, page="linkerEditor", title=title)
+
+
 def canonical_url(request):
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return None
@@ -1380,10 +1522,14 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
 
 @ensure_csrf_cookie
 @sanitize_get_params
-def edit_text(request, ref=None, lang=None, version=None):
+def edit_text(request, ref=None, language_family_name=None, version=None):
     """
     Opens a view directly to adding, editing or translating a given text.
+    `language_family_name` (e.g. "english", "yiddish"), when given together with `version`,
+    identifies the exact existing version being edited.
     """
+    if version:
+        version = version.replace("_", " ")
     if ref is not None:
         try:
             oref = Ref(ref)
@@ -1392,12 +1538,46 @@ def edit_text(request, ref=None, lang=None, version=None):
                 initJSON = json.dumps({"mode": "add new", "newTitle": oref.normal()})
                 mode = "Add"
             else:
-                # Pull a particular section to edit
-                #text = get_text(ref, lang=lang, version=version)
-                text = TextFamily(Ref(ref), lang=lang, version=version).contents()
+                # Pull a particular section to edit: the specific named version (if any) plus the
+                # primary, for comparison/translating-from. If nothing's being edited yet (add/new
+                # flow), only the primary is needed.
+                if language_family_name and version:
+                    versions_params = [[language_family_name, version], [TextRequestAdapter.PRIMARY, '']]
+                else:
+                    versions_params = [[TextRequestAdapter.PRIMARY, '']]
+                # Zoom out to section level, matching TextFamily's old default (pad then context_ref
+                # level=1) -- editor.js expects a full section's worth of array data, with sections/
+                # toSections telling it which entry within that array is actually selected.
+                padded_oref = oref.padded_ref()
+                fetch_oref = padded_oref.context_ref()
+                adapter = TextRequestAdapter(fetch_oref, versions_params, fill_in_missing_segments=False)
+                text = adapter.get_versions_for_query()
+                # Position within that array must come from the padded (not further zoomed) ref,
+                # not the raw original one: padded_ref() leaves an already segment-level ref
+                # untouched (preserving the precise position context_ref()'s truncation would
+                # lose), but still pads a coarser-than-section-level ref (only possible at depth
+                # >= 3) up to the section-level length editor.js's postUrl-building loop requires
+                # -- the original ref alone could be shorter than that.
+                text['sections'] = padded_oref.sections[:]
+                text['toSections'] = padded_oref.toSections[:]
+                text['sectionRef'] = oref.section_ref().normal()
+                text['heSectionRef'] = oref.section_ref().he_normal()
+
+                # Sent as-is (real field names, incl. the full versions list) -- editor.js looks up
+                # the primary itself (isPrimary), and reads the specific one straight off the flag
+                # below, rather than the server pre-sorting them into a legacy en/he pair.
+                edited = next((v for v in text['versions']
+                               if version and v['languageFamilyName'] == language_family_name and v['versionTitle'] == version), None)
+                if edited:
+                    edited['isEdited'] = True
+
                 text["mode"] = request.path.split("/")[1]
                 mode = text["mode"].capitalize()
-                text["edit_lang"] = lang if lang is not None else request.contentLang
+                # sjs.langMode (the legacy en/he/bi toggle used throughout editor.js) is derived
+                # from the edited version's actual direction, not the family name string, so this
+                # also works correctly for non-English/Hebrew languages (e.g. Yiddish is rtl, so
+                # it must map to "he" here even though its family name isn't "hebrew").
+                text["edit_lang"] = get_legacy_lang_from_direction(edited['direction']) if edited else request.contentLang
                 text["edit_version"] = version
                 initJSON = json.dumps(text)
         except Exception as e:
@@ -1600,6 +1780,10 @@ def texts_api(request, tref):
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
+            # Legacy v1 texts API (superseded internally by the v3 TextRequestAdapter-backed API),
+            # kept live for external API consumers. Not called by our own client. Candidate for
+            # future deprecation.
+            from sefaria.model.legacy_text import TextFamily
             text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
                                       commentary=commentary, context=context, pad=pad, alts=alts,
                                       wrapLinks=wrapLinks, stripItags=stripItags,
@@ -1684,14 +1868,22 @@ def texts_api(request, tref):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             t = json.loads(j)
-            tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API", skip_links=skip_links, count_after=count_after)
-            return jsonResponse({"status": "ok"})
+            # Only derive direction from the legacy en/he bucket when `language` really is that
+            # bucket (callers that predate the `direction` field, e.g.
+            # scripts/pull_text_from_server.py). A caller sending a real ISO code (e.g. our own
+            # editor, or any future caller) must send direction itself -- guessing one from a
+            # real language via the binary en/he mapping would silently be wrong for any
+            # non-Hebrew rtl language.
+            direction = t.get("direction") or (get_direction_from_legacy_lang(t["language"]) if t["language"] in ("en", "he") else None)
+            chunk = tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], direction=direction, method="API", skip_links=skip_links, count_after=count_after)
+            return jsonResponse({"status": "ok", "versionTitle": chunk.vtitle})
         else:
             @csrf_protect
             def protected_post(request):
                 t = json.loads(j)
-                tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t.get("versionSource", None), skip_links=skip_links, count_after=count_after)
-                return jsonResponse({"status": "ok"})
+                direction = t.get("direction") or (get_direction_from_legacy_lang(t["language"]) if t["language"] in ("en", "he") else None)
+                chunk = tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t.get("versionSource", None), direction=direction, skip_links=skip_links, count_after=count_after)
+                return jsonResponse({"status": "ok", "versionTitle": chunk.vtitle})
             return protected_post(request)
 
     if request.method == "DELETE":
@@ -1787,28 +1979,37 @@ def complete_version_api(request):
 @catch_error_as_json
 @csrf_exempt
 def social_image_api(request, tref):
-    lang = request.GET.get("lang") or "en"
-    if lang not in {"en", "he", "bi"}:
-        lang = "en"
+    # Host language is the safest default because crawlers hit this endpoint
+    # directly. lang=en/he may override it, but lang=bi is not a real image
+    # mode yet, so it falls back to the host language.
+    domain_lang = current_domain_lang(request)
+    default_lang = "he" if domain_lang == "hebrew" else "en"
+    lang = request.GET.get("lang") or default_lang
     if lang == "bi":
-        lang = "en"
+        lang = default_lang
+    if lang not in {"en", "he"}:
+        lang = default_lang
     version = _extract_version_title_param(request, "ven") if lang == "en" else _extract_version_title_param(request, "vhe")
     platform = request.GET.get("platform") or "facebook"
     if platform not in {"facebook", "twitter"}:
         platform = "facebook"
+    module = normalize_social_image_module(getattr(request, "active_module", None))
+    page_type = _classify_social_image_path(tref, module)
+
+    if page_type == SocialImagePageType.STATIC:
+        return make_static_img_http_response(platform)
+
+    if page_type == SocialImagePageType.MODULE_FALLBACK:
+        return make_module_fallback_img_http_response(lang, platform, module)
 
     try:
         ref = Ref(tref)
         ref_str = ref.normal() if lang == "en" else ref.he_normal()
 
-        tf = TextFamily(ref, stripItags=True, lang=lang, version=version, context=0, commentary=False).contents()
-
-        he = tf["he"] if type(tf["he"]) is list else [tf["he"]]
-        en = tf["text"] if type(tf["text"]) is list else [tf["text"]]
-
-        text = en if lang == "en" else he
-        text = ' '.join(text)
-        cat = tf["primary_category"]
+        direction = get_direction_from_legacy_lang(lang)
+        chunk = ref.padded_ref().text(direction=direction, vtitle=version)
+        text = ' '.join(chunk.strip_itags(s) for s in chunk.ja().flatten_to_array())
+        cat = ref.primary_category
 
     except:
         text = None
@@ -1816,7 +2017,7 @@ def social_image_api(request, tref):
         ref_str = None
 
 
-    res = make_img_http_response(text, cat, ref_str, lang, platform)
+    res = make_img_http_response(text, cat, ref_str, lang, platform, module)
 
     return res
 
@@ -1837,23 +2038,15 @@ def old_recent_redirect(request):
 
 @catch_error_as_json
 def parashat_hashavua_api(request):
+    # Documented as broken: consistent 504 timeouts during endpoint capture on 2026-05-05
+    # (see docs/decisions/documented_endpoints.md). No known caller in the current client or
+    # mobile app. Not actively maintained.
+    from sefaria.model.legacy_text import TextFamily
     callback = request.GET.get("callback", None)
     p = get_parasha(datetime.now(), request.diaspora)
     p["date"] = p["date"].isoformat()
-    #p.update(get_text(p["ref"]))
     p.update(TextFamily(Ref(p["ref"])).contents())
     return jsonResponse(p, callback)
-
-def find_holiday_in_hebcal_results(response):
-    for hebcal_holiday in json.loads(response.text)['items']:
-        if hebcal_holiday['category'] != 'holiday':
-            continue
-        for result in get_name_completions(hebcal_holiday['hebrew'], 10, False)['completion_objects']:
-            if result['type'] == 'Topic':
-                topic = Topic.init(result['key'])
-                if topic:
-                    return topic.contents()
-    return None
 
 @catch_error_as_json
 def table_of_contents_api(request):
@@ -2164,12 +2357,13 @@ def text_preview_api(request, title):
     response['node_title'] = oref.index_node.full_title()
 
     def get_preview(prev_oref):
-        text = TextFamily(prev_oref, pad=False, commentary=False)
+        en_text = prev_oref.text(direction="ltr").text
+        he_text = prev_oref.text(direction="rtl").text
 
         if prev_oref.index_node.depth == 1:
             # Give deeper previews for texts with depth 1 (boring to look at otherwise)
-            text.text, text.he = [[i] for i in text.text], [[i] for i in text.he]
-        preview = text_preview(text.text, text.he) if (text.text or text.he) else []
+            en_text, he_text = [[i] for i in en_text], [[i] for i in he_text]
+        preview = text_preview(en_text, he_text) if (en_text or he_text) else []
         return preview if isinstance(preview, list) else [preview]
 
     if not oref.index_node.has_children():
@@ -3393,6 +3587,7 @@ def topic_page(request, slug, test_version=None):
     return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
+        "noindex":        not topic_obj.should_display(min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY),
     })
 
 @catch_error_as_json
@@ -3402,7 +3597,7 @@ def topics_list_api(request):
     """
     limit = int(request.GET.get("limit", 1000))
     minify = bool(int(request.GET.get("minify", 1)))
-    all_topics = get_all_topics(limit, active_module=request.active_module)
+    all_topics = get_all_topics(limit, active_module=request.active_module, min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY)
     all_topics_json = []
     for topic in all_topics:
         topic_json = topic.contents(minify=minify, with_html=True)
@@ -3445,6 +3640,19 @@ def generate_topic_prompts_api(request, slug: str):
     return jsonResponse({"error": "This API only accepts POST requests."})
 
 
+def rebuild_full_auto_completer_across_servers():
+    """
+    Rebuilds the full auto completer locally and, when this server cannot serve
+    completion traffic itself (DISABLE_AUTOCOMPLETER), publishes the rebuild over
+    the multiserver channel so the name service picks it up.  When this server
+    holds its own completers the publish is skipped, preserving the historical
+    local-only rebuild semantics rather than triggering a fleet-wide build.
+    """
+    library.build_full_auto_completer()
+    if MULTISERVER_ENABLED and DISABLE_AUTOCOMPLETER:
+        server_coordinator.publish_event("library", "build_full_auto_completer")
+
+
 @staff_member_required
 def add_new_topic_api(request):
     if request.method == "POST":
@@ -3471,10 +3679,11 @@ def add_new_topic_api(request):
             t.image = data["image"]
 
         t.save()
-        library.build_full_auto_completer()
-        library.get_topic_toc(rebuild=True)
-        library.get_topic_toc_json(rebuild=True)
-        library.get_topic_toc_category_mapping(rebuild=True)
+        with build_pathway("topic_admin"):
+            rebuild_full_auto_completer_across_servers()
+            library.get_topic_toc(rebuild=True)
+            library.get_topic_toc_json(rebuild=True)
+            library.get_topic_toc_category_mapping(rebuild=True)
 
 
         def protected_index_post(request):
@@ -3488,10 +3697,11 @@ def delete_topic(request, topic):
         topic_obj = Topic().load({"slug": topic})
         if topic_obj:
             topic_obj.delete()
-            library.build_full_auto_completer()
-            library.get_topic_toc(rebuild=True)
-            library.get_topic_toc_json(rebuild=True)
-            library.get_topic_toc_category_mapping(rebuild=True)
+            with build_pathway("topic_admin"):
+                rebuild_full_auto_completer_across_servers()
+                library.get_topic_toc(rebuild=True)
+                library.get_topic_toc_json(rebuild=True)
+                library.get_topic_toc_category_mapping(rebuild=True)
             return jsonResponse({"status": "OK"})
         else:
             return jsonResponse({"error": "Topic {} doesn't exist".format(topic)})
@@ -3521,9 +3731,10 @@ def topics_api(request, topic, v2=False):
         topic = Topic().load({'slug': topic_data["origSlug"]})
         topic_data["manual"] = True
         author_status_changed = (topic_data["category"] == "authors") ^ (topic_data["origCategory"] == "authors")
-        topic = update_topic(topic, **topic_data)
-        if author_status_changed:
-            library.build_full_auto_completer()
+        with build_pathway("topic_admin"):
+            topic = update_topic(topic, **topic_data)
+            if author_status_changed:
+                rebuild_full_auto_completer_across_servers()
 
         def protected_index_post(request):
             return jsonResponse(topic.contents())
@@ -3947,8 +4158,15 @@ def profile_api(request, slug=None):
         if not profileJSON:
             return jsonResponse({"error": "No post JSON."})
         profileUpdate = json.loads(profileJSON)
+        # TEMPORARY (goes with the experiments framework): legacy handling of the
+        # `experiments` field.
         if "experiments" in profileUpdate and not user_has_experiments(request.user):
             profileUpdate.pop("experiments", None)
+
+        la_key = library_assistant.SETTING_KEY
+        if la_key in profileUpdate.get("settings", {}):
+            # Public endpoint — coerce so a posted "false" can't read as truthy.
+            profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
 
         profile = UserProfile(id=request.user.id)
         profile.update(profileUpdate)
@@ -3959,6 +4177,8 @@ def profile_api(request, slug=None):
             return jsonResponse({"error": error})
         else:
             profile.save()
+            # TEMPORARY (goes with the experiments framework): keep the Postgres
+            # whitelist row in sync for the still-whitelisted `experiments` field.
             if "experiments" in profileUpdate:
                 _set_user_experiments(request.user, profile.experiments)
             return jsonResponse(profile.to_mongo_dict())
@@ -3971,6 +4191,8 @@ def experiments_opt_in_api(request):
     """
     API endpoint for users to self-enroll in the experiments whitelist.
     This enables the experiments toggle in their settings menu.
+
+    TEMPORARY (goes with the experiments framework): no first-party caller.
     """
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -3978,6 +4200,42 @@ def experiments_opt_in_api(request):
         return jsonResponse({"error": _("You must be logged in to join experiments.")})
     _set_user_experiments(request.user, True)
     return jsonResponse({"status": "ok"})
+
+
+def enable_library_assistant(request):
+    """
+    Turns the Library Assistant on after a promo-driven login or registration.
+    The promo CTA points login/register's ?next= here, so once authentication
+    completes the user lands here; we write settings.library_assistant = True for them
+    and bounce them back to where they were. On that reload the Library Assistant
+    appears with no extra "Join" click. Normal logins (which don't route through here)
+    are unaffected.
+    """
+    next_url = request.GET.get("next") or "/"
+    if not url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        next_url = "/"
+
+    if not request.user.is_authenticated:
+        return redirect_to_login(request.get_full_path())
+
+    # Prevent a cross-site request from turning the setting on via GET.
+    if request.headers.get("Sec-Fetch-Site") != "cross-site":
+        library_assistant.set_enabled(request.user, True)
+
+    # The register flow appends ?welcome=to-sefaria to its redirect target; forward
+    # it onto the final destination so the new-user welcome still shows after the hop.
+    welcome = request.GET.get("welcome")
+    if welcome:
+        parsed = urllib.parse.urlparse(next_url)
+        next_url = urllib.parse.urlunparse(parsed._replace(
+            query=urllib.parse.urlencode(urllib.parse.parse_qsl(parsed.query) + [("welcome", welcome)])
+        ))
+
+    return redirect(next_url)
 
 
 @login_required
@@ -4125,6 +4383,9 @@ def profile_sync_api(request):
                 except ValueError as e:
                     logger.warning(f'profile_sync_api: {e}')
                     continue
+                if library_assistant.SETTING_KEY in field_data:
+                    # Public endpoint — coerce so a posted "false" can't read as truthy.
+                    field_data[library_assistant.SETTING_KEY] = library_assistant.normalize(field_data[library_assistant.SETTING_KEY])
                 if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
                     profile.attr_time_stamps.update({field: settings_time_stamp})
@@ -4299,11 +4560,17 @@ def account_settings(request):
     Page for managing a user's account settings.
     """
     profile = UserProfile(id=request.user.id)
+    # TEMPORARY (goes with the experiments framework): only gates the parked
+    # Experiments toggle in the template, not the Library Assistant one.
     experiments_available = user_has_experiments(request.user)
     return render_template(request,'account_settings.html', {"headerMode": True}, {
         'user': request.user,
         'profile': profile,
         'experiments_available': experiments_available,
+        'social_providers': list(request.user.socialaccount_set.values_list('provider', flat=True)),
+        # The toggle must render the *effective* value: a user who is on through the
+        # legacy rule has no setting key yet, and must still see "On".
+        'library_assistant_enabled': library_assistant.is_enabled(profile),
         'lang_names_and_codes': zip([Locale(lang).languages[lang].capitalize() for lang in SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']], SITE_SETTINGS['SUPPORTED_TRANSLATION_LANGUAGES']),
         'translation_language_preference': (profile is not None and profile.settings.get("translation_language_preference", None)) or request.COOKIES.get("translation_language_preference", None),
         'diaspora': request.diaspora,
@@ -4510,7 +4777,7 @@ def translations_api(request, lang=None):
         aggregation_query.append({"$match": {"vstate.flags.enComplete": True}})
 
     aggregation_query.extend([{"$project": {"index.dependence": 1, "index.order": 1, "index.collective_title": 1,
-                                            "index.title": 1, "index.order": 1,
+                                            "index.title": 1, "index.order": 1, "languageFamilyName": 1,
                                             "versionTitle": 1, "language": 1, "title": 1, "index.categories": 1,
                                             "priority": 1, "vstate.first_section_ref": 1}},
                               {"$sort": {"index.order.0": 1, "index.order.1": 1, "priority": -1}}])
@@ -4558,7 +4825,10 @@ def translations_api(request, lang=None):
                             continue
                 else:
                     to_add["title"] = my_index_info["title"]
-                    to_add["url"] = f'/{my_index["vstate"][0]["first_section_ref"].replace(":", ".")}?{"ven=" + my_index["versionTitle"] if my_index["language"] == "en" else "vhe=" + my_index["versionTitle"]}&lang=bi'
+                    ref = Ref(my_index["vstate"][0]["first_section_ref"]).url()
+                    version_param = f'{my_index["languageFamilyName"]}|{my_index["versionTitle"]}'
+                    params = urllib.parse.urlencode({'ven': version_param, "lang": "bi"})
+                    to_add["url"] = f'/{ref}?{params}'
 
                 if "order" in my_index["index"][0]:
                     to_add["order"] = my_index["index"][0]["order"]
@@ -4660,7 +4930,7 @@ def search_wrapper_api(request, es6_compat=False):
     @param es6_compat: True to return API response that's compatible with an Elasticsearch 6 compatible client
     @return:
     """
-    from sefaria.helper.search import get_elasticsearch_client
+    from sefaria.helper.search import get_elasticsearch_client_for_online_search
 
     if request.method == "POST":
         if "json" in request.POST:
@@ -4668,7 +4938,7 @@ def search_wrapper_api(request, es6_compat=False):
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
-        es_client = get_elasticsearch_client()
+        es_client = get_elasticsearch_client_for_online_search()
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
         response = search_obj.execute()
@@ -4681,6 +4951,91 @@ def search_wrapper_api(request, es6_compat=False):
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 @csrf_exempt
+def entity_search_api(request):
+    """
+    Entity search endpoint powering the Topics / Authors / Books tabs.
+
+    GET /api/entity-search?q=<query>&type=<topic|author|book>&sort=<relevance|alpha|year_asc|year_desc>
+                          &filter=<category path>&start=<offset>&size=<page size>
+
+    `start` (default 0) and `size` (default 20, capped at 100) page the results; the tab
+    fetches successive pages on scroll. `total` always reports the full match count.
+    Paging stops at Elasticsearch's result window (ENTITY_MAX_RESULT_WINDOW): a request
+    straddling the edge keeps its `start` and comes back short rather than being shifted
+    backward, so successive pages never overlap.
+
+    `topic` and `author` search the `topic` Elasticsearch index (filtered by subtype);
+    `book` searches the `book` index, or — when the query resolves to an author — returns
+    that author's works aggregated by category. Returns {"hits": [...], "total": N}.
+
+    A `book` response carries one extra key, `categoryCounts`: {category path -> number of
+    matching books}, e.g. {"Tanakh": 11, "Tanakh/Torah": 5}. These counts are computed by an
+    aggregation over the *entire* match set, so they are unaffected by `filter` and by how
+    many pages the client has fetched — that is what lets the Books sidebar show true
+    numbers and stay complete once a category is selected.
+
+    `sort` defaults to "relevance". "alpha" is A-Z on the English title; "year_asc"/
+    "year_desc" sort books by composition date and authors by birth year (topics have no
+    year, so they only accept relevance/alpha).
+
+    `filter` (books only, repeatable) restricts hits to books at or under a category path
+    (e.g. filter=Tanakh/Torah); multiple filters OR together. A filter always returns the
+    flat list — category rows collapse many books, so they carry no per-row path.
+    Explicit sorts keep the aggregation (rows are sorted in code by their own compDate).
+    """
+    from sefaria.helper.search import entity_search, ENTITY_TYPES, ENTITY_SORTS, ENTITY_MAX_RESULT_WINDOW
+
+    query = request.GET.get("q", "").strip()
+    entity_type = request.GET.get("type", "topic").strip()
+    sort = request.GET.get("sort", "relevance").strip()
+    category_paths = [f.strip() for f in request.GET.getlist("filter") if f.strip()]
+    callback = request.GET.get("callback", None)
+
+    if not query:
+        return jsonResponse({"error": "Missing required query parameter 'q'."}, callback=callback)
+    if entity_type not in ENTITY_TYPES:
+        return jsonResponse(
+            {"error": f"Invalid 'type' parameter '{entity_type}'. Must be one of {list(ENTITY_TYPES)}."},
+            callback=callback,
+        )
+    if sort not in ENTITY_SORTS[entity_type]:
+        return jsonResponse(
+            {"error": f"Invalid 'sort' parameter '{sort}' for type '{entity_type}'. Must be one of {list(ENTITY_SORTS[entity_type])}."},
+            callback=callback,
+        )
+    if category_paths and entity_type != "book":
+        return jsonResponse(
+            {"error": f"The 'filter' parameter is only supported for type 'book', not '{entity_type}'."},
+            callback=callback,
+        )
+
+    try:
+        size = max(1, min(int(request.GET.get("size", 20)), 100))
+    except (TypeError, ValueError):
+        size = 20
+
+    try:
+        start = max(0, min(int(request.GET.get("start", 0)), ENTITY_MAX_RESULT_WINDOW - 1))
+    except (TypeError, ValueError):
+        start = 0
+
+    # The result window is a ceiling on start+size, and the only way to honour it without
+    # corrupting the response is to shorten the final page. Clamping `start` backward to
+    # ENTITY_MAX_RESULT_WINDOW - size instead would silently re-serve rows the caller
+    # already has: start=9950&size=100 would become start=9900 and repeat 50 earlier hits
+    # as if they were new. `start` is capped at WINDOW - 1 above, so this stays >= 1.
+    size = min(size, ENTITY_MAX_RESULT_WINDOW - start)
+
+    try:
+        results = entity_search(query, entity_type, start=start, size=size, sort=sort, category_paths=category_paths)
+    except Exception as e:
+        logger.error(f"entity_search_api failed - q: {query}, type: {entity_type}, sort: {sort}, filter: {category_paths}, error: {e}", exc_info=True)
+        return jsonResponse({"error": "Error running entity search."}, callback=callback)
+
+    return jsonResponse(results, callback=callback)
+
+
+@csrf_exempt
 def search_path_filter(request, book_title):
     oref = Ref(book_title)
 
@@ -4691,23 +5046,19 @@ def search_path_filter(request, book_title):
 
 
 
-@ensure_csrf_cookie
-def serve_static(request, page):
-    """
-    Serve a static page whose template matches the URL
-    """
-    return render_template(request,'static/%s.html' % page, {"headerMode": True}, {"renderStatic": True})
+_ABOUT_SIDEBAR_PATHS = {p["path"] for p in SITE_SETTINGS.get("ABOUT_SIDEBAR_PAGES", [])}
 
 @ensure_csrf_cookie
-def serve_static_by_lang(request, page):
-    """
-    Serve a static page whose template matches the URL
-    """
-    return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), {"headerMode": True}, {"renderStatic": True})
+def serve_static(request, page, by_lang=False):
+    if request.active_module == VOICES_MODULE and page in _ABOUT_SIDEBAR_PATHS:
+        return redirect_to_module(request, f"/{page}", LIBRARY_MODULE)
+    lang_prefix = f'{request.LANGUAGE_CODE}/' if by_lang else ''
+    template = f'static/{lang_prefix}{page}.html'
+    return render_template(request, template, {"headerMode": True}, {"renderStatic": True})
 
 
 # TODO: This really should be handled by a CMS :)
-def annual_report(request, report_year):
+def annual_report(request, report_year=None):
     pdfs = {
         '2020': STATIC_URL + 'files/Sefaria 2020 Annual Report.pdf',
         '2021': 'https://indd.adobe.com/embed/98a016a2-c4d1-4f06-97fa-ed8876de88cf?startpage=1&allowFullscreen=true',
@@ -4725,8 +5076,30 @@ def annual_report(request, report_year):
     return render(request, template_name='static/annualreport.html', context={'reportYear': report_year, 'pdfURL': pdfs[report_year]})
 
 
+@lru_cache(maxsize=1)
+def get_current_990_form_filename():
+    """Return the most recent Form 990 PDF in static/files for this process."""
+    files_dir = os.path.join(STATICFILES_DIRS[0], 'files')
+    form_990_pattern = re.compile(r'^Sefaria_(\d{4})_990_Public\.pdf$')
+    form_990_files = [
+        (int(match.group(1)), filename)
+        for filename in os.listdir(files_dir)
+        if (match := form_990_pattern.match(filename))
+    ]
+    if not form_990_files:
+        raise Http404
+    _, latest_form_990 = max(form_990_files)
+    return latest_form_990
+
+
+def current_990_form(request):
+    """Redirect to the most recent Form 990 PDF in static/files."""
+    latest_form_990 = get_current_990_form_filename()
+    return redirect(f'{STATIC_URL}files/{latest_form_990}')
+
+
 @ensure_csrf_cookie
-def explore(request, topCat, bottomCat, book1, book2, lang=None):
+def explore(request, topCat=None, bottomCat=None, book1=None, book2=None, lang=None):
     """
     Serve the explorer, with the provided deep linked books
     """
@@ -4877,7 +5250,7 @@ def redirect_to_module(request, target_path, target_module=None):
         # Cross-module redirect
         # Get the target domain from settings
         lang_code = get_short_lang(request.interfaceLang)
-        target_domain = DOMAIN_MODULES.get(lang_code, {}).get(target_module)
+        target_domain = settings.DOMAIN_MODULES.get(lang_code, {}).get(target_module)
         target_url = urllib.parse.urljoin(target_domain, target_path)
         if params:
             target_url += f"?{params}"
@@ -5037,16 +5410,33 @@ def custom_server_error(request, template_name='500.html'):
     #return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
 
 
+# AASA_EXCLUDED_PATHS statically excludes the OAuth callback paths (referer is always
+# external there -- see sefaria/utils/views_utils.py). Everything else that must stay in
+# the browser (e.g. the post-login landing page) is excluded dynamically instead, via
+# NO_APPLINK_PARAM, set by WebSessionRedirectMiddleware (sefaria/system/middleware.py).
+AASA_PATHS = ["NOT " + path for path in AASA_EXCLUDED_PATHS] + ["*"]
+
+
 def apple_app_site_association(request):
     teamID = "2626EW4BML"
     bundleID = "org.sefaria.sefariaApp"
+    appID = "{}.{}".format(teamID, bundleID)
     return jsonResponse({
         "applinks": {
             "apps": [],
             "details": [
                 {
-                    "appID": "{}.{}".format(teamID, bundleID),
-                    "paths": ["*"]
+                    "appID": appID,
+                    "appIDs": [appID],
+                    # `paths` is the pre-iOS 13 format, `components` the current one.
+                    # Both are ordered, first match wins, so the exclusions must come
+                    # before the catch-all.
+                    "paths": AASA_PATHS,
+                    "components": (
+                        [{"/": path, "exclude": True} for path in AASA_EXCLUDED_PATHS]
+                        + [{"/": "*", "?": {NO_APPLINK_PARAM: "*"}, "exclude": True}]
+                        + [{"/": "*"}]
+                    ),
                 }
             ]
         }
@@ -5075,6 +5465,17 @@ def module_favicon(request, filename):
     # Tell client to cache for 1 month, since favicons change infrequently
     response["Cache-Control"] = "max-age=2592000"
     
+    return response
+
+
+def serve_llms_txt(request):
+    """
+    Serve llms.txt from the static directory.
+    This provides LLM-friendly documentation about Sefaria's API and resources.
+    """
+    llms_path = os.path.join(STATICFILES_DIRS[0], 'llms.txt')
+    response = FileResponse(open(llms_path, 'rb'), content_type='text/plain; charset=utf-8')
+    response["Cache-Control"] = "max-age=86400"  # 1 day
     return response
 
 

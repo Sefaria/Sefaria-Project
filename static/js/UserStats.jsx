@@ -72,6 +72,10 @@ const UserStatModeChooser = ({modes, activeMode, setMode}) => (
   </div>
 );
 
+const USER_STATS_MODE_IDS = {
+    "Previous Year": "user_stats.previous_year",
+    "All Time": "user_stats.all_time",
+};
 const UserStatModeButton = ({thisMode, activeMode, setMode}) => (
     <div className={"userStatModeButton" + (thisMode === activeMode?" active":"")}
          onClick={()=>setMode(thisMode)}
@@ -79,7 +83,7 @@ const UserStatModeButton = ({thisMode, activeMode, setMode}) => (
          tabIndex="0" 
          aria-label={`Switch to ${thisMode} mode`}
          aria-pressed={thisMode === activeMode}>
-        <span>{Sefaria._(thisMode)}</span>
+        <span>{Sefaria._(USER_STATS_MODE_IDS[thisMode] || thisMode)}</span>
     </div>
 );
 
@@ -145,14 +149,14 @@ const OverallActivityBlock = ({user_data}) => (
                 <span className="int-he">הפעילות שלך במבט</span>
             </h2>
             <div className="statcardRow">
-                <StatCard icon_file="book-icon-black.svg" number={user_data.textsRead} name="Texts Read"/>
+                <StatCard icon_file="book-icon-black.svg" number={user_data.textsRead} name="user_stats.texts_read"/>
             </div>
         </div>
 );
 
 const StatCard = ({icon_file, name, number}) => (
     <div className="statcard">
-        <img src={"static/img/" + icon_file} alt={name}/>
+        <img src={"static/img/" + icon_file} alt={Sefaria._(name)}/>
         <div className="statcardValue">{number}</div>
         <div className="statcardLabel">{Sefaria._(name)}</div>
     </div>
@@ -280,7 +284,7 @@ const CategoryBars = ({user_cats, site_cats}) => {
             .attr("font-size", 16)
             .attr("fill", "#999")
             .attr("text-anchor", d => x(d.site) > 250 ? "end" : "start")
-            .text(Sefaria._("Average Sefaria User"));
+            .text(Sefaria._("user_stats.average_sefaria_user"));
 
         return () => {svg.selectAll("*").remove();}
     }, [user_cats, site_cats]);
@@ -338,7 +342,7 @@ const CategoriesDonut = ({cats, title, heTitle}) => {
       text.append("tspan")
           .attr("x", 0)
           .attr("y", "-0.7em")
-          .text(d => Sefaria._(d.data.name));
+          .text(d => Sefaria._(d.data.name === "Etc" ? "user_stats.etc" : d.data.name));
 
       text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan")
           .attr("x", 0)

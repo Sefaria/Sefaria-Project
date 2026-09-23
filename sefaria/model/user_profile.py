@@ -2,6 +2,41 @@ import hashlib
 import urllib.request, urllib.parse, urllib.error
 import re
 import bleach
+from bleach.css_sanitizer import CSSSanitizer
+
+_BIO_ALLOWED_TAGS = [
+    'a', 'strong', 'em', 'u', 's', 'sub', 'sup',
+    'p', 'br', 'div', 'span',
+    'ul', 'ol', 'li',
+    'table', 'tbody', 'tr', 'th', 'td',
+    'img', 'hr',
+]
+_BIO_ALLOWED_ATTRS = {
+    'a':   ['href', 'target'],
+    'img': ['src', 'alt', 'height', 'width', 'style'],
+    'td':  ['colspan', 'rowspan', 'style'],
+    'th':  ['colspan', 'rowspan', 'style'],
+    '*':   ['style', 'dir'],
+}
+_BIO_CSS_SANITIZER = CSSSanitizer(allowed_css_properties=[
+    'color', 'background-color', 'font-family', 'font-size', 'text-align', 'direction',
+])
+
+
+def _target_blank_noopener(attrs, new=False):
+    if attrs.get((None, 'target')) == '_blank':
+        rel_key = (None, 'rel')
+        rel_values = attrs.get(rel_key, '').split()
+        for val in ('noopener', 'noreferrer'):
+            if val not in rel_values:
+                rel_values.append(val)
+        attrs[rel_key] = ' '.join(rel_values)
+    return attrs
+
+
+def sanitize_bio(bio):
+    cleaned = bleach.clean(bio, tags=_BIO_ALLOWED_TAGS, attributes=_BIO_ALLOWED_ATTRS, css_sanitizer=_BIO_CSS_SANITIZER, strip=True)
+    return bleach.linkify(cleaned, callbacks=[bleach.callbacks.nofollow, _target_blank_noopener])
 import sys
 import json
 import csv
@@ -10,8 +45,7 @@ from django.utils.translation import gettext as _, ngettext_lazy
 from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError
-from sefaria.constants.model import VOICES_MODULE
-from functools import reduce
+from sefaria.constants.model import VOICES_MODULE, LIBRARY_ASSISTANT_SETTING_KEY
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User, Group, AnonymousUser
@@ -25,7 +59,7 @@ if not hasattr(sys, '_doc_build'):
 from . import abstract as abst
 from sefaria.model.following import FollowersSet, FolloweesSet, general_follow_recommendations
 from sefaria.model.blocking import BlockersSet, BlockeesSet
-from sefaria.model.text import Ref, TextChunk
+from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
@@ -159,9 +193,11 @@ class UserHistory(abst.AbstractMongoRecord):
                 if ref.is_sheet():
                     d.update(get_sheet_listing_data(d["sheet_id"]))
                 else:
+                    # Keyed by direction, not real language -- this still carries the old en/he-as-
+                    # ltr/rtl dichotomy rather than genuine source/translation, unlike the main reader.
                     d["text"] = {
-                        "en": TextChunk(ref, "en").as_sized_string(),
-                        "he": TextChunk(ref, "he").as_sized_string()
+                        "en": ref.text(direction="ltr").as_sized_string(),
+                        "he": ref.text(direction="rtl").as_sized_string()
                     }
             except Exception as e:
                 logger.warning("Failed to retrieve text for history Ref: {}".format(d['ref']))
@@ -253,7 +289,11 @@ class UserHistorySet(abst.AbstractMongoSet):
     recordClass = UserHistory
 
     def hits(self):
-        return reduce(lambda agg,o: agg + getattr(o, "num_times_read", 1), self, 0)
+        # num_times_read is a legacy field from transformOldRecents(); a prod sample measured
+        # ~0.09% of user_history docs having it set at all, and summing it instead of counting
+        # documents changes the total by ~0.57%, so it's not worth fetching and hydrating every
+        # matching document to account for. count() already handles skip/limit/hint correctly.
+        return self.count()
 
 
 """
@@ -406,14 +446,22 @@ class UserProfile(object):
             # with the mongo database. This is an existing issue; a 'new user' will be populated with 'old user'
             # data from a nonexistent user (in postgres)
             self.update(profile, ignore_flags_on_init=True)
-        elif self.exists() and not user_registration:
-            # If we encounter a user that has a Django user record but not a profile document
-            # create a profile for them. This allows two enviornments to share a user database,
-            # while maintaining separate profiles (e.g. Sefaria and S4D).
-            self.show_editor_toggle = False
-            self.uses_new_editor = True
-            self.assign_slug()
-            self.save()
+        else:
+            # A profile being created for the first time starts with the Library Assistant
+            # on. Written here, the one point every creation path passes through, and not
+            # as a settings default: an existing doc without the key would read a default
+            # as its value and persist it on its next save. Reading the key from
+            # sefaria.constants rather than from sefaria.helper.library_assistant keeps
+            # this module free of an import back from the helper, which imports it.
+            self.settings[LIBRARY_ASSISTANT_SETTING_KEY] = True
+            if self.exists() and not user_registration:
+                # If we encounter a user that has a Django user record but not a profile document
+                # create a profile for them. This allows two enviornments to share a user database,
+                # while maintaining separate profiles (e.g. Sefaria and S4D).
+                self.show_editor_toggle = False
+                self.uses_new_editor = True
+                self.assign_slug()
+                self.save()
 
     @property
     def full_name(self):
@@ -497,7 +545,7 @@ class UserProfile(object):
         Save profile to DB, updated Django User object if needed
         """
         # Sanitize & Linkify fields that allow HTML
-        self.bio = bleach.linkify(self.bio)
+        self.bio = sanitize_bio(self.bio)
 
         d = self.to_mongo_dict()
         if self._id:

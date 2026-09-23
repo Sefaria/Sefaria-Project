@@ -37,7 +37,7 @@ const Button = ({
   targetModule = null,
   href,
   target = null,
-  ariaLabel
+  ariaLabel,
 }) => {
   const buttonClasses = `${variant} ${size} ${className}`;
   const rel = target === "_blank" ? "noopener noreferrer" : null;
@@ -109,7 +109,7 @@ Button.propTypes = {
   activeModule: PropTypes.string,
   targetModule: PropTypes.string,
   target: PropTypes.string,
-  ariaLabel: ariaLabelValidator
+  ariaLabel: ariaLabelValidator,
 };
 
 export default Button;

@@ -80,35 +80,33 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
 
   return (
     <div className="sidebarSearch lexicon-content">
-    <div className={searchBoxClasses}>
+      <div className={searchBoxClasses}>
 
-    { isDictionary ?
-       <DictionarySearch
-            lexiconName={lexiconName}
-            title={title}
-            navigatePanel={navigatePanel}
-            contextSelector=".lexicon-content"/>
-      :
-      <>
-        <SearchButton onClick={handleSearchButtonClick} />
-        <input className={inputClasses}
-          placeholder={Sefaria._("Search in this text")}
-          id="searchQueryInput"
-          maxLength={75}
-          onKeyUp={
-            (event) => {
-              if (event.keyCode === 13) {
-                handleSearchButtonClick()
+      { isDictionary ?
+         <DictionarySearch
+              lexiconName={lexiconName}
+              title={title}
+              navigatePanel={navigatePanel}
+              contextSelector=".lexicon-content"/>
+        :
+        <>
+          <SearchButton onClick={handleSearchButtonClick} />
+          <input className={inputClasses}
+            placeholder={Sefaria._("sidebar_search.search_in_this_text")}
+            id="searchQueryInput"
+            maxLength={75}
+            onKeyUp={
+              (event) => {
+                if (event.keyCode === 13) {
+                  handleSearchButtonClick()
+                }
               }
             }
-          }
-          title={Sefaria._("Search in this text")} />
-      </>
-      }
+            title={Sefaria._("sidebar_search.search_in_this_text")} />
+        </>
+        }
 
-    </div>
-
-
+      </div>
       {query &&
           <ElasticSearchQuerier
               query={query}
@@ -121,8 +119,6 @@ const SidebarSearch = ({ title, updateAppliedOptionSort, navigatePanel, sidebarS
               updateAppliedOptionSort={updateAppliedOptionSort}
               onResultClick={onSidebarSearchClick}
               />}
-
-
     </div>
   );
 

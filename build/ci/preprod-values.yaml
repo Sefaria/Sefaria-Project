@@ -193,6 +193,7 @@ cronJobs:
     enabled: false
   reindexElasticSearch:
     enabled: false
+    allowSharedIndex: true
   topicsIndexing:
     enabled: false
   trends:
@@ -204,8 +205,6 @@ secrets:
     ref: local-settings-secrets-production
   backupManager:
     ref: backup-manager-secret-production
-  slackWebhook:
-    ref: slack-webhook-production
 instrumentation:
   enabled: false
   otelEndpoint: "http://otel-collector-collector.monitoring:4317"

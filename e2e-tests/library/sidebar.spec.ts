@@ -20,12 +20,12 @@ test.describe('Library Module Sidebar Tests', () => {
     pm = new PageManager(page, LANGUAGES.EN);
   });
 
-  test('MOD-S001: Library - footer appearance and standard links', async () => {
+  test('MOD-S001: Library - footer appearance and standard links', { tag: '@sanity' }, async () => {
     await pm.onModuleSidebar().verifyFooterAppearance();
     await pm.onModuleSidebar().verifyStandardFooterLinks();
   });
 
-  test('MOD-S002: Library - A Living Library of Torah has content', async () => {
+  test('MOD-S002: Library - A Living Library of Torah has content', { tag: '@sanity' }, async () => {
     const section = page.locator('aside.navSidebar .navSidebarModule').nth(0);
     await expect(section.getByRole('heading', { name: /A Living Library of Torah|A Living Library/i })).toBeVisible();
     // Ensure descriptive text exists and is not empty
@@ -33,7 +33,7 @@ test.describe('Library Module Sidebar Tests', () => {
     expect(text.trim().length).toBeGreaterThan(10);
   });
 
-  test('MOD-S003: Library - Translations has language list', async () => {
+  test('MOD-S003: Library - Translations has language list', { tag: '@sanity' }, async () => {
     // Translations is the 3rd navSidebarModule in the provided markup (0-based index 2)
     const section = page.locator('aside.navSidebar .navSidebarModule').nth(2);
     await expect(section.getByRole('heading', { name: /Translations/i })).toBeVisible();
@@ -44,7 +44,7 @@ test.describe('Library Module Sidebar Tests', () => {
     expect(count).toBeGreaterThan(3);
   });
 
-  test('MOD-S004: Library - Learning Schedules lists readings', async () => {
+  test('MOD-S004: Library - Learning Schedules lists readings', { tag: '@sanity' }, async () => {
     const section = page.locator('aside.navSidebar .navSidebarModule').filter({ hasText: 'Learning Schedules' }).first();
     await expect(section.getByRole('heading', { name: /Learning Schedules/i })).toBeVisible();
     // Ensure there are reading sections with links
@@ -54,7 +54,7 @@ test.describe('Library Module Sidebar Tests', () => {
     expect(count).toBeGreaterThan(0);
   });
 
-  test('MOD-S005: Library - Resources contains link list', async () => {
+  test('MOD-S005: Library - Resources contains link list', { tag: '@sanity' }, async () => {
     const section = page.locator('aside.navSidebar .navSidebarModule').filter({ hasText: 'Resources' }).first();
     await expect(section.getByRole('heading', { name: /Resources/i })).toBeVisible();
     const links = section.locator('.linkList .navSidebarLink a');
@@ -65,13 +65,11 @@ test.describe('Library Module Sidebar Tests', () => {
 
   test('MOD-S006: Library - About link loads in same tab', async () => {
     // About should load in same tab to modularization cauldron
-    await hideAllModalsAndPopups(page);
     await pm.onModuleSidebar().clickAndVerifyLink({ name: 'About', href: /\w*\.org/, opensNewTab: false });
     await expect(page).toHaveURL(/\w*\.org/);
   });
 
   test('MOD-S007: Library - Help link href and behavior (Zendesk)', async () => {
-    await hideAllModalsAndPopups(page);
     // First verify the href is to the Zendesk
     await pm.onModuleSidebar().verifyFooterLink({ name: 'Help', href: /help\.\w*\.org/, opensNewTab: true });
 
@@ -87,13 +85,11 @@ test.describe('Library Module Sidebar Tests', () => {
   });
 
   test('MOD-S009: Library - Newsletter loads in same tab', async () => {
-    await hideAllModalsAndPopups(page);
     await pm.onModuleSidebar().clickAndVerifyLink({ name: 'Newsletter', href: /newsletter/, opensNewTab: false });
     await expect(page).toHaveURL(/newsletter/);
   });
 
   test('MOD-S010: Library - Blog opens in new tab', async () => {
-    await hideAllModalsAndPopups(page);
     const newPage = await pm.onModuleSidebar().clickAndVerifyLink({ name: 'Blog', href: /blog|\.org\.il/, opensNewTab: true });
     await expect(newPage!).toHaveURL(/blog|\.org\.il/);
     await newPage!.close();
@@ -116,15 +112,12 @@ test.describe('Library Module Sidebar Tests', () => {
   });
 
   test('MOD-S012: Library - Ways to Give loads, Donate href verified', async () => {
-    await hideAllModalsAndPopups(page);
     await pm.onModuleSidebar().clickAndVerifyLink({ name: 'Ways to Give', href: /ways-to-give/, opensNewTab: false });
     await expect(page).toHaveURL(/ways-to-give/);
 
     await expect(page.locator('h1').filter({ hasText: 'Your gift. Your impact.' })).toBeVisible();
   });
   test('MOD-S013: Library - Terms and Privacy Policy links present and Google Doc content loads', async () => {
-    await hideAllModalsAndPopups(page);
-
     // Both links present in the sidebar footer with expected hrefs
     await pm.onModuleSidebar().verifyFooterLink({ name: 'Terms', href: /terms/ });
     await pm.onModuleSidebar().verifyFooterLink({ name: 'Privacy Policy', href: /privacy-policy/ });

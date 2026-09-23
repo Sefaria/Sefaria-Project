@@ -65,7 +65,7 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
         <div className="sidebarLayout">
           <div className="contentInner">
             <h1>
-              <InterfaceText>Collections</InterfaceText>
+              <InterfaceText>common.collections</InterfaceText>
             </h1>
 
             {multiPanel ? null :
@@ -84,7 +84,7 @@ const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
                   <div className="enCollections">{enCollBox}</div>
                   <div className="heCollections">{heCollBox}</div>
                 </>)
-                : <InterfaceText>There are no public collections yet.</InterfaceText>)
+                : <InterfaceText>public_collections_page.there_are_no_public_collections_yet</InterfaceText>)
               : <LoadingMessage /> }
             </div>
           </div>
@@ -101,7 +101,7 @@ const CollectionBlockListing = ({data}) => {
     <div className="navBlock">
       <a href={`/collections/${data.slug}`} className="navBlockTitle" data-target-module={Sefaria.VOICES_MODULE}>
         <div className="collectionListingImageBox">
-          <img className="collectionListingImage" src={data.imageUrl} alt={Sefaria._("Collection Logo")}/>
+          <img className="collectionListingImage" src={data.imageUrl} alt={Sefaria._("common.collection_logo")}/>
         </div>
         <InterfaceText>{data.name}</InterfaceText>
       </a>

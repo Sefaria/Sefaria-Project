@@ -26,7 +26,9 @@
 ######################
 *.log
 *.sql
+!semantic_search/sql/*.sql
 *.sqlite
+*.db
 
 # OS generated files #
 ######################
@@ -63,8 +65,13 @@ node_modules
 # AI Tools #
 ##########
 .cursor/
-.claude/
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/sefaria-release-notes/
+!.claude/skills/sefaria-release-notes/**
 CLAUDE.md
+!e2e-tests/CLAUDE.md
 
 # pystest cache #
 #####################
@@ -157,3 +164,4 @@ env/*
 dump/*
 .env
 static_collected/*
+scripts/debug_cache/

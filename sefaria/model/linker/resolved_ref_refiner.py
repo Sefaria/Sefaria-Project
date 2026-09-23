@@ -26,7 +26,7 @@ class ResolvedRefRefiner(ABC):
     def _clone_resolved_ref(self, can_match_out_of_order=True, node=None, resolved_parts=None, **kwargs) -> 'ResolvedRef':
         matched_node = node or self.node
         matched_parts = self._get_resolved_parts() if resolved_parts is None else resolved_parts
-        part_and_node_match = RefPartAndNodeMatch(matched_parts, matched_node, can_match_out_of_order)
+        part_and_node_match = RefPartAndNodeMatch(matched_parts, matched_node, can_match_out_of_order, ref=kwargs.get('ref'))
         
         return self.resolved_ref.clone(ref_part_and_node_matches=self.resolved_ref.ref_part_and_node_matches + [part_and_node_match], **kwargs)
 

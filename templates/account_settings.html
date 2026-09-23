@@ -105,6 +105,30 @@
 		</div>
 	</div>
 	{% endif %}
+	{# The Library Assistant is a plain user setting, shown to every logged-in user. Its   #}
+	{# value comes from sefaria.helper.library_assistant, not straight from the profile:   #}
+	{# users who are on through the pre-migration rule carry no setting key yet.           #}
+    <div id="libraryAssistantSetting" class="section">
+		<label class="control-elem">
+            <span class="int-en">Library Assistant</span>
+			<span class="int-he">עוזר הספרייה</span>
+        </label>
+		<div class="toggleSet toggleSetToggleBox blueStyle doubleOption control-elem" role="radiogroup">
+			<div role="radio" data-value=true class="toggleOption {% if library_assistant_enabled %} on{% endif %}" tabindex="{% if library_assistant_enabled %}0{% else %}-1{% endif %}" aria-checked="{% if library_assistant_enabled %}true{% else %}false{% endif %}">
+                <span class="int-en">On</span>
+                <span class="int-he">פעיל</span>
+            </div>
+            <div role="radio" data-value=false class="toggleOption {% if not library_assistant_enabled %} on{% endif %}" tabindex="{% if not library_assistant_enabled %}0{% else %}-1{% endif %}" aria-checked="{% if not library_assistant_enabled %}true{% else %}false{% endif %}">
+                <span class="int-en">Off</span>
+                <span class="int-he">כבוי</span>
+            </div>
+		</div>
+	</div>
+
+	{# TEMPORARY (goes with the experiments framework): the generic "Experiments" toggle,  #}
+	{# parked. It controls profile.experiments (whitelist-gated on experiments_available); #}
+	{# the Library Assistant toggle above writes settings.library_assistant instead.       #}
+	{% comment %}
     {% if experiments_available %}
     <div id="experimentsSetting" class="section">
 		<label class="control-elem">
@@ -123,16 +147,18 @@
 		</div>
 	</div>
     {% endif %}
+	{% endcomment %}
     <div id="username-change" class="section">
         <label class="control-elem">
-                <span class="int-en">Account Email (This is used for login)</span>
-                <span class="int-he">כתובת דוא"ל (משמשת לכניסה לחשבון)</span>
+                <span class="int-en">Login Method</span>
+                <span class="int-he">אמצעי התחברות</span>
         </label>
+        {% if not social_providers %}
         <div id="username-change-display" class="form-section">
             <input id="email-display" type="text" disabled="disabled" value="{{ user.email }}" />
             <button id="change-email" type="button" class="button blue fillWidth">
                 <span class="int-en">Change Email</span>
-                <span class="int-he">החלפת כתובת דוא"ל</span>
+                <span class="int-he">שינוי כתובת דוא״ל</span>
             </button>
             <span id="email-edit-ok" style="display:none"></span>
         </div>
@@ -146,31 +172,42 @@
             </button>
             <span id="email-edit-errors"></span>
         </div>
+        {% else %}
+        <div class="form-section">
+            {% if "google" in social_providers and "apple" in social_providers %}
+            {% include "elements/login_method_text.html" with method_en="Google & Apple Sign-In with" method_he="התחברות דרך גוגל ואפל עם" %}
+            {% elif "google" in social_providers %}
+            {% include "elements/login_method_text.html" with method_en="Google Sign-In with" method_he="התחברות דרך גוגל עם" %}
+            {% else %}
+            {% include "elements/login_method_text.html" with method_en="Apple Sign-In with" method_he="התחברות דרך אפל עם" %}
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
     <div id="gauth-email-change" class="section" style="{% if not profile.gauth_email %} display: none {% endif %}">
         <label class="control-elem">
-                <span class="int-en">Google Account (Allows for exporting sheets to Google Drive)</span>
-                <span class="int-he">חשבון גוגל מקושר (מאפשר ייצוא דפי מקורות לגוגל דרייב)</span>
+                <span class="int-en">Sheets Export: Google Drive Connected</span>
+                <span class="int-he">ייצוא דפי מקורות: גוגל דרייב מחובר</span>
         </label>
         <div id="gauth-email-disconnect-display" class="form-section">
             <input id="gauth-email-display" type="text" disabled="disabled" value="{{ profile.gauth_email }}" />
             <button id="disconnect-gauth-email" type="button" class="button blue fillWidth">
                 <span class="int-en">Disconnect</span>
-                <span class="int-he">ניתוק מהחשבון</span>
+                <span class="int-he">ניתוק</span>
             </button>
             <span id="gauth-disconnect-messages"></span>
         </div>
     </div>
-    <div id="gauth-email-disconnected" class="form-section" style="{% if profile.gauth_email %} display: none {% endif %}" >
-            <div>
-                <span class="int-en">Your Google Account has been disconnected</span>
-                <span class="int-he">חשבון הגוגל שלכם נותק בהצלחה</span>
-            </div>
-            <div class="additional-info">
-                <span class="int-en">You can link to a new Google Account the next time you export a sheet</span>
-                <span class="int-he">תוכלו להתחבר מחדש לחשבון גוגל בפעם הבאה שתייצאו לשם דף מקורות</span>
-            </div>
+    <div id="gauth-email-disconnected" class="section" style="{% if profile.gauth_email %} display: none {% endif %}" >
+        <label class="control-elem">
+                <span class="int-en">Sheets Export: No Google Drive Connected</span>
+                <span class="int-he">ייצוא דפי מקורות: גוגל דרייב אינו מחובר</span>
+        </label>
+        <div class="additional-info">
+            <span class="int-en">No Google Drive connected. You can link one the next time you export a sheet.</span>
+            <span class="int-he">גוגל דרייב אינו מחובר. ניתן לחבר אותו בפעם הבאה שתייצאו דף מקורות.</span>
         </div>
+    </div>
         <div class="saveCancel">
             <button type="button" class="button small blue control-elem saveAccountSettingsBtn">
                 <span class="int-en">Save</span>
@@ -204,7 +241,7 @@
 		$(function(){
 		    const $curLang = $("#siteLanguage .toggleOption.on").attr("data-value");
 		    let $curTextualCustom = $("#textualCustom .toggleOption.on").attr("data-value");
-		    const $curExperiments = $("#experimentsSetting .toggleOption.on").attr("data-value");
+		    const $curLibraryAssistant = $("#libraryAssistantSetting .toggleOption.on").attr("data-value");
 			$(".toggleOption").click(function() {
 			    let $this = $(this);
 				$this.closest(".toggleSet").find(".toggleOption").removeClass("on").attr("tabIndex","-1").attr("ariaChecked","false");
@@ -230,6 +267,7 @@
 			// Single handler for all save buttons using class selector
             $(".saveAccountSettingsBtn").click(function(){
 			    const $newTransLangPref = $("#translationLanguagePreference .toggleOption.on").attr("data-value");
+			    const $newLibraryAssistant = $("#libraryAssistantSetting .toggleOption.on").attr("data-value");
 				let profile = {
                     settings: {
                         email_notifications: $("#emailNotifications .toggleOption.on").attr("data-value"),
@@ -240,10 +278,13 @@
                         translation_language_preference_suggested: true,
                     }
 				};
-                const $experimentsToggle = $("#experimentsSetting .toggleOption.on");
-                if ($experimentsToggle.length) {
-                    profile.experiments = $experimentsToggle.attr("data-value") === "true";
-                }
+				// Only send library_assistant when the toggle was actually changed. The toggle
+				// renders the *effective* value, so submitting it unconditionally would persist
+				// the setting for users whose profiles don't carry the key yet — and a profile
+				// that has the key is skipped by the opt-out migration.
+				if ($newLibraryAssistant !== $curLibraryAssistant) {
+				    profile.settings.library_assistant = $newLibraryAssistant === "true";
+				}
                 $.cookie("translation_language_preference", $("#translationLanguagePreference .toggleOption.on").attr("data-value"), {path: "/"});  // see trans pref in cookie in case user is logged out
                 $.cookie("translation_language_preference_suggested", JSON.stringify(1), {path: "/"});
                 $.post("/api/profile", {json: JSON.stringify(profile)}, function(data) {
@@ -256,8 +297,8 @@
 						if ($newLang != $curLang) {
 						    Sefaria.track.setInterfaceLanguage("interface language account settings", $newLang);
 						}
-						// Interface language or experiments changed → reload (interface language affects RTL/LTR and server-rendered content; experiments needs fresh chatbot_user_token)
-						if ($newLang != $curLang || (profile.experiments !== undefined && String(profile.experiments) !== $curExperiments)) {
+						// Interface language or Library Assistant changed → reload (interface language affects RTL/LTR and server-rendered content; the assistant needs a fresh chatbot_user_token and script tag)
+						if ($newLang != $curLang || $newLibraryAssistant !== $curLibraryAssistant) {
 							window.location.reload();
 							return;
 						}

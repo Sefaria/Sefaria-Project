@@ -23,7 +23,6 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.cache import patch_cache_control
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.admin.views.decorators import staff_member_required
@@ -33,7 +32,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from functools import wraps
@@ -45,11 +44,12 @@ import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
-from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map
+from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED, SEARCH_INDEX_ON_SAVE
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
+from sso.adapters import import_gravatar
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
 from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.export import export_all as start_export_all
@@ -62,6 +62,8 @@ from sefaria.system.decorators import catch_error_as_http, cors_allow_all
 from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
+from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
+from sefaria.helper.skip_tracking import build_pathway
 from sefaria.helper.webpages import normalize_url as normalize_webpage_url, domain_for_url as webpage_domain_for_url
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
@@ -90,8 +92,24 @@ class StaticViewMixin:
         context['renderStatic'] = True
         return context
 
-class CustomLoginView(StaticViewMixin, LoginView):
+class CustomLoginView(LoginView):
     authentication_form = SefariaLoginForm
+    template_name = 'base.html'
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect("/")
+        return super().get(request, *args, **kwargs)
+
+    def render_to_response(self, context, **response_kwargs):
+        return render_template(
+            self.request, "base.html",
+            {"headerMode": False},
+            {
+                'title': _('Log in to Sefaria'),
+                'desc': _('Log in to your Sefaria account to make source sheets, write notes, and follow other Sefaria users.'),
+            }
+        )
 
 class CustomLogoutView(StaticViewMixin, LogoutView):
     http_method_names = ["get", "post", "options"]
@@ -118,48 +136,67 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
         return super().get_next_page()
 
 
-class CustomPasswordResetDoneView(StaticViewMixin, PasswordResetDoneView):
-    pass
-
-class CustomPasswordResetCompleteView(StaticViewMixin, PasswordResetCompleteView):
-    pass
-
-class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
-    form_class = SefariaPasswordResetForm
-    email_template_name = 'registration/password_reset_email.txt'
-    html_email_template_name = 'registration/password_reset_email.html'
-    
-    def form_valid(self, form):
-        """
-        Override form_valid to set the correct domain for the email context.
-        """
-        # Get the current domain from the request
-        current_domain = self.request.get_host()
-        
-        # Call form.save with domain override - this sends the email
-        form.save(
-            request=self.request,
-            domain_override=current_domain,
-            use_https=self.request.is_secure(),
-            email_template_name=self.email_template_name,
-            subject_template_name=self.subject_template_name,
-            html_email_template_name=self.html_email_template_name,
-            from_email=self.from_email,
-            extra_email_context=self.extra_email_context,
-        )
-        # Don't call super().form_valid(form) as it would send the email again
-        return HttpResponseRedirect(self.get_success_url())
-
-class CustomPasswordResetConfirmView(StaticViewMixin, PasswordResetConfirmView):
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm
+    template_name = 'base.html'
+
+    def render_to_response(self, context, **response_kwargs):
+        # dispatch() calls this directly (bypassing get()/post()) whenever the
+        # link is invalid/expired — for BOTH GET and POST. Branch on method so
+        # an invalid-link POST still gets JSON, not an HTML page.
+        if self.request.method == 'POST':
+            try:
+                data = json.loads(self.request.body)
+            except (json.JSONDecodeError, ValueError):
+                data = {}
+            if data.get('action') == 'resend':
+                # dispatch() already resolved self.user from the URL's uidb64
+                # before checking token validity, so the account is known
+                # even though the link itself has expired.
+                if self.user is None:
+                    return jsonResponse({
+                        "error": "We couldn't find an account for this link.",
+                        "_auth": {"code": "no_account_for_link"},
+                    }, status=400)
+                form = SefariaPasswordResetForm(data={'email': self.user.email})
+                if form.is_valid():
+                    form.save(
+                        request=self.request, domain_override=self.request.get_host(), use_https=self.request.is_secure(),
+                        email_template_name='registration/password_reset_email.txt',
+                        html_email_template_name='registration/password_reset_email.html',
+                    )
+                return jsonResponse({})
+            return jsonResponse({
+                "error": "This password reset link is no longer valid.",
+                "_auth": {"code": "invalid_reset_link"},
+            }, status=400)
+        return render_template(
+            self.request, "base.html",
+            {
+                "headerMode": False,
+                "authResetUid": self.kwargs.get("uidb64", ""),
+                "authResetValid": bool(context.get("validlink")),
+            },
+            {'title': _('Reset Your Password'), 'desc': _('Reset your Sefaria account password.')},
+        )
+
+    def post(self, request, *args, **kwargs):
+        # Only reached when dispatch() already confirmed validlink=True.
+        try:
+            data = json.loads(request.body)
+        except (json.JSONDecodeError, ValueError):
+            return jsonResponse({"error": "Invalid JSON"}, status=400)
+        form = self.form_class(user=self.user, data={
+            "new_password1": data.get("new_password1", ""),
+            "new_password2": data.get("new_password2", ""),
+        })
+        if not form.is_valid():
+            return jsonResponse({k: v[0] for k, v in form.errors.items()}, status=400)
+        form.save()
+        request.session.pop(INTERNAL_RESET_SESSION_TOKEN, None)
+        return jsonResponse({})
 
 def process_register_form(request, auth_method='session'):
-    from sefaria.utils.util import epoch_time
-    from sefaria.helper.file import get_resized_file
-    import hashlib
-    import urllib.parse, urllib.request
-    from google.cloud.exceptions import GoogleCloudError
-    from PIL import Image
     form = SefariaNewUserForm(request.POST) if auth_method == 'session' else SefariaNewUserFormAPI(request.POST)
     token_dict = None
     if form.is_valid():
@@ -172,27 +209,10 @@ def process_register_form(request, auth_method='session'):
             p.join_invited_collections()
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
-
-
-            # auto-add profile pic from gravatar if exists
-            email_hash = hashlib.md5(p.email.lower().encode('utf-8')).hexdigest()
-            gravatar_url = "https://www.gravatar.com/avatar/" + email_hash + "?d=404&s=250"
-            try:
-                with urllib.request.urlopen(gravatar_url) as r:
-                    bucket_name = GoogleStorageManager.PROFILES_BUCKET
-                    with Image.open(r) as image:
-                        now = epoch_time()
-                        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(p.slug, now), bucket_name, None)
-                        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(p.slug, now), bucket_name, None)
-                        p.profile_pic_url = big_pic_url
-                        p.profile_pic_url_small = small_pic_url
-            except urllib.error.HTTPError as e:
-                logger.info("The Gravatar server couldn't fulfill the request. Error Code {}".format(e.code))
-            except urllib.error.URLError as e:
-                logger.info("HTTP Error from Gravatar Server. Reason: {}".format(e.reason))
-            except GoogleCloudError as e:
-                logger.warning("Error communicating with Google Storage Manager. {}".format(e))
             p.save()
+
+        import_gravatar(p)
+        p.save()  # import_gravatar runs outside the transaction (slow network call) and only mutates p, so it must be saved again here
 
         if auth_method == 'session':
             auth_login(request, user)
@@ -212,14 +232,36 @@ def register_api(request):
     return jsonResponse(errors)
 
 
+# Maps Django's stable, language-independent error `code` to a frontend-stable token, so
+# RegisterView.jsx never has to match on message text (which is gettext_lazy and resolves to
+# whatever language is active when read, not when raised). Only used for the web /register JSON
+# path; codes with no entry here keep their message text. register_api (Mobile) has no such
+# indirection and still text-matches clean_email's account-exists messages verbatim — see the
+# comment there.
+WEB_REGISTER_ERROR_CODES = {
+    "required": "auth.required_field",
+    "sso_google_exists": "sso_google_exists",
+    "sso_apple_exists": "sso_apple_exists",
+    "email_exists": "email_exists",
+}
+
+
+def _web_register_errors(form):
+    errors = {}
+    for field, field_errors in form.errors.as_data().items():
+        error = field_errors[0]
+        errors[field] = WEB_REGISTER_ERROR_CODES.get(error.code, error.messages[0])
+    return errors
+
+
 def register(request):
     if request.user.is_authenticated:
-        return redirect("login")
+        return redirect("/")
 
     next_url = request.GET.get('next', '')
 
     if request.method == 'POST':
-        errors, _, form = process_register_form(request)
+        errors, __, form = process_register_form(request)
         if len(errors) == 0:
             if "new?assignment=" in request.POST.get("next", ""):
                 next_url = request.POST.get("next", "")
@@ -227,30 +269,30 @@ def register(request):
                 next_url = request.POST.get("next", "/")
                 parsed = urlparse(next_url)
                 next_url = urlunparse(parsed._replace(query=urlencode(parse_qsl(parsed.query) + [('welcome', 'to-sefaria')])))
+            if not url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+                next_url = "/"
             if "noredirect" in request.POST:
                 return jsonResponse({"redirect": next_url})
             return HttpResponseRedirect(next_url)
         elif "noredirect" in request.POST:
-            return jsonResponse(errors)
+            return jsonResponse(_web_register_errors(form))
     else:
         if request.GET.get('educator', ''):
             form = SefariaNewUserForm(initial={'subscribe_educator': True})
         else:
             form = SefariaNewUserForm()
 
-    return render_template(request, "registration/register.html", {"headerMode": True}, {'form': form, 'next': next_url, "renderStatic": True})
+    return render_template(request, "base.html", {"headerMode": False}, {
+        'form': form,
+        'next': next_url,
+        'title': _('Create an Account'),
+        'desc': _('Create an account on Sefaria to make source sheets, take notes and follow other people.'),
+    })
 
 
 def maintenance_message(request):
     resp = render_template(request,"static/maintenance.html", None, {"message": MAINTENANCE_MESSAGE}, status=503)
     return resp
-
-
-def accounts(request):
-    return render_template(request,"registration/accounts.html", None, {
-        "createForm": UserCreationForm(),
-        "loginForm": AuthenticationForm()
-    })
 
 
 @csrf_exempt
@@ -569,7 +611,11 @@ def bundle_many_texts(refs, use_text_family=False, as_sized_string=False, min_ch
             oref = model.Ref(tref)
             lang = "he" if has_hebrew(tref) else "en"
             if use_text_family:
-                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
+                # Legacy: only reached via ?useTextFamily=1, which we don't send ourselves anymore --
+                # kept for templates/js/linker.v2.js, an old embed script possibly still live on
+                # third-party sites we don't control.
+                from sefaria.model.legacy_text import TextFamily
+                text_fam = TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
                                             lang="he", version=hebrew_version,
                                             lang2="en", version2=english_version)
                 he = text_fam.he
@@ -584,8 +630,11 @@ def bundle_many_texts(refs, use_text_family=False, as_sized_string=False, min_ch
                     'url': oref.url()
                 }
             else:
-                he_tc = model.TextChunk(oref, "he", vtitle=hebrew_version)
-                en_tc = model.TextChunk(oref, "en", actual_lang=translation_language_preference, vtitle=english_version)
+                # Keyed by direction, not real language -- TopicPage.jsx's source/translation
+                # toggle works on the old en/he-as-ltr/rtl dichotomy, not genuine isSource matching.
+                he_tc = oref.text(direction="rtl", vtitle=hebrew_version)
+                en_tc = oref.text(translation_language_preference, vtitle=english_version) if translation_language_preference \
+                    else oref.text(direction="ltr", vtitle=english_version)
                 if hebrew_version and he_tc.is_empty():
                   raise NoVersionFoundError(f"{oref.normal()} does not have the Hebrew version: {hebrew_version}")
                 if english_version and en_tc.is_empty():
@@ -735,6 +784,28 @@ def reset_cache(request):
 
 
 @staff_member_required
+def rebuild_linker_resolvers(request):
+    """
+    Enqueue an async rebuild of RefResolver and CategoryResolver for selected linker
+    languages. Used by /linker-editor after linker metadata edits. Runs on a worker
+    since walking the library to rebuild a resolver can take several seconds; poll the
+    returned task_id via /api/async/<task_id>.
+    """
+    try:
+        body = json.loads(request.body.decode("utf-8")) if request.body else {}
+    except ValueError:
+        return jsonResponse({"error": "Invalid JSON."}, status=400)
+
+    from sefaria.helper import linker_editor
+    try:
+        task_id = linker_editor.enqueue_rebuild_linker_resolvers(body.get("langs", ["en", "he"]))
+    except InputError as e:
+        return jsonResponse({"error": str(e)}, status=400)
+
+    return jsonResponse({"task_id": task_id}, status=202)
+
+
+@staff_member_required
 def reset_websites_data(request):
     website_set = [w.contents() for w in WebSiteSet()]
     in_memory_cache.set("websites_data", website_set)
@@ -845,9 +916,11 @@ def rebuild_toc(request):
 
 @staff_member_required
 def rebuild_auto_completer(request):
-    library.build_full_auto_completer()
-    library.build_lexicon_auto_completers()
-    library.build_cross_lexicon_auto_completer()
+    # Three builders, each of which wraps itself: group them so one click reports once.
+    with build_pathway("rebuild_auto_completer"):
+        library.build_full_auto_completer()
+        library.build_lexicon_auto_completers()
+        library.build_cross_lexicon_auto_completer()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_full_auto_completer")
@@ -1287,13 +1360,13 @@ def delete_sheet_by_id(request):
             process_sheet_deletion_in_collections(id)
             process_sheet_deletion_in_notifications(id)
 
-            try:
-                es_index_name = search.get_new_and_current_index_names("sheet")['current']
-                search.delete_sheet(es_index_name, id)
-            except NewConnectionError as e:
-                logger.warn("Failed to connect to elastic search server on sheet delete.")
-            except AuthorizationException as e:
-                logger.warn("Failed to connect to elastic search server on sheet delete.")
+            # Queued rather than deleted directly: web pods only have read access to ES. The
+            # sheet is already gone from Mongo, so the queue consumer removes its search doc.
+            if SEARCH_INDEX_ON_SAVE:
+                try:
+                    search.queue_sheet_sync(id)
+                except Exception as e:
+                    logger.error(f"Failed to queue deleted sheet {id} for search removal: {type(e).__name__}: {e}")
 
 
             return jsonResponse({"success": f"deleted sheet {sheet_id}"})
@@ -1320,12 +1393,21 @@ def purge_spammer_account_data(spammer_id, delete_from_crm=True):
         except Exception as e:
             logger.error(f'Failed to mark user as spam: {e}')
     sheets = db.sheets.find({"owner": spammer_id})
+    quarantined_sheet_ids = []
     for sheet in sheets:
         sheet["spam_sheet_quarantine"] = datetime.now()
         sheet["datePublished"] = None
         sheet["status"] = "unlisted"
         sheet["displayedCollection"] = None
         db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
+        quarantined_sheet_ids.append(sheet["id"])
+    # Unlisted sheets must leave search; the queue consumer removes them (web cannot write to ES).
+    if SEARCH_INDEX_ON_SAVE and quarantined_sheet_ids:
+        from sefaria.search import queue_sheets_sync
+        try:
+            queue_sheets_sync(quarantined_sheet_ids)
+        except Exception as e:
+            logger.error(f"Failed to queue quarantined sheets of spammer {spammer_id} for search removal: {type(e).__name__}: {e}")
     # Delete Notes
     db.notes.delete_many({"owner": spammer_id})
     # Delete Notifcations
@@ -1352,6 +1434,12 @@ def spam_dashboard(request):
             db.sheets.update_many({"id": {"$in": reviewed_sheet_ids}}, {"$set": {"reviewed": True}})
             spammers = db.sheets.find({"id": {"$in": spam_sheet_ids}}, {"owner": 1}).distinct("owner")
             db.sheets.delete_many({"id": {"$in": spam_sheet_ids}})
+            if SEARCH_INDEX_ON_SAVE:
+                from sefaria.search import queue_sheets_sync
+                try:
+                    queue_sheets_sync(spam_sheet_ids)
+                except Exception as e:
+                    logger.error(f"Failed to queue spam sheets {spam_sheet_ids} for search removal: {type(e).__name__}: {e}")
 
             for spammer in spammers:
                 try:
@@ -1417,6 +1505,10 @@ def index_sheets_by_timestamp(request):
     response_str = search_index_sheets_by_timestamp(timestamp)
     return jsonResponse({"success": response_str})
 
+# Change this whenever the GraphQL query/response shape changes in a way that is not backwards compatible (e.g. the Strapi v4 -> v5 flattening)
+# It's part of the cache key so queries from a newly deployed frontend cannot collide with payloads cached under the previous schema
+STRAPI_SCHEMA_VERSION = "v5"
+
 @csrf_exempt
 def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
     """
@@ -1476,8 +1568,9 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
                 {"error": "GraphQL query required in request body"}, status=400
             )
 
-        # Create cache key from the specified dates. The query structure will be static while using the dates in its body
-        cache_key: str = f"strapi_graphql_{start_date}_{end_date}"
+        # Create cache key from the schema version and the specified dates. The query structure is static apart from the dates in its body. 
+        # Including the schema version ensures payloads cached under an older, incompatible query/response shape are never served to code expecting the newer shape.
+        cache_key: str = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_{start_date}_{end_date}"
 
         # Try to get from cache first
         # There should be at most 3 keys (date ranges in the cache) at the same time based on frontend usage
@@ -1503,12 +1596,27 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
         )
 
         if response.status_code != 200:
+            logger.error(
+                f"Strapi returned HTTP {response.status_code} for graphql-cache. "
+                f"Response body: {response.text[:500]}"
+            )
             return jsonResponse(
                 {"error": f"Strapi request failed with status {response.status_code}"},
                 status=500,
             )
 
         result_json = response.text
+
+        # GraphQL always returns HTTP 200, even for query errors — check the body for errors too
+        parsed = response.json()
+        if parsed.get("errors"):
+            logger.error(
+                f"Strapi GraphQL query returned errors: {parsed['errors']}"
+            )
+            # Do not cache error responses.
+            # Otherwise, a transient error (or a query/schema mismatch) would be served from the cache for the full TTL.
+            # Still return the body so the client can degrade gracefully — the frontend renders nothing when there is no data.
+            return HttpResponse(result_json, content_type="application/json")
 
         # Cache the result for 7 days - this will be invalidated by webhook when there is a change in Strapi
         set_cache_elem(
@@ -1518,7 +1626,7 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
         return HttpResponse(result_json, content_type="application/json")
 
     except Exception as e:
-        logger.error(f"Error in strapi_graphql_cache: {str(e)}")
+        logger.error(f"Error in strapi_graphql_cache: {str(e)}", exc_info=True)
         return jsonResponse({"error": "Internal server error"}, status=500)
 
 
@@ -1813,6 +1921,74 @@ def version_bulk_edit_api(request):
         "failures": failures
     }
     return jsonResponse(result)
+
+
+@staff_member_required
+def version_rename_api(request):
+    """
+    Rename Version.versionTitle for a single index.
+
+    Request:
+      POST {"versionTitle": "...", "newVersionTitle": "...", "index": "...", "language": "he" (optional)}
+
+    Response:
+      Celery enabled: 202 {"task_id": "..."}
+      Celery disabled: 200 {"status": "ok"} or non-200 {"error": "..."}
+
+    Callers that need to rename a versionTitle across many indices should call
+    this endpoint once per index and aggregate per-index results.
+    """
+    if request.method != "POST":
+        return HttpResponseBadRequest("POST required")
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError as e:
+        return jsonResponse({"error": f"Invalid JSON: {str(e)}"}, status=400)
+
+    try:
+        version_title = data["versionTitle"]
+        new_version_title = data["newVersionTitle"]
+        index_title = data["index"]
+    except KeyError as e:
+        return jsonResponse({"error": f"Missing required field: {str(e)}"}, status=400)
+
+    if not isinstance(new_version_title, str):
+        return jsonResponse({"error": "newVersionTitle must be a string"}, status=400)
+
+    new_version_title = new_version_title.strip()
+    if not new_version_title:
+        return jsonResponse({"error": "newVersionTitle may not be empty"}, status=400)
+
+    if isinstance(version_title, str) and version_title.strip() == new_version_title:
+        return jsonResponse({"error": "newVersionTitle must be different from versionTitle"}, status=400)
+
+    language = data.get("language")
+    rename_payload = {
+        "user_id": request.user.id,
+        "versionTitle": version_title,
+        "newVersionTitle": new_version_title,
+        "index": index_title,
+        "language": language,
+    }
+
+    if CELERY_ENABLED:
+        async_result = rename_version_title.apply_async(
+            args=(rename_payload,),
+            queue=CeleryQueue.TASKS.value,
+        )
+        return celeryResponse(async_result.id)
+
+    result, status_code = run_version_rename(
+        user_id=request.user.id,
+        version_title=version_title,
+        new_version_title=new_version_title,
+        index_title=index_title,
+        language=language,
+    )
+    if result.get("status") == "error" and "error" in result:
+        return jsonResponse({"error": result["error"]}, status=status_code)
+    return jsonResponse(result, status=status_code)
 
 
 @staff_member_required

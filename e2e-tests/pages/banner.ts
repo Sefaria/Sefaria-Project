@@ -44,6 +44,17 @@ export class Banner{
         expect(getPathAndParams(this.page.url())).toBe("/topics")
     }
 
+    async communityPage(){
+        if(this.language == LANGUAGES.EN){
+            await this.page.getByRole('banner').getByRole('link', { name: 'Community' }).click();
+        }
+        else{
+            await this.page.getByRole('banner').getByRole('link', { name: 'קהילה' }).click();
+        }
+
+        expect(getPathAndParams(this.page.url())).toEqual("/community")
+    }
+
     async donatePage(): Promise<Page>{
         const donatePagePromise = this.page.waitForEvent('popup')
 

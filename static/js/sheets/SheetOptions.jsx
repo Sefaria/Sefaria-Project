@@ -59,7 +59,7 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
   }
 
   const handleDelete = () => {
-      if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
+      if (confirm(Sefaria._("common.are_you_sure_you_want_to_delete_this_sheet_there"))) {
         setDeletingMode(true);
       }
     }
@@ -101,72 +101,72 @@ const SheetOptions = ({historyObject, toggleSignUpModal, sheetID, authorUrl, edi
                          status={status}
                          postSheet={postSheet}/>;
   }
-  const publishModalButton = <Button variant="" className="sefaria-common-button small" onClick={() => setPublishingMode(true)}><InterfaceText>Publish</InterfaceText></Button>;
+  const publishModalButton = <Button variant="" className="sefaria-common-button small" onClick={() => setPublishingMode(true)}><InterfaceText>sheet_options.publish</InterfaceText></Button>;
   return (
-        <>
-        {editable && status === 'unlisted' && publishModalButton}
-          <DropdownMenu positioningClass="headerDropdownMenu marginInlineIndent" buttonComponent={<img src="/static/icons/ellipses.svg" alt={Sefaria._("Options")}/>}>
-            <div className="dropdownLinks-options">
-              <DropdownMenuItemWithCallback onClick={() => setSavingMode(true)}>
-                <SaveButtonWithText historyObject={historyObjectForSheet}/>
-              </DropdownMenuItemWithCallback>
-              <DropdownMenuItemWithCallback onClick={() => setCopyingMode(true)}>
-                <CopyButton/>
-              </DropdownMenuItemWithCallback>
-              <DropdownMenuItemWithCallback onClick={() => setCollectionsMode(true)}>
-                <CollectionsButton editable={editable}/>
-              </DropdownMenuItemWithCallback>
-              <DropdownMenuItemWithCallback onClick={() => setExportingMode(true)}>
-                <GoogleDocExportButton sheetID={sheetID}/>
-              </DropdownMenuItemWithCallback>
-              <DropdownMenuItemWithCallback onClick={() => setSharingMode(true)}>
-                <ShareButton/>
-              </DropdownMenuItemWithCallback>
-              {editable && status === 'public' && <>
-                <DropdownMenuSeparator/>
-                <DropdownMenuItemWithCallback onClick={() => setPublishingMode(true)}>
-                  <UnpublishButton/>
-                </DropdownMenuItemWithCallback>
-              </>
-              }
-              {editable && <>
-                <DropdownMenuSeparator/>
-                <DropdownMenuItemWithCallback onClick={handleDelete}>
-                  <DeleteButton/>
-                </DropdownMenuItemWithCallback>
-              </>
-              }
-            </div>
-          </DropdownMenu>
-        </>
+    <>
+      {editable && status === 'unlisted' && publishModalButton}
+      <DropdownMenu positioningClass="headerDropdownMenu marginInlineIndent" buttonComponent={<img src="/static/icons/ellipses.svg" alt={Sefaria._("common.options")}/>}>
+        <div className="dropdownLinks-options">
+          <DropdownMenuItemWithCallback onClick={() => setSavingMode(true)}>
+            <SaveButtonWithText historyObject={historyObjectForSheet}/>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setCopyingMode(true)}>
+            <CopyButton/>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setCollectionsMode(true)}>
+            <CollectionsButton editable={editable}/>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setExportingMode(true)}>
+            <GoogleDocExportButton sheetID={sheetID}/>
+          </DropdownMenuItemWithCallback>
+          <DropdownMenuItemWithCallback onClick={() => setSharingMode(true)}>
+            <ShareButton/>
+          </DropdownMenuItemWithCallback>
+          {editable && status === 'public' && <>
+            <DropdownMenuSeparator/>
+            <DropdownMenuItemWithCallback onClick={() => setPublishingMode(true)}>
+              <UnpublishButton/>
+            </DropdownMenuItemWithCallback>
+          </>
+          }
+          {editable && <>
+            <DropdownMenuSeparator/>
+            <DropdownMenuItemWithCallback onClick={handleDelete}>
+              <DeleteButton/>
+            </DropdownMenuItemWithCallback>
+          </>
+          }
+        </div>
+      </DropdownMenu>
+    </>
   );
 }
 
 const ShareButton = () => {
-  return <DropdownMenuItemWithIcon icon={"/static/img/share.svg"} textEn={'Share'}/>
+  return <DropdownMenuItemWithIcon icon={"/static/img/share.svg"} textEn={'sheet_options.share'}/>
 }
 
 const DeleteButton = () => {
-    return <DropdownMenuItemWithIcon icon={"/static/icons/trash.svg"} textEn={'Delete Sheet'}/>
+    return <DropdownMenuItemWithIcon icon={"/static/icons/trash.svg"} textEn={'sheet_options.delete_sheet'}/>
 }
 
 const UnpublishButton = () => {
-  return <DropdownMenuItemWithIcon icon={"/static/icons/unpublish.svg"} textEn={'Unpublish'}/>
+  return <DropdownMenuItemWithIcon icon={"/static/icons/unpublish.svg"} textEn={'sheet_options.unpublish'}/>
 }
 
 const CollectionsButton = ({editable}) => {
-  const label = editable ? "Edit Collections" : "Add to Collection";
+  const label = editable ? "sheet_options.edit_collections" : "misc.add_to_collection";
   return <DropdownMenuItemWithIcon icon={"/static/icons/collection.svg"} textEn={label}/>
 }
 
 const CopyButton = () => {
-  return <DropdownMenuItemWithIcon textEn={"Copy"} icon="/static/img/copy.png"/>
+  return <DropdownMenuItemWithIcon textEn={"sheet_modals.copy"} icon="/static/img/copy.png"/>
 }
 
 const GoogleDocExportButton = () => {
   const googleDriveText = { en: "Export to Google Docs", he: "ייצוא לגוגל דוקס" };
   return <DropdownMenuItemWithIcon
-                         textEn={googleDriveText.en}
+                         textEn={"sheet_options.export_to_google_docs"}
                          icon="/static/img/googledrivecolor.png"/>;
 }
 

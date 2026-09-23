@@ -5,13 +5,31 @@ on:
     - cron: '0 3 * * *'
   workflow_dispatch:
 
+env:
+  IMAGE: us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/sefaria-public/sefaria-mongo
+
 jobs:
+  # Each platform builds natively on its own runner and pushes by digest.
+  # Emulating arm64 under QEMU pushed the build past an hour, outliving the
+  # GCP access token before the push step.
   build-mongo:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-latest
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     permissions:
       contents: 'read'
       id-token: 'write'
     steps:
+      - name: Prepare
+        run: |
+          platform=${{ matrix.platform }}
+          echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
       - name: Maximize build space
         uses: AdityaGarg8/remove-unwanted-software@v4.1
         with:
@@ -20,22 +38,70 @@ jobs:
           remove-haskell: 'true'
           remove-codeql: 'true'
           remove-docker-images: 'true'
-      - uses: actions/checkout@v2
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - uses: actions/checkout@v4
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
           buildkitd-config: ./build/standalone-db/buildkit.toml
       - id: auth
         name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
+        uses: google-github-actions/auth@v2
         with:
           token_format: 'access_token'
           workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
           service_account: '${{ secrets.DEV_GKE_SA }}'
       - name: Login to GAR
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
+        with:
+          registry: us-east1-docker.pkg.dev
+          username: oauth2accesstoken
+          password: '${{ steps.auth.outputs.access_token }}'
+      - name: Build and push by digest
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          file: ./build/standalone-db/Dockerfile
+          outputs: type=image,name=${{ env.IMAGE }},push-by-digest=true,name-canonical=true,push=true
+      - name: Export digest
+        run: |
+          mkdir -p ${{ runner.temp }}/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "${{ runner.temp }}/digests/${digest#sha256:}"
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ env.PLATFORM_PAIR }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  # Combine the per-platform digests into a single multi-arch tag.
+  merge:
+    runs-on: ubuntu-latest
+    needs: build-mongo
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - id: auth
+        name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/${{ secrets.DEV_GKE_PROJECT_ID}}/locations/global/workloadIdentityPools/github/providers/github'
+          service_account: '${{ secrets.DEV_GKE_SA }}'
+      - name: Login to GAR
+        uses: docker/login-action@v3
         with:
           registry: us-east1-docker.pkg.dev
           username: oauth2accesstoken
@@ -45,22 +111,20 @@ jobs:
         run: echo "date=$(date +'%Y%m%d%H%M')" >> $GITHUB_OUTPUT
       - name: Generate image metadata
         id: meta
-        uses: docker/metadata-action@v3
+        uses: docker/metadata-action@v5
         with:
-          images: |
-            us-east1-docker.pkg.dev/${{ secrets.DEV_PROJECT }}/sefaria-public/sefaria-mongo
+          images: ${{ env.IMAGE }}
           # generate Docker tags based on the following events/attributes
           tags: |
             type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ steps.date.outputs.date }},format=short
             type=sha
           flavor: |
             latest=true
-      - name: build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: true
-          platforms: linux/amd64,linux/arm64
-          file: ./build/standalone-db/Dockerfile
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf '${{ env.IMAGE }}@sha256:%s ' *)
+      - name: Inspect image
+        run: docker buildx imagetools inspect ${{ env.IMAGE }}:${{ steps.meta.outputs.version }}

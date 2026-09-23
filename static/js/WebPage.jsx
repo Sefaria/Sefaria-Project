@@ -21,7 +21,7 @@ function getAuthorsAsString(isHebrew, authors) {
 
 const AuthorString = ({authors, isHebrew}) => {
   const authorsNum = authors?.length;
-  const author = authorsNum > 1 ? 'Authors' : 'Author';
+  const author = authorsNum > 1 ? 'common.authors' : 'nav_sidebar.author';
   const authorsNames = getAuthorsAsString(isHebrew, authors);
   return (
      authorsNames ? <div className="authors">
@@ -35,21 +35,23 @@ AuthorString.propTypes = {
 };
 
 const WebPage = ({authors, isHebrew, favicon, url, domain, title, description, articleSource, anchorRef}) => {
-  return (<div className={"webpage" + (isHebrew ? " hebrew" : "")} key={url}>
-    <img className="icon" src={favicon} alt={Sefaria._("Website icon")} />
-    <a className="title" href={url} target="_blank">{title}</a>
-    <div className="domain">{domain}</div>
-    {description ? <div className="description">{description}</div> : null}
-    <div className="webpageMetadata">
-      <AuthorString authors={authors} isHebrew={isHebrew} />
-      {articleSource ? <div className="articleSource">
-        <InterfaceText>Source</InterfaceText>: {articleSource.title}{articleSource.related_parts ? ` ${articleSource.related_parts}`: ''}
-      </div> : null}
-      <div className="citing">
-        <InterfaceText>Citing</InterfaceText>: {Sefaria._r(anchorRef)}
+  return (
+    <div className={"webpage" + (isHebrew ? " hebrew" : "")} key={url}>
+      <img className="icon" src={favicon} alt={Sefaria._("common.website_icon")} />
+      <a className="title" href={url} target="_blank">{title}</a>
+      <div className="domain">{domain}</div>
+      {description ? <div className="description">{description}</div> : null}
+      <div className="webpageMetadata">
+        <AuthorString authors={authors} isHebrew={isHebrew} />
+        {articleSource ? <div className="articleSource">
+          <InterfaceText>common.source</InterfaceText>: {articleSource.title}{articleSource.related_parts ? ` ${articleSource.related_parts}`: ''}
+        </div> : null}
+        <div className="citing">
+          <InterfaceText>web_page.citing</InterfaceText>: {Sefaria._r(anchorRef)}
+        </div>
       </div>
     </div>
-  </div>);
+  );
 }
 WebPage.propTypes = {
   authors: PropTypes.array, //array of strings

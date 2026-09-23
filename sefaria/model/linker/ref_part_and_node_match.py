@@ -8,10 +8,11 @@ class RefPartAndNodeMatch:
     The fundamental unit of a ResolvedRef which is trying to find matches between all input ref parts and nodes
     """
 
-    def __init__(self, parts: tuple[RawRefPart], node: ReferenceableBookNode, can_match_out_of_order: bool):
+    def __init__(self, parts: tuple[RawRefPart], node: ReferenceableBookNode, can_match_out_of_order: bool, ref=None):
         self._parts = parts
         self._node = node
         self._can_match_out_of_order = can_match_out_of_order
+        self._ref = ref
 
     @property
     def parts(self) -> tuple[RawRefPart]:
@@ -20,6 +21,15 @@ class RefPartAndNodeMatch:
     @property
     def node(self) -> ReferenceableBookNode:
         return self._node
+
+    @property
+    def ref(self):
+        """
+        The actual section Ref matched at this step (e.g. `Genesis 1` for the chapter part of `Genesis 1:2`).
+        Distinct from `node.ref()`, which is the node's own (broader) reference. May be None for pairings
+        that weren't produced by a refiner (e.g. seed/instantiation pairings).
+        """
+        return self._ref
     
     def set_node(self, node: ReferenceableBookNode):
         self._node = node

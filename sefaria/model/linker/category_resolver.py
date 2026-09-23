@@ -1,9 +1,14 @@
 from collections import defaultdict
+import structlog
 from sefaria.model.category import Category
 from sefaria.model.linker.ref_part import RawRef
 from sefaria.model.linker.abstract_resolved_entity import AbstractResolvedEntity
 from sefaria.model.marked_up_text_chunk import MUTCSpanType
 from sefaria.utils.hebrew import get_matches_with_prefixes
+from sefaria.helper.skip_tracking import log_skip, bad_record_guard
+
+logger = structlog.get_logger(__name__)
+skip_bad_record = bad_record_guard(logger)
 
 
 class ResolvedCategory(AbstractResolvedEntity):
@@ -45,10 +50,16 @@ class CategoryMatcher:
     def __init__(self, lang: str, category_registry: list[Category]) -> None:
         self._title_to_cat: dict[str, list[Category]] = defaultdict(list)
         for cat in category_registry:
-            for match_template in cat.get_match_templates():
-                for term in match_template.get_terms():
-                    for title in term.get_titles(lang):
-                        self._title_to_cat[title] += [cat]
+            # One category whose match_template references a nonexistent/corrupt term
+            # (term.get_terms() yields None, or term.get_titles() raises) must not abort startup.
+            with skip_bad_record("startup", "CategoryMatcher category", record="/".join(getattr(cat, "path", []) or [])):
+                for match_template in cat.get_match_templates():
+                    for term in match_template.get_terms():
+                        if term is None:
+                            log_skip(logger, "startup", "CategoryMatcher category match_template", "category '{}' references a nonexistent term slug; skipping.".format("/".join(getattr(cat, "path", []) or [])))
+                            continue
+                        for title in term.get_titles(lang):
+                            self._title_to_cat[title] += [cat]
 
     def match(self, raw_ref: RawRef) -> list[Category]:
         return get_matches_with_prefixes(raw_ref.text, matches_map=self._title_to_cat)

@@ -258,3 +258,41 @@ class Test_OO_Toc(object):
         # that the round-trip didn't change anything by reference that would poison the deep test
         new_json = json.dumps(rt_toc, sort_keys=True)
         assert len(base_json) == len(new_json)
+
+
+class Test_Toc_Node_Id(object):
+    """`record=` on the TocTree.serialize guard feeds the signature breaker's dedup key, so it
+    has to distinguish nodes. It previously read `getattr(n, "title", None)`, which is always
+    absent — TocNode.__init__ deletes the title attribute after deserialization, and
+    TocCategory names it "category" in the first place — so every node collapsed to its class
+    name and the breaker could see at most 3 distinct records against a threshold of 10."""
+
+    def test_ids_are_distinct_across_the_real_toc(self):
+        from sefaria.helper.skip_tracking import SIGNATURE_BREAKER_THRESHOLD
+
+        nodes = []
+        def walk(n):
+            for child in getattr(n, "children", []) or []:
+                nodes.append(child)
+                walk(child)
+        walk(library.get_toc_tree().get_root())
+
+        assert len(nodes) > SIGNATURE_BREAKER_THRESHOLD, "TOC too small to test the threshold"
+        ids = [c.toc_node_id(n) for n in nodes]
+        assert None not in ids, "every real ToC node should have a resolvable path"
+        # The point of the fix: enough distinct ids for the breaker to be reachable at all.
+        assert len(set(ids)) > SIGNATURE_BREAKER_THRESHOLD
+
+    def test_id_is_a_readable_path(self):
+        node = library.get_toc_tree().lookup(["Tanakh", "Torah", "Genesis"])
+        assert c.toc_node_id(node) == "Tanakh/Torah/Genesis"
+
+    def test_returns_none_rather_than_raising(self):
+        """`record=` is evaluated OUTSIDE the guard, so a node whose title_group is broken
+        must not take down the build the guard is protecting. None is deliberate: it earns a
+        unique placeholder in skip_tracking rather than collapsing into a shared bucket."""
+        class Broken(object):
+            @property
+            def full_path(self):
+                raise AttributeError("'Broken' object has no attribute 'title_group'")
+        assert c.toc_node_id(Broken()) is None

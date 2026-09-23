@@ -1,8 +1,10 @@
 from django.core.exceptions import ValidationError
+from django.db.utils import ProgrammingError
 from django.test import TestCase
 from django.urls import reverse
 
 from remote_config import remoteConfigCache
+from remote_config.cache import RemoteConfigCache
 from remote_config.models import RemoteConfigEntry, ValueType
 
 
@@ -70,6 +72,22 @@ class RemoteConfigCacheTest(TestCase):
         )
         self.assertEqual(remoteConfigCache.get("timeout"), 10)
         self.assertEqual(remoteConfigCache.get("missing_key", default="fallback"), "fallback")
+
+    def test_get_cache_returns_empty_on_programming_error(self):
+        # When the underlying table doesn't exist yet (e.g. management commands
+        # running before migrations are applied), _build_cache raises
+        # ProgrammingError. get_cache should swallow it and return an empty
+        # cache rather than crash. Use a fresh instance so we don't pollute the
+        # module-level singleton.
+        cache = RemoteConfigCache()
+
+        def raise_programming_error():
+            raise ProgrammingError("relation \"remote_config_remoteconfigentry\" does not exist")
+
+        cache._build_cache = raise_programming_error
+
+        self.assertEqual(cache.get_cache(), {})
+        self.assertEqual(cache.get("any_key", default="fallback"), "fallback")
 
 
 class RemoteConfigAPITest(TestCase):

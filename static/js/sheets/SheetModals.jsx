@@ -36,7 +36,7 @@ const CopyModal = ({close, sheetID}) => {
   const copyState = {
     copying: { en: "Copying Sheet...", he: "מעתיק..."},
     copied: { he: "צפייה בדף המקורות", en: "View Copy"},
-    error: { en: "Sorry, there was an error.", he: "סליחה, ארעה שגיאה" }
+    error: { en: "common.sorry_there_was_an_error", he: "סליחה, ארעה שגיאה" }
   }
   const [copyText, setCopyText] = useState(copyState.copying);
   const [copiedSheetId, setCopiedSheetId] = useState(0);
@@ -87,11 +87,13 @@ const CopyModal = ({close, sheetID}) => {
   })
 
   const getCopySuccessMessage = () => {
-    return <><InterfaceText>Success!</InterfaceText>
-              <a className="successMessage" href={`/sheets/${copiedSheetId}`} data-target-module={Sefaria.VOICES_MODULE} target='_blank'>
-              <InterfaceText>View your Copy</InterfaceText>
-              </a>
-          </>;
+    return (
+      <><InterfaceText>sheet_modals.success</InterfaceText>
+                <a className="successMessage" href={`/sheets/${copiedSheetId}`} data-target-module={Sefaria.VOICES_MODULE} target='_blank'>
+                <InterfaceText>View your Copy</InterfaceText>
+                </a>
+            </>
+    );
   }
   const handleClose = () => {
     if (copyText.en !== copyState.copying.en) { // don't allow user to close modal while copying is taking place
@@ -101,7 +103,7 @@ const CopyModal = ({close, sheetID}) => {
   }
 
   const copyMessage = copyText.en === copyState.copied.en ? getCopySuccessMessage() : <InterfaceText>{copyText.en}</InterfaceText>;
-  return <GenericSheetModal title={<InterfaceText>Copy</InterfaceText>} message={copyMessage} close={handleClose}/>;
+  return <GenericSheetModal title={<InterfaceText>sheet_modals.copy</InterfaceText>} message={copyMessage} close={handleClose}/>;
 }
 
 const GenericSheetModal = ({title, message, close}) => {
@@ -113,7 +115,7 @@ const GenericSheetModal = ({title, message, close}) => {
 
 const SaveModal = ({historyObject, close}) => {
   const isSaved = !!Sefaria.getSavedItem(historyObject);
-  const savingMessage = "Saving...";
+  const savingMessage = "common.saving";
   const [message, setMessage] = useState(savingMessage);
   const savedMessage = isSaved ? "Sheet no longer saved." : "Saved sheet.";
 
@@ -134,20 +136,20 @@ const SaveModal = ({historyObject, close}) => {
           });
     }
   });
-  return <GenericSheetModal title={<InterfaceText>Save</InterfaceText>} message={<InterfaceText>{message}</InterfaceText>} close={handleClose}/>;
+  return <GenericSheetModal title={<InterfaceText>common.save</InterfaceText>} message={<InterfaceText>{message}</InterfaceText>} close={handleClose}/>;
 }
 
 // Error messages for different Google OAuth failure scenarios
 const GAUTH_ERROR_MESSAGES = {
-  access_denied: "You declined permission to connect with Google. Export requires Google Drive access.",
-  invalid_grant: "The authorization expired or was already used. Please try again.",
+  access_denied: "sheet_modals.you_declined_permission_to_connect_with_google",
+  invalid_grant: "sheet_modals.the_authorization_expired_or_was_already_used",
   scope_mismatch: "There was a permission mismatch. Please try again.",
 };
 
 const GoogleDocExportModal = ({ sheetID, close }) => {
   const googleDriveState = {
-    exporting: "Exporting to Google Docs...",
-    exportComplete: "Success!",
+    exporting: "sheet_modals.exporting_to_google_docs",
+    exportComplete: "sheet_modals.success",
   }
   const {language, layout} = useContext(ReaderPanelContext);
   const [googleDriveText, setGoogleDriveText] = useState(googleDriveState.exporting);
@@ -201,11 +203,12 @@ const GoogleDocExportModal = ({ sheetID, close }) => {
   const getExportMessage = () => {
     if (!currentlyExporting() && googleDriveLink) {
       // Success - show link
-      return <>
-        <InterfaceText>{googleDriveText}</InterfaceText>
-        <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>View in Google
-          Docs</InterfaceText></a>
-      </>
+      return (
+        <>
+          <InterfaceText>{googleDriveText}</InterfaceText>
+          <a href={googleDriveLink} target="_blank" className="successMessage"><InterfaceText>sheet_modals.view_in_google_docs</InterfaceText></a>
+        </>
+      );
     } else {
       // Either currently exporting or error
       return <InterfaceText>{googleDriveText}</InterfaceText>;

@@ -34,7 +34,7 @@ $button-height-desktop: 30px;
   cursor: default;
   border-radius: $popover-radius;
   box-shadow: $popover-shadow;
-  z-index: 9999;
+  z-index: var(--z-overlay);
   max-width: 350px;
 
   &-content {

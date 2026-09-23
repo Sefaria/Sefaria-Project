@@ -1065,7 +1065,18 @@ function linkCountWidth(count) {
 }
 
 function moveToFront() {
-	this.parentNode.appendChild(this);
+	// If this node is currently hovered, re-appending it (appendChild) counts as a
+	// removal, and the browser stops sending it mouseout/mousemove/click events
+	// (UI Events boundary-event spec, shipped in Chrome 144). Raise it by moving
+	// its later siblings behind it instead, so the node itself is never detached.
+	if (this.matches(":hover")) {
+		var next;
+		while ((next = this.nextSibling)) {
+			this.parentNode.insertBefore(next, this);
+		}
+	} else {
+		this.parentNode.appendChild(this);
+	}
 }
 
 //These next five, and how they're used with the various data ins and outs, are a bit of a mess.

@@ -14,7 +14,7 @@ export const FeaturedTopic = () => {
 
     return (
         <div className="featuredTopic" data-anl-feature_name="Featured Topic">
-            <h2 className="featuredTopicHeader"><InterfaceText>Featured Topic</InterfaceText></h2>
+            <h2 className="featuredTopicHeader"><InterfaceText>featured_topic.featured_topic</InterfaceText></h2>
             <div className="featuredTopicContent">
                 <div className="featuredTopicImgWrapper">
                     <a href={`/topics/${topic.slug}`}><ImageWithAltText photoLink={topic.secondary_image_uri} altText={topic?.image?.image_caption}/></a>
@@ -29,7 +29,7 @@ export const FeaturedTopic = () => {
                               data-anl-link_type="link"
                               data-anl-text={topicNavPrompt}
                               data-anl-event="navto_topic:click">
-                            <SimpleLinkedBlock url={`/topics/${topic.slug}`}  en={topicNavPrompt} he={Sefaria._(topicNavPrompt)} />
+                            <SimpleLinkedBlock url={`/topics/${topic.slug}`}  en={topicNavPrompt} he={Sefaria._("featured_topic.go_to_topic")} />
                             </span>
                         </div>
                     </div>

@@ -1,3 +1,4 @@
+import os
 import resource
 import sys
 import tempfile
@@ -10,15 +11,15 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import translation
 from django.shortcuts import redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponsePermanentRedirect
 from django.urls import resolve
 
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
-from sefaria.utils.views_utils import add_query_param
-from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, get_hostname_without_port
+from sefaria.utils.views_utils import add_query_param, mark_no_applink, AASA_EXCLUDED_PATHS
+from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, get_hostname_without_port, referer_is_sefaria_domain, redirect_target_is_sefaria_domain
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 from urllib.parse import quote, urljoin
@@ -67,41 +68,63 @@ class LocationSettingsMiddleware(MiddlewareMixin):
     """
     def process_request(self, request):
         loc = request.headers.get("cf-ipcountry", None)
-        if not loc:
+        if not loc or loc.upper() == "XX":
+            # Cloudflare sets cf-ipcountry to "XX" when it can't determine the visitor's country --
+            # treat that the same as a missing header rather than passing "XX" on as a real country.
             try:
                 from sefaria.settings import PINNED_IPCOUNTRY
                 loc = PINNED_IPCOUNTRY
-            except:
-                loc = "us"
-        request.diaspora = False if loc in ("il", "IL", "Il") else True
+            except ImportError:
+                # Kubernetes deploys inject PINNED_IPCOUNTRY as a pod env var, which the
+                # chart-generated local_settings.py may not expose as a Django setting.
+                loc = os.environ.get("PINNED_IPCOUNTRY") or "us"
+        request.country_code = loc.lower()
+        request.diaspora = request.country_code != "il"
 
 
 class LanguageSettingsMiddleware(MiddlewareMixin):
     """
     Determines Interface and Content Language settings for each request.
     """
+    @staticmethod
+    def _interface_from_request_signals(request):
+        # Pull language setting from cookie, location (set by Cloudflare) or Accept-Lanugage header or default to english
+        interface = request.COOKIES.get('interfaceLang') or request.headers.get("cf-ipcountry") or request.LANGUAGE_CODE or 'english'
+        interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface
+        # Don't allow languages other than what we currently handle
+        interface = 'english' if interface not in ('english', 'hebrew') else interface
+        return interface
+
     def process_request(self, request):
-        excluded = ('/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/interface/", "/apple-app-site-association", settings.STATIC_URL)
+        # '/accounts/' and '/_allauth/' are allauth's OAuth endpoints, not user-facing pages
+        # (Sefaria's own login/register live at /login and /register). They must never be
+        # domain-redirected: Apple returns its response as a cross-site form POST, which
+        # carries no cookies, so interfaceLang would be resolved from cf-ipcountry alone and
+        # could bounce the callback to the other language domain. A 30x turns that POST into
+        # a GET, and allauth's Apple callback is POST-only -- the user gets a 405.
+        # '/.well-known/' covers the canonical apple-app-site-association location. Apple's
+        # CDN won't follow a redirect when fetching that file, so a language bounce there
+        # silently breaks universal links for the whole domain.
+        excluded = ('/linker.js', '/linker.v2.js', '/linker.v3.js', "/api/", "/_api/", "/interface/",
+                    "/accounts/", "/_allauth/", "/apple-app-site-association", "/.well-known/",
+                    settings.STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
-            request.interfaceLang = "english"
+            request.interfaceLang = self._interface_from_request_signals(request)
+            request.LANGUAGE_CODE = request.interfaceLang[0:2]
             request.contentLang = "bilingual"
             request.translation_language_preference = None
             request.version_preferences_by_corpus = {}
             request.translation_language_preference_suggestion = None
-            return # Save looking up a UserProfile, or redirecting when not needed
+            return # Skips UserProfile lookup and domain-redirect; only resolves interfaceLang from cookie/header
 
         profile = UserProfile(id=request.user.id) if request.user.is_authenticated else None
-        # INTERFACE 
+        # INTERFACE
         # Our logic for setting interface lang checks (1) User profile, (2) cookie, (3) geolocation, (4) HTTP language code
         interface = None
         if request.user.is_authenticated and not interface:
-            interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface 
-        if not interface: 
-            # Pull language setting from cookie, location (set by Cloudflare) or Accept-Lanugage header or default to english
-            interface = request.COOKIES.get('interfaceLang') or request.headers.get("cf-ipcountry") or request.LANGUAGE_CODE or 'english'
-            interface = 'hebrew' if interface in ('IL', 'he', 'he-il') else interface
-            # Don't allow languages other than what we currently handle
-            interface = 'english' if interface not in ('english', 'hebrew') else interface
+            interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface
+        if not interface:
+            interface = self._interface_from_request_signals(request)
 
         # Check if the current domain is pinned to  particular language in settings
         domain_lang = current_domain_lang(request)
@@ -164,6 +187,23 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
         request.translation_language_preference_suggestion = translation_language_preference_suggestion
 
         translation.activate(request.LANGUAGE_CODE)
+
+
+_OAUTH_CALLBACK_PREFIXES = tuple(p.rstrip('*') for p in AASA_EXCLUDED_PATHS)
+
+
+class WebSessionRedirectMiddleware(MiddlewareMixin):
+    """
+    Marks a redirect Location as no_applink when it continues an in-progress web session,
+    so iOS never hands it to the app mid-flow. See AASA_EXCLUDED_PATHS and NO_APPLINK_PARAM
+    in sefaria/utils/views_utils.py.
+    """
+    def process_response(self, request, response):
+        is_redirect = isinstance(response, (HttpResponseRedirect, HttpResponsePermanentRedirect))
+        is_web_session = request.path.startswith(_OAUTH_CALLBACK_PREFIXES) or referer_is_sefaria_domain(request)
+        if is_redirect and is_web_session and redirect_target_is_sefaria_domain(response['Location']):
+            response['Location'] = mark_no_applink(response['Location'])
+        return response
 
 
 class LanguageCookieMiddleware(MiddlewareMixin):
@@ -430,6 +470,7 @@ class ModuleMiddleware(MiddlewareURLMixin):
     excluded_url_prefixes = {
         '/linker.js',
         '/api/',
+        '/_api/',
         '/apple-app-site-association',
         '/static/',
     }
@@ -437,6 +478,11 @@ class ModuleMiddleware(MiddlewareURLMixin):
     def __init__(self, get_response):
         self.get_response = get_response
         self.default_module = LIBRARY_MODULE
+
+    def should_process_request(self, request):
+        if request.path.startswith('/api/img-gen/'):
+            return True
+        return super().should_process_request(request)
 
     def _set_active_module(self, request):
         """
@@ -467,4 +513,29 @@ class ModuleMiddleware(MiddlewareURLMixin):
         # For template responses, add active_module to context
         if hasattr(response, 'context_data') and response.context_data is not None:
             response.context_data['active_module'] = request.active_module
+        return response
+
+
+class ClearSsoNextCookieMiddleware(MiddlewareMixin):
+    """
+    Deletes the `sefaria_sso_next` cookie (written by static/js/auth/useSsoSignIn.jsx,
+    read by sso.adapters.SefariaAccountAdapter) as soon as one of the two views that
+    might consume it responds, success or failure, so it can't be reused by a later,
+    unrelated SSO attempt within its own max-age window. These are the only two call
+    sites in the codebase that reach SefariaAccountAdapter.get_login_redirect_url /
+    get_signup_redirect_url — email login/register/password-reset are all fully custom
+    Sefaria views that never touch that adapter machinery. Keep this cookie name in
+    sync with sso.adapters.SefariaAccountAdapter.SSO_NEXT_COOKIE.
+    """
+    SSO_NEXT_COOKIE = 'sefaria_sso_next'
+    SSO_CALLBACK_PATHS = {
+        '/api/auth/google/redirect',
+        '/accounts/apple/login/callback/finish/',
+    }
+
+    def process_response(self, request, response):
+        if request.path in self.SSO_CALLBACK_PATHS:
+            # samesite must match the original cookie's (SameSite=None) for browsers to
+            # treat this as the same cookie being cleared.
+            response.delete_cookie(self.SSO_NEXT_COOKIE, samesite='None')
         return response

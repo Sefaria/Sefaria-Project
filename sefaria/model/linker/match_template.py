@@ -5,9 +5,11 @@ from sefaria.model import abstract as abst
 from sefaria.model import schema
 from .ref_part import TermContext, LEAF_TRIE_ENTRY
 from .referenceable_book_node import NamedReferenceableBookNode
+from sefaria.helper.skip_tracking import bad_record_guard
 import structlog
 
 logger = structlog.get_logger(__name__)
+skip_bad_record = bad_record_guard(logger)
 
 
 class MatchTemplate(abst.Cloneable):
@@ -66,12 +68,14 @@ class MatchTemplateTrie:
     def __init_trie_with_nodes(self, nodes: List[schema.TitledTreeNode]):
         trie = {}
         for node in nodes:
-            for match_template in node.get_match_templates():
-                if not node.is_root() and not match_template.matches_scope(self.scope):
-                    continue
-                curr_dict_queue = [trie]
-                self.__add_all_term_titles_to_trie(match_template.terms, node, curr_dict_queue)
-                self.__add_nodes_to_leaves(node, curr_dict_queue)
+            # One node with a corrupt match_template/term/schema must not abort startup.
+            with skip_bad_record("startup", "MatchTemplateTrie node", record=str(node)):
+                for match_template in node.get_match_templates():
+                    if not node.is_root() and not match_template.matches_scope(self.scope):
+                        continue
+                    curr_dict_queue = [trie]
+                    self.__add_all_term_titles_to_trie(match_template.terms, node, curr_dict_queue)
+                    self.__add_nodes_to_leaves(node, curr_dict_queue)
         return trie
 
     @staticmethod

@@ -9,7 +9,7 @@ spec:
   chart:
     spec:
       chart: sefaria
-      version: "0.85.7"
+      version: "0.89.0"
       sourceRef:
         kind: HelmRepository
         name: sefaria-project-helm-repo
@@ -30,7 +30,7 @@ spec:
     web:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v6.99.6"
+        tag: "v7.2.2"
       resources:
         web:
           resources:
@@ -54,14 +54,15 @@ spec:
     nodejs:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
-        tag: "v6.99.6"
+        tag: "v7.2.2"
       resources:
         requests:
           memory: "400Mi"
           cpu: "400m"
         limits:
-          memory: "400Mi"
+          memory: "512Mi"
           cpu: "400m"
+      heapSize: 300
     varnish:
       secrets:
         varnish:
@@ -76,11 +77,11 @@ spec:
     nginx:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-asset
-        tag: "v6.99.6"
+        tag: "v7.2.2"
     monitor:
       containerImage:
         imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-        tag: "v6.99.6"
+        tag: "v7.2.2"
     datadog:
       enabled: true
     tasks:
@@ -111,6 +112,7 @@ spec:
     cronJobs:
       reindexElasticSearch:
         enabled: true
+        allowSharedIndex: true
       syncPostgresProductionData:
         enabled: true
       syncMongoProductionData:
@@ -120,8 +122,6 @@ spec:
         ref: local-settings-secrets
       backupManager:
         ref: backup-manager
-      slackWebhook:
-        ref: slack-webhook-helm
     localSettings:
       DEBUG: true
       DOMAIN_LANGUAGE:

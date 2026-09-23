@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from django.urls import re_path
 from django.contrib import admin
 from sefaria.settings import ADMIN_PATH
@@ -6,26 +6,30 @@ import reader.views as reader_views
 import sourcesheets.views as sheets_views
 import remote_config.views as remote_config_views
 import api.views as api_views
+import api.linker_admin_views as linker_api_views
 import sefaria.views as sefaria_views
 import sefaria.gauth.views as gauth_views
 import guides.views as guides_views
+import powered_by.views as powered_by_views
 from sefaria.heapdump import heapdump_view
 from sefaria.site.urls import site_urlpatterns
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
+from sso.views import MobileTokenObtainPairView
 
 shared_patterns = [
+    path('_allauth/', include('allauth.headless.urls')),
+    path('accounts/', include('allauth.urls')),
+    path('', include('sso.urls')),
+
     re_path(fr'^login/?$', sefaria_views.CustomLoginView.as_view(), name='login'),
     re_path(fr'^register/?$', sefaria_views.register, name='register'),
+    re_path(fr'^enable-library-assistant/?$', reader_views.enable_library_assistant, name='enable_library_assistant'),
     re_path(fr'logout/?$', sefaria_views.CustomLogoutView.as_view(), name='logout'),
-    re_path(fr'password/reset/?$', sefaria_views.CustomPasswordResetView.as_view(), name='password_reset'),
     path('password/reset/confirm/<uidb64>/<token>/',
         sefaria_views.CustomPasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    re_path(fr'password/reset/complete/$', sefaria_views.CustomPasswordResetCompleteView.as_view(),
-        name='password_reset_complete'),
-    re_path(fr'password/reset/done/$', sefaria_views.CustomPasswordResetDoneView.as_view(), name='password_reset_done'),
 
-    re_path(fr'api/login/$', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    re_path(fr'api/login/$', MobileTokenObtainPairView.as_view(), name='token_obtain_pair'),
     re_path(fr'api/login/refresh/$', TokenRefreshView.as_view(), name='token_refresh'),
 
     re_path(r'^saved/?$', reader_views.saved_content),
@@ -59,23 +63,24 @@ shared_patterns = [
     path('sheets/tags/<path:tag>', reader_views.topic_page_redirect),
     re_path(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_pages_redirect),
     re_path(r'^groups/?(?P<group>[^/]+)?$', reader_views.groups_redirect),
-    re_path(r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
+    re_path(r'^contributors/(?P<uid>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
 
     path('_api/topics/images/secondary/<path:slug>', reader_views.topic_upload_photo, {"secondary": True}),
     path('_api/topics/images/<path:slug>', reader_views.topic_upload_photo),
     path('api/texts/versions/<path:tref>', reader_views.versions_api),
     re_path(r'^api/texts/version-status/tree/?(?P<lang>.*)?/?$', reader_views.version_status_tree_api),
     re_path(r'^api/texts/version-status/?$', reader_views.version_status_api),
-    path('api/texts/parashat_hashavua', reader_views.parashat_hashavua_api),
+    path('api/texts/parashat_hashavua', reader_views.parashat_hashavua_api),  # legacy, documented as broken (504s) -- see docs/decisions/documented_endpoints.md
     re_path(r'^api/texts/translations/?$', reader_views.translations_api),
     re_path(r'^api/texts/translations/(?P<lang>.+)', reader_views.translations_api),
     re_path(r'^api/texts/random?$', reader_views.random_text_api),
     re_path(r'^api/texts/random-by-topic/?$', reader_views.random_by_topic_api),
     path('api/texts/modify-bulk/<path:title>', reader_views.modify_bulk_text_api),
     re_path(r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.old_text_versions_api_redirect),
-    path('api/texts/<path:tref>', reader_views.texts_api),
+    path('api/texts/<path:tref>', reader_views.texts_api),  # legacy v1 API, kept for external consumers; superseded internally by api/v3/texts
     re_path(r'^api/versions/?$', reader_views.complete_version_api),
     path('api/v3/texts/<path:tref>', api_views.Text.as_view()),
+    path('api/knn-search', api_views.KnnSearch.as_view()),
     re_path(r'^api/index/?$', reader_views.table_of_contents_api),
     re_path(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),
     re_path(r'^api/index/titles/?$', reader_views.text_titles_api),
@@ -100,6 +105,30 @@ shared_patterns = [
     re_path(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
     re_path(r'^api/calendars/topics/holiday/?$', reader_views.seasonal_topic_api),
     path('api/name/<path:name>', reader_views.name_api),
+
+    # Linker editor (staff-only): edit index linker metadata (match templates, address types,
+    # node properties, NonUniqueTerms). Node key paths are dot-separated keys, e.g. "Berakhot.Intro".
+    path('api/linker/non-unique-terms', linker_api_views.LinkerEditorNonUniqueTermSearchView.as_view()),
+    path('_api/linker-editor/address-types', linker_api_views.LinkerEditorAddressTypesListView.as_view()),
+    path('_api/linker-editor/non-unique-term', linker_api_views.LinkerEditorNonUniqueTermCreateView.as_view()),
+    path('_api/linker-editor/non-unique-term-titles', linker_api_views.LinkerEditorNonUniqueTermTitlesView.as_view()),
+    path('_api/linker-editor/non-unique-term/<str:slug>/swap', linker_api_views.LinkerEditorNonUniqueTermSwapView.as_view()),
+    path('_api/linker-editor/non-unique-term/<str:slug>', linker_api_views.LinkerEditorNonUniqueTermView.as_view()),
+    path('_api/linker-editor/index/<str:title>/node/<str:node_key_path>/match-templates', linker_api_views.LinkerEditorMatchTemplateView.as_view()),
+    path('_api/linker-editor/index/<str:title>/node/<str:node_key_path>/address-type', linker_api_views.LinkerEditorAddressTypeView.as_view()),
+    path('_api/linker-editor/index/<str:title>/node/<str:node_key_path>/properties', linker_api_views.LinkerEditorNodePropertiesView.as_view()),
+    path('_api/linker-editor/index/<str:title>/rebuild-dibur-hamatchils', linker_api_views.LinkerEditorRebuildDiburHamatchilView.as_view()),
+
+    # Linker admin (staff-only): debug/delete/recreate individual linker-generated citations,
+    # rerun the linker on a segment, and capture NER/ref-part training examples.
+    path('_api/linker-admin/citation/delete', linker_api_views.LinkerAdminDeleteCitationView.as_view()),
+    path('_api/linker-admin/citation/recreate', linker_api_views.LinkerAdminRecreateCitationView.as_view()),
+    path('_api/linker-admin/citation/parse', linker_api_views.LinkerAdminParseCitationView.as_view()),
+    path('_api/linker-admin/segment/rerun', linker_api_views.LinkerAdminRerunSegmentView.as_view()),
+    path('_api/linker-admin/dataset/ref', linker_api_views.LinkerAdminAddRefDatasetView.as_view()),
+    path('_api/linker-admin/dataset/ref-part', linker_api_views.LinkerAdminAddRefPartDatasetView.as_view()),
+
+    path('api/ref/<str:tref>', api_views.RefView.as_view()),
     re_path(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
     re_path(r'^api/tag-category/?(?P<path>.+)?$', reader_views.tag_category_api),
     path('api/words/completion/<path:word>/<path:lexicon>', reader_views.dictionary_completion_api),
@@ -114,6 +143,7 @@ shared_patterns = [
     re_path(r'^api/background-data', reader_views.background_data_api),
     re_path(r'^api/version-indices$', sefaria_views.version_indices_api),
     re_path(r'^api/version-bulk-edit$', sefaria_views.version_bulk_edit_api),
+    re_path(r'^api/version-rename$', sefaria_views.version_rename_api),
     re_path(r'^api/version-bulk-delete$', sefaria_views.version_bulk_delete_api),
     re_path(r'^api/check-index-dependencies/(?P<title>.+)$', sefaria_views.check_index_dependencies_api),
     re_path(r'^api/sheets/?$', sheets_views.save_sheet_api),
@@ -162,6 +192,7 @@ shared_patterns = [
     path('api/search-wrapper/es6', reader_views.search_wrapper_api, {'es6_compat': True}),
     path('api/search-wrapper/es8', reader_views.search_wrapper_api),
     path('api/search-wrapper', reader_views.search_wrapper_api, {'es6_compat': True}),
+    re_path(r'^api/entity-search/?$', reader_views.entity_search_api),
     path('api/search-path-filter/<path:book_title>', reader_views.search_path_filter),
 
     re_path(r'^api/(?P<action>(follow|unfollow))/(?P<uid>\d+)$', reader_views.follow_api),
@@ -201,6 +232,7 @@ shared_patterns = [
 
     re_path(r'^api/revert/(?P<tref>[^/]+)/(?P<lang>.{2})/(?P<version>.+)/(?P<revision>\d+)$', reader_views.revert_api),
 
+    path('api/img-gen/', reader_views.social_image_api, {"tref": ""}),
     path('api/img-gen/<path:tref>', reader_views.social_image_api),
 
     path('api/passages/<path:refs>', sefaria_views.passages_api),
@@ -238,6 +270,7 @@ shared_patterns = [
     re_path(r'^api/text-upload$', sefaria_views.text_upload_api),
     re_path(r'^api/linker-track$', sefaria_views.linker_tracking_api),
     re_path(r'^api/guides/(?P<guide_key>[^/]+)$', guides_views.guides_api),
+    re_path(r'^api/powered-by/?$', powered_by_views.powered_by_api),
     re_path(r'^admin/reset/varnish/(?P<tref>.+)$', sefaria_views.reset_varnish),
     re_path(r'^admin/reset/cache$', sefaria_views.reset_cache),
     re_path(r'^admin/reset/cache/(?P<title>.+)$', sefaria_views.reset_index_cache_for_text),
@@ -245,6 +278,7 @@ shared_patterns = [
     re_path(r'^admin/reset/counts/(?P<title>.+)$', sefaria_views.reset_counts),
     re_path(r'^admin/reset/toc$', sefaria_views.rebuild_toc),
     re_path(r'^admin/reset/ac$', sefaria_views.rebuild_auto_completer),
+    re_path(r'^admin/reset/linker-resolvers$', sefaria_views.rebuild_linker_resolvers),
     re_path(r'^admin/reset/api/(?P<apiurl>.+)$', sefaria_views.reset_cached_api),
     re_path(r'^admin/reset/(?P<tref>.+)$', sefaria_views.reset_ref),
     re_path(r'^admin/reset-websites-data', sefaria_views.reset_websites_data),
