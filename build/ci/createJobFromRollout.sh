@@ -34,7 +34,9 @@ kubectl get rollout $DEPLOY_ENV-web -o yaml | yq '.spec.template.spec' > spec.ya
 yq -i '.spec.template.spec += load("spec.yaml")' job.yaml
 yq -i '.spec.template.spec.restartPolicy = "Never"' job.yaml
 PYTEST_CMD="python /app/build/ci/cleanup_test_data.py && pip3 install pytest-django pytest-timeout && pytest -v --timeout=600 --reuse-db -m \"$PYTEST_MARK_EXPR\" $PYTEST_TARGETS"
-yq -i ".spec.template.spec.containers[0].args = [\"-c\", \"$PYTEST_CMD\"]" job.yaml
+# Pass the command through the environment: splicing it into the yq expression
+# breaks yq's parser on the quotes around the marker expression.
+PYTEST_CMD="$PYTEST_CMD" yq -i '.spec.template.spec.containers[0].args = ["-c", strenv(PYTEST_CMD)]' job.yaml
 yq -i 'del(.spec.template.spec.containers[0].startupProbe)' job.yaml
 yq -i 'del(.spec.template.spec.containers[0].livenessProbe)' job.yaml
 yq -i 'del(.spec.template.spec.containers[0].readinessProbe)' job.yaml

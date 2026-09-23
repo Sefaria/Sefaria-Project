@@ -309,6 +309,7 @@ jobs:
           ./semantic_search
           scripts/test_impact/test_ci_parity.py
           scripts/pytest_minimal_dataset/test_export_mongo_fixtures.py
+          scripts/pytest_minimal_dataset/test_generate_minimal_dataset.py
       - name: Check CI parity with master's pytest selection
         # Fails if any test master's baseline selects is collected by none of the
         # pytest jobs in this workflow, including pytest-corpus-job (read from its
@@ -588,6 +589,7 @@ jobs:
       - build-generic
       - build-derived
       - check-python-files
+      - check-linker-impact
       - pytest-no-mongo-job
       - pytest-job
       - pytest-linker-job
@@ -617,11 +619,18 @@ jobs:
                 echo "One or more Python-related test jobs failed"
                 exit 1
               fi
-              # pytest-linker-job is deliberately skipped when the diff cannot reach
-              # linker code. "skipped" is a pass here; "failure" is not.
-              if [ "${{ needs.pytest-linker-job.result }}" == "failure" ] || \
-                 [ "${{ needs.pytest-linker-job.result }}" == "cancelled" ]; then
-                echo "Linker test job failed"
+              # pytest-linker-job is skipped when the diff cannot reach linker code.
+              # That skip is a pass only when check-linker-impact itself succeeded and
+              # said "not affected"; if the impact job failed, the linker job is also
+              # skipped (its dependency failed), and that must not read as green.
+              if [ "${{ needs.check-linker-impact.result }}" != "success" ]; then
+                echo "Linker impact analysis did not succeed"
+                exit 1
+              fi
+              if [ "${{ needs.pytest-linker-job.result }}" != "success" ] && \
+                 ! { [ "${{ needs.pytest-linker-job.result }}" == "skipped" ] && \
+                     [ "${{ needs.check-linker-impact.outputs.linker_affected }}" == "false" ]; }; then
+                echo "Linker test job did not pass (result: ${{ needs.pytest-linker-job.result }})"
                 exit 1
               fi
             fi
