@@ -191,7 +191,9 @@ def _flush_phase():
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_collection_modifyitems(session, config, items):
-    if _MOCK_MONGO_ENABLED:
+    # scripts/test_impact/ci_parity.py sets SEFARIA_PARITY_BASELINE=1 when collecting
+    # its baseline, so a manifest entry cannot hide a test from both sides of the check.
+    if _MOCK_MONGO_ENABLED and os.environ.get("SEFARIA_PARITY_BASELINE") != "1":
         not_mockable = _load_not_mockable()
         if not_mockable:
             deselected = []
@@ -298,12 +300,24 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         terminalreporter.write_line(f"MOCKED MONGO: {total} tests deselected ({breakdown})")
 
 
+# True after a needs_mongo teardown has restored the shared base but not yet
+# rebuilt `library` from it. The rebuild is deferred to the next test that runs:
+# a needs_mongo test rebuilds during its own seed anyway, so rebuilding at
+# teardown too would double the most expensive step of every needs_mongo test.
+_library_stale = False
+
+
 @pytest.fixture(autouse=True)
 def _seed_mock_mongo(request):
+    global _library_stale
     if not _MOCK_MONGO_ENABLED:
         yield
         return
     if request.node.get_closest_marker("needs_mongo") is None:
+        if _library_stale:
+            from sefaria.model.text import library
+            library.rebuild(include_toc=True)
+            _library_stale = False
         yield
         return
 
@@ -325,29 +339,49 @@ def _seed_mock_mongo(request):
             pytest.skip(message)
         pytest.fail(message, pytrace=False)
 
-    from bson import json_util
     from sefaria.system import database
+    from sefaria.model.text import library
 
     active_db = database.db
-    for collection in active_db.list_collection_names():
-        active_db.drop_collection(collection)
-    _insert_fixture(active_db, _load_fixture(_MONGO_BASE_FIXTURE), bulk=True)
-    _insert_fixture(active_db, _load_fixture(path))
 
-    # `library` builds its title maps when sefaria.model is imported -- which, under
-    # mocked Mongo, happens against an EMPTY database. Seeding the collections above
-    # does not touch those in-memory maps, so Ref('Sotah') raises even though the
-    # Index document is present in the fixture. Rebuild after every seed, and clear
-    # the Ref cache so refs resolved against a previous test's data are not reused.
-    from sefaria.model.text import library
-    library.rebuild(include_toc=True)
+    def _reseed(overlay_path=None, rebuild=True):
+        for collection in active_db.list_collection_names():
+            active_db.drop_collection(collection)
+        active_db[_MOCK_MONGO_SENTINEL].insert_one({"_id": "exists"})
+        _insert_fixture(active_db, _load_fixture(_MONGO_BASE_FIXTURE), bulk=True)
+        if overlay_path:
+            _insert_fixture(active_db, _load_fixture(overlay_path))
+        # `library` builds its title maps when sefaria.model is imported, and
+        # seeding collections does not touch those in-memory maps, so Ref('Sotah')
+        # would raise even with the Index document present. Rebuild after every
+        # seed so refs resolved against a previous test's data are not reused.
+        global _library_stale
+        if rebuild:
+            library.rebuild(include_toc=True)
+            _library_stale = False
+        else:
+            _library_stale = True
+        from django.core.cache import caches
+        for alias in _LOCMEM_CACHE_ALIASES:
+            caches[alias].clear()
 
-    yield
-    for collection in active_db.list_collection_names():
-        active_db.drop_collection(collection)
-    library.rebuild(include_toc=True)
+    try:
+        _reseed(path)
+        yield
+    finally:
+        # Back to the session's starting state (sentinel + shared base), not an
+        # empty DB: a later test in the same process that is not needs_mongo --
+        # e.g. a needs_linker-only test in pytest-linker-job -- must see the same
+        # data whether or not a needs_mongo test ran before it, including when
+        # this setup failed part-way. The library rebuild is deferred (see
+        # _library_stale) to whichever test runs next.
+        _reseed(rebuild=False)
 
 _DUMMY_CACHE_BACKEND = "django.core.cache.backends.dummy.DummyCache"
+# Aliases _replace_dummy_caches() swapped to LocMemCache; _seed_mock_mongo clears
+# them on every reseed so a value cached from one test's fixture data is not read
+# back by a test seeded with different data.
+_LOCMEM_CACHE_ALIASES = []
 _LOCMEM_CACHE_BACKEND = "django.core.cache.backends.locmem.LocMemCache"
 
 
@@ -371,6 +405,7 @@ def _replace_dummy_caches(dj_settings):
             replaced.append(alias)
     if not replaced:
         return
+    _LOCMEM_CACHE_ALIASES[:] = replaced
     caches.__dict__.pop("settings", None)
     for alias in replaced:
         try:

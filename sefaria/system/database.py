@@ -2,7 +2,9 @@
 database.py -- connection to MongoDB
 The system attribute _called_from_test is set in the py.test conftest.py file
 """
+import os
 import sys
+import threading
 import pymongo
 from pymongo import monitoring
 import urllib.parse
@@ -21,10 +23,14 @@ class QueryCounter(monitoring.CommandListener):
     # (see sefaria/conftest.py). Kept as class state to match the rest of this
     # listener; deliberately inert (current_nodeid is None) outside test runs so
     # this adds no overhead to production request handling.
+    # pymongo calls listeners on whichever thread ran the command, so a test's
+    # background work can overlap begin/end_recording(); _record_lock keeps each
+    # command attributed to the phase that was active when it started.
     current_nodeid = None
     current_phase = None
     recorded = []
     _pending = {}
+    _record_lock = threading.Lock()
 
     def started(self, event):
         if self.tracked_commands is not None and event.command_name not in self.tracked_commands:
@@ -58,17 +64,23 @@ class QueryCounter(monitoring.CommandListener):
         elif cmd == 'insert':
             docs = event.command.get('documents') or []
             insert_ids = [str(d.get('_id')) for d in docs if isinstance(d, dict) and '_id' in d]
-        QueryCounter._pending[event.request_id] = {
-            'command': cmd,
-            'collection': collection,
-            'filter': filt,
-            'insert_ids': insert_ids,
-        }
+        with QueryCounter._record_lock:
+            if QueryCounter.current_nodeid is None:
+                return
+            QueryCounter._pending[event.request_id] = {
+                'nodeid': QueryCounter.current_nodeid,
+                'phase': QueryCounter.current_phase,
+                'command': cmd,
+                'collection': collection,
+                'filter': filt,
+                'insert_ids': insert_ids,
+            }
 
     def succeeded(self, event):
         if QueryCounter.current_nodeid is None:
             return
-        pending = QueryCounter._pending.pop(event.request_id, None)
+        with QueryCounter._record_lock:
+            pending = QueryCounter._pending.pop(event.request_id, None)
         if pending is None:
             return
         reply = event.reply or {}
@@ -90,19 +102,25 @@ class QueryCounter(monitoring.CommandListener):
         else:
             n_returned = reply.get('n')
 
-        QueryCounter.recorded.append({
-            'nodeid': QueryCounter.current_nodeid,
-            'phase': QueryCounter.current_phase,
+        record = {
+            'nodeid': pending['nodeid'],
+            'phase': pending['phase'],
             'command': cmd,
             'collection': pending.get('collection'),
             'filter': pending.get('filter'),
             'doc_ids': doc_ids,
             'n_returned': n_returned,
-        })
+        }
+        with QueryCounter._record_lock:
+            # A command that started in an earlier phase belongs to that phase's
+            # list, which end_recording() has already handed off; drop it.
+            if (pending['nodeid'], pending['phase']) == (QueryCounter.current_nodeid, QueryCounter.current_phase):
+                QueryCounter.recorded.append(record)
 
     def failed(self, event):
         if QueryCounter.current_nodeid is not None:
-            QueryCounter._pending.pop(event.request_id, None)
+            with QueryCounter._record_lock:
+                QueryCounter._pending.pop(event.request_id, None)
 
     @classmethod
     def reset(cls, tracked_commands=None):
@@ -113,19 +131,21 @@ class QueryCounter(monitoring.CommandListener):
     @classmethod
     def begin_recording(cls, nodeid, phase):
         """Start capturing Mongo commands issued during one (nodeid, phase)."""
-        cls.current_nodeid = nodeid
-        cls.current_phase = phase
-        cls.recorded = []
-        cls._pending = {}
+        with cls._record_lock:
+            cls.current_nodeid = nodeid
+            cls.current_phase = phase
+            cls.recorded = []
+            cls._pending = {}
 
     @classmethod
     def end_recording(cls):
         """Stop capturing and return the commands recorded since begin_recording()."""
-        records = cls.recorded
-        cls.current_nodeid = None
-        cls.current_phase = None
-        cls.recorded = []
-        cls._pending = {}
+        with cls._record_lock:
+            records = cls.recorded
+            cls.current_nodeid = None
+            cls.current_phase = None
+            cls.recorded = []
+            cls._pending = {}
         return records
 
 def check_db_exists(db_name):
@@ -160,7 +180,14 @@ else:
     TEST_DB = SEFARIA_DB
 
     #If we have jsut a single instance mongo (such as for development) the MONGO_HOST param should contain jsut the host string e.g "localhost")
-    _event_listeners = [QueryCounter()] if hasattr(sys, '_called_from_test') else []
+    # Only a Mongo-usage recording run (SEFARIA_RECORD_MONGO=1, see sefaria/conftest.py)
+    # needs the listener. Attached on every test run, it formats a stack trace for
+    # each command and keeps it in QueryCounter.queries for the whole session.
+    _event_listeners = (
+        [QueryCounter()]
+        if hasattr(sys, '_called_from_test') and os.environ.get('SEFARIA_RECORD_MONGO') == '1'
+        else []
+    )
 
     if MONGO_REPLICASET_NAME is None:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
