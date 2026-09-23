@@ -535,7 +535,7 @@ def test_index_sheet_indexes_legacy_sheet_without_summary(monkeypatch):
     monkeypatch.setattr(search, "CollectionSet", lambda q: [])
 
     created = {}
-    monkeypatch.setattr(search.es_client, "create",
+    monkeypatch.setattr(search.es_client, "index",
                         lambda index, id, body: created.update({"id": id, "body": body}))
 
     result = search.index_sheet("sheet-a", 7)
@@ -556,6 +556,326 @@ def test_index_sheet_returns_false_without_owner(monkeypatch):
 
     result = search.index_sheet("sheet-a", 99)
     assert result is False
+
+
+def test_index_sheet_overwrites_an_already_indexed_sheet(monkeypatch):
+    """Re-indexing an edited sheet must replace the existing doc, not 409 on it.
+
+    `create` fails with a conflict when the id already exists; index_sheet caught that and
+    returned False, so edits to published sheets never reached search until a full rebuild.
+    """
+    from sefaria import search
+    from unittest.mock import MagicMock
+
+    sheet = {"id": 8, "owner": 42, "title": "Edited title", "sources": []}
+    mock_db = MagicMock()
+    mock_db.sheets.find_one.return_value = sheet
+    monkeypatch.setattr(search, "db", mock_db)
+    monkeypatch.setattr(search, "public_user_data",
+                        lambda uid: {"name": "A", "imageUrl": "", "profileUrl": ""})
+    monkeypatch.setattr(search, "user_link", lambda uid: "<a>A</a>")
+    monkeypatch.setattr(search, "make_sheet_topics", lambda s: [])
+    monkeypatch.setattr(search, "CollectionSet", lambda q: [])
+
+    stored = {}
+    monkeypatch.setattr(search.es_client, "index",
+                        lambda index, id, body: stored.update({id: body}))
+
+    def create_conflicts(index, id, body):
+        raise AssertionError("index_sheet must not use create; it 409s on existing docs")
+    monkeypatch.setattr(search.es_client, "create", create_conflicts)
+
+    stored[8] = {"title": "Old title"}
+    assert search.index_sheet("sheet-b", 8) is True
+    assert stored[8]["title"] == "Edited title"
+
+
+class _Pymongo4Collection:
+    """Just the pymongo 4 surface index_from_queue may use. No `remove`: pymongo 4 dropped
+    it, and a MagicMock would silently accept it, which is how the drained-queue bug hid."""
+    def __init__(self, records):
+        self.records = [dict(r, _id=i) for i, r in enumerate(records)]
+
+    def find(self, query=None, *args, **kwargs):
+        return _FakeCursor(self, query or {})
+
+    def delete_one(self, flt):
+        # Mongo semantics: every filter key must match; {"generation": None} matches a missing field.
+        for i, r in enumerate(self.records):
+            if all(r.get(k) == v for k, v in flt.items()):
+                del self.records[i]
+                return
+
+
+class _FakeCursor:
+    """find().sort().limit() over _Pymongo4Collection. Yields copies, like a real cursor.
+    Iterating past one server batch without a limit raises, standing in for the
+    CursorNotFound a long-lived cursor gets once Mongo reaps it mid-run."""
+    SERVER_BATCH = 2
+
+    def __init__(self, collection, query):
+        self.collection, self.query, self._limit, self._sorted = collection, query, None, False
+
+    def sort(self, key, direction):
+        assert key == "_id"
+        self._sorted = True
+        return self
+
+    def limit(self, n):
+        self._limit = n
+        return self
+
+    def __iter__(self):
+        gt = self.query.get("_id", {}).get("$gt")
+        rows = [dict(r) for r in sorted(self.collection.records, key=lambda r: r["_id"])
+                if gt is None or r["_id"] > gt]
+        if self._limit is not None:
+            rows = rows[:self._limit]
+        for i, row in enumerate(rows):
+            if self._limit is None and i >= self.SERVER_BATCH:
+                raise RuntimeError("CursorNotFound: cursor reaped during a long-running iteration")
+            yield row
+
+
+def _queue_db(monkeypatch, records, sheets=None):
+    from sefaria import search
+    from types import SimpleNamespace
+    sheets = sheets or {}
+    fake = SimpleNamespace(
+        index_queue=_Pymongo4Collection(records),
+        sheets=SimpleNamespace(find_one=lambda q, proj=None: sheets.get(q["id"])),
+    )
+    monkeypatch.setattr(search, "db", fake)
+    return fake
+
+
+def test_index_from_queue_resolves_current_index_per_item_and_drains_queue(monkeypatch):
+    """An alias swap mid-run must redirect later items, and processed records must leave the queue."""
+    from sefaria import search
+
+    fake = _queue_db(monkeypatch, [{"type": "ref", "ref": "Genesis 1:1", "version": "v", "lang": "en"},
+                                   {"type": "ref", "ref": "Genesis 1:2", "version": "v", "lang": "en"}])
+    monkeypatch.setattr(search, "Ref", lambda tref: tref)
+    live = iter(["text-a", "text-b"])  # swap happens between the two items
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type: {"current": next(live)})
+    written = []
+    monkeypatch.setattr(search.TextIndexer, "index_ref",
+                        classmethod(lambda cls, index_name, oref, *a: written.append((index_name, oref))))
+
+    search.index_from_queue()
+
+    assert written == [("text-a", "Genesis 1:1"), ("text-b", "Genesis 1:2")]
+    assert fake.index_queue.records == []
+
+
+def test_index_from_queue_walks_bounded_batches_and_skips_failures_within_a_run(monkeypatch):
+    """Large backlogs must not ride one cursor, and a failing record must not be refetched forever."""
+    from sefaria import search
+
+    records = [{"type": "ref", "ref": f"Genesis 1:{i}", "version": "v", "lang": "en"} for i in range(1, 8)]
+    fake = _queue_db(monkeypatch, records)
+    monkeypatch.setattr(search, "INDEX_QUEUE_BATCH_SIZE", 2)
+    monkeypatch.setattr(search, "Ref", lambda tref: tref)
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type: {"current": "text-b"})
+    attempts = []
+
+    def index_ref(cls, index_name, oref, *a):
+        attempts.append(oref)
+        if oref == "Genesis 1:3":
+            raise RuntimeError("503 no master")
+    monkeypatch.setattr(search.TextIndexer, "index_ref", classmethod(index_ref))
+
+    search.index_from_queue()
+
+    assert attempts == [f"Genesis 1:{i}" for i in range(1, 8)]  # each attempted exactly once
+    assert [r["ref"] for r in fake.index_queue.records] == ["Genesis 1:3"]
+
+
+def test_index_from_queue_keeps_record_when_text_write_fails(monkeypatch):
+    from sefaria import search
+
+    fake = _queue_db(monkeypatch, [{"type": "ref", "ref": "Genesis 1:1", "version": "v", "lang": "en"}])
+    monkeypatch.setattr(search, "Ref", lambda tref: tref)
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type: {"current": "text-b"})
+
+    def boom(cls, *a):
+        raise RuntimeError("503 no master")
+    monkeypatch.setattr(search.TextIndexer, "index_ref", classmethod(boom))
+
+    search.index_from_queue()
+
+    assert len(fake.index_queue.records) == 1
+
+
+def test_index_from_queue_indexes_public_sheet_and_removes_others(monkeypatch):
+    """Sheet records sync to the sheet's current state: public -> index, otherwise -> delete."""
+    from sefaria import search
+
+    records = [{"type": "sheet", "sheet_id": 1, "ref": "Sheet 1", "version": "sheet", "lang": "sheet"},
+               {"type": "sheet", "sheet_id": 2, "ref": "Sheet 2", "version": "sheet", "lang": "sheet"},
+               {"type": "sheet", "sheet_id": 3, "ref": "Sheet 3", "version": "sheet", "lang": "sheet"}]
+    sheets = {1: {"id": 1, "status": "public", "owner": 5},
+              2: {"id": 2, "status": "unlisted", "owner": 5}}  # 3 was deleted from Mongo
+    fake = _queue_db(monkeypatch, records, sheets)
+    monkeypatch.setattr(search, "get_new_and_current_index_names",
+                        lambda type: {"current": f"{type}-b"})
+    calls = []
+    monkeypatch.setattr(search, "index_sheet", lambda index_name, sid: calls.append(("index", index_name, sid)) or True)
+    monkeypatch.setattr(search, "delete_sheet", lambda index_name, sid: calls.append(("delete", index_name, sid)) or True)
+
+    search.index_from_queue()
+
+    assert calls == [("index", "sheet-b", 1), ("delete", "sheet-b", 2), ("delete", "sheet-b", 3)]
+    assert fake.index_queue.records == []
+
+
+def test_index_from_queue_keeps_sheet_record_when_sync_fails(monkeypatch):
+    from sefaria import search
+
+    fake = _queue_db(monkeypatch,
+                     [{"type": "sheet", "sheet_id": 1, "ref": "Sheet 1", "version": "sheet", "lang": "sheet"}],
+                     {1: {"id": 1, "status": "public", "owner": 5}})
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type: {"current": "sheet-b"})
+    monkeypatch.setattr(search, "index_sheet", lambda index_name, sid: False)  # e.g. ES 403/503
+
+    search.index_from_queue()
+
+    assert len(fake.index_queue.records) == 1
+
+
+def test_queue_sheets_sync_upserts_one_deduplicated_record_per_sheet(monkeypatch):
+    from sefaria import search
+    from types import SimpleNamespace
+    written = []
+    monkeypatch.setattr(search, "db", SimpleNamespace(index_queue=SimpleNamespace(
+        bulk_write=lambda ops, ordered: written.append((ops, ordered)))))
+
+    assert search.queue_sheets_sync(["747331", 747331, 5]) == 2
+
+    (ops, ordered), = written
+    assert ordered is False
+    by_id = {op._doc["$setOnInsert"]["sheet_id"]: op for op in ops}
+    assert set(by_id) == {747331, 5}
+    op = by_id[747331]
+    assert op._filter == {"lang": "sheet", "version": "sheet", "ref": "Sheet 747331"}
+    assert op._upsert is True
+    assert op._doc["$setOnInsert"]["type"] == "sheet"
+    # every enqueue must bump the generation, including for a record that already exists
+    assert op._doc["$set"]["generation"] != by_id[5]._doc["$set"]["generation"]
+
+
+def test_index_from_queue_keeps_sheet_record_requeued_while_it_was_being_synced(monkeypatch):
+    """A save landing between the consumer's Mongo read and its delete must not be lost."""
+    from sefaria import search
+
+    fake = _queue_db(monkeypatch,
+                     [{"type": "sheet", "sheet_id": 1, "ref": "Sheet 1", "version": "sheet", "lang": "sheet",
+                       "generation": "gen-1"}],
+                     {1: {"id": 1, "status": "public", "owner": 5}})
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type: {"current": "sheet-b"})
+
+    def sync_then_user_saves(index_name, sid):
+        fake.index_queue.records[0]["generation"] = "gen-2"  # queue_sheets_sync during sync
+        return True
+    monkeypatch.setattr(search, "index_sheet", sync_then_user_saves)
+
+    search.index_from_queue()
+
+    assert [r["generation"] for r in fake.index_queue.records] == ["gen-2"]
+
+
+def test_clear_index_queue_keeps_sheet_records(monkeypatch):
+    from sefaria import search
+    from types import SimpleNamespace
+    filters = []
+    monkeypatch.setattr(search, "db", SimpleNamespace(index_queue=SimpleNamespace(
+        delete_many=lambda flt: filters.append(flt) or SimpleNamespace(deleted_count=0))))
+    search.clear_index_queue()
+    assert filters == [{"type": {"$ne": "sheet"}}]
+
+
+def test_purge_spammer_account_data_queues_quarantined_sheets(monkeypatch):
+    from sefaria import views
+    import sefaria.search as search
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+
+    sheets = [{"_id": "a", "id": 11, "owner": 7, "status": "public"},
+              {"_id": "b", "id": 12, "owner": 7, "status": "unlisted"}]
+    fake_db = MagicMock()
+    fake_db.profiles.find_one.return_value = {"id": 7}
+    fake_db.sheets.find.return_value = iter(sheets)
+    monkeypatch.setattr(views, "db", fake_db)
+    monkeypatch.setattr(views, "SEARCH_INDEX_ON_SAVE", True)
+    queued = []
+    monkeypatch.setattr(search, "queue_sheets_sync", lambda ids: queued.append(list(ids)))
+    fake_user = SimpleNamespace(is_active=True, save=lambda: None)
+    from django.contrib.auth.models import User
+    monkeypatch.setattr(User.objects, "get", lambda id: fake_user)
+
+    views.purge_spammer_account_data(7, delete_from_crm=False)
+
+    assert queued == [[11, 12]]
+    assert fake_user.is_active is False
+
+
+def test_queue_sheets_sync_skips_empty_input(monkeypatch):
+    from sefaria import search
+    from types import SimpleNamespace
+    def must_not_write(*a, **k):
+        raise AssertionError("no bulk_write for an empty id list")
+    monkeypatch.setattr(search, "db", SimpleNamespace(index_queue=SimpleNamespace(bulk_write=must_not_write)))
+    assert search.queue_sheets_sync([]) == 0
+
+
+def test_index_queue_persists_sheet_id():
+    from sefaria.model.queue import IndexQueue
+    assert "sheet_id" in IndexQueue.optional_attrs
+
+
+def test_delete_sheet_treats_missing_doc_as_success_and_reports_other_errors(monkeypatch):
+    from sefaria import search
+    from unittest.mock import MagicMock
+
+    def not_found(index, id):
+        # the exact class delete_sheet catches, constructed the way the ES 8 client raises it
+        raise search.NotFoundError("not_found", meta=MagicMock(status=404), body={"found": False})
+    monkeypatch.setattr(search.es_client, "delete", not_found)
+    assert search.delete_sheet("sheet-b", 1) is True
+
+    def forbidden(index, id):
+        raise RuntimeError("403 security_exception")
+    monkeypatch.setattr(search.es_client, "delete", forbidden)
+    assert search.delete_sheet("sheet-b", 1) is False
+
+
+def test_index_sheet_reports_lookup_failures_instead_of_raising(monkeypatch):
+    from sefaria import search
+    from unittest.mock import MagicMock
+
+    mock_db = MagicMock()
+    mock_db.sheets.find_one.return_value = {"id": 9, "owner": 42, "title": "T", "sources": []}
+    monkeypatch.setattr(search, "db", mock_db)
+
+    def mongo_down(uid):
+        raise RuntimeError("profile lookup failed")
+    monkeypatch.setattr(search, "public_user_data", mongo_down)
+
+    assert search.index_sheet("sheet-b", 9) is False
+
+
+def test_web_code_never_writes_sheets_to_elasticsearch_directly():
+    """Web pods authenticate to ES read-only; sheet writes must go through the index queue."""
+    import re
+    import pathlib
+    offenders = []
+    for path in ["sefaria/sheets.py", "sefaria/views.py", "sefaria/utils/user.py", "reader/views.py"]:
+        for n, line in enumerate(pathlib.Path(path).read_text().splitlines(), 1):
+            if line.lstrip().startswith("#"):
+                continue
+            if re.search(r"\b(index_sheet|delete_sheet)\(", line):
+                offenders.append(f"{path}:{n}: {line.strip()}")
+    assert offenders == [], "direct ES sheet writes from web code:\n" + "\n".join(offenders)
 
 
 def test_bulk_load_settings_disable_refresh_and_replicas(monkeypatch):
@@ -954,6 +1274,7 @@ def test_reindex_init_reuses_in_progress_index_with_docs(monkeypatch):
     bulk_setting_calls = []
 
     monkeypatch.setattr(search, "_index_doc_count", lambda name: 500)
+    monkeypatch.setattr(search, "_index_has_managed_settings", lambda name: True)
     monkeypatch.setattr(search, "create_index",
                         lambda index_name, type, force=False: create_calls.append((index_name, force)))
     monkeypatch.setattr(search, "set_index_bulk_load_settings",
@@ -963,6 +1284,36 @@ def test_reindex_init_reuses_in_progress_index_with_docs(monkeypatch):
 
     assert create_calls == []
     assert bulk_setting_calls == ["text-new"]
+
+
+def test_reindex_init_recreates_auto_created_index_instead_of_reusing_it(monkeypatch):
+    """Prod 2026-09-11: text-a had 2957 docs but a dynamic mapping (auto-created by a stale
+    writer). Reusing it bulk-loaded the corpus into an unsearchable index until the disk filled."""
+    from sefaria import search
+
+    monkeypatch.setenv("REINDEX_ALLOW_SHARED_INDEX", "true")
+    names = {"new": "text-a", "current": "text-b", "alias": "text"}
+    monkeypatch.setattr(search, "get_new_and_current_index_names", lambda type, debug=False: names)
+    monkeypatch.setattr(search.index_client, "exists", lambda index: index == "text-a")
+    monkeypatch.setattr(search, "_index_doc_count", lambda name: 2957)
+    monkeypatch.setattr(search.index_client, "get_settings", lambda index, filter_path: {})
+    create_calls = []
+    monkeypatch.setattr(search, "create_index",
+                        lambda index_name, type, force=False: create_calls.append((index_name, force)))
+    monkeypatch.setattr(search, "set_index_bulk_load_settings", lambda index_name: None)
+
+    search.reindex_init("text", debug=False)
+
+    assert create_calls == [("text-a", True)]
+
+
+def test_index_has_managed_settings_detects_our_analysis_settings(monkeypatch):
+    from sefaria import search
+    monkeypatch.setattr(search.index_client, "get_settings", lambda index, filter_path: {
+        "text-b": {"settings": {"index": {"analysis": {"analyzer": {"exact_english": {}}}}}}})
+    assert search._index_has_managed_settings("text-b") is True
+    monkeypatch.setattr(search.index_client, "get_settings", lambda index, filter_path: {})
+    assert search._index_has_managed_settings("text-a") is False
 
 
 def test_reindex_init_creates_fresh_index_when_missing(monkeypatch):
