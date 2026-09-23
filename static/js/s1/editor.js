@@ -3510,7 +3510,7 @@ sjs.showNewText = function () {
 	let title = sjs.editing.sectionRef;
 	if (!title) {
 		title = sjs.editing.book.replace(/_/g, " ");
-		for (const i = 0; i < sjs.editing.sectionNames.length-1; i++) {
+		for (let i = 0; i < sjs.editing.sectionNames.length-1; i++) {
 			title += " : " + sjs.editing.sectionNames[i] + " " + sjs.editing.sections[i];
 		}
 	}
