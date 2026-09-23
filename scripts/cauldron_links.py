@@ -4,7 +4,6 @@ import argparse
 from tqdm import tqdm
 import os.path
 
-# Identifies this script in the Sefaria nginx logs (API Key Program Phase 0 convention).
 SEFARIA_USER_AGENT = "Sefaria/scripts"
 
 

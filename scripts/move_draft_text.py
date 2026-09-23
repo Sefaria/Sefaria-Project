@@ -17,7 +17,6 @@ try:
 except ImportError:
     SEFARIA_BOT_API_KEY = None
 
-# Identifies this script in the Sefaria nginx logs (API Key Program Phase 0 convention).
 SEFARIA_USER_AGENT = "Sefaria/scripts"
 
 

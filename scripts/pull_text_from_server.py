@@ -17,7 +17,6 @@ from sefaria.system.exceptions import InputError
 from sefaria.tracker import modify_text
 from sefaria.model import *
 
-# Identifies this script in the Sefaria nginx logs (API Key Program Phase 0 convention).
 SEFARIA_USER_AGENT = "Sefaria/scripts"
 
 

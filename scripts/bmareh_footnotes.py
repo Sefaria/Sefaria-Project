@@ -33,7 +33,6 @@ import re
 from sefaria.model import *
 import requests
 
-# Identifies this script in the Sefaria nginx logs (API Key Program Phase 0 convention).
 SEFARIA_USER_AGENT = "Sefaria/scripts"
 
 
