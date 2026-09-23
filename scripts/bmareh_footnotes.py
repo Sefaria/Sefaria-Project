@@ -33,6 +33,9 @@ import re
 from sefaria.model import *
 import requests
 
+# Identifies this script in the Sefaria nginx logs (API Key Program Phase 0 convention).
+SEFARIA_USER_AGENT = "Sefaria/scripts (+https://github.com/Sefaria/Sefaria-Project)"
+
 
 def run_on_books(cb, *args, **kwargs):
     """
@@ -210,7 +213,7 @@ def update_from_prod(ref):
     """
     vtitle = ref.version_list()[0]['versionTitle']
     url = 'https://www.sefaria.org/api/texts/{}/he/{}'.format(ref.url(), vtitle)
-    result = requests.get(url, params={'commentary': 0, 'pad': 0})
+    result = requests.get(url, params={'commentary': 0, 'pad': 0}, headers={"User-Agent": SEFARIA_USER_AGENT})
     he = result.json()['he']
     tc = ref.text('he', vtitle)
     tc.text = he

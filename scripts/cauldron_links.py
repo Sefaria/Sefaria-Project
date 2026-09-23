@@ -4,6 +4,9 @@ import argparse
 from tqdm import tqdm
 import os.path
 
+# Identifies this script in the Sefaria nginx logs (API Key Program Phase 0 convention).
+SEFARIA_USER_AGENT = "Sefaria/scripts (+https://github.com/Sefaria/Sefaria-Project)"
+
 
 def delete_link(id_or_ref, server="", API_KEY="", VERBOSE=False):
     id_or_ref = id_or_ref.replace(" ", "_")
@@ -34,11 +37,11 @@ def http_request(url, params=None, body=None, json_payload=None, method="GET"):
         body['json'] = json.dumps(json_payload)  # Adds the json as a url parameter - otherwise json gets lost
 
     if method == "GET":
-        response = requests.get(url)
+        response = requests.get(url, headers={"User-Agent": SEFARIA_USER_AGENT})
     elif method == "POST":
-        response = requests.post(url, params=params, data=body)
+        response = requests.post(url, params=params, data=body, headers={"User-Agent": SEFARIA_USER_AGENT})
     elif method == "DELETE":
-        response = requests.delete(url, params=params, data=body)
+        response = requests.delete(url, params=params, data=body, headers={"User-Agent": SEFARIA_USER_AGENT})
     else:
         raise ValueError("Cannot handle HTTP request method {}".format(method))
 

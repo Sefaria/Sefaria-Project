@@ -17,6 +17,9 @@ try:
 except ImportError:
     SEFARIA_BOT_API_KEY = None
 
+# Identifies this script in the Sefaria nginx logs (API Key Program Phase 0 convention).
+SEFARIA_USER_AGENT = "Sefaria/scripts (+https://github.com/Sefaria/Sefaria-Project)"
+
 
 class ServerTextCopier(object):
 
@@ -47,7 +50,7 @@ class ServerTextCopier(object):
             possible_terms.add(self._index_obj.collective_title)
         necessary_terms = []
         for t in possible_terms:
-            response = requests.get('{}/api/terms/{}'.format(self._dest_server, t))
+            response = requests.get('{}/api/terms/{}'.format(self._dest_server, t), headers={"User-Agent": SEFARIA_USER_AGENT})
             if response.json().get('error', '') == "Term does not exist.":
                 necessary_terms.append(t)
         for t in necessary_terms:
@@ -103,7 +106,7 @@ class ServerTextCopier(object):
             return
         categories = self._index_obj.categories
         try:
-            dest_category = requests.get('{}/api/category/{}'.format(self._dest_server, '/'.join(categories))).json()
+            dest_category = requests.get('{}/api/category/{}'.format(self._dest_server, '/'.join(categories)), headers={"User-Agent": SEFARIA_USER_AGENT}).json()
         except ValueError:
             return
 
@@ -144,7 +147,7 @@ class ServerTextCopier(object):
         jpayload = json.dumps(payload)
         values = {'json': jpayload, 'apikey': self._apikey}
         data = urllib.parse.urlencode(values).encode('utf-8')
-        req = urllib.request.Request(full_url, data)
+        req = urllib.request.Request(full_url, data, headers={"User-Agent": SEFARIA_USER_AGENT})
         try:
             response = urllib.request.urlopen(req)
             if 'prof' in full_url:

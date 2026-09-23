@@ -17,6 +17,9 @@ from sefaria.system.exceptions import InputError
 from sefaria.tracker import modify_text
 from sefaria.model import *
 
+# Identifies this script in the Sefaria nginx logs (API Key Program Phase 0 convention).
+SEFARIA_USER_AGENT = "Sefaria/scripts (+https://github.com/Sefaria/Sefaria-Project)"
+
 
 def version_url(server: str, book_title: str, version_title: str, lang: str) -> str:
     return f'{server}/download/version/{book_title} - {lang.lower()} - {version_title}.json'
@@ -24,7 +27,7 @@ def version_url(server: str, book_title: str, version_title: str, lang: str) -> 
 
 def version_url_generator(server, book_title):
     version_list_url = '{}/api/texts/versions/{}'.format(server, book_title)
-    version_list = requests.get(version_list_url).json()
+    version_list = requests.get(version_list_url, headers={"User-Agent": SEFARIA_USER_AGENT}).json()
     for v in version_list:
         yield version_url(server, book_title, v['versionTitle'], v['language'])
 
@@ -34,7 +37,7 @@ class JsonPullError(Exception):
 
 
 def pull_text_from_server(url):
-    response = requests.get(url)
+    response = requests.get(url, headers={"User-Agent": SEFARIA_USER_AGENT})
     if not response.ok:
         print(f'Received {response.status_code} from {url}')
         raise JsonPullError

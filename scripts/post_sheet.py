@@ -9,6 +9,9 @@ import urllib.request, urllib.error, urllib.parse
 
 from sefaria.sheets import get_sheet
 
+# Identifies this script in the Sefaria nginx logs (API Key Program Phase 0 convention).
+SEFARIA_USER_AGENT = "Sefaria/scripts (+https://github.com/Sefaria/Sefaria-Project)"
+
 try:
   from sefaria.local_settings import SEFARIA_API_KEY
 except:
@@ -32,7 +35,7 @@ else:
   values = {'json': post_json, 'apikey': SEFARIA_API_KEY}
   post = urllib.parse.urlencode(values)  
 
-  req = urllib.request.Request(host + "/api/sheets", post)  
+  req = urllib.request.Request(host + "/api/sheets", post, headers={"User-Agent": SEFARIA_USER_AGENT})
 
   try:
     response = urllib.request.urlopen(req)

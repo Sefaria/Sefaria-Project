@@ -26,6 +26,8 @@ except ImportError:
 DEFAULT_INPUT = Path("data/private/dataset_natural_language_search.csv")
 DEFAULT_OUTPUT = Path("data/private/dataset_natural_language_search_knn_results.csv")
 DEFAULT_API_URL = "https://www.sefaria.org/api/knn-search"
+# Identifies this script in the Sefaria nginx logs (API Key Program Phase 0 convention).
+SEFARIA_USER_AGENT = "Sefaria/scripts (+https://github.com/Sefaria/Sefaria-Project)"
 DEFAULT_QUERY_COLUMN = "Simplified Search"
 RAW_QUERY_COLUMN = "User Query (click to open in Braintrust)"
 OUTPUT_FIELDS = [
@@ -254,6 +256,7 @@ def main() -> None:
     session.headers.update({
         "Authorization": f"Bearer {args.auth_token}",
         "Content-Type": "application/json",
+        "User-Agent": SEFARIA_USER_AGENT,
     })
     text_cache: dict[str, tuple[str, str]] = {}
 

@@ -11,6 +11,8 @@ from sefaria.model import *
 
 apikey = ''
 server = 'dev.sefaria.org'
+# Identifies this script in the Sefaria nginx logs (API Key Program Phase 0 convention).
+SEFARIA_USER_AGENT = "Sefaria/scripts (+https://github.com/Sefaria/Sefaria-Project)"
 
 def post_texts_api(text_obj, ref):
     url = 'http://' + server + '/api/v2/raw/index/{}'.format(ref)
@@ -20,7 +22,7 @@ def post_texts_api(text_obj, ref):
         'apikey': apikey
     }
     data = urllib.parse.urlencode(values)
-    req = urllib.request.Request(url, data)
+    req = urllib.request.Request(url, data, headers={"User-Agent": SEFARIA_USER_AGENT})
     try:
         response = urllib.request.urlopen(req)
         print(response.read())
