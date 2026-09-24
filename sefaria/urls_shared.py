@@ -135,6 +135,9 @@ shared_patterns = [
     path('api/words/completion/<path:word>/<path:lexicon>', reader_views.dictionary_completion_api),
     path('api/words/completion/<path:word>', reader_views.dictionary_completion_api),  # Search all dicts
     path('api/words/<path:word>', reader_views.dictionary_api),
+    path('api/lexicons/<str:lexicon>', lexicon_api_views.lexicon_api),
+    path('api/lexicons/<str:lexicon>/entries', lexicon_api_views.lexicon_entries_api),
+    path('api/lexicons/<str:lexicon>/word-forms', lexicon_api_views.lexicon_word_forms_api),
     path('api/lexicon-entry/headword/<path:lexicon>/<path:headword>', lexicon_api_views.LexiconEntryHeadwordView.as_view()),
     path('api/lexicon-entry/<path:lexicon>/<path:headword>', lexicon_api_views.LexiconEntryView.as_view()),
     re_path(r'^api/notifications/?$', reader_views.notifications_api),
