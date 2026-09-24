@@ -56,3 +56,8 @@ MIN_SOURCES_FOR_TOPIC_DISPLAY = 3
 # sefaria/helper/library_assistant.py as SETTING_KEY. Defined here, not there, to keep the
 # dependency one-way: that helper imports UserProfile, which writes this key on creation.
 LIBRARY_ASSISTANT_SETTING_KEY = "library_assistant"
+
+# Key for the "pause reading history" preference in `profile.settings` ("Your data" page POC).
+# While true, plain reads are not recorded but existing history is kept; contrast
+# settings["reading_history"] = False, which deletes history. Absent means not paused.
+READING_HISTORY_PAUSED_SETTING_KEY = "reading_history_paused"
