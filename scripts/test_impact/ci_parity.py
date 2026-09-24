@@ -330,7 +330,11 @@ def main(argv=None):
         # runner (e.g. DEPLOY_ENV); collect-only just needs imports to resolve,
         # so use the baseline env instead -- same rationale as the baseline_env
         # default above.
-        collect_env = baseline_env if spec.get("_sandbox") else spec["env"]
+        # The same holds for any job that runs against a real Mongo (no
+        # SEFARIA_MOCK_MONGO=1): its env points at a database this process does not
+        # have. Selection comes from argv; the env only has to let conftest import.
+        real_mongo = spec.get("_sandbox") or spec["env"].get("SEFARIA_MOCK_MONGO") != "1"
+        collect_env = baseline_env if real_mongo else spec["env"]
         try:
             job_nodeids[job_id] = collect(spec["argv"], collect_env, root)
         except CollectionError as exc:
