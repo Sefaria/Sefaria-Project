@@ -523,11 +523,44 @@ jobs:
         # The sandbox job runs against real Mongo, so it keeps manifest tests too.
         assert corpus_calls[0].get(ci_parity.PARITY_BASELINE_ENV) == "1"
 
+    def test_real_mongo_job_is_collected_with_baseline_env(self, tmp_path, monkeypatch):
+        workflow_yaml = """
+jobs:
+  pytest-mock-job:
+    env:
+      SEFARIA_MOCK_MONGO: "1"
+    steps:
+      - run: python -m pytest -q -m "not needs_corpus" ./sefaria
+  pytest-corpus-job:
+    env:
+      SEFARIA_TEST_MONGO: "1"
+      LOCAL_TEST_MONGO_PORT: "27017"
+    steps:
+      - run: python -m pytest -q -m "needs_corpus" ./sefaria
+"""
+        _write_workflow(tmp_path, workflow_yaml)
+        calls = []
+
+        def _fake_collect(argv, env, root):
+            calls.append((tuple(argv), dict(env)))
+            return {"sefaria/tests/a_test.py::test_a"}
+
+        monkeypatch.setattr(ci_parity, "collect", _fake_collect)
+        assert ci_parity.main(["--root", str(tmp_path), "--baseline-paths", "./sefaria"]) == 0
+        corpus_env = [env for argv, env in calls if "needs_corpus" in argv][0]
+        mock_env = [env for argv, env in calls if "not needs_corpus" in argv][0]
+        # The real-Mongo job gets the mocked baseline env, not its own port 27017.
+        assert corpus_env.get("SEFARIA_MOCK_MONGO") == "1"
+        assert corpus_env.get("LOCAL_TEST_MONGO_PORT") != "27017"
+        assert corpus_env.get(ci_parity.PARITY_BASELINE_ENV) == "1"
+        # A mocked job keeps its own env, so manifest deselection still applies to it.
+        assert ci_parity.PARITY_BASELINE_ENV not in mock_env
+
     def test_baseline_keeps_manifest_tests_but_mocked_jobs_do_not(self, tmp_path, monkeypatch):
         # conftest deselects _not-mockable.json tests under the mock unless
         # SEFARIA_PARITY_BASELINE=1; the baseline must set it and a mocked job must not,
         # so a manifest test that no job runs shows up as missing.
-        _write_workflow(tmp_path, SIMPLE_WORKFLOW)
+        _write_workflow(tmp_path, SIMPLE_WORKFLOW.replace('FOO: "1"', 'SEFARIA_MOCK_MONGO: "1"'))
         manifest_test = "sefaria/tests/a_test.py::test_manifest"
 
         def _fake_collect(argv, env, root):
