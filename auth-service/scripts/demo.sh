@@ -32,6 +32,7 @@ readonly RED=$'\033[1;31m'
 
 cleanup() {
   local file
+  [[ $BASHPID == "$$" ]] || return 0   # pipeline subshells inherit this trap; only the main shell cleans up
   if [[ -n "$RESTORE_TIER" ]]; then
     printf '%srestoring %s tier to %s%s\n' "$YELLOW" "$DEMO_PROJECT" "$RESTORE_TIER" "$RESET"
     keyadmin set-tier --project "$DEMO_PROJECT" --tier "$RESTORE_TIER" >/dev/null 2>&1 || unavailable "could not restore $DEMO_PROJECT tier to $RESTORE_TIER"
@@ -42,6 +43,7 @@ cleanup() {
   done
 }
 trap cleanup EXIT
+trap 'exit 130' INT TERM   # route signals through the EXIT trap so a changed tier is always restored
 
 usage() {
   printf 'Usage: %s [--pause] [--offline] [--read-only]\n' "$0"
@@ -63,14 +65,16 @@ mask_key() {
 }
 
 sanitize() {
+  # Mask every sfr_ key to its first 12 characters. Scans left to right so a masked token is never matched again.
   awk '
     {
-      while (match($0, /sfr_[[:alnum:]_-]+/)) {
-        token = substr($0, RSTART, RLENGTH)
-        replacement = substr(token, 1, 12) "…"
-        $0 = substr($0, 1, RSTART - 1) replacement substr($0, RSTART + RLENGTH)
+      out = ""; rest = $0
+      while (match(rest, /sfr_[[:alnum:]_-]+/)) {
+        token = substr(rest, RSTART, RLENGTH)
+        out = out substr(rest, 1, RSTART - 1) substr(token, 1, 12) (RLENGTH > 12 ? "…" : "")
+        rest = substr(rest, RSTART + RLENGTH)
       }
-      print
+      print out rest
     }'
 }
 
