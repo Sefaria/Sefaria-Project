@@ -1,0 +1,15 @@
+{{- /* With one replica a PDB would block every node drain; the SecurityPolicy fails open, so a
+       drained single pod degrades to the anonymous tier for a few seconds instead. */}}
+{{- if and .Values.authService.enabled (gt (int .Values.authService.replicaCount) 1) }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: auth-service-disruption-budget-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: auth-service-{{ .Values.deployEnv }}
+{{- end }}

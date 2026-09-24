@@ -1,0 +1,31 @@
+{{- if .Values.authService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service-{{ .Values.deployEnv }}
+  labels:
+    app: auth-service-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: auth-service
+spec:
+  selector:
+    app: auth-service-{{ .Values.deployEnv }}
+  ports:
+    - { name: http, port: 8080, targetPort: http }
+    - { name: grpc, port: 9090, targetPort: grpc, appProtocol: kubernetes.io/h2c }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service-{{ .Values.deployEnv }}-headless
+  labels:
+    app: auth-service-{{ .Values.deployEnv }}-headless
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: auth-service
+spec:
+  clusterIP: None
+  selector:
+    app: auth-service-{{ .Values.deployEnv }}
+  ports:
+    - { name: http, port: 8080, targetPort: http }
+{{- end }}
