@@ -144,9 +144,19 @@ class LexiconEntry(abst.AbstractMongoRecord):
 
     # Attrs the content-replace API (replace_content_attrs) is not allowed to overwrite:
     # headword/parent_lexicon are identity; prev_hw/next_hw are sibling pointers only
-    # change_lexicon_headword maintains; rid is an external xref id; quotes isn't read by
-    # any rendering method.
-    content_patch_excluded_attrs = ["headword", "parent_lexicon", "prev_hw", "next_hw", "rid", "quotes"]
+    # change_lexicon_headword maintains; rid/orig_word/orig_ref/catane_number are external
+    # xref ids (the latter three used only by Rashi-lexicon import scripts to match
+    # WordForms, never rendered); the rest are never read as an entry-level attribute by
+    # any subclass's as_strings()/headword_string()/get_sense() -- a few (number,
+    # plural_form, binyan_form, alternative, morphology) share a name with a key read from
+    # inside `content`/`content['senses']`, which is a different field and stays reachable
+    # through `content` regardless. Verified by grepping every reference to each name.
+    content_patch_excluded_attrs = [
+        "headword", "parent_lexicon", "prev_hw", "next_hw", "rid", "quotes",
+        "transliteration", "pronunciation", "morphology", "refs", "related_words", "number",
+        "citations", "plural_form", "binyan_form", "alternative",
+        "orig_word", "orig_ref", "catane_number", "strong_number", "strong_numbers", "GK", "TWOT",
+    ]
 
     def load(self, query, proj=None):
         # Resolve the correct dictionary subclass before super().load(), since its

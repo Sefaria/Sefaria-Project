@@ -5,18 +5,20 @@ import { LoadingMessage, InterfaceText } from './Misc';
 import LexiconEntryEditBox, { useLexiconEntrySave, fetchLexiconApi, CurrentHeadwordDisplay, SaveButton } from './LexiconEntryEditBox';
 import { WysiwygValueNode } from './LexiconWysiwygValue';
 
-// Hides every key/index label in the tree (the admin only wants to see values), and renders
-// string values (which routinely carry HTML, e.g. "<b>1.</b>") via WysiwygValueNode instead of as
-// literal tag text. The string-matching definition must come first: json-edit-react uses the
-// first customNodeDefinitions entry whose condition matches a given node. showEditTools: false
-// hides the library's view-mode edit/delete/copy icon overlay, which would otherwise sit
-// redundantly next to WysiwygValueNode's own click-to-edit surface. It has no effect on the
-// library's edit-mode confirm/cancel icon pair -- those are unconditional whenever a node reports
-// isEditing, with no flag to turn them off, so this tool relies on them directly to commit/cancel
-// (WysiwygValueNode keeps them working correctly via the `setValue` prop; see that file).
+// Keys stay visible (so an admin can see which field they're editing), greyed to match the
+// library's own "N items" label (itemCount's default color) to signal they're not renameable
+// -- restrictAdd/restrictDelete already block that, since json-edit-react models a rename as
+// delete-then-add. Renders string values (which routinely carry HTML, e.g. "<b>1.</b>") via
+// WysiwygValueNode instead of as literal tag text. The string-matching definition must come
+// first: json-edit-react uses the first customNodeDefinitions entry whose condition matches a
+// given node. showEditTools: false hides the library's view-mode edit/delete/copy icon overlay,
+// which would otherwise sit redundantly next to WysiwygValueNode's own click-to-edit surface. It
+// has no effect on the library's edit-mode confirm/cancel icon pair -- those are unconditional
+// whenever a node reports isEditing, with no flag to turn them off, so this tool relies on them
+// directly to commit/cancel (WysiwygValueNode keeps them working correctly via the `setValue`
+// prop; see that file).
 const customNodeDefinitions = [
-  { condition: ({ value }) => typeof value === 'string', element: WysiwygValueNode, hideKey: true, showOnEdit: true, showOnView: true, showEditTools: false },
-  { condition: () => true, hideKey: true },
+  { condition: ({ value }) => typeof value === 'string', element: WysiwygValueNode, showOnEdit: true, showOnView: true, showEditTools: false },
 ];
 
 
@@ -77,6 +79,7 @@ const ContentEditorForm = ({ identity, initialDraft }) => {
         restrictDelete={true}
         rootName={identity.headword}
         customNodeDefinitions={customNodeDefinitions}
+        theme={{ property: { color: 'rgba(0, 0, 0, 0.3)' } }}
       />
       <SaveButton onSave={onSave} saving={saving} message={message} />
     </div>
