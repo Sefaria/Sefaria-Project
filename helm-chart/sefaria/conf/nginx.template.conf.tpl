@@ -105,7 +105,7 @@ http {
     resolver 8.8.8.8 8.8.4.4;
 
     # Return error on forbidden methods
-    if ( $request_method !~ ^(GET|POST|HEAD|PUT|DELETE|OPTIONS)$ ) {
+    if ( $request_method !~ ^(GET|POST|HEAD|PUT|PATCH|DELETE|OPTIONS)$ ) {
       return 405;
     }
 
@@ -195,7 +195,7 @@ http {
     resolver 8.8.8.8 8.8.4.4;
 
     # Return error on forbidden methods
-    if ( $request_method !~ ^(GET|POST|HEAD|PUT|DELETE|OPTIONS)$ ) {
+    if ( $request_method !~ ^(GET|POST|HEAD|PUT|PATCH|DELETE|OPTIONS)$ ) {
       return 405;
     }
 

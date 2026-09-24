@@ -1,0 +1,197 @@
+/**
+ * LexiconHeadwordEditBox: the moderator headword-rename tool. Mounts through the real
+ * LexiconEntryEditBox/useLexiconEntrySave (already covered in lexiconEntryEditBox.test.js),
+ * so these tests focus on what's specific here: URL/payload shape, the disabled-Save rules,
+ * and the "adjusted from" vs plain "Saved as" message choice.
+ *
+ * No React Testing Library in this repo -- react-dom directly, same pattern as
+ * static/js/tests/searchResultCardAuxClick.test.js.
+ */
+
+jest.mock('../sefaria/sefaria', () => ({
+  __esModule: true,
+  default: {
+    ref: jest.fn(),
+    getIndexDetails: jest.fn(),
+    apiRequestWithBody: jest.fn(),
+    interfaceLang: 'english',
+    _: (k) => k,
+  },
+}));
+
+jest.mock('../Misc', () => ({
+  __esModule: true,
+  InterfaceText: ({ text, children }) => (text ? (text.en ?? '') : (children ?? null)),
+  LoadingMessage: () => 'loading',
+}));
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { act } from 'react-dom/test-utils';
+import Sefaria from '../sefaria/sefaria';
+import LexiconHeadwordEditBox from '../LexiconHeadwordEditBox';
+
+let container = null;
+
+async function mount(currentlyVisibleRef, panelPosition = 0) {
+  container = document.createElement('div');
+  document.body.appendChild(container);
+  await act(async () => {
+    ReactDOM.render(React.createElement(LexiconHeadwordEditBox, { currentlyVisibleRef, panelPosition }), container);
+  });
+}
+
+function unmount() {
+  act(() => { ReactDOM.unmountComponentAtNode(container); });
+  document.body.removeChild(container);
+  container = null;
+}
+
+// fetchLexiconApi reads apiRequestWithBody's raw Response (convertResponseToJSON=false),
+// not a plain parsed object -- these build the {ok, json()} shape it expects.
+const okResponse = (data) => ({ ok: true, json: () => Promise.resolve(data) });
+const errorResponse = (message) => ({ ok: false, json: () => Promise.resolve({ error: message }) });
+
+const input = () => container.querySelector('.lexiconEditHeadwordInput');
+const saveButton = () => container.querySelector('button.button');
+const typeHeadword = (text) => act(() => {
+  const el = input();
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+  setter.call(el, text);
+  el.dispatchEvent(new Event('input', { bubbles: true }));
+});
+const clickSave = async () => act(async () => { saveButton().dispatchEvent(new MouseEvent('click', { bubbles: true })); });
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  Sefaria.ref.mockReturnValue({ categories: ['Dictionary'], indexTitle: 'BDB', sectionRef: 'BDB, שָׁמַר' });
+  Sefaria.getIndexDetails.mockResolvedValue({ lexiconName: 'BDB Dictionary' });
+});
+
+afterEach(() => {
+  if (container) unmount();
+});
+
+describe('initial render', () => {
+  test('shows the current headword and pre-fills the input with it', async () => {
+    await mount('BDB, שָׁמַר');
+    expect(container.textContent).toContain('שָׁמַר');
+    expect(input().value).toBe('שָׁמַר');
+  });
+
+  test('Save starts disabled (input unchanged from current headword)', async () => {
+    await mount('BDB, שָׁמַר');
+    expect(saveButton().disabled).toBe(true);
+  });
+});
+
+describe('accessibility', () => {
+  test('the "New headword" label is associated with the input via htmlFor/id', async () => {
+    await mount('BDB, שָׁמַר');
+    const label = container.querySelector('.lexiconEditNewHeadwordLabel');
+    expect(label.htmlFor).toBe(input().id);
+    expect(input().id).toBeTruthy();
+  });
+
+  test('two simultaneously-open panels render distinct input ids', async () => {
+    // Sefaria's reader can show multiple panels at once -- a fixed id would make two open
+    // instances of this tool collide, leaving the label/htmlFor association ambiguous.
+    await mount('BDB, שָׁמַר', 0);
+    const firstId = input().id;
+    unmount();
+
+    await mount('BDB, שָׁמַר', 1);
+    const secondId = input().id;
+
+    expect(firstId).not.toBe(secondId);
+  });
+});
+
+describe('enabling Save', () => {
+  test('typing a different headword enables Save', async () => {
+    await mount('BDB, שָׁמַר');
+    typeHeadword('שָׁמוּר');
+    expect(saveButton().disabled).toBe(false);
+  });
+
+  test('clearing the input back out disables Save again', async () => {
+    await mount('BDB, שָׁמַר');
+    typeHeadword('');
+    expect(saveButton().disabled).toBe(true);
+  });
+
+  test('retyping the same headword disables Save again', async () => {
+    await mount('BDB, שָׁמַר');
+    typeHeadword('שָׁמוּר');
+    typeHeadword('שָׁמַר');
+    expect(saveButton().disabled).toBe(true);
+  });
+});
+
+describe('saving', () => {
+  let alertSpy;
+  beforeEach(() => { alertSpy = jest.spyOn(window, 'alert').mockImplementation(() => {}); });
+  afterEach(() => { alertSpy.mockRestore(); });
+
+  test('PATCHes headword/{lexicon}/{current headword} with the typed value', async () => {
+    Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({ headword: 'שָׁמוּר' }));
+    await mount('BDB, שָׁמַר');
+    typeHeadword('שָׁמוּר');
+
+    await clickSave();
+
+    expect(Sefaria.apiRequestWithBody).toHaveBeenCalledWith(
+      `/api/lexicon-entry/headword/${encodeURIComponent('BDB Dictionary')}/${encodeURIComponent('שָׁמַר')}`,
+      null, { new_headword: 'שָׁמוּר' }, 'PATCH', false
+    );
+  });
+
+  test('shows a plain "Saved as" message when the server kept the typed headword as-is', async () => {
+    Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({ headword: 'שָׁמוּר' }));
+    await mount('BDB, שָׁמַר');
+    typeHeadword('שָׁמוּר');
+
+    await clickSave();
+
+    expect(container.textContent).toContain('Saved as "שָׁמוּר".');
+    expect(container.textContent).not.toContain('adjusted');
+  });
+
+  test('shows an "adjusted from" message when the server returned a different headword', async () => {
+    // e.g. get_available_lexicon_headword resolved a collision with a superscript, or
+    // normalized the typed value -- either way the response headword differs from what
+    // was typed.
+    Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({ headword: 'שָׁמוּר²' }));
+    await mount('BDB, שָׁמַר');
+    typeHeadword('שָׁמוּר');
+
+    await clickSave();
+
+    expect(container.textContent).toContain('Saved as "שָׁמוּר²" (adjusted from "שָׁמוּר").');
+  });
+
+  test('updates the displayed current headword after a successful save', async () => {
+    Sefaria.apiRequestWithBody.mockResolvedValue(okResponse({ headword: 'שָׁמוּר' }));
+    await mount('BDB, שָׁמַר');
+    typeHeadword('שָׁמוּר');
+
+    await clickSave();
+
+    expect(container.textContent).toContain('שָׁמוּר');
+    // Save is disabled again since the input now matches the (updated) current headword.
+    expect(saveButton().disabled).toBe(true);
+  });
+
+  test('a 409 response alerts the server\'s specific message and leaves the headword unchanged', async () => {
+    Sefaria.apiRequestWithBody.mockResolvedValue(errorResponse('collision'));
+    await mount('BDB, שָׁמַר');
+    typeHeadword('שָׁמוּר');
+
+    await clickSave();
+
+    expect(alertSpy).toHaveBeenCalledWith('collision');
+    expect(container.textContent).not.toContain('Saved as');
+    // The current-headword display still reads the original value, not the failed attempt.
+    expect(container.querySelector('.lexiconEditCurrentHeadword').textContent).toBe('שָׁמַר');
+  });
+});
