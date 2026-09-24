@@ -87,6 +87,10 @@ class ReaderApp extends Component {
         translationsSlug:        props.initialTranslationsSlug,
         collectionData:          props.initialCollectionData,
         linkerEditorBook:        props.initialLinkerEditorBook,
+        settingsTab:             props.initialSettingsTab,
+        developerProjectId:      props.initialDeveloperProjectId,
+        accountSettings:         props.initialAccountSettings,
+        developerPoc:            props.initialDeveloperPoc,
       };
     }
 
@@ -176,6 +180,10 @@ class ReaderApp extends Component {
       collectionTag:           state.collectionTag           || null,
       translationsSlug:        state.translationsSlug        || null,
       collectionData:          state.collectionData          || null,
+      settingsTab:             state.settingsTab             || "account",
+      developerProjectId:      state.developerProjectId      || null,
+      accountSettings:         state.accountSettings         || null,
+      developerPoc:            state.developerPoc            || null,
       searchQuery:             state.searchQuery             || null,
       showHighlight:           state.showHighlight           || null,
       searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),
@@ -452,6 +460,8 @@ class ReaderApp extends Component {
           (!Sefaria.areBothVersionsEqual(prev.currVersions, next.currVersions)) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.tab !== next.tab) ||
+          (prev.settingsTab !== next.settingsTab) ||
+          (next.menuOpen === "settings" && prev.developerProjectId !== next.developerProjectId) ||
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
@@ -623,6 +633,16 @@ class ReaderApp extends Component {
             hist.title = Sefaria.getPageTitle("header.learning_schedules");
             hist.url = "calendars";
             hist.mode = "calendars";
+            break;
+          case "settings":
+            if (state.settingsTab === "developer") {
+              hist.title = Sefaria.getPageTitle("Developer Settings");
+              hist.url = "settings/developer" + (state.developerProjectId ? "/projects/" + state.developerProjectId : "");
+            } else {
+              hist.title = Sefaria.getPageTitle("Account Settings");
+              hist.url = "settings/account";
+            }
+            hist.mode = "settings";
             break;
           case "sheets":
             hist.url = "";

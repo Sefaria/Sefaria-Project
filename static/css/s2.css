@@ -17054,3 +17054,935 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   pointer-events: none;
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
+
+/* Settings page POC: the developer tab, and the developer controls on the account tab */
+.devPocPage {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  --devPoc-ink: #252b32;
+  --devPoc-muted: #626971;
+  --devPoc-blue: #18345d;
+  --devPoc-line: #dce0e4;
+  --devPoc-surface: #f4f2ee;
+  /* One spacing scale for every devPoc rule below. */
+  --devPoc-s1: 6px;
+  --devPoc-s2: 12px;
+  --devPoc-s3: 20px;
+  --devPoc-s4: 32px;
+  color: var(--devPoc-ink);
+  font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
+  font-size: 15px;
+  line-height: 1.55;
+  text-align: left;
+}
+/* Both settings tabs sit in one menu page, which carries the page padding the account
+   settings template used to apply to its own .inner. */
+.readerNavMenu.settingsPage .content .contentInner {
+  width: auto;
+  max-width: none;
+  padding: 60px 20px 100px 100px;
+  margin: 0;
+}
+/* The account tab renders inside a reader panel, where static.css is not served and
+   the reader's own type and layout rules reach in. This block is the styling the
+   account settings page carried on its own page, plus the resets that keep the reader
+   out: the panel's serif font variables, and the narrow default .toggleSet. */
+.settingsPage #accountSettingsPage {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  text-align: start;
+}
+.settingsPage #accountSettingsPage .headerWithButtons h1 {
+  text-transform: none;
+  letter-spacing: normal;
+}
+.settingsPage #accountSettingsPage .toggleSet {
+  margin: 0;
+}
+/* Account settings tab - desktop */
+.settingsPage #accountSettingsPage .inner {
+  position: relative;
+  width: 100%;
+  max-width: 660px;
+  margin-inline-start: 0;
+  margin-inline-end: auto;
+  padding: 0;
+}
+.settingsPage #accountSettingsPage .headerWithButtons {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 57px;
+  max-width: 890px;
+}
+.settingsPage #accountSettingsPage .headerWithButtons h1 {
+  flex: 0 0 auto;
+  text-align: start;
+  font-family: var(--english-sans-serif-font-family);
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 100%;
+  color: var(--dark-grey);
+  margin: 0;
+}
+.settingsPage #accountSettingsPage .headerWithButtons .end {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+.settingsPage #accountSettingsPage .headerWithButtons .button.small {
+  flex: 0 0 auto;
+  height: 50px;
+  padding: 0 20px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 100%;
+  border-radius: 6px;
+}
+.settingsPage #accountSettingsPage .headerWithButtons .button.small.transparent {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+}
+.settingsPage #accountSettingsPage label {
+  margin-bottom: 15px;
+}
+.settingsPage #accountSettingsPage .toggleSet {
+  width: 100%;
+  text-align: center;
+}
+.settingsPage #accountSettingsPage input {
+  width: 100%;
+  color: var(--medium-grey);
+  box-sizing: border-box;
+  padding: 15px 12px;
+  border: none;
+  margin-bottom: 10px;
+}
+.settingsPage #accountSettingsPage .form-section{
+  margin: 2px auto 20px 1px;
+}
+.settingsPage #accountSettingsPage .loginMethodText {
+  color: var(--dark-grey);
+  font-weight: 400;
+}
+.settingsPage #accountSettingsPage .loginMethodEmail {
+  color: var(--dark-grey);
+  font-weight: 700;
+}
+.settingsPage #accountSettingsPage input[disabled] {
+  background-color: #FBFBFA;
+}
+.settingsPage #accountSettingsPage input::placeholder{
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+  color: var(--medium-grey);
+  padding-bottom: 15px;
+  font-style: normal;
+}
+.settingsPage #accountSettingsPage [id^="email-edit"]{
+  padding: 15px;
+  text-align: center;
+  display: block;
+  width: 100%;
+  margin: 10px;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+}
+.settingsPage #accountSettingsPage #email-edit-errors, .settingsPage #accountSettingsPage #reading-history-warning {
+  color: #CB6158;
+}
+.settingsPage #accountSettingsPage #email-edit-ok{
+  color: var(--dark-grey);
+}
+.settingsPage #accountSettingsPage #reading-history-warning{
+  display: none;
+}
+.settingsPage #accountSettingsPage #reading-history-warning.active{
+  margin: 10px;
+  display: inline-block;
+}
+/* Account settings tab - mobile/tablet */
+@media screen and (max-width: 700px) {
+  .settingsPage #accountSettingsPage .headerWithButtons {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+  }
+  .settingsPage #accountSettingsPage .headerWithButtons h1 {
+    margin-bottom: 0;
+  }
+  .settingsPage #accountSettingsPage .headerWithButtons .end {
+    text-align: end;
+    gap: 4px;
+  }
+  .settingsPage #accountSettingsPage .headerWithButtons .button.small {
+    height: 30px;
+    padding: 0 12px;
+    font-size: 14px;
+    line-height: 18px;
+    margin: 0;
+  }
+}
+
+/* Account settings tab - very narrow screens */
+@media screen and (max-width: 360px) {
+  .settingsPage #accountSettingsPage .headerWithButtons {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .settingsPage #accountSettingsPage .headerWithButtons h1 {
+    width: 100%;
+  }
+  .settingsPage #accountSettingsPage .headerWithButtons .end {
+    text-align: start;
+    justify-content: flex-start;
+  }
+}
+/* The account tab keeps the page background of the static page it replaces. */
+.readerNavMenu.settingsPage:not(.settingsPageDeveloper) { background-color: #FBFBFA; }
+/* Spacing goes through :where() so it stays at .devPocPage specificity and the component
+   rules further down can set their own margins. The appearance resets have to outrank the
+   reader's own heading rules, so they keep full specificity. */
+.devPocPage :where(h1, h2, h3, p, ol) {
+  margin: 0;
+  padding: 0;
+}
+.devPocPage h1, .devPocPage h2, .devPocPage h3, .devPocPage p, .devPocPage ol {
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+  color: inherit;
+}
+.devPocPage h2, .devPocPage h3 { font-family: inherit; font-weight: 600; line-height: 1.4; }
+.devPocPage h2 { font-size: 20px; }
+.devPocPage h3 { font-size: 17px; }
+.devPocPage a { color: var(--devPoc-blue); }
+.devPocPage code {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+/* POC test controls. A floating panel, pinned to the viewport and deliberately foreign
+   to the Sefaria palette so nobody reads it as product UI. The settings page renders it
+   once, for both tabs. */
+.devPocPanel {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 100001;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  direction: ltr;
+  text-align: left;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  font-size: 13px;
+}
+.devPocPanel *, .devPocPanel *::before, .devPocPanel *::after { box-sizing: border-box; }
+/* the container is wider than what it shows, so only its own surfaces take clicks */
+.devPocPanel { pointer-events: none; }
+.devPocPanelPill, .devPocPanelBody { pointer-events: auto; }
+/* fonts.css names a font on every element through a universal rule, so the panel has to
+   name its own on its descendants instead of relying on inheritance. */
+.devPocPanel, .devPocPanel * { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace; }
+.devPocPanelPill {
+  appearance: none;
+  -webkit-appearance: none;
+  width: auto;
+  margin: 0;
+  padding: 9px 16px;
+  border: 2px solid #ff2d95;
+  border-radius: 999px;
+  background: #1f2430;
+  color: #ff2d95;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 6px 18px #0000004d;
+}
+.devPocPanelPill:hover { background: #2b3242; color: #ff2d95; }
+.devPocPanelBody {
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  max-height: min(70vh, 560px);
+  overflow-y: auto;
+  padding: 14px 16px 16px;
+  background: #1f2430;
+  border: 2px solid #ff2d95;
+  border-radius: 10px;
+  color: #e6e8ee;
+  box-shadow: 0 12px 34px #00000059;
+}
+.devPocPanel[data-open="false"] .devPocPanelBody { display: none; }
+.devPocPanel[data-open="true"] .devPocPanelPill { display: none; }
+.devPocPanelHeader { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.devPocPanel .devPocPanelTitle {
+  margin: 0;
+  color: #ff2d95;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+.devPocPanel .devPocPanelSub { margin: 6px 0 0; color: #9aa1b1; font-size: 11px; line-height: 1.5; }
+.devPocPanelClose {
+  appearance: none;
+  -webkit-appearance: none;
+  flex-shrink: 0;
+  width: auto;
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid #ff2d95;
+  border-radius: 4px;
+  background: transparent;
+  color: #ff2d95;
+  font-size: 11px;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  cursor: pointer;
+}
+.devPocPanelClose:hover { background: #ff2d95; color: #1f2430; }
+.devPocPanelGroup { margin-top: 14px; padding-top: 12px; border-top: 1px solid #ff2d9540; }
+.devPocPanel .devPocPanelGroupLabel {
+  margin-bottom: 8px;
+  color: #ff2d95;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.devPocPanelRow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.devPocPanelRow + .devPocPanelRow { margin-top: 8px; }
+.devPocPanel .devPocPanelNote { margin: 8px 0 0; color: #9aa1b1; font-size: 11px; line-height: 1.5; }
+.devPocPanel .devPocPanelChoice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  height: auto;
+  min-height: 0;
+  margin: 0;
+  color: #e6e8ee;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.devPocPanelButton {
+  appearance: none;
+  -webkit-appearance: none;
+  width: auto;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid #ff2d9580;
+  border-radius: 4px;
+  background: #2b3242;
+  color: #e6e8ee;
+  font-size: 12px;
+  line-height: 1.3;
+  cursor: pointer;
+}
+.devPocPanelButton:hover { background: #ff2d95; border-color: #ff2d95; color: #1f2430; }
+.devPocPanel input.devPocSwitch { width: 34px; min-width: 34px; height: 20px; background: #4a5162; }
+.devPocPanel input.devPocSwitch::after { width: 14px; height: 14px; }
+.devPocPanel input.devPocSwitch:checked { background: #ff2d95; }
+.devPocPanel input.devPocSwitch:checked::after { transform: translateX(14px); }
+.devPocPanel input[type="checkbox"]:not(.devPocSwitch) {
+  appearance: auto;
+  -webkit-appearance: checkbox;
+  flex-shrink: 0;
+  width: 14px;
+  min-width: 14px;
+  height: 14px;
+  margin: 0;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+  accent-color: #ff2d95;
+  cursor: pointer;
+}
+
+/* The settings tabs: one vertical list in a left column, shared by both tabs. */
+.devPocNav {
+  font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
+  font-size: 16px;
+  text-align: left;
+}
+.devPocNavTitle {
+  padding: 0 14px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #999;
+}
+.devPocNav a {
+  display: block;
+  padding: 10px 14px;
+  font-size: 16px;
+  border-inline-start: 3px solid #dce0e4;
+  text-decoration: none;
+  color: #18345d;
+}
+.devPocNav a:hover { background: #f4f7fa; }
+.devPocNav a[aria-current="page"] {
+  background: #eaf0f6;
+  border-inline-start-color: #18345d;
+  font-weight: 600;
+}
+
+.devPocShell {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+  max-width: 890px;
+}
+.devPocShell.devPocShellNoNav { display: block; }
+.devPocMain, .devPocSettingsBody { min-width: 0; max-width: 660px; }
+/* the tab column widens the account page's 660px band instead of narrowing the settings */
+#accountSettingsPage .inner:has(.devPocShell:not(.devPocShellNoNav)) { max-width: 890px; }
+.devPocPageHeader { margin-bottom: var(--devPoc-s4); }
+.devPocPageHeader h1 { font-size: 26px; font-weight: 600; margin-bottom: var(--devPoc-s1); }
+.devPocPageHeader p { color: var(--devPoc-muted); }
+.devPocPageHeader a { display: inline-block; margin-top: var(--devPoc-s1); }
+
+.devPocHelp { display: block; font-size: 13px; color: #626971; line-height: 1.5; margin-top: var(--devPoc-s1); }
+.devPocMuted { color: #626971; font-weight: 400; }
+
+.devPocOnboarding {
+  padding: var(--devPoc-s3);
+  border: 1px solid var(--devPoc-line);
+  border-radius: 6px;
+  background: #fff;
+  max-width: 560px;
+}
+.devPocOnboarding h2 { margin-bottom: var(--devPoc-s1); }
+.devPocStepper {
+  margin-bottom: var(--devPoc-s3);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--devPoc-muted);
+}
+.devPocAgreement {
+  padding: var(--devPoc-s3);
+  border: 1px solid #c3cdd8;
+  border-radius: 6px;
+  background: #f5f8fb;
+}
+
+/* No inline padding, so the profile row starts on the page header's left edge. */
+.devPocProfile { border-top: 1px solid var(--devPoc-line); border-bottom: 1px solid var(--devPoc-line); padding: var(--devPoc-s3) 0; margin-bottom: var(--devPoc-s4); }
+.devPocProfile h2 { margin-bottom: var(--devPoc-s2); }
+.devPocProfileSummary { display: flex; justify-content: space-between; align-items: center; gap: var(--devPoc-s3); }
+.devPocProfileSummary > span { min-width: 0; }
+.devPocProfileSummary .devPocHelp { margin-top: 2px; }
+
+.devPocSectionHeading { display: flex; justify-content: space-between; align-items: center; gap: var(--devPoc-s3); margin: var(--devPoc-s4) 0 var(--devPoc-s3); }
+
+/* The project is the container; its sections and keys sit inside it. The header is a
+   sand band, the body is white, and the keys sit in an inset panel inside a section, so
+   the eye reads project > section > key. */
+.devPocProject {
+  border: 1px solid #cfd5db;
+  background: #fff;
+  border-radius: 8px;
+  margin-bottom: var(--devPoc-s4);
+  overflow: hidden;
+}
+.devPocProjectHeader {
+  padding: var(--devPoc-s3);
+  background: var(--devPoc-surface);
+}
+.devPocProject.expanded .devPocProjectHeader { border-bottom: 1px solid #cfd5db; }
+.devPocProjectBar { display: flex; justify-content: space-between; align-items: center; gap: var(--devPoc-s2); }
+.devPocProjectTitle { flex: 1; min-width: 0; margin: 0; font-size: 22px; font-weight: 600; }
+.devPocProjectBody { padding: 0 var(--devPoc-s3) var(--devPoc-s3); }
+.devPocProjectToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--devPoc-s2);
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.devPocChevron {
+  display: inline-flex;
+  color: var(--devPoc-muted);
+  transform: rotate(-90deg);
+  transition: transform 0.15s ease;
+}
+.devPocChevron[data-open="true"] { transform: rotate(0deg); }
+/* Everything in the header starts on the same left edge as the project title's text, so
+   the collapsed and expanded cards read as one block. */
+.devPocProjectDescription { margin-top: var(--devPoc-s1); font-size: 15px; }
+.devPocProjectMeta { margin-top: var(--devPoc-s1); font-size: 13px; color: var(--devPoc-muted); line-height: 1.5; }
+.devPocProjectBadgeRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--devPoc-s2);
+  min-height: 30px;
+  margin-top: var(--devPoc-s2);
+}
+.devPocBadges { display: flex; flex-wrap: wrap; align-items: center; gap: var(--devPoc-s1); min-width: 0; }
+.devPocProjectEdit { flex-shrink: 0; }
+.devPocHeading { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--devPoc-s3); margin-bottom: var(--devPoc-s3); }
+.devPocHeading > div { min-width: 0; }
+.devPocHeading .devPocHelp:first-of-type { margin-top: var(--devPoc-s1); }
+.devPocBadge {
+  display: inline-block;
+  border: 1px solid #cfd5db;
+  border-radius: 20px;
+  padding: 2px 9px;
+  font-size: 12px;
+  color: #626971;
+  background: #fff;
+}
+/* Sections are subordinate to the project: a small uppercase label, no surface of their
+   own, separated by a hairline. */
+.devPocSection { padding: var(--devPoc-s3) 0 0; }
+.devPocSection + .devPocSection { margin-top: var(--devPoc-s3); border-top: 1px solid var(--devPoc-line); }
+.devPocProject .devPocSection h3 {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--devPoc-muted);
+}
+/* The inset panel that holds a section's items. The rail on its inline start is the
+   third step of the hierarchy. */
+.devPocInset {
+  margin-top: var(--devPoc-s3);
+  padding: var(--devPoc-s2);
+  border: 1px solid #e6e4df;
+  border-inline-start: 3px solid #cfd5db;
+  border-radius: 6px;
+  background: #faf9f7;
+}
+.devPocInsetEmpty { padding: var(--devPoc-s3); }
+.devPocInsetEmpty .devPocHelp { margin-top: 0; margin-bottom: var(--devPoc-s1); }
+
+.devPocKeyList { display: grid; gap: var(--devPoc-s2); }
+.devPocKey {
+  padding: var(--devPoc-s2);
+  background: #fff;
+  border: 1px solid #e3e6e9;
+  border-radius: 6px;
+  min-width: 0;
+}
+.devPocKeyHeading { display: flex; justify-content: space-between; align-items: center; gap: var(--devPoc-s2); margin-bottom: var(--devPoc-s1); }
+.devPocKeyHeading strong { font-size: 15px; font-weight: 600; }
+.devPocKeyValue { display: flex; align-items: center; gap: var(--devPoc-s1); margin-bottom: var(--devPoc-s2); min-width: 0; }
+.devPocKeyValue code { flex: 1; min-width: 0; }
+.devPocIconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--devPoc-line);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--devPoc-muted);
+  cursor: pointer;
+}
+.devPocIconButton:hover { border-color: var(--devPoc-blue); color: var(--devPoc-blue); }
+.devPocCopied { font-size: 12px; color: #2a6b45; min-width: 52px; }
+.devPocKeyMeta { display: flex; flex-wrap: wrap; gap: 2px var(--devPoc-s3); font-size: 12px; color: #626971; }
+.devPocKeyReady { margin-top: var(--devPoc-s1); font-size: 13px; color: #2a6b45; animation: devPocFade 4s ease-out forwards; }
+.devPocKey.devPocKeyNew { animation: devPocKeyPulse 4s ease-out forwards; }
+@keyframes devPocKeyPulse {
+  0% { background: #e6f2ea; border-color: #a8cfb6; }
+  55% { background: #e6f2ea; border-color: #a8cfb6; }
+  100% { background: #fff; border-color: #e3e6e9; }
+}
+.devPocCreateKey, .devPocSection > .devPocNotice, .devPocSection > .devPocWarning { margin-top: var(--devPoc-s3); }
+.devPocSettingUp { display: flex; align-items: center; gap: var(--devPoc-s2); }
+.devPocSpinner {
+  display: block;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #c3cdd8;
+  border-top-color: var(--devPoc-blue);
+  border-radius: 50%;
+  animation: devPocSpin 0.8s linear infinite;
+}
+@keyframes devPocSpin {
+  to { transform: rotate(360deg); }
+}
+@keyframes devPocFade {
+  0%, 70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.devPocRestriction { margin-top: var(--devPoc-s2); padding-top: var(--devPoc-s2); border-top: 1px solid #e3e6e9; }
+.devPocRestrictionRow { display: flex; align-items: flex-start; gap: var(--devPoc-s1); }
+.devPocTip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 4px; }
+.devPocInfoButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  padding: 0;
+  border: 1px solid #8a939c;
+  border-radius: 50%;
+  background: transparent;
+  color: #626971;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+.devPocInfoButton:hover { border-color: var(--devPoc-blue); color: var(--devPoc-blue); }
+.devPocTextButton {
+  border: 0;
+  padding: 0;
+  margin-top: 8px;
+  background: transparent;
+  color: var(--devPoc-blue);
+  text-decoration: underline;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.devPocPopover {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  inset-inline-start: 0;
+  width: max-content;
+  max-width: min(300px, calc(100vw - 32px));
+  padding: var(--devPoc-s2);
+  background: #fff;
+  border: 1px solid var(--devPoc-line);
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(20, 35, 55, 0.14);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: #3c444c;
+}
+/* Anchored to the icon, and flipped to the trailing side when the icon sits at the end
+   of a row so the popover cannot run past the card. */
+.devPocPopoverWide { max-width: min(300px, calc(100vw - 32px)); }
+.devPocRestrictionRow .devPocPopover { inset-inline-start: auto; inset-inline-end: 0; }
+
+.devPocStats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--devPoc-s3); }
+.devPocStat { border-right: 1px solid var(--devPoc-line); padding-right: var(--devPoc-s2); }
+.devPocStat:last-child { border-right: 0; }
+.devPocStat strong { display: block; font-size: 23px; font-weight: 500; }
+.devPocStat span { font-size: 13px; color: #626971; }
+
+.devPocChartBlock { margin-top: var(--devPoc-s3); }
+.devPocPage .devPocChartTitle {
+  margin-bottom: var(--devPoc-s2);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--devPoc-ink);
+}
+.devPocChart { display: block; width: 100%; height: 72px; }
+.devPocChartAxis { display: flex; justify-content: space-between; margin-top: var(--devPoc-s1); font-size: 12px; color: #626971; }
+.devPocSplit { display: flex; align-items: center; gap: var(--devPoc-s4); }
+.devPocDonut { display: block; flex-shrink: 0; width: 132px; height: 132px; }
+.devPocLegend { flex: 1; min-width: 0; margin: 0; padding: 0; list-style: none; }
+.devPocLegendRow {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr) auto 44px;
+  align-items: center;
+  gap: var(--devPoc-s2);
+  padding: 5px 0;
+  font-size: 13px;
+}
+.devPocLegendRow + .devPocLegendRow { border-top: 1px solid var(--devPoc-line); }
+.devPocSwatch { display: block; width: 12px; height: 12px; border-radius: 3px; }
+.devPocLegendLabel { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.devPocLegendValue { font-variant-numeric: tabular-nums; }
+.devPocLegendPercent { color: var(--devPoc-muted); text-align: right; font-variant-numeric: tabular-nums; }
+
+.devPocResult { display: flex; justify-content: space-between; align-items: center; gap: var(--devPoc-s3); padding: var(--devPoc-s2) 0; border-bottom: 1px solid var(--devPoc-line); }
+.devPocListingSearch { margin-top: var(--devPoc-s2); }
+.devPocListingArea { margin: var(--devPoc-s2) 0 0 26px; }
+
+.devPocEmpty { padding: var(--devPoc-s3); border: 1px solid var(--devPoc-line); border-radius: 6px; background: #fff; }
+.devPocEmpty h2 { margin-bottom: var(--devPoc-s1); }
+.devPocEmpty p { color: #626971; max-width: 530px; }
+.devPocList { margin: var(--devPoc-s2) 0 0; padding-inline-start: 22px; font-size: 14px; }
+.devPocList li { margin-bottom: var(--devPoc-s1); }
+
+.devPocForm { display: grid; gap: var(--devPoc-s3); }
+.devPocFieldset { margin: 0; padding: 0; border: 0; }
+.devPocFieldset legend { margin-bottom: var(--devPoc-s2); font-weight: 500; font-size: 14px; }
+.devPocField { min-width: 0; }
+.devPocField > label { display: block; height: auto; min-height: 0; margin: 0 0 var(--devPoc-s1); font-size: 14px; font-weight: 500; line-height: 1.5; }
+.devPocLabelRow { display: flex; align-items: center; gap: 4px; margin-bottom: var(--devPoc-s1); }
+.devPocLabelRow > label { margin-bottom: 0; }
+.devPocField input, .devPocField select {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  height: 46px;
+  padding: 0 12px;
+  border: 1px solid #e3e5e8;
+  border-radius: 7px;
+  background: #fbfbfa;
+  color: #252b32;
+  font: inherit;
+  font-size: 14px;
+  box-shadow: none;
+}
+.devPocField select { padding-inline-end: 8px; }
+.devPocField input:disabled { background: #f2f3f4; color: #6f6f6f; }
+.devPocProfile .devPocField input, .devPocSection .devPocField input { max-width: 520px; }
+.devPocChoice { display: flex; align-items: flex-start; gap: 10px; height: auto; min-height: 0; margin: 0; font-size: 14px; font-weight: 400; line-height: 1.5; }
+.devPocChoice + .devPocChoice { margin-top: var(--devPoc-s2); }
+.devPocChoice input[type="checkbox"]:not(.devPocSwitch), .devPocChoice input[type="radio"] {
+  appearance: auto;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  margin: 2px 0 0;
+  padding: 0;
+  box-shadow: none;
+  border-radius: 0;
+  accent-color: #18345d;
+  cursor: pointer;
+}
+input.devPocSwitch {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 40px;
+  min-width: 40px;
+  height: 24px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: #9ca4ac;
+  box-shadow: none;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+input.devPocSwitch::after {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+}
+input.devPocSwitch:checked { background: #18345d; }
+input.devPocSwitch:checked::after { transform: translateX(16px); }
+
+.devPocNotice, .devPocWarning, .devPocSuccess {
+  border-radius: 4px;
+  padding: var(--devPoc-s2) var(--devPoc-s3);
+  margin: var(--devPoc-s2) 0;
+  font-size: 14px;
+  background: #eef3f8;
+  border: 1px solid #d4dfea;
+  color: #23394f;
+}
+.devPocWarning { background: #fcf6e9; border-color: #e8d5a6; color: #69501e; }
+.devPocSuccess { background: #edf5f0; border-color: #c9dfd1; color: #305840; }
+.devPocConnected { margin-top: 12px; font-size: 16px; color: #2a6b45; }
+.devPocGate { margin-top: 14px; padding: 18px; background: #eef3f8; border: 1px solid #d4dfea; border-radius: 6px; }
+.devPocGate p { font-size: 14px; margin: 8px 0 14px; }
+
+/* One button grid everywhere: primary first, secondary beside it, destructive at the end. */
+.devPocActions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--devPoc-s2); }
+.devPocActions > .devPocDanger { margin-inline-start: auto; }
+.devPocPage .button { margin: 0; flex-shrink: 0; }
+.devPocPage .button.white { border: 1px solid #ccc; }
+.devPocPage .button.devPocDanger { background-color: #a43632; color: #fff; }
+.devPocPage .button.transparent.devPocDanger { background-color: transparent; color: #a43632; box-shadow: none; }
+.devPocPage .button:disabled {
+  background-color: var(--lightest-grey);
+  border: 1px solid var(--light-grey);
+  color: var(--medium-grey);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.devPocModalStage {
+  position: fixed;
+  inset: 0;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background: #14233799;
+}
+.devPocDialog {
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: var(--devPoc-s3);
+  background: #fff;
+  border: 1px solid #d9dee3;
+  border-radius: 6px;
+  text-align: left;
+  color: #252b32;
+  font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
+  font-size: 15px;
+}
+/* Confirms are a question and two buttons; they stay narrow rather than filling the band. */
+.devPocConfirmStage .devPocDialog { max-width: 440px; }
+.devPocDialog h2 { font-size: 20px; font-weight: 600; margin: 0; text-align: left; }
+.devPocDialog p { margin: 12px 0 0; text-align: left; }
+.devPocDialogHeader { margin-bottom: var(--devPoc-s3); }
+.devPocDialog .devPocActions { margin-top: var(--devPoc-s3); }
+
+@media (max-width: 760px) {
+  .devPocShell { display: block; max-width: none; }
+  .readerNavMenu.settingsPage .content .contentInner { padding: 40px 22px 60px; }
+  .devPocNav { display: flex; flex-wrap: wrap; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
+  .devPocNavTitle { width: 100%; padding: 0 0 8px; }
+  .devPocNav a { border-inline-start: 0; border-bottom: 3px solid transparent; padding: 10px; }
+  .devPocNav a[aria-current="page"] { background: transparent; border-bottom-color: #18345d; }
+  .devPocPageHeader h1 { font-size: 22px; }
+  .devPocProjectHeader { padding: var(--devPoc-s2); }
+  .devPocProjectBody { padding: 0 var(--devPoc-s2) var(--devPoc-s2); }
+  .devPocProjectTitle { font-size: 19px; }
+  .devPocProjectBadgeRow { flex-wrap: wrap; }
+  .devPocSplit { flex-direction: column; align-items: stretch; gap: var(--devPoc-s3); }
+  .devPocDonut { margin: 0 auto; }
+  .devPocStats { grid-template-columns: minmax(0, 1fr); }
+  .devPocPopover, .devPocPopoverWide { max-width: min(280px, 70vw); }
+  .devPocStat { border-right: 0; }
+  .devPocHeading { flex-wrap: wrap; }
+  .devPocKeyValue { flex-wrap: wrap; }
+  .devPocPanel { right: 0; left: 0; bottom: 0; }
+  .devPocPanel[data-open="false"] { padding: 0 12px 12px; }
+  .devPocPanelBody {
+    width: 100%;
+    max-width: none;
+    max-height: 60vh;
+    border-width: 2px 0 0;
+    border-radius: 0;
+  }
+}
+
+/* Developer settings POC controls inside the account tab, which styles all its own
+   inputs and labels full width. */
+#accountSettingsPage .devPocChoice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: auto;
+  margin: 0;
+}
+#accountSettingsPage .devPocHelp { margin: 0; }
+#accountSettingsPage .devPocConnected { font-size: 16px; line-height: 1.5; }
+#accountSettingsPage .devPocGate strong { display: block; margin-bottom: 6px; }
+#accountSettingsPage .devPocGate .button { width: auto; display: inline-block; }
+#accountSettingsPage .devPocNav { margin: 0; }
+#accountSettingsPage .devPocNav a { margin: 0; padding: 10px 14px; width: auto; }
+#accountSettingsPage .devPocShell { margin-top: 28px; }
+#developerSettings .additional-info { margin-top: 12px; }
+#developerSettings #developerSettingsLink { margin-top: 10px; }
+
+/* The mock provider chooser. It stands in for the Google or Apple sign-in window, and the
+   magenta banner is the POC test panel's colour so nobody mistakes it for a real prompt. */
+.devPocMockSso {
+  position: fixed;
+  inset: 0;
+  z-index: 100002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
+}
+.devPocMockSso *, .devPocMockSso *::before, .devPocMockSso *::after { box-sizing: border-box; }
+.devPocMockSsoBackdrop { position: absolute; inset: 0; background: rgba(32, 38, 46, 0.55); }
+.devPocMockSsoDialog {
+  position: relative;
+  width: 400px;
+  max-width: 100%;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+  text-align: left;
+}
+.devPocMockSsoBanner {
+  margin: 0;
+  padding: 10px 16px;
+  background: #ff2d95;
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Courier New", monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.devPocMockSsoBody { padding: 28px 28px 22px; color: #252b32; }
+.devPocMockSso .devPocMockSsoBrand {
+  margin: 0 0 18px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #5f6368;
+}
+.devPocMockSso h2 { margin: 0; font-size: 22px; font-weight: 400; text-align: left; text-transform: none; }
+.devPocMockSso .devPocMockSsoSub { margin: 6px 0 0; font-size: 14px; color: #5f6368; }
+.devPocMockSsoAccount {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 22px;
+  padding: 12px;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+}
+.devPocMockSsoAvatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #18345d;
+  color: #fff;
+  font-size: 13px;
+}
+.devPocMockSsoAccountText { display: flex; flex-direction: column; font-size: 14px; }
+.devPocMockSsoAccountText span { color: #5f6368; }
+.devPocMockSsoActions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 26px; }
+.devPocMockSsoCancel, .devPocMockSsoContinue {
+  padding: 9px 20px;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+}
+.devPocMockSsoCancel { background: transparent; border: none; color: #18345d; }
+.devPocMockSsoContinue { background: #18345d; border: 1px solid #18345d; color: #fff; }
