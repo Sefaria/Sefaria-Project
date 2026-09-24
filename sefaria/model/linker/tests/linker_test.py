@@ -1,3 +1,4 @@
+import pytest
 from contextlib import contextmanager
 from copy import deepcopy
 from sefaria.model.linker.ref_part import RangedRawRefParts, SectionContext, TermContext
@@ -21,6 +22,9 @@ from sefaria.helper.linker.disambiguator import (
 )
 from sefaria.helper.linker_resource_panel_admin import _span_matches, parse_linker_citation
 
+
+
+pytestmark = pytest.mark.needs_linker
 
 def _seed_non_unique_terms(term_defs):
     created_terms = []

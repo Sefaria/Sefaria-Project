@@ -80,6 +80,7 @@ def test_voices_catchall_non_ref_404(client, monkeypatch):
     assert response.status_code == 404
 
 
+@pytest.mark.needs_corpus
 @pytest.mark.django_db
 @override_settings(DOMAIN_MODULES=TEST_DOMAIN_MODULES, ALLOWED_HOSTS=TEST_ALLOWED_HOSTS)
 def test_library_catchall_valid_ref_no_redirect(client, monkeypatch):

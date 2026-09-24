@@ -128,6 +128,13 @@ def _ensure_warm() -> None:
     if now - _last_rebuild_attempt < _REBUILD_COOLDOWN_SECONDS:
         return
     _last_rebuild_attempt = now
+    from sefaria.settings import CELERY_ENABLED
+    if not CELERY_ENABLED:
+        # No broker to enqueue on (local dev, CI): apply_async would spend ~20s
+        # retrying Redis and then fail. Rebuild inline instead, as other
+        # Celery-optional paths do; the cooldown above still bounds it.
+        rebuild()
+        return
     from sefaria.helper.linker.tasks import rebuild_nonuniqueterm_index_task
     from sefaria.celery_setup.config import CeleryQueue
     rebuild_nonuniqueterm_index_task.apply_async(queue=CeleryQueue.TASKS.value)

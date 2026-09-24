@@ -24,6 +24,7 @@ def test_rename_category():
     assert not tm.IndexSet({"categories": new}).count()
 
 
+@pytest.mark.needs_corpus
 def test_get_commentary_texts_list():
     l = tm.library.get_dependant_indices()
     assert "Ba'al HaTurim on Genesis" in l
@@ -31,12 +32,14 @@ def test_get_commentary_texts_list():
     assert 'Tosafot on Pesachim' in l
 
 
+@pytest.mark.needs_corpus
 def test_get_text_categories():
     l = tm.library.get_text_categories()
     assert 'Torah' in l
     assert 'Talmud' in l
 
 
+@pytest.mark.needs_corpus
 def test_get_book_link_collection():
     res = get_book_link_collection("Shabbat", "Tanakh")
     assert len(res) > 650
