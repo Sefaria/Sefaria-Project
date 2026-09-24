@@ -681,6 +681,29 @@ def test_search_non_unique_terms_by_slug():
             NonUniqueTerm.init(created["slug"]).delete()
 
 
+@pytest.mark.needs_corpus
+def test_search_and_detail_non_unique_terms_real_library():
+    results = le.search_non_unique_terms("bavli", 5)
+    slugs = [t["slug"] for t in results]
+    assert "bavli" in slugs
+
+    detail = le.get_non_unique_term_detail("bavli")
+    assert detail["slug"] == "bavli"
+    assert len(detail["titles"]) > 0
+    assert "usages" in detail
+
+    with pytest.raises(InputError):
+        le.get_non_unique_term_detail("__no_such_slug__")
+
+
+@pytest.mark.needs_corpus
+def test_search_non_unique_terms_by_slug_real_library():
+    # The hyphenated slug does not appear in the term's titles (which use spaces),
+    # so a hit here can only come from matching the slug itself.
+    results = le.search_non_unique_terms("a-collection-on-prophets", 5)
+    assert "a-collection-on-prophets" in [t["slug"] for t in results]
+
+
 @pytest.mark.needs_linker
 def test_search_non_unique_terms_normalizes_query(monkeypatch):
     captured = []

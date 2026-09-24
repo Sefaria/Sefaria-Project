@@ -833,7 +833,8 @@ class Test_Default_Nodes(object):
         assert dnode in leaves
         assert sn not in leaves
 
-    def test_load_default_text_chunk(self):
+    @pytest.mark.needs_corpus
+    def test_load_default_text_chunk_constructs_without_error(self):
         ref = Ref("Chofetz_Chaim,_Part_One,_The_Prohibition_Against_Lashon_Hara,_Principle_1")
         LegacyTextChunk(ref)
 
