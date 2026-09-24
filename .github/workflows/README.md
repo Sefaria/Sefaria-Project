@@ -1,12 +1,16 @@
 # Sefaria-Project Pipelines
 
-## Commit is pushed to branch
+## Commit is pushed to master
 
-Any commit to a branch will trigger the `continuous` pipeline in limited run mode.  This will result in the node, web and asset images being built and pushed to the dev GCR registry.  The images names will reflect which branch they are built from, and the image tags will indicate the commit and datetime.
+A push to `master` triggers the `continuous` pipeline in limited run mode (pushes to other branches only run it once the branch has an open PR, see below).  This will result in the node, web and asset images being built and pushed to the dev GCR registry.  The images names will reflect which branch they are built from, and the image tags will indicate the commit and datetime.
 
 ## Commit is pushed to PR branch
 
 If a commit is pushed to a branch that has an open PR, the `continuous` pipeline is triggered in full run mode.  This will build and push the images asin limited mode, and then additionally deploy a sandbox instance using the built images.  The sandbox is deployed as a helm install, using the latest version of the chart, and a values file located in `build/ci/`, which is modified during the pipeline to indicate which commit triggered the deployment.  After the sandbox deployment has been verified, pytest and selenium tests are executed in the sandbox, after which the sandbox is destroyed.
+
+## Commit is pushed to a PR that has a merge conflict
+
+GitHub does not run `pull_request` workflows while a PR has a merge conflict, so `continuous` is skipped and no images or cauldron updates happen. The `merge-conflict-notification` pipeline (`pull_request_target`, no PR code checked out) catches this: it sets a failing `Continuous / merge conflict` status on the pushed commit, comments on the PR mentioning the pusher and author, and posts a Slack mention of the pusher to the test-failure channel.
 
 ## Commit that affects `helm-charts` is pushed to a branch
 
