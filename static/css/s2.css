@@ -2763,7 +2763,7 @@ a.cardTitle:hover {
 .sidebarPromo a {
   margin-inline-start: 0px;
 }
-.sidebarPromo.colored.button a:hover {
+.sidebarPromo.colored a.button:hover {
   color: var(--sefaria-blue);
 }
 .sidebarPromo img {
