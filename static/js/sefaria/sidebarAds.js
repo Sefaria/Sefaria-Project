@@ -9,7 +9,7 @@ const parseKeywords = (rawKeywords) => {
   const entries = (rawKeywords || "")
     .split(",")
     .map((entry) => entry.trim().toLowerCase())
-    .filter(Boolean);
+    .filter((entry) => entry !== "");
   return {
     keywordTargets: entries.filter((entry) => entry[0] !== "!"),
     excludeKeywordTargets: entries.filter((entry) => entry[0] === "!").map((entry) => entry.slice(1)),
