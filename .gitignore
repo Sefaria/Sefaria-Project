@@ -70,6 +70,10 @@ node_modules
 .claude/skills/*
 !.claude/skills/sefaria-release-notes/
 !.claude/skills/sefaria-release-notes/**
+!.claude/skills/move-text-to-cauldron/
+!.claude/skills/move-text-to-cauldron/**
+!.claude/skills/create-cauldron/
+!.claude/skills/create-cauldron/**
 CLAUDE.md
 !e2e-tests/CLAUDE.md
 
