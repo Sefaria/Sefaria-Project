@@ -32,7 +32,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.urls import resolve
 from django.urls.exceptions import Resolver404
-from django.contrib.auth.views import LoginView, LogoutView, PasswordResetDoneView, PasswordResetCompleteView, PasswordResetView, PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
+from django.contrib.auth.views import LoginView, LogoutView, PasswordResetConfirmView, INTERNAL_RESET_SESSION_TOKEN
 from rest_framework.decorators import api_view
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from functools import wraps
@@ -41,13 +41,12 @@ from remote_config.keys import CURRENT_LINKER_VERSION
 from sefaria.decorators import webhook_auth_or_staff_required
 import sefaria.model as model
 import sefaria.system.cache as scache
-from sefaria.helper import library_assistant
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED, SEARCH_INDEX_ON_SAVE
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sso.adapters import import_gravatar
@@ -64,13 +63,13 @@ from sefaria.utils.hebrew import has_hebrew, strip_nikkud
 from sefaria.utils.util import strip_tags
 from sefaria.helper.text import make_versions_csv, get_library_stats, get_core_link_stats, dual_text_diff
 from sefaria.helper.texts.tasks import rename_version_title, run_version_rename
+from sefaria.helper.skip_tracking import build_pathway
 from sefaria.helper.webpages import normalize_url as normalize_webpage_url, domain_for_url as webpage_domain_for_url
 from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
 from sefaria.model.webpage import *
 from sefaria import tracker
-from sefaria.helper.skip_tracking import signal_and_reset_skip_counts
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.sheets import get_sheet_categorization_info
@@ -136,38 +135,6 @@ class CustomLogoutView(StaticViewMixin, LogoutView):
                 return resolve_url(next_page)
         return super().get_next_page()
 
-
-class CustomPasswordResetDoneView(StaticViewMixin, PasswordResetDoneView):
-    pass
-
-class CustomPasswordResetCompleteView(StaticViewMixin, PasswordResetCompleteView):
-    pass
-
-class CustomPasswordResetView(StaticViewMixin, PasswordResetView):
-    form_class = SefariaPasswordResetForm
-    email_template_name = 'registration/password_reset_email.txt'
-    html_email_template_name = 'registration/password_reset_email.html'
-    
-    def form_valid(self, form):
-        """
-        Override form_valid to set the correct domain for the email context.
-        """
-        # Get the current domain from the request
-        current_domain = self.request.get_host()
-        
-        # Call form.save with domain override - this sends the email
-        form.save(
-            request=self.request,
-            domain_override=current_domain,
-            use_https=self.request.is_secure(),
-            email_template_name=self.email_template_name,
-            subject_template_name=self.subject_template_name,
-            html_email_template_name=self.html_email_template_name,
-            from_email=self.from_email,
-            extra_email_context=self.extra_email_context,
-        )
-        # Don't call super().form_valid(form) as it would send the email again
-        return HttpResponseRedirect(self.get_success_url())
 
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     form_class = SefariaSetPasswordForm
@@ -242,10 +209,6 @@ def process_register_form(request, auth_method='session'):
             p.join_invited_collections()
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
-            # New accounts get the Library Assistant on. Written explicitly: the key is
-            # deliberately absent from the settings defaults, so a new account starts
-            # with no value at all unless one is written here.
-            p.settings[library_assistant.SETTING_KEY] = True
             p.save()
 
         import_gravatar(p)
@@ -648,7 +611,11 @@ def bundle_many_texts(refs, use_text_family=False, as_sized_string=False, min_ch
             oref = model.Ref(tref)
             lang = "he" if has_hebrew(tref) else "en"
             if use_text_family:
-                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
+                # Legacy: only reached via ?useTextFamily=1, which we don't send ourselves anymore --
+                # kept for templates/js/linker.v2.js, an old embed script possibly still live on
+                # third-party sites we don't control.
+                from sefaria.model.legacy_text import TextFamily
+                text_fam = TextFamily(oref, commentary=0, context=0, pad=False, translationLanguagePreference=translation_language_preference, stripItags=True,
                                             lang="he", version=hebrew_version,
                                             lang2="en", version2=english_version)
                 he = text_fam.he
@@ -663,8 +630,11 @@ def bundle_many_texts(refs, use_text_family=False, as_sized_string=False, min_ch
                     'url': oref.url()
                 }
             else:
-                he_tc = model.TextChunk(oref, "he", vtitle=hebrew_version)
-                en_tc = model.TextChunk(oref, "en", actual_lang=translation_language_preference, vtitle=english_version)
+                # Keyed by direction, not real language -- TopicPage.jsx's source/translation
+                # toggle works on the old en/he-as-ltr/rtl dichotomy, not genuine isSource matching.
+                he_tc = oref.text(direction="rtl", vtitle=hebrew_version)
+                en_tc = oref.text(translation_language_preference, vtitle=english_version) if translation_language_preference \
+                    else oref.text(direction="ltr", vtitle=english_version)
                 if hebrew_version and he_tc.is_empty():
                   raise NoVersionFoundError(f"{oref.normal()} does not have the Hebrew version: {hebrew_version}")
                 if english_version and en_tc.is_empty():
@@ -803,7 +773,6 @@ def collections_image_upload(request, resize_image=True):
 @staff_member_required
 def reset_cache(request):
     model.library.rebuild()
-    signal_and_reset_skip_counts("reset_cache")
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "rebuild")
@@ -938,7 +907,6 @@ def delete_orphaned_counts(request):
 @staff_member_required
 def rebuild_toc(request):
     model.library.rebuild_toc()
-    signal_and_reset_skip_counts("reset_toc")
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "rebuild_toc")
@@ -948,9 +916,11 @@ def rebuild_toc(request):
 
 @staff_member_required
 def rebuild_auto_completer(request):
-    library.build_full_auto_completer()
-    library.build_lexicon_auto_completers()
-    library.build_cross_lexicon_auto_completer()
+    # Three builders, each of which wraps itself: group them so one click reports once.
+    with build_pathway("rebuild_auto_completer"):
+        library.build_full_auto_completer()
+        library.build_lexicon_auto_completers()
+        library.build_cross_lexicon_auto_completer()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_full_auto_completer")
@@ -1390,13 +1360,13 @@ def delete_sheet_by_id(request):
             process_sheet_deletion_in_collections(id)
             process_sheet_deletion_in_notifications(id)
 
-            try:
-                es_index_name = search.get_new_and_current_index_names("sheet")['current']
-                search.delete_sheet(es_index_name, id)
-            except NewConnectionError as e:
-                logger.warn("Failed to connect to elastic search server on sheet delete.")
-            except AuthorizationException as e:
-                logger.warn("Failed to connect to elastic search server on sheet delete.")
+            # Queued rather than deleted directly: web pods only have read access to ES. The
+            # sheet is already gone from Mongo, so the queue consumer removes its search doc.
+            if SEARCH_INDEX_ON_SAVE:
+                try:
+                    search.queue_sheet_sync(id)
+                except Exception as e:
+                    logger.error(f"Failed to queue deleted sheet {id} for search removal: {type(e).__name__}: {e}")
 
 
             return jsonResponse({"success": f"deleted sheet {sheet_id}"})
@@ -1423,12 +1393,21 @@ def purge_spammer_account_data(spammer_id, delete_from_crm=True):
         except Exception as e:
             logger.error(f'Failed to mark user as spam: {e}')
     sheets = db.sheets.find({"owner": spammer_id})
+    quarantined_sheet_ids = []
     for sheet in sheets:
         sheet["spam_sheet_quarantine"] = datetime.now()
         sheet["datePublished"] = None
         sheet["status"] = "unlisted"
         sheet["displayedCollection"] = None
         db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
+        quarantined_sheet_ids.append(sheet["id"])
+    # Unlisted sheets must leave search; the queue consumer removes them (web cannot write to ES).
+    if SEARCH_INDEX_ON_SAVE and quarantined_sheet_ids:
+        from sefaria.search import queue_sheets_sync
+        try:
+            queue_sheets_sync(quarantined_sheet_ids)
+        except Exception as e:
+            logger.error(f"Failed to queue quarantined sheets of spammer {spammer_id} for search removal: {type(e).__name__}: {e}")
     # Delete Notes
     db.notes.delete_many({"owner": spammer_id})
     # Delete Notifcations
@@ -1455,6 +1434,12 @@ def spam_dashboard(request):
             db.sheets.update_many({"id": {"$in": reviewed_sheet_ids}}, {"$set": {"reviewed": True}})
             spammers = db.sheets.find({"id": {"$in": spam_sheet_ids}}, {"owner": 1}).distinct("owner")
             db.sheets.delete_many({"id": {"$in": spam_sheet_ids}})
+            if SEARCH_INDEX_ON_SAVE:
+                from sefaria.search import queue_sheets_sync
+                try:
+                    queue_sheets_sync(spam_sheet_ids)
+                except Exception as e:
+                    logger.error(f"Failed to queue spam sheets {spam_sheet_ids} for search removal: {type(e).__name__}: {e}")
 
             for spammer in spammers:
                 try:

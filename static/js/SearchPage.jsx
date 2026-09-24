@@ -42,8 +42,9 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
       <img
           className="searchIcon"
           src="/static/icons/search_mdl.svg"
-          alt={Sefaria._("common.search")}
+          alt=""
           role="button"
+          aria-label={Sefaria._("search.search_bar.search_icon.aria")}
           tabIndex="0"
           onClick={submit}
           onKeyDown={(e) => {
@@ -68,8 +69,9 @@ const SearchPageSearchBar = ({query, onQueryChange}) => {
           <img
               className="searchBarClearButton"
               src="/static/icons/heavy-x.svg"
-              alt={Sefaria._("common.clear")}
+              alt=""
               role="button"
+              aria-label={Sefaria._("search.search_bar.clear_search.aria")}
               tabIndex="0"
               onClick={() => setValue("")}
               onKeyDown={(e) => {

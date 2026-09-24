@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { whenReady, makeUuid, safeNext, authError } from './utils.js';
 import { persistPendingAttempt, AUTH_METHOD } from './authAnalytics.js';
 import { getCsrfToken } from '../sefaria/csrf';
+import Sefaria from '../sefaria/sefaria';
 
 /**
  * useProviderTriggers — lets a "Continue with Google/Apple" affordance fire from *any* view,

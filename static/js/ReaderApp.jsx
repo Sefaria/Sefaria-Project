@@ -142,7 +142,8 @@ class ReaderApp extends Component {
     this.setState({ editorSaveState: nextState });
     };
   handleAuthNavigate = (path, source = null) => {
-    this.setState({ showAuth: true, authPath: path, authSource: source });
+    // Hide the sign up modal and show the auth page, with the given path and source.
+    this.setState({ showAuth: true, authPath: path, authSource: source, showSignUpModal: false });
   }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
