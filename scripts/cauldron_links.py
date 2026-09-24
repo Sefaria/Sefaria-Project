@@ -3,6 +3,9 @@ import requests
 import argparse
 from tqdm import tqdm
 import os.path
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sefaria.constants.http import SEFARIA_USER_AGENT
 
 

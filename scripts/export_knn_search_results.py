@@ -16,6 +16,8 @@ from typing import Any
 from urllib.parse import quote
 
 import requests
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from sefaria.constants.http import SEFARIA_USER_AGENT
 
 try:
