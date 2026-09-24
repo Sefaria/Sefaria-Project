@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Boss-facing progress demo for the API auth POC.
-# Read-only except sections 6 and 7, which change the dev key registry on purpose: a project's tier is flipped and
+# Read-only except sections 6 and 7 (and section 8 spends this minute's rate-limit budget for your IP and proj_alpha), which change the dev key registry on purpose: a project's tier is flipped and
 # restored (restored even if the demo fails), and the auth service's own listener connection is dropped. --read-only
 # skips both.
 set -uo pipefail
@@ -179,9 +179,10 @@ section_deployed() {
   fi
 
   output=$(new_tmp)
-  if ! capture "$output" "${k[@]}" get securitypolicy authpoc-auth -o 'jsonpath=Accepted={range .status.ancestors[*].conditions[?(@.type=="Accepted")]}{.status} {.reason}{"\n"}{end}'; then
-    unavailable 'SecurityPolicy authpoc-auth is not readable'
-  fi
+  # F5: Envoy Gateway does not fail open on a rejected policy; it turns the whole route into a 500.
+  capture_shell 'scripts/policy-gate.sh   # every auth policy Accepted on every ancestor' "$output" env CTX="$CTX" NS="$NS" ENV=authpoc bash "$AUTH_SERVICE/scripts/policy-gate.sh"
+  ok_if 'auth policies accepted (policy gate)' grep -q '^ok   securitypolicy/authpoc-auth:' "$output"
+  ok_if 'no rejected auth policy' bash -c "! grep -q '^FAIL' '$output'"
 
   output=$(new_tmp)
   if ! capture "$output" kubectl --context "$CTX" -n envoy-gateway-system get deploy envoy-ratelimit -o 'custom-columns=NAME:.metadata.name,READY:.status.readyReplicas,DESIRED:.spec.replicas,AVAILABLE:.status.availableReplicas' --no-headers; then
@@ -406,9 +407,48 @@ section_listener_drill() {
   ok_if "listener connections after the drill: $n" test "$n" = "$replicas"
 }
 
+# burst <label> <key or empty> <count> <limit>: sequential requests in one window; prints each status with the
+# x-ratelimit-remaining countdown, checks the exact 200/429 split, then shows and checks the first 429.
+burst() {
+  local label=$1 key=$2 n=$3 limit=$4 i code rem ok=0 limited=0 line='' first429='' h b
+  local -a hk=()
+  [[ -n "$key" ]] && hk=(-H "x-api-key: $key")
+  printf '%s$ for i in 1..%s: curl %s %s/api/texts/Genesis.1%s\n' "$CYAN" "$n" "$([[ -n "$key" ]] && printf -- '-H x-api-key:%s' "$(mask_key "$key")")" "$HOST" "$RESET"
+  for ((i = 1; i <= n; i++)); do
+    h=$(new_tmp); b=$(new_tmp)
+    code=$(curl -sS --max-time 15 -D "$h" -o "$b" "${hk[@]}" -w '%{http_code}' "$HOST/api/texts/Genesis.1" 2>/dev/null)
+    rem=$(awk 'BEGIN{IGNORECASE=1} tolower($1)=="x-ratelimit-remaining:"{gsub(/\r/,"",$2); print $2; exit}' "$h")
+    line+="$code${rem:+(${rem})} "
+    [[ $code == 200 ]] && ok=$((ok + 1))
+    if [[ $code == 429 ]]; then limited=$((limited + 1)); [[ -z $first429 ]] && first429="$h $b"; fi
+  done
+  printf '%s: %s\n' "$label" "$line"
+  ok_if "  $label: $ok allowed (limit $limit/min)" test "$ok" = "$limit"
+  ok_if "  $label: $limited blocked with 429" test "$limited" = "$((n - limit))"
+  if [[ -n $first429 ]]; then
+    h=${first429% *}; b=${first429#* }
+    printf '%sfirst blocked response:%s\n' "$GREEN" "$RESET"
+    grep -iE '^(HTTP/|retry-after|x-ratelimit-|content-type)' "$h" | tr -d '\r' | sed 's/^/    /'
+    printf '    %s\n' "$(sanitize <"$b")"
+    ok_if '  429 body is the product-spec rate_limited error' grep -q '"code":"rate_limited"' "$b"
+    ok_if '  Retry-After: 60' grep -qi '^retry-after: 60' "$h"
+    ok_if '  x-ratelimit-limit header present (F3)' grep -qi '^x-ratelimit-limit:' "$h"
+  fi
+}
+
+section_ratelimit() {
+  local s wait
+  section '8. Rate limits block requests (POC limits: API key 10/min per project, anonymous 5/min per IP)' 'Envoy asks the rate-limit service after the auth service has stamped the tier and project. Over the limit, the caller gets the product-spec 429 with Retry-After and x-ratelimit headers. The counters are per minute, so this starts at a fresh window.'
+  s=$(date +%S); wait=$((62 - 10#$s))
+  printf 'waiting %ss for a fresh one-minute window…\n' "$wait"
+  sleep "$wait"
+  burst 'developer key' "$DEV_KEY" 15 10
+  burst 'anonymous' '' 8 5
+}
+
 section_measured() {
   local file title summary
-  section '13. Measured so far' 'The numbered POC result notes make the measured progress and any still-running work visible without hiding gaps.'
+  section '14. Measured so far' 'The numbered POC result notes make the measured progress and any still-running work visible without hiding gaps.'
   printf '%s$ find auth-service/poc-results -maxdepth 1 -type f -name "[0-9][0-9]-*.md" -print | sort%s\n' "$CYAN" "$RESET"
   while IFS= read -r file; do
     [[ -n "$file" ]] || continue
@@ -425,7 +465,7 @@ section_measured() {
 }
 
 section_jwt() {
-  section '8. First-party JWT arm' 'The live JWT matrix and rotation result distinguish Envoy fail-open from auth-service verification.'
+  section '9. First-party JWT arm' 'The live JWT matrix and rotation result distinguish Envoy fail-open from auth-service verification.'
   local result="$AUTH_SERVICE/poc-results/20-jwt-arm.md"
   if [[ -f "$result" ]]; then
     awk '/^## Summary[[:space:]]*$/{found=1; next} found && /^## /{exit} found{print}' "$result" | sanitize
@@ -436,7 +476,7 @@ section_jwt() {
 }
 
 section_modes() {
-  section '9. Enforce versus observe' 'Task 22 shows the gated-route contract and the Phase 1 observe-mode status matrix.'
+  section '10. Enforce versus observe' 'Task 22 shows the gated-route contract and the Phase 1 observe-mode status matrix.'
   local result="$AUTH_SERVICE/poc-results/22-modes.md"
   if [[ -f "$result" ]]; then
     awk '/^## Summary[[:space:]]*$/{found=1; next} found && /^## /{exit} found{print}' "$result" | sanitize
@@ -447,7 +487,7 @@ section_modes() {
 }
 
 section_drills() {
-  section '10. Failure drills (POC round 1)' 'Task 24 records how auth-service, rate-limit Redis, JWKS, and Postgres outages behaved in the dev cauldron.'
+  section '11. Failure drills (POC round 1)' 'Task 24 records how auth-service, rate-limit Redis, JWKS, and Postgres outages behaved in the dev cauldron.'
   local result="$AUTH_SERVICE/poc-results/24-drills.md"
   if [[ -f "$result" ]]; then
     awk '/^## Summary[[:space:]]*$/{found=1; next} found && /^## /{exit} found{print}' "$result" | sanitize
@@ -458,7 +498,7 @@ section_drills() {
 }
 
 section_capacity() {
-  section '11. Capacity' 'Task 26 records the 10,000-key registry load, direct auth-service sweeps, and gated optional arms.'
+  section '12. Capacity' 'Task 26 records the 10,000-key registry load, direct auth-service sweeps, and gated optional arms.'
   local result="$AUTH_SERVICE/poc-results/26-capacity.md"
   if [[ -f "$result" ]]; then
     awk '/^## Summary[[:space:]]*$/{found=1; next} found && /^## /{exit} found{print}' "$result" | sanitize
@@ -469,7 +509,7 @@ section_capacity() {
 }
 
 section_latency() {
-  section '12. Varnish-hit latency' 'Task 25 measures the added latency of auth enforcement on a cacheable anonymous request and compares credentialed arms.'
+  section '13. Varnish-hit latency' 'Task 25 measures the added latency of auth enforcement on a cacheable anonymous request and compares credentialed arms.'
   local result="$AUTH_SERVICE/poc-results/25-latency.md"
   if [[ -f "$result" ]]; then
     awk '/^## Summary[[:space:]]*$/{found=1; next} found && /^## /{exit} found{print}' "$result" | sanitize
@@ -480,7 +520,7 @@ section_latency() {
 }
 
 section_read_more() {
-  section '14. Where to read more' 'The implementation, infrastructure rollout, and execution status each have a durable place for follow-up.'
+  section '15. Where to read more' 'The implementation, infrastructure rollout, and execution status each have a durable place for follow-up.'
   printf '%sDraft PR:%s https://github.com/Sefaria/Sefaria-Project/pull/3736\n' "$GREEN" "$RESET"
   printf '%sInfra PR:%s https://github.com/Sefaria/infrastructure/pull/687\n' "$GREEN" "$RESET"
   printf '%sWiki status:%s https://github.com/Sefaria/sefaria-wiki/wiki/projects/api-key-program/poc-execution-status.md\n' "$GREEN" "$RESET"
@@ -505,6 +545,7 @@ else
     section_propagation
     section_listener_drill
   fi
+  $CLUSTER_OK && section_ratelimit
 fi
 section_jwt
 section_modes
