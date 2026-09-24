@@ -2,6 +2,9 @@ import pytest
 from sefaria.model.linker.named_entity_resolver import PersonTitleGenerator
 
 
+
+pytestmark = pytest.mark.needs_linker
+
 @pytest.mark.parametrize(('title', 'expected_output'), [
     ['Rabbi b. Ben', ['Rabbi b. Ben', 'Rabbi ben Ben', 'Rabbi bar Ben', 'Rabbi, son of Ben', 'Rabbi, the son of Ben',
                       'Rabbi son of Ben', 'Rabbi the son of Ben', 'Rabbi Bar Ben', 'Rabbi Ben Ben', 'R. b. Ben']],
