@@ -27,7 +27,7 @@ spec:
         function envoy_on_request(request_handle)
           local client_ip = extract_client_ip(request_handle)
           if client_ip then
-            request_handle:headers():add("X-Original-Forwarded-For", client_ip)
+            request_handle:headers():replace("X-Original-Forwarded-For", client_ip)
           end
         end
 {{- end }}

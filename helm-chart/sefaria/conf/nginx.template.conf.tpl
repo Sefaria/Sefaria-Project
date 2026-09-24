@@ -20,8 +20,50 @@ http {
   opentracing_load_tracer /usr/local/lib/libjaegertracing_plugin.so /etc/nginx/opentracing.json;
   {{- end }}
 
+  # Caller-classification fields for the access log (sc-47234). Each map outputs a short
+  # constant or a Sec-Fetch/Origin value, never a credential. No Helm template braces in
+  # these maps: this file goes through Helm tpl.
+  # secFetch: Sec-Fetch-Site/Mode/Dest as "site/mode/dest"; empty when the caller sends none.
+  map "$http_sec_fetch_site/$http_sec_fetch_mode/$http_sec_fetch_dest" $sec_fetch {
+    "//"    "";
+    default "$http_sec_fetch_site/$http_sec_fetch_mode/$http_sec_fetch_dest";
+  }
+
+  # credentialTransport: which header or query parameter carried a credential (presence only).
+  # Precedence when several are present: x-api-key, authorization, x-sefaria-api-key, query.
+  map $arg_api_key$arg_apikey $credential_transport_query {
+    ""      none;
+    default query;
+  }
+  map $http_x_sefaria_api_key $credential_transport_sefaria {
+    ""      $credential_transport_query;
+    default x-sefaria-api-key;
+  }
+  map $http_authorization $credential_transport_authorization {
+    ""      $credential_transport_sefaria;
+    default authorization;
+  }
+  map $http_x_api_key $credential_transport {
+    ""      $credential_transport_authorization;
+    default x-api-key;
+  }
+
+  # varnishCache: Varnish sets X-Varnish to two ids on a cache hit and one id otherwise
+  # (miss or pass). Empty means the response did not come through Varnish (search, static).
+  map $upstream_http_x_varnish $varnish_cache {
+    ""                 bypass;
+    "~^[0-9]+ [0-9]+$" hit;
+    default            miss;
+  }
+
+  # sessionCookie: presence of the Django session cookie. Logged unquoted as a JSON boolean.
+  map $cookie_sessionid $session_cookie {
+    ""      false;
+    default true;
+  }
+
   # https://nginx.org/en/docs/varindex.html
-  log_format structured escape=json '{ "requestDuration": $request_time, "envName": "${ENV_NAME}", "stackComponent": "nginx", "host": "$hostname", "severity": "info", "httpRequest": { "requestMethod": "$request_method", "requestUrl": "$request_uri", "requestSize": $request_length, "status":  $status, "responseSize": $body_bytes_sent, "userAgent":  "$http_user_agent", "remoteIp": "$http_x_original_forwarded_for", "referer": "$http_referer", "latency": ${request_time}, "protocol": "$server_protocol", "forwardedHTTP": "$http_x_forwarded_proto" }, "remoteUser": "$remote_user", "timeLocal": "$time_local" }';
+  log_format structured escape=json '{ "requestDuration": $request_time, "envName": "${ENV_NAME}", "stackComponent": "nginx", "host": "$hostname", "severity": "info", "httpRequest": { "requestMethod": "$request_method", "requestUrl": "$request_uri", "requestSize": $request_length, "status":  $status, "responseSize": $body_bytes_sent, "userAgent":  "$http_user_agent", "remoteIp": "$http_x_original_forwarded_for", "referer": "$http_referer", "protocol": "$server_protocol", "forwardedHTTP": "$http_x_forwarded_proto" }, "apiClassification": { "secFetch": "$sec_fetch", "origin": "$http_origin", "credentialTransport": "$credential_transport", "varnishCache": "$varnish_cache", "sessionCookie": $session_cookie }, "timeLocal": "$time_local" }';
   access_log /dev/stdout structured;
   client_max_body_size 32M;
 
