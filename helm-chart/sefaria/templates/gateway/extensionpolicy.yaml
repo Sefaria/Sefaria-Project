@@ -13,21 +13,39 @@ spec:
   lua:
     - type: Inline
       inline: |
+        -- Envoy address strings are "ip:port" or "[ipv6]:port"; strip the port.
+        function strip_port(addr)
+          if not addr or addr == "" then
+            return nil
+          end
+          local v6 = addr:match("^%[(.+)%]:%d+$")
+          if v6 then
+            return v6
+          end
+          local v4 = addr:match("^([^:]+):%d+$")
+          if v4 then
+            return v4
+          end
+          return addr
+        end
+
         function extract_client_ip(request_handle)
           local cf_ip = request_handle:headers():get("CF-Connecting-IP")
-          local xff = request_handle:headers():get("X-Forwarded-For")
           if cf_ip and cf_ip ~= "" then
             return cf_ip
-          elseif xff and xff ~= "" then
-            return xff
           end
-          return nil
+          -- Envoy's single resolved client address (honours
+          -- ClientTrafficPolicy numTrustedHops), not the raw client-supplied
+          -- X-Forwarded-For list.
+          return strip_port(request_handle:streamInfo():downstreamRemoteAddress())
         end
 
         function envoy_on_request(request_handle)
           local client_ip = extract_client_ip(request_handle)
           if client_ip then
             request_handle:headers():replace("X-Original-Forwarded-For", client_ip)
+          else
+            request_handle:headers():remove("X-Original-Forwarded-For")
           end
         end
 {{- end }}
