@@ -32,7 +32,7 @@ readonly RED=$'\033[1;31m'
 
 cleanup() {
   local file
-  [[ $BASHPID == "$$" ]] || return 0   # pipeline subshells inherit this trap; only the main shell cleans up
+  (( BASH_SUBSHELL == 0 )) || return 0   # pipeline subshells inherit this trap (bash 3.2 has no BASHPID); only the main shell cleans up
   if [[ -n "$RESTORE_TIER" ]]; then
     printf '%srestoring %s tier to %s%s\n' "$YELLOW" "$DEMO_PROJECT" "$RESTORE_TIER" "$RESET"
     keyadmin set-tier --project "$DEMO_PROJECT" --tier "$RESTORE_TIER" >/dev/null 2>&1 || unavailable "could not restore $DEMO_PROJECT tier to $RESTORE_TIER"
