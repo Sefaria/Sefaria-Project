@@ -219,6 +219,14 @@ http_probe() {
     unavailable "$label request failed"
     return 0
   fi
+  if [[ $status == 429 && $expected_status != 429 && -z ${RETRIED_429:-} ]]; then
+    # The per-minute budget was spent earlier in this window (e.g. by a previous demo run's section 8): say so, wait for
+    # the next window, and retry once, so the probe tests auth, not the leftover rate-limit state.
+    printf 'status=429 (rate budget for this identity already spent in this minute; retrying at the next window)\n'
+    sleep $((62 - 10#$(date +%S)))
+    RETRIED_429=1 http_probe "$@"
+    return 0
+  fi
   via=$(awk 'BEGIN { IGNORECASE=1 } /^via:/ { sub(/^[^:]*:[[:space:]]*/, ""); gsub(/[[:space:]]+$/, ""); print; exit }' "$headers")
   [[ -n "$via" ]] || via='none'
   code=$(sed -n 's/.*"code"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$body" | head -n 1)
