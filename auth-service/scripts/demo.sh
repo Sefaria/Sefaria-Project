@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Read-only, boss-facing progress demo for the API auth POC.
+# Boss-facing progress demo for the API auth POC.
+# Read-only except sections 6 and 7, which change the dev key registry on purpose: a project's tier is flipped and
+# restored (restored even if the demo fails), and the auth service's own listener connection is dropped. --read-only
+# skips both.
 set -uo pipefail
 
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
@@ -9,6 +12,10 @@ NS=${NS:-default}
 HOST=${HOST:-https://www.authpoc.cauldron.sefaria.org}
 PAUSE=false
 OFFLINE=false
+READ_ONLY=false
+CLUSTER_OK=true
+RESTORE_TIER=''
+DEMO_PROJECT=${DEMO_PROJECT:-proj_alpha}
 TMP_FILES=()
 
 DEV_KEY='sfr_alpha000000000000000000000000001'
@@ -25,6 +32,10 @@ readonly RED=$'\033[1;31m'
 
 cleanup() {
   local file
+  if [[ -n "$RESTORE_TIER" ]]; then
+    printf '%srestoring %s tier to %s%s\n' "$YELLOW" "$DEMO_PROJECT" "$RESTORE_TIER" "$RESET"
+    keyadmin set-tier --project "$DEMO_PROJECT" --tier "$RESTORE_TIER" >/dev/null 2>&1 || unavailable "could not restore $DEMO_PROJECT tier to $RESTORE_TIER"
+  fi
   for file in "${TMP_FILES[@]-}"; do
     [[ -n "$file" ]] || continue
     rm -f "$file"
@@ -33,13 +44,14 @@ cleanup() {
 trap cleanup EXIT
 
 usage() {
-  printf 'Usage: %s [--pause] [--offline]\n' "$0"
+  printf 'Usage: %s [--pause] [--offline] [--read-only]\n' "$0"
 }
 
 while (($#)); do
   case "$1" in
     --pause) PAUSE=true ;;
     --offline) OFFLINE=true ;;
+    --read-only) READ_ONLY=true ;;
     -h|--help) usage; exit 0 ;;
     *) printf 'unavailable: unknown flag %s\n' "$1" >&2; usage; exit 0 ;;
   esac
@@ -275,9 +287,128 @@ section_safe() {
   fi
 }
 
+# --- Round 2 (2026-09-23): one key registry per cluster, changes over Postgres LISTEN/NOTIFY -------------------
+
+ok_if() { # ok_if <label> <shell test...>
+  local label=$1
+  shift
+  if "$@"; then printf '%s  [OK]\n' "$label"; else printf '%s  [MISMATCH]\n' "$label"; fi
+}
+
+# pg <database> <sql>: query the cluster's shared postgres-18 as its admin user (the password never leaves the pod).
+pg() {
+  kubectl --context "$CTX" -n "$NS" exec postgres-18-0 -- sh -c "psql -qtA -v ON_ERROR_STOP=1 -U \"\${POSTGRES_USER:-postgres}\" -d $1 -c \"$2\""
+}
+
+# keyadmin <args>: the registry writer, run inside an auth-service pod (it already has PG_DSN). No --push: the
+# registry's triggers notify every auth service themselves.
+keyadmin() {
+  kubectl --context "$CTX" -n "$NS" exec deploy/authpoc-auth-service -- /keyadmin "$@"
+}
+
+# age_under_1s <go-duration>: true when a Go duration such as 1.35ms or 850µs is below one second.
+age_under_1s() {
+  awk -v a="$1" 'BEGIN { if (!match(a, /^[0-9.]+/)) exit 1; n = substr(a, 1, RLENGTH); u = substr(a, RLENGTH + 1)
+    m = (u == "s") ? 1 : (u == "ms") ? 0.001 : (u == "µs" || u == "us") ? 0.000001 : (u == "ns") ? 1e-9 : -1
+    exit !(m > 0 && n * m < 1) }'
+}
+
+auth_pods() {
+  kubectl --context "$CTX" -n "$NS" get pods -l app=auth-service-authpoc -o name
+}
+
+section_registry() {
+  local -a k=(kubectl --context "$CTX" -n "$NS")
+  local out n pods replicas
+  section '5. One key registry per cluster (read-only)' 'The auth service has no Postgres of its own: it reads the cluster registry (database sefaria_apikeys inside the shared postgres-18) through one Secret, listens for changes on it, and no longer uses the app Redis.'
+  show_command "${k[@]}" get deploy,svc -o name
+  if ! out=$("${k[@]}" get deploy,svc -o name 2>/dev/null); then
+    unavailable 'cluster not reachable (gcloud auth?); skipping the live sections'
+    CLUSTER_OK=false
+    return 0
+  fi
+  n=$(printf '%s\n' "$out" | grep -c 'auth-service-postgres')
+  ok_if "chart-managed Postgres objects: $n" test "$n" = 0
+
+  out=$(new_tmp)
+  capture "$out" "${k[@]}" get deploy authpoc-auth-service -o 'jsonpath={range .spec.template.spec.containers[0].env[*]}{.name}={.value}{.valueFrom.secretKeyRef.name}{"\n"}{end}' >/dev/null
+  grep -E '^(PG_DSN|PG_NOTIFY_CHANNEL|REDIS_ADDR)=' "$out" | sanitize
+  ok_if 'PG_DSN from Secret auth-service-registry' grep -qx 'PG_DSN=auth-service-registry' "$out"
+  ok_if 'PG_NOTIFY_CHANNEL=sefaria_apikeys' grep -qx 'PG_NOTIFY_CHANNEL=sefaria_apikeys' "$out"
+  ok_if 'no REDIS_ADDR (app Redis not used)' bash -c "! grep -q '^REDIS_ADDR=' '$out'"
+
+  printf '%s$ psql sefaria_apikeys: triggers, and keys per project (counts only)%s\n' "$CYAN" "$RESET"
+  pg sefaria_apikeys "select tgname || ' on ' || tgrelid::regclass from pg_trigger where tgname like 'apikeys_notify%' order by 1"
+  n=$(pg sefaria_apikeys "select count(*) from pg_trigger where tgname like 'apikeys_notify%'")
+  ok_if "notify triggers: $n" test "$n" = 2
+  pg sefaria_apikeys "select p.id || ' tier=' || p.tier || ' active=' || count(*) filter (where k.revoked_at is null) || ' revoked=' || count(*) filter (where k.revoked_at is not null) from projects p left join api_keys k on k.project_id = p.id group by p.id, p.tier order by 1"
+
+  pods=$(auth_pods); replicas=$(printf '%s\n' "$pods" | grep -c .)
+  n=$(pg postgres "select count(*) from pg_stat_activity where application_name = 'authsvc-listener'")
+  ok_if "listener connections on postgres-18: $n (auth-service pods: $replicas)" test "$n" = "$replicas"
+  n=$(pg postgres "select pg_notification_queue_usage()")
+  ok_if "notification queue usage: $n" test "$n" = 0
+  for pod in $pods; do
+    "${k[@]}" logs "$pod" 2>/dev/null | grep -E 'registry loaded|postgres listener established' | head -n 2 | sed "s|^|${pod#pod/}: |"
+  done
+}
+
+# check_notified <since> <table>: every auth pod logged the notification (age < 1 s) and a reload after it.
+check_notified() {
+  local since=$1 table=$2 pod line age
+  sleep 3
+  for pod in $(auth_pods); do
+    line=$(kubectl --context "$CTX" -n "$NS" logs "$pod" --since-time="$since" 2>/dev/null | grep 'notify received' | grep "table=$table" | head -n 1)
+    age=$(printf '%s' "$line" | sed -n 's/.* age=\([^ ]*\).*/\1/p')
+    printf '%s\n' "${pod#pod/}: ${line:-no notification}"
+    ok_if "  ${pod#pod/} notified in ${age:-?}" age_under_1s "${age:-x}"
+    ok_if "  ${pod#pod/} reloaded" bash -c "kubectl --context '$CTX' -n '$NS' logs '$pod' --since-time='$since' 2>/dev/null | grep -q 'notify reload'"
+  done
+}
+
+section_propagation() {
+  local orig target since now
+  section '6. A key change reaches every auth service (changes the registry, then restores it)' "keyadmin writes to the registry the way Django will. There is no push step: the registry's trigger sends a NOTIFY on commit, and every auth service reloads. Project: $DEMO_PROJECT."
+  orig=$(pg sefaria_apikeys "select tier from projects where id = '$DEMO_PROJECT'")
+  if [[ -z "$orig" ]]; then unavailable "project $DEMO_PROJECT not in the registry"; return 0; fi
+  target=partner; [[ "$orig" == partner ]] && target=developer
+  since=$(date -u +%Y-%m-%dT%H:%M:%SZ); sleep 1
+  RESTORE_TIER=$orig
+  show_command kubectl --context "$CTX" -n "$NS" exec deploy/authpoc-auth-service -- /keyadmin set-tier --project "$DEMO_PROJECT" --tier "$target"
+  keyadmin set-tier --project "$DEMO_PROJECT" --tier "$target" 2>&1 | sanitize
+  now=$(pg sefaria_apikeys "select tier from projects where id = '$DEMO_PROJECT'")
+  ok_if "registry: $DEMO_PROJECT tier $orig -> $now" test "$now" = "$target"
+  check_notified "$since" projects
+
+  since=$(date -u +%Y-%m-%dT%H:%M:%SZ); sleep 1
+  show_command kubectl --context "$CTX" -n "$NS" exec deploy/authpoc-auth-service -- /keyadmin set-tier --project "$DEMO_PROJECT" --tier "$orig"
+  keyadmin set-tier --project "$DEMO_PROJECT" --tier "$orig" 2>&1 | sanitize
+  now=$(pg sefaria_apikeys "select tier from projects where id = '$DEMO_PROJECT'")
+  ok_if "registry: $DEMO_PROJECT tier restored to $now" test "$now" = "$orig"
+  [[ "$now" == "$orig" ]] && RESTORE_TIER=''
+  check_notified "$since" projects
+}
+
+section_listener_drill() {
+  local since n pod replicas
+  section '7. Listener connection dropped (drops only the auth service'"'"'s own connection)' 'NOTIFY is not stored: anything sent while a listener is disconnected is lost. So on every reconnect the auth service LISTENs again and reloads the full key set.'
+  since=$(date -u +%Y-%m-%dT%H:%M:%SZ); sleep 1
+  printf '%s$ psql postgres: select pg_terminate_backend(pid) from pg_stat_activity where application_name = '"'"'authsvc-listener'"'"'%s\n' "$CYAN" "$RESET"
+  n=$(pg postgres "select count(pg_terminate_backend(pid)) from pg_stat_activity where application_name = 'authsvc-listener'")
+  printf 'terminated listener connections: %s\n' "$n"
+  sleep 5
+  for pod in $(auth_pods); do
+    kubectl --context "$CTX" -n "$NS" logs "$pod" --since-time="$since" 2>/dev/null | grep -E 'postgres listener|notify reload' | head -n 3 | sed "s|^|${pod#pod/}: |"
+    ok_if "  ${pod#pod/} re-established and reloaded" bash -c "kubectl --context '$CTX' -n '$NS' logs '$pod' --since-time='$since' 2>/dev/null | grep -q 'postgres listener established'"
+  done
+  replicas=$(auth_pods | grep -c .)
+  n=$(pg postgres "select count(*) from pg_stat_activity where application_name = 'authsvc-listener'")
+  ok_if "listener connections after the drill: $n" test "$n" = "$replicas"
+}
+
 section_measured() {
   local file title summary
-  section '5. Measured so far' 'The numbered POC result notes make the measured progress and any still-running work visible without hiding gaps.'
+  section '13. Measured so far' 'The numbered POC result notes make the measured progress and any still-running work visible without hiding gaps.'
   printf '%s$ find auth-service/poc-results -maxdepth 1 -type f -name "[0-9][0-9]-*.md" -print | sort%s\n' "$CYAN" "$RESET"
   while IFS= read -r file; do
     [[ -n "$file" ]] || continue
@@ -294,7 +425,7 @@ section_measured() {
 }
 
 section_jwt() {
-  section '5. First-party JWT arm' 'The live JWT matrix and rotation result distinguish Envoy fail-open from auth-service verification.'
+  section '8. First-party JWT arm' 'The live JWT matrix and rotation result distinguish Envoy fail-open from auth-service verification.'
   local result="$AUTH_SERVICE/poc-results/20-jwt-arm.md"
   if [[ -f "$result" ]]; then
     awk '/^## Summary[[:space:]]*$/{found=1; next} found && /^## /{exit} found{print}' "$result" | sanitize
@@ -305,7 +436,7 @@ section_jwt() {
 }
 
 section_modes() {
-  section '6. Enforce versus observe' 'Task 22 shows the gated-route contract and the Phase 1 observe-mode status matrix.'
+  section '9. Enforce versus observe' 'Task 22 shows the gated-route contract and the Phase 1 observe-mode status matrix.'
   local result="$AUTH_SERVICE/poc-results/22-modes.md"
   if [[ -f "$result" ]]; then
     awk '/^## Summary[[:space:]]*$/{found=1; next} found && /^## /{exit} found{print}' "$result" | sanitize
@@ -316,7 +447,7 @@ section_modes() {
 }
 
 section_drills() {
-  section '7. Failure drills' 'Task 24 records how auth-service, rate-limit Redis, JWKS, and Postgres outages behaved in the dev cauldron.'
+  section '10. Failure drills (POC round 1)' 'Task 24 records how auth-service, rate-limit Redis, JWKS, and Postgres outages behaved in the dev cauldron.'
   local result="$AUTH_SERVICE/poc-results/24-drills.md"
   if [[ -f "$result" ]]; then
     awk '/^## Summary[[:space:]]*$/{found=1; next} found && /^## /{exit} found{print}' "$result" | sanitize
@@ -327,7 +458,7 @@ section_drills() {
 }
 
 section_capacity() {
-  section '8. Capacity' 'Task 26 records the 10,000-key registry load, direct auth-service sweeps, and gated optional arms.'
+  section '11. Capacity' 'Task 26 records the 10,000-key registry load, direct auth-service sweeps, and gated optional arms.'
   local result="$AUTH_SERVICE/poc-results/26-capacity.md"
   if [[ -f "$result" ]]; then
     awk '/^## Summary[[:space:]]*$/{found=1; next} found && /^## /{exit} found{print}' "$result" | sanitize
@@ -338,7 +469,7 @@ section_capacity() {
 }
 
 section_latency() {
-  section '9. Varnish-hit latency' 'Task 25 measures the added latency of auth enforcement on a cacheable anonymous request and compares credentialed arms.'
+  section '12. Varnish-hit latency' 'Task 25 measures the added latency of auth enforcement on a cacheable anonymous request and compares credentialed arms.'
   local result="$AUTH_SERVICE/poc-results/25-latency.md"
   if [[ -f "$result" ]]; then
     awk '/^## Summary[[:space:]]*$/{found=1; next} found && /^## /{exit} found{print}' "$result" | sanitize
@@ -349,10 +480,13 @@ section_latency() {
 }
 
 section_read_more() {
-  section '10. Where to read more' 'The implementation, infrastructure rollout, and execution status each have a durable place for follow-up.'
+  section '14. Where to read more' 'The implementation, infrastructure rollout, and execution status each have a durable place for follow-up.'
   printf '%sDraft PR:%s https://github.com/Sefaria/Sefaria-Project/pull/3736\n' "$GREEN" "$RESET"
   printf '%sInfra PR:%s https://github.com/Sefaria/infrastructure/pull/687\n' "$GREEN" "$RESET"
   printf '%sWiki status:%s https://github.com/Sefaria/sefaria-wiki/wiki/projects/api-key-program/poc-execution-status.md\n' "$GREEN" "$RESET"
+  printf '%sWiki source of truth:%s https://github.com/Sefaria/sefaria-wiki/wiki/projects/api-key-program/_index.md\n' "$GREEN" "$RESET"
+  printf '%sKeyway (where we stand + playground):%s https://claude.ai/artifact/HYtnjgtbs3Coxr3FeizDR7\n' "$GREEN" "$RESET"
+  printf '%sRegistry infra PR:%s https://github.com/Sefaria/infrastructure/pull/690\n' "$GREEN" "$RESET"
 }
 
 section_built
@@ -362,6 +496,15 @@ else
   section_deployed
   section_enforced
   section_safe
+  section_registry
+  if ! $CLUSTER_OK; then
+    printf '\n%sCluster unreachable:%s skipped sections 6 and 7; the registry was not changed.\n' "$YELLOW" "$RESET"
+  elif $READ_ONLY; then
+    printf '\n%sRead-only mode:%s skipped sections 6 and 7 (live registry change and listener drill).\n' "$YELLOW" "$RESET"
+  else
+    section_propagation
+    section_listener_drill
+  fi
 fi
 section_jwt
 section_modes
