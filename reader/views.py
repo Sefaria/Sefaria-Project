@@ -99,7 +99,7 @@ import sefaria.tracker as tracker
 from sefaria.settings import NODE_TIMEOUT, DEBUG
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.utils.calendars import parashat_hashavua_and_haftara
-from sefaria.utils.chatbot import build_chatbot_user_token
+from sefaria.utils.chatbot import build_chatbot_user_token, resolve_chatbot_version
 from PIL import Image
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
@@ -369,7 +369,7 @@ def base_props(request):
         "appVersion": APP_VERSION,
     })
     
-    chatbot_version = request.session.get("chatbot_version")
+    chatbot_version = resolve_chatbot_version(request)
     chatbot_version = chatbot_version if is_int(chatbot_version) else None
 
     # Chatbot props (passed through base_props for ReaderApp)

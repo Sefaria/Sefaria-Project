@@ -6979,6 +6979,49 @@ big {
 .segment .segmentText{
   display: inline;
 }
+
+/* Community QA for unverified machine translations (POC) */
+.segment .translationQA {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #999;
+  cursor: default;
+}
+.continuous .segment .translationQA {
+  display: none; /* continuous view has no per-segment chrome */
+}
+.segment .translationQALabel {
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.segment .translationQAGood {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.segment .translationQAGood input {
+  margin: 0;
+  cursor: pointer;
+}
+.segment .translationQAReport {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: #666;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.segment .translationQAReport:hover {
+  color: #000;
+}
+.interface-hebrew .segment .translationQA {
+  direction: rtl;
+}
 .segment > .he,
 .segment > .en,
 .segment > p > .he,
