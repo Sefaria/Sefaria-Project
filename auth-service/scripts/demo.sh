@@ -414,7 +414,7 @@ section_listener_drill() {
 # burst <label> <key or empty> <count> <limit>: sequential requests in one window; prints each status with the
 # x-ratelimit-remaining countdown, checks the exact 200/429 split, then shows and checks the first 429.
 burst() {
-  local label=$1 key=$2 n=$3 limit=$4 i code rem ok=0 limited=0 line='' first429='' h b
+  local label=$1 key=$2 n=$3 limit=$4 i code rem ok=0 limited=0 line='' first429='' last200='' h b
   local -a hk=()
   [[ -n "$key" ]] && hk=(-H "x-api-key: $key")
   printf '%s$ for i in 1..%s: curl %s %s/api/texts/Genesis.1%s\n' "$CYAN" "$n" "$([[ -n "$key" ]] && printf -- '-H x-api-key:%s' "$(mask_key "$key")")" "$HOST" "$RESET"
@@ -423,7 +423,7 @@ burst() {
     code=$(curl -sS --max-time 15 -D "$h" -o "$b" ${hk[@]+"${hk[@]}"} -w '%{http_code}' "$HOST/api/texts/Genesis.1" 2>/dev/null)
     rem=$(awk 'BEGIN{IGNORECASE=1} tolower($1)=="x-ratelimit-remaining:"{gsub(/\r/,"",$2); print $2; exit}' "$h")
     line+="$code${rem:+(${rem})} "
-    [[ $code == 200 ]] && ok=$((ok + 1))
+    if [[ $code == 200 ]]; then ok=$((ok + 1)); last200=$h; fi
     if [[ $code == 429 ]]; then limited=$((limited + 1)); [[ -z $first429 ]] && first429="$h $b"; fi
   done
   printf '%s: %s\n' "$label" "$line"
@@ -436,7 +436,9 @@ burst() {
     printf '    %s\n' "$(sanitize <"$b")"
     ok_if '  429 body is the product-spec rate_limited error' grep -q '"code":"rate_limited"' "$b"
     ok_if '  Retry-After: 60' grep -qi '^retry-after: 60' "$h"
-    ok_if '  x-ratelimit-limit header present (F3)' grep -qi '^x-ratelimit-limit:' "$h"
+    # F3: allowed responses carry x-ratelimit-*; the product-spec 429 override drops them (Envoy leaves %RESP()% empty
+    # there), so the client learns the budget from the last allowed response and Retry-After from the 429.
+    [[ -n $last200 ]] && ok_if '  last allowed response: x-ratelimit-remaining: 0 (F3)' grep -qi '^x-ratelimit-remaining: 0' "$last200"
   fi
 }
 

@@ -62,12 +62,8 @@ spec:
         header:
           set:
             - { name: Retry-After, value: {{ $rl.retryAfterSeconds | quote }} }
-            {{- if $rl.headers }}
-            # the override replaces Envoy's 429, so carry the rate-limit headers over from it (F3)
-            - { name: X-RateLimit-Limit, value: "%RESP(x-ratelimit-limit)%" }
-            - { name: X-RateLimit-Remaining, value: "%RESP(x-ratelimit-remaining)%" }
-            - { name: X-RateLimit-Reset, value: "%RESP(x-ratelimit-reset)%" }
-            {{- end }}
+            # x-ratelimit-* headers are on every allowed response (rateLimit.headers). This override replaces Envoy's 429 and
+            # drops them; %RESP(x-ratelimit-*)% comes back empty here (tested 2026-09-24 on EG 1.9.1), so only Retry-After.
         body:
           type: Inline
           inline: '{"error":"Too many requests for this identity in the current window.","code":"rate_limited","help":"{{ .Values.authService.helpURL }}rate_limited","project":"%REQ(x-sefaria-project)%","tier":"%REQ(x-sefaria-tier)%"}'
