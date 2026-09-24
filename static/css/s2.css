@@ -7968,6 +7968,45 @@ But not to use a display block directive that might break continuous mode for ot
   color: #000000;
   border-bottom-color: var(--category-color);
 }
+/* A recent filter with no connections on the selected refs */
+.textList .recentFilterSet .textFilter.lowlight,
+.connectionsPanelHeader .recentFilterSet.topFilters .textFilter.lowlight {
+  color: var(--medium-grey-legacy);
+  border-bottom-style: dotted;
+}
+.textList .recentFilterSet .textFilter.on.lowlight,
+.connectionsPanelHeader .recentFilterSet.topFilters .textFilter.on.lowlight {
+  color: var(--medium-grey);
+}
+.recentFilterSet .textFilter .connectionsCount {
+  font-size: 14px;
+}
+.otherCommentariesNotice {
+  margin: 0 0 18px 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--dark-grey);
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.otherCommentariesNotice a {
+  color: var(--darkest-grey);
+  text-decoration: underline;
+  text-decoration-color: var(--light-grey);
+  text-underline-offset: 3px;
+}
+.otherCommentariesNotice a:hover {
+  text-decoration-color: currentColor;
+}
+.otherCommentariesNotice .connectionsCount {
+  font-size: 13px;
+}
+.otherCommentariesNotice .contentText {
+  font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-size: 16px;
+}
+.dark .otherCommentariesNotice, .dark .otherCommentariesNotice a {
+  color: #bbb;
+}
 .recentFilterSet.filterSet .textFilter, .recentFilterSet.filterSet .textFilter span{
   font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }

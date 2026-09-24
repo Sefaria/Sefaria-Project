@@ -376,6 +376,7 @@ class ConnectionsPanel extends Component {
         contentLang={this.props.contentLang}
         setFilter={this.props.setFilter}
         setConnectionsMode={this.props.setConnectionsMode}
+        setConnectionsCategory={this.props.setConnectionsCategory}
         onTextClick={this.props.onTextClick}
         onCitationClick={this.props.onCitationClick}
         handleSheetClick={this.props.handleSheetClick}
