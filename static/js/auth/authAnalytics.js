@@ -1,21 +1,21 @@
 import { makeUuid } from './utils.js';
 
 /**
- * Sign-up funnel analytics (spec: sign_up_flow_started / sign_up_method_chosen /
- * sign_up_process_started / sign_up_process_ended / sign_up_flow_ended), fired for
- * every sign-up method (email, Google, Apple, Google One Tap) via GA4 gtag events.
+ * Auth funnel analytics (spec: auth_flow_started / auth_method_chosen /
+ * auth_process_started / auth_process_ended / auth_flow_ended), fired for
+ * every login/register method (email, Google, Apple, Google One Tap) via GA4 gtag events.
  *
- * Pure helpers only — see useSignUpTracking.js for the AuthPage-facing hook.
+ * Pure helpers only — see useAuthTracking.js for the AuthPage-facing hook.
  */
-export const SIGNUP_EVENT = {
-  FLOW_STARTED: 'sign_up_flow_started',
-  METHOD_CHOSEN: 'sign_up_method_chosen',
-  PROCESS_STARTED: 'sign_up_process_started',
-  PROCESS_ENDED: 'sign_up_process_ended',
-  FLOW_ENDED: 'sign_up_flow_ended',
+export const AUTH_EVENT = {
+  FLOW_STARTED: 'auth_flow_started',
+  METHOD_CHOSEN: 'auth_method_chosen',
+  PROCESS_STARTED: 'auth_process_started',
+  PROCESS_ENDED: 'auth_process_ended',
+  FLOW_ENDED: 'auth_flow_ended',
 };
 
-export const SIGNUP_METHOD = { EMAIL: 'email', GOOGLE: 'google', APPLE: 'apple', GOOGLE_ONE_TAP: 'google_one_tap' };
+export const AUTH_METHOD = { EMAIL: 'email', GOOGLE: 'google', APPLE: 'apple', GOOGLE_ONE_TAP: 'google_one_tap' };
 
 export const SSO_REFERRER_ORIGIN = { GOOGLE: 'https://accounts.google.com', APPLE: 'https://appleid.apple.com' };
 
@@ -29,20 +29,20 @@ function sendEvent(name, params) {
   });
 }
 
-export function fireFlowStarted(flowId, source) {
-  sendEvent(SIGNUP_EVENT.FLOW_STARTED, { flow_id: flowId, source });
+export function fireFlowStarted(flowId, source, flowIntent) {
+  sendEvent(AUTH_EVENT.FLOW_STARTED, { flow_id: flowId, source, flow_intent: flowIntent });
 }
 export function fireMethodChosen(flowId, attemptId, method) {
-  sendEvent(SIGNUP_EVENT.METHOD_CHOSEN, { flow_id: flowId, attempt_id: attemptId, method });
+  sendEvent(AUTH_EVENT.METHOD_CHOSEN, { flow_id: flowId, attempt_id: attemptId, method });
 }
 export function fireProcessStarted(flowId, attemptId) {
-  sendEvent(SIGNUP_EVENT.PROCESS_STARTED, { flow_id: flowId, attempt_id: attemptId });
+  sendEvent(AUTH_EVENT.PROCESS_STARTED, { flow_id: flowId, attempt_id: attemptId });
 }
-export function fireProcessEnded(flowId, attemptId, status, error = null) {
-  sendEvent(SIGNUP_EVENT.PROCESS_ENDED, { flow_id: flowId, attempt_id: attemptId, status, error });
+export function fireProcessEnded(flowId, attemptId, status, error = null, outcome = null) {
+  sendEvent(AUTH_EVENT.PROCESS_ENDED, { flow_id: flowId, attempt_id: attemptId, status, error, outcome });
 }
-export function fireFlowEnded(flowId, status, error = null) {
-  sendEvent(SIGNUP_EVENT.FLOW_ENDED, { flow_id: flowId, status, error });
+export function fireFlowEnded(flowId, status, error = null, outcome = null) {
+  sendEvent(AUTH_EVENT.FLOW_ENDED, { flow_id: flowId, status, error, outcome });
 }
 
 // ---- mobile SSO redirect persistence -------------------------------------
@@ -91,12 +91,12 @@ export function clearPendingAttempt() {
 
 // Google: the button lives in a cross-origin iframe with no click signal at all, so
 // there's no attemptId to persist ahead of time — only the flowId, written whenever a
-// /register flow starts (see useSignUpTracking's startFlow), cleared whenever it ends
+// login/register flow starts (see useAuthTracking's startFlow), cleared whenever it ends
 // through any means we *can* observe (in-app nav, popstate, unmount). If it's still
 // present on a later page load AND that load's referrer is accounts.google.com, that's
 // the Google-redirect success we could never see coming — synthesize the whole
 // method_chosen/process_started/process_ended/flow_ended burst retroactively.
-const ACTIVE_FLOW_KEY = 'sefaria_active_signup_flow';
+const ACTIVE_FLOW_KEY = 'sefaria_active_auth_flow';
 
 export function persistActiveFlow({ flowId }) {
   try {
@@ -120,9 +120,23 @@ function readActiveFlow() {
   }
 }
 
+// Set by sso.adapters.SefariaAccountAdapter.get_login_redirect_url/get_signup_redirect_url
+// (via sefaria.system.middleware.ClearSsoNextCookieMiddleware) whenever a redirect-mode SSO
+// flow (mobile web) concludes — the only way React can learn "new account or existing" for a
+// flow that unmounted entirely for a full-page round trip to the provider. Read once and
+// cleared immediately so it can never leak into an unrelated later flow.
+const OUTCOME_COOKIE = 'sefaria_sso_outcome';
+
+function readAndClearOutcomeCookie() {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${OUTCOME_COOKIE}=([^;]*)`));
+  if (!match) return null;
+  document.cookie = `${OUTCOME_COOKIE}=; path=/; max-age=0; SameSite=None; Secure`;
+  try { return decodeURIComponent(match[1]) || null; } catch (e) { return null; }
+}
+
 // Called once per full page load (from ReaderApp), regardless of whether the page
 // happens to be /register itself.
-export function resumePendingSignUpAttempt() {
+export function resumePendingAuthAttempt() {
   const pendingAttempt = readPendingAttempt();
   if (pendingAttempt) {
     clearPendingAttempt();
@@ -131,21 +145,23 @@ export function resumePendingSignUpAttempt() {
       || document.referrer.startsWith(SSO_REFERRER_ORIGIN.GOOGLE);
     const status = fromProvider ? 'success' : 'failure';
     const error = fromProvider ? null : 'unexpected_return_without_provider_referrer';
-    fireProcessEnded(pendingAttempt.flowId, pendingAttempt.attemptId, status, error);
-    fireFlowEnded(pendingAttempt.flowId, status, error);
+    const outcome = fromProvider ? readAndClearOutcomeCookie() : null;
+    fireProcessEnded(pendingAttempt.flowId, pendingAttempt.attemptId, status, error, outcome);
+    fireFlowEnded(pendingAttempt.flowId, status, error, outcome);
     return;
   }
 
   // No Apple marker: either nothing SSO happened, or it was Google, which never writes one.
-  // activeFlow is the generic "a /register flow was in progress" marker, our only way to
+  // activeFlow is the generic "a login/register flow was in progress" marker, our only way to
   // attach a synthesized Google attempt to a flowId.
   const activeFlow = readActiveFlow();
   if (!activeFlow) return;
   if (!document.referrer.startsWith(SSO_REFERRER_ORIGIN.GOOGLE)) return; // not (yet) a Google-redirect return; leave it for its own max-age to expire
   clearActiveFlow();
   const attemptId = makeUuid();
-  fireMethodChosen(activeFlow.flowId, attemptId, SIGNUP_METHOD.GOOGLE);
+  const outcome = readAndClearOutcomeCookie();
+  fireMethodChosen(activeFlow.flowId, attemptId, AUTH_METHOD.GOOGLE);
   fireProcessStarted(activeFlow.flowId, attemptId);
-  fireProcessEnded(activeFlow.flowId, attemptId, 'success', null);
-  fireFlowEnded(activeFlow.flowId, 'success', null);
+  fireProcessEnded(activeFlow.flowId, attemptId, 'success', null, outcome);
+  fireFlowEnded(activeFlow.flowId, 'success', null, outcome);
 }

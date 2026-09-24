@@ -1,7 +1,5 @@
 import Sefaria from '../sefaria/sefaria';
 
-export const ALLAUTH_PROVIDER_TOKEN_URL = '/_allauth/browser/v1/auth/provider/token';
-
 export function makeUuid() {
   if (typeof window !== 'undefined' && window.crypto && window.crypto.randomUUID) {
     return window.crypto.randomUUID();

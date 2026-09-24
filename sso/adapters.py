@@ -95,9 +95,16 @@ class SefariaAccountAdapter(DefaultAccountAdapter):
         return next_url if self.is_safe_url(next_url) else None
 
     def get_login_redirect_url(self, request):
+        # allauth calls this vs. get_signup_redirect_url below based on whether the SSO
+        # redirect that's concluding was a login or a signup — the only place that
+        # distinction is available for redirect-mode SSO (mobile web), so it's captured
+        # here for ClearSsoNextCookieMiddleware to relay to the frontend as an outcome
+        # cookie, read by authAnalytics.js's resumePendingAuthAttempt().
+        request._sefaria_sso_outcome = "existing_user_login"
         return self._next_from_cookie(request) or super().get_login_redirect_url(request)
 
     def get_signup_redirect_url(self, request):
+        request._sefaria_sso_outcome = "created_new_account"
         return self._next_from_cookie(request) or super().get_signup_redirect_url(request)
 
 
@@ -158,6 +165,8 @@ class SefariaSocialAccountAdapter(DefaultSocialAccountAdapter):
         too, instead of leaving a user who can authenticate via SSO but has no
         profile (mirrors sefaria/views.py's process_register_form).
         """
+        # Read by sso.views._social_login_or_error to report outcome=created_new_account.
+        request._sefaria_new_social_user = True
         with transaction.atomic():
             user = super().save_user(request, sociallogin, form)
 
