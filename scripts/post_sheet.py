@@ -8,6 +8,7 @@ import urllib.request, urllib.parse, urllib.error
 import urllib.request, urllib.error, urllib.parse
 
 from sefaria.sheets import get_sheet
+from sefaria.constants.http import SEFARIA_USER_AGENT
 
 try:
   from sefaria.local_settings import SEFARIA_API_KEY
@@ -32,7 +33,7 @@ else:
   values = {'json': post_json, 'apikey': SEFARIA_API_KEY}
   post = urllib.parse.urlencode(values)  
 
-  req = urllib.request.Request(host + "/api/sheets", post)  
+  req = urllib.request.Request(host + "/api/sheets", post, headers={"User-Agent": SEFARIA_USER_AGENT})
 
   try:
     response = urllib.request.urlopen(req)

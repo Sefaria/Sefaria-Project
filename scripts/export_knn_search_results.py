@@ -17,6 +17,9 @@ from urllib.parse import quote
 
 import requests
 
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from sefaria.constants.http import SEFARIA_USER_AGENT
+
 try:
     from tqdm import tqdm
 except ImportError:
@@ -254,6 +257,7 @@ def main() -> None:
     session.headers.update({
         "Authorization": f"Bearer {args.auth_token}",
         "Content-Type": "application/json",
+        "User-Agent": SEFARIA_USER_AGENT,
     })
     text_cache: dict[str, tuple[str, str]] = {}
 
