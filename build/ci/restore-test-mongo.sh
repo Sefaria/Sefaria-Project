@@ -41,10 +41,31 @@ curl -fsSL --retry 3 "$DUMP_URL" | tar -xz -C "$WORK/dump"
 du -sh "$WORK/dump"
 done_phase "download+extract"
 
+# Large collections the corpus selection (needs_corpus and not deep and not failing)
+# never touches, measured 2026-09-24 by recording every test's Mongo commands
+# (SEFARIA_RECORD_MONGO=1, see sefaria/conftest.py) against dump_small. Skipping them
+# cuts the restore by about 6.7 GB. An exclude list, so a new collection is restored
+# by default. The recorder sees only test phases, not session start; if a corpus test
+# fails on a missing collection, take it off this list.
+RESTORE_EXCLUDE=(
+  webpages                          # 4671+1423 MB, not in recorder's touched-collection set
+  webpages_long_urls                # 43 MB, not in recorder's touched-collection set
+  dibur_hamatchils                  # 245+35 MB, not in recorder's touched-collection set
+  word_form                         # 218+72 MB, not in recorder's touched-collection set
+  library_assistant_migration_archive # 32 MB, not in recorder's touched-collection set
+  garden_stop                       # 14 MB, not in recorder's touched-collection set
+  translation_requests              # 10 MB, not in recorder's touched-collection set
+)
+NS_EXCLUDE_ARGS=()
+for coll in "${RESTORE_EXCLUDE[@]}"; do
+  NS_EXCLUDE_ARGS+=(--nsExclude "sefaria.$coll")
+done
+
 phase "Restore into database sefaria"
 docker run --rm --network host -v "$WORK/dump:/dump" "$MONGO_IMAGE" \
   mongorestore --host "127.0.0.1:$PORT" --drop --numParallelCollections 4 --quiet \
-  -d sefaria /dump/dump/sefaria
+  --nsInclude 'sefaria.*' "${NS_EXCLUDE_ARGS[@]}" \
+  --dir /dump/dump
 done_phase "restore"
 
 rm -rf "$WORK/dump"
