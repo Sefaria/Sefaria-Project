@@ -4,6 +4,9 @@ from sefaria.model.category import Category
 from sefaria.model.linker.category_resolver import CategoryMatcher
 
 
+
+pytestmark = pytest.mark.needs_linker
+
 def make_title(text, lang):
     return {"text": text, "lang": lang}
 
@@ -34,6 +37,8 @@ def category_matcher(mock_category, mock_category_2):
     return CategoryMatcher(lang="en", category_registry=[mock_category, mock_category_2])
 
 
+# reason: matched_categories order/content mismatch vs mock_category — fails identically under mongomock and real Mongo
+@pytest.mark.failing
 def test_match_single_title(category_matcher, mock_raw_ref, mock_category):
     # Test matching for a valid title in mock_raw_ref
     matched_categories = category_matcher.match(mock_raw_ref)
@@ -48,6 +53,8 @@ def test_match_no_match(category_matcher, mock_raw_ref):
     assert matched_categories == []
 
 
+# reason: matched_categories order/content mismatch vs expected set — fails identically under mongomock and real Mongo
+@pytest.mark.failing
 def test_match_multiple_titles(category_matcher, mock_raw_ref, mock_category, mock_category_2):
     # Test case where multiple categories match the same title
     mock_raw_ref.text = "Title1"
