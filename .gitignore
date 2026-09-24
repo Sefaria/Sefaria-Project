@@ -74,6 +74,8 @@ node_modules
 !.claude/skills/move-text-to-cauldron/**
 !.claude/skills/create-cauldron/
 !.claude/skills/create-cauldron/**
+!.claude/skills/move-lexicon-to-cauldron/
+!.claude/skills/move-lexicon-to-cauldron/**
 CLAUDE.md
 !e2e-tests/CLAUDE.md
 
