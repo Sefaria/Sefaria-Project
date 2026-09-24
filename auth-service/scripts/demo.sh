@@ -420,7 +420,7 @@ burst() {
   printf '%s$ for i in 1..%s: curl %s %s/api/texts/Genesis.1%s\n' "$CYAN" "$n" "$([[ -n "$key" ]] && printf -- '-H x-api-key:%s' "$(mask_key "$key")")" "$HOST" "$RESET"
   for ((i = 1; i <= n; i++)); do
     h=$(new_tmp); b=$(new_tmp)
-    code=$(curl -sS --max-time 15 -D "$h" -o "$b" "${hk[@]}" -w '%{http_code}' "$HOST/api/texts/Genesis.1" 2>/dev/null)
+    code=$(curl -sS --max-time 15 -D "$h" -o "$b" ${hk[@]+"${hk[@]}"} -w '%{http_code}' "$HOST/api/texts/Genesis.1" 2>/dev/null)
     rem=$(awk 'BEGIN{IGNORECASE=1} tolower($1)=="x-ratelimit-remaining:"{gsub(/\r/,"",$2); print $2; exit}' "$h")
     line+="$code${rem:+(${rem})} "
     [[ $code == 200 ]] && ok=$((ok + 1))
