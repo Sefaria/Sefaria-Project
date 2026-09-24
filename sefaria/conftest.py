@@ -381,60 +381,11 @@ def _seed_mock_mongo(request):
         # _library_stale) to whichever test runs next.
         _reseed(rebuild=False)
 
-_DUMMY_CACHE_BACKEND = "django.core.cache.backends.dummy.DummyCache"
-# Aliases _replace_dummy_caches() swapped to LocMemCache; _seed_mock_mongo clears
-# them on every reseed so a value cached from one test's fixture data is not read
-# back by a test seeded with different data.
+# Aliases the session overrides swapped to LocMemCache (see
+# sefaria/local_settings_pytest.py); _seed_mock_mongo clears them on every reseed
+# so a value cached from one test's fixture data is not read by a test seeded
+# with different data.
 _LOCMEM_CACHE_ALIASES = []
-_LOCMEM_CACHE_BACKEND = "django.core.cache.backends.locmem.LocMemCache"
-
-
-def _replace_dummy_caches(dj_settings):
-    """Swap DummyCache aliases for LocMemCache, each with its own LOCATION.
-
-    A distinct LOCATION per alias keeps "default" and "shared" as separate
-    stores, as they are under Redis. django.core.cache.caches memoises both the
-    settings dict and any backend already instantiated during django.setup(),
-    so both are dropped to make the new backends take effect.
-    """
-    from django.core.cache import caches
-
-    replaced = []
-    for alias, config in dj_settings.CACHES.items():
-        if config.get("BACKEND") == _DUMMY_CACHE_BACKEND:
-            dj_settings.CACHES[alias] = {
-                "BACKEND": _LOCMEM_CACHE_BACKEND,
-                "LOCATION": f"sefaria-pytest-{alias}",
-            }
-            replaced.append(alias)
-    if not replaced:
-        return
-    _LOCMEM_CACHE_ALIASES[:] = replaced
-    caches.__dict__.pop("settings", None)
-    for alias in replaced:
-        try:
-            delattr(caches._connections, alias)
-        except AttributeError:
-            pass  # never instantiated
-
-
-def _write_webpack_stats_stubs(dj_settings):
-    """Write a minimal 'build succeeded, no assets' stats file per webpack loader.
-
-    Mirrors build/ci/prepare-pytest-runner.sh so a local run behaves like CI.
-    `chunks` must contain every bundle name a template renders, or
-    webpack_loader raises WebpackBundleLookupError; `main` is the only one used
-    (templates/base.html, templates/edit_text.html). An empty chunk list renders
-    no script/link tags, which is what a test that never loads JS wants.
-    """
-    stub = {"status": "done", "chunks": {"main": []}, "assets": {}, "publicPath": "/static/"}
-    for config in (getattr(dj_settings, "WEBPACK_LOADER", None) or {}).values():
-        stats_file = config.get("STATS_FILE")
-        if not stats_file or os.path.exists(stats_file):
-            continue
-        os.makedirs(os.path.dirname(stats_file), exist_ok=True)
-        with open(stats_file, "w") as f:
-            json.dump(stub, f, indent=2, sort_keys=True)
 
 
 mock_topics_pool = {'sheets_topic_only': ['sheets', 'general_en', 'torah_tab'],
@@ -470,44 +421,12 @@ def pytest_configure(config):
     # Bust the ConnectionHandler's cached settings so the popped alias is really gone.
     _dj_connections.__dict__.pop("settings", None)
 
-    # Tests drive the request factory with the real production host names they
-    # are asserting about -- www.sefaria.org, voices.sef-stage.org,
-    # chiburim.localsefaria-il.xyz:8000 and a dozen more. None of them are in
-    # local_settings_example.ALLOWED_HOSTS (which is what CI copies in), so
-    # HttpRequest.get_host() raised DisallowedHost and 28 tests failed on the
-    # host check instead of exercising the middleware under test.
-    #
-    # This widens the *Django settings object* only, for the pytest session.
-    # sefaria.settings.ALLOWED_HOSTS -- the module-level list reader/views.py
-    # imports by value and passes to url_has_allowed_host_and_scheme() for the
-    # post-login redirect check -- is deliberately left alone, so the tests that
-    # assert an unsafe `next` URL is rejected keep their real allowlist.
-    _dj_settings.ALLOWED_HOSTS = ["*"]
-
-    # CI copies local_settings_example.py, whose CACHES are DummyCache, so every
-    # set/get round-trip returns None (strapi_cache_test). Master's sandbox ran
-    # these tests against django_redis RedisCache (helm-chart local-settings
-    # configmap), so DummyCache here is a regression of the CI move, not of the
-    # code. For the pytest session only, swap each DummyCache alias for an
-    # in-process LocMemCache -- a real cache with no external service. Aliases
-    # with any other backend, and production settings, are left untouched.
-    _replace_dummy_caches(_dj_settings)
-
-    # django-webpack-loader reads its stats JSON from disk at render time and
-    # raises OSError when the file is absent. The pytest jobs never run the
-    # webpack build, so any test that renders a template with {% render_bundle %}
-    # died on a missing artifact rather than on anything it asserts. Write a
-    # stub for each configured loader if -- and only if -- no real stats file is
-    # already there, so a developer with a real build keeps it. CI gets the same
-    # stubs from build/ci/prepare-pytest-runner.sh before pytest starts.
-    _write_webpack_stats_stubs(_dj_settings)
-
-    # Disable Varnish cache invalidation for the entire test session. With
-    # USE_VARNISH on (as in the CI sandbox), invalidate_linked() on a large
-    # index iterates every linked ref and spawns varnishadm subprocesses,
-    # hanging mutation tests for hours. Tests must not purge shared caches.
+    # ALLOWED_HOSTS, DummyCache -> LocMemCache, webpack-stats stubs and Varnish
+    # off: every pytest-session settings override lives in one place,
+    # sefaria/local_settings_pytest.py, and applies in CI and locally alike.
     from sefaria import settings as sefaria_settings
-    sefaria_settings.USE_VARNISH = False
+    from sefaria import local_settings_pytest as _pytest_settings
+    _LOCMEM_CACHE_ALIASES[:] = _pytest_settings.apply_session_overrides(_dj_settings, sefaria_settings)
     for module in list(sys.modules.values()):
         if getattr(module, "USE_VARNISH", False):
             module.USE_VARNISH = False
