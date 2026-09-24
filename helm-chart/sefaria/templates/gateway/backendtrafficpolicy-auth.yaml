@@ -21,31 +21,37 @@ spec:
             - headers:
                 - { name: x-sefaria-tier, type: Exact, value: developer }
                 - { name: x-sefaria-project, type: Distinct }
-          limit: { requests: {{ mul $rl.developerPerProject $m }}, unit: Minute }
+          limit: { requests: {{ mul $rl.developerPerProject $m }}, unit: Minute }{{ if $rl.headers }}
+          xRateLimitHeaders: DraftVersion03{{ end }}
         - clientSelectors:                         # partner tier: per project
             - headers:
                 - { name: x-sefaria-tier, type: Exact, value: partner }
                 - { name: x-sefaria-project, type: Distinct }
-          limit: { requests: {{ mul $rl.partnerPerProject $m }}, unit: Minute }
+          limit: { requests: {{ mul $rl.partnerPerProject $m }}, unit: Minute }{{ if $rl.headers }}
+          xRateLimitHeaders: DraftVersion03{{ end }}
         - clientSelectors:                         # first party: per subject
             - headers:
                 - { name: x-sefaria-tier, type: Exact, value: firstparty }
                 - { name: x-sefaria-project, type: Distinct }
-          limit: { requests: {{ mul $rl.firstpartyPerSub $m }}, unit: Minute }
+          limit: { requests: {{ mul $rl.firstpartyPerSub $m }}, unit: Minute }{{ if $rl.headers }}
+          xRateLimitHeaders: DraftVersion03{{ end }}
         - clientSelectors:                         # embed class: per Origin
             - headers:
                 - { name: x-sefaria-tier, type: Exact, value: embed }
                 - { name: origin, type: Distinct }
-          limit: { requests: {{ mul $rl.embedPerOrigin $m }}, unit: Minute }
+          limit: { requests: {{ mul $rl.embedPerOrigin $m }}, unit: Minute }{{ if $rl.headers }}
+          xRateLimitHeaders: DraftVersion03{{ end }}
         - clientSelectors:                         # anonymous: best-effort per client IP
             - headers:
                 - { name: x-sefaria-tier, type: Exact, value: anonymous }
               sourceCIDR: { type: Distinct, value: 0.0.0.0/0 }
-          limit: { requests: {{ mul $rl.anonymousPerIP $m }}, unit: Minute }
+          limit: { requests: {{ mul $rl.anonymousPerIP $m }}, unit: Minute }{{ if $rl.headers }}
+          xRateLimitHeaders: DraftVersion03{{ end }}
         - clientSelectors:                         # anonymous: the shared overall cap
             - headers:
                 - { name: x-sefaria-tier, type: Exact, value: anonymous }
-          limit: { requests: {{ mul $rl.anonymousShared $m }}, unit: Minute }
+          limit: { requests: {{ mul $rl.anonymousShared $m }}, unit: Minute }{{ if $rl.headers }}
+          xRateLimitHeaders: DraftVersion03{{ end }}
   responseOverride:                                # agent-readable 429 (product spec); body supports Envoy command operators
     - match:
         statusCodes:

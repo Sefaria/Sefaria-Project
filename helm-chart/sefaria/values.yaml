@@ -245,6 +245,9 @@ authService:
     enabled: false          # needs the controller's rateLimit.backend (infrastructure repo)
     testLimitsMultiplier: 1  # POC: raise to 10000 for latency runs
     retryAfterSeconds: 60
+    # Per-rule x-ratelimit-* response headers (DraftVersion03). Needs Envoy Gateway >= 1.9 (dev has 1.9.1, prod 1.8.0,
+    # which rejects the field), and overrides the listener-level setting in ClientTrafficPolicy for these rules only.
+    headers: false
     # test-sized limits per minute; production numbers come from Phase 0, not from here
     developerPerProject: 10
     partnerPerProject: 30

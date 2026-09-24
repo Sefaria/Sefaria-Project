@@ -42,6 +42,14 @@ func (s *GRPCServer) Check(ctx context.Context, req *authv3.CheckRequest) (*auth
 	}
 	r := Request{Method: httpReq.GetMethod(), Path: path, APIKey: h["x-api-key"], Authorization: h["authorization"], Cookie: h["cookie"], Origin: h["origin"]}
 	r.Authorization = JWTAuthorization(r.Authorization, r.Cookie, s.o.Cfg.JWTCookieName)
+	if body := httpReq.GetRawBody(); len(body) > 0 || httpReq.GetBody() != "" {
+		if len(body) == 0 {
+			body = []byte(httpReq.GetBody())
+		}
+		// Presence only (follow-up F8): the decision is unchanged and only the 12-character prefix is logged.
+		k := LegacyBodyKey(h["content-type"], body)
+		slog.Info("legacy body key", "present", k != "", "key_prefix", Prefix(k), "header_key", r.APIKey != "", "path", path)
+	}
 	d := decideRequest(s.l, s.o, r)
 	s.rec.Observe(d.Result, d.Allow, time.Since(t0))
 	if d.Allow {
