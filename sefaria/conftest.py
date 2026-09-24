@@ -304,6 +304,26 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         terminalreporter.write_line(f"MOCKED MONGO: {total} tests deselected ({breakdown})")
 
 
+def _build_real_mongo_library_toc():
+    """Build the library TOC once for a run against a real Mongo, as
+    reader/startup.py does for the web server. Code such as
+    Library.get_collections_in_library() reads the tree without building it, so
+    without this a test passes or fails depending on whether an earlier test
+    happened to build it. Mock runs rebuild the library on every needs_mongo seed.
+
+    A failure here (say, a category left behind by an interrupted run whose Term
+    is gone) is reported but does not abort the session: the tests that need the
+    TOC still fail on their own, and every other test still runs."""
+    if _MOCK_MONGO_ENABLED:
+        return
+    import warnings
+    from sefaria.model.text import library
+    try:
+        library.get_toc_tree()
+    except Exception as e:  # noqa: BLE001 -- any bad record in a developer's DB
+        warnings.warn(f"Could not build the library TOC before tests: {e!r}")
+
+
 # True after a needs_mongo teardown has restored the shared base but not yet
 # rebuilt `library` from it. The rebuild is deferred to the next test that runs:
 # a needs_mongo test rebuilds during its own seed anyway, so rebuilding at
@@ -430,6 +450,7 @@ def pytest_configure(config):
     for module in list(sys.modules.values()):
         if getattr(module, "USE_VARNISH", False):
             module.USE_VARNISH = False
+    _build_real_mongo_library_toc()
 
 
 def pytest_unconfigure(config):
