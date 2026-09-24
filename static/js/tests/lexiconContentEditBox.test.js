@@ -39,6 +39,20 @@ jest.mock('json-edit-react', () => {
   };
 });
 
+// react-simple-wysiwyg (pulled in via LexiconWysiwygValue, used only as a customNodeDefinitions
+// prop value on the (mocked, above) JsonEditor -- never actually rendered here) injects its
+// stylesheet at import time via insertAdjacentElement, which jsdom doesn't support. Stubbing it
+// avoids ever evaluating the real package, same reasoning as the json-edit-react mock above.
+jest.mock('react-simple-wysiwyg', () => new Proxy({}, {
+  // createButton(...) is called at module-load time (LexiconWysiwygValue's BtnSuperscript etc.)
+  // and must itself return a component, not null, or JSX like <BtnSuperscript /> is invalid.
+  get: (_t, prop) => {
+    if (prop === '__esModule') { return true; }
+    if (prop === 'createButton') { return () => (() => null); }
+    return () => null;
+  },
+}));
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';

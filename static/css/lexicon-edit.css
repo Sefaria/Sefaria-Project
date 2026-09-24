@@ -37,4 +37,66 @@
   color: var(--dark-grey);
 }
 
+.lexiconWysiwygValue {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+.lexiconWysiwygValue:hover {
+  background: var(--lighter-grey);
+}
+
+.lexiconWysiwygPlaceholder {
+  color: var(--dark-grey);
+  font-style: italic;
+}
+
+.lexiconWysiwygEditWrapper {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.lexiconWysiwygEditor {
+  border: 1px solid var(--light-grey);
+  border-radius: 4px;
+  min-width: 200px;
+}
+.lexiconWysiwygEditor .rsw-ce {
+  min-height: 1.5em;
+  padding: 4px 6px;
+}
+
+.lexiconRefLinkForm {
+  margin-top: 4px;
+  padding: 8px;
+  border: 1px solid var(--light-grey);
+  border-radius: 4px;
+  background: var(--lighter-grey);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lexiconRefLinkForm label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85em;
+  gap: 2px;
+}
+.lexiconRefLinkForm input {
+  font-size: 1em;
+  padding: 4px 6px;
+  border: 1px solid var(--light-grey);
+  border-radius: 3px;
+}
+
+.lexiconRefLinkFormError {
+  color: #c0392b;
+  font-size: 0.85em;
+}
+
+.lexiconRefLinkFormActions {
+  display: flex;
+  gap: 6px;
+}
+
 /*# sourceMappingURL=lexicon-edit.css.map */

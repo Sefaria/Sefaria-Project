@@ -68,6 +68,16 @@ jest.mock("../ImageCropper", () => new Proxy({}, {
 jest.mock("json-edit-react", () => new Proxy({}, {
   get: (_t, prop) => (prop === "__esModule" ? true : () => null),
 }));
+// react-simple-wysiwyg (pulled in via LexiconContentEditBox -> LexiconWysiwygValue) injects its
+// stylesheet at import time via insertAdjacentElement, same jsdom gap as json-edit-react above.
+// createButton(...) is called at module-load time and must itself return a component, not null.
+jest.mock("react-simple-wysiwyg", () => new Proxy({}, {
+  get: (_t, prop) => {
+    if (prop === "__esModule") { return true; }
+    if (prop === "createButton") { return () => (() => null); }
+    return () => null;
+  },
+}));
 
 import Sefaria from '../sefaria/sefaria';
 import { ReaderApp } from '../ReaderApp.jsx';
