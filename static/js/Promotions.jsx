@@ -1,6 +1,6 @@
 import React, {useState, useContext, useEffect, useRef} from "react";
 import { AdContext, StrapiDataProvider, StrapiDataContext } from "./context";
-import { buildInAppAdsFromSidebarAds, adMatchesKeywords, isLightBackground } from "./sefaria/sidebarAds";
+import { buildInAppAdsFromSidebarAds, adMatchesKeywords, adMatchesShowTo, isLightBackground } from "./sefaria/sidebarAds";
 import { adMatchesPageTypes } from "./sefaria/pageTypes";
 import classNames from "classnames";
 import Sefaria from "./sefaria/sefaria";
@@ -64,18 +64,6 @@ const Promotions = ({ pageTypeOverride }) => {
   }, [context, inAppAds, pageTypeOverride]);
 
 
-  function showToUser(ad) {
-    if (ad.trigger.showTo === "all") {
-      return true;
-    } else if (ad.trigger.showTo === "loggedIn" && context.isLoggedIn) {
-      return true;
-    } else if (ad.trigger.showTo === "loggedOut" && !context.isLoggedIn) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   function showGivenDebugMode(ad) {
     if (!ad.debug) {
       return true;
@@ -90,7 +78,8 @@ const Promotions = ({ pageTypeOverride }) => {
     // TODO: refine matching algorithm to order by matchingness?
     return inAppAds.filter((ad) => {
       return (
-        showToUser(ad) &&
+        // Audience: truth table on adMatchesShowTo in sefaria/sidebarAds.js.
+        adMatchesShowTo(ad.trigger.showTo, context.isLoggedIn) &&
         showGivenDebugMode(ad) &&
         ad.trigger.interfaceLang === context.interfaceLang &&
         context.dt >= ad.trigger.startTimeDate &&

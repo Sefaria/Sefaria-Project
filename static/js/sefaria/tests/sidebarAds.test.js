@@ -5,6 +5,10 @@ import {
   parseKeywords,
   isLightBackground,
   SKIPPED_SIDEBAR_AD_LOG,
+  SHOW_TO,
+  UNKNOWN_SHOW_TO_LOG,
+  normalizeShowTo,
+  adMatchesShowTo,
 } from "../sidebarAds";
 import { groupByDocumentId, LOCALIZED_FIELDS } from "../strapiLocalization";
 
@@ -83,6 +87,56 @@ describe("parseKeywords", function () {
   });
 });
 
+describe("normalizeShowTo", function () {
+  let consoleWarn;
+  beforeEach(() => {
+    consoleWarn = jest.spyOn(console, "warn").mockImplementation(() => {});
+  });
+  afterEach(() => consoleWarn.mockRestore());
+
+  it("defaults a missing value to all, so an ad with no audience set shows to everyone", function () {
+    [null, undefined, ""].forEach((raw) => expect(normalizeShowTo(raw)).toBe(SHOW_TO.ALL));
+    expect(consoleWarn).not.toHaveBeenCalled();
+  });
+
+  it("passes known values through without warning", function () {
+    Object.values(SHOW_TO).forEach((value) => expect(normalizeShowTo(value)).toBe(value));
+    expect(consoleWarn).not.toHaveBeenCalled();
+  });
+
+  it("passes an unknown value through unchanged and warns under a stable prefix", function () {
+    // Normalizing unknowns to "all" would turn a CMS typo (or the banner/modal vocabulary,
+    // "both_logged_in_and_logged_out") into an audience-wide campaign; passing it through makes
+    // adMatchesShowTo reject it for everyone, and the warn keeps that failure visible.
+    expect(normalizeShowTo("both_logged_in_and_logged_out")).toBe("both_logged_in_and_logged_out");
+    expect(consoleWarn).toHaveBeenCalledTimes(1);
+    expect(consoleWarn.mock.calls[0][0]).toContain(UNKNOWN_SHOW_TO_LOG);
+  });
+});
+
+describe("adMatchesShowTo", function () {
+  it("shows an all ad to logged-in and logged-out viewers alike", function () {
+    expect(adMatchesShowTo(SHOW_TO.ALL, true)).toBe(true);
+    expect(adMatchesShowTo(SHOW_TO.ALL, false)).toBe(true);
+  });
+
+  it("shows a loggedIn ad only to logged-in viewers", function () {
+    expect(adMatchesShowTo(SHOW_TO.LOGGED_IN, true)).toBe(true);
+    expect(adMatchesShowTo(SHOW_TO.LOGGED_IN, false)).toBe(false);
+  });
+
+  it("shows a loggedOut ad only to logged-out viewers", function () {
+    expect(adMatchesShowTo(SHOW_TO.LOGGED_OUT, true)).toBe(false);
+    expect(adMatchesShowTo(SHOW_TO.LOGGED_OUT, false)).toBe(true);
+  });
+
+  it("never passes an unknown value, whoever is viewing", function () {
+    // The fail-closed half of normalizeShowTo's pass-through.
+    expect(adMatchesShowTo("everyone", true)).toBe(false);
+    expect(adMatchesShowTo("everyone", false)).toBe(false);
+  });
+});
+
 describe("buildInAppAdsFromSidebarAds", function () {
   const makeSidebarAd = (overrides = {}) => ({
     internalCampaignId: "camp-1",
@@ -92,7 +146,7 @@ describe("buildInAppAdsFromSidebarAds", function () {
     sidebarAdBackgroundColor: "#004E5F",
     isNewsletterSubscriptionInputForm: false,
     newsletterMailingLists: [{ newsletterName: "General" }],
-    showTo: "everyone",
+    showTo: "all",
     startTime: "2026-01-01T00:00:00Z",
     endTime: "2026-02-01T00:00:00Z",
     debug: false,
@@ -163,6 +217,11 @@ describe("buildInAppAdsFromSidebarAds", function () {
     // existed (or fetched via the legacy-Strapi retry) — such ads must keep behaving as before.
     const [ad] = buildInAppAdsFromSidebarAds([makeSidebarAd({ locales: ["en"] })]);
     expect(ad.trigger.pageType).toBe("all_pages");
+  });
+
+  it("defaults trigger.showTo to all when the document has no audience set", function () {
+    const [ad] = buildInAppAdsFromSidebarAds([makeSidebarAd({ locales: ["en"], showTo: null })]);
+    expect(ad.trigger.showTo).toBe("all");
   });
 
   it("maps sidebarAdBackgroundColor onto the ad as backgroundColor", function () {
@@ -245,7 +304,7 @@ describe("buildInAppAdsFromSidebarAds", function () {
           keywords: "kabbalah",
           buttonAboveOrBelow: "below",
           sidebarAdBackgroundColor: null,
-          showTo: "everyone",
+          showTo: "all",
           startTime: "2026-01-01T00:00:00Z",
           endTime: "2026-02-01T00:00:00Z",
           debug: false,

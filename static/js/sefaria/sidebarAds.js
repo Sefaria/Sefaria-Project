@@ -60,6 +60,50 @@ const isLightBackground = (hexColor) => {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.7;
 };
 
+// The values the sidebar ad's Strapi `showTo` field can hold. Strings, not Symbols, because they
+// compare against CMS data. NOT the same vocabulary as banners and modals (ShowTo in
+// strapiSelection.js spells "everyone" as "both_logged_in_and_logged_out") — the sidebar ad
+// content type has its own enumeration, and production ads carry "all".
+const SHOW_TO = Object.freeze({
+  ALL: "all",
+  LOGGED_IN: "loggedIn",
+  LOGGED_OUT: "loggedOut",
+});
+
+const KNOWN_SHOW_TO_VALUES = new Set(Object.values(SHOW_TO));
+
+// Stable console prefix (UNKNOWN_PAGE_TYPE_LOG pattern) so vocabulary drift between the Strapi
+// enumeration and SHOW_TO is findable, instead of surfacing as "why did that ad never show".
+const UNKNOWN_SHOW_TO_LOG = "Unknown sidebar-ad showTo from Strapi (ad will show to nobody):";
+
+// Strapi value -> internal value. Same contract as normalizePageType in pageTypes.js:
+//   - absent (null/undefined/"") means no audience restriction, so it becomes ALL — an ad an
+//     editor never set an audience on should show, not silently vanish;
+//   - an UNKNOWN string is passed through UNCHANGED so adMatchesShowTo rejects it for everyone.
+//     Normalizing unknowns to ALL would let a typo (or a value pasted from the banner/modal
+//     vocabulary) widen a logged-in-only campaign to every visitor. The warn keeps it visible.
+const normalizeShowTo = (rawShowTo) => {
+  if (rawShowTo && !KNOWN_SHOW_TO_VALUES.has(rawShowTo)) {
+    console.warn(`${UNKNOWN_SHOW_TO_LOG} "${rawShowTo}"`);
+  }
+  return rawShowTo || SHOW_TO.ALL;
+};
+
+// Does this ad's audience admit the current viewer? Pure, so Jest holds the truth table;
+// Promotions calls it per ad at match time. Anything outside SHOW_TO matches nobody.
+const adMatchesShowTo = (showTo, isLoggedIn) => {
+  switch (showTo) {
+    case SHOW_TO.ALL:
+      return true;
+    case SHOW_TO.LOGGED_IN:
+      return Boolean(isLoggedIn);
+    case SHOW_TO.LOGGED_OUT:
+      return !isLoggedIn;
+    default:
+      return false;
+  }
+};
+
 // Stable console prefix (same idea as SKIPPED_ROWS_LOG in strapiLocalization.js) so a skipped
 // ad is findable in a console or a test instead of looking like "no campaign running".
 const SKIPPED_SIDEBAR_AD_LOG = "Skipped malformed sidebar ad from Strapi:";
@@ -105,7 +149,8 @@ const buildInAppAdsFromSidebarAd = (sidebarAd) => {
       newsletterMailingLists:
         sidebarAd.newsletterMailingLists?.map((mailingLists) => mailingLists.newsletterName) ?? [],
       trigger: {
-        showTo: sidebarAd.showTo,
+        // Missing -> "all"; unknown -> passed through so it matches nobody (see normalizeShowTo).
+        showTo: normalizeShowTo(sidebarAd.showTo),
         interfaceLang: LOCALE_TO_INTERFACE_LANG[locale],
         startTimeDate: Date.parse(sidebarAd.startTime),
         endTimeDate: Date.parse(sidebarAd.endTime),
@@ -126,4 +171,8 @@ export {
   parseKeywords,
   isLightBackground,
   SKIPPED_SIDEBAR_AD_LOG,
+  SHOW_TO,
+  UNKNOWN_SHOW_TO_LOG,
+  normalizeShowTo,
+  adMatchesShowTo,
 };
