@@ -1077,6 +1077,19 @@ def parse_linker_citation_task(self, payload: dict) -> dict:
     return linker_resource_panel_admin.parse_linker_citation(payload)
 
 
+@app.task(name="linker.parse_citations_batch", bind=True)
+def parse_linker_citations_batch_task(self, payloads: list[dict]) -> list[dict]:
+    from sefaria.helper import linker_resource_panel_admin
+    logger.info("parse_linker_citations_batch:start", task_id=self.request.id, count=len(payloads or []))
+    return linker_resource_panel_admin.parse_linker_citations_batch(payloads)
+
+
+@app.task(name="linker.bulk_reparse_dataset", bind=True)
+def bulk_reparse_dataset_task(self, dataset: dict, user_id: Optional[int] = None) -> dict:
+    from sefaria.helper import linker_bulk_corrector
+    return linker_bulk_corrector.bulk_reparse_dataset(dataset, user_id=user_id, task=self)
+
+
 @app.task(name="linker.rebuild_nonuniqueterm_index", bind=True)
 def rebuild_nonuniqueterm_index_task(self) -> dict:
     """
