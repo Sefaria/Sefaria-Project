@@ -1,5 +1,11 @@
 /* Testing done using Jest */
-import { buildInAppAdsFromSidebarAds, adMatchesKeywords, parseKeywords, isLightBackground } from "../sidebarAds";
+import {
+  buildInAppAdsFromSidebarAds,
+  adMatchesKeywords,
+  parseKeywords,
+  isLightBackground,
+  SKIPPED_SIDEBAR_AD_LOG,
+} from "../sidebarAds";
 import { groupByDocumentId, LOCALIZED_FIELDS } from "../strapiLocalization";
 
 // The truth table for the keyword gate (strict semantics, 2026-09-01). Each test names the one
@@ -188,6 +194,44 @@ describe("buildInAppAdsFromSidebarAds", function () {
 
     expect(ads).toHaveLength(2);
     expect(ads.map((ad) => ad.campaignId)).toEqual(["camp-1", "camp-2"]);
+  });
+
+  describe("a malformed document costs only itself", function () {
+    // Each case is a shape GraphQL's type checks would not stop (or a grouping hiccup) that used
+    // to throw inside the one big flatMap — and the catch in Promotions then dropped EVERY ad.
+    const malformedDocuments = {
+      "non-string keywords": { keywords: 42 },
+      "newsletterMailingLists that isn't an array": { newsletterMailingLists: { newsletterName: "x" } },
+      "a locale listed without its localized fields": { locales: ["en"], byLocale: {} },
+      "no locales at all": { locales: undefined },
+    };
+
+    let consoleError;
+    beforeEach(() => {
+      consoleError = jest.spyOn(console, "error").mockImplementation(() => {});
+    });
+    afterEach(() => consoleError.mockRestore());
+
+    Object.entries(malformedDocuments).forEach(([description, overrides]) => {
+      it(`skips a document with ${description} and still builds the others`, function () {
+        const ads = buildInAppAdsFromSidebarAds([
+          makeSidebarAd({ internalCampaignId: "good-before", locales: ["en"] }),
+          makeSidebarAd({ internalCampaignId: "broken", ...overrides }),
+          makeSidebarAd({ internalCampaignId: "good-after", locales: ["en"] }),
+        ]);
+
+        expect(ads.map((ad) => ad.campaignId)).toEqual(["good-before", "good-after"]);
+      });
+    });
+
+    it("logs the skipped document under a stable prefix, naming its campaign", function () {
+      buildInAppAdsFromSidebarAds([makeSidebarAd({ internalCampaignId: "broken", keywords: 42 })]);
+
+      expect(consoleError).toHaveBeenCalledTimes(1);
+      const [message] = consoleError.mock.calls[0];
+      expect(message).toContain(SKIPPED_SIDEBAR_AD_LOG);
+      expect(message).toContain("broken");
+    });
   });
 
   it("composes with groupByDocumentId's output shape end-to-end for a hebrew-only strapi row", function () {

@@ -60,43 +60,70 @@ const isLightBackground = (hexColor) => {
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.7;
 };
 
+// Stable console prefix (same idea as SKIPPED_ROWS_LOG in strapiLocalization.js) so a skipped
+// ad is findable in a console or a test instead of looking like "no campaign running".
+const SKIPPED_SIDEBAR_AD_LOG = "Skipped malformed sidebar ad from Strapi:";
+
 // sidebarAds: array of grouped docs from groupByDocumentId (each carrying byLocale/locales).
 // One in-app ad per locale actually present on the document, so a locale with no
 // counterpart in another locale (e.g. Hebrew-only) is no longer skipped.
+//
+// Each document is built inside its OWN try/catch. Before, one malformed document (say, a
+// non-string `keywords`) threw out of the whole flatMap, and the catch in Promotions then
+// dropped every sidebar ad on the site. Now a bad document is logged and contributes no ads,
+// and the rest render normally. The guard is per DOCUMENT rather than per locale because a
+// document is one campaign: a partly broken campaign shouldn't show in one language only.
 const buildInAppAdsFromSidebarAds = (sidebarAds) =>
   sidebarAds.flatMap((sidebarAd) => {
-    const { keywordTargets: keywordTargetsArray, excludeKeywordTargets } = parseKeywords(sidebarAd.keywords);
-
-    return sidebarAd.locales.map((locale) => {
-      const localizedFields = sidebarAd.byLocale[locale];
-      return {
-        campaignId: sidebarAd.internalCampaignId,
-        title: localizedFields.title,
-        bodyText: localizedFields.bodyText,
-        buttonText: localizedFields.buttonText,
-        buttonURL: localizedFields.buttonURL,
-        buttonIcon: sidebarAd.buttonIcon,
-        buttonLocation: sidebarAd.buttonAboveOrBelow,
-        // Mirrors the banner's bannerBackgroundColor: a hex string applied inline, null = the
-        // default look (replaced the old hasBlueBackground boolean, 2026-09-15).
-        backgroundColor: sidebarAd.sidebarAdBackgroundColor,
-        isNewsletterSubscriptionInputForm: sidebarAd.isNewsletterSubscriptionInputForm,
-        newsletterMailingLists:
-          sidebarAd.newsletterMailingLists?.map((mailingLists) => mailingLists.newsletterName) ?? [],
-        trigger: {
-          showTo: sidebarAd.showTo,
-          interfaceLang: LOCALE_TO_INTERFACE_LANG[locale],
-          startTimeDate: Date.parse(sidebarAd.startTime),
-          endTimeDate: Date.parse(sidebarAd.endTime),
-          keywordTargets: keywordTargetsArray,
-          excludeKeywordTargets: excludeKeywordTargets,
-          // A document that predates the pageType field (or arrived from a Strapi without it)
-          // normalizes to all_pages, so older ads keep matching exactly as they always did.
-          pageType: normalizePageType(sidebarAd.pageType),
-        },
-        debug: sidebarAd.debug,
-      };
-    });
+    try {
+      return buildInAppAdsFromSidebarAd(sidebarAd);
+    } catch (error) {
+      console.error(`${SKIPPED_SIDEBAR_AD_LOG} "${sidebarAd?.internalCampaignId}"`, error);
+      return [];
+    }
   });
 
-export { buildInAppAdsFromSidebarAds, adMatchesKeywords, parseKeywords, isLightBackground };
+// One grouped document -> its in-app ads, one per locale. May throw on a malformed document;
+// buildInAppAdsFromSidebarAds contains that to the one document.
+const buildInAppAdsFromSidebarAd = (sidebarAd) => {
+  const { keywordTargets: keywordTargetsArray, excludeKeywordTargets } = parseKeywords(sidebarAd.keywords);
+
+  return sidebarAd.locales.map((locale) => {
+    const localizedFields = sidebarAd.byLocale[locale];
+    return {
+      campaignId: sidebarAd.internalCampaignId,
+      title: localizedFields.title,
+      bodyText: localizedFields.bodyText,
+      buttonText: localizedFields.buttonText,
+      buttonURL: localizedFields.buttonURL,
+      buttonIcon: sidebarAd.buttonIcon,
+      buttonLocation: sidebarAd.buttonAboveOrBelow,
+      // Mirrors the banner's bannerBackgroundColor: a hex string applied inline, null = the
+      // default look (replaced the old hasBlueBackground boolean, 2026-09-15).
+      backgroundColor: sidebarAd.sidebarAdBackgroundColor,
+      isNewsletterSubscriptionInputForm: sidebarAd.isNewsletterSubscriptionInputForm,
+      newsletterMailingLists:
+        sidebarAd.newsletterMailingLists?.map((mailingLists) => mailingLists.newsletterName) ?? [],
+      trigger: {
+        showTo: sidebarAd.showTo,
+        interfaceLang: LOCALE_TO_INTERFACE_LANG[locale],
+        startTimeDate: Date.parse(sidebarAd.startTime),
+        endTimeDate: Date.parse(sidebarAd.endTime),
+        keywordTargets: keywordTargetsArray,
+        excludeKeywordTargets: excludeKeywordTargets,
+        // A document that predates the pageType field (or arrived from a Strapi without it)
+        // normalizes to all_pages, so older ads keep matching exactly as they always did.
+        pageType: normalizePageType(sidebarAd.pageType),
+      },
+      debug: sidebarAd.debug,
+    };
+  });
+};
+
+export {
+  buildInAppAdsFromSidebarAds,
+  adMatchesKeywords,
+  parseKeywords,
+  isLightBackground,
+  SKIPPED_SIDEBAR_AD_LOG,
+};
