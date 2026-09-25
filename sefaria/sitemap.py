@@ -36,7 +36,6 @@ class SefariaSiteMapGenerator(object):
         "/donate",
         "/supporters",
         "/mobile",
-        "/app",
         "/daf-yomi",
         "/linker",
         "/jobs",

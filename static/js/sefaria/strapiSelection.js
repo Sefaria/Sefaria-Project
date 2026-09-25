@@ -241,7 +241,7 @@ const selectContent = (docs, ctx, contentType) => {
 // Selection stays page-independent — if the best-fit document is excluded on the current page,
 // nothing shows there, rather than promoting a rival campaign on the page this one links to.
 
-const ALWAYS_EXCLUDED_PATHS = ["/donate", "/mobile", "/app", "/ways-to-give"];
+const ALWAYS_EXCLUDED_PATHS = ["/donate", "/mobile", "/ways-to-give"];
 
 // The pathname of a URL, or null when it cannot be parsed. new URL() THROWS on anything
 // relative or malformed — a realistic editor mistake (a buttonURL of "give/451346") — and this
