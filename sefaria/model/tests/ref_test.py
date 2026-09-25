@@ -555,6 +555,25 @@ class Test_Cache(object):
         Ref.remove_index_from_cache("Genesis")
         Ref.remove_index_from_cache("Genesis")
 
+    def test_ref_flush_from_cache(self):
+        # normal(), url() and a sectioned tref all name the same entry and must all be
+        # purged; a different entry in the same dictionary must be untouched.
+        r1_normal = Ref("Jastrow, ג")
+        r1_url = Ref("Jastrow,_ג")
+        r1_section = Ref("Jastrow, ג 1")
+        r2 = Ref("Jastrow, פֶּתַח 1")
+        Ref.remove_ref_from_cache("Jastrow", "Jastrow, ג")
+        assert r1_normal is not Ref("Jastrow, ג")
+        assert r1_url is not Ref("Jastrow,_ג")
+        assert r1_section is not Ref("Jastrow, ג 1")
+        assert r2 is Ref("Jastrow, פֶּתַח 1")
+
+        # Calling again for an entry no longer in the cache, or for an index that was
+        # never cached at all, must not raise -- and must leave an unrelated ref alone.
+        Ref.remove_ref_from_cache("Jastrow", "Jastrow, ג")
+        Ref.remove_ref_from_cache("No Such Index", "No Such Index, x")
+        assert r2 is Ref("Jastrow, פֶּתַח 1")
+
     def test_cache_identity(self):
         assert Ref("Ramban on Genesis 1") is Ref("Ramban on Genesis 1")
         assert Ref("שבת ד' כב.") is Ref("שבת ד' כב.")
