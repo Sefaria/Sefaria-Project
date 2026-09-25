@@ -27,6 +27,46 @@ import SearchTabsMobileWeb from './SearchTabsMobileWeb';
 import SearchAnalytics, { tabLabel } from './sefaria/searchAnalytics';
 
 
+/**
+ * Fuzzy-search query auto-correction (sc-47189). Shown once, above the tab strip, when the
+ * server auto-corrected the typed query against the string warehouse (see search_wrapper_api /
+ * entity_search_api / ElasticSearchQuerier) -- the same correction applies to every tab
+ * (Sources/Books/Authors/Topics), so there's one shared banner rather than one per tab.
+ * The search bar itself keeps showing what the user actually typed -- this banner is the
+ * only place `correctedQuery` vs `originalQuery` is surfaced. The first line's term is
+ * inert (you're already looking at those results); clicking the second line's term re-runs
+ * every tab with auto-correction disabled, searching `originalQuery` exactly as typed.
+ */
+const SearchAutocorrectBanner = ({correctedQuery, originalQuery, onSearchOriginal}) => {
+  if (!correctedQuery) { return null; }
+  const searchOriginal = () => onSearchOriginal && onSearchOriginal();
+  return (
+    <div className="searchAutocorrectBanner">
+      <div className="searchAutocorrectBanner-line">
+        <InterfaceText text={{en: "These are results for ", he: "אלו התוצאות עבור "}}/>
+        <span className="searchAutocorrectBanner-corrected">{correctedQuery}</span>
+      </div>
+      <div className="searchAutocorrectBanner-line searchAutocorrectBanner-secondary">
+        <InterfaceText text={{en: "Search instead for ", he: "חפש במקום זאת עבור "}}/>
+        <span
+            className="searchAutocorrectBanner-original"
+            role="button"
+            tabIndex="0"
+            onClick={searchOriginal}
+            onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); searchOriginal(); } }}
+        >
+          {originalQuery}
+        </span>
+      </div>
+    </div>
+  );
+};
+SearchAutocorrectBanner.propTypes = {
+  correctedQuery:   PropTypes.string,
+  originalQuery:    PropTypes.string,
+  onSearchOriginal: PropTypes.func,
+};
+
 const SearchPageSearchBar = ({query, onQueryChange}) => {
   const [value, setValue] = React.useState(query || "");
   React.useEffect(() => { setValue(query || ""); }, [query]);
@@ -461,6 +501,13 @@ class SearchPage extends Component {
       // previous result set — so rebuild the filter tree unselected before refetching.
       this.setState({bookCategoryFilters: this.makeBookCategoryFilters(), bookCategoryCounts: null},
                     () => this.resetEntityResults(ENTITY_TABS.map(t => t.type)));
+    } else if (prevProps.disableAutoCorrect !== this.props.disableAutoCorrect) {
+      // Fuzzy-search query auto-correction (sc-47189): clicking "Search instead for
+      // <original query>" in the banner (any tab) re-searches every tab uncorrected, not
+      // just the one the click happened on -- one query, one correction decision, applied
+      // everywhere. Same query, so category selections/counts stay valid; only what was
+      // actually searched changes.
+      this.resetEntityResults(ENTITY_TABS.map(t => t.type));
     }
   }
 
@@ -477,6 +524,7 @@ class SearchPage extends Component {
       Sefaria.search.entitySearch(query, type, 0, {
             sort: this.state.entitySort[type],
             categoryPaths: this.selectedCategoryPaths(type),
+            disableAutocorrect: this.props.disableAutoCorrect,
           })
           .then(data => {
             if (this._entityFetchTokens[type] !== token) { return; }  // a newer fetch superseded this one
@@ -537,6 +585,7 @@ class SearchPage extends Component {
     Sefaria.search.entitySearch(query, type, cur.hits.length, {
           sort: this.state.entitySort[type],
           categoryPaths: this.selectedCategoryPaths(type),
+          disableAutocorrect: this.props.disableAutoCorrect,
         })
         .then(data => {
           if (this._entityFetchTokens[type] !== token) { return; }  // superseded — these rows are stale
@@ -788,6 +837,12 @@ class SearchPage extends Component {
                       onQueryChange={this.props.onQueryChange}/>
                 </div>
 
+                <SearchAutocorrectBanner
+                    correctedQuery={this.props.correctedQuery}
+                    originalQuery={this.props.query}
+                    onSearchOriginal={this.props.onDisableAutoCorrect}
+                />
+
                 {this.props.isQueryRunning && !this.props.hits.length
                   ? <SearchLoadSkeleton />
                   : useDesktopTabs
@@ -828,6 +883,9 @@ class SearchPage extends Component {
 
 SearchPage.propTypes = {
   query:                    PropTypes.string,
+  correctedQuery:           PropTypes.string,
+  disableAutoCorrect:       PropTypes.bool,
+  onDisableAutoCorrect:     PropTypes.func,
   tab:                      PropTypes.string,
   setTab:                   PropTypes.func,
   type:                      PropTypes.oneOf(["text", "sheet"]),

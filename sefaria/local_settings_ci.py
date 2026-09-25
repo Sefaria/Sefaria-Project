@@ -126,6 +126,10 @@ USE_VARNISH_ESI = False
 # Prevent modification of Index records
 DISABLE_INDEX_SAVE = False
 
+# String warehouse (search-query auto-correction, sc-47189) isn't built in CI -- skip trying
+# to load it at startup.
+DISABLE_STRING_WAREHOUSE = True
+
 # Caching with Cloudflare
 CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""

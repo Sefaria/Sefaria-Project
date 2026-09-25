@@ -484,6 +484,11 @@ cronJobs:
   # Settings for regenerating long cached data
   regenerate:
     enabled: true
+  # Rebuilds the string warehouse (search-query auto-correction, sc-47189) into Mongo;
+  # library/task/web pods load the result at startup (see sefaria/helper/string_warehouse.py).
+  # Off by default -- turn on once the warehouse's memory footprint has been sized.
+  buildStringWarehouse:
+    enabled: false
   dailyEmailNotifications:
     enabled: false
   embedLibraryToPgvector:
