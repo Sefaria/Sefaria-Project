@@ -4,3 +4,4 @@
 /.idea
 /.pytest_cache
 /.secrets
+/dump
