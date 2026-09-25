@@ -77,7 +77,7 @@ def save_link(raw_link_change: dict):
     obj = func(uid, Link, link, **kwargs)
     try:
         if USE_VARNISH:
-            for ref in link.refs:
+            for ref in obj.refs:
                 invalidate_ref(Ref(ref), purge=True)
     except Exception as e:
         logger.error(e)

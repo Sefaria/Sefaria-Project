@@ -1,4 +1,6 @@
 import json
+import threading
+import time
 import uuid
 
 from django.core.exceptions import MiddlewareNotUsed
@@ -9,6 +11,13 @@ from .messaging import MessagingNode
 
 import structlog
 logger = structlog.get_logger(__name__)
+
+# Guards the dispatch of a multiserver-applied method (library.rebuild, refresh_index_record_in_cache,
+# etc.) against overlapping callers within one process -- e.g. the background listener thread
+# (ServerCoordinator.start_background_listener) and a middleware-triggered sync() on a request thread
+# both draining the same pubsub connection. Held only around the method call itself, never around
+# reads, so normal hot-path cache lookups pay no locking cost.
+_CACHE_MUTATION_LOCK = threading.Lock()
 
 
 class ServerCoordinator(MessagingNode):
@@ -83,6 +92,50 @@ class ServerCoordinator(MessagingNode):
         self._process_message(msg)
         self.sync()  # While there are still live messages, keep processing them.
 
+    def start_background_listener(self):
+        """
+        Start a persistent daemon thread that blocks on a dedicated pubsub connection (see
+        MessagingNode.connect_listener()) and applies events as they arrive, instead of
+        waiting for MultiServerEventListenerMiddleware's every-20th-request poll. Idempotent
+        -- a no-op if a listener thread is already running.
+
+        Must only be called after fork (e.g. gunicorn's post_fork hook) -- see the
+        pre-fork-connection hazard documented in reader/startup.py / gunicorn.conf.py.
+        """
+        if getattr(self, "_listener_thread", None) and self._listener_thread.is_alive():
+            return
+        self._listener_thread = threading.Thread(
+            target=self._listener_loop, name="multiserver-listener", daemon=True
+        )
+        self._listener_thread.start()
+
+    def _listener_loop(self):
+        """
+        Blocking loop: waits on the dedicated listener connection and applies each event as it
+        arrives, self-healing on any connection failure. `listen()` raises out of its generator
+        when the connection drops, which the outer except catches -- clearing the (now-dead)
+        listener client/pubsub so the next _check_listener_initialization() call reconnects.
+
+        Uses self._listener_redis_client / self._listener_pubsub, never self.redis_client /
+        self.pubsub -- those back MultiServerEventListenerMiddleware's fallback poll and must
+        keep working even while this loop is reconnecting. See connect_listener() for why the
+        socket_timeout differs too.
+        """
+        while True:
+            try:
+                self._check_listener_initialization()
+                if not self._listener_pubsub:
+                    time.sleep(self.RECONNECT_BACKOFF_SECONDS)
+                    continue
+                for message in self._listener_pubsub.listen():
+                    if message["type"] == "message":
+                        self._process_message(message)
+            except Exception:
+                logger.exception("multiserver_listener:crashed_reconnecting")
+                self._listener_redis_client = None
+                self._listener_pubsub = None
+                time.sleep(self.RECONNECT_BACKOFF_SECONDS)
+
     def _process_message(self, msg):
         """
         :param msg: JSON encoded message.
@@ -115,11 +168,11 @@ class ServerCoordinator(MessagingNode):
 
         data = json.loads(msg["data"])
 
-        obj = locals()[data["obj"]]
-        method = getattr(obj, data["method"])
-
         try:
-            method(*data["args"])
+            obj = locals()[data["obj"]]
+            method = getattr(obj, data["method"])
+            with _CACHE_MUTATION_LOCK:
+                method(*data["args"])
             logger.info("Processing succeeded for {} on {}:{}".format(self.event_description(data), host, pid))
 
             confirm_msg = {
