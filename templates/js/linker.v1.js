@@ -17,6 +17,7 @@
 	var hasOwn = {}.hasOwnProperty; // Used with findAndReplaceDOMText
     /* Adapted from: https://plainjs.com/javascript/manipulation/unwrap-a-dom-element-35/ */
     function unwrap(el) { var parent = el.parentNode; while (el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el);}
+    function setDisplay(el, display) { if (el) { el.style.display = display; } }
     /* filter array to distinct values */
     function distinct(value, index, self) {return self.indexOf(value) === index;}
     /* see https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript/3561711#3561711 */
@@ -152,8 +153,8 @@
         var source = ns.sources[e.getAttribute('data-ref')];
         if (source.lang == "en") {
             // [].forEach.call(heElems, function(e) {e.style.display = "None"});
-            heTitle.style.display = "None";
-            heNotice.style.display = "None";
+            setDisplay(heTitle, "None");
+            setDisplay(heNotice, "None");
             [].forEach.call(enElems, function(e) {e.style.display = "Block"});
         } else if (source.lang == "he") {
             [].forEach.call(heElems, function(e) {e.style.display = "Block"});
@@ -162,7 +163,7 @@
         enBox.innerHTML = source.en;
         heBox.innerHTML = source.he;
         enTitle.textContent = source.ref;
-        heTitle.textContent = source.heRef;
+        if (heTitle) { heTitle.textContent = source.heRef; }
 
         var rect = e.getBoundingClientRect();
         popUpElem.style.top = (rect.top > 100)?rect.top - 50 + "px":rect.top + 30 + "px";
