@@ -19,3 +19,22 @@ DATABASES["default"] = {
     "HOST": "postgres",
     "PORT": "5432",
 }
+
+# The example settings use DummyCache, which rebuilds the TOC on every page (~15s).
+CACHES = {
+    "shared": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://cache:6379/1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SERIALIZER": "sefaria.system.serializers.JSONSerializer",
+        },
+        "TIMEOUT": None,
+    },
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://cache:6379/0",
+        "OPTIONS": {"CLIENT_CLASS": "django_redis.client.DefaultClient"},
+        "TIMEOUT": 60 * 60 * 24 * 30,
+    },
+}
