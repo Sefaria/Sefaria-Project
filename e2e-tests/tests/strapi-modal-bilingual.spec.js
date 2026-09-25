@@ -19,19 +19,20 @@
  * unauthored header is ABSENT from the DOM while the other locale's header is PRESENT but
  * CSS-hidden. `toHaveCount(0)` and `toBeHidden()` mean different things here and both are used.
  *
- * Kept in its own file so it can be re-recorded in isolation: RECORD_HAR=1 rewrites the HAR of
- * every spec in the run, and the other scenarios' content is not currently published.
+ * Kept in its own file from the recording era (RECORD_HAR=1 rewrote every spec's HAR in one run,
+ * so scenarios whose Strapi content was unpublished needed isolating). Recordings are frozen now,
+ * but the split still keeps each scenario's failure signal separate.
  *
  * HOW THIS SUITE DIFFERS FROM THE REST OF e2e-tests/ (read before "fixing" it):
  *   The standard entry helpers (goToPageWithLang / goToPageWithUser) call
  *   installOverlaySuppression(), which short-circuits /api/strapi/graphql-cache with an empty
  *   payload and marks every modal_/banner_ localStorage key as already-seen — i.e. it suppresses
  *   exactly what these specs assert on (see e2e-tests/CLAUDE.md §3). So they intentionally use a
- *   bare page.goto plus routeFromHAR, keeping Strapi ON. Do NOT route them through PageManager.
+ *   bare page.goto plus a synthetic Strapi route, keeping Strapi ON. Do NOT route them through PageManager.
  */
 
 import { test, expect } from '@playwright/test';
-import { routeWithStrapiHarFixture, expectStrapiServedFromHar } from '../support/strapi-har-fixture.js';
+import { routeWithStrapiPayload, expectStrapiServed } from '../support/strapi-payload-fixture.js';
 import {
   SCENARIOS,
   prepareStrapiPage,
@@ -50,15 +51,15 @@ const CASES = [
 ];
 
 test.describe('Strapi Modal — both locales published', () => {
-  let har;
+  let served;
 
   test.beforeEach(async ({ page, context }) => {
-    har = await routeWithStrapiHarFixture(context, scenario.har);
+    served = await routeWithStrapiPayload(context, scenario.payload);
     await prepareStrapiPage(page, scenario);
   });
 
   test.afterEach(() => {
-    expectStrapiServedFromHar(har);
+    expectStrapiServed(served);
   });
 
   for (const { lang, anchor, otherAnchor, other } of CASES) {

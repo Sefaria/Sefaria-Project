@@ -1,3 +1,4 @@
+import hashlib
 import io
 import os
 import zipfile
@@ -1507,7 +1508,13 @@ def index_sheets_by_timestamp(request):
 
 # Change this whenever the GraphQL query/response shape changes in a way that is not backwards compatible (e.g. the Strapi v4 -> v5 flattening)
 # It's part of the cache key so queries from a newly deployed frontend cannot collide with payloads cached under the previous schema
-STRAPI_SCHEMA_VERSION = "v5"
+# v6: sidebar ads gained `pageType` (page-type targeting). The cache key now also includes a hash
+# of the query body (see strapi_graphql_cache), so even same-version clients posting different
+# query shapes — e.g. a stale browser bundle during a deploy window — can never poison the slot
+# that up-to-date clients read.
+# v7: sidebar ads' hasBlueBackground (boolean) replaced by sidebarAdBackgroundColor (hex string,
+# mirroring bannerBackgroundColor).
+STRAPI_SCHEMA_VERSION = "v7"
 
 @csrf_exempt
 def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
@@ -1568,9 +1575,18 @@ def strapi_graphql_cache(request: HttpRequest) -> HttpResponse:
                 {"error": "GraphQL query required in request body"}, status=400
             )
 
-        # Create cache key from the schema version and the specified dates. The query structure is static apart from the dates in its body. 
-        # Including the schema version ensures payloads cached under an older, incompatible query/response shape are never served to code expecting the newer shape.
-        cache_key: str = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_{start_date}_{end_date}"
+        # Create cache key from the schema version, the specified dates, AND a hash of the query body.
+        # The schema version ensures payloads cached under an older, incompatible query/response shape are never served to code expecting the newer shape.
+        # The query hash closes a subtler hole the version constant alone cannot: during a deploy window, a browser
+        # still running the PREVIOUS frontend bundle posts the previous (smaller) query to this same endpoint. Without
+        # the hash, its response — missing the newly added fields — would be cached under the key that freshly
+        # deployed clients read, silently stripping the new fields from every visitor for the cache TTL.
+        # Distinct query shapes therefore get distinct slots; identical clients still share one slot per date range.
+        # Full SHA-256 digest, untruncated: the key must NEVER collide (a collision silently serves one
+        # query shape's payload to a client that sent a different one — the exact poisoning this exists
+        # to prevent), and Redis key length is not a constraint worth trading that guarantee for.
+        query_hash: str = hashlib.sha256(query.encode("utf-8")).hexdigest()
+        cache_key: str = f"strapi_graphql_{STRAPI_SCHEMA_VERSION}_{start_date}_{end_date}_{query_hash}"
 
         # Try to get from cache first
         # There should be at most 3 keys (date ranges in the cache) at the same time based on frontend usage

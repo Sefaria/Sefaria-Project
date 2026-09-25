@@ -2720,16 +2720,18 @@ a.cardTitle:hover {
   font-weight: 500;
   height: auto;
 }
-.sidebarPromo.blue {
+/* The "colored treatment" for ads whose Strapi sidebarAdBackgroundColor is a DARK color (the
+   background itself arrives as an inline style; whitish colors deliberately skip this class and
+   keep the default styling — see SidebarAd in Promotions.jsx). */
+.sidebarPromo.colored {
   padding-top: 33px;
   padding-bottom: 33px;
-  background-color: var(--sefaria-blue);
   color: #FFF;
 }
-.sidebarPromo.blue h3 {
+.sidebarPromo.colored h3 {
   color: #fff
 }
-.sidebarPromo.blue a.button {
+.sidebarPromo.colored a.button {
   padding: 10px 14px;
   width: fit-content;
   text-align: center;
@@ -2746,13 +2748,22 @@ a.cardTitle:hover {
   margin-top: -2px;
 }
 
-.sidebarPromo.blue a.button img {
+/* Images an editor writes in an ad body's markdown: their own line, centered, never wider than
+   the sidebar. Scoped to the body paragraph so the button icon (a.button img above) keeps its
+   inline layout. */
+.sidebarPromo p img {
+  display: block;
+  margin: 10px auto;
+  max-width: 100%;
+}
+
+.sidebarPromo.colored a.button img {
   filter: invert(0);
 }
 .sidebarPromo a {
   margin-inline-start: 0px;
 }
-.sidebarPromo.blue.button a:hover {
+.sidebarPromo.colored a.button:hover {
   color: var(--sefaria-blue);
 }
 .sidebarPromo img {
