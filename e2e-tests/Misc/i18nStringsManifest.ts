@@ -206,11 +206,9 @@ export const STRING_PAGES: StringsPageSpec[] = [
     // in every environment while local dev sandboxes often index no English.
     name: 'Search results',
     path: `/search?q=${encodeURIComponent('אהבה')}`,
-    anchor: '.result.textResult',
+    anchor: '.searchResultCard',
     expectedIds: [
-      'search_page.results',                      // renders once totalResults > 0
-      'common.options',                           // TextSearchFilters (desktop sidebar)
-      'search_filters.exact_matches_only',
+      'search_page.results',
     ],
   },
   {

@@ -174,10 +174,12 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', { tag: '@sanity' },
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
         await page.getByRole('link', { name: 'Nechama Leibowitz' }).click();
 
-        await page.getByRole('tab', { name: 'Contents' }).click();
-        const item1 = page.getByRole('link', { name: 'Bereshit', exact: true }).first();
-        await item1.click();
-        await expect(page).toHaveURL(/collections\/\%D7\%92\%D7\%99\%D7\%9C\%D7\%99\%D7\%95\%D7\%A0\%D7\%95\%D7\%AA\-%D7\%A0\%D7\%97\%D7\%9E\%D7\%94\?tag\=Bereshit\&tab\=sheets/);
+        await expect(page.getByRole('heading', { name: /Nechama Leibowitz/i })).toBeVisible();
+        await page.getByRole('tab', { name: 'Sheets' }).click();
+        const sheet = page.locator('a[href^="/sheets/"]:not([href*="/sheets/new"])').first();
+        await expect(sheet).toBeVisible();
+        await sheet.click();
+        await expect(page).toHaveURL(/\/sheets\/\d+/);
     });
 
     // ==================== TALMUD tests ====================
@@ -314,7 +316,7 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', { tag: '@sanity' },
         await page.getByRole('link', { name: 'מילונים וספרי יעץ' }).click();
         await page.getByRole('link', { name: 'סדר הדורות' }).click();
 
-        await page.getByRole('link', { name: 'מחברים' }).click();
+        await page.getByRole('link', { name: 'אישים' }).click();
         const item = page.locator('.schema-node-toc').first();
         await item.click();
         await expect(page).toHaveURL(/Seder_HaDorot%2C_Authors/);

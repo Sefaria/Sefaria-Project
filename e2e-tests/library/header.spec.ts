@@ -88,7 +88,7 @@ test.describe('Library Module Header Tests - English', () => {
     await pm.onModuleHeader().selectDropdownOption('עברית', false, MODULE_SELECTORS.LANGUAGE_SWITCHER_GLOBE);
 
     await expect(page.locator('body')).toHaveClass(/interface-hebrew/);
-    await expect(page.getByRole('link', { name: 'מקורות' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'טקסטים' })).toBeVisible();
   });
 
   test('MOD-H006: Module switcher navigation', { tag: '@sanity' }, async () => {
@@ -109,12 +109,11 @@ test.describe('Library Module Header Tests - English', () => {
     await pm.onModuleHeader().openDropdown(MODULE_SELECTORS.ICONS.USER_MENU);
     await pm.onModuleHeader().selectDropdownOption('Log in');
     await expect(page).toHaveURL(/\/login/);
-    // Dismiss any leftover overlays and give the login form time to render
     await hideAllModalsAndPopups(page);
-    await page.waitForTimeout(t(500));
-    // Use placeholders which are reliable across login implementations
-    await expect(page.getByPlaceholder('Email Address')).toBeVisible({ timeout: t(15000) });
-    await expect(page.getByPlaceholder('Password')).toBeVisible({ timeout: t(15000) });
+    // /login lands on ChooseView; the email form is the next step.
+    await page.getByRole('button', { name: 'Continue with Email' }).click();
+    await expect(page.getByLabel('Email Address')).toBeVisible({ timeout: t(15000) });
+    await expect(page.getByLabel('Password')).toBeVisible({ timeout: t(15000) });
   });
 
   test('MOD-H008: Browser navigation controls (back/forward buttons)', async () => {

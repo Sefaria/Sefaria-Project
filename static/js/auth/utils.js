@@ -103,7 +103,10 @@ export function emailValidate(el) {
 // error is currently shown alone, and an error set elsewhere (e.g. by the server on submit)
 // is never touched.
 export function onBlurValidate(key, validate, setFieldError) {
-  return () => setFieldError(key, validate());
+  // Pass the blur event through so validators can read the DOM value. `fields.*`
+  // in the render closure is still the previous render when blur follows a change
+  // in the same tick.
+  return (e) => setFieldError(key, validate(e));
 }
 
 export function onChangeClear(key, onChange, validate, fieldErrors, setFieldError) {

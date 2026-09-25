@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { LoginPage } from './pages/loginPage';
 import { BROWSER_SETTINGS, LANGUAGES, t } from './globals';
-import { fixCookieDomainsForCrossSubdomain } from './utils';
+import { fixCookieDomainsForCrossSubdomain, installOverlaySuppression } from './utils';
 
 type Profile = typeof BROWSER_SETTINGS[keyof typeof BROWSER_SETTINGS];
 type Credentials = { email: string; password: string };
@@ -76,7 +76,21 @@ async function loginAndCaptureState(baseURL: string, credentials: Credentials) {
       sameSite: 'Lax' as const,
     }]);
 
+    // Same overlay suppression the specs get via goToPageWithLang. Without it,
+    // preprod's Strapi interrupting modal (#interruptingMessageOverlay) covers
+    // the Log in button and the click times out. Works headless.
+    await installOverlaySuppression(context);
+
     const page = await context.newPage();
+    await page.addLocatorHandler(
+      page.locator('#interruptingMessageOverlay'),
+      async () => {
+        await page.evaluate(() => {
+          document.getElementById('interruptingMessageOverlay')?.remove();
+          document.getElementById('interruptingMessageBox')?.remove();
+        });
+      },
+    );
     await page.goto(`${baseURL}/login`, { waitUntil: 'domcontentloaded', timeout: t(30000) });
     // /login lands on AuthPage's ChooseView first (provider buttons + "Continue
     // with Email") — wait for that, not the email field, which only exists once

@@ -14,6 +14,7 @@ import { useProviderTriggers } from './useSsoSignIn.jsx';
 import { useSignUpTracking } from './useSignUpTracking.js';
 import { SIGNUP_METHOD } from './signupAnalytics.js';
 import { getCsrfToken } from '../sefaria/csrf';
+import Sefaria from '../sefaria/sefaria';
 
 /**
  * AuthPage — the React login / register / reset experience (spec 1602).
@@ -83,7 +84,17 @@ const AuthPage = ({
   };
 
   let content;
-  if (view === 'email' && flow === 'register') {
+  // The React auth card replaced the Django login template, which told an
+  // already-authenticated visitor who they were. Without this, /login in a
+  // second tab looks like a fresh login and can start a second session.
+  if (flow !== 'reset' && Sefaria._uid) {
+    const who = Sefaria.full_name || Sefaria._email;
+    content = (
+      <MessageView heading="header.log_in">
+        <p>{Sefaria._('auth.already_logged_in').replace('{name}', who)}</p>
+      </MessageView>
+    );
+  } else if (view === 'email' && flow === 'register') {
     content = (
       <RegisterView
         switchFlow={switchFlow} fields={fields} setField={setField}
