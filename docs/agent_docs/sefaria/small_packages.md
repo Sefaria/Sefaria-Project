@@ -44,7 +44,7 @@ Implements a two-step OAuth 2.0 flow for Google API access (currently used only 
 - Results expire after 1800 seconds (30 minutes)
 
 **`celery_setup/config.py`:**
-- `CeleryQueue` enum with `TASKS` and `LLM` queue names (read from `settings.CELERY_QUEUES`)
+- `CeleryQueue` enum with `TASKS`, `LLM` and `FIND_REFS` queue names (read from `settings.CELERY_QUEUES`). `FIND_REFS` carries the interactive `/api/find-refs` (linker) tasks and is consumed by dedicated workers (chart value `tasks.findRefs`) so bulk linking jobs on `TASKS` can't starve it; where `findRefs` isn't configured it falls back to the `TASKS` queue. The view enqueues these tasks with `expires=120`, matching the linker client's polling limit.
 - `generate_config_from_env()` -- builds Celery config from Django settings, supporting both direct Redis and Redis Sentinel
 
 **`celery_setup/generate_config.py`:**

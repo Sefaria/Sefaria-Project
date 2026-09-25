@@ -1,22 +1,32 @@
 {{- if or .Values.tasks.enabled .Values.gpuServer }}
 {{- $QueueConfig := (fromYaml (include "sefaria.tasks.queues" . )) -}}
+{{- /*
+One Rollout per worker pool. "tasks" consumes the shared tasks queue; "find-refs" (optional)
+consumes only the find-refs queue, so interactive linker requests never wait behind bulk jobs.
+*/}}
+{{- $pools := list (dict "name" "tasks" "service" "task" "queue" $QueueConfig.tasks "replicas" .Values.tasks.replicaCount "resources" .Values.tasks.resources) }}
+{{- if .Values.tasks.findRefs.enabled }}
+{{- $pools = append $pools (dict "name" "find-refs" "service" "find-refs" "queue" $QueueConfig.findRefs "replicas" .Values.tasks.findRefs.replicaCount "resources" (.Values.tasks.findRefs.resources | default .Values.tasks.resources)) }}
+{{- end }}
+{{- range $pool := $pools }}
+{{- with $ }}
 ---
 # apiVersion: apps/v1
 # kind: Deployment
 apiVersion: argoproj.io/v1alpha1
 kind: Rollout
 metadata:
-  name: {{ .Values.deployEnv }}-tasks
+  name: {{ .Values.deployEnv }}-{{ $pool.name }}
   labels:
     deployEnv: "{{ .Values.deployEnv }}"
-    app: tasks-{{ .Values.deployEnv }}
+    app: {{ $pool.name }}-{{ .Values.deployEnv }}
     # releaseRevision: "{{ .Release.Revision }}"
   annotations:
     rollout.argoproj.io/revision: "{{ .Release.Revision }}"
 spec:
   strategy:
     blueGreen:
-      activeService: task-{{ .Values.deployEnv }}
+      activeService: {{ $pool.service }}-{{ .Values.deployEnv }}
       autoPromotionEnabled: true
       {{- if .Values.rollouts.prePromotionAnalysis }}
       prePromotionAnalysis:
@@ -29,28 +39,28 @@ spec:
       {{- end }}
   selector:
     matchLabels:
-      app: tasks-{{ .Values.deployEnv }}
+      app: {{ $pool.name }}-{{ .Values.deployEnv }}
       # releaseRevision: "{{ .Release.Revision }}"
   revisionHistoryLimit: 2
-  replicas: {{ .Values.tasks.replicaCount }}
+  replicas: {{ $pool.replicas }}
   progressDeadlineSeconds: 1200
   template:
     metadata:
       labels:
-        app: tasks-{{ .Values.deployEnv }}
+        app: {{ $pool.name }}-{{ .Values.deployEnv }}
         tier: application
         deployEnv: "{{ .Values.deployEnv }}"
         stackRole: celery
         releaseRevision: "{{ .Release.Revision }}"
         {{- if .Values.datadog.enabled }}
         tags.datadoghq.com/env: {{ .Values.deployEnv | quote }}
-        tags.datadoghq.com/service: "tasks"
+        tags.datadoghq.com/service: {{ $pool.name | quote }}
         tags.datadoghq.com/version: {{ .Values.web.containerImage.tag | quote }}
         admission.datadoghq.com/enabled: "true"
         {{- end }}
       {{- if .Values.datadog.enabled }}
       annotations:
-        ad.datadoghq.com/tasks.logs: '[{"source":"python","service":"{{ .Values.deployEnv }}-tasks"}]'
+        ad.datadoghq.com/tasks.logs: '[{"source":"python","service":"{{ .Values.deployEnv }}-{{ $pool.name }}"}]'
         admission.datadoghq.com/python-lib.version: "v4.7.1"
       {{- end }}
     spec:
@@ -72,7 +82,7 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - "tasks-{{ .Values.deployEnv }}"
+                  - "{{ $pool.name }}-{{ .Values.deployEnv }}"
               topologyKey: kubernetes.io/hostname
         nodeAffinity:
           {{- merge ( (include "sefaria.nodeAffinities" . ) | fromYaml) .Values.tasks.nodeAffinity | toYaml | nindent 10 }}
@@ -81,7 +91,7 @@ spec:
         image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
         imagePullPolicy: Always
         command: ["celery"]
-        args: ["-A", "sefaria.celery_setup.app","worker", "-Q", "{{ $QueueConfig.tasks }}", "--concurrency=1", "-l", "INFO"]
+        args: ["-A", "sefaria.celery_setup.app","worker", "-Q", "{{ $pool.queue }}", "--concurrency=1", "-l", "INFO"]
         env:
           - name: ENV_NAME
             value: "{{ .Values.deployEnv }}"
@@ -155,7 +165,7 @@ spec:
               name: local-settings-tasks-secrets-{{ .Values.deployEnv }}
               optional: true
         # Prod sizes these in envs/prod/helmrelease.yaml; chart defaults are not what prod runs.
-        resources: {{ toYaml .Values.tasks.resources | nindent 10 }}
+        resources: {{ toYaml $pool.resources | nindent 10 }}
         livenessProbe:
           exec:
             command: ["python3", "/app/sefaria/celery_setup/healthcheck.py", "--mode", "liveness", "--timeout", "5"]
@@ -215,4 +225,6 @@ spec:
           secret:
             secretName: {{ template "sefaria.secrets.logging" . }}
             optional: true
+{{- end }}
+{{- end }}
 {{- end }}

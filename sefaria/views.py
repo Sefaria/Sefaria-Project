@@ -477,6 +477,9 @@ def find_refs_report_api(request):
     return jsonResponse({'ok': True})
 
 
+FIND_REFS_TASK_EXPIRES_SECONDS = 120
+
+
 @cors_allow_all
 @api_view(["POST", "OPTIONS"])
 def find_refs_api(request):
@@ -486,7 +489,10 @@ def find_refs_api(request):
     find_refs_input = FindRefsInput(request_text, options, metadata)
     async_result = find_refs_api_task.apply_async(
         args=(asdict(find_refs_input),),
-        queue=CeleryQueue.TASKS.value
+        queue=CeleryQueue.FIND_REFS.value,
+        # The linker client stops polling after 120s (maxRetryTime in static/js/linker.v3/main.js).
+        # Past that nobody is waiting for the result, so workers should skip the task rather than run it.
+        expires=FIND_REFS_TASK_EXPIRES_SECONDS,
     )
     logger.info(
         "find_refs_api:enqueued",
