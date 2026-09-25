@@ -93,6 +93,67 @@ const shouldHideForBackoff = ({ state, sessionCounter, nudgeSchedule = NUDGE_SCH
   return !isReadyToReShow;
 };
 
+const readPromoBackoffState = (storageKeys) => {
+  try {
+    return JSON.parse(localStorage.getItem(storageKeys.state)) || {};
+  } catch (e) {
+    return {};
+  }
+};
+
+// Records one "Maybe later" click in the backoff state. Shared by every promo surface
+// (banner, modal) so the nudge schedule sees the same history wherever it was dismissed.
+const recordPromoMaybeLater = ({ storageKeys, promoSessionCounter }) => {
+  const previousState = readPromoBackoffState(storageKeys);
+  const nextMaybeLaterCount = Math.min(
+    Number(previousState.maybeLaterCount || 0) + 1,
+    MAX_MAYBE_LATER_CLICKS,
+  );
+  const nextState = {
+    maybeLaterCount: nextMaybeLaterCount,
+    lastDismissalTime: Math.floor(Date.now() / 1000),
+    sessionCountAtLastDismissal: promoSessionCounter,
+    dismissedForever: nextMaybeLaterCount >= MAX_MAYBE_LATER_CLICKS,
+  };
+  localStorage.setItem(storageKeys.state, JSON.stringify(nextState));
+};
+
+const trackPromoClick = (gtagParams, feature_name) => {
+  gtag("event", "promo_clicked", { ...gtagParams, feature_name });
+};
+
+// Client-only promo bookkeeping, run once on mount: migrates the legacy cookie and
+// advances the promo session counter. Dismissal state lives in localStorage /
+// document.cookie, which only exist in a browser, so nothing here runs during SSR;
+// `isMounted` lets callers render nothing until the client has taken over.
+const usePromoBackoffSession = ({ cookieName, enableBackoffDismissal, promoSessionLengthSeconds }) => {
+  const [isMounted, setIsMounted] = useState(false);
+  const [promoSessionCounter, setPromoSessionCounter] = useState(null);
+  const storageKeys = getPromoStorageKeys(cookieName);
+  const sessionLengthSeconds = getPromoSessionLengthSeconds(promoSessionLengthSeconds);
+
+  useEffect(() => {
+    if (enableBackoffDismissal) {
+      migrateLegacyCookieToBackoffState({ cookieName, storageKeys });
+      setPromoSessionCounter(updatePromoSessionCounter({ storageKeys, sessionLengthSeconds }));
+    }
+    setIsMounted(true);
+  }, []); // once, on mount: the storage reads above must never run during server rendering
+
+  return { isMounted, promoSessionCounter, storageKeys };
+};
+
+// Fires promo_viewed at most once per browser session per promo (keyed on cookieName).
+const usePromoViewedEvent = (cookieName, gtagParams) => {
+  useEffect(() => {
+    const promoViewedSessionKey = `promo_viewed_${cookieName}`;
+    if (!sessionStorage.getItem(promoViewedSessionKey)) {
+      sessionStorage.setItem(promoViewedSessionKey, "1");
+      gtag("event", "promo_viewed", gtagParams);
+    }
+  }, [cookieName, gtagParams]);
+};
+
 const SiteWideBanner = ({
   mainText,
   secondaryText,
@@ -107,41 +168,17 @@ const SiteWideBanner = ({
   imgSrc,
 }) => {
   const [bannerVisibility, setBannerVisibility] = useState("");
-  // Dismissal state lives in localStorage / document.cookie, which only exist in a
-  // browser. During Node SSR there is no way to read it, so the banner renders nothing
-  // until the component has mounted client-side. The first client render then matches
-  // the server HTML (no banner), and the real decision is made in the effect below.
-  const [isMounted, setIsMounted] = useState(false);
-  const [promoSessionCounter, setPromoSessionCounter] = useState(null);
-  const storageKeys = getPromoStorageKeys(cookieName);
+  // The first client render matches the server HTML (no banner); the real
+  // decision is made once usePromoBackoffSession has mounted.
+  const { isMounted, promoSessionCounter, storageKeys } = usePromoBackoffSession({
+    cookieName, enableBackoffDismissal, promoSessionLengthSeconds,
+  });
   const effectiveNudgeSchedule = nudgeSchedule || NUDGE_SCHEDULE;
-  const sessionLengthSeconds = getPromoSessionLengthSeconds(promoSessionLengthSeconds);
-
-  useEffect(() => {
-    if (enableBackoffDismissal) {
-      migrateLegacyCookieToBackoffState({ cookieName, storageKeys });
-      setPromoSessionCounter(updatePromoSessionCounter({ storageKeys, sessionLengthSeconds }));
-    }
-    setIsMounted(true);
-  }, []); // once, on mount: the storage reads above must never run during server rendering
-
-  useEffect(() => {
-    const promoViewedSessionKey = `promo_viewed_${cookieName}`;
-    if (!sessionStorage.getItem(promoViewedSessionKey)) {
-      sessionStorage.setItem(promoViewedSessionKey, "1");
-      gtag("event", "promo_viewed", gtagParams);
-    }
-  }, [cookieName, gtagParams]);
+  usePromoViewedEvent(cookieName, gtagParams);
 
   const isDismissed = () => {
     if (enableBackoffDismissal) {
-      let backoffState = {};
-      try {
-        backoffState = JSON.parse(localStorage.getItem(storageKeys.state)) || {};
-      } catch (e) {
-        backoffState = {};
-      }
-      return shouldHideForBackoff({ state: backoffState, sessionCounter: promoSessionCounter, nudgeSchedule: effectiveNudgeSchedule });
+      return shouldHideForBackoff({ state: readPromoBackoffState(storageKeys), sessionCounter: promoSessionCounter, nudgeSchedule: effectiveNudgeSchedule });
     }
     return document.cookie.includes(cookieName);
   };
@@ -155,30 +192,12 @@ const SiteWideBanner = ({
     $.cookie(cookieName, 1, cookieOptions);
   };
 
-  const trackBannerInteraction = (feature_name) => {
-    gtag("event", "promo_clicked", { ...gtagParams, feature_name });
-  };
+  const trackBannerInteraction = (feature_name) => trackPromoClick(gtagParams, feature_name);
 
   const closeBanner = () => {
     setBannerVisibility("hidden");
     if (enableBackoffDismissal) {
-      let previousState = {};
-      try {
-        previousState = JSON.parse(localStorage.getItem(storageKeys.state)) || {};
-      } catch (e) {
-        previousState = {};
-      }
-      const nextMaybeLaterCount = Math.min(
-        Number(previousState.maybeLaterCount || 0) + 1,
-        MAX_MAYBE_LATER_CLICKS,
-      );
-      const nextState = {
-        maybeLaterCount: nextMaybeLaterCount,
-        lastDismissalTime: Math.floor(Date.now() / 1000),
-        sessionCountAtLastDismissal: promoSessionCounter,
-        dismissedForever: nextMaybeLaterCount >= MAX_MAYBE_LATER_CLICKS,
-      };
-      localStorage.setItem(storageKeys.state, JSON.stringify(nextState));
+      recordPromoMaybeLater({ storageKeys, promoSessionCounter });
       trackBannerInteraction("maybe_later");
       return;
     }
@@ -247,8 +266,6 @@ SiteWideBanner.propTypes = {
   imgSrc: PropTypes.string,
 };
 
-const CAMPAIGN_ID = "LA Stand Alone Promo";
-const PROJECT = 'Library Assistant';
 const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register", "/password/reset/confirm"];
 
 // Keep authentication and password-recovery screens focused on the task at hand.
@@ -267,58 +284,11 @@ const isChatbotBannerExcludedPath = (path, moduleUrl) => {
   );
 };
 
-const ChatbotExperimentBanner = ({ promoMaybeLaterJSON, promoSessionLengthSeconds }) => {
-  const [isActionPending, setIsActionPending] = useState(false);
-
-  const handleJoin = async () => {
-    setIsActionPending(true);
-    try {
-      await Sefaria.editProfileAPI({settings: {library_assistant: true}})
-        .then(() => {
-          window.location.reload();
-          return new Promise(() => {}); // never resolves
-        });
-    } finally {
-      setIsActionPending(false);
-    }
-  };
-
-  if (isChatbotBannerExcludedPath(Sefaria.util.currentPath(), Sefaria.getModuleURL())) {
-    return null;
-  }
-  const isLoggedIn = !!Sefaria._uid;
-  // Route anon login/register through /enable-library-assistant so that, once they
-  // authenticate, the assistant is turned on and they're returned here — it then
-  // appears on reload with no extra "Join" click.
-  const enableDest = "/enable-library-assistant?next=" + encodeURIComponent(Sefaria.util.currentPath());
-  const nextParam = "?next=" + encodeURIComponent(enableDest);
-
-  return (
-    <SiteWideBanner
-      mainText={Sefaria._("site_wide_banner.ask_the_library_assistant")}
-      secondaryText={Sefaria._("site_wide_banner.discover_answers_to_your_questions")}
-      imgSrc="/static/icons/ai-double-star.svg"
-      actionButtons={(track) => isLoggedIn ? (
-        <button type="button" className="button small white" onClick={() => { track("join"); handleJoin(); }} disabled={isActionPending}>
-          <span>{isActionPending ? Sefaria._("common.loading") : Sefaria._("site_wide_banner.try_it")}</span>
-        </button>
-      ) : (<>
-        <a className="button small white logInToTry" href={"/login" + nextParam} onClick={() => track("login")}>
-          <span>{Sefaria._("site_wide_banner.log_in_to_try")}</span>
-        </a>
-      </>)}
-      cookieName={isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"}
-      gtagParams={{ campaignID: CAMPAIGN_ID, project: PROJECT }}
-      enableBackoffDismissal={true}
-      nudgeSchedule={promoMaybeLaterJSON || NUDGE_SCHEDULE}
-      promoSessionLengthSeconds={promoSessionLengthSeconds}
-    />
-  );
+export {
+  SiteWideBanner,
+  isChatbotBannerExcludedPath,
+  usePromoBackoffSession,
+  usePromoViewedEvent,
+  recordPromoMaybeLater,
+  trackPromoClick,
 };
-
-ChatbotExperimentBanner.propTypes = {
-  promoMaybeLaterJSON: PropTypes.object,
-  promoSessionLengthSeconds: PropTypes.number,
-};
-
-export { SiteWideBanner, ChatbotExperimentBanner, isChatbotBannerExcludedPath };

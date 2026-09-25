@@ -276,6 +276,15 @@ const Header = (props) => {
       </a>
     ))}
     <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>header.donate</InterfaceText></DonateLink>
+    {props.module === Sefaria.LIBRARY_MODULE && props.onAssistantClick && (
+      <button
+        type="button"
+        className="textLink assistant"
+        onClick={props.onAssistantClick}
+      >
+        ✦ <InterfaceText>header.assistant</InterfaceText>
+      </button>
+    )}
   </div>
 
   
@@ -396,6 +405,7 @@ Header.propTypes = {
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func,
   notificationCount: PropTypes.number,
+  onAssistantClick: PropTypes.func,
 };
 
 const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {

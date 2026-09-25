@@ -120,6 +120,16 @@
   color: var(--dark-grey);
 }
 
+button.textLink {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 .headerLinksSection {
   justify-content: flex-end;
   gap: 20px;
