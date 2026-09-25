@@ -5,7 +5,7 @@
 from sefaria.local_settings_example import *
 
 SECRET_KEY = "local-dev-only-not-secret"
-SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error', 'django_recaptcha.recaptcha_test_key_error']
 
 MONGO_HOST = "db"
 MONGO_PORT = 27017
