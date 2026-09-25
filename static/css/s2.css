@@ -818,6 +818,76 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   max-width: 500px;
   width: 100%;
 }
+/* Library Assistant promo, opened from "✦ Assistant" in the header. Same copy and
+   #653259 accent as the old .siteWideBanner promo (see the note there). */
+.dialogModal .modal-content > .libraryAssistantModal {
+  position: relative;
+  box-sizing: border-box;
+  width: 440px;
+  max-width: 100%;
+  padding: 40px 40px 32px;
+  text-align: center;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: var(--dark-grey);
+}
+.interface-hebrew .libraryAssistantModal {
+  direction: rtl;
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+.libraryAssistantModal .libraryAssistantModalClose {
+  position: absolute;
+  top: 12px;
+  inset-inline-end: 16px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--medium-grey);
+  cursor: pointer;
+}
+.libraryAssistantModal .libraryAssistantModalIcon {
+  width: 41px;
+  height: 43px;
+  /* The icon is drawn white-on-transparent for the purple banner. */
+  background: #653259;
+  border-radius: 14px;
+  padding: 8px;
+}
+.libraryAssistantModal .libraryAssistantModalTitle {
+  margin: 16px 0 8px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #000;
+}
+.libraryAssistantModal .libraryAssistantModalText {
+  margin: 0 0 24px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.libraryAssistantModal .libraryAssistantModalButtons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.libraryAssistantModal .button {
+  margin: 0;
+  min-width: 200px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.libraryAssistantModal .libraryAssistantModalPrimary,
+.libraryAssistantModal .libraryAssistantModalPrimary:hover {
+  background-color: #653259;
+  color: #fff;
+}
+.libraryAssistantModal .libraryAssistantModalMaybeLater,
+.libraryAssistantModal .libraryAssistantModalMaybeLater:hover {
+  background-color: transparent;
+  box-shadow: none;
+  color: #653259;
+}
 .sefariaModalBox {
   transition: none;
 }

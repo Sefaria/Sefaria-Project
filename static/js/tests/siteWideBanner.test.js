@@ -72,4 +72,23 @@ describe("SiteWideBanner in a browser", function () {
     expect(container.querySelector(".siteWideBanner")).not.toBeNull();
     expect(localStorage.getItem("promo_backoff_test_banner_session_counter")).toBe("1");
   });
+
+  it("'Maybe later' records backoff state via the shared helper and hides the banner", function () {
+    act(() => {
+      ReactDOM.render(
+        React.createElement(SiteWideBanner, {
+          mainText: "Hello", actionButtons: () => null, cookieName: "test_banner", gtagParams: { campaignID: "c" }, enableBackoffDismissal: true,
+        }),
+        container
+      );
+    });
+    act(() => {
+      container.querySelector(".siteWideBannerMaybeLater").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    expect(JSON.parse(localStorage.getItem("promo_backoff_test_banner_state"))).toEqual({
+      maybeLaterCount: 1, lastDismissalTime: expect.any(Number), sessionCountAtLastDismissal: 1, dismissedForever: false,
+    });
+    expect(global.gtag).toHaveBeenCalledWith("event", "promo_clicked", { campaignID: "c", feature_name: "maybe_later" });
+    expect(container.querySelector(".siteWideBanner")).toBeNull();
+  });
 });

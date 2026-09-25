@@ -41,7 +41,7 @@ import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
-import { ChatbotExperimentBanner } from './SiteWideBanner';
+import { LibraryAssistantModal } from './LibraryAssistantModal';
 import AuthPage from './auth/AuthPage';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
 import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
@@ -128,6 +128,7 @@ class ReaderApp extends Component {
       panelCap: props.initialPanelCap,
       initialAnalyticsTracked: false,
       showSignUpModal: false,
+      showLibraryAssistantModal: false,
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
       notificationCount: props.notificationCount || 0,
@@ -1045,6 +1046,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     });
   }
 }
+
+  toggleLibraryAssistantModal() {
+    this.setState({ showLibraryAssistantModal: !this.state.showLibraryAssistantModal });
+  }
 
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
@@ -2431,6 +2436,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         translationLanguagePreference={this.state.translationLanguagePreference}
         setTranslationLanguagePreference={this.setTranslationLanguagePreference} 
         module={Sefaria.activeModule}
+        onAssistantClick={this.toggleLibraryAssistantModal}
         notificationCount={this.state.notificationCount}/>
     );
 
@@ -2571,7 +2577,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
     const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
     const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
-    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment;
     const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
     return (
@@ -2586,12 +2591,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <GoogleOneTap googleClientId={Sefaria.googleClientId} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {showChatbotBanner && (
-                <ChatbotExperimentBanner
-                  promoMaybeLaterJSON={this.props.chatbot_promo_maybe_later_json}
-                  promoSessionLengthSeconds={this.props.chatbot_promo_session_length_seconds}
-                />
-              )}
               <main id="main" role="main">
                 {this.state.showAuth ? (
                   <AuthPage
@@ -2621,6 +2620,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               )}
               </main>
               {signUpModal}
+              {this.state.showLibraryAssistantModal && (
+                <LibraryAssistantModal
+                  onClose={this.toggleLibraryAssistantModal}
+                  promoSessionLengthSeconds={this.props.chatbot_promo_session_length_seconds}
+                />
+              )}
               <CookiesNotification />
             </div>
             <BannerImpressionProbe />
