@@ -125,8 +125,8 @@ describe('loading the entry', () => {
   });
 
   test('a 404 response shows an error instead of an indefinite spinner', async () => {
-    // Previously: no .catch() on the GET at all, so a rejection here was an unhandled
-    // promise, and the panel stayed on LoadingMessage forever with no explanation.
+    // A rejected GET must not leave the panel on LoadingMessage forever with an unhandled
+    // promise rejection and no explanation.
     Sefaria.apiRequestWithBody.mockResolvedValue(errorResponse('Entry not found.'));
 
     await mount('BDB, שָׁמַר');

@@ -150,7 +150,7 @@ class LexiconEntry(abst.AbstractMongoRecord):
     # any subclass's as_strings()/headword_string()/get_sense() -- a few (number,
     # plural_form, binyan_form, alternative, morphology) share a name with a key read from
     # inside `content`/`content['senses']`, which is a different field and stays reachable
-    # through `content` regardless. Verified by grepping every reference to each name.
+    # through `content` regardless.
     content_patch_excluded_attrs = [
         "headword", "parent_lexicon", "prev_hw", "next_hw", "rid", "quotes",
         "transliteration", "pronunciation", "morphology", "refs", "related_words", "number",

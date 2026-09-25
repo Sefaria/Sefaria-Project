@@ -445,15 +445,14 @@ class Test_GetAvailableLexiconHeadword(object):
     # Two byte orderings of the same combining marks (sheva U+05B0 + dagesh U+05BC on the same
     # base letter) that normalize to the identical NFC string despite being unequal as raw
     # strings -- built from explicit codepoints, not typed literals, since two Hebrew strings
-    # that render identically can still differ in combining-mark byte order (the exact class
-    # of bug this fix addresses).
+    # that render identically can still differ in combining-mark byte order.
     _ORDER_SHEVA_THEN_DAGESH = "\u05d1\u05b0\u05bc"
     _ORDER_DAGESH_THEN_SHEVA = "\u05d1\u05bc\u05b0"
 
     def test_without_exclude_headword_resubmitting_own_word_differently_encoded_gets_bumped(self, make_lexicon_entry):
-        # documents the bug this fixes: without telling the function which entry is being
-        # renamed, it finds the entry's own current headword via the DB query and treats it
-        # as an unrelated collision.
+        # Without exclude_headword, the function has no way to know the entry's own current
+        # headword isn't a real collision -- it finds it via the DB query and bumps to a
+        # superscript as if some other entry had already claimed the word.
         assert self._ORDER_SHEVA_THEN_DAGESH != self._ORDER_DAGESH_THEN_SHEVA
         assert unicodedata.normalize("NFC", self._ORDER_SHEVA_THEN_DAGESH) == unicodedata.normalize("NFC", self._ORDER_DAGESH_THEN_SHEVA)
         current = unicodedata.normalize("NFC", self._ORDER_SHEVA_THEN_DAGESH)

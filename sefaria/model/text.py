@@ -2711,13 +2711,13 @@ class RefCacheType(type):
         except KeyError:
             return
         oref = cls(tref)
-        # A request's raw tref reaches Ref() as-is and gets cached under that literal string
-        # -- for a URL-decoded request that's oref.url() (spaces as "_"), not oref.normal().
-        # Matching only the normal() form left every real browser request's cache entry
-        # (always url()-shaped) permanently unreachable. A tref naming this entry either is
-        # one of these two forms exactly (no section) or continues with a separator -- ". "/
-        # " "/":" from DictionaryEntryNode's own parsing regex or other stored ref strings
-        # (e.g. links.refs), "_" from the url() form -- before a section number.
+        # A request's raw tref reaches Ref() as-is and gets cached under that literal string.
+        # For a URL-decoded request that literal string is oref.url() (spaces as "_"), not
+        # oref.normal() -- both forms must be matched to reach every real cache entry. A tref
+        # naming this entry either is one of these two forms exactly (no section) or continues
+        # with a separator -- ". "/" "/":" from DictionaryEntryNode's own parsing regex or
+        # other stored ref strings (e.g. links.refs), "_" from the url() form -- before a
+        # section number.
         prefixes = "|".join(regex.escape(p) for p in {oref.normal(), oref.url()})
         pattern = regex.compile(rf"^(?:{prefixes})(?:[. :_]|$)")
         remaining = []

@@ -2,10 +2,10 @@
  * ReaderApp.openURL: did this call actually move the page?
  *
  * openURL returns true for three cases where the current page does NOT go anywhere -- it
- * opened a new tab, or the user cancelled an unsaved-changes prompt. The search analytics
- * flow used to be ended on that plain `true`, which meant clicking an external or
- * cross-module link from the search page silently killed reporting for the rest of the
- * visit, even though the search results were still on screen.
+ * opened a new tab, or the user cancelled an unsaved-changes prompt. Ending the search
+ * analytics flow on that plain `true` would mean clicking an external or cross-module link
+ * from the search page silently kills reporting for the rest of the visit, even though the
+ * search results are still on screen.
  *
  * lastOpenURLNavigatedInApp() separates the two meanings. openURL's own return value is
  * deliberately unchanged -- a dozen call sites read it as a plain "handled?" -- so these

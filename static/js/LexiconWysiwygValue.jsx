@@ -3,13 +3,13 @@ import DOMPurify from 'dompurify';
 import Editor, { Toolbar, BtnBold, BtnItalic, createButton } from 'react-simple-wysiwyg';
 import Sefaria from './sefaria/sefaria';
 
-// Checked against stored content in the 8 lexicons this tool actually edits (Klein, Jastrow, BDB,
-// BDB Aramaic, Sefer HaShorashim, Animadversions, Kovetz Yesodot, Krupnik -- ~99k entries; the two
-// other lexicons in the DB have no Dictionary-category Index and aren't reachable here), not just
-// the ALLOWED_TAGS LexiconEntry declares in sefaria/model/lexicon.py, which includes tags no entry
-// actually uses: i/b/strong/em/sup/sub/span/a/br are real and common; big appears in 15 entries;
-// u/small/img and the data-commentator/data-order/data-label/src attributes appear in zero.
-// Trimmed to match -- keep in sync with LexiconEntry.ALLOWED_TAGS/ALLOWED_ATTRS if that changes.
+// Narrower than the ALLOWED_TAGS LexiconEntry declares in sefaria/model/lexicon.py, which
+// includes tags no entry in the 8 lexicons this tool edits (Klein, Jastrow, BDB, BDB Aramaic,
+// Sefer HaShorashim, Animadversions, Kovetz Yesodot, Krupnik -- the two other lexicons in the DB
+// have no Dictionary-category Index and aren't reachable here) actually uses: i/b/strong/em/sup/
+// sub/span/a/br are real and common; big appears in only a handful of entries; u/small/img and
+// the data-commentator/data-order/data-label/src attributes appear in none. Keep in sync with
+// LexiconEntry.ALLOWED_TAGS/ALLOWED_ATTRS if that changes.
 const ALLOWED_TAGS = ['i', 'b', 'br', 'strong', 'em', 'big', 'sup', 'sub', 'span', 'a'];
 const ALLOWED_ATTR = ['class', 'dir', 'href', 'data-ref'];
 
@@ -94,12 +94,11 @@ export const WysiwygValueNode = ({ value, isEditing, setIsEditing, setValue, can
 
   // json-edit-react always overlays its own confirm/cancel icons whenever a custom node reports
   // isEditing (there's no prop to turn this off -- showEditTools only affects the view-mode
-  // icons). Those icons commit via the library's OWN internal tracked value, not this component's
-  // draftHtml, unless `setValue` (also a prop here) is kept up to date in parallel with every
-  // change -- otherwise clicking them silently reverts to the pre-edit content. So every change
-  // below updates both draftHtml (what this component itself renders/edits) and setValue (what
-  // the library's own icons -- and this file no longer renders its own, redundant Done/Cancel --
-  // will actually commit).
+  // icons). This component renders no Done/Cancel of its own; those library icons commit via
+  // its OWN internal tracked value, not this component's draftHtml, unless `setValue` (also a
+  // prop here) is kept up to date in parallel with every change -- otherwise clicking them
+  // silently reverts to the pre-edit content. So every change below updates both draftHtml
+  // (what this component itself renders/edits) and setValue (what the library's icons commit).
   const updateDraft = (html) => { setDraftHtml(html); setValue(html); };
 
   // Defined per-instance (not at module scope, like BtnBold etc.) so it can open a link form
