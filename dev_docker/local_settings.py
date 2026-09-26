@@ -20,6 +20,12 @@ DATABASES["default"] = {
     "PORT": "5432",
 }
 
+# The example settings pin cookies to .example.com over HTTPS, so on http://localhost the
+# browser drops them: signup/login appear to fail and you are never logged in.
+SESSION_COOKIE_DOMAIN = None
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
+
 # The example settings use DummyCache, which rebuilds the TOC on every page (~15s).
 CACHES = {
     "shared": {
