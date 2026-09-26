@@ -17079,6 +17079,10 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .torahTracker .ttCrumb:hover, .torahTracker .ttLinkButton:hover { text-decoration: underline; }
 .torahTracker .ttCrumbSep { color: var(--tt-muted); }
 .torahTracker .ttCrumbCurrent { font-weight: 600; }
+.torahTracker .ttSegmented { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 2px; background: #f1f1ef; border-radius: 999px; }
+.torahTracker .ttSegmented button { background: none; border: 0; border-radius: 999px; padding: 4px 12px; font-size: 14px; color: var(--tt-ink-2); cursor: pointer; font-variant-numeric: tabular-nums; }
+.torahTracker .ttSegmented button:hover { background: #e6e7e4; color: var(--tt-ink); }
+.torahTracker .ttSegmented button.on { background: var(--tt-accent); color: #fff; font-weight: 600; }
 .torahTracker .ttChip { background: #eef3f4; border: 0; border-radius: 999px; padding: 3px 10px; cursor: pointer; font-size: 13px; }
 
 .torahTracker .ttStats { display: grid; grid-template-columns: 2fr repeat(5, 1fr); gap: 12px; margin-bottom: 12px; }
@@ -17117,7 +17121,6 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 
 .torahTracker .ttLegend { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; font-size: 12px; color: var(--tt-muted); margin-top: 8px; }
 .torahTracker .ttLegendCell { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
-.torahTracker .ttYearJump { margin-inline-start: auto; display: inline-flex; gap: 10px; align-items: center; }
 .torahTracker .ttLegendInline { display: flex; gap: 16px; font-size: 13px; color: var(--tt-ink-2); margin-bottom: 4px; }
 
 .torahTracker .ttDay { border-color: var(--tt-accent); }

@@ -165,6 +165,20 @@ const Breadcrumb = ({label, items, onSelect}) => (
 );
 
 
+const YearPicker = ({years, time, setTime}) => (
+  <div className="ttCrumbs" role="group" aria-label="Filter by year">
+    <span className="ttCrumbLabel">When</span>
+    <div className="ttSegmented">
+      {[null, ...years].map(y => (
+        <button key={y === null ? "all" : y} className={time.year === y ? "on" : ""} aria-pressed={time.year === y}
+                onClick={() => setTime({year: y, month: null})}>{y === null ? "All years" : y}</button>
+      ))}
+    </div>
+    {time.month !== null && <button className="ttChip" onClick={() => setTime({year: time.year, month: null})}>{MONTHS[time.month]} ✕</button>}
+  </div>
+);
+
+
 // ---------- page ----------
 const UserStats = () => {
   const [uid, setUid] = useState(null);
@@ -237,14 +251,14 @@ const Dashboard = ({data}) => {
   }
 
   const drillTime = d => setTime(time.year === null ? {year: d.getFullYear(), month: null} : {year: time.year, month: d.getMonth()});
-  const timeItems = ["All years", ...(time.year !== null ? [String(time.year)] : []), ...(time.month !== null ? [MONTHS[time.month]] : [])];
+  const years = useMemo(() => Array.from(new Set(rows.map(r => r.year))).sort(), [rows]);
   const libraryItems = ["All texts", ...path];
   const filtered = time.year !== null || path.length || partner;
 
   return (
     <>
       <div className="ttFilters">
-        <Breadcrumb label="When" items={timeItems} onSelect={i => setTime(i === 0 ? {year: null, month: null} : {year: time.year, month: null})}/>
+        <YearPicker years={years} time={time} setTime={setTime}/>
         <Breadcrumb label="What" items={libraryItems} onSelect={i => setPath(path.slice(0, i))}/>
         {partner && <div className="ttCrumbs"><span className="ttCrumbLabel">With</span>
           <button className="ttChip" onClick={() => setPartner(null)}>{partner} ✕</button></div>}
@@ -257,7 +271,7 @@ const Dashboard = ({data}) => {
         <div className="ttGrid">
           <TimelineCard rows={scoped} time={time} onDrill={drillTime} onDay={setDay}/>
           <CategoryMultiplesCard rows={scoped} path={path} time={time} onDrill={name => setPath([...path, name])}/>
-          <CalendarCard rows={calendarRows} time={time} selectedDay={day} onDay={setDay} onYear={y => setTime({year: y, month: null})}/>
+          <CalendarCard rows={calendarRows} time={time} selectedDay={day} onDay={setDay}/>
           {day && <DayDetail rows={scoped.filter(r => +r.day === +day)} day={day} onClose={() => setDay(null)}/>}
           <LibraryCard rows={scopedAnyPath} path={path} setPath={setPath}/>
           <PartnersCard rows={scopedAnyPartner} partner={partner} setPartner={setPartner}/>
@@ -425,7 +439,7 @@ const MultipleRow = ({group, time, domain, max, width, onClick}) => {
 
 
 // ---------- calendar ----------
-const CalendarCard = ({rows, time, selectedDay, onDay, onYear}) => {
+const CalendarCard = ({rows, time, selectedDay, onDay}) => {
   const [ref, width] = useWidth();
   const counts = useMemo(() => d3.rollup(rows, v => v.length, r => +r.day), [rows]);
   const years = time.year !== null ? [time.year] : d3.range(d3.min(rows, r => r.year), d3.max(rows, r => r.year) + 1).reverse();
@@ -450,14 +464,12 @@ const CalendarCard = ({rows, time, selectedDay, onDay, onYear}) => {
   const active = cells.filter(c => c.count).length;
   return (
     <Card wide title={time.year !== null ? `${time.year}, day by day` : "Every day you learned"}
-          subtitle={`${fmt(active)} active days. Click a day to see what you read${time.year === null ? ", or a year to zoom in" : ""}.`}
+          subtitle={`${fmt(active)} active days. Click a day to see what you read.`}
           table={{columns: ["Date", "Page views"], rows: cells.filter(c => c.count).map(c => [fmtDay(c.date), c.count])}}>
       <div ref={ref} className="ttCalendar">
         <PlotFigure options={options} onClick={d => onDay(d.date)}/>
         <div className="ttLegend">
           <span>Less</span>{[EMPTY, ...SEQ].map(c => <span key={c} className="ttLegendCell" style={{background: c}}/>)}<span>More</span>
-          {time.year === null && <span className="ttYearJump">Zoom to year: {years.map(y =>
-            <button key={y} className="ttLinkButton" onClick={() => onYear(y)}>{y}</button>)}</span>}
         </div>
       </div>
     </Card>
