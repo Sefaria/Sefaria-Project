@@ -62,6 +62,7 @@ from sefaria.model.media import get_media_for_ref
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.following import general_follow_recommendations
 from sefaria.model.trend import user_stats_data, site_stats_data
+from sefaria.helper.torah_tracker import torah_tracker_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.client.util import jsonResponse, celeryResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
@@ -3265,6 +3266,21 @@ def user_stats_api(request, uid):
     if quick:
         return jsonResponse(public_user_data(uid))
     return jsonResponse(user_stats_data(uid))
+
+
+@login_required
+def torah_tracker_api(request, uid):
+    if uid == "ploni":
+        if not torah_tracker_demo.demo_enabled(request):
+            raise Http404
+        torah_tracker_demo.ensure_ploni_seeded()
+        uid, name = torah_tracker_demo.PLONI_UID, torah_tracker_demo.PLONI_NAME
+    else:
+        uid = int(uid)
+        if not (request.user.is_staff or uid == request.user.id):
+            return jsonResponse({"error": "You can only view your own Torah Tracker."}, status=403)
+        name = public_user_data(uid)["name"]
+    return jsonResponse(dict(torah_tracker_data(uid), name=name))
 
 
 @login_required

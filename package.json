@@ -68,6 +68,7 @@
   },
   "dependencies": {
     "@floating-ui/react-dom": "^2.1.6",
+    "@observablehq/plot": "^0.6.17",
     "@playwright/test": "^1.62.1",
     "@sentry/react": "^7.57.0",
     "body-parser": "^1.15.1",
@@ -77,6 +78,7 @@
     "cookie-parser": "^1.4.2",
     "core-js": "^3.31.1",
     "css-modules-require-hook": "^4.2.3",
+    "d3": "^7.9.0",
     "deep-merge": "^1.0.0",
     "diff-match-patch": "^1.0.0",
     "dompurify": "^2.3.6",
