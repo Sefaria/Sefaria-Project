@@ -17057,7 +17057,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 
 /* ---------- Torah Tracker dashboard (static/js/UserStats.jsx) ---------- */
 .homeFeedWrapper.userStats.torahTracker .content .contentInner { max-width: 1160px; }
-.torahTracker { --tt-surface: #ffffff; --tt-ink: #1f1f1f; --tt-ink-2: #5c5c5c; --tt-muted: #8a8a8a; --tt-hair: #e6e6e3; --tt-accent: #196373; }
+.torahTracker { --tt-page-bg: #faf9f9; --tt-surface: #ffffff; --tt-ink: #1f1f1f; --tt-ink-2: #5c5c5c; --tt-muted: #8a8a8a; --tt-hair: #e6e6e3; --tt-accent: #196373; }
 .torahTracker .content { padding: 0 24px 80px !important; }
 .torahTracker, .torahTracker button, .torahTracker input { font-family: var(--english-sans-serif-font-family); color: var(--tt-ink); }
 .torahTracker .ttTop { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin: 32px 0 16px; }
@@ -17069,7 +17069,10 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .torahTracker .ttEmpty { padding: 60px 0; text-align: center; color: var(--tt-ink-2); }
 .torahTracker .ttMuted { color: var(--tt-muted); font-size: 13px; }
 
-.torahTracker .ttFilters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding: 12px 16px; margin-bottom: 18px; background: var(--tt-surface); border: 1px solid var(--tt-hair); border-radius: 12px; position: sticky; top: 60px; z-index: 5; }
+.torahTracker .ttFilters { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 22px; padding: 12px 16px; margin-bottom: 18px; background: var(--tt-surface); border: 1px solid var(--tt-hair); border-radius: 12px; position: sticky; top: 10px; z-index: 5; box-shadow: 0 4px 14px rgba(0, 0, 0, .07); }
+/* The page scrolls inside .homeFeedWrapper .content (below the site header), so the bar sticks to the top of that box;
+   the ::before strip hides content scrolling through the gap above it */
+.torahTracker .ttFilters::before { content: ""; position: absolute; left: -2px; right: -2px; top: -11px; height: 11px; background: var(--tt-page-bg); }
 .torahTracker .ttCrumbs { display: flex; align-items: center; gap: 6px; font-size: 14px; }
 .torahTracker .ttCrumbLabel { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--tt-muted); margin-inline-end: 4px; }
 .torahTracker .ttCrumb, .torahTracker .ttLinkButton { background: none; border: 0; padding: 0; color: var(--tt-accent); cursor: pointer; font-size: 14px; white-space: nowrap; }
