@@ -15,7 +15,8 @@ SITE_URL="http://localhost:8000"
 
 step() { printf '\n==> %s\n' "$*"; }
 
-docker info >/dev/null 2>&1 || { echo "Docker is not running. Start Docker Desktop and re-run."; exit 1; }
+command -v docker >/dev/null 2>&1 || { echo "Docker is not installed. Get Docker Desktop: https://www.docker.com/products/docker-desktop/"; exit 1; }
+docker info >/dev/null 2>&1 || { echo "Docker is not running. Open Docker Desktop, wait until it says 'Engine running', and re-run."; exit 1; }
 
 step "Django settings"
 if [ -f sefaria/local_settings.py ]; then
