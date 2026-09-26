@@ -360,6 +360,10 @@ SEARCH_INDEX_NAME_TOPIC = 'topic'
 SEARCH_INDEX_NAME_BOOK = 'book'
 SEARCH_INDEX_NAME_CATEGORY = 'category'
 
+# Hosts where Torah Tracker offers "View as Ploni", a mock reader (sefaria/helper/torah_tracker_demo.py).
+# Leading dot matches subdomains. Keep production hosts out of this list.
+TORAH_TRACKER_DEMO_HOSTS = ['localhost', '127.0.0.1', '.cauldron.sefaria.org']
+
 # Grab environment specific settings from a file which
 # is left out of the repo.
 if os.getenv("CI_RUN"):

@@ -4049,6 +4049,7 @@ Sefaria.unpackBaseProps = function(props){
       "googleClientId",
       "appleClientId",
       "recaptchaSiteKey",
+      "torahTrackerDemo",
   ];
   for (const element of dataPassedAsProps) {
       if (element in props) {

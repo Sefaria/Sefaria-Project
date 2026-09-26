@@ -24,7 +24,7 @@ from functools import lru_cache
 from django_recaptcha.constants import TEST_PUBLIC_KEY as TEST_RECAPTCHA_PUBLIC_KEY
 from remote_config import remoteConfigCache
 from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHATBOT_PROMO_LEARN_MORE_URLS, CHATBOT_PROMO_MAYBE_LATER_JSON, SHOW_JOIN_CHATBOT_BANNER, CHATBOT_PROMO_SESSION_LENGTH_SECONDS
-from sefaria.helper import library_assistant
+from sefaria.helper import library_assistant, torah_tracker_demo
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY, \
     get_direction_from_legacy_lang, get_legacy_lang_from_direction
@@ -400,6 +400,7 @@ def base_props(request):
     user_data.update({
         "googleClientId": getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
         "appleClientId": getattr(settings, "APPLE_SSO_CLIENT_ID", ""),
+        "torahTrackerDemo": torah_tracker_demo.demo_enabled(request),
         "recaptchaSiteKey": getattr(settings, "RECAPTCHA_PUBLIC_KEY", TEST_RECAPTCHA_PUBLIC_KEY if settings.DEBUG else None),
     })
     return user_data
@@ -3253,6 +3254,11 @@ def dictionary_api(request, word):
 def user_stats_api(request, uid):
 
     assert request.method == "GET", "Unsupported Method"
+    if uid == "ploni":
+        if not torah_tracker_demo.demo_enabled(request):
+            raise Http404
+        torah_tracker_demo.ensure_ploni_seeded()
+        return jsonResponse(dict(user_stats_data(torah_tracker_demo.PLONI_UID), name=torah_tracker_demo.PLONI_NAME))
     u = request.user
     assert (u.is_active and u.is_staff) or (int(uid) == u.id)
     quick = bool(int(request.GET.get("quick", False)))

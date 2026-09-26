@@ -57,6 +57,7 @@ const UserStats = () => {
                   {all_ready? user_data.name : <LoadingRing />}
               </h1>
               {Sefaria.is_moderator && <UserChooser setter={setUid}/>}
+              {Sefaria.torahTrackerDemo && <ViewAsPloni checked={uid === "ploni"} setter={setUid}/>}
               <UserStatModeChooser modes={modes} activeMode={active_mode} setMode={setMode}/>
               {all_ready && user_active &&  <UserDataBlock user_data={mode_user_data} site_data={site_data[modekeys[active_mode]]}/>}
               {all_ready && (!user_active) && <SiteDataBlock site_data={site_data[modekeys[active_mode]]}/>}
@@ -93,6 +94,17 @@ const UserChooser = ({setter}) => (
         <span className="int-en"> User ID: </span>
         <span className="int-he"> מספר משתמש: </span>
         <input type="text" onChange={e => setter(parseInt(e.target.value))}/>
+      </label>
+    </div>
+);
+
+// Demo-only (see sefaria/helper/torah_tracker_demo.py): swaps in a mock reader's rich history
+const ViewAsPloni = ({checked, setter}) => (
+    <div style={{textAlign: "center", marginBottom: 20}}>
+      <label>
+        <input type="checkbox" checked={checked} onChange={e => setter(e.target.checked ? "ploni" : null)}/>
+        <span className="int-en"> View as Ploni</span>
+        <span className="int-he"> הצג כפלוני</span>
       </label>
     </div>
 );
