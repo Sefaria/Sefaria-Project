@@ -77,7 +77,8 @@ class DateRange(object):
 
     @classmethod
     def currently(cls):
-        today = datetime.today()
+        # user_history datetimes are naive UTC; datetime.today() is TIME_ZONE (Halifax) local time
+        today = datetime.utcnow()
         year_in_days = timedelta(365)
         return cls("currently", today - year_in_days, today)
 
@@ -147,7 +148,10 @@ class DateRange(object):
                 and (self.end is None or dt <= self.end))
 
 
-active_dateranges = [DateRange.alltime(), DateRange.currently()]
+def get_active_dateranges():
+    # Built per call: a module-level list froze "currently" at import time, so anything
+    # read after the server started was left out of "Previous Year" until a restart.
+    return [DateRange.alltime(), DateRange.currently()]
 
 
 class Trend(abst.AbstractMongoRecord):
@@ -195,7 +199,7 @@ class TrendSet(abst.AbstractMongoSet):
 def setUserSheetTraits():
     TrendSet({"name": "SheetsRead"}).delete()
 
-    for daterange in active_dateranges:
+    for daterange in get_active_dateranges():
         all_users = getAllUsersSheetUsage(daterange)
         for uid, data in all_users.items():
             Trend({
@@ -212,7 +216,7 @@ def setCategoryTraits():
     top_categories = library.get_top_categories()
 
     # User Traits
-    for daterange in active_dateranges:
+    for daterange in get_active_dateranges():
         site_data = {cat: 0 for cat in top_categories}
         for category in top_categories:
             all_users = getAllUsersCategories(daterange, category)
@@ -252,7 +256,7 @@ def setSheetTraits():
     TrendSet({"name": "SheetsCreatedPublic"}).delete()
     TrendSet({"name": "SheetsCreated"}).delete()
 
-    for daterange in active_dateranges:
+    for daterange in get_active_dateranges():
         all_users = getAllUsersSheetCreation(daterange)
         all_users_published = getAllUsersSheetCreation(daterange, publishedOnly=True)
         for uid, data in all_users.items():
@@ -280,7 +284,7 @@ def setSheetTraits():
 def setUserLanguageTraits():
     TrendSet({"name": {"$in": ["EnglishTolerance", "HebrewAbility"]}}).delete()
 
-    for daterange in active_dateranges:
+    for daterange in get_active_dateranges():
         all_users = getAllUsersLanguageUsage(daterange)
         for uid, data in all_users.items():
             profile = user_profile.UserProfile(id=uid)
@@ -411,7 +415,7 @@ def site_stats_data():
     top_categories = library.get_top_categories()
 
     d = {}
-    for daterange in active_dateranges:
+    for daterange in get_active_dateranges():
         d[daterange.key] = {"categoriesRead": {reverse_read_in_category_key(t.name): t.value
                             for t in TrendSet({"scope": "site", "period": daterange.key,
                                 "name": {"$in": list(map(read_in_category_key, top_categories))}
@@ -437,7 +441,7 @@ def user_stats_data(uid):
     usheets = user_sheets(uid)["sheets"]
     usheet_ids = [s["id"] for s in usheets]
 
-    for daterange in active_dateranges:
+    for daterange in get_active_dateranges():
         # Sheet views in this period
         usheet_views = db.user_history.aggregate([
             {"$match": daterange.update_match({
