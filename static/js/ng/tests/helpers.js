@@ -32,4 +32,11 @@ export function neighbourText(name, {ref, heRef, prev = null, next = null, marke
 export const stripTags = (html) => html.replace(/<sup class="footnote-marker">.*?<\/sup><i class="footnote">.*?<\/i>/g, '')
   .replace(/<[^>]+>/g, '').replace(/&nbsp;|&thinsp;/g, ' ').trim();
 
+/** An /api/v3/texts response with a source and (unless `en` is undefined) a translation. */
+export function v3(ref, he, en) {
+  const versions = [{versionTitle: 'Source', languageFamilyName: 'hebrew', isPrimary: true, isSource: true, direction: 'rtl', text: he}];
+  if (en !== undefined) { versions.push({versionTitle: 'Translation', languageFamilyName: 'english', isPrimary: false, isSource: false, direction: 'ltr', text: en}); }
+  return {ref, heRef: `he:${ref}`, versions};
+}
+
 export const SHARED_DATA = {toc: [], topic_toc: [], terms: {}, books: [], virtualBooks: []};

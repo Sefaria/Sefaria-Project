@@ -20,7 +20,7 @@ const CANTILLATION_RE = /[֑-ֽֿ֯׀ׅׄ‍]/g;
 const CANTILLATION_AND_NIKUD_RE = /[֑-ֽֿ-ׇׅ‍]/g;
 const TALMUD_PUNCTUATION_RE = /[\.\!\?\:\,״]+(?![֑-ֽֿ-ׇׅ‍א-ת](?:[\.\!\?\:\,״\s]|$))|[—–]\s/g;
 
-function pickVersions(versions = []) {
+export function pickVersions(versions = []) {
   // Mirrors Sefaria.getPrimaryAndTranslationFromVersions, tolerating 0 or 1 versions.
   if (!versions.length) { return [null, null]; }
   if (versions.length === 1) {
