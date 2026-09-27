@@ -2418,7 +2418,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
     const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
     // On phones the widget itself becomes a full-screen sheet, opened from its own button or the mobile menu.
-    const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
+    // Logged-out visitors get the assistant without a token (it limits them to a few free responses)
+    const hasChatbotIdentity = !!this.props.chatbot_user_token || !Sefaria._uid;
+    const displayChatbot = this.props.chatbot_enabled && hasChatbotIdentity && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
@@ -2573,7 +2575,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
     const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
-    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment;
+    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment && !displayChatbot;
     const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
     return (

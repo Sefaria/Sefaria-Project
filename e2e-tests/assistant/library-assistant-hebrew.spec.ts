@@ -172,15 +172,15 @@ test.describe('Library Assistant — Hebrew visibility boundaries', () => {
     await pm.onLibraryAssistant().expectNotPresent();
   });
 
-  test('LA-NEG-HE-003: Does not appear for a logged-out user on the Hebrew library home', { tag: '@sanity' }, async ({ context }) => {
+  test('LA-ANON-HE-001: Appears for a logged-out user on the Hebrew library home', { tag: '@sanity' }, async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.HE.LIBRARY, LANGUAGES.HE);
     const pm = new PageManager(page, LANGUAGES.HE);
-    await pm.onLibraryAssistant().expectNotPresent();
+    await pm.onLibraryAssistant().waitForReady();
   });
 
-  test('LA-NEG-HE-004: Does not appear for a logged-out user on a Hebrew reader page', async ({ context }) => {
+  test('LA-ANON-HE-002: Appears for a logged-out user on a Hebrew reader page', async ({ context }) => {
     const page = await goToPageWithLang(context, `${MODULE_URLS.HE.LIBRARY}/Genesis.1`, LANGUAGES.HE);
     const pm = new PageManager(page, LANGUAGES.HE);
-    await pm.onLibraryAssistant().expectNotPresent();
+    await pm.onLibraryAssistant().waitForReady();
   });
 });

@@ -29,6 +29,8 @@ user reads exactly as they do today. The migration run — not the deploy — is
 the assistant switches from opt-in to opt-out, and rollback is unsetting the key.
 """
 
+from remote_config import remoteConfigCache
+from remote_config.keys import CHATBOT_ANONYMOUS_ENABLED
 from sefaria.constants.model import LIBRARY_ASSISTANT_SETTING_KEY
 from sefaria.model.user_profile import UserProfile
 
@@ -66,8 +68,17 @@ def is_enabled_for_user(user):
     Convenience wrapper for a Django user object, authenticated or not.
     """
     if not user or not getattr(user, "is_authenticated", False):
-        return False
+        return is_enabled_for_anonymous()
     return is_enabled(UserProfile(user_obj=user))
+
+
+def is_enabled_for_anonymous():
+    """
+    Whether logged-out visitors get the assistant. They carry no chatbot token; the
+    chatbot service gives them a few free responses under an anonymous id and then asks
+    them to log in. Remote config can switch this off without a deploy.
+    """
+    return normalize(remoteConfigCache.get(CHATBOT_ANONYMOUS_ENABLED, default=True))
 
 
 def _legacy_enabled(profile):

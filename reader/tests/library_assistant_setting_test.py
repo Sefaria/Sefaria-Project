@@ -2,6 +2,7 @@ import json
 import re
 from unittest import mock
 
+from django.contrib.auth.models import AnonymousUser
 from django.test import TestCase
 
 from reader.conftest import create_test_user, make_profile_missing_la_setting, purge_test_profiles
@@ -11,6 +12,8 @@ from sefaria.helper import library_assistant
 from sefaria.helper.library_assistant import SETTING_KEY
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
+from remote_config import remoteConfigCache
+from remote_config.keys import CHATBOT_ANONYMOUS_ENABLED
 
 
 class LibraryAssistantUserTestCase(TestCase):
@@ -164,6 +167,38 @@ class ScriptTagGateTest(LibraryAssistantUserTestCase):
         library_assistant.set_enabled(self.user, False)
 
         self.assertIsNone(self.context()["chatbot_script_url"])
+
+
+class AnonymousVisitorTest(TestCase):
+    """
+    Logged-out visitors get the bundle too (with no token); the chatbot service limits
+    them to a few free responses.
+    """
+    databases = "__all__"
+
+    def anonymous_request(self):
+        request = mock.Mock()
+        request.user = AnonymousUser()
+        request.path = "/Genesis.1"
+        request.GET = {}
+        request.session = {}
+        return request
+
+    def remote_config(self, anonymous_enabled):
+        real_get = remoteConfigCache.get
+
+        def get(key, default=None):
+            if key == CHATBOT_ANONYMOUS_ENABLED:
+                return anonymous_enabled
+            return real_get(key, default=default)
+        return mock.patch.object(remoteConfigCache, "get", side_effect=get)
+
+    def test_script_is_injected_for_logged_out_visitors(self):
+        self.assertIsNotNone(chatbot_user_token(self.anonymous_request())["chatbot_script_url"])
+
+    def test_remote_config_can_withhold_the_script(self):
+        with self.remote_config(False):
+            self.assertIsNone(chatbot_user_token(self.anonymous_request())["chatbot_script_url"])
 
 
 class AccountSettingsPageTest(LibraryAssistantUserTestCase):

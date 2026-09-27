@@ -209,16 +209,17 @@ test.describe('Library Assistant — visibility boundaries', () => {
     await pm.onLibraryAssistant().expectNotPresent();
   });
 
-  test('LA-NEG-003: Does not appear for a logged-out user on the library home', async ({ context }) => {
+  // Logged-out visitors get the assistant (a few free responses, then a login prompt).
+  test('LA-ANON-001: Appears for a logged-out user on the library home', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await pm.onLibraryAssistant().expectNotPresent();
+    await pm.onLibraryAssistant().waitForReady();
   });
 
-  test('LA-NEG-004: Does not appear for a logged-out user on a reader page', async ({ context }) => {
+  test('LA-ANON-002: Appears for a logged-out user on a reader page', async ({ context }) => {
     const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await pm.onLibraryAssistant().expectNotPresent();
+    await pm.onLibraryAssistant().waitForReady();
   });
 });
 
