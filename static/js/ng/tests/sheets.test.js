@@ -145,7 +145,7 @@ describe('table of contents', () => {
     expect($$('[data-ng="section"]').map(s => s.getAttribute('data-ref'))[0]).toBe('Genesis 12');
     expect($1('[data-ng="section"]').textContent).toContain('CHAPTER-TWELVE');
     expect(window.location.pathname + window.location.search).toBe('/Genesis.12?lang=bi');
-    expect(push).toHaveBeenLastCalledWith({ngRef: 'Genesis 12'}, '', '/Genesis.12?lang=bi');
+    expect(push).toHaveBeenLastCalledWith(expect.objectContaining({ngRef: 'Genesis 12'}), '', '/Genesis.12?lang=bi');
     expect($1('[data-highlighted="true"]')).toBeNull();
   });
 

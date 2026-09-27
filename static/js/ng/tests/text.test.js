@@ -1,6 +1,6 @@
 import {
-  addPoetrySpans, bindDashes, isTalmud, layoutKeyFor, sectionFromApi, sectionLabel, sectionLabelParts,
-  showsSegmentNumbers, stripHebrewMarks, visibleTexts, longLang, shortLang,
+  addPoetrySpans, bindDashes, inSameBook, isTalmud, layoutKeyFor, sectionFromApi, sectionLabel, sectionLabelParts,
+  segmentRefsIn, showsSegmentNumbers, stripHebrewMarks, visibleTexts, longLang, shortLang,
 } from '../text';
 import {fixture} from './helpers';
 
@@ -124,5 +124,47 @@ describe('labels', () => {
     expect(longLang('he')).toBe('hebrew');
     expect(longLang('english')).toBe('english');
     expect(longLang('xx')).toBeNull();
+  });
+});
+
+describe('other corpora (an associated text opened front and center)', () => {
+  test('a commentary: depth 3, its section "Rashi on Genesis 1:1", comments numbered from 1', () => {
+    const s = sectionFromApi(fixture('rashi-on-genesis-1-1-1').initialPanel.text);
+    expect(s).toMatchObject({ref: 'Rashi on Genesis 1:1', indexTitle: 'Rashi on Genesis', primaryCategory: 'Commentary',
+      next: 'Rashi on Genesis 1:2', prev: null, sections: ['1', '1']});
+    expect(s.segments.map(g => g.ref)).toEqual(['Rashi on Genesis 1:1:1', 'Rashi on Genesis 1:1:2', 'Rashi on Genesis 1:1:3']);
+    expect(s.segments[1].heRef).toBe('רש"י על בראשית א׳:א׳:ב׳');
+    expect(layoutKeyFor(s)).toBe('layoutDefault');
+    expect(sectionLabel(s, false)).toBe('1:1');
+    expect(sectionLabel(s, true)).toBe('א׳:א׳');
+  });
+
+  test('Halakhah: "Shulchan Arukh, Orach Chayim 1", Siman 1', () => {
+    const s = sectionFromApi(fixture('shulchan-arukh-oc-1-1').initialPanel.text);
+    expect(s.ref).toBe('Shulchan Arukh, Orach Chayim 1');
+    expect(s.segments).toHaveLength(9);
+    expect(s.segments[0].ref).toBe('Shulchan Arukh, Orach Chayim 1:1');
+    expect(sectionLabel(s, false)).toBe('Siman 1');
+    expect(sectionLabel(s, true)).toBe('סימן א׳');
+  });
+
+  test('segmentRefsIn: the segments a segment or range ref names in a loaded section', () => {
+    const rashi = sectionFromApi(fixture('rashi-on-genesis-1-1-1').initialPanel.text);
+    expect(segmentRefsIn('Rashi on Genesis 1:1:2', rashi)).toEqual(['Rashi on Genesis 1:1:2']);
+    expect(segmentRefsIn('Rashi on Genesis 1:1:1-2', rashi)).toEqual(['Rashi on Genesis 1:1:1', 'Rashi on Genesis 1:1:2']);
+    expect(segmentRefsIn('Rashi on Genesis 1:1:2-2:4', rashi)).toEqual(['Rashi on Genesis 1:1:2', 'Rashi on Genesis 1:1:3']);
+    expect(segmentRefsIn('Rashi on Genesis 1:1', rashi)).toEqual([]);
+    expect(segmentRefsIn('Rashi on Genesis 1:2:1', rashi)).toEqual([]);
+    const genesis = sectionFromApi(fixture('genesis-1').initialPanel.text);
+    expect(segmentRefsIn('Genesis 1:29-2:3', genesis)).toEqual(['Genesis 1:29', 'Genesis 1:30', 'Genesis 1:31']);
+  });
+
+  test('inSameBook: the reader\'s versions carry over only within the book', () => {
+    const genesis = sectionFromApi(fixture('genesis-1').initialPanel.text);
+    expect(inSameBook('Genesis 3:4', genesis)).toBe(true);
+    expect(inSameBook('Genesis 3:4-8', genesis)).toBe(true);
+    expect(inSameBook('Genesis Rabbah 1:1', genesis)).toBe(false);
+    expect(inSameBook('Rashi on Genesis 1:1:1', genesis)).toBe(false);
+    expect(inSameBook('Shulchan Arukh, Orach Chayim 1:1', genesis)).toBe(false);
   });
 });

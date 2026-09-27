@@ -124,6 +124,36 @@ export function sectionFromApi(data) {
   };
 }
 
+/**
+ * The segments of a loaded section that a ref names: a segment ("Genesis 1:3"), a range inside
+ * the section ("Rashi on Genesis 1:1:1-3"), or a range running past it ("Genesis 1:29-2:3", to
+ * the section's end). The same expansion the server makes for a range URL's highlight
+ * (make_panel_dict's highlightedRefs). [] for the section itself, or a ref elsewhere.
+ */
+export function segmentRefsIn(ref, section) {
+  if (!ref || !section || ref === section.ref) { return []; }
+  const direct = section.segments.find(s => s.ref === ref);
+  if (direct) { return [ref]; }
+  const dash = ref.lastIndexOf('-');
+  if (dash === -1 || !/^\d+[ab]?(?::\d+)*$/.test(ref.slice(dash + 1))) { return []; }
+  const start = section.segments.find(s => s.ref === ref.slice(0, dash));
+  if (!start) { return []; }
+  const end = ref.slice(dash + 1).split(':');
+  // "…:1-3" ends inside this section; "…:29-2:3" (more parts) ends in a later one.
+  const last = end.length === 1 ? Number(end[0]) : Infinity;
+  return section.segments.filter(s => s.number >= start.number && s.number <= last).map(s => s.ref);
+}
+
+/**
+ * Whether `ref` is in the same book as `section` ("Genesis 3:4" and Genesis, but not
+ * "Genesis Rabbah 1:1"), so the reader's chosen versions still apply to it.
+ */
+export function inSameBook(ref, section) {
+  const title = section && section.indexTitle;
+  if (!ref || !title || ref.indexOf(`${title} `) !== 0) { return false; }
+  return /^\d+[ab]?(?::\d+)*(?:-\d+[ab]?(?::\d+)*)?$/.test(ref.slice(title.length + 1));
+}
+
 /** Which texts a segment shows for a content language, with the classic fallbacks. */
 export function visibleTexts(segment, language) {
   const hasHe = !!segment.he;

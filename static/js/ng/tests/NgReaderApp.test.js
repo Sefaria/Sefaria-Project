@@ -263,7 +263,7 @@ describe('the reader API for later panels: openRef and setCurrVersions', () => {
     await act(async () => { await reader.openRef('Genesis 2:3'); });
     await flush();
     expect(getText).toHaveBeenCalledWith('Genesis 2:3', {en: null, he: null}, null, true);
-    expect(push).toHaveBeenCalledWith({ngRef: 'Genesis 2:3'}, '', '/Genesis.2.3?lang=bi');
+    expect(push).toHaveBeenCalledWith(expect.objectContaining({ngRef: 'Genesis 2:3'}), '', '/Genesis.2.3?lang=bi');
     expect($$('[data-ng="section"]').map(s => s.getAttribute('data-ref'))[0]).toBe('Genesis 2');
     expect($('[data-highlighted="true"]').getAttribute('data-ref')).toBe('Genesis 2:3');
     expect($('[data-ng="section-title"]').textContent).toBe('Chapter 2');

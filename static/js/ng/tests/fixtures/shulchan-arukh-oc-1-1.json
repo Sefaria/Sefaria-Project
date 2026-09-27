@@ -1,0 +1,341 @@
+{
+ "_uid": null,
+ "_email": "",
+ "activeModule": "library",
+ "last_cached": 1790380826.3324425,
+ "initialPath": "/Shulchan_Arukh,_Orach_Chayim.1.1",
+ "interfaceLang": "english",
+ "initialSettings": {
+  "language": "bilingual",
+  "layoutDefault": "segmented",
+  "layoutTalmud": "continuous",
+  "layoutTanakh": "segmented",
+  "aliyotTorah": "aliyotOff",
+  "vowels": "all",
+  "punctuationTalmud": "punctuationOn",
+  "biLayout": "stacked",
+  "color": "light",
+  "fontSize": 62.5
+ },
+ "translationLanguagePreference": null,
+ "versionPrefsByCorpus": {},
+ "domainModules": {
+  "en": {
+   "library": "https://www.sefaria.org",
+   "voices": "https://voices.sefaria.org"
+  },
+  "he": {
+   "library": "https://www.sefaria.org.il",
+   "voices": "https://chiburim.sefaria.org.il"
+  }
+ },
+ "_siteSettings": {
+  "TORAH_SPECIFIC": true,
+  "SITE_NAME": {
+   "en": "Sefaria",
+   "he": "ספריא"
+  },
+  "LIBRARY_NAME": {
+   "en": "The Sefaria Library",
+   "he": "האוסף של ספריא"
+  },
+  "SUPPORTED_TRANSLATION_LANGUAGES": [
+   "en",
+   "es",
+   "fr",
+   "de"
+  ],
+  "COLLECTIONS_BUCKET": "sefaria-collection-images",
+  "PROFILES_BUCKET": "sefaria-profile-pictures",
+  "UGC_BUCKET": "sheet-user-uploaded-media",
+  "TOPICS_BUCKET": "img.sefaria.org",
+  "HELP_CENTER_URLS": {
+   "EN_US": "https://help.sefaria.org/hc/en-us",
+   "HE": "https://help.sefaria.org/hc/he",
+   "GETTING_STARTED": "https://help.sefaria.org/hc/en-us/articles/21471911125020-Video-Guide-How-to-Get-Started-Navigating-the-Library",
+   "TRANSLATION_PREFERENCE_EN": "https://help.sefaria.org/hc/en-us/articles/18613593620636-How-to-Choose-a-Preferred-Translation",
+   "TRANSLATION_PREFERENCE_HE": "https://help.sefaria.org/hc/he/articles/18613593620636-%D7%91%D7%97%D7%99%D7%A8%D7%AA-%D7%AA%D7%A8%D7%92%D7%95%D7%9D-%D7%9E%D7%95%D7%A2%D7%93%D7%A3"
+  },
+  "ABOUT_SIDEBAR_PAGES": [
+   {
+    "path": "about",
+    "en": "What is Sefaria?",
+    "he": "מהי ספריא"
+   },
+   {
+    "path": "team",
+    "en": "Team",
+    "he": "צוות ספריא"
+   },
+   {
+    "path": "jobs",
+    "en": "Jobs at Sefaria",
+    "he": "משרות פנויות בספריא"
+   },
+   {
+    "path": "products",
+    "en": "Sefaria's Products",
+    "he": "המוצרים של ספריא"
+   },
+   {
+    "path": "ai",
+    "en": "AI on Sefaria",
+    "he": "השימוש ב-AI בספריא"
+   },
+   {
+    "path": "supporters",
+    "en": "Our Supporters",
+    "he": "התומכים שלנו"
+   },
+   {
+    "path": "testimonials",
+    "en": "Testimonials",
+    "he": "המלצות על ספריא"
+   },
+   {
+    "path": "metrics",
+    "en": "Metrics",
+    "he": "מדדים"
+   },
+   {
+    "path": "updates",
+    "en": "New Additions",
+    "he": "עדכונים"
+   },
+   {
+    "path": "link-to-annual-report",
+    "en": "Annual Report",
+    "he": "דו\"ח שנתי"
+   },
+   {
+    "path": "terms",
+    "en": "Terms of Use",
+    "he": "תנאי שימוש"
+   },
+   {
+    "path": "privacy-policy",
+    "en": "Privacy Policy",
+    "he": "מדיניות פרטיות"
+   }
+  ],
+  "WHAT_ARE_VOICES_PATHS": {
+   "en": "/sheets/674324",
+   "he": "/sheets/674327"
+  },
+  "MODULE_SWITCHER_LEARN_MORE_PATH": {
+   "en": "/sheets/689609",
+   "he": "/sheets/689610"
+  },
+  "HELP_CENTER_REDIRECTS": {
+   "en": {
+    "215584": "https://help.sefaria.org/hc/en-us/sections/12756520483868-Text-Formatting-Accessibility",
+    "218610": "https://help.sefaria.org/hc/en-us/sections/18613320256156-Translations",
+    "231440": "https://help.sefaria.org/hc/en-us/categories/12756350371100-Donations",
+    "210670": "https://help.sefaria.org/hc/en-us/categories/13368526623132-Getting-Started",
+    "213949": "https://help.sefaria.org/hc/en-us/articles/21806344785308-How-to-Contact-Sefaria",
+    "218612": "https://help.sefaria.org/hc/en-us/sections/12756518640668-How-to-Reuse-Download-and-Otherwise-Reproduce-Texts",
+    "225828": "https://help.sefaria.org/hc/en-us/sections/20094783356956-The-Sheet-Editor",
+    "218668": "https://help.sefaria.org/hc/en-us/articles/18613227644316-How-to-Find-Interconnected-Texts",
+    "219447": "https://help.sefaria.org/hc/en-us/articles/18472472138652-Quick-Guide-Meet-the-Resource-Panel",
+    "228381": "https://help.sefaria.org/hc/en-us/sections/12756518640668-How-to-Reuse-Download-and-Otherwise-Reproduce-Texts",
+    "220945": "https://help.sefaria.org/hc/en-us/categories/19814642862876-Sefaria-s-Mobile-Apps",
+    "233647": "https://help.sefaria.org/hc/en-us/sections/12756555356956-Study-and-Reference-Tools",
+    "233017": "https://help.sefaria.org/hc/en-us/articles/20533111968540-How-to-Use-Source-Sheet-Collections",
+    "211565": "https://help.sefaria.org/hc/en-us/sections/12721846793116-How-to-Find-Texts",
+    "393695": "https://help.sefaria.org/hc/en-us/sections/20094783356956-The-Sheet-Editor",
+    "429277": "https://help.sefaria.org/hc/en-us/articles/18472614956956-Quick-Guide-Meet-the-A-%D7%90-menu",
+    "231377": "https://help.sefaria.org/hc/en-us/sections/20094169893276-All-About-Topics-Pages",
+    "519205": "https://help.sefaria.org/hc/en-us/articles/18472576952988-Quick-Guide-Meet-the-Table-of-Contents",
+    "289837": "https://help.sefaria.org/hc/en-us/articles/20533111968540-How-to-Use-Source-Sheet-Collections",
+    "274871": "https://help.sefaria.org/hc/en-us/sections/12756555356956-Study-and-Reference-Tools",
+    "303276": "https://help.sefaria.org/hc/en-us/categories/12756351595932-Your-Account",
+    "379494": "https://help.sefaria.org/hc/en-us/sections/12756538060956-Text-Specific-Special-Features",
+    "303288": "https://help.sefaria.org/hc/en-us/categories/12756351595932-Your-Account",
+    "359083": "https://help.sefaria.org/hc/en-us/sections/17430252462236-Managing-Your-Donation",
+    "330784": "https://help.sefaria.org/hc/en-us/articles/18472380899484-Quick-Guide-Meet-the-Homepage",
+    "483970": "https://help.sefaria.org/hc/en-us/sections/18613320256156-Translations-and-Language-Preferences",
+    "511573": "https://help.sefaria.org/hc/en-us/sections/18613320256156-Translations-and-Language-Preferences",
+    "497893": "https://help.sefaria.org/hc/en-us/sections/12756555356956-Study-and-Reference-Tools",
+    "477118": "https://help.sefaria.org/hc/en-us/sections/18472260943900-Sefaria-101-Quick-Guides-and-Sefaria-Basics",
+    "218839": "https://help.sefaria.org/hc/en-us/sections/20094783356956-The-Sheet-Editor",
+    "212911": "https://help.sefaria.org/hc/en-us/sections/20094783356956-All-About-Source-Sheets",
+    "529099": "https://help.sefaria.org/hc/en-us/sections/20235182393244-Sefaria-for-Google-Docs",
+    "584561": "https://help.sefaria.org/hc/en-us/sections/20235182393244-Sefaria-for-Google-Docs"
+   },
+   "he": {
+    "328503": "https://help.sefaria.org/hc/he/articles/20234245638428-%D7%9B%D7%99%D7%A6%D7%93-%D7%9C%D7%9E%D7%A6%D7%95%D7%90-%D7%9E%D7%99%D7%93%D7%A2-%D7%91%D7%99%D7%95%D7%92%D7%A8%D7%A4%D7%99-%D7%90%D7%95%D7%93%D7%95%D7%AA-%D7%93%D7%9E%D7%95%D7%99%D7%95%D7%AA-%D7%9E%D7%94%D7%AA%D7%9C%D7%9E%D7%95%D7%93",
+    "243658": "https://help.sefaria.org/hc/he/categories/19814642862876-%D7%94%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%91%D7%99%D7%99%D7%A9%D7%95%D7%9E%D7%95%D7%9F-%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "241176": "https://help.sefaria.org/hc/he/sections/12756518640668-%D7%A9%D7%97%D7%96%D7%95%D7%A8-%D7%94%D7%93%D7%A4%D7%A1%D7%94-%D7%95%D7%94%D7%A4%D7%A6%D7%AA-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA",
+    "288330": "https://help.sefaria.org/hc/he/sections/12756518640668-%D7%A9%D7%97%D7%96%D7%95%D7%A8-%D7%94%D7%93%D7%A4%D7%A1%D7%94-%D7%95%D7%94%D7%A4%D7%A6%D7%AA-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA",
+    "399333": "https://help.sefaria.org/hc/he/sections/20094783356956-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%93%D7%A4%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "242573": "https://help.sefaria.org/hc/he/articles/18490652948508-%D7%9B%D7%99%D7%A6%D7%93-%D7%9C%D7%94%D7%93%D7%A4%D7%99%D7%A1-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%94%D7%A1%D7%A4%D7%A8%D7%99%D7%99%D7%94",
+    "244351": "https://help.sefaria.org/hc/he/sections/12721846793116-%D7%92%D7%99%D7%A9%D7%94-%D7%9C%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA",
+    "615752": "https://help.sefaria.org/hc/he/sections/12756520483868-%D7%90%D7%A4%D7%A9%D7%A8%D7%95%D7%99%D7%95%D7%AA-%D7%A4%D7%95%D7%A8%D7%9E%D7%98-%D7%98%D7%A7%D7%A1%D7%98-%D7%95%D7%A0%D7%92%D7%99%D7%A9%D7%95%D7%AA",
+    "239441": "https://help.sefaria.org/hc/he/sections/12756520483868-%D7%90%D7%A4%D7%A9%D7%A8%D7%95%D7%99%D7%95%D7%AA-%D7%A4%D7%95%D7%A8%D7%9E%D7%98-%D7%98%D7%A7%D7%A1%D7%98-%D7%95%D7%A0%D7%92%D7%99%D7%A9%D7%95%D7%AA",
+    "288327": "https://help.sefaria.org/hc/he/articles/18472472138652-%D7%9E%D7%93%D7%A8%D7%99%D7%9A-%D7%9E%D7%94%D7%99%D7%A8-%D7%94%D7%9B%D7%99%D7%A8%D7%95-%D7%90%D7%AA-%D7%A1%D7%A8%D7%92%D7%9C-%D7%94%D7%A7%D7%99%D7%A9%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%94%D7%9B%D7%9C%D7%99%D7%9D",
+    "569973": "https://help.sefaria.org/hc/he/categories/20332917021212-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%93%D7%A4%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%95%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%91%D7%AA%D7%95%D7%A1%D7%A4%D7%99%D7%9D-%D7%9C%D7%93%D7%A4%D7%93%D7%A4%D7%9F",
+    "382833": "https://help.sefaria.org/hc/he/sections/12756538060956-%D7%A4%D7%99%D7%A6-%D7%A8%D7%99%D7%9D-%D7%9C%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%A2%D7%9D-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%A1%D7%95%D7%99%D7%9E%D7%99%D7%9D",
+    "332893": "https://help.sefaria.org/hc/he/articles/18472380899484-%D7%9E%D7%93%D7%A8%D7%99%D7%9A-%D7%9E%D7%94%D7%99%D7%A8-%D7%94%D7%9B%D7%99%D7%A8%D7%95-%D7%90%D7%AA-%D7%A2%D7%9E%D7%95%D7%93-%D7%94%D7%91%D7%99%D7%AA",
+    "242826": "https://help.sefaria.org/hc/he/articles/18613227644316-%D7%9B%D7%99%D7%A6%D7%93-%D7%9C%D7%90%D7%AA%D7%A8-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%A7%D7%95%D7%A9%D7%A8%D7%99%D7%9D",
+    "239814": "https://help.sefaria.org/hc/he/categories/12721826687772-%D7%94%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "293375": "https://help.sefaria.org/hc/he/categories/20332917021212-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%93%D7%A4%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%95%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%91%D7%AA%D7%95%D7%A1%D7%A4%D7%99%D7%9D-%D7%9C%D7%93%D7%A4%D7%93%D7%A4%D7%9F",
+    "288326": "https://help.sefaria.org/hc/he/sections/12756555356956-%D7%9B%D7%9C%D7%99%D7%9D-%D7%9C%D7%9C%D7%99%D7%9E%D7%95%D7%93-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "242831": "https://help.sefaria.org/hc/he/sections/17430252462236-%D7%A0%D7%99%D7%94%D7%95%D7%9C-%D7%AA%D7%A8%D7%95%D7%9E%D7%95%D7%AA-%D7%A9%D7%A0%D7%99%D7%AA%D7%A0%D7%95-%D7%9C%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "541372": "https://help.sefaria.org/hc/he/categories/13368526623132-%D7%9E%D7%99%D7%93%D7%A2-%D7%91%D7%A1%D7%99%D7%A1%D7%99-%D7%A2%D7%9C-%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "542809": "https://help.sefaria.org/hc/he/articles/21806344785308-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%A7%D7%A9%D7%A8-%D7%A2%D7%9D-%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "540832": "https://help.sefaria.org/hc/he/sections/20094783356956-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%93%D7%A4%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"
+   }
+  }
+ },
+ "_debug": false,
+ "appVersion": "v7.2.3-prod.2",
+ "multiPanel": false,
+ "initialPanel": {
+  "ref": "Shulchan Arukh, Orach Chayim 1:1",
+  "refs": [
+   "Shulchan Arukh, Orach Chayim 1:1"
+  ],
+  "currVersions": {
+   "en": {
+    "languageFamilyName": "",
+    "versionTitle": ""
+   },
+   "he": {
+    "languageFamilyName": "",
+    "versionTitle": ""
+   }
+  },
+  "highlightedRefs": [
+   "Shulchan Arukh, Orach Chayim 1:1"
+  ],
+  "filter": null,
+  "text": {
+   "ref": "Shulchan Arukh, Orach Chayim 1",
+   "heRef": "שולחן ערוך, אורח חיים א׳",
+   "sectionRef": "Shulchan Arukh, Orach Chayim 1",
+   "heSectionRef": "שולחן ערוך, אורח חיים א׳",
+   "firstAvailableSectionRef": "Shulchan Arukh, Orach Chayim 1",
+   "sections": [
+    "1"
+   ],
+   "toSections": [
+    "1"
+   ],
+   "isSpanning": false,
+   "next": "Shulchan Arukh, Orach Chayim 2",
+   "prev": null,
+   "book": "Shulchan Arukh, Orach Chayim",
+   "title": "Shulchan Arukh, Orach Chayim 1",
+   "heTitle": "שולחן ערוך, אורח חיים",
+   "indexTitle": "Shulchan Arukh, Orach Chayim",
+   "heIndexTitle": "שולחן ערוך, אורח חיים",
+   "primary_category": "Halakhah",
+   "type": "Halakhah",
+   "categories": [
+    "Halakhah",
+    "Shulchan Arukh"
+   ],
+   "collectiveTitle": "",
+   "heCollectiveTitle": "",
+   "textDepth": 2,
+   "sectionNames": [
+    "Siman",
+    "Seif"
+   ],
+   "addressTypes": [
+    "Siman",
+    "Seif"
+   ],
+   "index_offsets_by_depth": {},
+   "he": [
+    "<b>דין השכמת הבוקר. ובו ט סעיפים:</b><br><i data-commentator=\"Be'er HaGolah\" data-label=\"א\" data-order=\"1\"></i><i data-commentator=\"Turei Zahav\" data-order=\"1\"></i>יתגבר <i data-commentator=\"Ba'er Hetev\" data-order=\"1\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"1\"></i>כארי לעמוד בבוקר <i data-commentator=Mishnah Berurah\" data-label=\"א\"></i>לעבודת בוראו <i data-commentator=\"Be'er HaGolah\" data-label=\"ב\" data-order=\"2\"></i><i data-commentator=\"Turei Zahav\" data-order=\"2\"></i><i data-commentator=\"Magen Avraham\" data-order=\"1\"></i>שיהא הוא מעורר <i data-commentator=\"Ba'er Hetev\" data-order=\"2\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"2\"></i><i data-commentator=Mishnah Berurah\" data-label=\"ב\"></i>השחר: <small>הגה ועכ\"פ לא יאחר זמן התפלה <i data-commentator=Mishnah Berurah\" data-label=\"ג\"></i>שהצבור מתפללין (טור). הגה <i data-commentator=\"Ba'er Hetev\" data-order=\"3\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"3\"></i>שויתי ה' לנגדי תמיד הוא כלל גדול בתורה ובמעלות <i data-commentator=Mishnah Berurah\" data-label=\"ד\"></i>הצדיקים אשר הולכים לפני האלהים כי אין ישיבת האדם ותנועותיו ועסקיו והוא לבדו בביתו כישיבתו ותנועותיו ועסקיו והוא לפני מלך גדול ולא דבורו והרחבת פיו כרצונו והוא עם אנשי ביתו וקרוביו כדבורו במושב המלך כ\"ש כשישים האדם אל לבו שהמלך הגדול הקב\"ה אשר מלא כל הארץ כבודו עומד עליו ורואה במעשיו כמו שנאמר אם יסתר איש במסתרים ואני לא אראנו נאום ה' מיד יגיע אליו הירא' וההכנעה בפחד הש\"י ובושתו ממנו תמיד (<a class=\"refLink \" href=\"Guide_for_the_Perplexed,_Part_3.52.1\" data-ref=\"Guide for the Perplexed, Part 3 52:1\" data-range=1459-1481>מורה נבוכים ח\"ג פ' נ\"ב</a>) ולא יתבייש <i data-commentator=\"Magen Avraham\" data-order=\"2\"></i><i data-commentator=Mishnah Berurah\" data-label=\"ה\"></i>מפני בני אדם <i data-commentator=\"Ba'er Hetev\" data-order=\"4\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"4\"></i><i data-commentator=Mishnah Berurah\" data-label=\"ו\"></i>המלעיגים עליו בעבודת הש\"י <i data-commentator=Mishnah Berurah\" data-label=\"ז\"></i>גם בהצנע לכת ובשכבו על משכבו ידע לפני מי הוא שוכב <i data-commentator=\"Magen Avraham\" data-order=\"3\"></i><i data-commentator=\"Ateret Zekenim\" data-label=\"♦\" data-order=\"1\"></i>ומיד כשיעור משנתו יקום <i data-commentator=\"Ba'er Hetev\" data-order=\"5\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"5\"></i><i data-commentator=Mishnah Berurah\" data-label=\"ח\"></i>בזריזות לעבודת בוראו יתברך ויתעלה (טור):</small>",
+    "<i data-commentator=\"Be'er HaGolah\" data-label=\"ג\" data-order=\"3\"></i><i data-commentator=\"Magen Avraham\" data-order=\"4\"></i><i data-commentator=\"Ateret Zekenim\" data-label=\"♦\" data-order=\"2\"></i>המשכים להתחנן לפני בוראו יכוין לשעות שמשתנות המשמרות שהן בשליש הלילה ולסוף שני שלישי הלילה <i data-commentator=\"Ba'er Hetev\" data-order=\"6\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"6\"></i>ולסוף הלילה <i data-commentator=\"Eshel Avraham\" data-label=\"א\" data-order=\"1\"></i>שהתפלה שיתפלל באותן השעות על החורבן ועל הגלות רצויה:",
+    "<i data-commentator=\"Mishnah Berurah\" data-label=\"ט\"></i><i data-commentator=\"Ateret Zekenim\" data-label=\"♦\" data-order=\"3\"></i><i data-commentator=\"Be'er HaGolah\" data-label=\"ד\" data-order=\"4\"></i>ראוי לכל ירא שמים <i data-commentator=\"Ba'er Hetev\" data-order=\"7\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"י\"></i>שיהא מיצר ודואג על <i data-commentator=\"Magen Avraham\" data-order=\"5\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"יא\"></i>חורבן בית המקדש:",
+    "<i data-commentator=\"Be'er HaGolah\" data-label=\"ה\" data-order=\"5\"></i><i data-commentator=\"Turei Zahav\" data-order=\"3\"></i>טוב <i data-commentator=\"Magen Avraham\" data-order=\"6\"></i>מעט תחנונים <i data-commentator=\"Ba'er Hetev\" data-order=\"8\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"8\"></i>בכוונה מהרבות <i data-commentator=\"Mishnah Berurah\" data-label=\"יב\"></i>בלא כוונה:",
+    "<i data-commentator=\"Ateret Zekenim\" data-label=\"♦\" data-order=\"4\"></i><i data-commentator=\"Be'er HaGolah\" data-label=\"ו\" data-order=\"6\"></i>טוב לומר <i data-commentator=\"Turei Zahav\" data-order=\"4\"></i><i data-commentator=\"Ba'er Hetev\" data-order=\"9\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"יג\"></i>פ' <i data-commentator=\"Magen Avraham\" data-order=\"7\"></i>העקדה ופ' המן <i data-commentator=\"Be'er HaGolah\" data-label=\"ז\" data-order=\"7\"></i>ועשרת הדברות <i data-commentator=\"Be'er HaGolah\" data-label=\"ח\" data-order=\"8\"></i>ופרשת <i data-commentator=\"Magen Avraham\" data-order=\"8\"></i>עולה ומנחה <i data-commentator=\"Ba'er Hetev\" data-order=\"10\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"10\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"יד\"></i>ושלמים <i data-commentator=\"Eshel Avraham\" data-label=\"ב\" data-order=\"2\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"טו\"></i>וחטאת ואשם: <small>הגה <i data-commentator=\"Turei Zahav\" data-order=\"5\"></i>ודוקא ביחיד מותר לומר י' הדברות בכל יום אבל אסור לאומרם <i data-commentator=\"Magen Avraham\" data-order=\"9\"></i><i data-commentator=\"Ba'er Hetev\" data-order=\"11\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"11\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"טז\"></i>בצבור (תשו' הרשב\"א סימן קפ\"ד):</small>",
+    "<i data-commentator=\"Be'er HaGolah\" data-label=\"ט\" data-order=\"9\"></i>פרשיות הקרבנות לא יאמר <i data-commentator=\"Turei Zahav\" data-order=\"6\"></i>אלא <i data-commentator=\"Magen Avraham\" data-order=\"10\"></i><i data-commentator=\"Ba'er Hetev\" data-order=\"12\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"יז\"></i>ביום. <small> (וע\"ל סי' מ\"ז סעיף י\"ג)</small>:",
+    "<i data-commentator=\"Ateret Zekenim\" data-label=\"♦\" data-order=\"5\"></i>כשיסיים פרשת העולה יאמר <i data-commentator=\"Magen Avraham\" data-order=\"11\"></i>יהר\"מ שיהא זה חשוב ומקובל כאלו הקרבתי עולה וכך יאמר אחר פ' המנחה והשלמים <i data-commentator=\"Eshel Avraham\" data-label=\"ג\" data-order=\"3\"></i>מפני <i data-commentator=\"Turei Zahav\" data-order=\"7\"></i>שהם <i data-commentator=\"Mishnah Berurah\" data-label=\"יח\"></i>באים <i data-commentator=\"Ba'er Hetev\" data-order=\"13\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"13\"></i>בנדבה:",
+    "<i data-commentator=\"Be'er HaGolah\" data-label=\"י\" data-order=\"10\"></i>יאמר <i data-commentator=\"Mishnah Berurah\" data-label=\"יט\"></i>עם הקרבנות <i data-commentator=\"Turei Zahav\" data-order=\"8\"></i>פ' <i data-commentator=\"Ba'er Hetev\" data-order=\"14\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"14\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"כ\"></i>ושחט אותו על ירך המזבח צפונה לפני ה':",
+    "<i data-commentator=\"Be'er HaGolah\" data-label=\"כ\" data-order=\"11\"></i>יש נוהגין לומר פ' הכיור ואח\"כ פרשת תרומת הדשן ואח\"כ פ' התמיד ואח\"כ פרשת מזבח <i data-commentator=\"Magen Avraham\" data-order=\"12\"></i>מקטר קטורת ופרשת סממני הקטורת <i data-commentator=\"Eshel Avraham\" data-label=\"ד\" data-order=\"4\"></i>ועשייתו:"
+   ],
+   "text": [
+    "One should strengthen himself like a lion to get up in the morning to serve his creator. He should get up early enough to welcome in the dawn. [And at least not after the Z'man Tefilah (time for praying) in which the congregation prays. Scripture says, \"I placed Hashem before me always\". This is a great concept in the Torah and is a paramount attribute for the Tzadikim (righteous people) who walk in the way of G-d. For the way in which a person sits, moves around, and carries out his daily activities while he is alone in his house is not the same way he should engage in these activities while standing before a great King. In addition, the way one speaks while amongst those in his home and the conversations he partakes with his relatives is not the same manner in which he would speak while in the presence of a mortal King. Surely when one considers in his mind that the mighty King, The Holy One blessed be his name, where the whole world is filled with his glory, stands before him and sees his deeds, as it states: \"If a man will conceal his secrets and I will not see it,\" states Hashem; immediately the fear and the proper awed train of thought of Hashem will descend upon him and he will always be embarrassed before G-d. And one should not be ashamed before people who mock his service to Hashem. Also, when one is in private and when one lies on his bed, he should know before whom he is lying and immediately his should arise with enthusiasm to serve his Creator and he will get up.] ",
+    "One who wishes to get up early and pray before his creator should try to do so at the times when the angels change shifts. This occurs after one third of the night, after two thirds and after the night is over. The prayer that one prays at those times should be concerning the destruction of the Beis Hamikdash (Holy Temple) and on the exile.",
+    "It is proper for every G-d fearing person to be aggravated and worried about the destruction of the Beis Hamikdash.",
+    "It is better for one to say only a few supplications with concentration then to say many supplications without concentration.",
+    "It is a good idea to say the section on the binding of Yitzchak, the section concerning the manna, the ten commandments and the chapter on the burnt offering (עולה 'Olah), gift offering (מנחה Mincha), peace offering (שׁלמים Shelamim), sin offering (חטאת Chatas) guilt offering (אשׁם Asham). [Only when one is alone is it permitted to say the ten commandments whenever one wants but it is forbidden to say them in front of ten or more men.]",
+    "The parshiot korbanot (chapters of the sacrifices) are said only during the day.",
+    "When one finishes the section of the 'Olah, he should say \"may it be your will that this should be considered and accepted as if I brought an 'Olah.\" Similarly, one should say a similar expression after reading the section of the Mincha and the Shelamim since these can be brought by a Nedava (voluntarily).",
+    "One should recite after the sections of the sacrifices the verse \"And slaughter it on the side of the altar northward before Hashem\"",
+    "There are those who are accustomed to saying the Parsha (chapter) of the Kiur (washing basin) followed by the parsha of the Tamid (continual offering) and then the parsha of the offering of the Kitoret (Spice offering) and the parsha of the making of the Kitoret and its ingredients. "
+   ],
+   "versions": [
+    {
+     "text": [
+      "<b>דין השכמת הבוקר. ובו ט סעיפים:</b><br><i data-commentator=\"Be'er HaGolah\" data-label=\"א\" data-order=\"1\"></i><i data-commentator=\"Turei Zahav\" data-order=\"1\"></i>יתגבר <i data-commentator=\"Ba'er Hetev\" data-order=\"1\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"1\"></i>כארי לעמוד בבוקר <i data-commentator=Mishnah Berurah\" data-label=\"א\"></i>לעבודת בוראו <i data-commentator=\"Be'er HaGolah\" data-label=\"ב\" data-order=\"2\"></i><i data-commentator=\"Turei Zahav\" data-order=\"2\"></i><i data-commentator=\"Magen Avraham\" data-order=\"1\"></i>שיהא הוא מעורר <i data-commentator=\"Ba'er Hetev\" data-order=\"2\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"2\"></i><i data-commentator=Mishnah Berurah\" data-label=\"ב\"></i>השחר: <small>הגה ועכ\"פ לא יאחר זמן התפלה <i data-commentator=Mishnah Berurah\" data-label=\"ג\"></i>שהצבור מתפללין (טור). הגה <i data-commentator=\"Ba'er Hetev\" data-order=\"3\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"3\"></i>שויתי ה' לנגדי תמיד הוא כלל גדול בתורה ובמעלות <i data-commentator=Mishnah Berurah\" data-label=\"ד\"></i>הצדיקים אשר הולכים לפני האלהים כי אין ישיבת האדם ותנועותיו ועסקיו והוא לבדו בביתו כישיבתו ותנועותיו ועסקיו והוא לפני מלך גדול ולא דבורו והרחבת פיו כרצונו והוא עם אנשי ביתו וקרוביו כדבורו במושב המלך כ\"ש כשישים האדם אל לבו שהמלך הגדול הקב\"ה אשר מלא כל הארץ כבודו עומד עליו ורואה במעשיו כמו שנאמר אם יסתר איש במסתרים ואני לא אראנו נאום ה' מיד יגיע אליו הירא' וההכנעה בפחד הש\"י ובושתו ממנו תמיד (<a class=\"refLink \" href=\"Guide_for_the_Perplexed,_Part_3.52.1\" data-ref=\"Guide for the Perplexed, Part 3 52:1\" data-range=1459-1481>מורה נבוכים ח\"ג פ' נ\"ב</a>) ולא יתבייש <i data-commentator=\"Magen Avraham\" data-order=\"2\"></i><i data-commentator=Mishnah Berurah\" data-label=\"ה\"></i>מפני בני אדם <i data-commentator=\"Ba'er Hetev\" data-order=\"4\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"4\"></i><i data-commentator=Mishnah Berurah\" data-label=\"ו\"></i>המלעיגים עליו בעבודת הש\"י <i data-commentator=Mishnah Berurah\" data-label=\"ז\"></i>גם בהצנע לכת ובשכבו על משכבו ידע לפני מי הוא שוכב <i data-commentator=\"Magen Avraham\" data-order=\"3\"></i><i data-commentator=\"Ateret Zekenim\" data-label=\"♦\" data-order=\"1\"></i>ומיד כשיעור משנתו יקום <i data-commentator=\"Ba'er Hetev\" data-order=\"5\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"5\"></i><i data-commentator=Mishnah Berurah\" data-label=\"ח\"></i>בזריזות לעבודת בוראו יתברך ויתעלה (טור):</small>",
+      "<i data-commentator=\"Be'er HaGolah\" data-label=\"ג\" data-order=\"3\"></i><i data-commentator=\"Magen Avraham\" data-order=\"4\"></i><i data-commentator=\"Ateret Zekenim\" data-label=\"♦\" data-order=\"2\"></i>המשכים להתחנן לפני בוראו יכוין לשעות שמשתנות המשמרות שהן בשליש הלילה ולסוף שני שלישי הלילה <i data-commentator=\"Ba'er Hetev\" data-order=\"6\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"6\"></i>ולסוף הלילה <i data-commentator=\"Eshel Avraham\" data-label=\"א\" data-order=\"1\"></i>שהתפלה שיתפלל באותן השעות על החורבן ועל הגלות רצויה:",
+      "<i data-commentator=\"Mishnah Berurah\" data-label=\"ט\"></i><i data-commentator=\"Ateret Zekenim\" data-label=\"♦\" data-order=\"3\"></i><i data-commentator=\"Be'er HaGolah\" data-label=\"ד\" data-order=\"4\"></i>ראוי לכל ירא שמים <i data-commentator=\"Ba'er Hetev\" data-order=\"7\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"י\"></i>שיהא מיצר ודואג על <i data-commentator=\"Magen Avraham\" data-order=\"5\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"יא\"></i>חורבן בית המקדש:",
+      "<i data-commentator=\"Be'er HaGolah\" data-label=\"ה\" data-order=\"5\"></i><i data-commentator=\"Turei Zahav\" data-order=\"3\"></i>טוב <i data-commentator=\"Magen Avraham\" data-order=\"6\"></i>מעט תחנונים <i data-commentator=\"Ba'er Hetev\" data-order=\"8\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"8\"></i>בכוונה מהרבות <i data-commentator=\"Mishnah Berurah\" data-label=\"יב\"></i>בלא כוונה:",
+      "<i data-commentator=\"Ateret Zekenim\" data-label=\"♦\" data-order=\"4\"></i><i data-commentator=\"Be'er HaGolah\" data-label=\"ו\" data-order=\"6\"></i>טוב לומר <i data-commentator=\"Turei Zahav\" data-order=\"4\"></i><i data-commentator=\"Ba'er Hetev\" data-order=\"9\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"יג\"></i>פ' <i data-commentator=\"Magen Avraham\" data-order=\"7\"></i>העקדה ופ' המן <i data-commentator=\"Be'er HaGolah\" data-label=\"ז\" data-order=\"7\"></i>ועשרת הדברות <i data-commentator=\"Be'er HaGolah\" data-label=\"ח\" data-order=\"8\"></i>ופרשת <i data-commentator=\"Magen Avraham\" data-order=\"8\"></i>עולה ומנחה <i data-commentator=\"Ba'er Hetev\" data-order=\"10\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"10\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"יד\"></i>ושלמים <i data-commentator=\"Eshel Avraham\" data-label=\"ב\" data-order=\"2\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"טו\"></i>וחטאת ואשם: <small>הגה <i data-commentator=\"Turei Zahav\" data-order=\"5\"></i>ודוקא ביחיד מותר לומר י' הדברות בכל יום אבל אסור לאומרם <i data-commentator=\"Magen Avraham\" data-order=\"9\"></i><i data-commentator=\"Ba'er Hetev\" data-order=\"11\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"11\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"טז\"></i>בצבור (תשו' הרשב\"א סימן קפ\"ד):</small>",
+      "<i data-commentator=\"Be'er HaGolah\" data-label=\"ט\" data-order=\"9\"></i>פרשיות הקרבנות לא יאמר <i data-commentator=\"Turei Zahav\" data-order=\"6\"></i>אלא <i data-commentator=\"Magen Avraham\" data-order=\"10\"></i><i data-commentator=\"Ba'er Hetev\" data-order=\"12\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"יז\"></i>ביום. <small> (וע\"ל סי' מ\"ז סעיף י\"ג)</small>:",
+      "<i data-commentator=\"Ateret Zekenim\" data-label=\"♦\" data-order=\"5\"></i>כשיסיים פרשת העולה יאמר <i data-commentator=\"Magen Avraham\" data-order=\"11\"></i>יהר\"מ שיהא זה חשוב ומקובל כאלו הקרבתי עולה וכך יאמר אחר פ' המנחה והשלמים <i data-commentator=\"Eshel Avraham\" data-label=\"ג\" data-order=\"3\"></i>מפני <i data-commentator=\"Turei Zahav\" data-order=\"7\"></i>שהם <i data-commentator=\"Mishnah Berurah\" data-label=\"יח\"></i>באים <i data-commentator=\"Ba'er Hetev\" data-order=\"13\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"13\"></i>בנדבה:",
+      "<i data-commentator=\"Be'er HaGolah\" data-label=\"י\" data-order=\"10\"></i>יאמר <i data-commentator=\"Mishnah Berurah\" data-label=\"יט\"></i>עם הקרבנות <i data-commentator=\"Turei Zahav\" data-order=\"8\"></i>פ' <i data-commentator=\"Ba'er Hetev\" data-order=\"14\"></i><i data-commentator=\"Sha'arei Teshuvah\" data-order=\"14\"></i><i data-commentator=\"Mishnah Berurah\" data-label=\"כ\"></i>ושחט אותו על ירך המזבח צפונה לפני ה':",
+      "<i data-commentator=\"Be'er HaGolah\" data-label=\"כ\" data-order=\"11\"></i>יש נוהגין לומר פ' הכיור ואח\"כ פרשת תרומת הדשן ואח\"כ פ' התמיד ואח\"כ פרשת מזבח <i data-commentator=\"Magen Avraham\" data-order=\"12\"></i>מקטר קטורת ופרשת סממני הקטורת <i data-commentator=\"Eshel Avraham\" data-label=\"ד\" data-order=\"4\"></i>ועשייתו:"
+     ],
+     "versionTitle": "Maginei Eretz: Shulchan Aruch Orach Chaim, Lemberg, 1893",
+     "versionTitleInHebrew": "ספר מגיני ארץ: שלחן ערוך. למברג, תרנ\"ג",
+     "shortVersionTitle": "",
+     "shortVersionTitleInHebrew": "",
+     "languageFamilyName": "hebrew",
+     "actualLanguage": "he",
+     "language": "he",
+     "direction": "rtl",
+     "isPrimary": true,
+     "isSource": true,
+     "priority": 2.0,
+     "formatAsPoetry": "",
+     "license": "Public Domain",
+     "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH002084080"
+    },
+    {
+     "text": [
+      "One should strengthen himself like a lion to get up in the morning to serve his creator. He should get up early enough to welcome in the dawn. [And at least not after the Z'man Tefilah (time for praying) in which the congregation prays. Scripture says, \"I placed Hashem before me always\". This is a great concept in the Torah and is a paramount attribute for the Tzadikim (righteous people) who walk in the way of G-d. For the way in which a person sits, moves around, and carries out his daily activities while he is alone in his house is not the same way he should engage in these activities while standing before a great King. In addition, the way one speaks while amongst those in his home and the conversations he partakes with his relatives is not the same manner in which he would speak while in the presence of a mortal King. Surely when one considers in his mind that the mighty King, The Holy One blessed be his name, where the whole world is filled with his glory, stands before him and sees his deeds, as it states: \"If a man will conceal his secrets and I will not see it,\" states Hashem; immediately the fear and the proper awed train of thought of Hashem will descend upon him and he will always be embarrassed before G-d. And one should not be ashamed before people who mock his service to Hashem. Also, when one is in private and when one lies on his bed, he should know before whom he is lying and immediately his should arise with enthusiasm to serve his Creator and he will get up.] ",
+      "One who wishes to get up early and pray before his creator should try to do so at the times when the angels change shifts. This occurs after one third of the night, after two thirds and after the night is over. The prayer that one prays at those times should be concerning the destruction of the Beis Hamikdash (Holy Temple) and on the exile.",
+      "It is proper for every G-d fearing person to be aggravated and worried about the destruction of the Beis Hamikdash.",
+      "It is better for one to say only a few supplications with concentration then to say many supplications without concentration.",
+      "It is a good idea to say the section on the binding of Yitzchak, the section concerning the manna, the ten commandments and the chapter on the burnt offering (עולה 'Olah), gift offering (מנחה Mincha), peace offering (שׁלמים Shelamim), sin offering (חטאת Chatas) guilt offering (אשׁם Asham). [Only when one is alone is it permitted to say the ten commandments whenever one wants but it is forbidden to say them in front of ten or more men.]",
+      "The parshiot korbanot (chapters of the sacrifices) are said only during the day.",
+      "When one finishes the section of the 'Olah, he should say \"may it be your will that this should be considered and accepted as if I brought an 'Olah.\" Similarly, one should say a similar expression after reading the section of the Mincha and the Shelamim since these can be brought by a Nedava (voluntarily).",
+      "One should recite after the sections of the sacrifices the verse \"And slaughter it on the side of the altar northward before Hashem\"",
+      "There are those who are accustomed to saying the Parsha (chapter) of the Kiur (washing basin) followed by the parsha of the Tamid (continual offering) and then the parsha of the offering of the Kitoret (Spice offering) and the parsha of the making of the Kitoret and its ingredients. "
+     ],
+     "versionTitle": "Translated by Jay Dinovitser",
+     "versionTitleInHebrew": "",
+     "shortVersionTitle": "",
+     "shortVersionTitleInHebrew": "",
+     "languageFamilyName": "english",
+     "actualLanguage": "en",
+     "language": "en",
+     "direction": "ltr",
+     "isPrimary": false,
+     "isSource": false,
+     "priority": "",
+     "formatAsPoetry": "",
+     "license": "unknown",
+     "versionSource": "http://www.shulchanarach.com/"
+    }
+   ]
+  }
+ },
+ "remoteConfig": {
+  "sentry": {
+   "tracesSampleRate": 0.0,
+   "sampleRate": 1.0,
+   "replaysSessionSampleRate": 0.0,
+   "replaysOnErrorSampleRate": 0.0
+  },
+  "chatbot": {
+   "hide": 0
+  }
+ }
+}

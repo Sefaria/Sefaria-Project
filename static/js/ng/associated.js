@@ -62,11 +62,15 @@ export function categoryLabel(category, interfaceLang, citedByLabel = 'Cited by'
   return interfaceLang === 'hebrew' ? (HE_CATEGORIES[category] || category) : category;
 }
 
-/** The corpus whose major commentators apply to a section ('Tanakh', 'Talmud', 'Mishnah', or null). */
+/**
+ * The corpus whose major commentators apply to a section ('Tanakh', 'Talmud', 'Mishnah', or null).
+ * The primary category decides when there is one: "Rashi on Genesis" is filed under Tanakh but
+ * its primary category is Commentary, so the Tanakh's commentators (and pins) don't apply to it.
+ */
 export function corpusOf(section) {
   if (!section) { return null; }
-  const candidates = [section.primaryCategory, ...(section.categories || [])];
-  return candidates.find(c => c && TOP_COMMENTATORS[c]) || null;
+  if (section.primaryCategory) { return TOP_COMMENTATORS[section.primaryCategory] ? section.primaryCategory : null; }
+  return (section.categories || []).find(c => c && TOP_COMMENTATORS[c]) || null;
 }
 
 function normalizeEntry(entry) {
@@ -162,6 +166,39 @@ export function topBooks(books, corpus) {
     }
   }
   return out;
+}
+
+/**
+ * The panel's first list: the reader's pins, then the corpus's major commentators. A pin always
+ * leads, even a work outside the defaults (a Chasidut or Halakhah work), so the list grows to
+ * hold it and a pinned work is always found at the top. Entries: {key, book, pin, pinned};
+ * `book` is null when a pinned work has nothing on this segment (it is still listed, to unpin).
+ */
+export function shortList(grouped, pinList = []) {
+  const out = [];
+  for (const pin of pinList || []) {
+    const book = grouped.books.find(b => b.title === pin.title && b.category === pin.category && b.category !== CITED_BY) || null;
+    if (book && pin.shortTitle && !book.shortTitle) { book.shortTitle = pin.shortTitle; book.heShortTitle = pin.heShortTitle; }
+    out.push({key: book ? book.key : bookKey(pin.category, pin.title), book, pin, pinned: true});
+  }
+  for (const book of grouped.top) {
+    if (!out.some(e => e.book === book)) { out.push({key: book.key, book, pin: null, pinned: false}); }
+  }
+  return out;
+}
+
+/**
+ * What "Open" shows front and center for a work's comments on a segment: the first run of
+ * consecutive comments, as one ref ("Rashi on Genesis 1:1:1-3"), or its first comment.
+ */
+export function openTarget(refs) {
+  const list = (refs || []).filter(Boolean);
+  if (!list.length) { return null; }
+  return groupSourceRefs(list)[0].ref;
+}
+
+export function bookOpenTarget(book) {
+  return book ? openTarget(book.links.map(l => l.sourceRef || l.ref)) : null;
 }
 
 function categoryRank(category, corpus) {

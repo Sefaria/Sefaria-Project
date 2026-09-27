@@ -27,8 +27,13 @@ function emit(idle) {
   const metrics = readScroll();
   const direction = lastY === null || metrics.y === lastY ? 'none' : (metrics.y > lastY ? 'down' : 'up');
   lastY = metrics.y;
-  const event = {...metrics, direction, idle};
-  listeners.forEach(fn => fn(event));
+  listeners.forEach(fn => {
+    // A listener can move the page (the stream inserting the previous section re-renders at once
+    // and corrects the scroll): the ones after it must see where the page is now, not a stale y.
+    const now = readScroll();
+    if (now.y !== metrics.y) { lastY = now.y; }
+    fn({...now, direction, idle});
+  });
 }
 
 let scheduled = false;

@@ -45,6 +45,20 @@ REFS = {
     "sheet": FakeRef(book="Sheet"),             # /sheets/123 routed through text_panels
 }
 
+# Associated texts opened front and center from NG's panel land on these: commentaries (the
+# depth-3 "X on Y" texts, and on the Talmud), codes, the Mishnah. They are Library text refs
+# like any other, so the phone gets NG for them too; only a book-level ref (the TOC) stays classic.
+OTHER_CORPORA = {
+    "commentary-segment": FakeRef(book="Rashi on Genesis"),             # /Rashi_on_Genesis.1.1.1
+    "commentary-range": FakeRef(book="Rashi on Genesis"),               # /Rashi_on_Genesis.1.1.1-3
+    "commentary-section": FakeRef(book="Rashi on Genesis"),             # /Rashi_on_Genesis.1.1
+    "talmud-commentary": FakeRef(book="Tosafot on Berakhot"),           # /Tosafot_on_Berakhot.2a.1.1
+    "halakhah": FakeRef(book="Shulchan Arukh, Orach Chayim"),           # /Shulchan_Arukh,_Orach_Chayim.1.1
+    "mishnah": FakeRef(book="Mishnah Berakhot"),                        # /Mishnah_Berakhot.1.1
+}
+REFS.update(OTHER_CORPORA)
+REFS["commentary-book"] = FakeRef(book="Rashi on Genesis", book_level=True)  # /Rashi_on_Genesis: its TOC
+
 
 def make_request(ua="iphone", params=None, cookie=None, path="/Genesis.1"):
     request = RequestFactory().get(path, params or {}, HTTP_USER_AGENT=UAS[ua])
@@ -115,6 +129,27 @@ def test_use_ng_reader(ua, params, cookie, ref, expected):
     assert use_ng_reader(make_request(ua, params, cookie), REFS[ref]) is expected
 
 
+@pytest.mark.parametrize("name", sorted(OTHER_CORPORA))
+@pytest.mark.parametrize("ua,params,cookie,expected", [
+    ("iphone", {}, None, True),
+    ("pixel", {"lang": "bi"}, None, True),
+    ("iphone", {"with": "all"}, None, True),                 # opened with its own associated texts
+    ("iphone", {"with": "Siftei Chakhamim"}, None, True),
+    ("desktop", {}, None, False),
+    ("desktop", {"ng": "1"}, None, True),
+    ("iphone", {"ng": "0"}, None, False),
+    ("iphone", {}, "0", False),
+    ("iphone", {"p2": "Genesis 1"}, None, False),
+])
+def test_associated_texts_opened_front_and_center_get_ng(name, ua, params, cookie, expected):
+    assert use_ng_reader(make_request(ua, params, cookie, path="/Rashi_on_Genesis.1.1.1"), REFS[name]) is expected
+
+
+def test_a_commentary_book_page_stays_classic():
+    assert use_ng_reader(make_request("iphone", path="/Rashi_on_Genesis"), REFS["commentary-book"]) is False
+    assert use_ng_reader(make_request("desktop", {"ng": "1"}, path="/Rashi_on_Genesis"), REFS["commentary-book"]) is False
+
+
 def test_no_ref_means_classic():
     assert use_ng_reader(make_request(), None) is False
 
@@ -166,7 +201,7 @@ def test_matrix(ua, ng, cookie, ref, extra):
     result = use_ng_reader(request, REFS[ref])
 
     classic_tool = params.get("with") in ("Sheets", "WebPage:x.com")
-    unsupported = ref in ("book", "sheet") or "p2" in params or classic_tool
+    unsupported = REFS[ref].is_book_level() or ref == "sheet" or "p2" in params or classic_tool
     mobile = ua in MOBILE_UAS or "mobile" in params
     if unsupported:
         assert result is False
@@ -259,6 +294,42 @@ def test_the_panel_keeps_the_text_and_drops_the_rest():
     version = text["versions"][0]
     assert version["versionTitle"] == "Miqra" and version["direction"] == "rtl" and version["isPrimary"] is True
     assert "versionNotes" not in version and "purchaseInformationImage" not in version
+
+
+def commentary_panel():
+    """make_panel_dict for /Rashi_on_Genesis.1.1.1-3: a depth-3 text, its section, the range highlighted."""
+    versions = [
+        {"text": ["בראשית. אמר רבי יצחק", "בראשית ברא", "ברא אלהים"], "versionTitle": "Rosenbaum and Silbermann",
+         "languageFamilyName": "hebrew", "direction": "rtl", "isPrimary": True, "isSource": True, "priority": 1},
+        {"text": ["IN THE BEGINNING", "IN THE BEGINNING OF", "GOD CREATED"], "versionTitle": "Rosenbaum and Silbermann",
+         "languageFamilyName": "english", "direction": "ltr", "isPrimary": False, "isSource": False},
+    ]
+    return {
+        "mode": "Text", "ref": "Rashi on Genesis 1:1:1-3", "refs": ["Rashi on Genesis 1:1:1-3"],
+        "currVersions": {"en": {"languageFamilyName": "", "versionTitle": ""}, "he": {"languageFamilyName": "", "versionTitle": ""}},
+        "highlightedRefs": ["Rashi on Genesis 1:1:1", "Rashi on Genesis 1:1:2", "Rashi on Genesis 1:1:3"],
+        "text": {"ref": "Rashi on Genesis 1:1", "heRef": "רש\"י על בראשית א׳:א׳", "sectionRef": "Rashi on Genesis 1:1",
+                 "sections": ["1", "1"], "toSections": ["1", "1"], "textDepth": 3,
+                 "sectionNames": ["Chapter", "Verse", "Comment"], "addressTypes": ["Perek", "Pasuk", "Integer"],
+                 "indexTitle": "Rashi on Genesis", "heIndexTitle": "רש\"י על בראשית", "book": "Rashi on Genesis",
+                 "collectiveTitle": "Rashi", "primary_category": "Commentary", "type": "Commentary",
+                 "categories": ["Tanakh", "Rishonim on Tanakh", "Rashi", "Torah"], "isDependant": True,
+                 "next": "Rashi on Genesis 1:2", "prev": None, "versions": versions,
+                 "he": versions[0]["text"], "text": versions[1]["text"], "available_versions": [{}] * 12},
+    }
+
+
+def test_a_commentary_panel_keeps_what_ng_needs_to_render_it():
+    panel = ng_panel(commentary_panel())
+    assert panel["ref"] == "Rashi on Genesis 1:1:1-3"
+    assert panel["highlightedRefs"] == ["Rashi on Genesis 1:1:1", "Rashi on Genesis 1:1:2", "Rashi on Genesis 1:1:3"]
+    text = panel["text"]
+    for key in ("textDepth", "sectionNames", "addressTypes", "indexTitle", "heIndexTitle", "collectiveTitle",
+                "primary_category", "categories", "sections", "next", "prev", "he", "text"):
+        assert key in text, key
+    assert text["textDepth"] == 3 and text["primary_category"] == "Commentary"
+    assert "available_versions" not in text and "isDependant" not in text
+    assert [v["languageFamilyName"] for v in text["versions"]] == ["hebrew", "english"]
 
 
 def test_props_without_panels():

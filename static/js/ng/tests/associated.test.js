@@ -6,7 +6,8 @@
  */
 import {
   CITED_BY, TOP_COMMENTATORS, TOP_COUNT, booksFromLinks, categoryLabel, compareBooks, connectionsParam, corpusOf,
-  displayTitle, formatCount, groupLinks, groupSourceRefs, isHebrewOnly, panelLinks, resolveFilter, topBooks,
+  bookOpenTarget, displayTitle, formatCount, groupLinks, groupSourceRefs, isHebrewOnly, openTarget, panelLinks, resolveFilter,
+  shortList, topBooks,
 } from '../associated';
 
 const GENESIS = require('./fixtures/links-genesis-1-1.json');
@@ -25,6 +26,14 @@ describe('the corpus decides the major commentators', () => {
     expect(corpusOf({primaryCategory: 'Mishnah', categories: ['Mishnah']})).toBe('Mishnah');
     expect(corpusOf({primaryCategory: 'Halakhah', categories: ['Halakhah']})).toBeNull();
     expect(corpusOf(null)).toBeNull();
+  });
+
+  test('a commentary filed under a corpus is not that corpus: its primary category decides', () => {
+    // "Rashi on Genesis" (/api/v3/texts): categories start with Tanakh, primary_category is Commentary.
+    expect(corpusOf({primaryCategory: 'Commentary', categories: ['Tanakh', 'Rishonim on Tanakh', 'Rashi', 'Torah']})).toBeNull();
+    expect(corpusOf({primaryCategory: 'Commentary', categories: ['Talmud', 'Bavli', 'Rishonim on Talmud', 'Tosafot']})).toBeNull();
+    // With no primary category, the categories still decide.
+    expect(corpusOf({primaryCategory: null, categories: ['Tanakh', 'Torah']})).toBe('Tanakh');
   });
 
   test('the top-5 lists live in one config map, each longer than five so a book missing some still gets five', () => {
@@ -200,4 +209,58 @@ test('comment refs group into ranges, one request per run', () => {
 
 test('badge counts stay short', () => {
   expect([0, 7, 999, 1000, 1815, 12400].map(formatCount)).toEqual(['0', '7', '999', '1k', '1.8k', '12k']);
+});
+
+describe('the first list: pins first, then the defaults', () => {
+  const MEI = {title: 'Mei HaShiloach', heTitle: 'מי השלוח', category: 'Chasidut'};
+  const SA = {title: 'Shulchan Arukh, Orach Chayim', heTitle: 'שולחן ערוך, אורח חיים', category: 'Halakhah'};
+  const grouped = () => groupLinks(GENESIS, {corpus: 'Tanakh'});
+  const keys = (list) => list.map(e => e.key);
+
+  test('no pins: the corpus defaults, as before', () => {
+    const list = shortList(grouped(), []);
+    expect(keys(list)).toEqual(['Commentary|Rashi', 'Commentary|Ramban', 'Commentary|Ibn Ezra', 'Commentary|Sforno', 'Targum|Onkelos Genesis']);
+    expect(list.every(e => !e.pinned && e.book)).toBe(true);
+  });
+
+  test('pins lead, in pin order, even from outside the defaults (Chasidut, Halakhah); the list grows to hold them', () => {
+    const list = shortList(grouped(), [MEI, SA]);
+    expect(keys(list)).toEqual(['Chasidut|Mei HaShiloach', 'Halakhah|Shulchan Arukh, Orach Chayim',
+      'Commentary|Rashi', 'Commentary|Ramban', 'Commentary|Ibn Ezra', 'Commentary|Sforno', 'Targum|Onkelos Genesis']);
+    expect(list.slice(0, 2).map(e => e.pinned)).toEqual([true, true]);
+    expect(list[0].book.count).toBeGreaterThan(0);
+  });
+
+  test('a pinned default moves to the top instead of appearing twice', () => {
+    const list = shortList(grouped(), [{title: 'Sforno', heTitle: 'ספורנו', category: 'Commentary'}, MEI]);
+    expect(keys(list)).toEqual(['Commentary|Sforno', 'Chasidut|Mei HaShiloach',
+      'Commentary|Rashi', 'Commentary|Ramban', 'Commentary|Ibn Ezra', 'Targum|Onkelos Genesis']);
+  });
+
+  test('a pinned work with nothing on this segment is still listed (so it can be unpinned), with no book', () => {
+    const list = shortList(grouped(), [{title: 'Sfat Emet', heTitle: 'שפת אמת', category: 'Chasidut'}]);
+    expect(list[0]).toMatchObject({key: 'Chasidut|Sfat Emet', book: null, pinned: true});
+    expect(list).toHaveLength(6);
+  });
+
+  test('a pinned Onkelos keeps its short title', () => {
+    const list = shortList(grouped(), [{title: 'Onkelos Genesis', heTitle: 'אונקלוס בראשית', category: 'Targum', shortTitle: 'Onkelos', heShortTitle: 'אונקלוס'}]);
+    expect(displayTitle(list[0].book, 'english')).toBe('Onkelos');
+  });
+});
+
+describe('what Open shows front and center', () => {
+  test('the first run of a work\'s comments on the segment, as one range', () => {
+    expect(openTarget(['Rashi on Genesis 1:1:1', 'Rashi on Genesis 1:1:2', 'Rashi on Genesis 1:1:3'])).toBe('Rashi on Genesis 1:1:1-3');
+    expect(openTarget(['Rashi on Genesis 1:1:2', 'Rashi on Genesis 1:1:5'])).toBe('Rashi on Genesis 1:1:2');
+    expect(openTarget(['Shulchan Arukh, Orach Chayim 668:2'])).toBe('Shulchan Arukh, Orach Chayim 668:2');
+    expect(openTarget(['Berakhot 31a:5-7', 'Berakhot 31a:8'])).toBe('Berakhot 31a:5-7');
+    expect(openTarget([])).toBeNull();
+  });
+
+  test('for a work in the panel: its links in order', () => {
+    const rashi = groupLinks(GENESIS, {corpus: 'Tanakh'}).books.find(b => b.key === 'Commentary|Rashi');
+    expect(bookOpenTarget(rashi)).toBe('Rashi on Genesis 1:1:1-3');
+    expect(bookOpenTarget(null)).toBeNull();
+  });
 });

@@ -6,13 +6,14 @@
  * segmented (a block per segment with its number in the margin) or, for a single language,
  * continuous (flowing prose; the default for Talmud).
  */
-import React, {memo, useMemo} from 'react';
+import React, {memo, useMemo, useRef, useState} from 'react';
 import {
   addPoetrySpans, bindDashes, isTalmud, sectionLabelParts, segmentNumberLabel, showsSegmentNumbers, stripHebrewMarks,
   visibleTexts,
 } from './text';
 import {layoutFor} from './settings';
-import {displayTitle, formatCount} from './associated';
+import {displayTitle, formatCount, openTarget} from './associated';
+import {useIsomorphicLayoutEffect} from './context';
 import {associatedStrings} from './associatedStrings';
 
 function prepareHtml(html, version, settings, section, isPrimaryText) {
@@ -69,26 +70,146 @@ function commentTexts(comment, language) {
   return {he: comment.he, en: comment.en, hebrewOnly: false};
 }
 
-/** The pinned commentators' comments on one segment (I1). A tap opens that work in the panel. */
-function PinnedComments({segmentRef, pinned, language, interfaceLang}) {
+/**
+ * A pinned work's comments on one segment, as one run of text per language (its Hebrew, then
+ * its English), each run clamped to PIN_LINES until the reader expands it.
+ */
+export function pinRuns(comments, language) {
+  const out = {he: [], en: [], hebrewOnly: false};
+  for (const comment of comments || []) {
+    const t = commentTexts(comment, language);
+    t.he.forEach(html => out.he.push({ref: comment.ref, html}));
+    t.en.forEach(html => out.en.push({ref: comment.ref, html}));
+    out.hebrewOnly = out.hebrewOnly || t.hebrewOnly;
+  }
+  return out;
+}
+
+export const PIN_LINES = 3;
+const PIN_TOP_MARGIN = 72;  // below the header, when a collapse brings a comment back into view
+
+const SmallIcon = ({children}) => (
+  <svg className="ng-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"
+       fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">{children}</svg>
+);
+// "Open front and center": an arrow out of its box.
+export const OpenIcon = () => <SmallIcon><path d="M13.5 5.5h5v5M18.5 5.5l-7.5 7.5" /><path d="M16.5 14v3.5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1H10" /></SmallIcon>;
+const ExpandIcon = () => <SmallIcon><path d="m6.5 9.5 5.5 5.5 5.5-5.5" /></SmallIcon>;
+
+function hasSelection() {
+  const selection = typeof window !== 'undefined' && window.getSelection && window.getSelection();
+  return !!(selection && !selection.isCollapsed && String(selection).length);
+}
+
+/**
+ * One pinned work under one segment (I1): its name (a tap opens the work in the panel), an Open
+ * button (the comment front and center), and its text, at most PIN_LINES lines per language
+ * with an ellipsis. A tap on the text expands it to full size and another collapses it; the
+ * state is this comment's own. The expand affordance appears only when a run is clipped.
+ */
+function PinnedComment({segmentRef, pin, language, interfaceLang, sideBySide, fontSize}) {
   const s = associatedStrings(interfaceLang);
+  const [expanded, setExpanded] = useState(false);
+  const [clipped, setClipped] = useState(false);
+  const bodyRef = useRef(null);
+  const runs = pinRuns(pin.comments, language);
+  const key = `${pin.category}|${pin.title}`;
+  const title = displayTitle(pin, interfaceLang);
+  const target = openTarget(pin.comments.map(c => c.ref));
+  const content = pin.comments.map(c => c.ref).join('|');
+  const bothColumns = sideBySide && runs.he.length > 0 && runs.en.length > 0;
+
+  // Measure while collapsed: does any language run past its lines? Again on resize, and when
+  // the text reflows (web fonts arriving, a new font size).
+  useIsomorphicLayoutEffect(() => {
+    if (expanded) { return undefined; }
+    const body = bodyRef.current;
+    if (!body) { return undefined; }
+    const measure = () => {
+      const over = Array.from(body.querySelectorAll('[data-ng="pin-run"]')).some(el => el.scrollHeight > el.clientHeight + 1);
+      setClipped(over);
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    const observer = typeof window.ResizeObserver === 'function' ? new window.ResizeObserver(measure) : null;
+    if (observer) { observer.observe(body); }
+    return () => {
+      window.removeEventListener('resize', measure);
+      if (observer) { observer.disconnect(); }
+    };
+  }, [expanded, content, language, fontSize, bothColumns]);
+
+  // Collapsing a long comment the reader has scrolled into: keep its top on screen, not the text
+  // that would otherwise slide up under the header.
+  const pinRef = useRef(null);
+  const collapsedFrom = useRef(null);
+  useIsomorphicLayoutEffect(() => {
+    const el = pinRef.current;
+    if (expanded || collapsedFrom.current === null || !el) { return; }
+    collapsedFrom.current = null;
+    const top = el.getBoundingClientRect().top;
+    if (top < PIN_TOP_MARGIN) { window.scrollBy(0, top - PIN_TOP_MARGIN); }
+  }, [expanded]);
+
+  const expandable = clipped || expanded;
+  const toggle = () => {
+    if (!expandable) { return; }
+    if (expanded) { collapsedFrom.current = true; }
+    setExpanded(x => !x);
+  };
+  const onBodyClick = (e) => {
+    const t = e.target;
+    if (t.closest && t.closest('a.refLink')) { return; }  // a cited ref: the stream opens it in the panel
+    e.stopPropagation();  // this tap is the comment's: not the header's, and not a navigation
+    if (t.closest && t.closest('a')) { e.preventDefault(); }
+    if (hasSelection()) { return; }  // the reader is selecting text
+    toggle();
+  };
+  const run = (lang, parts) => (parts.length ? (
+    <span className={`ng-pin-run ng-pin-${lang}`} data-ng="pin-run" lang={lang} dir={lang === 'he' ? 'rtl' : 'ltr'}>
+      {parts.map((part, i) => (
+        <React.Fragment key={`${part.ref}${i}`}>
+          {i ? ' ' : null}
+          <span className="ng-pin-part" dangerouslySetInnerHTML={{__html: part.html}} />
+        </React.Fragment>
+      ))}
+    </span>
+  ) : null);
+
+  return (
+    <span className="ng-pin" data-ng="pin" data-ref={segmentRef} data-pin-key={key} ref={pinRef}
+          data-expanded={expanded ? 'true' : 'false'} data-clipped={clipped ? 'true' : 'false'}>
+      <span className="ng-pin-head">
+        <button type="button" className="ng-pin-name" data-ng="pin-name" title={s.openInPanel(title)}>{title}</button>
+        <span className="ng-pin-actions">
+          {expandable ? (
+            <button type="button" className="ng-pin-action ng-pin-expand" data-ng="pin-expand" aria-expanded={expanded}
+                    aria-label={expanded ? s.showLess : s.showMore} title={expanded ? s.showLess : s.showMore}
+                    onClick={(e) => { e.stopPropagation(); toggle(); }}><ExpandIcon /></button>
+          ) : null}
+          {target ? (
+            <button type="button" className="ng-pin-action" data-ng="pin-open" data-open-ref={target}
+                    aria-label={s.openRef(target)} title={s.openRef(target)}><OpenIcon /></button>
+          ) : null}
+        </span>
+      </span>
+      <span className="ng-pin-body" data-ng="pin-body" ref={bodyRef} onClick={onBodyClick}
+            data-sbs={bothColumns || undefined} dir={bothColumns ? 'ltr' : undefined}>
+        {run('he', runs.he)}
+        {run('en', runs.en)}
+      </span>
+      {runs.hebrewOnly ? <span className="ng-hebrew-only">{s.hebrewOnly}</span> : null}
+    </span>
+  );
+}
+
+/** The pinned commentators' comments on one segment (I1). */
+function PinnedComments({segmentRef, pinned, language, interfaceLang, sideBySide, fontSize}) {
   return (
     <span className="ng-pinned" data-ng="pinned">
       {pinned.map(pin => (
-        <span key={`${pin.category}|${pin.title}`} className="ng-pin" data-ng="pin" data-ref={segmentRef}
-              data-pin-key={`${pin.category}|${pin.title}`} role="button" tabIndex={0}>
-          <span className="ng-pin-name">{displayTitle(pin, interfaceLang)}</span>
-          {pin.comments.map(comment => {
-            const t = commentTexts(comment, language);
-            return (
-              <span key={comment.ref} className="ng-pin-comment">
-                {t.he.map((html, i) => <span key={`he${i}`} className="ng-pin-he" lang="he" dir="rtl" dangerouslySetInnerHTML={{__html: html}} />)}
-                {t.en.map((html, i) => <span key={`en${i}`} className="ng-pin-en" lang="en" dir="ltr" dangerouslySetInnerHTML={{__html: html}} />)}
-                {t.hebrewOnly ? <span className="ng-hebrew-only">{s.hebrewOnly}</span> : null}
-              </span>
-            );
-          })}
-        </span>
+        <PinnedComment key={`${pin.category}|${pin.title}`} segmentRef={segmentRef} pin={pin} language={language}
+                       interfaceLang={interfaceLang} sideBySide={sideBySide} fontSize={fontSize} />
       ))}
     </span>
   );
@@ -112,7 +233,10 @@ const Segment = memo(function Segment({
         {he ? <TextBlock className="ng-he" html={he} version={section.primary} fallbackLang="he" fallbackDir="rtl" /> : null}
         {en ? <TextBlock className="ng-en" html={en} version={section.translation} fallbackLang="en" fallbackDir="ltr" /> : null}
       </div>
-      {pinned ? <PinnedComments segmentRef={segment.ref} pinned={pinned} language={settings.language} interfaceLang={interfaceLang} /> : null}
+      {pinned ? (
+        <PinnedComments segmentRef={segment.ref} pinned={pinned} language={settings.language} interfaceLang={interfaceLang}
+                        sideBySide={sideBySide} fontSize={settings.fontSize} />
+      ) : null}
     </div>
   );
 });
@@ -139,7 +263,8 @@ function ContinuousText({section, settings, highlightedRefs, hebrewNumbers, coun
             <span dangerouslySetInnerHTML={{__html: html}} />
             <CountBadge segmentRef={segment.ref} count={counts && counts[segment.ref]} interfaceLang={interfaceLang} inline />
             {pinned && pinned[segment.ref] ? (
-              <PinnedComments segmentRef={segment.ref} pinned={pinned[segment.ref]} language={settings.language} interfaceLang={interfaceLang} />
+              <PinnedComments segmentRef={segment.ref} pinned={pinned[segment.ref]} language={settings.language}
+                              interfaceLang={interfaceLang} fontSize={settings.fontSize} />
             ) : null}
             {' '}
           </span>

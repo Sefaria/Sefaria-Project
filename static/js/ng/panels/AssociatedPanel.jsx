@@ -1,11 +1,16 @@
 /**
  * The associated-texts panel for one segment (A3 · N2 · I1 in the NG UX catalog).
  *
- * First screen: the segment, its major commentators (the corpus's top 5), then its works by
- * category, then "Cited by" (later works quoting it), collapsed until asked for, and the
- * reader's own notes. From there: category -> work -> its comments, and a citation inside a
- * comment opens the cited text on top. Each step is a history entry (overlayState.js), so Back
- * walks the trail; the breadcrumb jumps along it.
+ * First screen: the segment, then a short list with no heading: the reader's pinned works
+ * first (whatever their category, each unpinnable there), then the corpus's major commentators
+ * (its top 5); then its works by category, then "Cited by" (later works quoting it), collapsed
+ * until asked for, and the reader's own notes. From there: category -> work -> its comments,
+ * and a citation inside a comment opens the cited text on top. Each step is a history entry
+ * (overlayState.js), so Back walks the trail; the breadcrumb jumps along it.
+ *
+ * Open: a work's comments on the segment, one comment, or a cited text can be made the
+ * reader's primary text, front and center (reader.openText): the panel closes and the reader
+ * shows that text, with a history entry so Back returns to where the reader was.
  *
  * Books only: no sheets, no topics. Counts load first; comment text follows one commentator
  * at a time (associatedData.js). A work can be pinned to show under every segment.
@@ -16,7 +21,7 @@ import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import {useNgReader} from '../context';
 import {HOME} from '../overlayState';
 import {
-  CITED_BY, categoryLabel, corpusOf, displayTitle, groupLinks, isHebrewOnly, resolveFilter,
+  CITED_BY, bookOpenTarget, categoryLabel, corpusOf, displayTitle, groupLinks, isHebrewOnly, resolveFilter, shortList,
 } from '../associated';
 import {
   loadLinks, loadPrivateNotes, peekBookComments, peekRefText, paragraphs, queueBookComments, queueRefText,
@@ -24,6 +29,7 @@ import {
 import {associatedStrings} from '../associatedStrings';
 import {MAX_PINS, isPinned, pinScope} from '../pins';
 import {bindDashes, visibleTexts} from '../text';
+import {OpenIcon} from '../TextStream';
 
 const useClientLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
@@ -168,6 +174,52 @@ function BookRow({book, s, interfaceLang, language, onOpen, preview, pinned}) {
   );
 }
 
+/**
+ * A row of the first list. A pinned work carries its pin, which unpins it here; a pinned work
+ * with nothing on this segment is still listed (muted), so it can always be found and unpinned.
+ */
+function ShortListRow({entry, s, interfaceLang, language, onOpen, onUnpin}) {
+  const {book, pin} = entry;
+  const title = displayTitle(book || pin, interfaceLang);
+  const unpin = entry.pinned ? (
+    <button type="button" className="ng-row-unpin" data-ng="unpin" data-key={entry.key} aria-pressed="true"
+            aria-label={s.unpin(title)} title={s.unpin(title)} onClick={() => onUnpin(book || pin)}>
+      <PinIcon filled />
+    </button>
+  ) : null;
+  if (!book) {
+    return (
+      <li className="ng-row-wrap" data-pinned="true">
+        <div className="ng-row ng-row-absent" data-ng="book-row" data-key={entry.key} data-absent="true">
+          <span className="ng-row-main">
+            <span className="ng-row-title" lang={interfaceLang === 'hebrew' ? 'he' : 'en'}>{title}</span>
+            <span className="ng-row-note">{s.notHere}</span>
+          </span>
+        </div>
+        {unpin}
+      </li>
+    );
+  }
+  const hebrewOnly = isHebrewOnly(book, language);
+  const preview = previewHtml(peekBookComments(book), language, interfaceLang);
+  return (
+    <li className="ng-row-wrap" data-pinned={entry.pinned ? 'true' : undefined}>
+      <button type="button" className="ng-row" data-ng="book-row" data-key={book.key} onClick={() => onOpen(book)}>
+        <span className="ng-row-main">
+          <span className="ng-row-title" lang={interfaceLang === 'hebrew' ? 'he' : 'en'}>{title}</span>
+          {preview ? <span className="ng-row-preview" lang={preview.lang} dir={preview.dir} dangerouslySetInnerHTML={{__html: preview.html}} /> : null}
+        </span>
+        <span className="ng-row-meta">
+          {hebrewOnly ? <span className="ng-hebrew-only" data-ng="hebrew-only">{s.hebrewOnly}</span> : null}
+          <span className="ng-row-count">{book.count}</span>
+        </span>
+        {entry.pinned ? null : <Chevron />}
+      </button>
+      {unpin}
+    </li>
+  );
+}
+
 function CategoryRow({group, s, interfaceLang, onOpen}) {
   return (
     <li>
@@ -201,27 +253,28 @@ function Anchor({segment, language, interfaceLang}) {
   );
 }
 
-function HomeView({grouped, links, notes, s, interfaceLang, language, openBook, openCategory, citedOpen, setCitedOpen, isBookPinned}) {
+function HomeView({grouped, links, notes, s, interfaceLang, language, openBook, openCategory, citedOpen, setCitedOpen, pinList, onUnpin}) {
   if (links.status === 'error') { return <Failed s={s} onRetry={links.retry} />; }
   if (!grouped) { return <Loading s={s} rows={4} />; }
   const empty = !grouped.total && !notes.length;
+  // The short list has no heading: the reader's pins first, then the corpus's major commentators.
+  const top = shortList(grouped, pinList);
   return (
     <>
       {empty ? <p className="ng-assoc-empty">{s.noConnections}</p> : null}
-      {grouped.top.length ? (
-        <section className="ng-assoc-group" data-ng="top-commentators">
-          <h3 className="ng-assoc-label">{s.majorCommentators}</h3>
+      {top.length ? (
+        <section className="ng-assoc-group ng-assoc-top" data-ng="top-commentators">
           <ul className="ng-rows">
-            {grouped.top.map(book => (
-              <BookRow key={book.key} book={book} s={s} interfaceLang={interfaceLang} language={language} onOpen={openBook}
-                       preview={previewHtml(peekBookComments(book), language, interfaceLang)} pinned={isBookPinned(book)} />
+            {top.map(entry => (
+              <ShortListRow key={entry.key} entry={entry} s={s} interfaceLang={interfaceLang} language={language}
+                            onOpen={openBook} onUnpin={onUnpin} />
             ))}
           </ul>
         </section>
       ) : null}
       {grouped.categories.length ? (
         <section className="ng-assoc-group" data-ng="categories">
-          <h3 className="ng-assoc-label">{grouped.top.length ? s.byCategory : s.panelLabel}</h3>
+          <h3 className="ng-assoc-label">{top.length ? s.byCategory : s.panelLabel}</h3>
           <ul className="ng-rows">
             {grouped.categories.map(group => (
               <CategoryRow key={group.category} group={group} s={s} interfaceLang={interfaceLang} onOpen={openCategory} />
@@ -289,35 +342,60 @@ function CategoryView({group, s, interfaceLang, language, openBook, isBookPinned
   );
 }
 
-function PinButton({book, s, pinned, full, onToggle}) {
-  if (book.category === CITED_BY) { return null; }
+/** "Open": make a text the reader's primary text (front and center). */
+function OpenButton({target, s, dataNg, label = null, className = 'ng-assoc-open', onOpen}) {
+  if (!target) { return null; }
+  return (
+    <button type="button" className={className} data-ng={dataNg} data-open-ref={target}
+            aria-label={s.openRef(label || target)} title={s.openRef(label || target)} onClick={() => onOpen(target)}>
+      <OpenIcon />
+      <span>{s.open}</span>
+    </button>
+  );
+}
+
+function BookControls({book, s, pinned, full, onToggle, onOpenText}) {
+  const canPin = book.category !== CITED_BY;
   return (
     <div className="ng-pin-control">
-      <button type="button" className="ng-pin-button" data-ng="pin-toggle" aria-pressed={pinned} disabled={!pinned && full}
-              onClick={onToggle}>
-        <PinIcon filled={pinned} />
-        <span>{pinned ? s.pinned : s.pin}</span>
-      </button>
-      {!pinned && full ? <p className="ng-pin-hint" data-ng="pin-full">{s.pinFull}</p> : null}
+      <div className="ng-book-actions">
+        {canPin ? (
+          <button type="button" className="ng-pin-button" data-ng="pin-toggle" aria-pressed={pinned} disabled={!pinned && full}
+                  onClick={onToggle}>
+            <PinIcon filled={pinned} />
+            <span>{pinned ? s.pinned : s.pin}</span>
+          </button>
+        ) : null}
+        <OpenButton target={bookOpenTarget(book)} s={s} dataNg="book-open" className="ng-pin-button ng-open-button" onOpen={onOpenText} />
+      </div>
+      {canPin && !pinned && full ? <p className="ng-pin-hint" data-ng="pin-full">{s.pinFull}</p> : null}
     </div>
   );
 }
 
-function BookView({book, s, language, pinned, pinFull, onTogglePin, onCitation}) {
+function BookView({book, s, language, interfaceLang, pinned, pinFull, onTogglePin, onCitation, onOpenText}) {
   const comments = useQueued(() => queueBookComments(book, {front: true}), () => peekBookComments(book), book && book.key, !!book);
   if (!book) { return null; }
   return (
     <>
-      <PinButton book={book} s={s} pinned={pinned} full={pinFull} onToggle={onTogglePin} />
+      <BookControls book={book} s={s} pinned={pinned} full={pinFull} onToggle={onTogglePin} onOpenText={onOpenText} />
       {comments.failed ? <Failed s={s} onRetry={comments.retry} /> : null}
       {!comments.failed && comments.value === undefined ? <Loading s={s} /> : null}
       {comments.value ? (
         <div className="ng-comments" onClick={onCitation}>
-          {comments.value.map(comment => (
-            <article key={comment.ref} className="ng-comment" data-ng="comment" data-ref={comment.ref}>
-              <Paragraphs comment={comment} language={language} s={s} />
-            </article>
-          ))}
+          {comments.value.map(comment => {
+            const label = interfaceLang === 'hebrew' ? (comment.heRef || comment.ref) : comment.ref;
+            return (
+              <article key={comment.ref} className="ng-comment" data-ng="comment" data-ref={comment.ref}>
+                <Paragraphs comment={comment} language={language} s={s} />
+                <button type="button" className="ng-comment-open" data-ng="comment-open" data-open-ref={comment.ref}
+                        aria-label={s.openRef(label)} title={s.openRef(label)} onClick={() => onOpenText(comment.ref)}>
+                  <span className="ng-comment-ref" dir="auto">{label}</span>
+                  <OpenIcon />
+                </button>
+              </article>
+            );
+          })}
         </div>
       ) : null}
     </>
@@ -338,7 +416,7 @@ function RefView({refName, s, language, onCitation, onOpenInReader}) {
           </article>
         </div>
       ) : null}
-      <button type="button" className="ng-assoc-open" data-ng="open-in-reader" onClick={() => onOpenInReader(refName)}>{s.openInReader}</button>
+      <OpenButton target={refName} s={s} dataNg="open-in-reader" className="ng-pin-button ng-open-button ng-open-tangent" onOpen={onOpenInReader} />
     </>
   );
 }
@@ -381,18 +459,20 @@ export default function AssociatedPanel({overlay, onClose}) {
   const [citedOpen, setCitedOpen] = useState(false);
   useEffect(() => { setCitedOpen(false); }, [ref]);
 
-  // Previews of the major commentators, one commentator at a time (after the counts).
+  // Previews for the first list (pins, then the major commentators), one work at a time, after the counts.
   const [, bump] = useState(0);
+  const pinList = pins[scope] || [];
+  const pinsKey = pinList.map(p => `${p.category}|${p.title}`).join('+');
   useEffect(() => {
     if (!grouped) { return undefined; }
     let alive = true;
-    grouped.top.forEach(book => {
-      if (peekBookComments(book) === undefined) {
+    shortList(grouped, pinList).forEach(({book}) => {
+      if (book && peekBookComments(book) === undefined) {
         queueBookComments(book).then(() => { if (alive) { bump(n => n + 1); } }, () => {});
       }
     });
     return () => { alive = false; };
-  }, [grouped]);
+  }, [grouped, pinsKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // A `with=` filter becomes its work or category once the links are known.
   useEffect(() => {
@@ -481,7 +561,7 @@ export default function AssociatedPanel({overlay, onClose}) {
         {view.kind === 'home' ? (
           <HomeView grouped={grouped} links={links} notes={notes} s={s} interfaceLang={interfaceLang} language={language}
                     openBook={openBook} openCategory={openCategory} citedOpen={citedOpen} setCitedOpen={setCitedOpen}
-                    isBookPinned={isBookPinned} />
+                    pinList={pinList} onUnpin={(book) => togglePin(scope, book)} />
         ) : null}
         {view.kind === 'category' ? (
           group ? <CategoryView group={group} s={s} interfaceLang={interfaceLang} language={language} openBook={openBook}
@@ -489,9 +569,9 @@ export default function AssociatedPanel({overlay, onClose}) {
             : (links.status === 'error' ? <Failed s={s} onRetry={links.retry} /> : <Loading s={s} />)
         ) : null}
         {view.kind === 'book' ? (
-          book ? <BookView book={book} s={s} language={language} pinned={isBookPinned(book)}
+          book ? <BookView book={book} s={s} language={language} interfaceLang={interfaceLang} pinned={isBookPinned(book)}
                            pinFull={(pins[scope] || []).length >= MAX_PINS} onTogglePin={() => togglePin(scope, book)}
-                           onCitation={onCitation} />
+                           onCitation={onCitation} onOpenText={reader.openText} />
             : (links.status === 'error' ? <Failed s={s} onRetry={links.retry} /> : <Loading s={s} />)
         ) : null}
         {view.kind === 'ref' ? (

@@ -212,3 +212,50 @@ describe('the associated-texts overlay on the server', () => {
     expect(renderLikeNode(fixture('genesis-1'))).toBe(closed);
   });
 });
+
+describe('other corpora: where an associated text opened front and center lands', () => {
+  test('a commentary (depth 3, "Rashi on Genesis 1:1:1"): its section, segment refs, header and book title', () => {
+    const html = renderLikeNode(fixture('rashi-on-genesis-1-1-1'));
+    expect(html).toContain('data-ng="section" data-ref="Rashi on Genesis 1:1" data-layout="segmented" data-category="Commentary"');
+    expect(segmentsIn(html)).toBe(3);
+    for (const n of [1, 2, 3]) { expect(html).toContain(`data-ref="Rashi on Genesis 1:1:${n}"`); }
+    expect(html).toContain('data-he-ref="רש&quot;י על בראשית א׳:א׳:ב׳"');
+    // The header: the book, then the most granular position; its contents link is the book's TOC.
+    expect(html).toContain('<span class="ng-header-book">Rashi on Genesis</span><span class="ng-header-address">1:1:1</span>');
+    expect(html).toContain('href="/Rashi_on_Genesis"');
+    // The section opens the book: its title is shown, and the section is labelled by its address.
+    expect(html).toMatch(/data-ng="book-title"[^]*Rashi on Genesis/);
+    expect(html).toContain('<span class="ng-section-address">1:1</span>');
+    // The segment URL highlights its comment; the text is there, in both languages.
+    expect(html).toMatch(/data-ref="Rashi on Genesis 1:1:1"[^>]*data-highlighted="true"/);
+    expect(html).toContain('IN THE BEGINNING');
+    expect(html).toContain('<b>בראשית.</b>');
+    expect(count(html, 'class="ng-segnum"')).toBe(3);
+  });
+
+  test('a commentary in a Hebrew interface: Hebrew header ref and numbering', () => {
+    const html = renderLikeNode(fixture('rashi-on-genesis-1-1-1', {interfaceLang: 'hebrew', language: 'hebrew'}));
+    expect(html).toContain('<span class="ng-header-book">רש&quot;י על בראשית</span><span class="ng-header-address">א׳:א׳:א׳</span>');
+    expect(html).toContain('<span class="ng-section-address">א׳:א׳</span>');
+    expect(html).not.toContain('IN THE BEGINNING');
+  });
+
+  test('Halakhah ("Shulchan Arukh, Orach Chayim 1:1"): a titled code with a comma, siman and seif', () => {
+    const html = renderLikeNode(fixture('shulchan-arukh-oc-1-1'));
+    expect(html).toContain('data-ng="section" data-ref="Shulchan Arukh, Orach Chayim 1" data-layout="segmented" data-category="Halakhah"');
+    expect(segmentsIn(html)).toBe(9);
+    expect(html).toContain('<span class="ng-header-book">Shulchan Arukh, Orach Chayim</span><span class="ng-header-address">1:1</span>');
+    expect(html).toContain('href="/Shulchan_Arukh,_Orach_Chayim"');
+    expect(html).toContain('<span class="ng-section-name">Siman</span> <span class="ng-section-address">1</span>');
+    expect(html).toMatch(/data-ref="Shulchan Arukh, Orach Chayim 1:1"[^>]*data-highlighted="true"/);
+    expect(html).toContain('One should strengthen himself like a lion');
+    // The next section is a real link in the reader's URL grammar, for a reader without JS.
+    expect(html).toContain('href="/Shulchan_Arukh,_Orach_Chayim.2?lang=bi"');
+  });
+
+  test('Halakhah, source only in a Hebrew interface: סימן א׳', () => {
+    const html = renderLikeNode(fixture('shulchan-arukh-oc-1-1', {interfaceLang: 'hebrew', language: 'hebrew'}));
+    expect(html).toContain('<span class="ng-section-name">סימן</span> <span class="ng-section-address">א׳</span>');
+    expect(html).not.toContain('One should strengthen himself');
+  });
+});

@@ -1083,29 +1083,94 @@ body.interface-hebrew.ng-body #appLoading .int-en { display: none; }
   padding-block: 0.1em;
   padding-inline-start: 0.9em;
   border-inline-start: 2px solid #e6e1d6;
-  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 .ng-reader .ng-pin + .ng-pin { margin-block-start: 0.7em; }
-.ng-reader .ng-pin:active { border-inline-start-color: var(--ng-accent); }
+.ng-reader .ng-pin[data-expanded="true"] { border-inline-start-color: var(--light-grey); }
+/* the head: the work's name (opens it in the panel), then expand and Open, quiet icons */
+.ng-reader .ng-pin-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 24px;
+  margin-block-end: 0.2em;
+}
 .ng-reader .ng-pin-name {
   display: block;
-  margin-block-end: 0.35em;
+  margin-block: -8px;
+  margin-inline: -6px;
+  padding: 8px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
   font-family: var(--ng-en-sans);
   font-size: 10.5px;
   font-weight: 500;
   line-height: 1.3;
   letter-spacing: 0.13em;
+  text-align: start;
   text-transform: uppercase;
   color: var(--ng-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
+.ng-reader .ng-pin-name:active { background: var(--lighter-grey); }
 .ng-reader[data-interface="hebrew"] .ng-pin-name {
   font-family: var(--ng-he-sans);
   font-size: 12.5px;
   letter-spacing: 0.02em;
 }
-.ng-reader .ng-pin-comment { display: block; }
-.ng-reader .ng-pin-comment + .ng-pin-comment { margin-block-start: 0.5em; }
+.ng-reader .ng-pin-actions {
+  display: inline-flex;
+  flex: none;
+  margin-block: -8px;
+  margin-inline-end: -8px;
+}
+.ng-reader .ng-pin-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--ng-faint);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ng-reader .ng-pin-action:active { background: var(--lighter-grey); color: var(--ng-accent); }
+.ng-reader .ng-pin-action .ng-icon { width: 16px; height: 16px; }
+.ng-reader .ng-pin-expand .ng-icon { transition: transform 180ms ease; }
+.ng-reader .ng-pin[data-expanded="true"] .ng-pin-expand .ng-icon { transform: rotate(180deg); }
+/* the text: at most three lines per language, with an ellipsis, until a tap expands it */
+.ng-reader .ng-pin-body { display: block; }
+.ng-reader .ng-pin[data-clipped="true"] .ng-pin-body,
+.ng-reader .ng-pin[data-expanded="true"] .ng-pin-body { cursor: pointer; }
+.ng-reader .ng-pin-run { display: block; overflow-wrap: break-word; }
+.ng-reader .ng-pin[data-expanded="false"] .ng-pin-run {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+.ng-reader .ng-pin[data-expanded="false"] .ng-pin-run br { display: none; }
+.ng-reader .ng-pin[data-expanded="true"] .ng-pin-part { display: block; }
+.ng-reader .ng-pin[data-expanded="true"] .ng-pin-part + .ng-pin-part { margin-block-start: 0.45em; }
+/* bilingual side by side: the pinned work's two languages side by side too, in the text's order */
+.ng-reader .ng-pin-body[data-sbs] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 0.9rem;
+  align-items: start;
+}
+.ng-reader .ng-section[data-bilayout="heRight"] .ng-pin-body[data-sbs] > .ng-pin-he { order: 2; }
+.ng-reader .ng-section[data-bilayout="heRight"] .ng-pin-body[data-sbs] > .ng-pin-en { order: 1; }
+.ng-reader .ng-pin-body[data-sbs] > .ng-pin-run.ng-pin-en { margin-block-start: 0; font-size: calc(14px * var(--ng-font-scale)); }
+.ng-reader .ng-pin-body[data-sbs] > .ng-pin-he { font-size: calc(16.5px * var(--ng-font-scale)); }
 .ng-reader .ng-pin-he,
 .ng-reader .ng-pin-en {
   display: block;
@@ -1126,8 +1191,8 @@ body.interface-hebrew.ng-body #appLoading .int-en { display: none; }
   hyphens: auto;
 }
 .ng-reader .ng-pin-he + .ng-pin-en { margin-block-start: 0.25em; }
-.ng-reader .ng-pin-comment b,
-.ng-reader .ng-pin-comment strong { font-weight: 600; color: var(--ng-ink); }
+.ng-reader .ng-pin-body b,
+.ng-reader .ng-pin-body strong { font-weight: 600; color: var(--ng-ink); }
 .ng-reader .ng-pin i.footnote,
 .ng-reader .ng-pin sup.footnote-marker { display: none; }
 .ng-reader .ng-pin a { color: inherit; text-decoration: none; }
@@ -1385,6 +1450,39 @@ body.interface-hebrew.ng-body #appLoading .int-en { display: none; }
   color: var(--ng-muted);
 }
 .ng-reader .ng-row-pinned { display: inline-flex; color: var(--ng-accent); }
+/* the first list (no heading): pins first, each with its own unpin button */
+.ng-reader .ng-assoc-top { margin-block-start: 12px; }
+.ng-reader .ng-row-wrap {
+  display: flex;
+  align-items: center;
+}
+.ng-reader .ng-row-wrap > .ng-row {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  margin-inline-end: 0;
+}
+.ng-reader .ng-row-absent { cursor: default; }
+.ng-reader .ng-row-absent:active { background: none; }
+.ng-reader .ng-row-absent .ng-row-title { color: var(--ng-muted); }
+.ng-reader .ng-row-unpin {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 44px;
+  margin-inline-end: -10px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--ng-accent);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ng-reader .ng-row-unpin:active { background: var(--ng-assoc-warm); }
+.ng-reader .ng-row-unpin .ng-icon { width: 18px; height: 18px; }
 .ng-reader .ng-row-pinned .ng-icon { width: 16px; height: 16px; }
 .ng-reader .ng-row-chevron {
   flex: none;
@@ -1482,6 +1580,33 @@ body.interface-hebrew.ng-body #appLoading .int-en { display: none; }
 
 /* a work's comments, and cited texts */
 .ng-reader .ng-pin-control { margin-block: 10px 6px; }
+.ng-reader .ng-book-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.ng-reader .ng-open-button .ng-icon { width: 16px; height: 16px; }
+.ng-reader .ng-open-tangent { margin-block: 18px; }
+.ng-reader .ng-comment-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 36px;
+  margin-block: 6px -8px;
+  margin-inline: -8px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  font-family: var(--ng-en-sans);
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--ng-muted);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ng-reader[data-interface="hebrew"] .ng-comment-open { font-family: var(--ng-he-sans); font-size: 13.5px; }
+.ng-reader .ng-comment-open:active { background: var(--ng-assoc-warm); color: var(--ng-accent); }
+.ng-reader .ng-comment-open .ng-icon { flex: none; width: 15px; height: 15px; }
+.ng-reader .ng-comment-ref { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ng-reader .ng-pin-button {
   display: inline-flex;
   align-items: center;
@@ -1602,11 +1727,19 @@ body.interface-hebrew.ng-body #appLoading .int-en { display: none; }
 .ng-reader .ng-header-toc-icon .ng-icon { width: 22px; height: 22px; }
 .ng-reader[dir="rtl"] .ng-header-toc-icon .ng-icon { transform: scaleX(-1); }
 .ng-reader .ng-header-ref-text {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+/* a long title ("Shulchan Arukh, Orach Chayim") gives way before the position does */
+.ng-reader .ng-header-book {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
+.ng-reader .ng-header-ref-text .ng-header-address { flex: none; }
 
 /* the sheet */
 .ng-reader .ng-sheets[hidden] { display: none; }

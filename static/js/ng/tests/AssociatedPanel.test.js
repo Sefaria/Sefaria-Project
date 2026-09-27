@@ -224,7 +224,8 @@ describe('languages inside the panel', () => {
     act(() => { $('[data-ng="book-row"][data-key="Commentary|Rashi"]').click(); });
     await flush();
     const [c1, c2] = $$('[data-ng="comment"]');
-    expect(c1.textContent).toBe('EN Rashi on Genesis 1:1:1');
+    expect(c1.querySelector('.ng-assoc-en').textContent).toBe('EN Rashi on Genesis 1:1:1');
+    expect(c1.querySelector('.ng-assoc-he')).toBeNull();
     expect(c2.querySelector('.ng-assoc-he').textContent).toContain('HE Rashi on Genesis 1:1:2');
     expect(c2.querySelector('[data-ng="hebrew-only"]')).not.toBeNull();
   });

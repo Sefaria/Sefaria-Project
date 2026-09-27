@@ -9,6 +9,9 @@ const FIXTURES = {
   'berakhot-2a': () => require('./fixtures/berakhot-2a.json'),
   'psalms-23': () => require('./fixtures/psalms-23.json'),
   'haggadah-four-sons': () => require('./fixtures/haggadah-four-sons.json'),
+  // Other corpora, as an associated text opened front and center lands on them (captured 2026-09-27).
+  'rashi-on-genesis-1-1-1': () => require('./fixtures/rashi-on-genesis-1-1-1.json'),
+  'shulchan-arukh-oc-1-1': () => require('./fixtures/shulchan-arukh-oc-1-1.json'),
 };
 
 /**
