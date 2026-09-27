@@ -36,7 +36,7 @@ test('the real panel is registered in the config slot', () => {
 test('NgReaderApp server HTML: the overlay is closed and holds no panel', () => {
   for (const name of ['genesis-1', 'berakhot-2a']) {
     const html = renderLikeNode(fixture(name));
-    expect(html).toContain('data-ng="overlay" data-overlay="none" hidden=""');
+    expect(html).toContain('data-ng="overlay" data-overlay="none" data-state="none" hidden=""');
     expect(html).not.toContain('data-ng="panel-config"');
     expect(html).toContain('data-ng="header-settings"');
   }

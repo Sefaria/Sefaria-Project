@@ -275,7 +275,8 @@ describe('text', () => {
   test('closes from its close button', async () => {
     await openPanel();
     click('[data-ng="overlay-close"]');
-    expect($('[data-ng="overlay"]').getAttribute('data-overlay')).toBe(OVERLAY.NONE);
+    expect($('[data-ng="overlay"]').getAttribute('data-state')).toBe(OVERLAY.NONE);
+    await act(() => new Promise(r => setTimeout(r, 450)));  // the drawer slides out, then unmounts
     expect($('[data-ng="panel-config"]')).toBeNull();
   });
 });
