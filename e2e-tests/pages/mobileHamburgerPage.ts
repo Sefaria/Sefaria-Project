@@ -1,8 +1,9 @@
 import { expect, Locator, Page } from '@playwright/test';
 import { HelperBase } from './helperBase';
 import { hideAllModalsAndPopups } from '../utils';
-import { t } from '../globals';
+import { LANGUAGES, t } from '../globals';
 import { MOBILE_HAMBURGER, MOBILE_PAGE_URLS, SEARCH_DROPDOWN } from '../constants';
+import { THEME_SELECTORS } from './themeTogglePage';
 
 /**
  * Page object for the mobile hamburger menu rendered by Sefaria's
@@ -35,8 +36,12 @@ export class MobileHamburgerPage extends HelperBase {
     // past the 843px mobile breakpoint, producing a strict-mode violation.
     // The hamburger has aria-label="Menu" exactly AND class `menuButton`;
     // anchor on both so the locator is unambiguous in any layout state.
+    // The label is interface-language dependent (header.menu: "Menu" / "תפריט").
+    const label = this.language === LANGUAGES.HE
+      ? MOBILE_HAMBURGER.MENU_BUTTON_LABEL_HE
+      : MOBILE_HAMBURGER.MENU_BUTTON_LABEL;
     return this.page.locator('button.menuButton').and(
-      this.page.getByRole('button', { name: 'Menu', exact: true })
+      this.page.getByRole('button', { name: label, exact: true })
     );
   }
 
@@ -145,6 +150,11 @@ export class MobileHamburgerPage extends HelperBase {
 
   private get interfaceLanguageToggle(): Locator {
     return this.navMenu.locator(MOBILE_HAMBURGER.LABELS.LANG_TOGGLE_CONTAINER);
+  }
+
+  /** Dark-mode switch row, directly after the language row (details: themeTogglePage.ts). */
+  private get themeToggleRow(): Locator {
+    return this.navMenu.locator(THEME_SELECTORS.MOBILE_TOGGLE);
   }
 
   private get englishLanguageLinkInMenu(): Locator {
@@ -314,6 +324,10 @@ export class MobileHamburgerPage extends HelperBase {
     await expect(this.interfaceLanguageToggle).toBeVisible({ timeout: t(5000) });
     await expect(this.englishLanguageLinkInMenu).toBeVisible({ timeout: t(5000) });
     await expect(this.hebrewLanguageLinkInMenu).toBeVisible({ timeout: t(5000) });
+
+    // Dark-mode switch row (placement and behavior: THEME-M0xx in theme-toggle.spec.ts)
+    await expect(this.themeToggleRow).toBeVisible({ timeout: t(5000) });
+    await expect(this.themeToggleRow).toHaveAttribute('role', 'switch');
 
     // Help, About, Voices on Sefaria, Developers, More from Sefaria
     await expect(this.getHelpLink).toBeVisible({ timeout: t(5000) });

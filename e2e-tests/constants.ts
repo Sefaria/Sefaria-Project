@@ -261,6 +261,7 @@ export const EXTERNAL_URLS = {
 export const MOBILE_HAMBURGER = {
   // Header / chrome
   MENU_BUTTON_LABEL: 'Menu',
+  MENU_BUTTON_LABEL_HE: 'תפריט',
   LIBRARY_LOGO_LABEL: 'Sefaria library logo',
   HEADER_LANG_TOGGLE: '.mobileHeaderLanguageToggle .languageToggle',
 
@@ -527,6 +528,11 @@ export const SITE_CONFIGS: { readonly LIBRARY: SiteConfig; readonly VOICES: Site
       { name: 'Topics', expectedUrl: /topics/ }
     ],
     actionButton: { text: 'Sign Up', href: '/register' },
+    // Anonymous English header in tab order, asserted by ModuleHeaderPage.testTabOrder
+    // (MOD-H009a). Verified against www.sefaria.org on 2026-09-27, before the toggle
+    // shipped. The dark-mode toggle sits between the module switcher and the account
+    // menu. Keep its selector in sync with THEME_SELECTORS.DESKTOP_TOGGLE in
+    // pages/themeTogglePage.ts.
     tabOrder: [
       { selector: '.header a.textLink[href="/texts"]', description: 'Texts link' },
       { selector: '.header a.textLink[href="/topics"]', description: 'Topics link' },
@@ -534,10 +540,11 @@ export const SITE_CONFIGS: { readonly LIBRARY: SiteConfig; readonly VOICES: Site
       { selector: '.header input.search', description: 'Search input' },
       { selector: '.header img.keyboardInputInitiator', description: 'Virtual keyboard icon' },
       { selector: '.header .sefaria-common-button', description: 'Sign Up / Create button' },
-      { selector: '.header .help a', description: 'Help link' },
-      { selector: '.header img[src="/static/icons/globe-wire.svg"]', description: 'Language globe button' },
-      { selector: '.header button.header-dropdown-button[aria-label="Library"]', description: 'Module switcher button' },
-      { selector: '.header button.header-dropdown-button[aria-label="Account menu"]', description: 'User menu button' },
+      { selector: '.header .header-icons a[aria-label="Help"]', description: 'Help link' },
+      { selector: '.header button[aria-label="Toggle Interface Language Menu"]', description: 'Language globe button' },
+      { selector: '.header button[aria-label="Library"]', description: 'Module switcher button' },
+      { selector: '.header button.themeToggle', description: 'Dark mode toggle' },
+      { selector: '.header button[aria-label="Account menu"]', description: 'User menu button' },
     ]
   },
   VOICES: {
@@ -549,6 +556,9 @@ export const SITE_CONFIGS: { readonly LIBRARY: SiteConfig; readonly VOICES: Site
       { name: 'Collections', expectedUrl: /collections/ }
     ],
     actionButton: { text: 'Create', href: '/sheets/new' },
+    // Same Header component as Library (the module switcher's label is "Library" on both
+    // modules). Not asserted by any test today: voices.* is unreachable from the agent
+    // containers, so this list mirrors the verified Library one.
     tabOrder: [
       { selector: '.header a.textLink[href="/topics"]', description: 'Topics link' },
       { selector: '.header a.textLink[href="/collections"]', description: 'Collections link' },
@@ -556,10 +566,11 @@ export const SITE_CONFIGS: { readonly LIBRARY: SiteConfig; readonly VOICES: Site
       { selector: '.header input.search', description: 'Search input' },
       { selector: '.header img.keyboardInputInitiator', description: 'Virtual keyboard icon' },
       { selector: '.header .sefaria-common-button', description: 'Create button' },
-      { selector: '.header .help a', description: 'Help link' },
-      { selector: '.header img[src="/static/icons/globe-wire.svg"]', description: 'Language globe button' },
-      { selector: '.header button.header-dropdown-button[aria-label="Library"]', description: 'Module switcher button' },
-      { selector: '.header button.header-dropdown-button[aria-label="Account menu"]', description: 'User menu button' }
+      { selector: '.header .header-icons a[aria-label="Help"]', description: 'Help link' },
+      { selector: '.header button[aria-label="Toggle Interface Language Menu"]', description: 'Language globe button' },
+      { selector: '.header button[aria-label="Library"]', description: 'Module switcher button' },
+      { selector: '.header button.themeToggle', description: 'Dark mode toggle' },
+      { selector: '.header button[aria-label="Account menu"]', description: 'User menu button' }
     ]
   }
 } as const;
