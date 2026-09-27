@@ -14,8 +14,8 @@ from django.test import RequestFactory
 from user_agents import parse as parse_user_agent
 
 from reader.ng import (
-    NG_BASE_PROP_KEYS, NG_COOKIE, NG_COOKIE_MAX_AGE, apply_ng_cookie, is_mobile_request, ng_panel,
-    ng_reader_props, ng_supports_request, use_ng_reader,
+    CLASSIC_ONLY_CONNECTIONS, NG_BASE_PROP_KEYS, NG_COOKIE, NG_COOKIE_MAX_AGE, apply_ng_cookie, is_mobile_request,
+    ng_panel, ng_reader_props, ng_supports_connections, ng_supports_request, use_ng_reader,
 )
 
 UAS = {
@@ -97,8 +97,19 @@ def test_mobile_param_forces_mobile_like_text_panels():
     ("desktop", {"ng": "1"}, "1", "sheet", False),
     ("iphone", {"p2": "Rashi on Genesis 1"}, None, "section", False),
     ("iphone", {"ng": "1", "p3": "Exodus 1"}, None, "section", False),
-    ("iphone", {"with": "Rashi"}, None, "section", False),
-    ("iphone", {"with": "all", "ng": "1"}, None, "section", False),
+    # with= opens NG's associated-texts panel: all, a work, a category, a quoted work.
+    ("iphone", {"with": "Rashi"}, None, "section", True),
+    ("iphone", {"with": "all"}, None, "segment", True),
+    ("desktop", {"with": "all", "ng": "1"}, None, "section", True),
+    ("pixel", {"with": "Steinsaltz"}, None, "talmud", True),
+    ("iphone", {"with": "Midrash"}, None, "section", True),
+    ("iphone", {"with": "Rashi|Quoting"}, None, "section", True),
+    # ...but not a classic sidebar tool (NG shows books only), and never on desktop by default.
+    ("iphone", {"with": "Sheets"}, None, "section", False),
+    ("iphone", {"with": "Topics", "ng": "1"}, None, "section", False),
+    ("desktop", {"with": "Rashi"}, None, "section", False),
+    # A with= page NG can't render (a book) stays classic.
+    ("iphone", {"with": "Rashi"}, None, "book", False),
 ])
 def test_use_ng_reader(ua, params, cookie, ref, expected):
     assert use_ng_reader(make_request(ua, params, cookie), REFS[ref]) is expected
@@ -106,6 +117,31 @@ def test_use_ng_reader(ua, params, cookie, ref, expected):
 
 def test_no_ref_means_classic():
     assert use_ng_reader(make_request(), None) is False
+
+
+@pytest.mark.parametrize("value,expected", [
+    ("all", True), ("Rashi", True), ("Ibn_Ezra", True), ("Rashi+Ramban", True), ("Commentary ConnectionsList", True),
+    ("Quoting Commentary", True), ("Rashi|Quoting", True), ("", True),
+    ("Sheets", False), ("Topics", False), ("Translations", False), ("Version_Open", False), ("Lexicon", False),
+    ("Sheets+Rashi", False), ("WebPage:example.com", False),
+])
+def test_which_with_values_ng_shows(value, expected):
+    assert ng_supports_connections(value) is expected
+
+
+def test_every_classic_sidebar_mode_stays_classic():
+    # The same list as reader/views.py get_connections_mode's sidebarModes.
+    for mode in CLASSIC_ONLY_CONNECTIONS:
+        assert use_ng_reader(make_request("iphone", {"with": mode.replace(" ", "_")}), REFS["section"]) is False
+
+
+def test_the_panel_keeps_the_connections_filter():
+    panel = text_panel()
+    panel.update({"mode": "TextAndConnections", "filter": ["Rashi"], "connectionsMode": "TextList", "showHighlight": True})
+    trimmed = ng_panel(panel)
+    assert trimmed["filter"] == ["Rashi"]
+    assert trimmed["highlightedRefs"] == ["Genesis 1:3"]
+    assert "showHighlight" not in trimmed and "mode" not in trimmed
 
 
 def test_ordinary_params_do_not_block_ng():
@@ -118,7 +154,7 @@ def test_ordinary_params_do_not_block_ng():
 
 NG_PARAMS = [None, "1", "0", "auto", "x"]
 COOKIES = [None, "1", "0", "x"]
-EXTRA = [{}, {"p2": "Exodus 1"}, {"with": "Rashi"}, {"mobile": ""}]
+EXTRA = [{}, {"p2": "Exodus 1"}, {"with": "Rashi"}, {"with": "all"}, {"with": "Sheets"}, {"with": "WebPage:x.com"}, {"mobile": ""}]
 
 
 @pytest.mark.parametrize("ua,ng,cookie,ref,extra", list(itertools.product(UAS, NG_PARAMS, COOKIES, REFS, EXTRA)))
@@ -129,7 +165,8 @@ def test_matrix(ua, ng, cookie, ref, extra):
     request = make_request(ua, params, cookie)
     result = use_ng_reader(request, REFS[ref])
 
-    unsupported = ref in ("book", "sheet") or "p2" in params or "with" in params
+    classic_tool = params.get("with") in ("Sheets", "WebPage:x.com")
+    unsupported = ref in ("book", "sheet") or "p2" in params or classic_tool
     mobile = ua in MOBILE_UAS or "mobile" in params
     if unsupported:
         assert result is False

@@ -21,6 +21,24 @@ NG_RESET = "auto"   # ?ng=auto clears the sticky cookie and goes back to UA dete
 _EXTRA_PANEL_PARAM_RE = re.compile(r"^p\d+$")
 CONNECTIONS_PARAM = "with"
 
+# `with=` values that open one of the classic reader's sidebar tools rather than texts
+# (reader/views.py get_connections_mode's sidebarModes, plus WebPage: filters). NG's associated
+# panel shows books only, so these stay on the classic reader. Every other value (all, a work
+# such as Rashi, a category such as Midrash, "X ConnectionsList", "X|Quoting") opens NG's panel.
+CLASSIC_ONLY_CONNECTIONS = frozenset((
+    "Sheets", "Notes", "About", "AboutSheet", "Navigation", "Translations", "Translation Open", "Version Open",
+    "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts", "Lexicon", "SidebarSearch", "Guide",
+    "LinkerAdmin",
+))
+
+
+def ng_supports_connections(value):
+    """Can NG's associated panel show this `with=` value? ("Rashi+Ramban": the first one decides.)"""
+    first = (value or "").replace("_", " ").split("+")[0].strip()
+    if first in CLASSIC_ONLY_CONNECTIONS or first.startswith("WebPage:"):
+        return False
+    return True
+
 
 def _requested_ng_override(request):
     """The explicit choice for this request: '1', '0', or None. ?ng beats the cookie."""
@@ -41,9 +59,10 @@ def is_mobile_request(request):
 
 def ng_supports_request(request, oref):
     """
-    NG renders a single Library text section. Everything else stays on the classic reader:
-    book-level refs (the TOC page), sheets, multi-panel URLs (p2, p3, ...), and, until NG's
-    associated panel exists, URLs that open connections (`with=`).
+    NG renders a single Library text section, optionally with its associated-texts panel open
+    (`with=all`, `with=Rashi`, `with=Midrash`, ...). Everything else stays on the classic reader:
+    book-level refs (the TOC page), sheets, multi-panel URLs (p2, p3, ...), and `with=` values
+    that open a classic sidebar tool (sheets, topics, translations, lexicon, ...).
     """
     if oref is None:
         return False
@@ -53,7 +72,7 @@ def ng_supports_request(request, oref):
         return False
     if any(_EXTRA_PANEL_PARAM_RE.match(key) for key in request.GET.keys()):
         return False
-    if CONNECTIONS_PARAM in request.GET:
+    if CONNECTIONS_PARAM in request.GET and not ng_supports_connections(request.GET.get(CONNECTIONS_PARAM)):
         return False
     return True
 
