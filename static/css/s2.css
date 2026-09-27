@@ -2,6 +2,8 @@ body {
   padding: 0;
   margin: 0;
   -webkit-text-size-adjust: 100%;
+  background-color: var(--color-bg-page);
+  color: var(--color-text-strong);
 }
 *::selection {
   background-color: #D2DCFF;
@@ -436,6 +438,7 @@ body.hasBannerMessage #s2.headerOnly {
 }
 .siteWideBanner .button.white,
 .siteWideBanner .button.white:hover {
+  background-color: white;
   color: #653259;
 }
 .siteWideBanner .logInToTry {

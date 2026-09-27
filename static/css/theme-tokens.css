@@ -1,0 +1,208 @@
+/*
+ * Semantic colour tokens for light and dark themes.
+ *
+ * This file is the only place where theme colour values live. It loads right after
+ * color-palette.css, whose raw palette (--sefaria-blue, --dark-grey, ...) stays unchanged.
+ *
+ * Rules:
+ *  - Light values equal the literal or palette colour they replaced, so light mode renders
+ *    pixel-identically. scripts/darkmode/tokenize-css.js enforces this when it rewrites CSS.
+ *  - Dark values go only in the `:root[data-theme="dark"]` block inside `@media screen`, so
+ *    printing always uses light values. Never use a bare [data-theme] selector: reCAPTCHA renders
+ *    data-theme="white".
+ *  - Component CSS uses var(--color-*) tokens, never literals or raw palette vars.
+ *    static/js/tests/cssColorLiterals.test.js enforces that with a per-file ratchet.
+ *  - The "legacy" section is generated. It holds 1:1 tokens for literals that have no exact
+ *    semantic match yet. Edit scripts/darkmode/color-map.json and re-run the codemod rather
+ *    than editing that section by hand.
+ */
+:root {
+  color-scheme: light;
+
+  /* ---- backgrounds (elevation: page < subtle < surface < raised) ---- */
+  --color-bg-page: var(--white);                 /* body, reader panel, full-page canvases */
+  --color-bg-subtle: var(--lightest-grey);       /* sidebars, secondary regions */
+  --color-bg-backdrop: var(--background-grey);   /* grey backdrop behind cards (search) */
+  --color-bg-surface: var(--white);              /* cards, bars, panels inside the page */
+  --color-bg-raised: var(--white);               /* dropdowns, menus, popovers, modals */
+  --color-bg-control: var(--white);              /* inputs, white buttons, radio/checkbox faces */
+  --color-bg-knob: var(--white);                 /* switch knobs */
+  --color-bg-muted: var(--lighter-grey);         /* chips, search fields, pressed/hover fills */
+  --color-bg-muted-hover: var(--lighter-grey-hover);
+  --color-bg-hover: #DDDDDD;
+  --color-bg-hover-strong: var(--light-grey);
+  --color-bg-skeleton: var(--skeleton-grey);
+  --color-bg-skeleton-shimmer: var(--skeleton-grey-shimmer);
+  --color-bg-disabled: #E6E6E6;                  /* disabled buttons */
+  --color-bg-control-disabled: #F5F5F5;          /* disabled inputs */
+  --color-bg-on-accent: var(--white);            /* white chips/buttons sitting on a brand fill */
+  --color-bg-brand: var(--sefaria-blue);         /* large brand-coloured backdrops (auth pages) */
+  --color-bg-inverse: var(--darkest-grey);       /* dark chrome that carries white text */
+  --color-scrim: var(--black);                   /* modal overlays (used with opacity) */
+
+  /* ---- text ---- */
+  --color-text-strong: var(--black);             /* reading text, titles */
+  --color-text-primary: var(--near-black);       /* newer design-system primary text */
+  --color-text: var(--darkest-grey);             /* general UI text */
+  --color-text-emphasis: var(--darker-grey);     /* secondary actions (Figma Semantic/Action/Secondary) */
+  --color-text-secondary: var(--dark-grey);
+  --color-text-muted: var(--medium-grey);
+  --color-text-caption: var(--secondary-text-grey);
+  --color-text-tertiary: var(--medium-grey-legacy);
+  --color-text-disabled: #AAAAAA;                /* unselected/disabled options */
+  --color-text-faint: var(--light-grey);         /* decorative glyphs and dividers, not content */
+  --color-text-on-accent: var(--white);          /* text on filled accent/brand/status colours */
+
+  /* ---- brand & accents ---- */
+  --color-accent: var(--sefaria-blue);           /* brand blue as text/icon/border */
+  --color-accent-fill: var(--sefaria-blue);      /* brand blue as a fill carrying white text */
+  --color-accent-fill-hover: #132B4C;
+  --color-accent-hover: #264764;                 /* hover border/text for brand-outlined controls */
+  --color-accent-track: rgba(24, 52, 93, 0.25);  /* spinner track, brand at low opacity */
+  --color-fill-navy: #212E50;                    /* navy buttons/banners carrying white text */
+  --color-link: var(--inline-link-blue);
+  --color-link-commentary: var(--commentary-blue);
+  --color-voices-accent: var(--sheets-green);
+  --color-voices-fill: var(--sheets-green);
+  --color-select-library: var(--select-blue);
+  --color-select-voices: var(--select-green);
+  --color-focus-ring: var(--focus-blue);
+
+  /* ---- status ---- */
+  --color-danger: #C03522;
+  --color-danger-fill: var(--responsa-red);
+
+  /* ---- selection & highlight ---- */
+  --color-selection: #D2DCFF;
+  --color-highlight: var(--highlight-blue);
+  --color-highlight-light: var(--highlight-blue-light);
+  --color-highlight-green: var(--highlight-green-light);
+
+  /* ---- borders ---- */
+  --color-border: var(--light-grey);
+  --color-border-subtle: var(--lighter-grey);
+  --color-border-strong: var(--medium-grey-legacy);
+  --color-border-emphasis: var(--black);
+  --color-border-input: #E6E6E6;                 /* design-system input outlines */
+  --color-border-hairline: #E6E6E6;
+
+  /* ---- shadows ---- */
+  --color-shadow: rgba(0, 0, 0, 0.2);
+  --color-shadow-strong: rgba(0, 0, 0, 0.25);
+
+  /* ---- category colours (thin lines, dots, chips) ---- */
+  --color-cat-commentary: var(--commentary-blue);
+  --color-cat-essay-links: var(--essay-links-green);
+  --color-cat-tanakh: var(--tanakh-teal);
+  --color-cat-mishnah: var(--mishnah-blue);
+  --color-cat-talmud: var(--talmud-gold);
+  --color-cat-midrash: var(--midrash-green);
+  --color-cat-halakhah: var(--halakhah-red);
+  --color-cat-kabbalah: var(--kabbalah-purple);
+  --color-cat-liturgy: var(--liturgy-rose);
+  --color-cat-philosophy: var(--philosophy-purple);
+  --color-cat-taanitic: var(--taanitic-green);
+  --color-cat-chasidut: var(--chasidut-green);
+  --color-cat-mussar: var(--mussar-purple);
+  --color-cat-responsa: var(--responsa-red);
+  --color-cat-apocrypha: var(--apocrypha-pink);
+  --color-cat-modern-works: var(--modern-works-blue);
+  --color-cat-grammar: var(--grammar-green);
+  --color-cat-reference: var(--reference-orange);
+  --color-cat-miscellaneous: var(--miscelaneous-green);
+
+  /* ---- icon recolouring filters (not colours) ---- */
+  --color-icon-filter: none;                     /* monochrome dark <img> icons; theme-dark-overrides.css */
+  --filter-icon-on-accent: brightness(0) saturate(100%) invert(100%) sepia(100%) saturate(0%) hue-rotate(106deg) brightness(101%) contrast(103%);
+  --filter-icon-secondary: brightness(0) saturate(100%) invert(38%) sepia(1%) saturate(0%) hue-rotate(220deg) brightness(99%) contrast(84%);
+  --filter-icon-disabled: brightness(0) saturate(100%) invert(66%) sepia(0%) saturate(1333%) hue-rotate(200deg) brightness(92%) contrast(91%);
+
+  /* BEGIN legacy tokens (generated by scripts/darkmode/tokenize-css.js; do not edit) */
+  /* END legacy tokens */
+}
+
+@media screen {
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --color-bg-page: #121212;
+    --color-bg-subtle: #171717;
+    --color-bg-backdrop: #121212;
+    --color-bg-surface: #1C1C1C;
+    --color-bg-raised: #252525;
+    --color-bg-control: #262626;
+    --color-bg-knob: #E6E6E6;
+    --color-bg-muted: #2B2B2B;
+    --color-bg-muted-hover: #353535;
+    --color-bg-hover: #333333;
+    --color-bg-hover-strong: #3D3D3D;
+    --color-bg-skeleton: #262626;
+    --color-bg-skeleton-shimmer: #303030;
+    --color-bg-disabled: #2B2B2B;
+    --color-bg-control-disabled: #1F1F1F;
+    --color-bg-on-accent: #FFFFFF;
+    --color-bg-brand: #152C4E;
+    --color-bg-inverse: #3A3A3A;
+    --color-scrim: #000000;
+
+    --color-text-strong: #E8E6E3;
+    --color-text-primary: #E8E6E3;
+    --color-text: #D6D4D1;
+    --color-text-emphasis: #C4C2BF;
+    --color-text-secondary: #B3B1AE;
+    --color-text-muted: #A8A6A3;
+    --color-text-caption: #A5A3A0;
+    --color-text-tertiary: #8F8D8A;
+    --color-text-disabled: #7A7875;
+    --color-text-faint: #5E5E5E;
+    --color-text-on-accent: #FFFFFF;
+
+    --color-accent: #A9C1EB;
+    --color-accent-fill: #2F5A96;
+    --color-accent-fill-hover: #3A69AB;
+    --color-accent-hover: #C2D4F2;
+    --color-accent-track: rgba(169, 193, 235, 0.3);
+    --color-fill-navy: #34487A;
+    --color-link: #8AB4F8;
+    --color-link-commentary: #8FAEE6;
+    --color-voices-accent: #8CC79A;
+    --color-voices-fill: #3F7A4A;
+    --color-select-library: #7FB0F5;
+    --color-select-voices: #4FC1B9;
+    --color-focus-ring: #6AA8FF;
+
+    --color-danger: #FF7B6B;
+    --color-danger-fill: #B34A42;
+
+    --color-selection: #3A4D7A;
+    --color-highlight: #1E3A5F;
+    --color-highlight-light: #1A2B40;
+    --color-highlight-green: #17291D;
+
+    --color-border: #474747;
+    --color-border-subtle: #2F2F2F;
+    --color-border-strong: #767676;
+    --color-border-emphasis: #D6D4D1;
+    --color-border-input: #777777;
+    --color-border-hairline: #3A3A3A;
+
+    --color-shadow: rgba(0, 0, 0, 0.6);
+    --color-shadow-strong: rgba(0, 0, 0, 0.7);
+
+    /* the darkest category colours are lightened to stay >= 3:1 on raised surfaces */
+    --color-cat-essay-links: #6E9A80;
+    --color-cat-tanakh: #2A8FA3;
+    --color-cat-halakhah: #C0596B;
+    --color-cat-kabbalah: #9178B3;
+    --color-cat-liturgy: #C8687F;
+    --color-cat-mussar: #B272A4;
+    --color-cat-miscellaneous: #6E9A80;
+
+    --color-icon-filter: invert(1) hue-rotate(180deg) brightness(.9);
+    --filter-icon-secondary: brightness(0) saturate(100%) invert(70%);
+    --filter-icon-disabled: brightness(0) saturate(100%) invert(42%);
+
+    /* BEGIN legacy tokens (generated by scripts/darkmode/tokenize-css.js; do not edit) */
+    /* END legacy tokens */
+  }
+}

@@ -9,12 +9,12 @@
  */
 
 // ── SCSS vars ────────────────────────────────────────────────────────────────
-$sef-error:           #c03522;
-$sef-text-primary:    #121212;
-$sef-text-muted:      #707070;
-$sef-surface:         #ffffff;
-$sef-border-default:  #e6e6e6;
-$sef-surface-disabled:#f5f5f5;
+$sef-error:           var(--color-danger);
+$sef-text-primary:    var(--color-text-primary);
+$sef-text-muted:      var(--color-text-caption);
+$sef-surface:         var(--color-bg-control);
+$sef-border-default:  var(--color-border-input);
+$sef-surface-disabled:var(--color-bg-control-disabled);
 
 $sp-1:  4px;
 $sp-2:  8px;

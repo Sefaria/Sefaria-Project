@@ -1,11 +1,12 @@
 @import 'breakpoints';
 
 // ── Auth-specific SCSS vars (no matching site CSS var) ───────────────────────
-$sef-error:          #c03522;
-$sef-text-primary:   #121212;
-$sef-text-muted:     #707070;
-$sef-surface:        #ffffff;
-$sef-border-default: #e6e6e6;
+$sef-error:          var(--color-danger);
+$sef-text-primary:   var(--color-text-primary);
+$sef-text-muted:     var(--color-text-caption);
+$sef-surface:        var(--color-bg-raised);
+$sef-border-default: var(--color-border-input);
+$sef-disabled-bg:    var(--color-bg-disabled);
 
 $sp-1:  4px;
 $sp-2:  8px;
@@ -255,7 +256,7 @@ $stroke-strong:   1.5px;
     cursor: not-allowed;
 
     & .sefaria-provider-button {
-      background-color: $sef-border-default;
+      background-color: $sef-disabled-bg;
       border-color: $sef-border-default;
       color: var(--medium-grey-legacy);
       cursor: not-allowed;
@@ -293,7 +294,7 @@ $stroke-strong:   1.5px;
   }
 
   &:disabled {
-    background-color: $sef-border-default;
+    background-color: $sef-disabled-bg;
     border-color: $sef-border-default;
     cursor: not-allowed;
     color: var(--medium-grey-legacy);
@@ -340,7 +341,7 @@ $stroke-strong:   1.5px;
     content: "";
     flex: 1 1 auto;
     height: 1px;
-    background: $sef-border-default;
+    background: var(--color-border-hairline);
   }
 }
 

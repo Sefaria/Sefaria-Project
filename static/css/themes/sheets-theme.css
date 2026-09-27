@@ -1,9 +1,9 @@
 [data-active-module="voices"] {
   /* Define default theme variables */
-  --theme-primary: var(--sheets-green);
-  --theme-background: var(--lightest-grey); /** just an example **/
-  --theme-select: var(--select-green);
-  --theme-text: black;  /** just an example **/
+  --theme-primary: var(--color-voices-fill);
+  --theme-background: var(--color-bg-subtle); /** just an example **/
+  --theme-select: var(--color-select-voices);
+  --theme-text: var(--color-text-strong);  /** just an example **/
 
   /* font stacks */
   --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -26,8 +26,8 @@
 
     /** button colors **/
   --theme-button-background: var(--theme-primary);
-  --theme-button-text: white;
-  --theme-button-icon-filter: brightness(0) saturate(100%) invert(100%) sepia(100%) saturate(0%) hue-rotate(106deg) brightness(101%) contrast(103%);  /* white */
+  --theme-button-text: var(--color-text-on-accent);
+  --theme-button-icon-filter: var(--filter-icon-on-accent);  /* white */
   --theme-button-border: transparent;
   --theme-button-dropshadow: none;
 }
@@ -45,10 +45,10 @@ button.secondary[data-active-module="voices"],
 a.secondary[data-active-module="voices"]
 {
   /** light button colors **/
-  --theme-button-background: white;
-  --theme-button-text: var(--dark-grey);
-  --theme-button-icon-filter: brightness(0) saturate(100%) invert(38%) sepia(1%) saturate(0%) hue-rotate(220deg) brightness(99%) contrast(84%);  /* --dark-grey */
-  --theme-button-border: var(--light-grey);
+  --theme-button-background: var(--color-bg-control);
+  --theme-button-text: var(--color-text-secondary);
+  --theme-button-icon-filter: var(--filter-icon-secondary);  /* --dark-grey */
+  --theme-button-border: var(--color-border);
   --theme-button-dropshadow: none;
 }
 [data-active-module="voices"] button:disabled,
@@ -60,10 +60,10 @@ a:disabled[data-active-module="voices"],
 button.secondary:disabled[data-active-module="voices"],
 a.secondary:disabled[data-active-module="voices"]{
   /** disabled button colors (NOTE: button property must be set to disabled not a css class) **/
-  --theme-button-background: var(--lightest-grey);
-  --theme-buttontext: var(--medium-grey);
-  --theme-button-icon-filter: brightness(0) saturate(100%) invert(66%) sepia(0%) saturate(1333%) hue-rotate(200deg) brightness(92%) contrast(91%);;  /* --medium-grey */
-  --theme-button-border: var(--light-grey);
+  --theme-button-background: var(--color-bg-subtle);
+  --theme-buttontext: var(--color-text-muted);
+  --theme-button-icon-filter: var(--filter-icon-disabled);  /* --medium-grey */
+  --theme-button-border: var(--color-border);
   --theme-button-dropshadow: none;
 }
 
@@ -75,5 +75,9 @@ a.secondary:disabled[data-active-module="voices"]{
   margin-bottom: 5px;
 }
 
-/* placeholder for dark theme colors */
-@media (prefers-color-scheme: dark) {}
+/*
+ * Dark theme: every colour variable above points at a semantic token from theme-tokens.css.
+ * The variables are declared on body[data-active-module], so var() resolves there, against the
+ * token values that :root[data-theme="dark"] sets and body inherits. No per-module dark block is
+ * needed. Add new module colours as tokens, not literals.
+ */
