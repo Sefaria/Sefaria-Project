@@ -275,14 +275,14 @@ const CategoryBars = ({user_cats, site_cats}) => {
             .attr("y", d => d.key === "user" ? below_text_padding : below_text_padding + userbar + inter_bar_padding)
             .attr("width", d => x(d.value))
             .attr("height", d => d.key === "user" ? userbar : sitebar)
-            .attr("fill", d => d.key === "user" ? Sefaria.palette.categoryColor(d.cat) : "#ededec");
+            .attr("fill", d => d.key === "user" ? Sefaria.palette.categoryColor(d.cat) : "var(--color-bg-muted, #ededec)");
 
         d3.select("svg g g:first-child")
             .append("text")
             .attr("y", below_text_padding + userbar + inter_bar_padding + sitebar - 11)
             .attr("x", d => x(d.site) > 250 ? x(d.site) - 20 : x(d.site) + 20)
             .attr("font-size", 16)
-            .attr("fill", "#999")
+            .style("fill", "var(--color-text-tertiary, #999)")  // inline style: must beat the dark-mode `svg text` fill rule
             .attr("text-anchor", d => x(d.site) > 250 ? "end" : "start")
             .text(Sefaria._("user_stats.average_sefaria_user"));
 
@@ -328,7 +328,7 @@ const CategoriesDonut = ({cats, title, heTitle}) => {
           .data(arcs)
           .enter().append("path")
             .attr("fill", d => Sefaria.palette.categoryColor(d.data.name))
-            .attr("stroke", "white")
+            .attr("stroke", "var(--color-bg-surface, white)")
             .attr("d", arc)
           .append("title")
             .text(d => `${d.data.name}: ${d.data.value.toLocaleString(undefined,{style: 'percent', minimumFractionDigits:2})}`);
@@ -347,7 +347,7 @@ const CategoriesDonut = ({cats, title, heTitle}) => {
       text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan")
           .attr("x", 0)
           .attr("y", "0.7em")
-          .attr("fill", "#999")
+          .style("fill", "var(--color-text-tertiary, #999)")
           .text(d => (d.data.value/total).toLocaleString(undefined,{style: 'percent'}) );
 
         return () => {svg.selectAll("*").remove();}
