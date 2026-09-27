@@ -10,6 +10,11 @@ const CTA_HREFS = {
   topics:  '/topics',
 };
 
+// ReaderApp owns the Library Assistant modal; the null page sits several layers below
+// it, so it asks for the modal with a document event rather than threading a callback.
+export const OPEN_LIBRARY_ASSISTANT_EVENT = 'sefaria:open-library-assistant';
+const openLibraryAssistant = () => document.dispatchEvent(new CustomEvent(OPEN_LIBRARY_ASSISTANT_EVENT));
+
 function renderCaption() {
   const reportBugText = Sefaria._('search.null.caption.report_bug');
   const contactUsText = Sefaria._('search.null.caption.contact_us');
@@ -46,9 +51,16 @@ function NoSearchResults({ mode, query }) {
             <InterfaceText>{key('body')}</InterfaceText>
           </p>
         </div>
-        <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
-          <InterfaceText>{key('button')}</InterfaceText>
-        </a>
+        <div className="noSearchResults-ctas">
+          <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
+            <InterfaceText>{key('button')}</InterfaceText>
+          </a>
+          {mode === 'sources' && (
+            <button type="button" className="noSearchResults-cta noSearchResults-cta--assistant" onClick={openLibraryAssistant}>
+              ✦ <InterfaceText>{key('assistant_button')}</InterfaceText>
+            </button>
+          )}
+        </div>
         {renderCaption()}
       </div>
     </div>

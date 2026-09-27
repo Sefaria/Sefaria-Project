@@ -5446,6 +5446,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
 }
 
+.noSearchResults-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* Same hardcoded promo purple as the Library Assistant modal (see the note above
+   .siteWideBanner). */
+.noSearchResults-cta--assistant {
+  cursor: pointer;
+  background: #653259;
+  border-color: #653259;
+}
+
 .noSearchResults-caption {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;

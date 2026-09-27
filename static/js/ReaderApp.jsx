@@ -42,6 +42,7 @@ import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { LibraryAssistantModal } from './LibraryAssistantModal';
+import { OPEN_LIBRARY_ASSISTANT_EVENT } from './NoSearchResults';
 import AuthPage from './auth/AuthPage';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
 import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
@@ -230,6 +231,7 @@ class ReaderApp extends Component {
     document.addEventListener('click', this.handleInAppClickWithModifiers, {capture: true});
     document.addEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.addEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
+    document.addEventListener(OPEN_LIBRARY_ASSISTANT_EVENT, this.openLibraryAssistantModal);
 
     // Handle right-clicks on links with data-target-module to ensure correct domain
     document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
@@ -265,6 +267,7 @@ class ReaderApp extends Component {
     document.removeEventListener('copy', this.handleCopyEvent);
     document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.removeEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
+    document.removeEventListener(OPEN_LIBRARY_ASSISTANT_EVENT, this.openLibraryAssistantModal);
     document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
   }
   componentDidUpdate(prevProps, prevState) {
@@ -1049,6 +1052,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
   toggleLibraryAssistantModal() {
     this.setState({ showLibraryAssistantModal: !this.state.showLibraryAssistantModal });
+  }
+
+  openLibraryAssistantModal() {
+    this.setState({ showLibraryAssistantModal: true });
   }
 
   handleNavigationClick(ref, currVersions, options) {
