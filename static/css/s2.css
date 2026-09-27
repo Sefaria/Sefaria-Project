@@ -17085,7 +17085,8 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .torahTracker .ttSelect:focus-visible { outline: 2px solid var(--tt-accent); outline-offset: 1px; }
 .torahTracker .ttChip { background: #eef3f4; border: 0; border-radius: 999px; padding: 3px 10px; cursor: pointer; font-size: 13px; }
 
-.torahTracker .ttStats { display: grid; grid-template-columns: 2fr repeat(5, 1fr); gap: 12px; margin-bottom: 12px; }
+.torahTracker .ttStats { display: grid; grid-template-columns: 2fr repeat(4, 1fr); gap: 12px; margin-bottom: 12px; }
+.torahTracker .ttStats .ttHero { grid-row: span 2; }
 .torahTracker .ttHero, .torahTracker .ttTile, .torahTracker .ttInsight, .torahTracker .ttCard { background: var(--tt-surface); border: 1px solid var(--tt-hair); border-radius: 12px; }
 .torahTracker .ttHero { padding: 18px 20px; }
 .torahTracker .ttHeroValue { font-size: 52px; font-weight: 600; line-height: 1; color: var(--tt-accent); }
@@ -17167,6 +17168,6 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 @media (max-width: 900px) {
   .torahTracker .ttGrid { grid-template-columns: 1fr; }
   .torahTracker .ttStats { grid-template-columns: repeat(2, 1fr); }
-  .torahTracker .ttHero { grid-column: 1 / -1; }
+  .torahTracker .ttHero, .torahTracker .ttStats .ttHero { grid-column: 1 / -1; grid-row: auto; }
   .torahTracker .ttMultiple { grid-template-columns: 14px 110px 56px 1fr; }
 }

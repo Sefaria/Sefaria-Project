@@ -39,6 +39,13 @@ const fmtMonth = d3.timeFormat("%b %Y");
 const pct = (a, b) => b ? Math.round(100 * a / b) : 0;
 const yearLabel = y => y < 0 ? `${-y} BCE` : y === 0 ? "0" : `${y} CE`;
 const textUrl = ref => "/" + Sefaria.normRef(ref);
+const fmtDuration = secs => {
+  const m = Math.round(secs / 60);
+  if (m < 60) { return `${m}m`; }
+  const h = Math.floor(m / 60);
+  return h >= 100 ? `${fmt(h)}h` : `${h}h ${m % 60}m`;
+};
+const fmtHours = secs => secs >= 36000 ? `${fmt(Math.round(secs / 3600))}h` : `${(secs / 3600).toFixed(1)}h`;
 
 // Canonical Tanakh order with chapter counts (929 chapters)
 const TANAKH = [
@@ -62,7 +69,26 @@ const chapterOf = (ref, book) => {
   return null;
 };
 
-const prepare = data => data.records.map(([ts, ref, book, sec, lang]) => {
+// Time spent is estimated from the gaps between page views: the reader logs a view each time the visible
+// passage settles for 3s, so a gap is roughly how long the reader stayed there. A gap longer than
+// SESSION_IDLE ends a session, gaps are capped at GAP_CAP (a tab left open), and the last view of a session,
+// which has no end, gets a flat LAST_VIEW credit. Each row carries the seconds credited to it (row.secs).
+const SESSION_IDLE = 30 * 60, GAP_CAP = 10 * 60, LAST_VIEW = 60;
+const estimateTime = rows => {
+  let session = 0;
+  rows.forEach((r, i) => {
+    const next = rows[i + 1];
+    const gap = next ? (next.date - r.date) / 1000 : Infinity;
+    r.session = session;
+    r.secs = gap > SESSION_IDLE ? LAST_VIEW : Math.min(gap, GAP_CAP);
+    if (gap > SESSION_IDLE) { session += 1; }
+  });
+  return rows;
+};
+
+const sessionsOf = rows => d3.rollups(rows, v => ({secs: d3.sum(v, r => r.secs), start: v[0].date}), r => r.session).map(([, s]) => s);
+
+const prepare = data => estimateTime(data.records.map(([ts, ref, book, sec, lang]) => {
   const date = new Date(ts * 1000);
   const info = data.books[book] || {};
   const cats = info.categories && info.categories.length ? info.categories : ["Other"];
@@ -79,7 +105,7 @@ const prepare = data => data.records.map(([ts, ref, book, sec, lang]) => {
     // Where a commentary's base text lives (Rashi on Genesis -> Tanakh > Torah > Genesis), so partners follow the library filter
     basePath: info.partner && info.base && info.base[0] ? [...((data.books[info.base[0]] || {}).categories || []), info.base[0]] : null,
   };
-});
+}).sort((a, b) => a.date - b.date));
 
 const streaks = rows => {
   const days = Array.from(new Set(rows.map(r => +r.day))).sort((a, b) => a - b).map(t => new Date(t));
@@ -276,6 +302,8 @@ const Dashboard = ({data}) => {
         <Insights rows={scoped}/>
         <div className="ttGrid">
           <TimelineCard rows={scoped} time={time} onDrill={drillTime} onDay={setDay}/>
+          <TimeSpentCard rows={scoped} time={time} onDrill={drillTime}/>
+          <CategoryTimeCard rows={scoped} path={path} onDrill={name => setPath([...path, name])}/>
           <CategoryMultiplesCard rows={scoped} path={path} time={time} onDrill={name => setPath([...path, name])}/>
           <CalendarCard rows={calendarRows} time={time} selectedDay={day} onDay={setDay}/>
           {day && <DayDetail rows={scoped.filter(r => +r.day === +day)} day={day} onClose={() => setDay(null)}/>}
@@ -296,7 +324,11 @@ const Dashboard = ({data}) => {
 // ---------- summary ----------
 const StatTiles = ({rows}) => {
   const {days, best, current} = streaks(rows);
+  const secs = d3.sum(rows, r => r.secs);
   const tiles = [
+    ["Time learning", fmtDuration(secs), null, "Estimated from the gaps between page views"],
+    ["Per learning day", fmtDuration(days.length ? secs / days.length : 0), null, "Average on days you learned"],
+    ["Sittings", new Set(rows.map(r => r.session)).size, null, "Stretches of reading with no pause over 30 minutes"],
     ["Sections read", new Set(rows.map(r => r.ref)).size],
     ["Books opened", new Set(rows.map(r => r.book)).size],
     ["Study partners", new Set(rows.map(r => r.partner).filter(Boolean)).size],
@@ -309,10 +341,10 @@ const StatTiles = ({rows}) => {
         <div className="ttHeroValue">{fmt(days.length)}</div>
         <div className="ttHeroLabel">days of learning · {fmt(rows.length)} page views</div>
       </div>
-      {tiles.map(([label, value, unit]) => (
-        <div className="ttTile" key={label}>
+      {tiles.map(([label, value, unit, hint]) => (
+        <div className="ttTile" key={label} title={hint}>
           <div className="ttTileLabel">{label}</div>
-          <div className="ttTileValue">{fmt(value)}{unit && <span className="ttTileUnit"> {unit}</span>}</div>
+          <div className="ttTileValue">{typeof value === "number" ? fmt(value) : value}{unit && <span className="ttTileUnit"> {unit}</span>}</div>
         </div>
       ))}
     </div>
@@ -326,10 +358,12 @@ const Insights = ({rows}) => {
   const topPartner = d3.rollups(rows.filter(r => r.partner), v => v.length, r => r.partner).sort((a, b) => b[1] - a[1])[0];
   const {best} = streaks(rows);
   const shabbat = rows.filter(r => r.dow === 6).length;
+  const longest = d3.greatest(sessionsOf(rows), s => s.secs);
   const facts = [
     first && ["First step", `${first.ref}`, fmtDay(first.date)],
     byDay && ["Biggest day", `${fmt(byDay[1])} page views`, fmtDay(new Date(byDay[0]))],
     best.length > 1 && ["Longest streak", `${best.length} days in a row`, `${fmtDay(best.start)} – ${fmtDay(best.end)}`],
+    longest && longest.secs >= 10 * 60 && ["Longest sitting", `About ${fmtDuration(longest.secs)}`, fmtDay(longest.start)],
     topBook && ["Most-read book", topBook[0], `${fmt(topBook[1])} views`],
     topPartner && ["Closest study partner", topPartner[0], `${fmt(topPartner[1])} times`],
     rows.length > 100 && pct(shabbat, rows.length) < 2 && ["Rhythm", "Rests on Shabbat", `${pct(shabbat, rows.length)}% of reading falls on Shabbat`],
@@ -398,6 +432,70 @@ const TimelineCard = ({rows, time, onDrill, onDay}) => {
     </Card>
   );
 };
+
+// Minutes per week (per day inside a month), with a 4-week average to show the trend through noisy weeks
+const TimeSpentCard = ({rows, time, onDrill}) => {
+  const [ref, width] = useWidth();
+  const interval = time.month === null ? d3.timeWeek : d3.timeDay;
+  const unit = interval === d3.timeWeek ? "week" : "day";
+  const buckets = useMemo(() => {
+    const secs = d3.rollup(rows, v => d3.sum(v, r => r.secs), r => +interval.floor(r.date));
+    const [start, end] = time.year === null ? d3.extent(rows, r => r.date) :
+      time.month === null ? [new Date(time.year, 0, 1), new Date(time.year + 1, 0, 1)] : [new Date(time.year, time.month, 1), new Date(time.year, time.month + 1, 1)];
+    const range = interval.range(interval.floor(start), time.year === null ? interval.offset(end, 1) : end);
+    return range.map((date, i) => ({date, end: interval.offset(date, 1), minutes: (secs.get(+date) || 0) / 60}))
+      .map((d, i, all) => ({...d, avg: d3.mean(all.slice(Math.max(0, i - 3), i + 1), b => b.minutes)}));
+  }, [rows, time, interval]);
+  const active = buckets.filter(b => b.minutes);
+  const typical = d3.median(active, b => b.minutes) || 0;
+  const label = d => unit === "week" ? `Week of ${fmtDay(d)}` : fmtDay(d);
+  const options = useMemo(() => width && ({
+    width, height: 240, marginLeft: 44, marginTop: 16,
+    x: {type: "time", label: null},
+    y: {grid: true, label: "Minutes", labelAnchor: "top", nice: true},
+    marks: [
+      Plot.gridY({stroke: INK.grid, strokeOpacity: 1}),
+      Plot.rectY(buckets, {x1: "date", x2: "end", y: "minutes", fill: ACCENT, fillOpacity: 0.55, inset: buckets.length > 120 ? 0 : 0.5}),
+      unit === "week" && buckets.length > 8 && Plot.lineY(buckets, {x: "date", y: "avg", stroke: INK.primary, strokeWidth: 1.5, curve: "monotone-x"}),
+      Plot.ruleY([0], {stroke: INK.grid}),
+      Plot.tip(buckets, Plot.pointerX({x1: "date", x2: "end", y: "minutes",
+        title: d => `${fmtDuration(d.minutes * 60)}\n${label(d.date)}${unit === "week" ? `\n4-week average: ${fmtDuration(d.avg * 60)}` : ""}${time.month === null ? "\nClick to zoom in" : ""}`})),
+    ].filter(Boolean),
+  }), [buckets, width]);
+  return (
+    <Card wide title={`Minutes per ${unit}`}
+          subtitle={`A typical active ${unit}: about ${fmtDuration(typical * 60)}. Estimated from the gaps between page views (a pause over 30 minutes ends a sitting).${unit === "week" && buckets.length > 8 ? " The line is the 4-week average." : ""}`}
+          table={{columns: [unit[0].toUpperCase() + unit.slice(1), "Minutes"], rows: active.map(b => [label(b.date), Math.round(b.minutes)])}}>
+      <div ref={ref}><PlotFigure options={options} onClick={time.month === null ? d => onDrill(d.date) : null}/></div>
+    </Card>
+  );
+};
+
+// Time spent in each child of the current library node; follows the same drill-down as the library
+const CategoryTimeCard = ({rows, path, onDrill}) => {
+  const depth = path.length;
+  const groups = useMemo(() => d3.rollups(rows.filter(r => r.path.length > depth), v => ({secs: d3.sum(v, r => r.secs), cat: v[0].cat, views: v.length}), r => r.path[depth])
+    .map(([name, g]) => ({name, ...g})).sort((a, b) => b.secs - a.secs), [rows, depth]);
+  const total = d3.sum(groups, g => g.secs);
+  if (!groups.length) { return null; }
+  const max = groups[0].secs;
+  return (
+    <Card title={depth ? `Time inside ${path[depth - 1]}` : "Where your time goes"}
+          subtitle="Estimated time per category. Click a row to drill in."
+          table={{columns: ["Name", "Time", "Share", "Minutes per page view"], rows: groups.map(g => [g.name, fmtDuration(g.secs), `${pct(g.secs, total)}%`, (g.secs / 60 / g.views).toFixed(1)])}}>
+      <div className="ttBars">
+        {groups.slice(0, 10).map(g => (
+          <button key={g.name} className="ttBarRow" onClick={() => onDrill(g.name)} title={`${pct(g.secs, total)}% of your time`}>
+            <span className="ttBarName">{g.name}</span>
+            <span className="ttBarTrack"><span className="ttBar" style={{width: `${100 * g.secs / max}%`, background: catColor(depth ? path[0] : g.name)}}/></span>
+            <span className="ttBarValue">{fmtHours(g.secs)}</span>
+          </button>
+        ))}
+      </div>
+    </Card>
+  );
+};
+
 
 // Children of the current library node as small multiples, so each gets its own labeled line
 const CategoryMultiplesCard = ({rows, path, time, onDrill}) => {
