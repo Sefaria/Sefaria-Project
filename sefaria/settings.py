@@ -107,6 +107,7 @@ TEMPLATES = [
                     "sefaria.system.context_processors.chatbot_user_token",
                     "sefaria.system.context_processors.base_props",
                     "sefaria.system.context_processors.module_context",
+                    "sefaria.system.context_processors.theme_context",
             ],
             'loaders': [
                 'django.template.loaders.filesystem.Loader',

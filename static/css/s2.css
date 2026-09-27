@@ -17057,3 +17057,74 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   pointer-events: none;
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
+
+/* ===== ThemeToggle (darkmode chunk B) ===== */
+/* The dark mode row in the mobile hamburger menu (MobileThemeToggle in ThemeToggle.jsx). It sits
+   right after .mobileInterfaceLanguageToggle and copies that row's metrics: 15px padding, 16px
+   text, 16x16 icon with a 15px gap. The switch mirrors .toggle-switch (46x24 track, 20px knob).
+   Colours are theme tokens only (theme-tokens.css); fallbacks are the light palette values. */
+.mobileNavMenu .mobileThemeToggle {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 15px;
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: var(--color-text-secondary, var(--dark-grey));
+  font: inherit;
+  font-size: 16px;
+  text-align: start;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.mobileNavMenu .mobileThemeToggle .themeToggleIcon {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-inline-end: 15px;
+}
+.mobileNavMenu .mobileThemeToggleSwitch {
+  position: relative;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  width: 46px;
+  height: 24px;
+  margin-inline-start: auto;
+  border-radius: 12px;
+  background-color: var(--color-border, var(--light-grey));
+  transition: background-color 0.2s ease-in;
+}
+.mobileNavMenu .mobileThemeToggleSwitch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  inset-inline-start: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--color-text-on-accent, var(--white));
+  transition: inset-inline-start 0.2s ease-in;
+}
+.mobileNavMenu .mobileThemeToggle[aria-checked="true"] .mobileThemeToggleSwitch {
+  background-color: var(--color-accent-fill, var(--sefaria-blue));
+}
+.mobileNavMenu .mobileThemeToggle[aria-checked="true"] .mobileThemeToggleSwitch::after {
+  inset-inline-start: 24px;
+}
+body.user-is-tabbing .mobileNavMenu .mobileThemeToggle:focus {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: -2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mobileNavMenu .mobileThemeToggleSwitch,
+  .mobileNavMenu .mobileThemeToggleSwitch::after {
+    transition: none;
+  }
+}
+/* ===== end ThemeToggle (darkmode chunk B) ===== */
