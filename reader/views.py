@@ -396,6 +396,9 @@ def base_props(request):
         # deliberately turned it off.
         if library_assistant.SETTING_KEY in profile.settings or user_has_experiments(request.user):
             chatbot_data["in_chatbot_experiment"] = True
+    else:
+        # No token: logged-out visitors chat under an anonymous id the widget keeps.
+        chatbot_data["chatbot_enabled"] = library_assistant.is_enabled_for_anonymous()
     user_data.update(chatbot_data)
     user_data.update({
         "googleClientId": getattr(settings, "GOOGLE_SSO_CLIENT_ID", ""),
