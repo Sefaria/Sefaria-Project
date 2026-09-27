@@ -14,7 +14,7 @@ import {
  *
  * SSR/hydration: the first render reads only `Sefaria.theme` (a base prop, null when the visitor
  * has no stored choice, which means light). The DOM is read only after mount, in an effect,
- * because the head script may have resolved a different theme (e.g. a `system` default).
+ * because the head script may have applied a different theme (for templates rendered without it).
  */
 
 export const THEME_CHANGE_EVENT = 'sefaria:themechange';

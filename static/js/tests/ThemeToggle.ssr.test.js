@@ -174,7 +174,7 @@ describe('hydrating the server markup in jsdom', () => {
     act(() => { ReactDOM.unmountComponentAtNode(root); });
   });
 
-  test('server said light but <html> is dark (system default): no warning, then the toggle follows <html>', () => {
+  test('server said light but <html> is dark (head script applied the cookie): no warning, then the toggle follows <html>', () => {
     const { root, errors, ReactDOM, act } = hydrate(null, 'dark');
     expect(errors).toEqual([]);
     expect(root.querySelector('.themeToggle').getAttribute('aria-pressed')).toBe('true');
