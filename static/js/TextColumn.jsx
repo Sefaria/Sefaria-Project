@@ -19,7 +19,7 @@ class TextColumn extends Component {
     super(props);
     this.state = {
       showScrollPlaceholders: false,
-      translationFeedbackTarget: null,  // set when a word in a translation is double-clicked
+      translationFeedbackTarget: null,  // set when a segment's translation is double-clicked
       showTranslationFeedbackToast: false,
       translationFeedbackKey: 0,
     };

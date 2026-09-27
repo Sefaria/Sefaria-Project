@@ -1,32 +1,53 @@
 /**
- * Translation feedback POC: the client-side word locator must agree with the server's
- * (sefaria/model/translation_feedback.py) on which instance of a word was double-clicked.
+ * Translation feedback POC (segment level): the double-click target and the helpers the modal uses.
  */
 jest.mock('../sefaria/sefaria', () => ({ __esModule: true, default: {} }));
 
-import { wordMatchStarts, trimToWord } from '../TranslationFeedback.jsx';
+import { getTranslationFeedbackTarget, normalizeSpace, segmentTextsUrl } from '../TranslationFeedback.jsx';
 
-describe('wordMatchStarts', () => {
-  test('matches whole words only', () => {
-    const text = 'And God saw the Godly light; God said';
-    expect(wordMatchStarts(text, 'God')).toEqual([4, 29]);
+const segmentHtml = `
+  <div class="segment" data-ref="Genesis 1:1" data-translation-vtitle="Test Version" data-translation-lang="en">
+    <p class="segmentText">
+      <span class="contentSpan primary"><span class="he">בראשית ברא</span></span>
+      <span class="contentSpan translation"><span class="en">In the beginning <i>God</i>
+        created<sup class="footnote-marker">1</sup> <a data-ref="Genesis 2:1">heaven</a></span></span>
+    </p>
+  </div>`;
+
+describe('getTranslationFeedbackTarget', () => {
+  beforeEach(() => { document.body.innerHTML = segmentHtml; });
+
+  test('returns the whole segment for a double-click anywhere in the translation', () => {
+    const target = getTranslationFeedbackTarget({target: document.querySelector('.contentSpan.translation i')});
+    expect(target).toEqual({
+      ref: 'Genesis 1:1',
+      versionTitle: 'Test Version',
+      actualLanguage: 'en',
+      translationText: 'In the beginning God created1 heaven',
+    });
   });
 
-  test('is case sensitive and non-overlapping', () => {
-    expect(wordMatchStarts('the The the', 'the')).toEqual([0, 8]);
-    expect(wordMatchStarts('a’a’a a’a', 'a’a')).toEqual([0, 6]);
+  test('ignores the primary text, footnote markers and citation links', () => {
+    expect(getTranslationFeedbackTarget({target: document.querySelector('.he')})).toBeNull();
+    expect(getTranslationFeedbackTarget({target: document.querySelector('sup')})).toBeNull();
+    expect(getTranslationFeedbackTarget({target: document.querySelector('a[data-ref]')})).toBeNull();
   });
 
-  test('handles non-Latin letters and combining marks as word characters', () => {
-    expect(wordMatchStarts('שלום ושלום שלום', 'שלום')).toEqual([0, 11]);
-    expect(wordMatchStarts('café cafe', 'cafe')).toEqual([6]);
+  test('ignores segments without a translation version', () => {
+    document.querySelector('.segment').removeAttribute('data-translation-vtitle');
+    expect(getTranslationFeedbackTarget({target: document.querySelector('.contentSpan.translation i')})).toBeNull();
   });
 });
 
-describe('trimToWord', () => {
-  test('strips surrounding whitespace and punctuation', () => {
-    expect(trimToWord(' light, ')).toEqual({leading: 1, word: 'light'});
-    expect(trimToWord('“God’s”')).toEqual({leading: 1, word: 'God’s'});
-    expect(trimToWord(' ... ')).toBeNull();
+describe('helpers', () => {
+  test('normalizeSpace collapses whitespace', () => {
+    expect(normalizeSpace('  a\n  b\tc ')).toBe('a b c');
+    expect(normalizeSpace(null)).toBe('');
+  });
+
+  test('segmentTextsUrl encodes params', () => {
+    expect(segmentTextsUrl({ref: 'Genesis 1:1', versionTitle: 'A & B', actualLanguage: 'en'}))
+      .toBe('/api/translation-feedback/segment?ref=Genesis+1%3A1&versionTitle=A+%26+B&actualLanguage=en');
+    expect(segmentTextsUrl({ref: 'Genesis 1:1', versionTitle: 'V'})).toBe('/api/translation-feedback/segment?ref=Genesis+1%3A1&versionTitle=V');
   });
 });

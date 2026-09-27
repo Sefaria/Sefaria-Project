@@ -92,6 +92,7 @@ urlpatterns = [
 # Translation feedback POC (dashboard is unlinked; open to anyone with the URL)
 urlpatterns += [
     re_path(r'^translation-feedback/?$', translation_feedback_views.translation_feedback_dashboard),
+    re_path(r'^api/translation-feedback/segment/?$', translation_feedback_views.translation_feedback_segment_api),
     re_path(r'^api/translation-feedback/?$', translation_feedback_views.translation_feedback_api),
     re_path(r'^api/translation-feedback/(?P<feedback_id>[0-9a-f]{24})/accept/?$', translation_feedback_views.translation_feedback_accept_api),
 ]

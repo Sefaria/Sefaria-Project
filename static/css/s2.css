@@ -17060,8 +17060,9 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   border: none;
   border-radius: 10px;
   padding: 0;
-  width: 480px;
+  width: 600px;
   max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 40px);
   box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
   font-family: var(--english-sans-serif-font-family);
   color: #333;
@@ -17102,8 +17103,46 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   background: var(--lightest-grey, #F7F7F7);
   border-radius: 6px;
 }
-.translationFeedbackField .selectedWord {
-  font-weight: 500;
+.translationFeedbackField .translationFeedbackSource {
+  font-family: var(--hebrew-serif-font-family);
+  font-size: 20px;
+  line-height: 1.5;
+  text-align: right;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.translationFeedbackField .translationFeedbackCurrent {
+  font-family: var(--english-serif-font-family);
+  line-height: 1.5;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.translationFeedbackField .translationFeedbackLoading {
+  color: var(--medium-grey);
+  font-size: 14px;
+}
+.translationFeedbackLabelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+.translationFeedbackStartButton {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 3px 10px;
+  border: 1px solid var(--light-grey);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--dark-grey);
+  cursor: pointer;
+}
+.translationFeedbackStartButton:hover:not([disabled]) {
+  background: var(--lightest-grey, #F7F7F7);
+}
+.translationFeedbackStartButton[disabled] {
+  opacity: 0.5;
+  cursor: default;
 }
 .translationFeedbackMeta,
 .translationFeedbackHelp {

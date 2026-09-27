@@ -18,7 +18,11 @@
     #translationFeedbackPage .small { display: block; font-size: 12px; color: #888; margin-top: 3px; }
     #translationFeedbackPage .small a { color: #888; }
     #translationFeedbackPage .word { background: #FFF6D6; padding: 0 3px; border-radius: 3px; }
-    #translationFeedbackPage td.suggestion { min-width: 140px; }
+    #translationFeedbackPage td.suggestion { min-width: 260px; max-width: 460px; }
+    #translationFeedbackPage .diff { line-height: 1.5; }
+    #translationFeedbackPage .diff del { color: #B71C1C; background: #FDECEC; text-decoration: line-through; }
+    #translationFeedbackPage .diff ins { color: #1B5E20; background: #E8F5E9; text-decoration: none; }
+    #translationFeedbackPage .markupWarning { display: block; margin-top: 6px; font-size: 12px; color: #B26A00; }
     #translationFeedbackPage td.comment { max-width: 340px; white-space: pre-wrap; }
     #translationFeedbackPage td.note { max-width: 380px; color: #444; }
     #translationFeedbackPage td.assessment { text-align: center; font-weight: bold; font-size: 18px; }
@@ -71,13 +75,16 @@
                 </td>
                 <td class="user">{% if row.user_id %}{{ row.user_id }}{% else %}anon{% endif %}</td>
                 <td class="suggestion">
-                    {% if row.suggestion %}{{ row.suggestion }}{% else %}&mdash;{% endif %}
-                    <span class="small">word: <span class="word">{{ row.word }}</span>{% if row.occurrence > 1 %} (#{{ row.occurrence }}){% endif %}</span>
+                    {% if row.diff %}
+                        <div class="diff">{% for chunk in row.diff %}{% if chunk.op == "del" %}<del>{{ chunk.text }}</del>{% elif chunk.op == "ins" %}<ins>{{ chunk.text }}</ins>{% else %}{{ chunk.text }}{% endif %} {% endfor %}</div>
+                        {% if row.drops_markup and not row.accepted %}<span class="markupWarning">Accepting replaces the segment with plain text; its formatting/footnotes will be removed.</span>{% endif %}
+                    {% elif row.suggestion %}{{ row.suggestion }}{% else %}&mdash;{% endif %}
+                    {% if row.word %}<span class="small">word: <span class="word">{{ row.word }}</span>{% if row.occurrence > 1 %} (#{{ row.occurrence }}){% endif %}</span>{% endif %}
                     {% if row.suggestion %}
                         {% if row.accepted %}
                             <span class="acceptedLabel">&#10003; Accepted</span>
                         {% elif logged_in %}
-                            <button class="acceptButton" data-id="{{ row.id }}">Accept suggestion</button>
+                            <button class="acceptButton" data-id="{{ row.id }}" data-confirm="{% if row.word %}Replace the word in this version of the text with the suggestion?{% else %}Replace this segment of the translation with the suggested text?{% if row.drops_markup %} Its formatting/footnotes will be removed.{% endif %}{% endif %} This edit will appear in the text's history.">Accept suggestion</button>
                         {% else %}
                             <a class="loginHint" href="{{ login_url }}">Log in to accept</a>
                         {% endif %}
@@ -97,7 +104,7 @@
         </tbody>
     </table>
     {% else %}
-        <div class="empty">No feedback yet. Double-click a word in a translation in the reader to leave some.</div>
+        <div class="empty">No feedback yet. Double-click a segment of a translation in the reader to leave some.</div>
     {% endif %}
 </div>
 {% endblock %}
@@ -111,7 +118,7 @@
             var cell = button.parentNode;
             var old = cell.querySelector(".acceptError");
             if (old) { old.remove(); }
-            if (!window.confirm("Replace the word in this version of the text with the suggestion? This edit will appear in the text's history.")) { return; }
+            if (!window.confirm(button.dataset.confirm)) { return; }
             button.disabled = true;
             fetch("/api/translation-feedback/" + button.dataset.id + "/accept", {
                 method: "POST",

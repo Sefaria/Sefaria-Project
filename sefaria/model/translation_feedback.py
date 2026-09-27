@@ -2,14 +2,14 @@
 translation_feedback.py
 Writes to MongoDB Collection: translation_feedback
 
-POC (discovery): reader feedback on a single word of a translation. A reader double-clicks a
-word in a translation (non-primary version) and may suggest a replacement and/or leave a comment.
-An LLM then rates the feedback (see sefaria.helper.llm.translation_feedback) and staff can accept
-a suggestion, which rewrites that exact word instance through sefaria.tracker.modify_text.
+POC (discovery): reader feedback on one segment of a translation. A reader double-clicks a
+segment's translation (non-primary version) and may suggest a replacement translation for the whole
+segment and/or leave a comment. An LLM then rates the feedback (see
+sefaria.helper.llm.translation_feedback) and staff can accept a suggestion, which replaces the
+segment's text through sefaria.tracker.modify_text.
 
-The word is located by its occurrence index among whole-word matches in the segment's *visible*
-text (HTML tags removed, entities decoded), which is exactly what the reader sees in the DOM
-(`textContent`). The same matching rule is implemented in static/js/TranslationFeedback.jsx.
+Records created before the move to segment level carry `word` / `occurrence` (a single-word
+suggestion); they are still displayed but can no longer be accepted.
 """
 import html
 import time
@@ -33,18 +33,20 @@ ASSESSMENT_LEGEND = [
 ]
 
 MAX_WORD_LEN = 100
-MAX_SUGGESTION_LEN = 300
+MAX_SUGGESTION_LEN = 10000
 MAX_COMMENT_LEN = 5000
 
 
 class TranslationFeedback(AbstractMongoRecord):
     collection = "translation_feedback"
-    required_attrs = ["ref", "version_title", "language", "word", "occurrence", "created", "status"]
+    required_attrs = ["ref", "version_title", "language", "created", "status"]
     optional_attrs = [
         "actual_language",   # Version.actualLanguage (ISO code), used for the tracker write on accept
         "language_family",   # Version.languageFamilyName, for reader links (?ven=family|title)
-        "char_offset",       # offset of the word in the visible text, informational only
-        "suggestion",
+        "word",              # legacy word-level records only
+        "occurrence",        # legacy word-level records only
+        "char_offset",       # legacy word-level records only
+        "suggestion",        # plain-text replacement for the whole segment
         "comment",
         "user_id",           # None -> anonymous
         "segment_text",      # snapshot of the raw translation segment when the feedback was given
@@ -60,8 +62,8 @@ class TranslationFeedback(AbstractMongoRecord):
         "ref": {"type": "string", "required": True},
         "version_title": {"type": "string", "required": True},
         "language": {"type": "string", "required": True},
-        "word": {"type": "string", "required": True, "maxlength": MAX_WORD_LEN},
-        "occurrence": {"type": "integer", "required": True, "min": 0},
+        "word": {"type": "string", "nullable": True, "maxlength": MAX_WORD_LEN},
+        "occurrence": {"type": "integer", "nullable": True, "min": 0},
         "created": {"type": "integer", "required": True},
         "status": {"type": "string", "allowed": list(STATUSES), "required": True},
         "suggestion": {"type": "string", "nullable": True, "maxlength": MAX_SUGGESTION_LEN},
@@ -78,6 +80,9 @@ class TranslationFeedback(AbstractMongoRecord):
 
     def has_suggestion(self):
         return bool((getattr(self, "suggestion", None) or "").strip())
+
+    def is_word_level(self):
+        return bool(getattr(self, "word", None))
 
 
 class TranslationFeedbackSet(AbstractMongoSet):
@@ -178,6 +183,27 @@ def replace_word(raw, word, occurrence, replacement):
     if "<" in raw[start:end]:
         raise WordReplacementError("The word \"{}\" spans HTML markup; please edit it manually.".format(word))
     return raw[:start] + html.escape(replacement, quote=False) + raw[end:]
+
+
+def visible_text(raw):
+    """Plain text of a stored segment, the way the reader shows it (tags stripped, entities decoded)."""
+    if not isinstance(raw, str):
+        return ""
+    return visible_text_with_map(raw)[0]
+
+
+def has_markup(raw):
+    """True if `raw` contains HTML tags (formatting, footnotes) that a plain-text replacement would drop."""
+    return isinstance(raw, str) and visible_text(raw) != html.unescape(raw)
+
+
+def normalize_space(text):
+    return " ".join((text or "").split())
+
+
+def segment_replacement(suggestion):
+    """Stored text for a plain-text segment suggestion (HTML-escaped, whitespace kept as typed)."""
+    return html.escape(suggestion.strip(), quote=False)
 
 
 def now_epoch():

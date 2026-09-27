@@ -9,7 +9,7 @@ import pytest
 from sefaria.model import Index, Ref, Version, VersionSet, TextChunk
 from sefaria.model.translation_feedback import TranslationFeedback, TranslationFeedbackSet, STATUS_ACCEPTED
 from sefaria.helper.llm.translation_feedback import parse_response, assess, build_prompt
-from sefaria.helper.translation_feedback import create_feedback, accept_feedback
+from sefaria.helper.translation_feedback import create_feedback, accept_feedback, get_segment_texts
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
@@ -17,6 +17,8 @@ TITLE = "Translation Feedback Test Book"
 EN_VTITLE = "Translation Feedback Test [en]"
 HE_VTITLE = "Translation Feedback Test Source"
 SEGMENT_EN = "And God saw the light, that it was <b>good</b>; and the light was good."
+SEGMENT_EN_PLAIN = "And God saw the light, that it was good; and the light was good."
+SUGGESTION = "And God saw the light, that it was good; and the radiance was good & bright."
 SEGMENT_HE = "וַיַּרְא אֱלֹהִים אֶת־הָאוֹר כִּי־טוֹב"
 
 
@@ -88,37 +90,49 @@ def synthetic_text():
 
 def _payload(**overrides):
     data = {"ref": f"{TITLE} 1:1", "versionTitle": EN_VTITLE, "actualLanguage": "en",
-            "word": "light", "occurrence": 1, "suggestion": "radiance", "comment": "Reads better."}
+            "suggestion": SUGGESTION, "comment": "Reads better."}
     data.update(overrides)
     return data
+
+
+def test_get_segment_texts(synthetic_text):
+    texts = get_segment_texts(f"{TITLE} 1:1", EN_VTITLE, "en")
+    assert texts == {"ref": f"{TITLE} 1:1", "he": SEGMENT_HE, "translation": SEGMENT_EN_PLAIN}
+    with pytest.raises(InputError):
+        get_segment_texts(f"{TITLE} 1", EN_VTITLE)
+    with pytest.raises(InputError):
+        get_segment_texts(f"{TITLE} 1:1", "No Such Version")
 
 
 def test_create_validates(synthetic_text):
     with pytest.raises(InputError):
         create_feedback(_payload(suggestion="", comment=""), run_assessment=False)
-    with pytest.raises(InputError):
-        create_feedback(_payload(word="two words"), run_assessment=False)
-    with pytest.raises(InputError):
-        create_feedback(_payload(word="darkness"), run_assessment=False)
+    with pytest.raises(InputError):  # unchanged "Start with existing" text and no comment
+        create_feedback(_payload(suggestion="  " + SEGMENT_EN_PLAIN.replace(" ", "\n", 1), comment=""), run_assessment=False)
     with pytest.raises(InputError):  # primary version
-        create_feedback(_payload(versionTitle=HE_VTITLE, actualLanguage="he", word="טוֹב", occurrence=0), run_assessment=False)
+        create_feedback(_payload(versionTitle=HE_VTITLE, actualLanguage="he"), run_assessment=False)
     with pytest.raises(InputError):
         create_feedback(_payload(ref=f"{TITLE} 1"), run_assessment=False)
 
 
-def test_create_recovers_occurrence_from_offset(synthetic_text):
-    offset = SEGMENT_EN.replace("<b>", "").replace("</b>", "").rindex("light")
-    fb = create_feedback(_payload(occurrence=7, charOffset=offset), user_id=None, run_assessment=False)
-    assert fb.occurrence == 1
+def test_create_stores_segment_snapshot(synthetic_text):
+    fb = create_feedback(_payload(), user_id=None, run_assessment=False)
     assert fb.user_id is None
     assert fb.segment_text == SEGMENT_EN
+    assert fb.suggestion == SUGGESTION
+    assert not fb.is_word_level()
 
 
-def test_accept_replaces_selected_instance_and_logs_history(synthetic_text):
+def test_unchanged_suggestion_with_comment_is_comment_only(synthetic_text):
+    fb = create_feedback(_payload(suggestion=SEGMENT_EN_PLAIN), run_assessment=False)
+    assert fb.suggestion is None and fb.comment == "Reads better."
+
+
+def test_accept_replaces_segment_and_logs_history(synthetic_text):
     fb = create_feedback(_payload(), user_id=None, run_assessment=False)
     with patch("sefaria.tracker.USE_VARNISH", False):
         _, new_text = accept_feedback(str(fb._id), 1)
-    expected = "And God saw the light, that it was <b>good</b>; and the radiance was good."
+    expected = "And God saw the light, that it was good; and the radiance was good &amp; bright."
     assert new_text == expected
     oref = Ref(f"{TITLE} 1:1")
     assert TextChunk(oref, vtitle=EN_VTITLE, actual_lang="en").text == expected
@@ -134,14 +148,27 @@ def test_accept_fails_when_text_changed(synthetic_text):
     v = Version().load({"title": TITLE, "versionTitle": EN_VTITLE})
     v.chapter = [["The light was good."]]
     v.save()
-    with pytest.raises(InputError, match="no longer contains"):
+    with pytest.raises(InputError, match="has changed"):
         accept_feedback(str(fb._id), 1)
+
+
+def test_accept_legacy_word_level_record(synthetic_text):
+    fb = TranslationFeedback({
+        "ref": f"{TITLE} 1:1", "version_title": EN_VTITLE, "language": "en", "actual_language": "en",
+        "word": "light", "occurrence": 1, "suggestion": "radiance", "segment_text": SEGMENT_EN,
+        "created": 0, "status": "new",
+    }).save()
+    with patch("sefaria.tracker.USE_VARNISH", False):
+        _, new_text = accept_feedback(str(fb._id), 1)
+    assert new_text == "And God saw the light, that it was <b>good</b>; and the radiance was good."
 
 
 def test_assess_without_api_key(synthetic_text):
     fb = create_feedback(_payload(), run_assessment=False)
-    assert "Selected word: \"light\" (occurrence #2" in build_prompt(fb)
-    assert "וַיַּרְא" in build_prompt(fb)
+    prompt = build_prompt(fb)
+    assert "<suggested_translation>\n" + SUGGESTION in prompt
+    assert "<current_translation>\n" + SEGMENT_EN_PLAIN in prompt
+    assert "וַיַּרְא" in prompt
     with patch.dict("os.environ", {"ANTHROPIC_API_KEY": ""}), \
          patch("django.conf.settings.ANTHROPIC_API_KEY", None, create=True):
         assessment, note = assess(fb)

@@ -7,8 +7,9 @@ import structlog
 from sefaria.model import Ref, Version, VersionSet, TextChunk
 from sefaria.model.translation_feedback import (
     TranslationFeedback, TranslationFeedbackSet, STATUS_NEW, STATUS_ACCEPTED,
-    MAX_WORD_LEN, MAX_SUGGESTION_LEN, MAX_COMMENT_LEN,
-    locate_word, occurrence_at_offset, replace_word, WordReplacementError, now_epoch,
+    MAX_SUGGESTION_LEN, MAX_COMMENT_LEN,
+    replace_word, WordReplacementError, now_epoch,
+    visible_text, normalize_space, segment_replacement,
 )
 from sefaria.system.exceptions import InputError
 
@@ -49,19 +50,57 @@ def _segment_text(oref, version):
     return chunk.text
 
 
-def create_feedback(data, user_id=None, run_assessment=True):
-    """
-    `data` keys: ref, versionTitle, actualLanguage (optional), word, occurrence, charOffset (optional),
-    suggestion, comment. Returns the saved TranslationFeedback.
-    """
-    if not isinstance(data, dict):
-        raise InputError("Expected a JSON object.")
+def _segment_ref(tref):
     try:
-        oref = Ref(data.get("ref") or "")
+        oref = Ref(tref or "")
     except Exception:
         raise InputError("Invalid ref.")
     if not oref.is_segment_level():
         raise InputError("Feedback must be on a single segment.")
+    return oref
+
+
+def source_text(oref):
+    """Primary (source-language) text of the segment, best effort; "" if there is none."""
+    try:
+        primary = VersionSet({"title": oref.index.title, "isPrimary": True}, limit=1).array()
+        if primary:
+            v = primary[0]
+            return TextChunk(oref, vtitle=v.versionTitle, actual_lang=getattr(v, "actualLanguage", None),
+                             direction=getattr(v, "direction", None)).text
+        return TextChunk(oref, lang="he").text
+    except Exception as e:
+        logger.warning("translation_feedback: could not load source text", ref=oref.normal(), error=repr(e))
+        return ""
+
+
+def get_segment_texts(tref, version_title, actual_language=None):
+    """
+    Plain text of the source (Hebrew/Aramaic) and of the given translation for one segment, for the
+    reader's feedback dialog. Returns {"ref", "he", "translation"}.
+    """
+    oref = _segment_ref(tref)
+    version_title = _clean_text(version_title, 500, "versionTitle")
+    if not version_title:
+        raise InputError("Missing versionTitle.")
+    version = _load_version(oref, version_title, _clean_text(actual_language, 20, "actualLanguage"))
+    he = source_text(oref)
+    translation = _segment_text(oref, version)
+    return {
+        "ref": oref.normal(),
+        "he": visible_text(he).strip() if isinstance(he, str) else "",
+        "translation": visible_text(translation).strip() if isinstance(translation, str) else "",
+    }
+
+
+def create_feedback(data, user_id=None, run_assessment=True):
+    """
+    `data` keys: ref (segment), versionTitle, actualLanguage (optional), suggestion (a plain-text
+    replacement for the whole segment), comment. Returns the saved TranslationFeedback.
+    """
+    if not isinstance(data, dict):
+        raise InputError("Expected a JSON object.")
+    oref = _segment_ref(data.get("ref"))
 
     version_title = _clean_text(data.get("versionTitle"), 500, "versionTitle")
     if not version_title:
@@ -70,26 +109,16 @@ def create_feedback(data, user_id=None, run_assessment=True):
     if getattr(version, "isPrimary", False):
         raise InputError("Feedback is only collected on translations.")
 
-    word = _clean_text(data.get("word"), MAX_WORD_LEN, "word")
-    if not word or any(c.isspace() for c in word):
-        raise InputError("Please select a single word.")
-
-    suggestion = _clean_text(data.get("suggestion"), MAX_SUGGESTION_LEN, "suggestion")
-    comment = _clean_text(data.get("comment"), MAX_COMMENT_LEN, "comment")
-    if not suggestion and not comment:
-        raise InputError("Please enter a suggestion or a comment.")
-
     segment_text = _segment_text(oref, version)
     if not isinstance(segment_text, str) or not segment_text:
         raise InputError("No text found for {} in {}.".format(oref.normal(), version.versionTitle))
 
-    occurrence = data.get("occurrence")
-    char_offset = data.get("charOffset")
-    char_offset = char_offset if isinstance(char_offset, int) and char_offset >= 0 else None
-    if not isinstance(occurrence, int) or locate_word(segment_text, word, occurrence) is None:
-        occurrence = occurrence_at_offset(segment_text, word, char_offset) if char_offset is not None else None
-        if occurrence is None:
-            raise InputError("Couldn't find \"{}\" in {} ({}).".format(word, oref.normal(), version.versionTitle))
+    suggestion = _clean_text(data.get("suggestion"), MAX_SUGGESTION_LEN, "suggestion")
+    if suggestion and normalize_space(suggestion) == normalize_space(visible_text(segment_text)):
+        suggestion = None  # "Start with existing" and saved without changes: not a suggestion
+    comment = _clean_text(data.get("comment"), MAX_COMMENT_LEN, "comment")
+    if not suggestion and not comment:
+        raise InputError("Please change the translation or enter a comment.")
 
     feedback = TranslationFeedback({
         "ref": oref.normal(),
@@ -97,9 +126,6 @@ def create_feedback(data, user_id=None, run_assessment=True):
         "language": version.language,
         "actual_language": getattr(version, "actualLanguage", None),
         "language_family": getattr(version, "languageFamilyName", None),
-        "word": word,
-        "occurrence": occurrence,
-        "char_offset": char_offset,
         "suggestion": suggestion,
         "comment": comment,
         "user_id": user_id,
@@ -118,8 +144,9 @@ def create_feedback(data, user_id=None, run_assessment=True):
 
 def accept_feedback(feedback_id, user_id):
     """
-    Replace the selected word instance with the suggestion via tracker.modify_text (logs history,
-    purges Varnish, reindexes). Returns (feedback, new_segment_text).
+    Replace the segment with the suggestion via tracker.modify_text (logs history, purges Varnish,
+    reindexes). Refuses if the segment changed since the feedback was given. Returns
+    (feedback, new_segment_text).
     """
     from sefaria import tracker
     try:
@@ -136,11 +163,18 @@ def accept_feedback(feedback_id, user_id):
     oref = Ref(feedback.ref)
     version = _load_version(oref, feedback.version_title, getattr(feedback, "actual_language", None))
     current = _segment_text(oref, version)
-    try:
-        new_text = replace_word(current if isinstance(current, str) else "", feedback.word,
-                                feedback.occurrence, feedback.suggestion.strip())
-    except WordReplacementError as e:
-        raise InputError(str(e))
+    current = current if isinstance(current, str) else ""
+    if feedback.is_word_level():
+        # legacy record from the word-level POC
+        try:
+            new_text = replace_word(current, feedback.word, feedback.occurrence, feedback.suggestion.strip())
+        except WordReplacementError as e:
+            raise InputError(str(e))
+    else:
+        if current != getattr(feedback, "segment_text", None):
+            raise InputError("The translation of this segment has changed since this feedback was given; "
+                             "please review and edit it manually.")
+        new_text = segment_replacement(feedback.suggestion)
 
     tracker.modify_text(user_id, oref, version.versionTitle, getattr(version, "actualLanguage", None) or version.language,
                         new_text, direction=getattr(version, "direction", None), method=HISTORY_METHOD)

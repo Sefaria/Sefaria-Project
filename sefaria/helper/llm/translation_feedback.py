@@ -29,7 +29,7 @@ RETRY_UNAVAILABLE_SECONDS = 600      # and "?" records whose last attempt is old
 MAX_STALE_PER_LOAD = 5
 
 SYSTEM_PROMPT = """You review reader feedback on machine-generated translations of Jewish texts for Sefaria.
-A reader double-clicked one word in a translation and may have suggested a replacement for that word and/or left a comment.
+A reader looked at one segment (a verse, mishnah, or paragraph) of a translation and may have suggested a new translation for the whole segment and/or left a comment.
 
 Rate the feedback with exactly one of these codes:
 1 - Excellent suggestion, worthy of quickly updating the translation
@@ -38,11 +38,11 @@ Rate the feedback with exactly one of these codes:
 4 - Bad suggestion, not worth considering (wrong, vandalism, spam, or nonsense)
 C - Comment only (use this if and only if there is no suggestion)
 
-Judge a suggestion against the source text: is the suggested word a more accurate, clearer or more idiomatic rendering of the source in context, and does it still read correctly when substituted for the selected word in the translation? Consider the reader's reasoning if given, but verify it yourself.
+Judge a suggestion by comparing the suggested translation with the current one against the source text: focus on what the reader changed. Is the new wording a more accurate, clearer or more idiomatic rendering of the source, and does it avoid dropping or adding meaning elsewhere in the segment? Consider the reader's reasoning if given, but verify it yourself.
 For comment-only feedback, briefly assess whether the comment points to a real issue in the translation and what, if anything, an editor should do.
 
 Reply with only a JSON object, no other text:
-{"assessment": "<1|2|3|4|C>", "note": "<at most 3 concise sentences for an editor>"}"""
+{"assessment": "<1|2|3|4|C>", "note": "<at most 3 concise sentences for an editor, saying what changed and whether it is right>"}"""
 
 
 def _setting(name, default=None):
@@ -63,29 +63,13 @@ def _get_llm():
 
 
 def _strip_html(text):
-    if not isinstance(text, str):
-        return ""
-    from sefaria.model.translation_feedback import visible_text_with_map
-    return visible_text_with_map(text)[0].strip()
-
-
-def _source_text(oref):
-    """Primary (source-language) text of the segment, best effort."""
-    from sefaria.model import VersionSet, TextChunk
-    try:
-        primary = VersionSet({"title": oref.index.title, "isPrimary": True}, limit=1).array()
-        if primary:
-            v = primary[0]
-            return TextChunk(oref, vtitle=v.versionTitle, actual_lang=getattr(v, "actualLanguage", None),
-                             direction=getattr(v, "direction", None)).text
-        return TextChunk(oref, lang="he").text
-    except Exception as e:
-        logger.warning("translation_feedback: could not load source text", ref=oref.normal(), error=repr(e))
-        return ""
+    from sefaria.model.translation_feedback import visible_text
+    return visible_text(text).strip()
 
 
 def build_prompt(feedback):
     from sefaria.model import Ref
+    from sefaria.helper.translation_feedback import source_text
     oref = Ref(feedback.ref)
     suggestion = (getattr(feedback, "suggestion", None) or "").strip()
     comment = (getattr(feedback, "comment", None) or "").strip()
@@ -95,15 +79,20 @@ def build_prompt(feedback):
         "Translation version: {} (language: {})".format(feedback.version_title,
                                                         getattr(feedback, "actual_language", None) or feedback.language),
         "",
-        "<source_text>\n{}\n</source_text>".format(_strip_html(_source_text(oref))),
+        "<source_text>\n{}\n</source_text>".format(_strip_html(source_text(oref))),
         "",
-        "<translation_text>\n{}\n</translation_text>".format(_strip_html(getattr(feedback, "segment_text", ""))),
+        "<current_translation>\n{}\n</current_translation>".format(_strip_html(getattr(feedback, "segment_text", ""))),
         "",
-        "Selected word: \"{}\" (occurrence #{} of that word in the translation segment)".format(
-            feedback.word, feedback.occurrence + 1),
-        "Suggested replacement: {}".format("\"{}\"".format(suggestion) if suggestion else "(none - comment only)"),
-        "Reader comment: {}".format(comment if comment else "(none)"),
     ]
+    if feedback.is_word_level():
+        lines.append("Selected word: \"{}\" (occurrence #{} of that word in the translation segment)".format(
+            feedback.word, feedback.occurrence + 1))
+        lines.append("Suggested replacement for that word: {}".format(
+            "\"{}\"".format(suggestion) if suggestion else "(none - comment only)"))
+    else:
+        lines.append("<suggested_translation>\n{}\n</suggested_translation>".format(
+            suggestion if suggestion else "(none - comment only)"))
+    lines.append("Reader comment: {}".format(comment if comment else "(none)"))
     return "\n".join(lines)
 
 
