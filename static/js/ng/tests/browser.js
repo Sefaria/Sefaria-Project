@@ -1,7 +1,7 @@
 /**
  * jsdom scaffolding for tests that hydrate NgReaderApp (the same setup NgReaderApp.test.js uses):
  * a fake vertical layout for segments, synchronous-ish animation frames, a fake
- * IntersectionObserver, and touch pointer events.
+ * IntersectionObserver, and touch events.
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -92,7 +92,7 @@ export async function hydrate(container, props, extra = {}) {
   await flush();
 }
 
-/** A pointer event as a finger produces it. `t` sets the event's timeStamp (ms). */
+/** A pointer event (used here for mouse drags, which the swipes ignore). `t` sets its timeStamp (ms). */
 export function pointer(target, type, {x, y, t, id = 1, pointerType = 'touch'}) {
   const event = new Event(type, {bubbles: true, cancelable: true});
   Object.assign(event, {clientX: x, clientY: y, pointerId: id, pointerType});
@@ -101,14 +101,31 @@ export function pointer(target, type, {x, y, t, id = 1, pointerType = 'touch'}) 
   return event;
 }
 
-/** A finger drag from `from` to `to` over `ms`, on `target`. */
+/**
+ * A touch event as a finger produces it. `points` are the fingers down after the event (for
+ * touchend: the ones still down); `changed` the fingers this event is about. `t` sets the
+ * event's timeStamp (ms). Returns the event, so a test can read `defaultPrevented`.
+ */
+export function touch(target, type, {x, y, t, id = 1, points, changed, cancelable = true}) {
+  const event = new Event(type, {bubbles: true, cancelable});
+  const finger = (p) => ({identifier: p.id !== undefined ? p.id : id, clientX: p.x, clientY: p.y, target});
+  const here = [finger({x, y, id})];
+  const down = points ? points.map(finger) : (type === 'touchend' || type === 'touchcancel' ? [] : here);
+  Object.defineProperty(event, 'touches', {value: down});
+  Object.defineProperty(event, 'changedTouches', {value: changed ? changed.map(finger) : here});
+  if (t !== undefined) { Object.defineProperty(event, 'timeStamp', {value: t}); }
+  act(() => { target.dispatchEvent(event); });
+  return event;
+}
+
+/** A finger drag from `from` to `to` over `ms`, on `target`, as touch events. */
 export async function fingerDrag(target, from, to, {ms = 240, steps = 12, t0 = 1000} = {}) {
-  pointer(target, 'pointerdown', {...from, t: t0});
+  touch(target, 'touchstart', {...from, t: t0});
   for (let i = 1; i <= steps; i++) {
     const f = i / steps;
-    pointer(target, 'pointermove', {x: from.x + (to.x - from.x) * f, y: from.y + (to.y - from.y) * f, t: t0 + ms * f});
+    touch(target, 'touchmove', {x: from.x + (to.x - from.x) * f, y: from.y + (to.y - from.y) * f, t: t0 + ms * f});
   }
   await flush(2);
-  pointer(target, 'pointerup', {...to, t: t0 + ms});
+  touch(target, 'touchend', {...to, t: t0 + ms});
   await flush();
 }

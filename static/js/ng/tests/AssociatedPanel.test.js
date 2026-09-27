@@ -10,7 +10,7 @@ import {OVERLAY} from '../context';
 import {resetAssociatedCaches} from '../associatedData';
 import {PINS_KEY} from '../pins';
 import {fixture, neighbourText, v3} from './helpers';
-import {fingerDrag, flush, hydrate, pointer, realErrors, setupBrowser, wait} from './browser';
+import {fingerDrag, flush, hydrate, pointer, realErrors, setupBrowser, touch, wait} from './browser';
 
 const GENESIS_LINKS = require('./fixtures/links-genesis-1-1.json');
 const BERAKHOT_LINKS = require('./fixtures/links-berakhot-2a-1.json');
@@ -350,7 +350,7 @@ describe('with= deep links', () => {
   });
 });
 
-describe('swipes (touch pointer events)', () => {
+describe('swipes (touch events)', () => {
   beforeEach(() => { stubLinks(); stubTexts(); });
   const W = () => window.innerWidth;
 
@@ -405,14 +405,14 @@ describe('swipes (touch pointer events)', () => {
   test('a short slow drag pulls the panel under the finger, then settles back without opening', async () => {
     await hydrate(env.container, fixture('genesis-1'));
     const seg = $('[data-ng="segment"]');
-    pointer(seg, 'pointerdown', {x: 800, y: 400, t: 0});
-    pointer(seg, 'pointermove', {x: 780, y: 400, t: 300});
-    pointer(seg, 'pointermove', {x: 760, y: 400, t: 600});
+    touch(seg, 'touchstart', {x: 800, y: 400, t: 0});
+    touch(seg, 'touchmove', {x: 780, y: 400, t: 300});
+    touch(seg, 'touchmove', {x: 760, y: 400, t: 600});
     await flush(2);
     // The panel is mounted and moved by transform only.
     expect($('[data-ng="overlay"]').getAttribute('data-phase')).toBe('pulling');
     expect($('[data-ng="sheet"]').style.transform).toMatch(/^translate3d\(\d+(\.\d+)?px, 0(px)?, 0(px)?\)$/);
-    pointer(seg, 'pointerup', {x: 760, y: 400, t: 900});
+    touch(seg, 'touchend', {x: 760, y: 400, t: 900});
     await wait(420);
     expect(overlayState()).toBe(OVERLAY.NONE);
     expect($('[data-ng="overlay"]').hidden).toBe(true);

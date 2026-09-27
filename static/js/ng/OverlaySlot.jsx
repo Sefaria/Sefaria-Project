@@ -7,7 +7,8 @@
  * {overlay, onClose} and reads everything else from useNgReader().
  *
  * Motion: a horizontal drag on the text pulls a panel in under the finger (gestures.js), and a
- * drag on an open panel pushes it back out; releasing settles it by distance or velocity.
+ * drag on an open panel pushes it back out; releasing settles it by distance or velocity, on a
+ * curve that picks up the finger's speed. The backdrop's opacity tracks the panel's progress.
  * Opening any other way (a badge, the header, a `with=` link) slides it in. Only transform and
  * opacity change, so the compositor does the work. Escape, the backdrop, the panel's close
  * button and the browser's Back button close it.
@@ -17,7 +18,7 @@
  */
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {OVERLAY, useIsomorphicLayoutEffect, useNgReader} from './context';
-import {PANEL, panelOffset, panelSide, settleDuration, usePanelSwipes} from './gestures';
+import {PANEL, panelOffset, panelSide, settleCurve, usePanelSwipes} from './gestures';
 import {HOME} from './overlayState';
 import AssociatedPanel from './panels/AssociatedPanel';
 import ConfigPanel from './panels/ConfigPanel';
@@ -56,27 +57,27 @@ export default function OverlaySlot({panels = DEFAULT_PANELS}) {
     return (el && el.getBoundingClientRect().width) || (typeof window !== 'undefined' ? window.innerWidth - 44 : 320);
   }, []);
 
-  /** Put the panel at `p` (0 closed, 1 open), animating over `ms`, then call `done`. */
-  const place = useCallback((panelType, p, ms = 0, done = null) => {
+  /** Put the panel at `p` (0 closed, 1 open, >1 stretched), animating over `ms`, then call `done`. */
+  const place = useCallback((panelType, p, ms = 0, done = null, easing = EASE) => {
     clearTimeout(timer.current);
     progress.current = p;
     const sheet = sheetRef.current;
     const backdrop = backdropRef.current;
     const duration = reducedMotion() ? 0 : ms;
     if (sheet) {
-      sheet.style.transition = duration ? `transform ${duration}ms ${EASE}` : 'none';
+      sheet.style.transition = duration ? `transform ${duration}ms ${easing}` : 'none';
       sheet.style.transform = `translate3d(${panelOffset(panelType, interfaceDir, p, width())}px, 0, 0)`;
     }
     if (backdrop) {
-      backdrop.style.transition = duration ? `opacity ${duration}ms ease-out` : 'none';
-      backdrop.style.opacity = String(p);
+      backdrop.style.transition = duration ? `opacity ${duration}ms ${easing}` : 'none';
+      backdrop.style.opacity = String(Math.min(1, Math.max(0, p)));
     }
     if (done) { timer.current = setTimeout(done, duration + 30); }
   }, [interfaceDir, width]);
 
   const settle = useCallback((panelType, to, velocity, done) => {
-    const ms = settleDuration(progress.current, to, velocity, width());
-    place(panelType, to, ms, done);
+    const {duration, easing} = settleCurve(progress.current, to, velocity, width());
+    place(panelType, to, duration, done, easing);
   }, [place, width]);
 
   // Follow the overlay state: slide a newly opened panel in, and an closed one out.

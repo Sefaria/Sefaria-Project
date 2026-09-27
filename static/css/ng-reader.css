@@ -172,7 +172,11 @@ body.ng-body {
   padding-block: calc(var(--ng-header-height) + env(safe-area-inset-top) + 8px) 34vh;
   padding-inline: var(--ng-page-inline);
   overflow-anchor: none;           /* TextStream anchors prepended sections itself */
-  touch-action: pan-y pinch-zoom;  /* horizontal drags are reserved for the panels */
+  /* Horizontal drags are reserved for the panels. The browser reads touch-action once, at
+     touchstart: pan-y keeps native vertical scrolling and stops horizontal panning and history
+     swipes here. The vertical part of a diagonal drag is held by gestures.js, which
+     preventDefault()s the touchmoves of a gesture it has locked horizontal. */
+  touch-action: pan-y pinch-zoom;
   font-size: calc(19px * var(--ng-font-scale));
 }
 
@@ -548,18 +552,22 @@ body.ng-body {
   background: var(--ng-surface);
   outline: none;
   will-change: transform;
+  /* Past fully open the panel stretches with resistance (gestures.js rubberBand, at most 72px);
+     this solid shadow fills the gap it would otherwise open at the screen edge. */
+  --ng-sheet-stretch-right: 96px 0 0 0 var(--ng-surface);
+  --ng-sheet-stretch-left: -96px 0 0 0 var(--ng-surface);
 }
 .ng-reader .ng-sheet[data-side="right"] {
   right: 0;
   left: auto;
   border-radius: 18px 0 0 18px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), -10px 0 38px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), -10px 0 38px rgba(0, 0, 0, 0.16), var(--ng-sheet-stretch-right);
 }
 .ng-reader .ng-sheet[data-side="left"] {
   left: 0;
   right: auto;
   border-radius: 0 18px 18px 0;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 10px 0 38px rgba(0, 0, 0, 0.16);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 10px 0 38px rgba(0, 0, 0, 0.16), var(--ng-sheet-stretch-left);
 }
 /* Motion comes from OverlaySlot's inline styles, never from keyframes (they would fight the finger). */
 .ng-reader .ng-overlay[data-overlay] .ng-sheet[data-side],
@@ -666,11 +674,11 @@ body.interface-hebrew.ng-body #appLoading .int-en { display: none; }
   border-radius: 0;
   border-start-end-radius: 20px;
   border-end-end-radius: 20px;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 8px 0 32px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 8px 0 32px rgba(0, 0, 0, 0.14), var(--ng-sheet-stretch-left);
   animation: ng-config-in 260ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .ng-reader[dir="rtl"] .ng-overlay[data-overlay="config"] .ng-sheet {
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), -8px 0 32px rgba(0, 0, 0, 0.14);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), -8px 0 32px rgba(0, 0, 0, 0.14), var(--ng-sheet-stretch-right);
   animation-name: ng-config-in-rtl;
 }
 @keyframes ng-config-in { from { transform: translateX(-100%); } }

@@ -22,9 +22,10 @@ export const NG_SHORT_LANG: Record<NgLanguage, string> = { hebrew: 'he', english
  *   - `[data-ng="stream"]` data-language
  *
  * Swipes go through real touch input: CDP `Input.dispatchTouchEvent`, which reaches the page as
- * `pointerType: "touch"` pointer events through Chromium's touch pipeline. The reader ignores
- * mouse pointers on purpose (a mouse drag selects text), so Playwright's synthetic mouse can't
- * exercise it. CDP is Chromium-only: callers skip swipes on WebKit.
+ * touch events through Chromium's touch pipeline, `touch-action` and scrolling included. The
+ * reader listens to touch events only (it must preventDefault a touchmove to hold the page still
+ * during a swipe), so Playwright's synthetic mouse can't exercise it. CDP is Chromium-only:
+ * callers skip swipes on WebKit.
  */
 export class NgReaderPage extends HelperBase {
   private cdp: CDPSession | null = null;
@@ -288,6 +289,57 @@ export class NgReaderPage extends HelperBase {
       await this.page.waitForTimeout(t(durationMs / steps));
     }
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  }
+
+  /**
+   * One finger along `path` (the first point is the touchStart), `stepsPerLeg` touchMoves per
+   * leg, over about `durationMs` in all, then touchEnd. For drags that wobble or turn.
+   */
+  async swipePath(path: Point[], { stepsPerLeg = 4, durationMs = 320 } = {}) {
+    const cdp = await this.touch();
+    const at = (p: Point) => [{ x: p.x, y: p.y, id: 1, radiusX: 10, radiusY: 10, force: 1 }];
+    const moves = (path.length - 1) * stepsPerLeg;
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: at(path[0]) });
+    for (let leg = 1; leg < path.length; leg++) {
+      const a = path[leg - 1];
+      const b = path[leg];
+      for (let i = 1; i <= stepsPerLeg; i++) {
+        const f = i / stepsPerLeg;
+        await cdp.send('Input.dispatchTouchEvent', {
+          type: 'touchMove', touchPoints: at({ x: a.x + (b.x - a.x) * f, y: a.y + (b.y - a.y) * f }),
+        });
+        await this.page.waitForTimeout(t(durationMs / moves));
+      }
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  }
+
+  /**
+   * Start recording, for every touchmove, whether the reader preventDefault()ed it: the swipe's
+   * axis lock. The listener is on window, in the bubble phase, so it runs after the reader's own
+   * (on the document). Chromium already drops the scroll of a drag that starts sideways under
+   * `touch-action: pan-y`, so page scrolling alone can't tell a locked swipe from an unlocked
+   * one here; iOS Safari has no such rule, and the preventDefault is what holds the page there.
+   */
+  async recordTouchMoves() {
+    await this.page.evaluate(() => {
+      const log: { prevented: boolean; cancelable: boolean }[] = [];
+      (window as any).__ngTouchMoves = log;
+      window.addEventListener('touchmove', (e) => log.push({ prevented: e.defaultPrevented, cancelable: e.cancelable }),
+        { passive: true });
+    });
+  }
+
+  /** The recorded touchmoves: `true` for each one the reader prevented, in order. */
+  async touchMovesPrevented(): Promise<boolean[]> {
+    return this.page.evaluate(() => ((window as any).__ngTouchMoves || []).map((m: { prevented: boolean }) => m.prevented));
+  }
+
+  /** The document's vertical scroll position, once the frames after the last input have run. */
+  async scrollY(): Promise<number> {
+    return this.page.evaluate(() => new Promise<number>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve(window.scrollY)));
+    }));
   }
 
   /**

@@ -180,6 +180,54 @@ test.describe('NG Mobile Reader — swipes (English interface)', () => {
     await ng.expectOverlay('associated');
     expect(await ng.overlayChanges()).toContain('overlay.data-phase=pulling');
   });
+
+  // The axis lock (gestures.js): a drag commits to an axis after 8px, favoring vertical. Once it
+  // locks horizontal, the reader preventDefault()s every touchmove, so the page cannot scroll
+  // however the finger wobbles; a drag that reads as vertical is left to native scrolling.
+  test('NG-G006: a mostly horizontal drag with vertical wobble opens the panel and never scrolls the page', async () => {
+    const ng = pm.onNgReader();
+    await ng.scrollBy(300);  // room to scroll both ways, so a stray scroll would show
+    const width = await ng.viewportWidth();
+    const before = await ng.scrollY();
+    expect(before).toBeGreaterThan(100);
+    await ng.recordTouchMoves();
+    const x0 = width - 60;
+    await ng.swipePath([
+      { x: x0, y: 460 },
+      { x: x0 - 12, y: 464 },       // the lock: 12px sideways, 4px down (18 degrees)
+      { x: x0 - 70, y: 430 },       // then the finger wanders 30-40px up and down
+      { x: x0 - 130, y: 495 },
+      { x: x0 - 190, y: 445 },
+      { x: 70, y: 500 },
+    ], { stepsPerLeg: 5, durationMs: 380 });
+    await ng.expectOverlay('associated');
+    await ng.expectPanelSide('right');
+    expect(await ng.scrollY()).toBe(before);
+    // The lock itself: every move from the one that locks is prevented, whatever the finger's
+    // dy. (Chromium doesn't dispatch the moves inside its own touch slop, so the first move the
+    // page sees is already past the reader's 8px and locks; the jsdom tests cover the slop.)
+    const prevented = await ng.touchMovesPrevented();
+    expect(prevented.length).toBeGreaterThanOrEqual(15);
+    expect(prevented.every(Boolean)).toBe(true);
+  });
+
+  test('NG-G007: a mostly vertical drag with sideways wobble scrolls and opens nothing', async () => {
+    const ng = pm.onNgReader();
+    await ng.recordOverlayChanges();
+    await ng.recordTouchMoves();
+    const before = await ng.scrollY();
+    await ng.swipePath([
+      { x: 200, y: 640 },
+      { x: 206, y: 628 },           // 13px, mostly up: vertical
+      { x: 250, y: 520 },           // then 40-50px sideways drift
+      { x: 190, y: 400 },
+      { x: 240, y: 280 },
+    ], { stepsPerLeg: 5, durationMs: 320 });
+    await expect.poll(() => ng.scrollY(), { timeout: t(5000) }).toBeGreaterThan(before + 150);
+    expect(await ng.overlayChanges()).toEqual([]);
+    await ng.expectOverlay('none');
+    expect((await ng.touchMovesPrevented()).some(Boolean)).toBe(false);  // native scrolling, untouched
+  });
 });
 
 test.describe('NG Mobile Reader — swipes (Hebrew interface)', () => {
