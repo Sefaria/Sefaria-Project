@@ -14,7 +14,9 @@ import {groupSourceRefs, panelLinks} from './associated';
 import {pickVersions} from './text';
 import {refToUrlPath} from './url';
 
-const TEXT_VERSIONS = [{languageFamilyName: 'primary'}, {languageFamilyName: 'translation'}];
+// The source, and the best English translation. ('translation' alone would be the top-priority
+// translation in any language: Esperanto for some Rif, which a translation-only reader can't read.)
+const TEXT_VERSIONS = [{languageFamilyName: 'primary'}, {languageFamilyName: 'english'}];
 
 /**
  * A queue that runs one task at a time (or `concurrency`), deduplicated by key. `front` moves
@@ -90,7 +92,11 @@ export function paragraphs(value) {
  */
 export function textFromApi(data) {
   if (!data || data.error || !Array.isArray(data.versions)) { return null; }
-  const [primary, translation] = pickVersions(data.versions);
+  let [primary, translation] = pickVersions(data.versions);
+  if (primary && !translation && primary.direction === 'ltr') {
+    // A work written in English (its primary version is the English): it is the translation slot.
+    [primary, translation] = [null, primary];
+  }
   const meta = (v) => (v ? {versionTitle: v.versionTitle, lang: v.actualLanguage || v.language || null, direction: v.direction || null} : null);
   return {
     ref: data.ref,

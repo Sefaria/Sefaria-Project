@@ -229,3 +229,13 @@ describe('stream chunks (badges and pins)', () => {
     expect(comments.map(c => c.he[0])).toEqual(['single Rashi on Genesis 1:1:1', 'single Tzror HaMor on Torah, Exodus 1:1']);
   });
 });
+
+test('texts ask for the source and the English, and a work written in English reads as English', async () => {
+  const get = jest.spyOn(Sefaria, 'getTextsFromAPIV3').mockResolvedValue({ref: 'Abraham Cohen 1', versions: [
+    {versionTitle: 'Soncino', languageFamilyName: 'english', isPrimary: true, isSource: true, direction: 'ltr', text: 'A note'}]});
+  const {fetchText} = require('../associatedData');
+  const text = await fetchText('Abraham Cohen 1');
+  expect(get.mock.calls[0][1]).toEqual([{languageFamilyName: 'primary'}, {languageFamilyName: 'english'}]);
+  expect(text.he).toBeNull();
+  expect(text.en).toBe('A note');
+});
