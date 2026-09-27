@@ -8,9 +8,13 @@ branch is the source of truth; this file explains where things are and what's st
 | Branch | What's on it |
 |---|---|
 | `miguel` | The POC. `master` plus: Parsha header link, Torah Tracker "Previous Year" fix, "View as Ploni" demo + mock data, the new dashboard, sticky filter bar, year picker. No PR yet. |
-| `claude/gallant-davinci-ffo4tj` | One-command local Docker setup: `dev_docker/setup_local.sh`, `dev_docker/local_settings.py` (Redis caches, localhost cookie fix, renamed recaptcha check), README section, `/dump` in `.dockerignore`. Not on `miguel` on purpose. No PR yet. |
 
-Push POC work to `miguel` only. The designated Claude branch holds only the local-setup tooling.
+Push POC work to `miguel` only.
+
+The one-command local Docker setup (`dev_docker/setup_local.sh`, `dev_docker/local_settings.py` with Redis caches,
+the localhost cookie fix and the renamed recaptcha check, a README note, `/dump` in `.dockerignore`) is **not in the
+repo**. Its branch was removed at the product owner's request; they keep it as `local-docker-setup.patch`
+(restore with `git apply local-docker-setup.patch`, then `./dev_docker/setup_local.sh`).
 
 ## How the product owner runs it
 
@@ -42,7 +46,7 @@ Push POC work to `miguel` only. The designated Claude branch holds only the loca
 ## Open items
 
 1. **Cauldron:** open a PR from `miguel` to `master` (a draft is fine) so CI builds the images, then run `./create-cauldron.sh -n miguel -b miguel` in `Sefaria/cauldrons`. The product owner's GitHub account has only read access to that repo, so someone with Write access has to run it (or grant access). The URL would be https://www.miguel.cauldron.sefaria.org.
-2. Consider separate PRs to `master` for the "Previous Year" fix and for the local Docker setup.
+2. Consider a separate PR to `master` for the "Previous Year" fix (and, if the team wants it, for the local Docker setup patch).
 3. Dashboard follow-ups: Hebrew interface strings (English only so far), a mobile pass, lazy-loading Plot/d3 (they're in the main client bundle), SSR with `USE_NODE` untested (Node can import both libraries), the old `/api/user_stats` endpoint is no longer used by the page.
 4. Commentator portraits: only Rashi has a Sefaria topic image (a script sample); medieval commentators have no authentic likenesses. The page uses Hebrew-initials avatars; topic images could replace them where they exist.
 
