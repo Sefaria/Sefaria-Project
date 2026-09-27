@@ -178,20 +178,20 @@ const ModuleSwitcher = () => {
           url={"/"}
           newTab={Sefaria.activeModule !== Sefaria.LIBRARY_MODULE}
           targetModule={Sefaria.LIBRARY_MODULE}
-          dotColor={'--sefaria-blue'}
+          dotColor={'--color-accent, var(--sefaria-blue)'}
           text={{ en: "Library", he: Sefaria._("header.library") }} />
         <DropdownMenuSeparator />
         <DropdownModuleItem
           url={"/"}
           newTab={Sefaria.activeModule !== Sefaria.VOICES_MODULE}
           targetModule={Sefaria.VOICES_MODULE}
-          dotColor={'--sheets-green'}
+          dotColor={'--color-voices-accent, var(--sheets-green)'}
           text={{ en: "Voices", he: Sefaria._("header.voices") }} />
         <DropdownMenuSeparator />
         <DropdownModuleItem
           url={'https://developers.sefaria.org'}
           newTab={true}
-          dotColor={'--devportal-purple'}
+          dotColor={'--dm-developers-accent, var(--devportal-purple)'}
           text={{ en: "Developers", he: Sefaria._("header.developers") }} />
         <DropdownMenuSeparator />
         <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem" analyticsEventName="modswitch_item_click:click" analyticsEventText="More">
@@ -559,20 +559,20 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
 
         {module === Sefaria.LIBRARY_MODULE &&
           <a href="/" className="mobileModuleSwitcher" data-target-module={Sefaria.VOICES_MODULE}>
-            <span className="dropdownDot" style={{backgroundColor: `var(--sheets-green)`}}></span>
+            <span className="dropdownDot" style={{backgroundColor: `var(--color-voices-accent, var(--sheets-green))`}}></span>
             <InterfaceText>header.voices_on_sefaria</InterfaceText>
           </a>
         }
 
         {module === Sefaria.VOICES_MODULE &&
           <a href="/texts" className="mobileModuleSwitcher" data-target-module={Sefaria.LIBRARY_MODULE}>
-            <span className="dropdownDot" style={{backgroundColor: `var(--sefaria-blue)`}}></span>
+            <span className="dropdownDot" style={{backgroundColor: `var(--color-accent, var(--sefaria-blue))`}}></span>
             <InterfaceText>common.library_name</InterfaceText>
           </a>
         }
 
         <a href="https://developers.sefaria.org" className="mobileModuleSwitcher" target="_blank">
-          <span className="dropdownDot" style={{backgroundColor: `var(--devportal-purple)`}}></span>
+          <span className="dropdownDot" style={{backgroundColor: `var(--dm-developers-accent, var(--devportal-purple))`}}></span>
           <InterfaceText>header.developers_on_sefaria</InterfaceText>
         </a>
 

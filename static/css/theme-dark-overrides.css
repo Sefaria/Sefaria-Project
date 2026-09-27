@@ -32,6 +32,8 @@
     /* palette.js fallback colours that have no category token and fail 3:1 on dark surfaces. */
     --dm-palette-raspberry: #B272A4; /* theme-exempt */
     --dm-palette-darkblue: #5B86C8; /* theme-exempt */
+    /* Developers module dot in the header switchers (Header.jsx); --devportal-purple is 2.1:1 on the dark menu. */
+    --dm-developers-accent: var(--dm-palette-raspberry);
 
     /* #000-family ink (black, #121212, #333, brand navy) -> near-white; navy comes out light blue (#A3BCE1). */
     --dm-icon-filter: var(--color-icon-filter, invert(1) hue-rotate(180deg) brightness(.9));
