@@ -85,7 +85,7 @@
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
-  background-color: white;
+  background-color: var(--color-bg-on-accent);
   color: var(--theme-primary);
   border: none;
   height: 30px;
@@ -98,8 +98,8 @@
 }
 .popover-button:is(:hover, :active, :focus) {
   background: transparent;
-  color: white;
-  box-shadow: inset 0 0 0 1px white;
+  color: var(--color-text-on-accent);
+  box-shadow: inset 0 0 0 1px var(--color-text-on-accent);
   outline: none;
 }
 

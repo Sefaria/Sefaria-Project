@@ -69,7 +69,7 @@ a.secondary:disabled[data-active-module="voices"]{
 }
 
 [data-active-module="library"] .topicPanel .navTitle h1 {
-  color: black;
+  color: var(--color-text-strong);
   font-size: 30px;
   --hebrew-font: var(--hebrew-serif-font-family);
   --english-font: var(--english-serif-font-family);

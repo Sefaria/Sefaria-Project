@@ -27,7 +27,7 @@
   align-items: flex-start;
   justify-content: center;
   padding: 56px 32px;
-  background-color: var(--sefaria-blue);
+  background-color: var(--color-bg-brand);
   background-image: url("/static/img/auth/auth-bg-desktop.png");
   background-size: cover;
   background-position: center bottom;
@@ -124,19 +124,19 @@
   color: var(--color-text-primary);
 }
 .sefaria-auth-card-sub a {
-  color: var(--sefaria-blue);
+  color: var(--color-accent);
 }
 .sefaria-auth-card-sub .sefaria-auth-loading {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--sefaria-blue);
+  color: var(--color-accent);
 }
 .sefaria-auth-card-sub .sefaria-auth-loading-spinner {
   width: 14px;
   height: 14px;
-  border: 2px solid rgba(24, 52, 93, 0.25);
-  border-top-color: var(--sefaria-blue);
+  border: 2px solid var(--color-accent-track);
+  border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: sefaria-auth-spin 0.8s linear infinite;
 }
@@ -215,8 +215,8 @@
   height: 51px;
 }
 .sefaria-provider-button-shell:hover .sefaria-provider-button {
-  background-color: var(--highlight-blue-light);
-  border-color: #264764;
+  background-color: var(--color-highlight-light);
+  border-color: var(--color-accent-hover);
 }
 .sefaria-provider-button-shell.is-disabled {
   cursor: not-allowed;
@@ -224,11 +224,11 @@
 .sefaria-provider-button-shell.is-disabled .sefaria-provider-button {
   background-color: var(--color-bg-disabled);
   border-color: var(--color-border-input);
-  color: var(--medium-grey-legacy);
+  color: var(--color-text-tertiary);
   cursor: not-allowed;
 }
 .sefaria-provider-button-shell.is-disabled .sefaria-provider-button * {
-  color: var(--medium-grey-legacy);
+  color: var(--color-text-tertiary);
 }
 
 .sefaria-provider-button {
@@ -241,7 +241,7 @@
   justify-content: center;
   gap: 8px;
   background-color: var(--color-bg-raised);
-  border: 1.5px solid var(--sefaria-blue);
+  border: 1.5px solid var(--color-accent);
   border-radius: 4px;
   color: var(--color-text-primary);
   cursor: pointer;
@@ -253,17 +253,17 @@
   color: var(--color-text-primary);
 }
 .sefaria-provider-button:hover {
-  background-color: var(--highlight-blue-light);
-  border-color: #264764;
+  background-color: var(--color-highlight-light);
+  border-color: var(--color-accent-hover);
 }
 .sefaria-provider-button:disabled {
   background-color: var(--color-bg-disabled);
   border-color: var(--color-border-input);
   cursor: not-allowed;
-  color: var(--medium-grey-legacy);
+  color: var(--color-text-tertiary);
 }
 .sefaria-provider-button:disabled * {
-  color: var(--medium-grey-legacy);
+  color: var(--color-text-tertiary);
 }
 .sefaria-provider-button-icon {
   width: 16px;
@@ -307,7 +307,7 @@
   text-align: center;
 }
 .sefaria-legal-text a {
-  color: var(--sefaria-blue);
+  color: var(--color-accent);
 }
 
 /*# sourceMappingURL=auth.css.map */

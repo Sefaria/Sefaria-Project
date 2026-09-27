@@ -68,7 +68,7 @@ a.secondary:disabled[data-active-module="voices"]{
 }
 
 [data-active-module="voices"] .collectionPage div.navTitle h1, [data-active-module="voices"] .topicPanel .navTitle h1 {
-  color: black;
+  color: var(--color-text-strong);
   font-size: 30px;
   --hebrew-font: var(--hebrew-sans-serif-font-family);
   --english-font: var(--english-sans-serif-font-family);
