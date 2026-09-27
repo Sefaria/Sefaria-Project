@@ -240,6 +240,11 @@
   :root[data-theme="dark"] .readerNavMenu h1 .navTitleTab.current img {
     filter: var(--dm-icon-filter-secondary);
   }
+  /* The greyscale "no results" illustrations (mono-dark in the inventory) have large near-white fills:
+     after inversion those would be pure black holes, so pull the ends in to sit on the dark surface. */
+  :root[data-theme="dark"] img[src*="/static/img/no-results-search-illustrations/"] {
+    filter: invert(1) hue-rotate(180deg) brightness(1.18) contrast(.85);
+  }
   /* Search result cards force the topic icon to black (light: brightness(0)). */
   :root[data-theme="dark"] .searchResultCard-iconImg--topic {
     filter: brightness(0) var(--dm-icon-filter);
