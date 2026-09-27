@@ -4,6 +4,7 @@ from django.contrib import admin
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from functools import partial
 import reader.views as reader_views
+import reader.translation_feedback_views as translation_feedback_views
 import sefaria.views as sefaria_views
 from sefaria.urls_shared import shared_patterns, maintenance_patterns
 from sefaria.settings import DOWN_FOR_MAINTENANCE
@@ -86,6 +87,13 @@ urlpatterns = [
         sefaria_views.text_download_api),
     re_path(r'^download/bulk/versions/', sefaria_views.bulk_download_versions_api),
 
+]
+
+# Translation feedback POC (dashboard is unlinked; open to anyone with the URL)
+urlpatterns += [
+    re_path(r'^translation-feedback/?$', translation_feedback_views.translation_feedback_dashboard),
+    re_path(r'^api/translation-feedback/?$', translation_feedback_views.translation_feedback_api),
+    re_path(r'^api/translation-feedback/(?P<feedback_id>[0-9a-f]{24})/accept/?$', translation_feedback_views.translation_feedback_accept_api),
 ]
 
 # Operational tooling

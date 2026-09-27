@@ -17054,3 +17054,102 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   pointer-events: none;
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
+
+/* Translation feedback POC (static/js/TranslationFeedback.jsx) */
+.translationFeedbackDialog {
+  border: none;
+  border-radius: 10px;
+  padding: 0;
+  width: 480px;
+  max-width: calc(100vw - 40px);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+  font-family: var(--english-sans-serif-font-family);
+  color: #333;
+}
+.translationFeedbackDialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.translationFeedbackForm {
+  padding: 24px 28px;
+  direction: ltr;
+  text-align: left;
+}
+.translationFeedbackForm h2 {
+  margin: 0 0 18px;
+  font-size: 22px;
+  font-weight: 500;
+  color: #000;
+  text-transform: none;
+  letter-spacing: normal;
+  text-align: left;
+}
+.translationFeedbackField {
+  margin-bottom: 16px;
+}
+.translationFeedbackField label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.translationFeedbackField .optional {
+  font-weight: normal;
+  color: var(--medium-grey);
+}
+.translationFeedbackField .readOnlyValue {
+  font-size: 16px;
+  padding: 6px 10px;
+  background: var(--lightest-grey, #F7F7F7);
+  border-radius: 6px;
+}
+.translationFeedbackField .selectedWord {
+  font-weight: 500;
+}
+.translationFeedbackMeta,
+.translationFeedbackHelp {
+  font-size: 13px;
+  color: var(--dark-grey);
+  margin: 4px 0 6px;
+}
+.translationFeedbackField input,
+.translationFeedbackField textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 16px;
+  padding: 8px 10px;
+  border: 1px solid var(--light-grey);
+  border-radius: 6px;
+  resize: vertical;
+}
+.translationFeedbackError {
+  color: #B71C1C;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+.translationFeedbackButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.translationFeedbackButtons .button {
+  margin: 0;
+}
+.translationFeedbackButtons .button[disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+.translationFeedbackToast {
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100001;
+  background: var(--sefaria-blue);
+  color: #fff;
+  padding: 12px 22px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 16px;
+}

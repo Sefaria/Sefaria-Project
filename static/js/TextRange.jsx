@@ -278,6 +278,8 @@ class TextRange extends Component {
     if(segments.length > 0 && strip_vowels_re && !strip_vowels_re.test(segments[0].he)){
       strip_vowels_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
     }
+    // Translation version shown on each segment, for the translation feedback POC (TranslationFeedback.jsx).
+    const translationVersion = Array.isArray(data?.versions) && data.versions.length ? Sefaria.getPrimaryAndTranslationFromVersions(data.versions)[1] : null;
     let textSegments = segments.map((segment, i) => {
       let highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
                             Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 || // highlight if this ref is in highlighted refs prop
@@ -335,6 +337,8 @@ class TextRange extends Component {
             formatHeAsPoetry={formatHeAsPoetry}
             placeSegmentNumbers={this.conditionalPlaceSegmentNumbers}
             navigatePanel={this.props.navigatePanel}
+            translationVersionTitle={(Array.isArray(data.sources) && data.sources[i]) || data.versionTitle || null}
+            translationActualLanguage={translationVersion?.actualLanguage || null}
           />
         </span>
       );
@@ -652,6 +656,8 @@ class TextSegment extends Component {
       <div tabIndex="0"
            className={classes} onClick={this.handleClick} onKeyDown={(e) => Util.handleKeyboardClick(e, this.handleClick)}
            data-ref={this.props.sref}
+           data-translation-vtitle={this.props.en ? (this.props.translationVersionTitle || undefined) : undefined}
+           data-translation-lang={this.props.en ? (this.props.translationActualLanguage || undefined) : undefined}
            aria-describedby={this.props.panelPosition != null ? ("panel-"+this.props.panelPosition) : null}
            aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
@@ -685,6 +691,8 @@ TextSegment.propTypes = {
   onNamedEntityClick: PropTypes.func,
   unsetTextHighlight: PropTypes.func,
   navigatePanel: PropTypes.func,
+  translationVersionTitle: PropTypes.string,
+  translationActualLanguage: PropTypes.string,
 };
 
 export { TextSegment };

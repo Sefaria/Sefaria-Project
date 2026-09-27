@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load sefaria_tags %}
+
+{% block meta_title %}{% meta_title %}Translation Feedback | Sefaria{% endmeta_title %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block css %}
+    #translationFeedbackPage { max-width: 1400px; margin: 0 auto; padding: 40px 30px 80px; font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif; color: #333; }
+    #translationFeedbackPage h1 { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; font-size: 36px; font-weight: normal; margin: 0 0 6px; color: #000; }
+    #translationFeedbackPage .subtitle { color: #666; font-size: 15px; margin-bottom: 24px; }
+    #translationFeedbackPage .legend { display: flex; flex-wrap: wrap; gap: 8px 24px; background: #F7F7F7; border-radius: 6px; padding: 12px 16px; margin-bottom: 24px; font-size: 14px; }
+    #translationFeedbackPage .legend .code { display: inline-block; min-width: 22px; font-weight: bold; }
+    #translationFeedbackPage table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.4; }
+    #translationFeedbackPage th { text-align: left; font-weight: 500; color: #666; text-transform: uppercase; font-size: 12px; letter-spacing: .04em; border-bottom: 2px solid #CCC; padding: 8px 10px; white-space: nowrap; }
+    #translationFeedbackPage td { vertical-align: top; border-bottom: 1px solid #E6E6E6; padding: 10px; }
+    #translationFeedbackPage tr.accepted td { background: #F2F8F3; }
+    #translationFeedbackPage td.date { white-space: nowrap; color: #666; }
+    #translationFeedbackPage td.ref a { color: #18345D; font-weight: 500; }
+    #translationFeedbackPage .small { display: block; font-size: 12px; color: #888; margin-top: 3px; }
+    #translationFeedbackPage .small a { color: #888; }
+    #translationFeedbackPage .word { background: #FFF6D6; padding: 0 3px; border-radius: 3px; }
+    #translationFeedbackPage td.suggestion { min-width: 140px; }
+    #translationFeedbackPage td.comment { max-width: 340px; white-space: pre-wrap; }
+    #translationFeedbackPage td.note { max-width: 380px; color: #444; }
+    #translationFeedbackPage td.assessment { text-align: center; font-weight: bold; font-size: 18px; }
+    #translationFeedbackPage .a1 { color: #2E7D32; } #translationFeedbackPage .a2 { color: #558B2F; }
+    #translationFeedbackPage .a3 { color: #B26A00; } #translationFeedbackPage .a4 { color: #B71C1C; }
+    #translationFeedbackPage .aC { color: #18345D; } #translationFeedbackPage .aQ { color: #999; }
+    #translationFeedbackPage .pending { font-style: italic; color: #999; font-weight: normal; font-size: 13px; }
+    #translationFeedbackPage .acceptButton { margin-top: 8px; font-size: 13px; padding: 4px 10px; border-radius: 6px; border: 1px solid #18345D; background: #18345D; color: #fff; cursor: pointer; }
+    #translationFeedbackPage .acceptButton[disabled] { opacity: .5; cursor: default; }
+    #translationFeedbackPage .acceptedLabel { display: inline-block; margin-top: 8px; font-size: 12px; color: #2E7D32; font-weight: 500; }
+    #translationFeedbackPage .acceptError { display: block; margin-top: 6px; font-size: 12px; color: #B71C1C; }
+    #translationFeedbackPage .loginHint { display: block; margin-top: 8px; font-size: 12px; }
+    #translationFeedbackPage .empty { padding: 40px; text-align: center; color: #888; }
+{% endblock %}
+
+{% block content %}
+<div id="translationFeedbackPage">
+    <h1>Translation Feedback</h1>
+    <div class="subtitle">Reader feedback on AI translations, newest first. Proof of concept &mdash; not linked from the site.</div>
+
+    <div class="legend">
+        <strong>LLM Assessment:</strong>
+        {% for code, label in legend %}
+            <span><span class="code a{{ code }}">{{ code }}</span>{{ label }}</span>
+        {% endfor %}
+        <span><span class="code aQ">?</span>LLM unavailable or unparseable (see note)</span>
+    </div>
+
+    {% if rows %}
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Ref</th>
+                <th>UserID</th>
+                <th>Suggestion</th>
+                <th>Comment</th>
+                <th>LLM Assessment</th>
+                <th>LLM Note</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in rows %}
+            <tr class="{% if row.accepted %}accepted{% endif %}" data-id="{{ row.id }}">
+                <td class="date">{{ row.date }}</td>
+                <td class="ref">
+                    {% if row.reader_url %}<a href="{{ row.reader_url }}" target="_blank">{{ row.ref }}</a>{% else %}{{ row.ref }}{% endif %}
+                    <span class="small">{{ row.version_title }}</span>
+                    {% if row.history_url %}<span class="small"><a href="{{ row.history_url }}" target="_blank">history</a></span>{% endif %}
+                </td>
+                <td class="user">{% if row.user_id %}{{ row.user_id }}{% else %}anon{% endif %}</td>
+                <td class="suggestion">
+                    {% if row.suggestion %}{{ row.suggestion }}{% else %}&mdash;{% endif %}
+                    <span class="small">word: <span class="word">{{ row.word }}</span>{% if row.occurrence > 1 %} (#{{ row.occurrence }}){% endif %}</span>
+                    {% if row.suggestion %}
+                        {% if row.accepted %}
+                            <span class="acceptedLabel">&#10003; Accepted</span>
+                        {% elif logged_in %}
+                            <button class="acceptButton" data-id="{{ row.id }}">Accept suggestion</button>
+                        {% else %}
+                            <a class="loginHint" href="{{ login_url }}">Log in to accept</a>
+                        {% endif %}
+                    {% endif %}
+                </td>
+                <td class="comment">{% if row.comment %}{{ row.comment }}{% else %}&mdash;{% endif %}</td>
+                <td class="assessment">
+                    {% if row.assessment %}
+                        <span class="a{% if row.assessment == '?' %}Q{% else %}{{ row.assessment }}{% endif %}">{{ row.assessment }}</span>
+                    {% else %}
+                        <span class="pending">pending</span>
+                    {% endif %}
+                </td>
+                <td class="note">{% if row.note %}{{ row.note }}{% elif not row.assessment %}<span class="pending">pending</span>{% endif %}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <div class="empty">No feedback yet. Double-click a word in a translation in the reader to leave some.</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+(function() {
+    var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || "";
+    document.querySelectorAll("#translationFeedbackPage .acceptButton").forEach(function(button) {
+        button.addEventListener("click", function() {
+            var cell = button.parentNode;
+            var old = cell.querySelector(".acceptError");
+            if (old) { old.remove(); }
+            if (!window.confirm("Replace the word in this version of the text with the suggestion? This edit will appear in the text's history.")) { return; }
+            button.disabled = true;
+            fetch("/api/translation-feedback/" + button.dataset.id + "/accept", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {"X-CSRFToken": csrf, "Content-Type": "application/json"},
+                body: "{}"
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.error) { throw new Error(data.error); }
+                var label = document.createElement("span");
+                label.className = "acceptedLabel";
+                label.textContent = "✓ Accepted";
+                button.replaceWith(label);
+                cell.parentNode.classList.add("accepted");
+            }).catch(function(e) {
+                button.disabled = false;
+                var err = document.createElement("span");
+                err.className = "acceptError";
+                err.textContent = e.message || "Something went wrong.";
+                cell.appendChild(err);
+            });
+        });
+    });
+})();
+</script>
+{% endblock %}

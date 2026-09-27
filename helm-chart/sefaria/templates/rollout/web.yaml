@@ -171,6 +171,10 @@ spec:
           - secretRef:
               name: {{ template "sefaria.secrets.geminiApiKey" . }}
               optional: true
+          # ANTHROPIC_API_KEY for in-process LLM calls (translation feedback POC); same secret the tasks pod mounts
+          - secretRef:
+              name: {{ .Values.tasks.anthropicSecretRef }}
+              optional: true
           - secretRef:
               name: {{ .Values.secrets.localSettings.ref }}
               optional: true
