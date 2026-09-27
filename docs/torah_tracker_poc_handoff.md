@@ -7,7 +7,7 @@ branch is the source of truth; this file explains where things are and what's st
 
 | Branch | What's on it |
 |---|---|
-| `miguel` | The POC. `master` plus: Parsha header link, Torah Tracker "Previous Year" fix, "View as Ploni" demo + mock data, the new dashboard, sticky filter bar, year picker. No PR yet. |
+| `miguel` | The POC. `master` plus: Parsha header link, Torah Tracker "Previous Year" fix, "View as Ploni" demo + mock data, the new dashboard, sticky filter bar with year and month dropdowns. No PR yet. |
 
 Push POC work to `miguel` only.
 
@@ -28,7 +28,7 @@ repo**. Its branch was removed at the product owner's request; they keep it as `
 
 - **Page:** `static/js/UserStats.jsx` (route `/torahtracker`). Observable Plot for charts, d3 v7 for the sunburst (both added to `package.json`). Styles at the end of `static/css/s2.css`, scoped to `.torahTracker`.
 - **Data:** `GET /api/torah_tracker/<uid|ploni>` → `sefaria/helper/torah_tracker.py`. Returns the reader's history as compact rows `[epoch, ref, book, sidebar 0/1, lang]` (most recent 20,000) plus per-book metadata (categories, Hebrew title, compDate, era, commentator `partner`/`hePartner`, `base`, `chapters`). Own uid, staff for anyone, `ploni` when the demo is on. All aggregation is client-side.
-- **Filters** (shared by every chart): time (All years / year picker, month via chart clicks), library path (breadcrumb; category › … › book › chapter), study partner. Commentary rows also match the library filter through their base text (`basePath`), so "Torah with Rashi" works.
+- **Filters** (shared by every chart): time (year and month dropdowns; chart clicks drill in too), library path (breadcrumb; category › … › book › chapter), study partner. Commentary rows also match the library filter through their base text (`basePath`), so "Torah with Rashi" works.
 - **Charts:** stat tiles, insights, learning-over-time line (click to zoom), category small multiples, multi-year calendar heatmap + day detail, library sunburst, study partners (Hebrew-initials avatars + year matrix), Tanakh 929-chapter map, composition-era dot plot, weekly rhythm punchcard, language mix, top passages. Every card has a table view.
 - **Colors:** Sefaria's category colors fail colorblind separation as a chart palette, so category marks are always labeled or faceted. The sequential teal ramp (`#86bcc5 → #003f4d`) and language colors (`#2a78d6`, `#eb6834`, `#1baf7a`) pass the dataviz validator.
 

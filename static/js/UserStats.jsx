@@ -165,18 +165,24 @@ const Breadcrumb = ({label, items, onSelect}) => (
 );
 
 
-const YearPicker = ({years, time, setTime}) => (
-  <div className="ttCrumbs" role="group" aria-label="Filter by year">
-    <span className="ttCrumbLabel">When</span>
-    <div className="ttSegmented">
-      {[null, ...years].map(y => (
-        <button key={y === null ? "all" : y} className={time.year === y ? "on" : ""} aria-pressed={time.year === y}
-                onClick={() => setTime({year: y, month: null})}>{y === null ? "All years" : y}</button>
-      ))}
+const WhenPicker = ({rows, years, time, setTime}) => {
+  const monthsWithData = new Set(rows.filter(r => r.year === time.year).map(r => r.month));
+  return (
+    <div className="ttCrumbs">
+      <span className="ttCrumbLabel">When</span>
+      <select className="ttSelect" aria-label="Year" value={time.year === null ? "" : time.year}
+              onChange={e => setTime({year: e.target.value === "" ? null : +e.target.value, month: null})}>
+        <option value="">All years</option>
+        {years.slice().reverse().map(y => <option key={y} value={y}>{y}</option>)}
+      </select>
+      {time.year !== null && <select className="ttSelect" aria-label="Month" value={time.month === null ? "" : time.month}
+              onChange={e => setTime({year: time.year, month: e.target.value === "" ? null : +e.target.value})}>
+        <option value="">All months</option>
+        {MONTHS.map((m, i) => <option key={m} value={i} disabled={!monthsWithData.has(i)}>{m}</option>)}
+      </select>}
     </div>
-    {time.month !== null && <button className="ttChip" onClick={() => setTime({year: time.year, month: null})}>{MONTHS[time.month]} ✕</button>}
-  </div>
-);
+  );
+};
 
 
 // ---------- page ----------
@@ -258,7 +264,7 @@ const Dashboard = ({data}) => {
   return (
     <>
       <div className="ttFilters">
-        <YearPicker years={years} time={time} setTime={setTime}/>
+        <WhenPicker rows={rows} years={years} time={time} setTime={setTime}/>
         <Breadcrumb label="What" items={libraryItems} onSelect={i => setPath(path.slice(0, i))}/>
         {partner && <div className="ttCrumbs"><span className="ttCrumbLabel">With</span>
           <button className="ttChip" onClick={() => setPartner(null)}>{partner} ✕</button></div>}

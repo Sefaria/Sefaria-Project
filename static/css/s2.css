@@ -17079,10 +17079,10 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .torahTracker .ttCrumb:hover, .torahTracker .ttLinkButton:hover { text-decoration: underline; }
 .torahTracker .ttCrumbSep { color: var(--tt-muted); }
 .torahTracker .ttCrumbCurrent { font-weight: 600; }
-.torahTracker .ttSegmented { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 2px; background: #f1f1ef; border-radius: 999px; }
-.torahTracker .ttSegmented button { background: none; border: 0; border-radius: 999px; padding: 4px 12px; font-size: 14px; color: var(--tt-ink-2); cursor: pointer; font-variant-numeric: tabular-nums; }
-.torahTracker .ttSegmented button:hover { background: #e6e7e4; color: var(--tt-ink); }
-.torahTracker .ttSegmented button.on { background: var(--tt-accent); color: #fff; font-weight: 600; }
+.torahTracker .ttFilters, .torahTracker .ttFilters * { font-family: var(--english-sans-serif-font-family); }
+.torahTracker .ttSelect { appearance: none; -webkit-appearance: none; font-size: 14px; color: var(--tt-ink); background: #f1f1ef url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235c5c5c' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center; border: 1px solid transparent; border-radius: 999px; padding: 0 28px 0 12px; height: 30px; line-height: 28px; min-height: 0; margin: 0; box-sizing: border-box; width: auto; cursor: pointer; }
+.torahTracker .ttSelect:hover { border-color: var(--tt-hair); }
+.torahTracker .ttSelect:focus-visible { outline: 2px solid var(--tt-accent); outline-offset: 1px; }
 .torahTracker .ttChip { background: #eef3f4; border: 0; border-radius: 999px; padding: 3px 10px; cursor: pointer; font-size: 13px; }
 
 .torahTracker .ttStats { display: grid; grid-template-columns: 2fr repeat(5, 1fr); gap: 12px; margin-bottom: 12px; }
