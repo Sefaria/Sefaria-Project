@@ -22,6 +22,7 @@ import {
 } from './common/DropdownMenu';
 import Util from './sefaria/util';
 import Button from './common/Button';
+import { ThemeToggle, MobileThemeToggle } from './ThemeToggle';
 
 const AuthNavLink = ({flow, openURL, close, children}) => {
   const href = `/${flow}`;
@@ -311,6 +312,8 @@ const Header = (props) => {
 
           <ModuleSwitcher />
 
+          <ThemeToggle />
+
           {Sefaria._uid ?
             <LoggedInDropdown module={props.module} />
             : <LoggedOutDropdown module={props.module} openURL={props.openURL} />
@@ -530,6 +533,8 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
         }
 
         <MobileInterfaceLanguageToggle />
+
+        <MobileThemeToggle />
 
         <hr />
 

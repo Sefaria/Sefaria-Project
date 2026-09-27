@@ -21,7 +21,7 @@
   box-sizing: border-box;
   padding: 0 30px;
   justify-content: space-between;
-  background: white;
+  background: var(--color-bg-surface, var(--white));
 }
 @media (max-width: 842px) {
   .headerInner {
@@ -34,7 +34,7 @@
 }
 
 .headerInner.boxShadow {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px var(--color-shadow, color-mix(in srgb, var(--black) 20%, transparent));
 }
 
 @media (min-width: 1087px) {
@@ -117,7 +117,7 @@
 
 .textLink,
 .textLink:hover {
-  color: var(--dark-grey);
+  color: var(--color-text-secondary, var(--dark-grey));
 }
 
 .headerLinksSection {
@@ -127,7 +127,7 @@
 
 .header .searchBox {
   overflow: hidden;
-  background: var(--lighter-grey);
+  background: var(--color-bg-muted, var(--lighter-grey));
   border-radius: 250px;
   width: 250px;
   height: 30px;
@@ -164,8 +164,24 @@
   cursor: pointer;
 }
 
+.header .themeToggle {
+  margin: 0;
+  color: var(--color-text-secondary, var(--dark-grey));
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.header .themeToggle .themeToggleIcon {
+  flex-shrink: 0;
+}
+
+body.user-is-tabbing .header .themeToggle:focus {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: 2px;
+}
+
 .header .menuButton {
-  color: var(--medium-grey);
+  color: var(--color-text-muted, var(--medium-grey));
   border: none;
   background: transparent;
   padding: 0;
