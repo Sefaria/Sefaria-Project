@@ -36,11 +36,11 @@ Do not explain Sefaria basics (lexicons, entries, word forms, versions, links, c
 
 ## Step 0 — Which kind of machine (silent)
 
-Follow **Step 0** of `.claude/skills/move-text-to-cauldron/SKILL.md` exactly (direct mode vs. WSL mode, finding `<WSL-repo>` and `<WSL-scratchpad>`, and how to run a command "in Sefaria's shell"). When it says to confirm the repo path, check for `scripts/move_draft_lexicon.py` instead of `scripts/move_draft_text.py`.
+Follow **Step 0** of `.claude/skills/move-text-to-cauldron/SKILL.md` exactly (the `~/.sefaria/cauldron-setup.md` setup file, direct mode vs. WSL mode, finding `<WSL-repo>` and `<WSL-scratchpad>`, and how to run a command "in Sefaria's shell"). When it says to confirm the repo path, check for `scripts/move_draft_lexicon.py` instead of `scripts/move_draft_text.py`. If Step 0 used the setup file, its `<prefix>` (Python setup and API-key loading) goes in front of this skill's `cd <Sefaria-Project>` commands and its API key check too.
 
 ## Step 1 — Look up the lexicon (silent)
 
-`<Sefaria-Project>` is the repo root: `git rev-parse --show-toplevel` in direct mode, `<WSL-repo>` in WSL mode. If no lexicon name was given, ask for one. Then run in Sefaria's shell:
+`<Sefaria-Project>` is the repo root: the setup file's `sefaria_project:` if Step 0 used it, otherwise `git rev-parse --show-toplevel` in direct mode and `<WSL-repo>` in WSL mode. If no lexicon name was given, ask for one. Then run in Sefaria's shell:
 
 ```bash
 cd <Sefaria-Project> && PYTHONPATH=. DJANGO_SETTINGS_MODULE=sefaria.settings \

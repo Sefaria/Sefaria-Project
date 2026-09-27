@@ -30,7 +30,13 @@ It doesn't talk to the cluster directly. It writes a small config file named `<n
 
 ## Step 1 — Find the two repos
 
-This skill lives inside the Sefaria-Project repo, so `<Sefaria-Project>` below means the root of that repo (`git rev-parse --show-toplevel` from the project). The cauldrons repo is expected in the folder next to it: `<Sefaria-Project>/../cauldrons`, containing `create-cauldron.sh`. If it isn't there, ask the user where their cauldrons checkout is; if they don't have one, offer to clone it next to Sefaria-Project with `git clone https://github.com/Sefaria/cauldrons.git` — ask first.
+**Windows check.** If `uname -s` starts with `MINGW`, `MSYS`, or `CYGWIN`, Claude is running on Windows itself (Git Bash), where `create-cauldron.sh` can't run. Tell the user this skill has to run in a WSL session: in the Code tab, start a new session, choose their Ubuntu distribution under **WSL** in the environment picker, and open their Sefaria-Project folder there. If they haven't yet, they should run the `cauldron-setup` skill in that session first. Then stop.
+
+**Setup file.** Run `cat ~/.sefaria/cauldron-setup.md 2>/dev/null`. The `cauldron-setup` skill writes this file on Windows+WSL machines. If it exists, use its `cauldrons_repo:` as the cauldrons folder (if it says `not found`, or the folder has no `create-cauldron.sh`, tell the user to run the `cauldron-setup` skill again and stop). Also note its `can_push_cauldrons:` value for Step 5. If there's no file, continue as below.
+
+This skill lives inside the Sefaria-Project repo, so `<Sefaria-Project>` below means the root of that repo (`git rev-parse --show-toplevel` from the project). Without a setup file, the cauldrons repo is expected in the folder next to it: `<Sefaria-Project>/../cauldrons`, containing `create-cauldron.sh`. If it isn't there, ask the user where their cauldrons checkout is; if they don't have one, offer to clone it next to Sefaria-Project with `git clone https://github.com/Sefaria/cauldrons.git` — ask first.
+
+If `gh` is missing or not logged in (Step 3 needs it) and a setup file exists, tell the user to run the `cauldron-setup` skill again.
 
 ## Step 2 — Name and branch
 
@@ -100,6 +106,7 @@ Tell the user, in plain words:
 - Database: a fresh copy of today's production backup
 - Results of the Step 3 checks, especially any warnings
 - That this pushes a commit to `main` of the shared `Sefaria/cauldrons` repo, under their GitHub account, and the cauldron then deploys automatically
+- If the setup file said `can_push_cauldrons: no` (or `unknown`): a warning that their GitHub account may not be allowed to push to `Sefaria/cauldrons`, so the push will probably fail until the engineering team grants write access
 - The exact command: `./create-cauldron.sh -n <name> -b <branch>`
 
 Wait for an explicit yes.

@@ -29,7 +29,15 @@ Do not explain Sefaria basics (versions, the `he`/`en` language field, `[xx]` ta
 
 ## Step 0 — Which kind of machine (silent)
 
-Run `uname -s`.
+First run `cat ~/.sefaria/cauldron-setup.md 2>/dev/null`. The `cauldron-setup` skill writes this file on Windows+WSL machines. It never contains the key. If the file exists and says `wsl: yes`:
+- Claude is running inside WSL: use **direct mode**.
+- `<Sefaria-Project>` is its `sefaria_project:` value. If `test -f <Sefaria-Project>/scripts/move_draft_text.py` fails, say `~/.sefaria/cauldron-setup.md is out of date. Run the cauldron-setup skill again.` and stop.
+- Build `<prefix>` and put it in front of every command in this skill that starts with `cd <Sefaria-Project>`, and in front of the Step 1 key check:
+  - the `python_setup:` line followed by ` && `, unless it says `(none needed)`;
+  - if there's an `api_key_file:` line, `eval "$(grep -E '^[[:space:]]*(export[[:space:]]+)?SEFARIA_CAULDRON_API_KEY=' <api_key_file> | tail -1)" && export SEFARIA_CAULDRON_API_KEY && `. This loads just that one line from the file, wherever it is in the file, and prints nothing.
+- Skip the rest of Step 0.
+
+Otherwise, run `uname -s`.
 
 - `Darwin` or `Linux` → **direct mode**. Run every command in this skill as written.
 - Starts with `MINGW`, `MSYS`, or `CYGWIN` → **WSL mode**. Claude is running on Windows (through Git Bash), but Sefaria, its Python, its Mongo, and the API key all live inside WSL. Every command that touches Sefaria must be sent into WSL.
@@ -70,7 +78,7 @@ Notes for WSL mode:
 
 ## Step 1 — Look up the book (silent)
 
-`<Sefaria-Project>` is the repo root: `git rev-parse --show-toplevel` in direct mode, `<WSL-repo>` in WSL mode. If no title was given, ask for one. Then run in Sefaria's shell:
+`<Sefaria-Project>` is the repo root: the setup file's `sefaria_project:` if Step 0 used it, otherwise `git rev-parse --show-toplevel` in direct mode and `<WSL-repo>` in WSL mode. If no title was given, ask for one. Then run in Sefaria's shell:
 
 ```bash
 cd <Sefaria-Project> && PYTHONPATH=. DJANGO_SETTINGS_MODULE=sefaria.settings \
@@ -92,6 +100,8 @@ if [ -n "$SEFARIA_CAULDRON_API_KEY" ]; then echo "key is set"; else
   grep -l SEFARIA_CAULDRON_API_KEY ~/.zshrc ~/.zprofile ~/.zshenv ~/.bashrc ~/.bash_profile ~/.profile 2>/dev/null
 fi
 ```
+
+If Step 0 used the setup file (run the check with `<prefix>` in front) and the key isn't set, say `SEFARIA_CAULDRON_API_KEY isn't set in <api_key_file>. Run the cauldron-setup skill again.` and stop. Otherwise:
 
 Claude reads one startup file when a session starts: `~/.zshrc` if the shell is `zsh`, `~/.bashrc` if it's `bash`. Call that `<rc>` (for any other shell, say "your shell's startup file"). If the key isn't set:
 - Not found in `<rc>`: say `SEFARIA_CAULDRON_API_KEY isn't set. Add it to <rc> and restart the session.` If `grep` found it in another file, add ` (It's in <that file>, which Claude doesn't read.)` Then stop.
