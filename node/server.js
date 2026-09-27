@@ -17,7 +17,8 @@ const http          = require('http'),
     React           = require('react'),
     ReactDOMServer  = require('react-dom/server'),
     SefariaReact    = require('../static/js/ReaderApp.jsx'),
-    ReaderApp       = React.createFactory(SefariaReact.ReaderApp);
+    ReaderApp       = React.createFactory(SefariaReact.ReaderApp),
+    NgReader        = require('../static/js/ng/index.jsx');
 
 const {logger, expressLogger, errorLogger} = require('./sefaria-logging');
 
@@ -94,13 +95,25 @@ const renderReaderApp = function(props, data, timer) {
   timer.ms_to_render = timer.elapsed();
   return html;
 };
+
+const renderNgReaderApp = function(props, data, timer) {
+  // Returns HTML of the NG mobile reader (static/js/ng/) given `props` and `data`
+  props.remoteConfig = props.remoteConfig || {};
+  NgReader.ngSetup(data, props);  // resets the per-request caches, like sefariaSetup(..., true)
+  NgReader.ngUnpackProps(props);
+  timer.ms_to_set_data = timer.elapsed();
+  const html = ReactDOMServer.renderToString(React.createElement(NgReader.NgReaderApp, props));
+  timer.ms_to_render = timer.elapsed();
+  return html;
+};
+
 const router = express.Router();
 router.get('/error', function(req, res, next) {
   // here we cause an error in the pipeline so we see express-winston in action.
   return next(new Error("This is an error and it should be logged to the console"));
 });
 
-router.post('/ReaderApp/:cachekey', function(req, res, next) {
+const renderRoute = (render) => function(req, res, next) {
   // timing stored on locals so that it gets returned with the result to be logged
   const timer = res.locals.timing = {
     start: new Date(),
@@ -108,7 +121,7 @@ router.post('/ReaderApp/:cachekey', function(req, res, next) {
   };
   const props = req.body.propsJSON ? JSON.parse(req.body.propsJSON) : req.body;
   req.input_props = {               // For logging
-    initialRefs: props.panels ? props.panels[0].refs : null,
+    initialRefs: props.panels ? props.panels[0].refs : (props.initialPanel ? props.initialPanel.refs : null),
     initialMenu: props.initialMenu,
     initialPath: props.initialPath,
   };
@@ -123,7 +136,7 @@ router.post('/ReaderApp/:cachekey', function(req, res, next) {
     try {
       timer.ms_to_validate_cache = timer.elapsed();
 
-      const resphtml = renderReaderApp(props, sharedCacheData, timer);
+      const resphtml = render(props, sharedCacheData, timer);
 
       timer.ms_to_complete = timer.elapsed();
       delete res.locals.timing.elapsed;  // no need to pass this around
@@ -135,7 +148,10 @@ router.post('/ReaderApp/:cachekey', function(req, res, next) {
   }).catch(error => {
     return next(error);
   });
-});
+};
+
+router.post('/ReaderApp/:cachekey', renderRoute(renderReaderApp));
+router.post('/NgReaderApp/:cachekey', renderRoute(renderNgReaderApp));
 
 router.post('/Footer/:cachekey', function(req, res) {
   const props = req.body.propsJSON ? JSON.parse(req.body.propsJSON) : req.body;
