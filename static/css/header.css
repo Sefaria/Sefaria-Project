@@ -130,6 +130,11 @@ button.textLink {
   white-space: nowrap;
 }
 
+.textLink.assistant,
+.textLink.assistant:hover {
+  color: #653259;
+}
+
 .headerLinksSection {
   justify-content: flex-end;
   gap: 20px;

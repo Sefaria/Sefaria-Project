@@ -276,7 +276,7 @@ const Header = (props) => {
       </a>
     ))}
     <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>header.donate</InterfaceText></DonateLink>
-    {props.module === Sefaria.LIBRARY_MODULE && props.onAssistantClick && (
+    {!Sefaria._uid && props.module === Sefaria.LIBRARY_MODULE && props.onAssistantClick && (
       <button
         type="button"
         className="textLink assistant"

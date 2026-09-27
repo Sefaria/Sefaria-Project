@@ -132,6 +132,12 @@ button.textLink {
   white-space: nowrap;
 }
 
+// Same hardcoded promo purple as the Library Assistant modal (see the note in s2.css).
+.textLink.assistant,
+.textLink.assistant:hover {
+  color: #653259;
+}
+
 .headerLinksSection {
 	justify-content: flex-end;
     gap: 20px;
