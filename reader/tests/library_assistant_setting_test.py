@@ -196,6 +196,15 @@ class AnonymousVisitorTest(TestCase):
     def test_script_is_injected_for_logged_out_visitors(self):
         self.assertIsNotNone(chatbot_user_token(self.anonymous_request())["chatbot_script_url"])
 
+    def test_preview_version_on_the_first_request_selects_the_preview_script(self):
+        request = self.anonymous_request()
+        request.GET = {"chatbot_version": "222"}
+
+        url = chatbot_user_token(request)["chatbot_script_url"]
+
+        self.assertTrue(url.startswith("https://222.ai-server.coolifydev.sefaria.org/"))
+        self.assertEqual(request.session["chatbot_version"], "222")
+
     def test_remote_config_can_withhold_the_script(self):
         with self.remote_config(False):
             self.assertIsNone(chatbot_user_token(self.anonymous_request())["chatbot_script_url"])
