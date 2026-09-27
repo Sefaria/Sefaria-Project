@@ -49,6 +49,10 @@ def get_legacy_lang_from_direction(direction):
 LIBRARY_MODULE = "library"
 VOICES_MODULE = "voices"
 
+# Siddur Nusach POC: profile.settings key and allowed values (keep in sync with static/js/sefaria/siddurNusach.js)
+NUSACH_SETTING_KEY = "nusach"
+NUSACH_OPTIONS = ("ashkenaz", "sfard", "edot")
+
 # Topics with fewer sources than this are hidden from the A-Z listing, category browse pages, and Google search
 MIN_SOURCES_FOR_TOPIC_DISPLAY = 3
 
