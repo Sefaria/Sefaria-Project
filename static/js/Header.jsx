@@ -191,7 +191,7 @@ const ModuleSwitcher = () => {
         <DropdownModuleItem
           url={'https://developers.sefaria.org'}
           newTab={true}
-          dotColor={'--dm-developers-accent, var(--devportal-purple)'}
+          dotColor={'--color-developers-accent, var(--devportal-purple)'}
           text={{ en: "Developers", he: Sefaria._("header.developers") }} />
         <DropdownMenuSeparator />
         <DropdownMenuItem url={'/products'} newTab={true} customCSS="dropdownItem dropdownMoreItem" analyticsEventName="modswitch_item_click:click" analyticsEventText="More">
@@ -572,7 +572,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
         }
 
         <a href="https://developers.sefaria.org" className="mobileModuleSwitcher" target="_blank">
-          <span className="dropdownDot" style={{backgroundColor: `var(--dm-developers-accent, var(--devportal-purple))`}}></span>
+          <span className="dropdownDot" style={{backgroundColor: `var(--color-developers-accent, var(--devportal-purple))`}}></span>
           <InterfaceText>header.developers_on_sefaria</InterfaceText>
         </a>
 
