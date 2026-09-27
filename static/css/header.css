@@ -34,7 +34,7 @@
 }
 
 .headerInner.boxShadow {
-  box-shadow: 0 1px 3px var(--color-shadow, color-mix(in srgb, var(--black) 20%, transparent));
+  box-shadow: 0 1px 3px var(--color-shadow);
 }
 
 @media (min-width: 1087px) {

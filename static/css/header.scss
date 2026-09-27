@@ -51,8 +51,7 @@ $not-selector: "";
 }
 
 .headerInner.boxShadow {
-  // The fallback is exactly rgba(0,0,0,0.2), written without a colour literal (theme-tokens.css owns those).
-  box-shadow: 0 1px 3px var(--color-shadow, color-mix(in srgb, var(--black) 20%, transparent));
+  box-shadow: 0 1px 3px var(--color-shadow);
 }
 
 $logo-widths: (
