@@ -311,6 +311,7 @@ const Dashboard = ({data}) => {
           <PartnersCard rows={scopedAnyPartner} partner={partner} setPartner={setPartner}/>
           <TanakhCard rows={scopedAnyPath}/>
           <ErasCard rows={scoped} onBook={r => setPath(r.path.slice(0, r.path.indexOf(r.book) + 1))}/>
+          <FinishCard rows={rows.filter(r => inPath(r) && inPartner(r))}/>
           <RhythmCard rows={scoped}/>
           <LanguageCard rows={scoped} time={time}/>
           <TopPassagesCard rows={scoped}/>
@@ -796,13 +797,52 @@ const ErasCard = ({rows, onBook}) => {
 };
 
 
+// ---------- time to finish ----------
+// For books with a known chapter count: chapters covered so far, and the time left at the reader's own pace in
+// that book. Pace is the median time per chapter read, so a few heavily reread chapters don't inflate it.
+// Progress is all-time, so it ignores the When filter.
+const MIN_CHAPTERS_FOR_PACE = 3, MIN_PACE = 60;
+const TANAKH_CHAPTERS = new Map(TANAKH_BOOKS.map(b => [b.book, b.chapters]));
+const FinishCard = ({rows}) => {
+  const books = useMemo(() => d3.rollups(rows.filter(r => !r.sidebar && r.chapter), v => v, r => r.book).map(([book, v]) => {
+    const total = v[0].info.chapters || TANAKH_CHAPTERS.get(book);
+    const perChapter = d3.rollup(v, w => d3.sum(w, r => r.secs), r => r.chapter);
+    const read = perChapter.size;
+    return total && {book, total, read: Math.min(read, total), secs: d3.sum(v, r => r.secs), cat: v[0].cat, last: d3.max(v, r => r.date),
+      pace: d3.median(perChapter.values())};
+  }).filter(b => b && b.read >= MIN_CHAPTERS_FOR_PACE && b.read < b.total && b.pace >= MIN_PACE).sort((a, b) => b.last - a.last).slice(0, 8), [rows]);
+  if (!books.length) { return null; }
+  return (
+    <Card title="Time to finish" subtitle="Books in progress, most recent first. Time left uses your typical time per chapter in that book."
+          table={{columns: ["Book", "Chapters read", "Chapters", "Time so far", "Time left"], rows: books.map(b => [b.book, b.read, b.total, fmtDuration(b.secs), fmtDuration((b.total - b.read) * b.pace)])}}>
+      <div className="ttFinish">
+        {books.map(b => (
+          <a key={b.book} className="ttFinishRow" href={textUrl(b.book)}>
+            <div className="ttFinishTop">
+              <span className="ttBarName"><span className="ttSwatch" style={{background: catColor(b.cat)}}/>{b.book}</span>
+              <span className="ttFinishLeft">about {fmtDuration((b.total - b.read) * b.pace)} left</span>
+            </div>
+            <div className="ttMeter"><span style={{width: `${pct(b.read, b.total)}%`}}/></div>
+            <div className="ttMuted">{fmt(b.read)} of {fmt(b.total)} chapters ({pct(b.read, b.total)}%) · {fmtDuration(b.secs)} so far · ~{fmtDuration(b.pace)} a chapter</div>
+          </a>
+        ))}
+      </div>
+    </Card>
+  );
+};
+
+
 // ---------- rhythm ----------
 const RhythmCard = ({rows}) => {
   const [ref, width] = useWidth();
+  const [metric, setMetric] = useState("minutes");
   const cells = useMemo(() => {
-    const counts = d3.rollup(rows, v => v.length, r => r.dow, r => r.hour);
-    return d3.range(7).flatMap(dow => d3.range(24).map(hour => ({dow, hour, count: (counts.get(dow) || new Map()).get(hour) || 0})));
-  }, [rows]);
+    const stats = d3.rollup(rows, v => ({views: v.length, minutes: d3.sum(v, r => r.secs) / 60}), r => r.dow, r => r.hour);
+    return d3.range(7).flatMap(dow => d3.range(24).map(hour => {
+      const s = (stats.get(dow) || new Map()).get(hour) || {views: 0, minutes: 0};
+      return {dow, hour, views: s.views, minutes: s.minutes, count: metric === "minutes" ? s.minutes : s.views};
+    }));
+  }, [rows, metric]);
   const byDow = d3.range(7).map(d => d3.sum(cells.filter(c => c.dow === d), c => c.count));
   const byHour = d3.range(24).map(h => d3.sum(cells.filter(c => c.hour === h), c => c.count));
   const busiestDow = byDow.indexOf(d3.max(byDow)), busiestHour = byHour.indexOf(d3.max(byHour));
@@ -814,12 +854,19 @@ const RhythmCard = ({rows}) => {
     r: {range: [0, Math.min(11, width / 60)]},
     marks: [
       Plot.dot(cells.filter(c => c.count), {x: "hour", y: "dow", r: "count", fill: ACCENT, fillOpacity: 0.85, stroke: "white", strokeWidth: 1.5}),
-      Plot.tip(cells, Plot.pointer({x: "hour", y: "dow", title: d => `${fmt(d.count)} page views\n${DOW[d.dow]}, ${hourLabel(d.hour)}–${hourLabel((d.hour + 1) % 24)}`})),
+      Plot.tip(cells, Plot.pointer({x: "hour", y: "dow", title: d => `${fmtDuration(d.minutes * 60)} · ${fmt(d.views)} page views\n${DOW[d.dow]}, ${hourLabel(d.hour)}–${hourLabel((d.hour + 1) % 24)}`})),
     ],
   }), [cells, width]);
+  const totalMinutes = d3.sum(cells, c => c.minutes);
+  const topHours = d3.range(24).map(h => d3.sum(cells.filter(c => c.hour === h), c => c.minutes)).map((m, h) => ({h, m})).sort((a, b) => b.m - a.m).slice(0, 3);
   return (
-    <Card title="When you learn" subtitle={`Busiest: ${DOW[busiestDow]}s around ${hourLabel(busiestHour)}. Times are in your local time zone.`}
-          table={{columns: ["Day", "Hour", "Page views"], rows: cells.filter(c => c.count).map(c => [DOW[c.dow], hourLabel(c.hour), c.count])}}>
+    <Card title="When you learn" subtitle={`${metric === "minutes" ? "Most time" : "Busiest"}: ${DOW[busiestDow]}s around ${hourLabel(busiestHour)}.${metric === "minutes" && totalMinutes ? ` Your top 3 hours hold ${pct(d3.sum(topHours, t => t.m), totalMinutes)}% of your learning time.` : ""} Times are in your local time zone.`}
+          table={{columns: ["Day", "Hour", "Minutes", "Page views"], rows: cells.filter(c => c.views).map(c => [DOW[c.dow], hourLabel(c.hour), Math.round(c.minutes), c.views])}}>
+      <div className="ttSegmented" role="group" aria-label="Measure">
+        {[["minutes", "Time spent"], ["views", "Page views"]].map(([key, label]) => (
+          <button key={key} className={metric === key ? "selected" : ""} aria-pressed={metric === key} onClick={() => setMetric(key)}>{label}</button>
+        ))}
+      </div>
       <div ref={ref}><PlotFigure options={options}/></div>
     </Card>
   );
