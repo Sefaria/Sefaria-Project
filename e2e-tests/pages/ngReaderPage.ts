@@ -345,11 +345,122 @@ export class NgReaderPage extends HelperBase {
   async expectPinnedInline(segmentRef: string, pinKey: RegExp) {
     const pin = this.segment(segmentRef).locator('[data-ng="pinned"] [data-ng="pin"]');
     await expect(pin.first()).toHaveAttribute('data-pin-key', pinKey, { timeout: t(40000) });
-    await expect(pin.first().locator('.ng-pin-comment').first()).toBeVisible({ timeout: t(40000) });
+    await expect(pin.first().locator('[data-ng="pin-run"]').first()).toBeVisible({ timeout: t(40000) });
   }
 
   async storedPins(): Promise<string> {
     return this.page.evaluate(() => window.localStorage.getItem('ng.pinnedCommentators') || '');
+  }
+
+  /** Store pins (as the panel would: {corpus: [{title, heTitle, category}]}) and reload to read them. */
+  async seedPins(pins: Record<string, { title: string; heTitle: string; category: string }[]>) {
+    await this.page.evaluate((value) => window.localStorage.setItem('ng.pinnedCommentators', value), JSON.stringify(pins));
+    await this.page.reload({ waitUntil: 'domcontentloaded' });
+    await this.waitForReady();
+  }
+
+  /** One pinned work under one segment. */
+  pinnedComment(segmentRef: string, pinKey: string) {
+    return this.segment(segmentRef).locator(`[data-ng="pin"][data-pin-key="${pinKey}"]`);
+  }
+
+  /**
+   * Tap a pinned comment's text, and wait for it to settle `expanded` (or not). The tap lands
+   * near the top of the text (an expanded comment is taller than the screen, and a tap on a
+   * link inside it opens that text in the panel instead).
+   */
+  async tapPinnedComment(segmentRef: string, pinKey: string, expanded: boolean) {
+    const pin = this.pinnedComment(segmentRef, pinKey);
+    const body = pin.locator('[data-ng="pin-body"]');
+    await body.evaluate((el) => {
+      const top = el.getBoundingClientRect().top;
+      if (top < 120 || top > window.innerHeight - 80) { window.scrollBy(0, top - 240); }
+    });
+    // Let the header settle after any scroll (it follows scroll events a frame later), so the
+    // check below sees only what the tap did.
+    await this.page.evaluate(() => new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    }));
+    const headerBefore = await this.header.getAttribute('data-visible');
+    const box = await body.boundingBox();
+    expect(box).not.toBeNull();
+    await body.tap({ position: { x: box!.width / 2, y: 6 } });
+    await expect(pin).toHaveAttribute('data-expanded', expanded ? 'true' : 'false');
+    // The tap was the comment's: the header doesn't toggle, and no panel opens.
+    await expect(this.header).toHaveAttribute('data-visible', headerBefore || 'true');
+    await expect(this.reader).toHaveAttribute('data-overlay', 'none');
+  }
+
+  /** The computed line clamp of each language run of a pinned comment ('none' when unclamped). */
+  async pinRunClamps(segmentRef: string, pinKey: string): Promise<{ lang: string; dir: string; clamp: string; clipped: boolean }[]> {
+    return this.pinnedComment(segmentRef, pinKey).locator('[data-ng="pin-run"]').evaluateAll(els => els.map(el => {
+      const style = getComputedStyle(el) as CSSStyleDeclaration & { webkitLineClamp?: string };
+      return { lang: el.getAttribute('lang') || '', dir: el.getAttribute('dir') || '',
+        clamp: String(style.webkitLineClamp || style.getPropertyValue('-webkit-line-clamp') || 'none'),
+        clipped: el.scrollHeight > el.clientHeight + 1 };
+    }));
+  }
+
+  // ------------------------------------------------------------------ the panel's first list, and Open
+
+  /** Open associated texts on a segment from its count badge. */
+  async openAssociatedFromBadge(segmentRef: string) {
+    const badge = this.page.locator(`[data-ng="segment-badge"][data-ref="${segmentRef}"]`);
+    await expect(badge).toBeVisible({ timeout: t(40000) });
+    await badge.tap();
+    await this.expectOverlay('associated');
+    await expect(this.associatedPanel.locator('[data-ng="book-row"]').first()).toBeVisible({ timeout: t(40000) });
+  }
+
+  /** The keys ("Category|Title") of the panel's first list, in order. */
+  async topListKeys(): Promise<string[]> {
+    return this.associatedPanel.locator('[data-ng="top-commentators"] [data-ng="book-row"]')
+      .evaluateAll(els => els.map(el => el.getAttribute('data-key') || ''));
+  }
+
+  async unpinFromTopList(key: string) {
+    await this.associatedPanel.locator(`[data-ng="top-commentators"] [data-ng="unpin"][data-key="${key}"]`).tap();
+    await expect(this.associatedPanel.locator(`[data-ng="unpin"][data-key="${key}"]`)).toHaveCount(0);
+  }
+
+  async openCategoryInPanel(category: string) {
+    await this.associatedPanel.locator(`[data-ng="category-row"][data-category="${category}"]`).tap();
+    await expect(this.associatedPanel).toHaveAttribute('data-view', 'category');
+  }
+
+  async openBookInPanel(key: string) {
+    await this.associatedPanel.locator(`[data-ng="book-row"][data-key="${key}"]`).first().tap();
+    await expect(this.associatedPanel).toHaveAttribute('data-view', 'book');
+  }
+
+  /** The book view's Open: the work's comments on the segment become the primary text. */
+  async openBookFrontAndCenter() {
+    const open = this.associatedPanel.locator('[data-ng="book-open"]');
+    await expect(open).toBeVisible({ timeout: t(40000) });
+    await open.tap();
+    await this.expectOverlay('none');
+  }
+
+  /** One comment's Open, by its ref. */
+  async openCommentFrontAndCenter(ref: string) {
+    const open = this.associatedPanel.locator(`[data-ng="comment-open"][data-open-ref="${ref}"]`);
+    await expect(open).toBeVisible({ timeout: t(40000) });
+    await open.tap();
+    await this.expectOverlay('none');
+  }
+
+  /** The stream's first section is `sectionRef` (the text the reader now reads). */
+  async expectPrimarySection(sectionRef: string) {
+    await expect(this.stream.locator('[data-ng="section"]').first()).toHaveAttribute('data-ref', sectionRef, { timeout: t(30000) });
+  }
+
+  /** `sectionRef` is in the stream (the reader may have loaded its neighbours around it). */
+  async expectSection(sectionRef: string) {
+    await expect(this.section(sectionRef)).toBeAttached({ timeout: t(30000) });
+  }
+
+  async highlightedRefs(): Promise<string[]> {
+    return this.stream.locator('[data-highlighted="true"]').evaluateAll(els => els.map(el => el.getAttribute('data-ref') || ''));
   }
 
   // ------------------------------------------------------------------ scrolling and the header

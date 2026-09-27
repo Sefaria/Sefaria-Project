@@ -11,7 +11,8 @@ import { MODULE_URLS } from '../constants';
  * Test IDs: NG-S### server dispatch and server HTML, NG-L### content language, NG-H### the
  * header and scrolling, NG-G### swipe gestures, NG-O### the overlay and history, NG-V###
  * versions, NG-P### pinned commentators, NG-T### the table-of-contents sheet, NG-Q### the
- * search-in-book sheet.
+ * search-in-book sheet, NG-A### associated texts (the panel's first list, Open front and center,
+ * pinned comments clamped under the text).
  *
  * What these tests assert, and why. Every check reads DOM state the reader publishes
  * (`data-overlay`, `data-state`, `data-phase`, `data-visible`, `data-language`, the URL) and
@@ -460,5 +461,140 @@ test.describe('NG Mobile Reader — search in the book', () => {
     await expect(first).toBeVisible();
     await expect(first.locator('.ng-search-ref')).toHaveText(/^ברכות/);
     await expect(first.locator('.ng-search-snippet-he mark').first()).toBeVisible();
+  });
+});
+
+/**
+ * NG-A###: associated texts, round three.
+ * Data (verified against sefaria.org's API): /api/links/Genesis.1.1 has Mei HaShiloach
+ * (Chasidut) and Shulchan Arukh, Orach Chayim (Halakhah, at 668:2), neither among the Tanakh
+ * defaults; Rashi comments on Genesis 1:1 three times (Rashi on Genesis 1:1:1-3), and
+ * /api/v3/texts/Rashi_on_Genesis.1.1 is a depth-3 section with those three comments.
+ */
+const MEI_HASHILOACH = { title: 'Mei HaShiloach', heTitle: 'מי השלוח', category: 'Chasidut' };
+const SHULCHAN_ARUKH_OC = { title: 'Shulchan Arukh, Orach Chayim', heTitle: 'שולחן ערוך, אורח חיים', category: 'Halakhah' };
+const RASHI_PIN = { title: 'Rashi', heTitle: 'רש"י', category: 'Commentary' };
+const TANAKH_DEFAULTS = ['Commentary|Rashi', 'Commentary|Ramban', 'Commentary|Ibn Ezra', 'Commentary|Sforno', 'Targum|Onkelos Genesis'];
+
+test.describe('NG Mobile Reader — associated texts: the first list, Open, pinned comments', () => {
+  test('NG-A001: the first list has no heading; two pins from outside the defaults lead it, and unpin there', async ({ context }) => {
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    await ng.seedPins({ Tanakh: [MEI_HASHILOACH, SHULCHAN_ARUKH_OC] });
+    await ng.openAssociatedFromBadge('Genesis 1:1');
+    await expect(page.locator('[data-ng="top-commentators"] h3')).toHaveCount(0);
+    await expect(page.locator('[data-ng="panel-associated"]')).not.toContainText(/Major commentators/i);
+    expect(await ng.topListKeys()).toEqual(['Chasidut|Mei HaShiloach', 'Halakhah|Shulchan Arukh, Orach Chayim', ...TANAKH_DEFAULTS]);
+    await ng.unpinFromTopList('Halakhah|Shulchan Arukh, Orach Chayim');
+    expect(await ng.topListKeys()).toEqual(['Chasidut|Mei HaShiloach', ...TANAKH_DEFAULTS]);
+    expect(await ng.storedPins()).not.toContain('Shulchan Arukh');
+  });
+
+  test('NG-A002: a work pinned from its category is found at the top next time', async ({ context }) => {
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    await ng.openAssociatedFromBadge('Genesis 1:1');
+    await ng.openCategoryInPanel('Chasidut');
+    await ng.openBookInPanel('Chasidut|Mei HaShiloach');
+    await ng.togglePin();
+    await ng.closeOverlayWithButton();
+    await ng.openAssociatedFromBadge('Genesis 1:1');
+    expect((await ng.topListKeys())[0]).toBe('Chasidut|Mei HaShiloach');
+  });
+
+  test('NG-A003: Open makes Rashi the primary text, in place; Back returns to Genesis where the reader was', async ({ context }) => {
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    await ng.centerSegment('Genesis 1:7');
+    const before = await ng.scrollY();
+    expect(before).toBeGreaterThan(300);
+    await ng.markDocument();
+    await ng.openAssociatedFromBadge('Genesis 1:7');
+    await ng.openBookInPanel('Commentary|Rashi');
+    await ng.openBookFrontAndCenter();
+    await ng.expectSameDocument();
+    await expect(page).toHaveURL(/\/Rashi_on_Genesis\.1\.7\.1-2\?lang=bi$/, { timeout: t(20000) });
+    await ng.expectSection('Rashi on Genesis 1:7');
+    expect(await ng.highlightedRefs()).toEqual(['Rashi on Genesis 1:7:1', 'Rashi on Genesis 1:7:2']);
+    await ng.expectHeaderRef(/^Rashi on Genesis\s*1:\d+:\d+$/);
+    await expect(ng.headerTocControl).toHaveAttribute('href', '/Rashi_on_Genesis');
+
+    await ng.goBack();
+    await expect(page).toHaveURL(/\/Genesis\.1\?lang=bi$/, { timeout: t(20000) });
+    await ng.expectPrimarySection('Genesis 1');
+    // Back at the spot: the same scroll position, give or take a pixel of rounding.
+    await expect.poll(async () => Math.abs((await ng.scrollY()) - before), { timeout: t(10000) }).toBeLessThanOrEqual(2);
+    await ng.expectSameDocument();
+  });
+
+  test('NG-A004: one comment from another corpus (Halakhah) opens front and center as its own text', async ({ context }) => {
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    await ng.openAssociatedFromBadge('Genesis 1:1');
+    await ng.openCategoryInPanel('Halakhah');
+    await ng.openBookInPanel('Halakhah|Shulchan Arukh, Orach Chayim');
+    await ng.openCommentFrontAndCenter('Shulchan Arukh, Orach Chayim 668:2');
+    await expect(page).toHaveURL(/\/Shulchan_Arukh,_Orach_Chayim\.668\.2\?lang=bi$/, { timeout: t(20000) });
+    await ng.expectPrimarySection('Shulchan Arukh, Orach Chayim 668');
+    await expect(page.locator('[data-ng="section"]').first()).toHaveAttribute('data-category', 'Halakhah');
+    expect(await ng.highlightedRefs()).toEqual(['Shulchan Arukh, Orach Chayim 668:2']);
+    await ng.expectHeaderRef(/Shulchan Arukh, Orach Chayim\s*668:2$/);
+  });
+
+  test('NG-A005: a commentary URL is served by NG with its text, and its contents sheet opens on its chapter', async ({ context, page: blank, userAgent }) => {
+    const html = await new PageManager(blank, LANGUAGES.EN).onNgReader()
+      .serverHtml(`${LIBRARY}/Rashi_on_Genesis.1.1.1?lang=bi`, userAgent || devices['Pixel 5'].userAgent);
+    expect(html).toContain('data-ng="reader"');
+    expect(html).not.toContain('id="appLoading"');
+    expect(html).toMatch(/data-ng="segment" data-ref="Rashi on Genesis 1:1:1"/);
+    await openReader(context, `${LIBRARY}/Rashi_on_Genesis.1.1.1?lang=bi`);
+    const ng = pm.onNgReader();
+    await ng.openTocFromHeader();
+    await expect(page.locator('[data-ng="toc-title"]')).toContainText('Rashi on Genesis');
+    await ng.expectCurrentTocSection('Rashi on Genesis 1:1');
+  });
+
+  test('NG-A006: a pinned comment shows three lines per language; a tap expands it, another collapses it', async ({ context }) => {
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    await ng.seedPins({ Tanakh: [RASHI_PIN] });
+    await ng.expectPinnedInline('Genesis 1:1', /\|Rashi$/);
+    const pin = ng.pinnedComment('Genesis 1:1', 'Commentary|Rashi');
+    await expect(pin).toHaveAttribute('data-clipped', 'true', { timeout: t(20000) });
+    const runs = await ng.pinRunClamps('Genesis 1:1', 'Commentary|Rashi');
+    expect(runs.map(r => [r.lang, r.dir, r.clamp])).toEqual([['he', 'rtl', '3'], ['en', 'ltr', '3']]);
+    expect(runs.every(r => r.clipped)).toBe(true);
+    await expect(pin.locator('[data-ng="pin-expand"]')).toBeVisible();
+    // Each tap is the comment's own: the header stays as it was and no panel opens (checked inside).
+    await ng.tapPinnedComment('Genesis 1:1', 'Commentary|Rashi', true);
+    expect((await ng.pinRunClamps('Genesis 1:1', 'Commentary|Rashi')).map(r => r.clamp)).toEqual(['none', 'none']);
+    await ng.tapPinnedComment('Genesis 1:1', 'Commentary|Rashi', false);
+    expect((await ng.pinRunClamps('Genesis 1:1', 'Commentary|Rashi')).map(r => r.clamp)).toEqual(['3', '3']);
+  });
+
+  test('NG-A007: Hebrew interface, source only: the Hebrew run is clamped right to left, and the tap works', async ({ context }) => {
+    await openReader(context, `${LIBRARY_HE}/Genesis.1?lang=he`, LANGUAGES.HE);
+    const ng = pm.onNgReader();
+    await ng.seedPins({ Tanakh: [RASHI_PIN] });
+    await ng.expectPinnedInline('Genesis 1:1', /\|Rashi$/);
+    const runs = await ng.pinRunClamps('Genesis 1:1', 'Commentary|Rashi');
+    expect(runs.map(r => [r.lang, r.dir, r.clamp])).toEqual([['he', 'rtl', '3']]);
+    await ng.tapPinnedComment('Genesis 1:1', 'Commentary|Rashi', true);
+    await ng.tapPinnedComment('Genesis 1:1', 'Commentary|Rashi', false);
+  });
+
+  test('NG-A008: a pinned comment\'s Open makes it the primary text; its name opens it in the panel', async ({ context }) => {
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    await ng.seedPins({ Tanakh: [RASHI_PIN] });
+    await ng.expectPinnedInline('Genesis 1:1', /\|Rashi$/);
+    const pin = ng.pinnedComment('Genesis 1:1', 'Commentary|Rashi');
+    await pin.locator('[data-ng="pin-name"]').tap();
+    await ng.expectAssociatedPanel('Genesis 1:1', 'book');
+    await ng.expectPanelTitle(/^Rashi$/);
+    await ng.closeOverlayWithButton();
+    await pin.locator('[data-ng="pin-open"]').tap();
+    await expect(page).toHaveURL(/\/Rashi_on_Genesis\.1\.1\.1-3\?lang=bi$/, { timeout: t(20000) });
+    await ng.expectPrimarySection('Rashi on Genesis 1:1');
   });
 });
