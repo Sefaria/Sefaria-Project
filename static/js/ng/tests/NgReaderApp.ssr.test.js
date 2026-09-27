@@ -145,3 +145,51 @@ describe('the shared Node singleton', () => {
     expect(renderLikeNode(props)).toContain('data-ng="reader"');
   });
 });
+
+describe('the associated-texts overlay on the server', () => {
+  const withFilter = (name, filter, opts) => {
+    const props = fixture(name, opts);
+    props.initialPanel.filter = filter;
+    return props;
+  };
+
+  test('a plain page renders with the overlay closed: no panel, no badges, no pins', () => {
+    const html = renderLikeNode(fixture('genesis-1'));
+    expect(html).toContain('data-overlay="none"');
+    expect(html).toMatch(/data-ng="overlay"[^>]*hidden=""/);
+    expect(html).not.toContain('data-ng="panel-associated"');
+    expect(html).not.toContain('data-ng="segment-badge"');
+    expect(html).not.toContain('data-ng="pinned"');
+  });
+
+  test('?with=Rashi renders the panel open on the segment, its shell ready for the data', () => {
+    const html = renderLikeNode(withFilter('genesis-1-3', ['Rashi']));
+    expect(html).toMatch(/^<div class="ng-reader" data-ng="reader" dir="ltr" lang="en" data-interface="english" data-overlay="associated"/);
+    expect(html).toMatch(/data-ng="overlay" data-overlay="associated" data-state="associated" data-phase="open"/);
+    expect(html).toContain('data-ng="sheet" data-side="right"');
+    expect(html).toContain('data-ng="panel-associated" data-ref="Genesis 1:3" data-view="filter"');
+    expect(html).toContain('class="ng-assoc-loading"');
+    // The text is still all there, with the anchored segment marked for the sliver.
+    expect(segmentsIn(html)).toBe(31);
+    expect(html).toMatch(/data-ref="Genesis 1:3"[^>]*data-anchor="true"/);
+  });
+
+  test('?with=all on a section anchors to its first segment; the breadcrumb starts from it', () => {
+    const html = renderLikeNode(withFilter('genesis-1', []));
+    expect(html).toContain('data-ng="panel-associated" data-ref="Genesis 1:1" data-view="home"');
+    expect(html).toContain('<h2 class="ng-assoc-title" data-ng="panel-title">Genesis 1:1</h2>');
+    expect(html).toContain('data-ng="panel-anchor"');
+  });
+
+  test('a Hebrew interface renders the panel mirrored, on the left', () => {
+    const html = renderLikeNode(withFilter('berakhot-2a', ['Steinsaltz'], {interfaceLang: 'hebrew'}));
+    expect(html).toContain('data-ng="sheet" data-side="left"');
+    expect(html).toContain('aria-label="סגירה"');
+  });
+
+  test('the shared singleton: an open overlay does not leak into the next render', () => {
+    const closed = renderLikeNode(fixture('genesis-1'));
+    renderLikeNode(withFilter('genesis-1-3', ['Rashi']));
+    expect(renderLikeNode(fixture('genesis-1'))).toBe(closed);
+  });
+});

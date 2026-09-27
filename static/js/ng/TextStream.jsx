@@ -12,6 +12,8 @@ import {
   visibleTexts,
 } from './text';
 import {layoutFor} from './settings';
+import {displayTitle, formatCount} from './associated';
+import {associatedStrings} from './associatedStrings';
 
 function prepareHtml(html, version, settings, section, isPrimaryText) {
   if (!html) { return ''; }
@@ -45,25 +47,77 @@ function numberUsesHebrew(language, interfaceLang, frameDir) {
   return frameDir === 'rtl';
 }
 
-const Segment = memo(function Segment({segment, section, settings, highlighted, showNumber, hebrewNumbers, sideBySide}) {
+/**
+ * The count of associated texts for a segment (I2): quiet, and a tap opens the associated panel
+ * on this segment. Rendered only once the counts have loaded in the browser.
+ */
+function CountBadge({segmentRef, count, interfaceLang, inline}) {
+  if (!count) { return null; }
+  const s = associatedStrings(interfaceLang);
+  return (
+    <button type="button" className={inline ? 'ng-seg-badge ng-seg-badge-inline' : 'ng-seg-badge'} data-ng="segment-badge"
+            data-ref={segmentRef} aria-label={s.connections(count)} title={s.connections(count)}>
+      <span aria-hidden="true">{formatCount(count)}</span>
+    </button>
+  );
+}
+
+/** Which texts a pinned comment shows for the reader's language, with the Hebrew-only fallback. */
+function commentTexts(comment, language) {
+  if (language === 'hebrew') { return {he: comment.he.length ? comment.he : [], en: comment.he.length ? [] : comment.en, hebrewOnly: false}; }
+  if (language === 'english') { return {he: comment.en.length ? [] : comment.he, en: comment.en, hebrewOnly: !comment.en.length}; }
+  return {he: comment.he, en: comment.en, hebrewOnly: false};
+}
+
+/** The pinned commentators' comments on one segment (I1). A tap opens that work in the panel. */
+function PinnedComments({segmentRef, pinned, language, interfaceLang}) {
+  const s = associatedStrings(interfaceLang);
+  return (
+    <span className="ng-pinned" data-ng="pinned">
+      {pinned.map(pin => (
+        <span key={`${pin.category}|${pin.title}`} className="ng-pin" data-ng="pin" data-ref={segmentRef}
+              data-pin-key={`${pin.category}|${pin.title}`} role="button" tabIndex={0}>
+          <span className="ng-pin-name">{displayTitle(pin, interfaceLang)}</span>
+          {pin.comments.map(comment => {
+            const t = commentTexts(comment, language);
+            return (
+              <span key={comment.ref} className="ng-pin-comment">
+                {t.he.map((html, i) => <span key={`he${i}`} className="ng-pin-he" lang="he" dir="rtl" dangerouslySetInnerHTML={{__html: html}} />)}
+                {t.en.map((html, i) => <span key={`en${i}`} className="ng-pin-en" lang="en" dir="ltr" dangerouslySetInnerHTML={{__html: html}} />)}
+                {t.hebrewOnly ? <span className="ng-hebrew-only">{s.hebrewOnly}</span> : null}
+              </span>
+            );
+          })}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+const Segment = memo(function Segment({
+  segment, section, settings, highlighted, showNumber, hebrewNumbers, sideBySide, count, pinned, anchored, interfaceLang,
+}) {
   const vis = visibleTexts(segment, settings.language);
   const he = vis.he ? prepareHtml(segment.he, section.primary, settings, section, true) : '';
   const en = vis.en ? prepareHtml(segment.en, section.translation, settings, section, false) : '';
   return (
     <div className="ng-seg" data-ng="segment" data-ref={segment.ref} data-he-ref={segment.heRef}
-         data-section-ref={section.ref} data-highlighted={highlighted ? 'true' : undefined}>
+         data-section-ref={section.ref} data-highlighted={highlighted ? 'true' : undefined}
+         data-anchor={anchored ? 'true' : undefined}>
       {showNumber ? (
         <span className="ng-segnum" aria-hidden="true"><span>{segmentNumberLabel(segment.number, hebrewNumbers)}</span></span>
       ) : null}
+      <CountBadge segmentRef={segment.ref} count={count} interfaceLang={interfaceLang} />
       <div className="ng-seg-body" data-sbs={sideBySide || undefined} dir={sideBySide ? 'ltr' : undefined}>
         {he ? <TextBlock className="ng-he" html={he} version={section.primary} fallbackLang="he" fallbackDir="rtl" /> : null}
         {en ? <TextBlock className="ng-en" html={en} version={section.translation} fallbackLang="en" fallbackDir="ltr" /> : null}
       </div>
+      {pinned ? <PinnedComments segmentRef={segment.ref} pinned={pinned} language={settings.language} interfaceLang={interfaceLang} /> : null}
     </div>
   );
 });
 
-function ContinuousText({section, settings, highlightedRefs, hebrewNumbers}) {
+function ContinuousText({section, settings, highlightedRefs, hebrewNumbers, counts, pinned, anchorRef, interfaceLang}) {
   const useSource = settings.language === 'hebrew';
   const version = useSource ? section.primary : section.translation;
   const numbered = !isTalmud(section) && showsSegmentNumbers(section);
@@ -79,9 +133,14 @@ function ContinuousText({section, settings, highlightedRefs, hebrewNumbers}) {
         return (
           <span key={segment.ref} className="ng-seg ng-seg-inline" data-ng="segment" data-ref={segment.ref}
                 data-he-ref={segment.heRef} data-section-ref={section.ref}
-                data-highlighted={highlightedRefs.has(segment.ref) ? 'true' : undefined}>
+                data-highlighted={highlightedRefs.has(segment.ref) ? 'true' : undefined}
+                data-anchor={anchorRef === segment.ref ? 'true' : undefined}>
             {numbered ? <sup className="ng-inline-num" aria-hidden="true">{segmentNumberLabel(segment.number, hebrewNumbers)}</sup> : null}
             <span dangerouslySetInnerHTML={{__html: html}} />
+            <CountBadge segmentRef={segment.ref} count={counts && counts[segment.ref]} interfaceLang={interfaceLang} inline />
+            {pinned && pinned[segment.ref] ? (
+              <PinnedComments segmentRef={segment.ref} pinned={pinned[segment.ref]} language={settings.language} interfaceLang={interfaceLang} />
+            ) : null}
             {' '}
           </span>
         );
@@ -99,7 +158,7 @@ function BookTitle({section}) {
   );
 }
 
-const Section = memo(function Section({section, settings, interfaceLang, interfaceDir, highlightedRefs}) {
+const Section = memo(function Section({section, settings, interfaceLang, interfaceDir, highlightedRefs, counts, pinned, anchorRef}) {
   const language = settings.language;
   const layout = layoutFor(settings, section);
   const continuous = layout === 'continuous' && language !== 'bilingual';
@@ -121,13 +180,15 @@ const Section = memo(function Section({section, settings, interfaceLang, interfa
         </span>
       </h2>
       {continuous ? (
-        <ContinuousText section={section} settings={settings} highlightedRefs={highlightedRefs} hebrewNumbers={hebrewNumbers} />
+        <ContinuousText section={section} settings={settings} highlightedRefs={highlightedRefs} hebrewNumbers={hebrewNumbers}
+                        counts={counts} pinned={pinned} anchorRef={anchorRef} interfaceLang={interfaceLang} />
       ) : (
         <div className="ng-segments">
           {section.segments.map(segment => (
             <Segment key={segment.ref} segment={segment} section={section} settings={settings}
                      highlighted={highlightedRefs.has(segment.ref)} showNumber={showNumbers}
-                     hebrewNumbers={hebrewNumbers} sideBySide={sideBySide} />
+                     hebrewNumbers={hebrewNumbers} sideBySide={sideBySide} count={counts && counts[segment.ref]}
+                     pinned={pinned && pinned[segment.ref]} anchored={anchorRef === segment.ref} interfaceLang={interfaceLang} />
           ))}
         </div>
       )}
@@ -172,8 +233,11 @@ function EdgeStatus({dir, status, strings, onRetry, edgeRef, urlFor}) {
   return <div className="ng-edge" data-ng={dataNg} data-status={status} />;
 }
 
+const NONE = {};
+
 export default function TextStream({
   sections, settings, interfaceLang, interfaceDir, highlightedRefs = [], stream, strings, onRetry, onClick, streamRef, urlFor,
+  linkCounts = NONE, pinned = NONE, anchorRef = null,
 }) {
   const highlighted = useMemo(() => new Set(highlightedRefs), [highlightedRefs]);
   const first = sections[0];
@@ -186,7 +250,8 @@ export default function TextStream({
       ) : null}
       {sections.map(section => (
         <Section key={section.ref} section={section} settings={settings} interfaceLang={interfaceLang}
-                 interfaceDir={interfaceDir} highlightedRefs={highlighted} />
+                 interfaceDir={interfaceDir} highlightedRefs={highlighted} counts={linkCounts[section.ref]}
+                 pinned={pinned[section.ref]} anchorRef={anchorRef && anchorRef.indexOf(section.ref) === 0 ? anchorRef : null} />
       ))}
       <EdgeStatus dir="next" status={stream.next.status} strings={strings} onRetry={onRetry}
                   edgeRef={last ? last.next : null} urlFor={urlFor} />

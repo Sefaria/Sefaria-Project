@@ -21,6 +21,10 @@ import {pokeScroll} from './scroll';
 import ReaderHeader from './ReaderHeader';
 import TextStream from './TextStream';
 import OverlaySlot, {DEFAULT_PANELS} from './OverlaySlot';
+import {HOME, initialOverlay, useOverlayState} from './overlayState';
+import {connectionsParam} from './associated';
+import {useLinkCounts, usePinnedCommentary, useStreamLinks} from './streamLinks';
+import {usePins} from './pins';
 
 const HEADER_OFFSET = 88;  // keep scrolled-to text clear of the header
 
@@ -60,7 +64,11 @@ export default function NgReaderApp(props) {
   // A segment or range URL (Genesis 1:3) keeps that ref in the URL while the reader stays in its section.
   const [landing, setLanding] = useState(() => (initialSection && (initialPanel.highlightedRefs || []).length
     ? {sectionRef: initialSection.ref, ref: initialPanel.ref} : null));
-  const [overlay, setOverlay] = useState({type: OVERLAY.NONE});
+  const [firstOverlay] = useState(() => initialOverlay(initialPanel, initialSection));
+  const overlayUrlRef = useRef(null);
+  const overlays = useOverlayState(firstOverlay, (o) => overlayUrlRef.current(o));
+  const overlay = overlays.overlay;
+  const [historyTick, setHistoryTick] = useState(0);  // bumped on popstate, to re-sync the URL
   const [hydrated, setHydrated] = useState(false);  // exposed as data-hydrated, for tests
   const streamRef = useRef(null);
   const anchorRef = useRef(null);
@@ -83,6 +91,11 @@ export default function NgReaderApp(props) {
   const header = useHeaderVisibility({pinned: overlay.type !== OVERLAY.NONE, atEnd});
   const sectionsKey = sections.map(s => s.ref).join('|');
   const current = useCurrentSegment(streamRef, [sectionsKey, generation, settings.language, settings.biLayout, settings.fontSize]);
+  const streamLinks = useStreamLinks(streamRef, sections, [sectionsKey, generation, settings.language,
+    settings.layoutDefault, settings.layoutTalmud, settings.layoutTanakh]);
+  const linkCounts = useLinkCounts(sections, streamLinks.bySegment);
+  const [pins, togglePin] = usePins();
+  const pinned = usePinnedCommentary(sections, streamLinks.bySegment, pins);
 
   useIsomorphicLayoutEffect(() => {
     const anchor = anchorRef.current;
@@ -119,6 +132,7 @@ export default function NgReaderApp(props) {
       window.scrollTo(0, Math.max(0, target.getBoundingClientRect().top + window.pageYOffset - HEADER_OFFSET));
     }
     header.rebase(window.pageYOffset);
+    if (urlRef) { overlays.seedHistory({ngRef: urlRef}, currentUrl); }  // a with= page opens with the panel
     setHydrated(true);
     const timer = setTimeout(pokeScroll, 0);
     return () => clearTimeout(timer);
@@ -131,6 +145,12 @@ export default function NgReaderApp(props) {
   const currentSectionRef = currentSection ? currentSection.ref : null;
   const urlRef = landing && currentSectionRef === landing.sectionRef ? landing.ref : currentSectionRef;
   const currentUrl = urlRef ? buildReaderUrl({ref: urlRef, currVersions, language: settings.language}) : null;
+  // An overlay entry's URL: the associated panel's segment and `with=` (the classic grammar), or the reading URL.
+  overlayUrlRef.current = (o) => (o.type === OVERLAY.ASSOCIATED
+    ? buildReaderUrl({ref: o.ref, currVersions, language: settings.language, connections: connectionsParam(o.stack)})
+    : currentUrl);
+  const urlRefRef = useRef(urlRef);
+  urlRefRef.current = urlRef;
 
   const titleSuffixRef = useRef(null);
   useEffect(() => {
@@ -139,15 +159,19 @@ export default function NgReaderApp(props) {
       titleSuffixRef.current = parts.length > 1 ? parts.slice(1).join(' | ') : '';
     }
     if (!currentUrl) { return; }
+    // While history catches up with an overlay that just opened or closed, leave the URL alone.
+    const open = overlay.type !== OVERLAY.NONE;
+    if (overlays.isOverlayEntry() !== open) { return; }
+    const target = open ? overlayUrlRef.current(overlay) : currentUrl;
     const here = window.location.pathname + window.location.search;
-    if (here !== currentUrl) {
-      window.history.replaceState({ngRef: urlRef}, '', currentUrl);
+    if (here !== target) {
+      window.history.replaceState(open ? window.history.state : {ngRef: urlRef}, '', target);
     }
     const title = interfaceLang === 'hebrew' && currentSection ? currentSection.heRef : urlRef;
     if (titleSuffixRef.current && currentSection) {
       document.title = `${title} | ${titleSuffixRef.current}`;
     }
-  }, [currentUrl]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currentUrl, overlay, historyTick]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const setSetting = useCallback((option, value) => {
     const key = resolveSettingKey(option, currentSection);
@@ -163,7 +187,9 @@ export default function NgReaderApp(props) {
     return makeSectionLoader(versions, translationLanguagePreference)(ref).then(section => {
       const isSegment = ref !== section.ref;
       const url = buildReaderUrl({ref, currVersions: versions, language: settings.language});
-      window.history[push ? 'pushState' : 'replaceState']({ngRef: ref}, '', url);
+      // Replacing keeps an open overlay's history entry (a version change from the config panel).
+      const state = push ? {ngRef: ref} : {...(window.history.state || {}), ngRef: ref};
+      window.history[push ? 'pushState' : 'replaceState'](state, '', url);
       scrollTargetRef.current = focus || (isSegment ? ref : (section.segments[0] && section.segments[0].ref));
       batchedUpdates(() => {
         setCurrVersionsState(normalizeCurrVersions(versions));
@@ -183,21 +209,55 @@ export default function NgReaderApp(props) {
 
   useEffect(() => {
     const onPop = (e) => {
-      if (e.state && e.state.ngRef) { openRef(e.state.ngRef, {push: false}); }
+      const state = e.state;
+      overlays.onPopState(state);
+      setHistoryTick(t => t + 1);
+      // Leaving an overlay entry lands on the same text: only a different ref reloads the stream.
+      if (state && state.ngRef && state.ngRef !== urlRefRef.current) { openRef(state.ngRef, {push: false}); }
     };
     window.addEventListener('popstate', onPop);
     return () => window.removeEventListener('popstate', onPop);
   }, [openRef]);
 
-  const openAssociated = useCallback((segment = current) => {
+  const segmentByRef = useCallback((ref) => {
+    for (const section of sections) {
+      const segment = section.segments.find(s => s.ref === ref);
+      if (segment) { return segment; }
+    }
+    return null;
+  }, [sections]);
+
+  /** Open associated texts on a segment (default: the one nearest the center), optionally deeper: [view, ...]. */
+  const openAssociated = useCallback((segment = current, views = []) => {
     if (!segment) { return; }
-    setOverlay({type: OVERLAY.ASSOCIATED, ref: segment.ref, heRef: segment.heRef || null});
-  }, [current]);
-  const openConfig = useCallback(() => setOverlay({type: OVERLAY.CONFIG}), []);
-  const closeOverlay = useCallback(() => setOverlay({type: OVERLAY.NONE}), []);
+    const heRef = segment.heRef || (segmentByRef(segment.ref) || {}).heRef || null;
+    overlays.open({type: OVERLAY.ASSOCIATED, ref: segment.ref, heRef, stack: [HOME, ...views]});
+  }, [current, segmentByRef, overlays.open]); // eslint-disable-line react-hooks/exhaustive-deps
+  const openConfig = useCallback(() => overlays.open({type: OVERLAY.CONFIG}), [overlays.open]); // eslint-disable-line react-hooks/exhaustive-deps
+  const closeOverlay = overlays.close;
+  /** Leave the panel for a text in the reader: close it (its history entries), then open the ref. */
+  const openRefFromOverlay = useCallback((ref) => overlays.close().then(() => openRef(ref)), [overlays.close, openRef]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onStreamClick = useCallback((e) => {
     const target = e.target;
+    const closest = (sel) => (target.closest ? target.closest(sel) : null);
+    const badge = closest('[data-ng="segment-badge"]');
+    if (badge) {
+      e.preventDefault();
+      openAssociated(segmentByRef(badge.getAttribute('data-ref')) || {ref: badge.getAttribute('data-ref')});
+      return;
+    }
+    const pin = closest('[data-ng="pin"]');
+    if (pin) {
+      // A pinned comment opens its work in the panel; a ref it cites opens as a tangent on top.
+      e.preventDefault();
+      const segment = segmentByRef(pin.getAttribute('data-ref')) || {ref: pin.getAttribute('data-ref')};
+      const views = [{kind: 'book', key: pin.getAttribute('data-pin-key')}];
+      const cited = closest('a.refLink');
+      if (cited && cited.getAttribute('data-ref')) { views.push({kind: 'ref', ref: cited.getAttribute('data-ref')}); }
+      openAssociated(segment, views);
+      return;
+    }
     const marker = target.closest && target.closest('sup');
     if (marker) {
       // Footnotes: <sup class="footnote-marker">a</sup><i class="footnote">...</i>. Tap to open inline.
@@ -218,7 +278,7 @@ export default function NgReaderApp(props) {
     const selection = window.getSelection && window.getSelection();
     if (selection && !selection.isCollapsed) { return; }
     header.setVisible(!header.visible);
-  }, [header]);
+  }, [header, openAssociated, segmentByRef]);
 
   const urlFor = useCallback((ref) => buildReaderUrl({ref, currVersions, language: settings.language}),
     [currVersions, settings.language]);
@@ -231,8 +291,11 @@ export default function NgReaderApp(props) {
     settings, setSetting, currentLayout,
     currVersions, setCurrVersions, openRef,
     overlay, openAssociated, openConfig, closeOverlay,
+    overlayPushView: overlays.pushView, overlayReplaceView: overlays.replaceView,
+    overlayBack: overlays.back, overlayJump: overlays.jump, openRefFromOverlay,
     currentSegment: current, currentSection, currentUrl,
-    sections,
+    sections, segmentByRef, uid: props._uid || null,
+    pins, togglePin,
   };
 
   if (!initialSection) {
@@ -247,7 +310,8 @@ export default function NgReaderApp(props) {
                       section={currentSection} interfaceLang={interfaceLang} strings={strings} onOpenSettings={openConfig} />
         <TextStream sections={sections} settings={settings} interfaceLang={interfaceLang} interfaceDir={interfaceDir}
                     highlightedRefs={highlightedRefs} stream={stream} strings={strings} onRetry={retry}
-                    onClick={onStreamClick} streamRef={streamRef} urlFor={urlFor} />
+                    onClick={onStreamClick} streamRef={streamRef} urlFor={urlFor} linkCounts={linkCounts} pinned={pinned}
+                    anchorRef={overlay.type === OVERLAY.ASSOCIATED ? overlay.ref : null} />
         <OverlaySlot panels={overlayPanels} />
       </div>
     </NgReaderContext.Provider>

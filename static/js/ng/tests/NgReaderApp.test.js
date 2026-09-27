@@ -181,7 +181,8 @@ describe('settings (the config overlay stub)', () => {
     expect(document.cookie).toContain('contentLang=hebrew');
     expect(window.location.search).toBe('?lang=he');
     act(() => { document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape'})); });
-    expect($('[data-ng="overlay"]').getAttribute('data-overlay')).toBe(OVERLAY.NONE);
+    expect($('[data-ng="overlay"]').getAttribute('data-state')).toBe(OVERLAY.NONE);
+    expect($('[data-ng="reader"]').getAttribute('data-overlay')).toBe(OVERLAY.NONE);
   });
 
   test('layout is stored per category: continuous Tanakh writes layoutTanakh', async () => {
@@ -216,7 +217,11 @@ test('overlay panels plug in through useNgReader and anchor to the current segme
   expect($('[data-ng="overlay"]').getAttribute('data-overlay')).toBe(OVERLAY.ASSOCIATED);
   expect(seen[seen.length - 1]).toMatch(/^Genesis \d:\d+$/);
   act(() => { $('[data-ng="test-close"]').click(); });
+  expect($('[data-ng="overlay"]').getAttribute('data-state')).toBe(OVERLAY.NONE);
+  // The panel slides out, then unmounts.
+  await act(() => new Promise(r => setTimeout(r, 450)));
   expect($('[data-ng="overlay"]').getAttribute('data-overlay')).toBe(OVERLAY.NONE);
+  expect($('[data-ng="overlay"]').hidden).toBe(true);
 });
 
 test('a Hebrew interface hydrates mirrored, with Hebrew refs in the header', async () => {
