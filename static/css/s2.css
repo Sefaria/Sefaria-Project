@@ -17118,7 +17118,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   inset-inline-start: 24px;
 }
 body.user-is-tabbing .mobileNavMenu .mobileThemeToggle:focus {
-  outline: 2px solid var(--focus-blue);
+  outline: 2px solid var(--color-focus-ring);
   outline-offset: -2px;
 }
 @media (prefers-reduced-motion: reduce) {

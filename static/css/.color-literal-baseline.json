@@ -17,10 +17,6 @@
       "literals": 30,
       "paletteVars": 0
     },
-    "header.scss": {
-      "literals": 0,
-      "paletteVars": 1
-    },
     "hopscotch.css": {
       "literals": 86,
       "paletteVars": 0
@@ -47,7 +43,7 @@
     },
     "s2.css": {
       "literals": 85,
-      "paletteVars": 2
+      "paletteVars": 1
     },
     "sheets-print.css": {
       "literals": 1,
