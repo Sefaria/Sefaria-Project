@@ -8,7 +8,22 @@ const FIXTURES = {
   'genesis-1-3': () => require('./fixtures/genesis-1-3.json'),
   'berakhot-2a': () => require('./fixtures/berakhot-2a.json'),
   'psalms-23': () => require('./fixtures/psalms-23.json'),
+  'haggadah-four-sons': () => require('./fixtures/haggadah-four-sons.json'),
 };
+
+/**
+ * Index records as /api/v2/index/{title}?with_content_counts=1 returns them on sefaria.org
+ * (captured 2026-09-27; related topics, descriptions, title variants and match templates dropped).
+ */
+const INDEXES = {
+  Genesis: () => require('./fixtures/index-genesis.json'),
+  Berakhot: () => require('./fixtures/index-berakhot.json'),
+  'Pesach Haggadah': () => require('./fixtures/index-pesach-haggadah.json'),
+};
+
+export function indexFixture(title) {
+  return INDEXES[title] ? clone(INDEXES[title]()) : null;
+}
 
 const clone = (x) => JSON.parse(JSON.stringify(x));
 

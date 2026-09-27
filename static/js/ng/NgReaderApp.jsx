@@ -25,6 +25,7 @@ import {HOME, initialOverlay, useOverlayState} from './overlayState';
 import {connectionsParam} from './associated';
 import {useLinkCounts, usePinnedCommentary, useStreamLinks} from './streamLinks';
 import {usePins} from './pins';
+import SheetSlot from './sheets/SheetSlot';
 
 const HEADER_OFFSET = 88;  // keep scrolled-to text clear of the header
 
@@ -36,6 +37,20 @@ function findSectionElement(root, ref) {
 function findSegmentElement(root, ref) {
   if (!root) { return null; }
   return Array.from(root.querySelectorAll('[data-ng="segment"]')).find(el => el.getAttribute('data-ref') === ref) || null;
+}
+
+export const FLASH_MS = 2200;
+
+/**
+ * Mark a segment the reader just jumped to (from search, or a parasha in the table of contents)
+ * for a moment. The attribute is outside React's props, so a re-render leaves it alone.
+ */
+function flashSegment(el, timers) {
+  if (!el) { return; }
+  el.removeAttribute('data-flash');
+  void el.offsetWidth;  // restart the animation if it is already running
+  el.setAttribute('data-flash', 'true');
+  timers.push(setTimeout(() => el.removeAttribute('data-flash'), FLASH_MS));
 }
 
 /**
@@ -73,6 +88,9 @@ export default function NgReaderApp(props) {
   const streamRef = useRef(null);
   const anchorRef = useRef(null);
   const scrollTargetRef = useRef(null);  // a segment to bring into view once a reset stream renders
+  const flashTargetRef = useRef(null);   // ... and flash, when goToRef asked for it
+  const flashTimers = useRef([]);
+  const searchMemory = useRef(null);     // the search sheet's last {book, query}
   const [generation, setGeneration] = useState(0);  // bumped whenever openRef() replaces the stream
 
   const loadSection = useMemo(() => makeSectionLoader(currVersions, translationLanguagePreference),
@@ -117,9 +135,19 @@ export default function NgReaderApp(props) {
     if (!target) { return; }
     scrollTargetRef.current = null;
     const el = findSegmentElement(streamRef.current, target);
-    window.scrollTo(0, el ? Math.max(0, el.getBoundingClientRect().top + window.pageYOffset - HEADER_OFFSET) : 0);
+    const flash = flashTargetRef.current === target;
+    let offset = HEADER_OFFSET;
+    if (el && flash) {
+      // A jump to one passage centers it (where the header takes its ref from), or tops it if it is tall.
+      offset = Math.max(HEADER_OFFSET, (window.innerHeight - el.getBoundingClientRect().height) / 2);
+    }
+    window.scrollTo(0, el ? Math.max(0, el.getBoundingClientRect().top + window.pageYOffset - offset) : 0);
     header.rebase(window.pageYOffset);
+    if (flash) { flashSegment(el, flashTimers.current); }
+    flashTargetRef.current = null;
   }, [sectionsKey, generation]);
+
+  useEffect(() => () => flashTimers.current.forEach(clearTimeout), []);
 
   // Re-check the stream's edges whenever content changes (a short section may not fill the screen).
   useEffect(() => { pokeScroll(); }, [sections.length, stream.prev.status]);
@@ -132,6 +160,10 @@ export default function NgReaderApp(props) {
       window.scrollTo(0, Math.max(0, target.getBoundingClientRect().top + window.pageYOffset - HEADER_OFFSET));
     }
     header.rebase(window.pageYOffset);
+    // The landing entry names its ref, so Back to it from an in-app jump reloads it.
+    if (urlRef && !(window.history.state && window.history.state.ngRef)) {
+      window.history.replaceState({...(window.history.state || {}), ngRef: urlRef}, '', window.location.pathname + window.location.search);
+    }
     if (urlRef) { overlays.seedHistory({ngRef: urlRef}, currentUrl); }  // a with= page opens with the panel
     setHydrated(true);
     const timer = setTimeout(pokeScroll, 0);
@@ -182,8 +214,10 @@ export default function NgReaderApp(props) {
   /**
    * Show a different ref: reload the stream around it. `push` adds a history entry; `focus` is
    * the segment to scroll to (default: the ref itself when it is a segment, else the top).
+   * `highlight` marks a segment ref as a segment URL does; `flash` marks it only for a moment.
+   * Either keeps the segment in the URL while the reader stays in its section.
    */
-  const openRef = useCallback((ref, {versions = currVersions, push = true, focus = null, highlight = true} = {}) => {
+  const openRef = useCallback((ref, {versions = currVersions, push = true, focus = null, highlight = true, flash = false} = {}) => {
     return makeSectionLoader(versions, translationLanguagePreference)(ref).then(section => {
       const isSegment = ref !== section.ref;
       const url = buildReaderUrl({ref, currVersions: versions, language: settings.language});
@@ -191,10 +225,11 @@ export default function NgReaderApp(props) {
       const state = push ? {ngRef: ref} : {...(window.history.state || {}), ngRef: ref};
       window.history[push ? 'pushState' : 'replaceState'](state, '', url);
       scrollTargetRef.current = focus || (isSegment ? ref : (section.segments[0] && section.segments[0].ref));
+      flashTargetRef.current = flash && isSegment ? ref : null;
       batchedUpdates(() => {
         setCurrVersionsState(normalizeCurrVersions(versions));
-        setHighlightedRefs(isSegment && highlight ? [ref] : []);
-        setLanding(isSegment && highlight ? {sectionRef: section.ref, ref} : null);
+        setHighlightedRefs(isSegment && highlight && !flash ? [ref] : []);
+        setLanding(isSegment && (highlight || flash) ? {sectionRef: section.ref, ref} : null);
         reset(section);
         setGeneration(g => g + 1);
       });
@@ -234,9 +269,22 @@ export default function NgReaderApp(props) {
     overlays.open({type: OVERLAY.ASSOCIATED, ref: segment.ref, heRef, stack: [HOME, ...views]});
   }, [current, segmentByRef, overlays.open]); // eslint-disable-line react-hooks/exhaustive-deps
   const openConfig = useCallback(() => overlays.open({type: OVERLAY.CONFIG}), [overlays.open]); // eslint-disable-line react-hooks/exhaustive-deps
+  const openToc = useCallback(() => overlays.open({type: OVERLAY.TOC}), [overlays.open]); // eslint-disable-line react-hooks/exhaustive-deps
+  const openSearch = useCallback(() => overlays.open({type: OVERLAY.SEARCH}), [overlays.open]); // eslint-disable-line react-hooks/exhaustive-deps
   const closeOverlay = overlays.close;
   /** Leave the panel for a text in the reader: close it (its history entries), then open the ref. */
   const openRefFromOverlay = useCallback((ref) => overlays.close().then(() => openRef(ref)), [overlays.close, openRef]); // eslint-disable-line react-hooks/exhaustive-deps
+  /**
+   * Go to a ref from anywhere in the reader (the table of contents, search results): close
+   * whatever overlay is open (its history entries), then show the ref in the stream with a new
+   * history entry. `flash` marks a segment for a moment instead of highlighting it. The text is
+   * requested at once, so it is usually cached by the time the overlay has closed.
+   */
+  const goToRef = useCallback((ref, {flash = false} = {}) => {
+    makeSectionLoader(currVersions, translationLanguagePreference)(ref).catch(() => {});
+    const go = () => openRef(ref, flash ? {flash: true, highlight: false} : {});
+    return overlay.type !== OVERLAY.NONE ? overlays.close().then(go) : go();
+  }, [overlay.type, overlays.close, openRef, currVersions, translationLanguagePreference]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onStreamClick = useCallback((e) => {
     const target = e.target;
@@ -290,7 +338,7 @@ export default function NgReaderApp(props) {
     interfaceLang, interfaceDir, strings, translationLanguagePreference,
     settings, setSetting, currentLayout,
     currVersions, setCurrVersions, openRef,
-    overlay, openAssociated, openConfig, closeOverlay,
+    overlay, openAssociated, openConfig, openToc, openSearch, closeOverlay, goToRef, searchMemory,
     overlayPushView: overlays.pushView, overlayReplaceView: overlays.replaceView,
     overlayBack: overlays.back, overlayJump: overlays.jump, openRefFromOverlay,
     currentSegment: current, currentSection, currentUrl,
@@ -307,12 +355,14 @@ export default function NgReaderApp(props) {
       <div className="ng-reader" data-ng="reader" dir={interfaceDir} lang={interfaceLang === 'hebrew' ? 'he' : 'en'}
            data-interface={interfaceLang} data-overlay={overlay.type} data-hydrated={hydrated ? 'true' : 'false'}>
         <ReaderHeader visible={header.visible} currentRef={currentRef} currentHeRef={currentHeRef}
-                      section={currentSection} interfaceLang={interfaceLang} strings={strings} onOpenSettings={openConfig} />
+                      section={currentSection} interfaceLang={interfaceLang} strings={strings} onOpenSettings={openConfig}
+                      onOpenToc={openToc} onOpenSearch={openSearch} openSheet={overlay.type} />
         <TextStream sections={sections} settings={settings} interfaceLang={interfaceLang} interfaceDir={interfaceDir}
                     highlightedRefs={highlightedRefs} stream={stream} strings={strings} onRetry={retry}
                     onClick={onStreamClick} streamRef={streamRef} urlFor={urlFor} linkCounts={linkCounts} pinned={pinned}
                     anchorRef={overlay.type === OVERLAY.ASSOCIATED ? overlay.ref : null} />
         <OverlaySlot panels={overlayPanels} />
+        <SheetSlot sheets={props.sheets} />
       </div>
     </NgReaderContext.Provider>
   );

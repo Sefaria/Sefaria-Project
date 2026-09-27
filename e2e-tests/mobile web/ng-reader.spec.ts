@@ -10,7 +10,8 @@ import { MODULE_URLS } from '../constants';
  *
  * Test IDs: NG-S### server dispatch and server HTML, NG-L### content language, NG-H### the
  * header and scrolling, NG-G### swipe gestures, NG-O### the overlay and history, NG-V###
- * versions, NG-P### pinned commentators.
+ * versions, NG-P### pinned commentators, NG-T### the table-of-contents sheet, NG-Q### the
+ * search-in-book sheet.
  *
  * What these tests assert, and why. Every check reads DOM state the reader publishes
  * (`data-overlay`, `data-state`, `data-phase`, `data-visible`, `data-language`, the URL) and
@@ -31,6 +32,12 @@ import { MODULE_URLS } from '../constants';
  *   - /api/texts/versions/Genesis.1: "The Koren Jerusalem Bible" is an English version that is
  *     not the default translation.
  *   - /api/links/Genesis.1.1: Rashi (category Commentary) comments on Genesis 1:1.
+ *
+ *   - /api/v2/index/Genesis: 50 chapters, 12 parashot (Noach starts at 6:9);
+ *     /api/v2/index/Berakhot: text from 2a (1a and 1b are empty).
+ *   - "light" in Genesis: 1:3, 1:4, 1:5, 1:14-1:18 match in the default translation.
+ *     The NG-Q tests need POST /api/search-wrapper/es8 to answer; a local harness that can't
+ *     reach it must stand it in at that boundary.
  *
  * Runs under playwright.mobileweb.config.ts. NG-S002 and NG-S003 need the real Django dispatch
  * (UA detection, `?ng=`, the classic reader), so they only pass against a sandbox or cauldron
@@ -299,5 +306,159 @@ test.describe('NG Mobile Reader — overlay, history and deep links', () => {
     expect(await ng.storedPins()).toContain('"title":"Rashi"');
     await ng.closeOverlayWithButton();
     await ng.expectPinnedInline('Genesis 1:1', /\|Rashi$/);
+  });
+});
+
+test.describe('NG Mobile Reader — table of contents sheet', () => {
+  test('NG-T001: the contents icon and the ref are one control, opening a sheet over the text', async ({ context }) => {
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    await expect(ng.headerTocControl).toHaveText(/^Genesis\s*1:\d+$/);
+    await expect(ng.headerTocControl.locator('svg')).toHaveCount(1);
+    await expect(page.locator('[data-ng="header"] a[href="/Genesis"]')).toHaveCount(1);  // no separate contents button
+    await ng.markDocument();
+    await ng.openTocFromHeader();
+    await ng.expectSameDocument();
+    await expect(page).toHaveURL(/\/Genesis\.1\?/);
+    await expect(ng.headerTocControl).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  test('NG-T002: Genesis opens on the current chapter; choosing one reads it in place, and Back returns', async ({ context }) => {
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    await ng.openTocFromHeader();
+    await ng.expectCurrentTocSection('Genesis 1');
+    await expect(page.locator('[data-ng="toc-section"]')).toHaveCount(50);
+    await ng.markDocument();
+    await ng.chooseTocSection('Genesis 12');
+    await ng.expectSameDocument();
+    await expect(page).toHaveURL(/\/Genesis\.12\?lang=bi$/);
+    await ng.expectHeaderRef(/^Genesis\s*12:\d+$/);
+    await ng.goBack();
+    await expect(page).toHaveURL(/\/Genesis\.1\?lang=bi$/, { timeout: t(15000) });
+    await ng.expectHeaderRef(/^Genesis\s*1:\d+$/);
+  });
+
+  test('NG-T003: a parasha opens at its first verse, marked for a moment', async ({ context }) => {
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    await ng.openTocFromHeader();
+    await ng.openTocTab('Parasha');
+    await page.locator('[data-ng="toc-alt-item"][data-ref="Genesis 6:9"]').tap();
+    await ng.expectSheet('none');
+    await ng.expectFlashed('Genesis 6:9');
+    await expect(page).toHaveURL(/\/Genesis\.6\.9\?/);
+  });
+
+  test('NG-T004: Berakhot: a grid of amudim from 2a, on the current one', async ({ context }) => {
+    await openReader(context, `${LIBRARY}/Berakhot.3b?lang=bi`);
+    const ng = pm.onNgReader();
+    await ng.openTocFromHeader();
+    await ng.expectCurrentTocSection('Berakhot 3b');
+    await expect(page.locator('[data-ng="toc-section"]').first()).toHaveAttribute('data-ref', 'Berakhot 2a');
+    await ng.chooseTocSection('Berakhot 5a');
+    await expect(page).toHaveURL(/\/Berakhot\.5a\?/);
+  });
+
+  test('NG-T005: Back, Escape and the close button each close the sheet and stay on the text', async ({ context }) => {
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    const path = new URL(page.url()).pathname;
+    await ng.openTocFromHeader();
+    await ng.goBack();
+    await ng.expectSheet('none');
+    await ng.openTocFromHeader();
+    await page.keyboard.press('Escape');
+    await ng.expectSheet('none');
+    await ng.openTocFromHeader();
+    await page.locator('[data-ng="sheet-close"]').tap();
+    await ng.expectSheet('none');
+    await expect.poll(() => new URL(page.url()).pathname).toBe(path);
+    await ng.expectOverlay('none');
+  });
+
+  test('NG-T006: a finger dragging the sheet down dismisses it', async ({ context, browserName }) => {
+    test.skip(browserName !== 'chromium', 'Real touch input goes through CDP, which only Chromium has');
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    await ng.openTocFromHeader();
+    await ng.dragSheetDown();
+    await ng.expectSheet('none');
+  });
+
+  test('NG-T007: the Hebrew interface mirrors the header: the icon leads the ref on the right', async ({ context }) => {
+    await openReader(context, `${LIBRARY_HE}/Genesis.1?lang=bi`, LANGUAGES.HE);
+    const ng = pm.onNgReader();
+    await ng.expectInterface('hebrew');
+    const icon = await ng.headerTocControl.locator('.ng-header-toc-icon').boundingBox();
+    const text = await ng.headerTocControl.locator('.ng-header-ref-text').boundingBox();
+    expect(icon!.x).toBeGreaterThan(text!.x + text!.width - 1);
+    const search = await page.locator('[data-ng="header-search"]').boundingBox();
+    expect(search!.x).toBeLessThan(text!.x);
+    await ng.openTocFromHeader();
+    await ng.expectCurrentTocSection('Genesis 1');
+    await expect(ng.tocSection('Genesis 1')).toHaveText('א');
+  });
+});
+
+test.describe('NG Mobile Reader — search in the book', () => {
+  test('NG-Q001: the search button opens a sheet with a focused input that searches this book', async ({ context }) => {
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    await ng.markDocument();
+    await ng.openSearchFromHeader();
+    await ng.expectSameDocument();
+    await expect(ng.searchInput).toBeFocused();
+    await expect(ng.searchInput).toHaveAttribute('aria-label', 'Search in Genesis');
+    await ng.searchFor('light');
+    const refs = await ng.searchResultRefs();
+    expect(refs.slice(0, 3)).toEqual(['Genesis 1:3', 'Genesis 1:4', 'Genesis 1:5']);
+    expect(refs.every(r => r.startsWith('Genesis '))).toBe(true);
+    await expect(ng.searchResult('Genesis 1:3').locator('mark').first()).toHaveText(/light/i);
+  });
+
+  test('NG-Q002: choosing a result reads that verse in place, marked for a moment', async ({ context }) => {
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    await ng.openSearchFromHeader();
+    await ng.searchFor('light');
+    await ng.chooseSearchResult('Genesis 1:16');
+    await ng.expectFlashed('Genesis 1:16');
+    await expect(page).toHaveURL(/\/Genesis\.1\.16\?lang=bi$/);
+    await ng.goBack();
+    await expect(page).toHaveURL(/\/Genesis\.1\?lang=bi$/, { timeout: t(15000) });
+  });
+
+  test('NG-Q003: a query with no matches says so', async ({ context }) => {
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    await ng.openSearchFromHeader();
+    await ng.searchFor('qqxqzz');
+    await expect(page.locator('[data-ng="search"]')).toHaveAttribute('data-status', 'ready');
+    await expect(page.locator('[data-ng="search-result"]')).toHaveCount(0);
+    await expect(page.locator('[data-ng="search-status"]')).toContainText('qqxqzz');
+  });
+
+  test('NG-Q004: Back closes search; reopening keeps the query', async ({ context }) => {
+    await openReader(context, GENESIS_1_BI);
+    const ng = pm.onNgReader();
+    await ng.openSearchFromHeader();
+    await ng.searchFor('light');
+    await ng.goBack();
+    await ng.expectSheet('none');
+    await ng.openSearchFromHeader();
+    await expect(ng.searchInput).toHaveValue('light');
+    await expect(ng.searchResult('Genesis 1:3')).toBeVisible({ timeout: t(15000) });
+  });
+
+  test('NG-Q005: the Hebrew interface: a Hebrew query in a tractate, with Hebrew refs', async ({ context }) => {
+    await openReader(context, `${LIBRARY_HE}/Berakhot.2a?lang=bi`, LANGUAGES.HE);
+    const ng = pm.onNgReader();
+    await ng.openSearchFromHeader();
+    await ng.searchFor('קורין');
+    const first = page.locator('[data-ng="search-result"]').first();
+    await expect(first).toBeVisible();
+    await expect(first.locator('.ng-search-ref')).toHaveText(/^ברכות/);
+    await expect(first.locator('.ng-search-snippet-he mark').first()).toBeVisible();
   });
 });

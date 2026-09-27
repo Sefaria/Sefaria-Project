@@ -1562,3 +1562,451 @@ body.interface-hebrew.ng-body #appLoading .int-en { display: none; }
   .ng-reader .ng-rows-nested { animation: none; }
   .ng-reader .ng-disclosure-chevron { transition: none; }
 }
+
+/* ================================================================ sheets: table of contents, search
+ * static/js/ng/sheets/. The header's book-and-position control opens the table of contents,
+ * its search button opens search in the book; both are bottom sheets that rise to near full
+ * height over the text. BottomSheet moves them with inline transform/opacity; CSS gives the
+ * resting positions. Everything here is scoped to .ng-reader and uses logical properties, so
+ * a Hebrew interface mirrors without extra rules (except the icons that point somewhere).
+ */
+
+/* header: [contents icon] Genesis 1:5, one tap target */
+.ng-reader .ng-header-ref {
+  display: flex;
+  align-items: center;
+  overflow: visible;
+}
+.ng-reader .ng-header-toc {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 44px;
+  margin-inline-start: -8px;
+  padding-inline: 8px 10px;
+  border-radius: 10px;
+  color: inherit;
+  text-decoration: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.ng-reader .ng-header-toc:active { background: var(--lighter-grey); }
+.ng-reader .ng-header-toc:focus-visible { outline: 2px solid var(--focus-blue); outline-offset: -2px; }
+.ng-reader .ng-header-toc-icon {
+  display: inline-flex;
+  flex: none;
+  color: var(--darkest-grey);
+}
+.ng-reader .ng-header-toc-icon .ng-icon { width: 22px; height: 22px; }
+.ng-reader[dir="rtl"] .ng-header-toc-icon .ng-icon { transform: scaleX(-1); }
+.ng-reader .ng-header-ref-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* the sheet */
+.ng-reader .ng-sheets[hidden] { display: none; }
+.ng-reader .ng-bsheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: rgba(24, 22, 20, 0.32);
+  touch-action: none;
+}
+.ng-reader .ng-bsheet {
+  --ng-sheet-pad: 20px;
+  --ng-sheet-track: #f2f2ef;
+  position: fixed;
+  inset-inline: 0;
+  inset-block: calc(env(safe-area-inset-top) + var(--ng-header-height) - 10px) 0;  /* the header's ref stays in sight, dimmed */
+  z-index: 31;
+  display: flex;
+  flex-direction: column;
+  max-width: 44rem;
+  margin-inline: auto;
+  border-start-start-radius: 20px;
+  border-start-end-radius: 20px;
+  background: var(--ng-surface);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04), 0 -10px 40px rgba(0, 0, 0, 0.16);
+  outline: none;
+  will-change: transform;
+}
+/* Before BottomSheet's first frame places it, the sheet waits below the screen. */
+.ng-reader .ng-bsheet-layer[data-phase="entering"] .ng-bsheet { transform: translate3d(0, calc(100% + 24px), 0); }
+.ng-reader .ng-bsheet-layer[data-phase="entering"] .ng-bsheet-backdrop { opacity: 0; }
+.ng-reader .ng-bsheet-top {
+  flex: none;
+  touch-action: none;           /* a drag here moves the sheet */
+}
+.ng-reader .ng-bsheet-grip {
+  display: flex;
+  justify-content: center;
+  padding-block: 8px 6px;
+}
+.ng-reader .ng-bsheet-grip > span {
+  width: 38px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--light-grey);
+}
+.ng-reader .ng-bsheet-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding-inline: var(--ng-sheet-pad) 14px;
+  padding-block-end: 12px;
+}
+.ng-reader .ng-bsheet-head-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.ng-reader .ng-bsheet-close {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ng-sheet-track);
+  color: var(--ng-ink-soft);
+  cursor: pointer;
+}
+.ng-reader .ng-bsheet-close:active { background: var(--lighter-grey); }
+.ng-reader .ng-bsheet-close .ng-icon { width: 20px; height: 20px; }
+.ng-reader .ng-bsheet-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-inline: var(--ng-sheet-pad);
+  padding-block-end: calc(28px + env(safe-area-inset-bottom));
+  border-block-start: 1px solid var(--ng-rule);
+}
+.ng-reader .ng-bsheet :focus-visible { outline: 2px solid var(--focus-blue); outline-offset: 2px; }
+.ng-reader .ng-sheet-status {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding-block: 48px;
+  font-size: 15px;
+  color: var(--ng-muted);
+  text-align: center;
+}
+.ng-reader .ng-sheet-pill {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--light-grey);
+  border-radius: 999px;
+  background: var(--ng-surface);
+  font: inherit;
+  font-size: 14.5px;
+  color: var(--darkest-grey);
+  cursor: pointer;
+}
+
+/* table of contents: head */
+.ng-reader .ng-toc-head { padding-block-start: 2px; }
+.ng-reader .ng-toc-kicker {
+  margin-block-end: 5px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ng-muted);
+}
+.ng-reader[data-interface="hebrew"] .ng-toc-kicker { font-size: 13px; letter-spacing: 0; text-transform: none; }
+.ng-reader .ng-toc-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15em 0.55em;
+  margin: 0;
+  font-weight: normal;
+  line-height: 1.15;
+}
+.ng-reader .ng-toc-title-main { font-family: var(--ng-en-serif); font-size: 29px; color: var(--ng-ink); }
+.ng-reader .ng-toc-title-other { font-family: var(--ng-he-serif); font-size: 24px; color: var(--ng-muted); }
+.ng-reader[data-interface="hebrew"] .ng-toc-title-main { font-family: var(--ng-he-serif); font-size: 30px; }
+.ng-reader[data-interface="hebrew"] .ng-toc-title-other { font-family: var(--ng-en-serif); font-size: 21px; }
+
+/* table of contents: tabs (sections | parashot) */
+.ng-reader .ng-toc-tabs {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 4px;
+  margin-block: 16px 16px;
+  padding: 4px;
+  border-radius: 13px;
+  background: var(--ng-sheet-track);
+}
+.ng-reader .ng-toc-tab {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  font: inherit;
+  font-size: 14.5px;
+  color: var(--ng-ink-soft);
+  cursor: pointer;
+}
+.ng-reader .ng-toc-tab[aria-selected="true"] {
+  background: var(--ng-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(0, 0, 0, 0.04);
+  color: var(--ng-ink);
+  font-weight: 500;
+}
+.ng-reader .ng-toc-section-label {
+  margin: 18px 0 12px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ng-muted);
+}
+.ng-reader[data-interface="hebrew"] .ng-toc-section-label { font-size: 13.5px; letter-spacing: 0; text-transform: none; }
+
+/* table of contents: the grid of chapters / dapim */
+.ng-reader .ng-toc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: 8px;
+  padding-block: 2px 8px;
+}
+.ng-reader .ng-toc-grid[data-talmud] { grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); }
+.ng-reader .ng-toc-cell {
+  width: 100%;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--lighter-grey);
+  border-radius: 12px;
+  background: var(--ng-surface);
+  font: inherit;
+  font-size: 16px;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--ng-ink-soft);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+.ng-reader[data-interface="hebrew"] .ng-toc-cell { font-size: 17px; }
+.ng-reader .ng-toc-cell:active { background: var(--lightest-grey); }
+.ng-reader .ng-toc-cell[aria-current="location"] {
+  border-color: var(--ng-accent);
+  background: var(--ng-accent);
+  color: var(--white);
+  font-weight: 600;
+}
+.ng-reader .ng-toc-cell:disabled { border-style: dashed; color: var(--ng-faint); cursor: default; }
+
+/* table of contents: a schema as a collapsible tree */
+.ng-reader .ng-toc-tree { padding-block-start: 4px; }
+.ng-reader .ng-toc-branch { border-block-end: 1px solid var(--ng-rule); }
+.ng-reader .ng-toc-branch .ng-toc-branch { border-block-end: 0; }
+.ng-reader .ng-toc-branch-head,
+.ng-reader .ng-toc-leaf {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 50px;
+  padding: 10px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 16.5px;
+  line-height: 1.3;
+  color: var(--ng-ink);
+  text-align: start;
+  cursor: pointer;
+}
+.ng-reader .ng-toc-leaf { padding-inline-start: 28px; border-block-end: 1px solid var(--ng-rule); }
+.ng-reader .ng-toc-branch-body .ng-toc-leaf { min-height: 44px; border-block-end: 0; font-size: 15.5px; color: var(--ng-ink-soft); }
+.ng-reader .ng-toc-branch-body {
+  padding-inline-start: 28px;
+  padding-block-end: 8px;
+}
+.ng-reader .ng-toc-branch-body > .ng-toc-branch > .ng-toc-branch-head { font-size: 15.5px; }
+.ng-reader .ng-toc-chevron { flex: none; color: var(--ng-muted); transition: transform 160ms ease; }
+.ng-reader[dir="rtl"] .ng-toc-chevron { transform: scaleX(-1); }
+.ng-reader .ng-toc-branch[data-open="true"] > .ng-toc-branch-head .ng-toc-chevron { transform: rotate(90deg); }
+.ng-reader .ng-toc-branch[data-current="true"] > .ng-toc-branch-head { font-weight: 500; }
+.ng-reader .ng-toc-leaf[aria-current="location"] { position: relative; color: var(--ng-accent); font-weight: 500; }
+.ng-reader .ng-toc-leaf[aria-current="location"]::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 10px;
+  inset-block: 14px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--ng-accent);
+}
+.ng-reader .ng-toc-branch-body .ng-toc-leaf[aria-current="location"]::before { inset-inline-start: 0; }
+.ng-reader .ng-toc-branch-body .ng-toc-leaf { padding-inline-start: 14px; }
+
+/* table of contents: alternate structures (parashot, perakim) */
+.ng-reader .ng-toc-alts {
+  margin: 0 -12px;
+  padding: 0;
+  list-style: none;
+}
+.ng-reader .ng-toc-alt {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "kicker range" "title range";
+  align-items: center;
+  column-gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  font: inherit;
+  text-align: start;
+  color: var(--ng-ink);
+  cursor: pointer;
+}
+.ng-reader .ng-toc-alts > li + li { border-block-start: 1px solid var(--ng-rule); }
+.ng-reader .ng-toc-alt-kicker { grid-area: kicker; font-size: 12px; color: var(--ng-muted); }
+.ng-reader .ng-toc-alt-title { grid-area: title; font-size: 17px; }
+.ng-reader .ng-toc-alt-range {
+  grid-area: range;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-toc-alt:active { background: var(--lightest-grey); }
+.ng-reader .ng-toc-alt[aria-current="location"] { background: var(--ng-highlight); }
+.ng-reader .ng-toc-alt[aria-current="location"] .ng-toc-alt-title { color: var(--ng-accent); font-weight: 500; }
+.ng-reader .ng-toc-alts > li:has(> .ng-toc-alt[aria-current="location"]) + li { border-block-start-color: transparent; }
+
+/* search in the book */
+.ng-reader .ng-search-form { margin: 0; }
+.ng-reader .ng-search-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  padding-inline: 12px 8px;
+  border-radius: 13px;
+  background: var(--ng-sheet-track);
+  color: var(--ng-muted);
+}
+.ng-reader .ng-search-field:focus-within { box-shadow: 0 0 0 2px var(--highlight-blue); }
+.ng-reader .ng-search-field .ng-icon { flex: none; width: 20px; height: 20px; }
+.ng-reader .ng-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: 17px;            /* 16px or more: iOS doesn't zoom into the field */
+  color: var(--ng-ink);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.ng-reader .ng-search-input::placeholder { color: var(--ng-muted); }
+.ng-reader .ng-search-input:focus-visible { outline: none; }  /* the field shows focus (:focus-within) */
+.ng-reader .ng-search-input::-webkit-search-cancel-button { display: none; }
+.ng-reader .ng-search-clear {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--light-grey);
+  color: var(--white);
+  cursor: pointer;
+}
+.ng-reader .ng-search-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 0 4px;
+  font-size: 13.5px;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-search-status .ng-spinner { width: 16px; height: 16px; }
+.ng-reader .ng-search[data-status="error"] .ng-search-status,
+.ng-reader .ng-search[data-status="idle"] .ng-search-status { flex-direction: column; justify-content: center; padding-block: 36px; font-size: 15px; text-align: center; }
+.ng-reader .ng-search-results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ng-reader .ng-search-results > li + li { border-block-start: 1px solid var(--ng-rule); }
+.ng-reader .ng-search-result {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  padding: 14px 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: start;
+  color: var(--ng-ink);
+  cursor: pointer;
+}
+.ng-reader .ng-search-result:active { background: var(--lightest-grey); }
+.ng-reader .ng-search-ref {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ng-accent);
+}
+.ng-reader[data-interface="hebrew"] .ng-search-ref { font-size: 14px; letter-spacing: 0; }
+.ng-reader .ng-search-snippet {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  text-align: start;
+}
+.ng-reader .ng-search-snippet-he {
+  font-family: var(--ng-he-serif);
+  font-size: 19px;
+  line-height: 1.5;
+}
+.ng-reader .ng-search-snippet-en {
+  font-family: var(--ng-en-serif);
+  font-size: 16.5px;
+  line-height: 1.45;
+  color: var(--ng-ink-translation);
+}
+.ng-reader .ng-search-snippet mark {
+  background: none;
+  color: var(--ng-ink);
+  font-weight: 600;
+  box-shadow: inset 0 -0.4em 0 var(--highlight-blue);
+}
+.ng-reader .ng-search-more {
+  display: flex;
+  justify-content: center;
+  padding-block: 18px 8px;
+}
+
+/* a segment the reader jumped to (search, a parasha) is marked for a moment */
+.ng-reader .ng-seg[data-flash="true"] { animation: ng-flash 2.2s ease-out; }
+@keyframes ng-flash {
+  0%, 40% { background: var(--ng-highlight); box-shadow: 0 0 0 6px var(--ng-highlight); }
+  100% { background: transparent; box-shadow: 0 0 0 6px transparent; }
+}

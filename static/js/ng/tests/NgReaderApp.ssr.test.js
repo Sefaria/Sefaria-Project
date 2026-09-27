@@ -103,6 +103,25 @@ describe('layouts and structure', () => {
     expect(html).toContain('href="/texts"');
   });
 
+  test('the header: the contents icon leads the ref in one link; the sheets render nothing until opened', () => {
+    const html = renderLikeNode(fixture('genesis-1'));
+    const toc = html.match(/<a class="ng-header-toc"[^>]*>(.*?)<\/a>/);
+    expect(toc).not.toBeNull();
+    expect(toc[0]).toContain('href="/Genesis"');           // the fallback before hydration
+    expect(toc[0]).toContain('aria-haspopup="dialog"');
+    expect(toc[1]).toMatch(/^<span class="ng-header-toc-icon"><svg/);
+    expect(toc[1]).toContain('<span class="ng-header-book">Genesis</span>');
+    expect(count(html, 'data-ng="header-toc"')).toBe(1);
+    expect(html).toMatch(/<div class="ng-sheets" data-ng="sheets" data-state="none" hidden="">\s*<\/div>/);
+    expect(html).not.toContain('data-ng="bottom-sheet"');
+  });
+
+  test('a Hebrew interface renders the same header, mirrored by its direction', () => {
+    const html = renderLikeNode(fixture('berakhot-2a', {interfaceLang: 'hebrew'}));
+    expect(html).toMatch(/<div class="ng-reader" data-ng="reader" dir="rtl"/);
+    expect(html).toMatch(/<a class="ng-header-toc"[^>]*><span class="ng-header-toc-icon">.*?<span class="ng-header-book">ברכות<\/span>/);
+  });
+
   test('the next section is a real link, so the server HTML can page through the book', () => {
     const html = renderLikeNode(fixture('genesis-1'));
     expect(html).toContain('href="/Genesis.2?lang=bi"');

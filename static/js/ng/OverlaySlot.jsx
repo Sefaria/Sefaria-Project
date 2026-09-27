@@ -17,7 +17,7 @@
  * for styling; `data-state` and the reader root's `data-overlay` are the overlay state.
  */
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {OVERLAY, useIsomorphicLayoutEffect, useNgReader} from './context';
+import {isSheet, OVERLAY, useIsomorphicLayoutEffect, useNgReader} from './context';
 import {PANEL, panelOffset, panelSide, settleCurve, usePanelSwipes} from './gestures';
 import {HOME} from './overlayState';
 import AssociatedPanel from './panels/AssociatedPanel';
@@ -29,6 +29,7 @@ export const DEFAULT_PANELS = {
 };
 
 const EASE = 'cubic-bezier(0.22, 0.8, 0.24, 1)';
+const CLOSED = {type: OVERLAY.NONE};
 const OPEN_MS = 300;
 
 function reducedMotion() {
@@ -37,7 +38,11 @@ function reducedMotion() {
 
 export default function OverlaySlot({panels = DEFAULT_PANELS}) {
   const reader = useNgReader();
-  const {overlay, closeOverlay, strings, interfaceDir, openAssociated, openConfig, currentSegment} = reader;
+  // The bottom sheets (table of contents, search) are overlay states too, shown by SheetSlot:
+  // here they count as no drawer, and swipes don't start while one is open.
+  const sheetOpen = isSheet(reader.overlay.type);
+  const overlay = sheetOpen ? CLOSED : reader.overlay;
+  const {closeOverlay, strings, interfaceDir, openAssociated, openConfig, currentSegment} = reader;
   // What is on screen: the open overlay, a panel being dragged in, or one animating out.
   const [shown, setShown] = useState(() => (overlay.type !== OVERLAY.NONE ? {overlay, phase: 'open'} : null));
   const sheetRef = useRef(null);
@@ -129,6 +134,7 @@ export default function OverlaySlot({panels = DEFAULT_PANELS}) {
     },
     canStart: (target, open) => {
       if (open) { return !!(target.closest && target.closest('[data-ng="sheet"], [data-ng="overlay-backdrop"]')); }
+      if (isSheet(readerRef.current.overlay.type)) { return false; }
       return !shownRef.current && !!(target.closest && target.closest('[data-ng="stream"]'));
     },
     panelWidth: () => width(),

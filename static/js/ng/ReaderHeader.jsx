@@ -1,11 +1,11 @@
 /**
  * The reader's top header: the current ref (the most granular ref the reader is on, e.g.
- * "Genesis 1:5", "Berakhot 2a:3") and entry points for search in the book, the table of
- * contents, browsing the library, and text settings.
+ * "Genesis 1:5", "Berakhot 2a:3"), led by the contents icon, which together open the table of
+ * contents; then search in the book, browsing the library, and text settings.
  *
  * It recedes (transform only, so no layout work) as reading moves forward and returns on a
- * reverse scroll, near the top, or when the text is tapped. The ref is not a control: the
- * table of contents is its own entry point.
+ * reverse scroll, near the top, or when the text is tapped. The table of contents and search
+ * open as sheets over the text (sheets/), not as pages.
  */
 import React from 'react';
 import {bookTocUrl, BROWSE_URL, searchInBookUrl} from './url';
@@ -42,25 +42,49 @@ export function splitRef(ref, title) {
   return [ref || '', ''];
 }
 
-export default function ReaderHeader({visible, currentRef, currentHeRef, section, interfaceLang, strings, onOpenSettings}) {
+/** Follow a link's href only when it is opened in a new tab or window; otherwise run `open`. */
+function inApp(open) {
+  return (e) => {
+    if (e.defaultPrevented || e.button > 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) { return; }
+    e.preventDefault();
+    open();
+  };
+}
+
+export default function ReaderHeader({
+  visible, currentRef, currentHeRef, section, interfaceLang, strings, onOpenSettings, onOpenToc, onOpenSearch, openSheet,
+}) {
   const hebrew = interfaceLang === 'hebrew';
   const ref = hebrew ? (currentHeRef || currentRef) : currentRef;
   const [book, address] = splitRef(ref, section ? (hebrew ? section.heIndexTitle : section.indexTitle) : null);
+  const label = (
+    <>
+      <span className="ng-header-book">{book}</span>
+      {address ? <span className="ng-header-address">{address}</span> : null}
+    </>
+  );
+  // The book and position are one control: the contents icon leads it, and it opens the table
+  // of contents as a sheet. Its href (the book's TOC page) is the fallback before hydration.
   return (
     <header className="ng-header" data-ng="header" data-visible={visible ? 'true' : 'false'}>
       <div className="ng-header-inner">
         <h1 className="ng-header-ref" data-ng="header-ref" aria-live="off">
-          <span className="ng-header-book">{book}</span>
-          {address ? <span className="ng-header-address">{address}</span> : null}
+          {section ? (
+            <a className="ng-header-toc" data-ng="header-toc" href={bookTocUrl(section.indexTitle)} role="button"
+               aria-haspopup="dialog" aria-expanded={openSheet === 'toc'} aria-describedby="ng-header-toc-hint"
+               onClick={onOpenToc ? inApp(onOpenToc) : undefined}>
+              <span className="ng-header-toc-icon"><ContentsIcon /></span>
+              <span className="ng-header-ref-text">{label}</span>
+            </a>
+          ) : <span className="ng-header-ref-text">{label}</span>}
         </h1>
+        {section ? <span className="ng-visually-hidden" id="ng-header-toc-hint">{strings.contents}</span> : null}
         <nav className="ng-header-actions" aria-label={strings.readerLabel}>
           {section ? (
-            <a className="ng-header-button" data-ng="header-search" href={searchInBookUrl(section)}
-               aria-label={strings.searchInBook} title={strings.searchInBook}><SearchIcon /></a>
-          ) : null}
-          {section ? (
-            <a className="ng-header-button" data-ng="header-toc" href={bookTocUrl(section.indexTitle)}
-               aria-label={strings.contents} title={strings.contents}><ContentsIcon /></a>
+            <a className="ng-header-button" data-ng="header-search" href={searchInBookUrl(section)} role="button"
+               aria-haspopup="dialog" aria-expanded={openSheet === 'search'}
+               aria-label={strings.searchInBook} title={strings.searchInBook}
+               onClick={onOpenSearch ? inApp(onOpenSearch) : undefined}><SearchIcon /></a>
           ) : null}
           <a className="ng-header-button" data-ng="header-browse" href={BROWSE_URL}
              aria-label={strings.browse} title={strings.browse}><BrowseIcon /></a>

@@ -3,7 +3,8 @@ import { HelperBase } from './helperBase';
 import { t } from '../globals';
 
 export type NgLanguage = 'hebrew' | 'english' | 'bilingual';
-export type NgOverlay = 'none' | 'associated' | 'config';
+export type NgOverlay = 'none' | 'associated' | 'config' | 'toc' | 'search';
+export type NgSheet = 'toc' | 'search';
 type Point = { x: number; y: number };
 
 /** URL `lang=` values for the three content languages (static/js/ng/text.js shortLang). */
@@ -20,6 +21,7 @@ export const NG_SHORT_LANG: Record<NgLanguage, string> = { hebrew: 'he', english
  *   - `[data-ng="overlay"]` data-state (the overlay state) and data-phase (what is on screen)
  *   - `[data-ng="header"]` data-visible
  *   - `[data-ng="stream"]` data-language
+ *   - `[data-ng="sheets"]` data-state (toc | search | none), `[data-ng="sheet-layer"]` data-phase
  *
  * Swipes go through real touch input: CDP `Input.dispatchTouchEvent`, which reaches the page as
  * touch events through Chromium's touch pipeline, `touch-action` and scrolling included. The
@@ -188,6 +190,126 @@ export class NgReaderPage extends HelperBase {
   async expectCommentFrom(refPrefix: string) {
     await expect(this.associatedPanel.locator(`[data-ng="comment"][data-ref^="${refPrefix}"]`).first())
       .toBeVisible({ timeout: t(40000) });
+  }
+
+  // ------------------------------------------------------------------ sheets: table of contents, search
+
+  private get sheets() {
+    return this.page.locator('[data-ng="sheets"]');
+  }
+
+  private get bottomSheet() {
+    return this.page.locator('[data-ng="bottom-sheet"]');
+  }
+
+  /** The header's book-and-position control (the contents icon leads it). */
+  get headerTocControl() {
+    return this.page.locator('[data-ng="header-toc"]');
+  }
+
+  /** A sheet is open (on screen, done moving), or none is and the slot is empty. */
+  async expectSheet(type: NgSheet | 'none') {
+    await expect(this.reader).toHaveAttribute('data-overlay', type, { timeout: t(10000) });
+    await expect(this.sheets).toHaveAttribute('data-state', type);
+    if (type === 'none') {
+      await expect(this.bottomSheet).toHaveCount(0, { timeout: t(10000) });
+    } else {
+      await expect(this.page.locator('[data-ng="sheet-layer"]')).toHaveAttribute('data-phase', 'open', { timeout: t(10000) });
+      await expect(this.bottomSheet).toHaveAttribute('data-sheet', type);
+      await expect(this.bottomSheet).toHaveAttribute('role', 'dialog');
+    }
+  }
+
+  /** Bring the header back (it recedes on forward scroll): a tap on the text toggles it. */
+  async revealHeader() {
+    if (await this.header.getAttribute('data-visible') !== 'true') {
+      await this.scrollBy(-80);
+      await this.scrollBy(-80);
+    }
+    await this.expectHeaderVisible(true);
+  }
+
+  /** Mark the document, so a later check can tell an in-app change from a page load. */
+  async markDocument() {
+    await this.page.evaluate(() => { (window as any).__ngDocumentMark = true; });
+  }
+
+  async expectSameDocument() {
+    expect(await this.page.evaluate(() => (window as any).__ngDocumentMark === true)).toBe(true);
+  }
+
+  async openTocFromHeader() {
+    await this.revealHeader();
+    await this.headerTocControl.tap();
+    await this.expectSheet('toc');
+    await expect(this.page.locator('[data-ng="toc"]')).toHaveAttribute('data-status', 'ready', { timeout: t(30000) });
+  }
+
+  tocSection(ref: string) {
+    return this.bottomSheet.locator(`[data-ng="toc-section"][data-ref="${ref}"]`);
+  }
+
+  async expectCurrentTocSection(ref: string) {
+    const current = this.bottomSheet.locator('[data-ng="toc-section"][aria-current="location"]');
+    await expect(current).toHaveCount(1);
+    await expect(current).toHaveAttribute('data-ref', ref);
+    await expect(current).toBeInViewport();
+  }
+
+  async chooseTocSection(ref: string) {
+    await this.tocSection(ref).tap();
+    await this.expectSheet('none');
+    await expect(this.section(ref)).toBeAttached({ timeout: t(20000) });
+  }
+
+  async openTocTab(name: string) {
+    await this.bottomSheet.locator(`[data-ng="toc-tab-${name}"]`).tap();
+    await expect(this.bottomSheet.locator(`[data-ng="toc-tab-${name}"]`)).toHaveAttribute('aria-selected', 'true');
+  }
+
+  async openSearchFromHeader() {
+    await this.revealHeader();
+    await this.page.locator('[data-ng="header-search"]').tap();
+    await this.expectSheet('search');
+  }
+
+  get searchInput() {
+    return this.bottomSheet.locator('[data-ng="search-input"]');
+  }
+
+  /** Type as a person does: the sheet searches live, after a pause. */
+  async searchFor(query: string) {
+    await expect(this.searchInput).toBeFocused();
+    await this.searchInput.pressSequentially(query, { delay: 40 });
+    await expect(this.page.locator('[data-ng="search"]')).toHaveAttribute('data-status', /ready|error/, { timeout: t(30000) });
+  }
+
+  searchResult(ref: string) {
+    return this.bottomSheet.locator(`[data-ng="search-result"][data-ref="${ref}"]`);
+  }
+
+  async searchResultRefs(): Promise<string[]> {
+    return this.bottomSheet.locator('[data-ng="search-result"]').evaluateAll(els => els.map(el => el.getAttribute('data-ref') || ''));
+  }
+
+  async chooseSearchResult(ref: string) {
+    await this.searchResult(ref).tap();
+    await this.expectSheet('none');
+  }
+
+  /** A segment the reader jumped to is marked for a moment (data-flash), and on screen. */
+  async expectFlashed(ref: string) {
+    const segment = this.segment(ref);
+    await expect(segment).toHaveAttribute('data-flash', 'true', { timeout: t(20000) });
+    await expect(segment).toBeInViewport();
+  }
+
+  /** Drag the open sheet down by its grip with a finger (CDP touch; Chromium only). */
+  async dragSheetDown(distance = 420) {
+    const box = await this.bottomSheet.locator('.ng-bsheet-grip').boundingBox();
+    expect(box).not.toBeNull();
+    const from = { x: box!.x + box!.width / 2, y: box!.y + box!.height / 2 };
+    await this.swipe(from, { x: from.x, y: from.y + distance }, { steps: 14, durationMs: 220 });
   }
 
   // ------------------------------------------------------------------ versions
