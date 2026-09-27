@@ -64,6 +64,7 @@
   --color-link-commentary: var(--commentary-blue);
   --color-voices-accent: var(--sheets-green);
   --color-voices-fill: var(--sheets-green);
+  --color-developers-accent: var(--devportal-purple);  /* Developers module dot/mark */
   --color-select-library: var(--select-blue);
   --color-select-voices: var(--select-green);
   --color-focus-ring: var(--focus-blue);
@@ -263,6 +264,7 @@
     --color-link-commentary: #8FAEE6;
     --color-voices-accent: #8CC79A;
     --color-voices-fill: #3F7A4A;
+    --color-developers-accent: #B272A4;
     --color-select-library: #7FB0F5;
     --color-select-voices: #4FC1B9;
     --color-focus-ring: #6AA8FF;

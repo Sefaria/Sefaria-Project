@@ -181,6 +181,9 @@ describe('WCAG contrast of key token pairs', () => {
     ['--color-border-strong', ['--color-bg-page', '--color-bg-surface'], 3, ['dark']],
     ['--color-border-input', ['--color-bg-control', '--color-bg-raised'], 3, ['dark']],
     ['--color-accent', ['--color-bg-control'], 3, both],
+    // module switcher dots (Header.jsx)
+    ...['--color-accent', '--color-voices-accent', '--color-developers-accent']
+      .map(t => [t, ['--color-bg-surface', '--color-bg-raised'], 3, both]),
     ...Object.keys(light).filter(n => n.startsWith('--color-cat-'))
       .map(t => [t, ['--color-bg-page', '--color-bg-surface', '--color-bg-raised'], 3, ['dark']]),
   ];
