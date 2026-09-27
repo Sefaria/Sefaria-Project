@@ -1,0 +1,623 @@
+/*
+ * NG mobile reader (static/js/ng/, templates/ng/reader.html).
+ * Everything is scoped under .ng-reader except the page-level rules at the top, which apply
+ * only to the NG document (body.ng-body). Colors come from color-palette.css. Layout uses
+ * logical properties, so a Hebrew interface (dir="rtl") mirrors without extra rules.
+ */
+
+/* Taamey Frank, self-hosted (same files and ranges as fonts.css, which NG does not load). */
+@font-face {
+  font-family: "Taamey Frank";
+  src: url("/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf");
+  font-style: normal;
+  font-weight: normal;
+  font-display: swap;
+  unicode-range: U+0000-0040, U+005B-0060, U+007B-FB4F;
+}
+@font-face {
+  font-family: "Taamey Frank";
+  src: url("/static/fonts/Taamey-Frank/TaameyFrankCLM-Bold.ttf");
+  font-style: normal;
+  font-weight: bold;
+  font-display: swap;
+  unicode-range: U+0000-0040, U+005B-0060, U+007B-FB4F;
+}
+@font-face {
+  font-family: "Cardo";
+  src: url("/static/fonts/Cardo-Regular.ttf");
+  font-display: swap;
+  unicode-range: U+0300-036F, U+0370-03FF, U+1D00-1D7F, U+1DBF, U+1F00-1FFF, U+2126, U+AB65, U+10140-1018F, U+101A0, U+1D200-1D24F;
+}
+
+body.ng-body {
+  margin: 0;
+  background: var(--white);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+.ng-reader {
+  /* palette */
+  --ng-surface: var(--white);
+  --ng-ink: var(--near-black);
+  --ng-ink-translation: #2b2b2b;
+  --ng-ink-soft: var(--darker-grey);
+  --ng-muted: var(--secondary-text-grey);
+  --ng-faint: var(--medium-grey-legacy);
+  --ng-rule: var(--lighter-grey);
+  --ng-accent: var(--sefaria-blue);
+  --ng-link: var(--inline-link-blue);
+  --ng-highlight: var(--highlight-blue-light);
+  --ng-highlight-edge: var(--highlight-blue);
+  --ng-category: var(--sefaria-blue);
+
+  /* type */
+  --ng-he-serif: "Cardo", "Taamey Frank", "Times New Roman", serif;
+  --ng-en-serif: "Cardo", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  --ng-en-sans: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --ng-he-sans: "Heebo", "Roboto", Arial, sans-serif;
+  --ng-ui: var(--ng-en-sans);
+
+  --ng-font-scale: 1;
+  --ng-header-height: 60px;
+  --ng-gutter: 1.9rem;
+  --ng-page-inline: max(18px, env(safe-area-inset-left), env(safe-area-inset-right));
+
+  color: var(--ng-ink);
+  background: var(--ng-surface);
+  font-family: var(--ng-ui);
+  -webkit-tap-highlight-color: transparent;
+}
+.ng-reader[data-interface="hebrew"] {
+  --ng-ui: var(--ng-he-sans);
+}
+.ng-reader *,
+.ng-reader *::before,
+.ng-reader *::after {
+  box-sizing: border-box;
+}
+.ng-reader ::selection {
+  background: var(--highlight-blue);
+}
+
+/* ---------------------------------------------------------------- header */
+
+.ng-reader .ng-header {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: 10;
+  padding-block-start: env(safe-area-inset-top);
+  background: rgba(255, 255, 255, 0.94);
+  -webkit-backdrop-filter: saturate(1.4) blur(14px);
+  backdrop-filter: saturate(1.4) blur(14px);
+  border-block-end: 1px solid var(--ng-rule);
+  transform: translate3d(0, 0, 0);
+  transition: transform 240ms cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 240ms ease;
+  will-change: transform;
+}
+.ng-reader .ng-header[data-visible="false"] {
+  transform: translate3d(0, calc(-100% - 2px), 0);
+  transition-duration: 200ms;
+}
+.ng-reader .ng-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: var(--ng-header-height);
+  max-width: 44rem;
+  margin-inline: auto;
+  padding-inline: calc(var(--ng-page-inline) - 2px) 6px;
+}
+.ng-reader .ng-header-ref {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-family: var(--ng-en-serif);
+  font-size: 21px;
+  font-weight: normal;
+  line-height: 1.2;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--ng-ink);
+}
+.ng-reader[data-interface="hebrew"] .ng-header-ref {
+  font-family: var(--ng-he-serif);
+  font-size: 22px;
+}
+.ng-reader .ng-header-address {
+  margin-inline-start: 0.28em;
+  color: var(--ng-accent);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.ng-reader .ng-header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+.ng-reader .ng-header-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--darkest-grey);
+  text-decoration: none;
+  cursor: pointer;
+}
+.ng-reader .ng-header-button:active {
+  background: var(--lighter-grey);
+}
+.ng-reader .ng-header-button:focus-visible {
+  outline: 2px solid var(--focus-blue);
+  outline-offset: -2px;
+}
+.ng-reader .ng-icon {
+  width: 23px;
+  height: 23px;
+}
+
+/* ---------------------------------------------------------------- stream */
+
+.ng-reader .ng-stream {
+  display: block;
+  max-width: 40rem;
+  margin-inline: auto;
+  padding-block: calc(var(--ng-header-height) + env(safe-area-inset-top) + 8px) 34vh;
+  padding-inline: var(--ng-page-inline);
+  overflow-anchor: none;           /* TextStream anchors prepended sections itself */
+  touch-action: pan-y pinch-zoom;  /* horizontal drags are reserved for the panels */
+  font-size: calc(19px * var(--ng-font-scale));
+}
+
+.ng-reader .ng-section {
+  padding-block-end: 0.5em;
+}
+.ng-reader .ng-section[data-category="Tanakh"] { --ng-category: var(--tanakh-teal); }
+.ng-reader .ng-section[data-category="Talmud"] { --ng-category: var(--talmud-gold); }
+.ng-reader .ng-section[data-category="Mishnah"] { --ng-category: var(--mishnah-blue); }
+.ng-reader .ng-section[data-category="Midrash"] { --ng-category: var(--midrash-green); }
+.ng-reader .ng-section[data-category="Halakhah"] { --ng-category: var(--halakhah-red); }
+
+.ng-reader .ng-book-title {
+  padding-block: 1.6rem 0.2rem;
+  text-align: center;
+}
+.ng-reader .ng-book-title::before {
+  content: "";
+  display: block;
+  width: 2.25rem;
+  height: 3px;
+  margin: 0 auto 1.15rem;
+  border-radius: 2px;
+  background: var(--ng-category);
+}
+.ng-reader .ng-book-title-en {
+  font-family: var(--ng-en-serif);
+  font-size: 34px;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+}
+.ng-reader .ng-book-title-he {
+  margin-block-start: 0.2rem;
+  font-family: var(--ng-he-serif);
+  font-size: 30px;
+  line-height: 1.3;
+  color: var(--ng-ink-soft);
+}
+
+.ng-reader .ng-section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 2.6rem 0 1.5rem;
+  font-family: var(--ng-ui);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-section-label {
+  flex: 0 0 auto;
+}
+.ng-reader .ng-section-name {
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.ng-reader .ng-section-address {
+  letter-spacing: 0.06em;
+  font-variant-numeric: lining-nums;
+}
+.ng-reader .ng-book-title + .ng-section-title {
+  margin-block-start: 1.6rem;
+}
+.ng-reader .ng-section-title::before,
+.ng-reader .ng-section-title::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--ng-rule);
+}
+.ng-reader[data-interface="hebrew"] .ng-section-title {
+  font-size: 15px;
+}
+.ng-reader[data-interface="hebrew"] .ng-section-name,
+.ng-reader[data-interface="hebrew"] .ng-section-address {
+  letter-spacing: 0.02em;
+}
+
+/* ---------------------------------------------------------------- segments */
+
+.ng-reader .ng-he {
+  font-family: var(--ng-he-serif);
+  font-size: 1.3em;           /* 24.7px at the default size */
+  line-height: 1.5;           /* room for nikud and te'amim without loosening the verse */
+  text-align: start;
+  font-feature-settings: "kern", "mark", "mkmk";
+}
+.ng-reader .ng-en {
+  font-family: var(--ng-en-serif);
+  font-size: 1em;             /* 19px */
+  line-height: 1.52;
+  text-align: start;
+  -webkit-hyphens: auto;
+  hyphens: auto;
+  hyphenate-limit-chars: 7 3 3;
+  font-variant-numeric: oldstyle-nums;
+}
+
+.ng-reader .ng-seg {
+  position: relative;
+  border-radius: 6px;
+}
+.ng-reader .ng-segments > .ng-seg {
+  padding-inline-start: var(--ng-gutter);
+  margin-block-end: 1.05em;
+}
+.ng-reader .ng-stream[data-language="english"] .ng-segments > .ng-seg {
+  margin-block-end: 0.9em;
+}
+/*
+ * The number sits in the inline-start gutter. Its box takes the font size and line height of
+ * the segment's leading text, so the smaller numeral inside lands on that text's first baseline.
+ */
+.ng-reader .ng-segnum {
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 0;
+  width: calc(var(--ng-gutter) - 0.5rem);
+  font-family: var(--ng-ui);
+  font-size: 1.3em;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--ng-faint);
+  user-select: none;
+  -webkit-user-select: none;
+}
+.ng-reader .ng-segnum > span {
+  font-size: 0.5em;
+  font-variant-numeric: tabular-nums;
+}
+.ng-reader .ng-stream[data-language="english"] .ng-segnum { font-size: 1em; line-height: 1.52; }
+.ng-reader .ng-stream[data-language="english"] .ng-segnum > span { font-size: 0.64em; }
+.ng-reader .ng-stream[data-language="bilingual"] .ng-segnum { font-size: 1.24em; line-height: 1.5; }
+.ng-reader .ng-section[dir="rtl"] .ng-segnum,
+.ng-reader[data-interface="hebrew"] .ng-stream[data-language="bilingual"] .ng-segnum { font-family: var(--ng-he-sans); }
+
+.ng-reader .ng-seg p { margin: 0; }
+.ng-reader .ng-seg-body > * { margin: 0; }
+
+/* bilingual, stacked */
+.ng-reader .ng-stream[data-language="bilingual"] .ng-segments > .ng-seg {
+  margin-block-end: 1.25em;
+}
+.ng-reader .ng-stream[data-language="bilingual"] .ng-he {
+  font-size: 1.24em;
+  line-height: 1.5;
+}
+.ng-reader .ng-stream[data-language="bilingual"] .ng-en {
+  margin-block-start: 0.3em;
+  font-size: 0.95em;
+  line-height: 1.5;
+  color: var(--ng-ink-translation);
+}
+
+/* bilingual, side by side */
+.ng-reader .ng-seg-body[data-sbs] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  column-gap: 0.9rem;
+  align-items: start;
+}
+.ng-reader .ng-section[data-bilayout="heRight"] .ng-seg-body[data-sbs] > .ng-he { order: 2; }
+.ng-reader .ng-section[data-bilayout="heRight"] .ng-seg-body[data-sbs] > .ng-en { order: 1; }
+.ng-reader .ng-stream[data-language="bilingual"] .ng-seg-body[data-sbs] > .ng-en {
+  margin-block-start: 0;
+  font-size: 0.84em;
+}
+.ng-reader .ng-stream[data-language="bilingual"] .ng-seg-body[data-sbs] > .ng-he {
+  font-size: 1.1em;
+}
+
+/* continuous prose (Talmud by default; any single-language text by choice) */
+/* Start-aligned: on a phone's measure, justified Hebrew opens rivers between words. */
+.ng-reader .ng-prose.ng-he {
+  font-size: 1.24em;
+  line-height: 1.72;
+  text-align: start;
+  text-wrap: pretty;
+}
+.ng-reader .ng-prose.ng-en {
+  line-height: 1.56;
+  text-wrap: pretty;
+}
+.ng-reader .ng-prose br { display: none; }
+.ng-reader .ng-prose .poetry {
+  display: inline;
+  padding: 0;
+  text-indent: 0;
+  margin-inline-end: 0.4em;
+}
+.ng-reader .ng-seg-inline {
+  border-radius: 3px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.ng-reader .ng-inline-num {
+  margin-inline: 0.1em 0.18em;
+  font-family: var(--ng-ui);
+  font-size: 0.5em;
+  font-weight: 500;
+  vertical-align: 0.8em;
+  line-height: 0;
+  color: var(--ng-faint);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* highlighted segment (a segment or range URL) */
+.ng-reader .ng-seg[data-highlighted="true"] {
+  background: var(--ng-highlight);
+  box-shadow: 0 0 0 6px var(--ng-highlight);
+}
+.ng-reader .ng-segments > .ng-seg[data-highlighted="true"]::before {
+  content: "";
+  position: absolute;
+  inset-block: -4px;
+  inset-inline-start: -10px;
+  width: 3px;
+  border-radius: 2px;
+  background: var(--ng-accent);
+}
+
+/* ---------------------------------------------------------------- inline markup in texts */
+
+.ng-reader .ng-he big,
+.ng-reader .ng-en big {
+  font-size: 1.2em;
+  line-height: 1;
+}
+.ng-reader .ng-he small { font-size: 0.8em; }
+.ng-reader .mam-spi-pe,
+.ng-reader .mam-spi-samekh {
+  font-family: var(--ng-he-sans);
+  font-size: 0.55em;
+  vertical-align: 0.15em;
+  color: var(--ng-faint);
+}
+.ng-reader .ng-seg .poetry.indentWhenWrap {
+  display: inline-block;
+  padding-inline-start: 1.6em;
+  text-indent: -1.6em;
+}
+.ng-reader .ng-seg .poetry.indentAll {
+  display: inline-block;
+  padding-inline-start: 1.25em;
+}
+.ng-reader .ng-seg .poetry.indentAllDouble {
+  display: inline-block;
+  padding-inline-start: 2.5em;
+}
+.ng-reader a.namedEntityLink {
+  color: inherit;
+  text-decoration: none;
+}
+.ng-reader a.refLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--light-grey);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+.ng-reader .ng-en b,
+.ng-reader .ng-en strong {
+  font-weight: 600;
+}
+
+/* footnotes: <sup class="footnote-marker">a</sup><i class="footnote">…</i>, tap to open */
+.ng-reader sup.footnote-marker,
+.ng-reader sup:has(+ i.footnote) {
+  position: relative;
+  padding-inline: 0.12em;
+  font-family: var(--ng-ui);
+  font-size: 0.58em;
+  font-weight: 500;
+  line-height: 0;
+  color: var(--ng-link);
+  cursor: pointer;
+}
+.ng-reader sup.footnote-marker::before {
+  content: "";
+  position: absolute;
+  inset: -14px -10px;          /* a thumb-sized target */
+}
+.ng-reader i.footnote {
+  display: none;
+}
+.ng-reader i.footnote.ng-footnote-open {
+  display: block;
+  margin-block: 0.45em 0.6em;
+  padding: 0.55em 0.8em 0.6em;
+  border-inline-start: 2px solid var(--ng-highlight-edge);
+  border-radius: 2px 6px 6px 2px;
+  background: var(--lightest-grey);
+  font-size: 0.84em;
+  font-style: normal;
+  line-height: 1.45;
+  color: var(--ng-ink-soft);
+  text-indent: 0;
+}
+.ng-reader i.footnote.ng-footnote-open b { color: var(--ng-ink); }
+
+/* ---------------------------------------------------------------- stream edges */
+
+.ng-reader .ng-edge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 4.5rem;
+  font-family: var(--ng-ui);
+  font-size: 14px;
+  color: var(--ng-muted);
+}
+.ng-reader .ng-edge-button {
+  min-height: 44px;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--light-grey);
+  border-radius: 999px;
+  background: var(--ng-surface);
+  font: inherit;
+  color: var(--darkest-grey);
+  cursor: pointer;
+}
+.ng-reader .ng-end {
+  flex-direction: column;
+  gap: 0.8rem;
+  padding-block: 2rem;
+  font-size: 12.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.ng-reader .ng-end::before {
+  content: "";
+  width: 2.25rem;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--light-grey);
+}
+.ng-reader .ng-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--lighter-grey);
+  border-block-start-color: var(--ng-accent);
+  border-radius: 50%;
+  animation: ng-spin 0.8s linear infinite;
+}
+@keyframes ng-spin { to { transform: rotate(360deg); } }
+
+/* ---------------------------------------------------------------- overlay slot */
+
+.ng-reader .ng-overlay[hidden] { display: none; }
+.ng-reader .ng-overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  background: rgba(18, 18, 18, 0.28);
+  animation: ng-fade 180ms ease-out;
+}
+.ng-reader .ng-sheet {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-end: 0;
+  z-index: 21;
+  max-height: 82vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 18px var(--ng-page-inline) calc(22px + env(safe-area-inset-bottom));
+  border-radius: 16px 16px 0 0;
+  background: var(--ng-surface);
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.12);
+  animation: ng-rise 240ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes ng-fade { from { opacity: 0; } }
+@keyframes ng-rise { from { transform: translateY(24px); opacity: 0; } }
+.ng-reader .ng-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-block-end: 1rem;
+}
+.ng-reader .ng-panel-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 500;
+}
+.ng-reader .ng-panel-close {
+  min-height: 40px;
+  padding: 0 0.8rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--lighter-grey);
+  font: inherit;
+  font-size: 14px;
+  color: var(--darkest-grey);
+}
+.ng-reader .ng-panel-note { margin: 0; color: var(--ng-muted); line-height: 1.5; }
+.ng-reader .ng-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-block-end: 14px;
+}
+.ng-reader .ng-choice {
+  flex: 1 1 auto;
+  min-height: 44px;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--light-grey);
+  border-radius: 10px;
+  background: var(--ng-surface);
+  font: inherit;
+  font-size: 15px;
+  color: var(--darkest-grey);
+}
+.ng-reader .ng-choice[aria-pressed="true"] {
+  border-color: var(--ng-accent);
+  background: var(--highlight-blue-light);
+  color: var(--ng-accent);
+  font-weight: 500;
+}
+.ng-reader .ng-panel-link {
+  display: inline-block;
+  margin-block-start: 6px;
+  font-size: 14px;
+  color: var(--ng-link);
+}
+
+/* ---------------------------------------------------------------- utilities, SSR fallback */
+
+.ng-reader .ng-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+body.ng-body #appLoading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  font-family: "Roboto", "Heebo", sans-serif;
+  color: var(--medium-grey);
+}
+body.ng-body #appLoading .int-he { display: none; }
+body.interface-hebrew.ng-body #appLoading .int-he { display: inline; }
+body.interface-hebrew.ng-body #appLoading .int-en { display: none; }
