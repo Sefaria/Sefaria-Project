@@ -16,6 +16,7 @@
  */
 const fs = require('fs');
 const path = require('path');
+const P = require('./css-colors');
 const REPO = path.resolve(__dirname, '../..');
 const JSON_OUT = path.join(__dirname, 'icon-inventory.json');
 const CSS_FILE = path.join(REPO, 'static/css/theme-dark-overrides.css');
@@ -27,23 +28,14 @@ function walk(dir) {
   });
 }
 
-const NAMED = { black: '#000000', white: '#ffffff', red: '#ff0000', grey: '#808080', gray: '#808080',
-  green: '#008000', blue: '#0000ff', currentcolor: '#000000' /* inside <img>, currentColor is black */ };
-
+// Colour parsing and WCAG luminance are shared with the codemod and the ratchet (css-colors.js).
+// Inside an <img>, currentColor has no context colour and paints black.
 function toRgb(c) {
-  c = c.trim().toLowerCase();
-  if (NAMED[c]) c = NAMED[c];
-  let m;
-  if ((m = c.match(/^#([0-9a-f]{3,8})$/))) {
-    let h = m[1];
-    if (h.length === 3 || h.length === 4) h = h.split('').map(x => x + x).join('');
-    return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16));
-  }
-  if ((m = c.match(/^rgba?\(([^)]+)\)$/))) return m[1].split(',').slice(0, 3).map(x => parseFloat(x));
-  return null;
+  const t = c.trim().toLowerCase();
+  const col = P.parseColor(t === 'currentcolor' ? '#000000' : t);
+  return col ? [col.r, col.g, col.b] : null;
 }
-const lin = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
-const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+const lum = ([r, g, b]) => P.luminance({ r, g, b });
 function sat([r, g, b]) {
   const mx = Math.max(r, g, b) / 255, mn = Math.min(r, g, b) / 255, l = (mx + mn) / 2;
   if (mx === mn) return 0;
