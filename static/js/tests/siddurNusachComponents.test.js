@@ -108,15 +108,30 @@ describe('SiddurTocOverlay', () => {
       {title: "Bedtime Shema", heTitle: "קריאת שמע שעל המיטה", depth: 1},
     ]}});
     const onNavigate = jest.fn();
-    Element.prototype.scrollIntoView = jest.fn();  // jsdom has no layout
+    const onSwitchNusach = jest.fn();
+    Element.prototype.scrollIntoView = jest.fn();
     await act(async () => {
       mount(<SiddurTocOverlay title="Siddur Sefard" currentRef="Siddur Sefard, Weekday Mincha, Amidah 3"
+                              nusach="sfard" onSwitchNusach={onSwitchNusach}
                               onNavigate={onNavigate} onClose={() => {}} />);
     });
     const titles = () => [...container.querySelectorAll('.siddurTocItem')].map(a => a.textContent);
     expect(titles()).toEqual(["Weekday Mincha", "Korbanot", "Amidah", "Bedtime Shema"]);
     expect(container.querySelector('.siddurTocItem.current').textContent).toBe("Amidah");
-    expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
+    // Opens at the top of the TOC rather than scrolled to the current section.
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+    expect(container.querySelector('.siddurTocBody').scrollTop).toBe(0);
+
+    // The nusach switcher sits above the search and marks the current book's nusach.
+    const header = container.querySelector('.siddurTocTopRow');
+    expect(header.compareDocumentPosition(container.querySelector('.siddurTocSearch')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const nusachButtons = [...container.querySelectorAll('.siddurTocNusach')];
+    expect(nusachButtons.map(b => b.textContent)).toEqual(["siddur_nusach.ashkenaz", "siddur_nusach.sfard", "siddur_nusach.edot"]);
+    expect(container.querySelector('.siddurTocNusach.selected').textContent).toBe("siddur_nusach.sfard");
+    act(() => { nusachButtons[1].click(); });
+    expect(onSwitchNusach).not.toHaveBeenCalled();
+    act(() => { nusachButtons[2].click(); });
+    expect(onSwitchNusach).toHaveBeenCalledWith("edot");
 
     const input = container.querySelector('.siddurTocSearch');
     const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;

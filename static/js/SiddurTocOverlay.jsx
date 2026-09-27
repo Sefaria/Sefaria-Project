@@ -4,11 +4,11 @@ import classNames from 'classnames';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText, LoadingMessage } from './Misc';
 import { ContentText } from './ContentText';
-import { parseSiddurRef } from './sefaria/siddurNusach';
+import { NUSACHIM, parseSiddurRef } from './sefaria/siddurNusach';
 import { filterSiddurToc, flattenSiddurToc } from './sefaria/siddurToc';
 
-// Full-screen, fully expanded table of contents for a siddur, with a filter-as-you-type search.
-const SiddurTocOverlay = ({title, currentRef, onNavigate, onClose}) => {
+// Full-screen, fully expanded table of contents for a siddur, with a nusach switcher and a filter-as-you-type search.
+const SiddurTocOverlay = ({title, currentRef, nusach, onSwitchNusach, onNavigate, onClose}) => {
   const [items, setItems] = useState(null);
   const [query, setQuery] = useState("");
   const bodyRef = useRef(null);
@@ -23,8 +23,8 @@ const SiddurTocOverlay = ({title, currentRef, onNavigate, onClose}) => {
 
   const currentPath = parseSiddurRef(currentRef).path;
   useEffect(() => {
-    const current = items && bodyRef.current && bodyRef.current.querySelector(".siddurTocItem.current");
-    if (current) { current.scrollIntoView({block: "center"}); }
+    // Always open at the top of the TOC, not at the current section.
+    if (items && bodyRef.current) { bodyRef.current.scrollTop = 0; }
   }, [items]);
 
   const visible = items ? filterSiddurToc(items, query) : [];
@@ -33,6 +33,21 @@ const SiddurTocOverlay = ({title, currentRef, onNavigate, onClose}) => {
   return (
     <div className="siddurTocOverlay sans-serif" role="dialog" aria-modal="true"
          aria-label={Sefaria._("common.contents")} onKeyDown={onKeyDown}>
+      <div className="siddurTocTopRow">
+        <div className="siddurTocNusachSwitcher" role="radiogroup" aria-label={Sefaria._("siddur_nusach.choose_your_nusach")}>
+          {NUSACHIM.map(n => (
+            <button
+              key={n}
+              role="radio"
+              aria-checked={n === nusach}
+              className={classNames({siddurTocNusach: 1, selected: n === nusach})}
+              onClick={() => { if (n !== nusach) { onSwitchNusach(n); } }}>
+              <InterfaceText>{`siddur_nusach.${n}`}</InterfaceText>
+            </button>
+          ))}
+        </div>
+        <button className="siddurTocClose" aria-label={Sefaria._("common.close")} onClick={onClose}>×</button>
+      </div>
       <div className="siddurTocHeader">
         <input
           type="search"
@@ -41,9 +56,7 @@ const SiddurTocOverlay = ({title, currentRef, onNavigate, onClose}) => {
           onChange={e => setQuery(e.target.value)}
           placeholder={Sefaria._("siddur_nusach.search_sections")}
           aria-label={Sefaria._("siddur_nusach.search_sections")}
-          autoFocus
         />
-        <button className="siddurTocClose" aria-label={Sefaria._("common.close")} onClick={onClose}>×</button>
       </div>
       <div className="siddurTocBody" ref={bodyRef}>
         {!items ? <LoadingMessage /> :
@@ -67,6 +80,8 @@ const SiddurTocOverlay = ({title, currentRef, onNavigate, onClose}) => {
 SiddurTocOverlay.propTypes = {
   title:      PropTypes.string.isRequired,
   currentRef: PropTypes.string,
+  nusach:     PropTypes.string,
+  onSwitchNusach: PropTypes.func.isRequired,
   onNavigate: PropTypes.func.isRequired,
   onClose:    PropTypes.func.isRequired,
 };

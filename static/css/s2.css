@@ -17150,6 +17150,39 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   flex-direction: column;
   background-color: white;
 }
+.siddurTocTopRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px 0;
+}
+.siddurTocNusachSwitcher {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  border: 1px solid var(--light-grey);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.siddurTocNusach {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 6px;
+  border: none;
+  border-inline-start: 1px solid var(--light-grey);
+  background: white;
+  font-size: 14px;
+  line-height: 1.2;
+  color: var(--dark-grey);
+  cursor: pointer;
+}
+.siddurTocNusach:first-child {
+  border-inline-start: none;
+}
+.siddurTocNusach.selected {
+  background-color: var(--sefaria-blue);
+  color: white;
+}
 .siddurTocHeader {
   display: flex;
   align-items: center;

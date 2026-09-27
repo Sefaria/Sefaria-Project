@@ -200,8 +200,16 @@ class ReaderPanel extends Component {
     }
     this.toggleConnectionsForRef(ref, showHighlight);
   }
+  handleTextTitleClick(ref, showHighlight = true) {
+    // On siddurim the header title opens the TOC overlay, like a segment tap, instead of connections.
+    if (this.siddurTocEnabled()) {
+      Sefaria.track.event("Reader", "Open Siddur TOC from Header", ref);
+      this.setState({siddurTocOpen: true});
+      return;
+    }
+    this.toggleConnectionsForRef(ref, showHighlight);
+  }
   toggleConnectionsForRef(ref, showHighlight = true) {
-    // Also the header title-click path, which keeps opening connections on siddurim.
     if (this.state.mode === "TextAndConnections") {
       this.closeConnectionsInPanel();
     } else if (this.state.mode === "Text") {
@@ -220,6 +228,15 @@ class ReaderPanel extends Component {
   handleSiddurTocNavigate(ref) {
     this.setState({siddurTocOpen: false});
     this.showBaseText(ref, false, this.state.currVersions, [], false);
+  }
+  handleSiddurTocSwitchNusach(choice) {
+    const current = nusachForBook(this.currentBook());
+    if (!current || choice === current) { return; }
+    saveNusachChoice(choice);
+    gtag("event", "nusach_picker", {origin: "toc", default: current, choice, switched: true});
+    this.setState({siddurTocOpen: false});
+    // Push history (unlike the landing picker) so Back returns to the previous nusach.
+    this.showBaseText(mapRefToNusach(this.nusachPickerSourceRef(), choice), false, siddurVersions(choice), [], false);
   }
   closeSiddurToc() {
     this.setState({siddurTocOpen: false});
@@ -1285,7 +1302,7 @@ class ReaderPanel extends Component {
               setConnectionsCategory={this.setConnectionsCategory}
               openMenu={this.openMenu}
               closeMenus={this.closeMenus}
-              onTextTitleClick={this.toggleConnectionsForRef}
+              onTextTitleClick={this.handleTextTitleClick}
               onSheetTitleClick={this.handleSheetSegmentClick}
               openMobileNavMenu={this.props.openMobileNavMenu}
               onError={this.onError}
@@ -1321,6 +1338,8 @@ class ReaderPanel extends Component {
             <SiddurTocOverlay
               title={this.currentBook()}
               currentRef={this.state.currentlyVisibleRef}
+              nusach={nusachForBook(this.currentBook())}
+              onSwitchNusach={this.handleSiddurTocSwitchNusach}
               onNavigate={this.handleSiddurTocNavigate}
               onClose={this.closeSiddurToc} /> : null}
           {/* Guide overlay - currently only shows on the sheets editor but can be extended for other guide types */}
