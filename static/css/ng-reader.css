@@ -441,8 +441,7 @@ body.ng-body {
 }
 
 /* footnotes: <sup class="footnote-marker">a</sup><i class="footnote">…</i>, tap to open */
-.ng-reader sup.footnote-marker,
-.ng-reader sup:has(+ i.footnote) {
+.ng-reader sup.footnote-marker {
   position: relative;
   padding-inline: 0.12em;
   font-family: var(--ng-ui);

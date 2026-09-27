@@ -325,6 +325,17 @@ def ng_base_props(request):
     }
 
 
+def ng_bundle_built():
+    """
+    The NG client bundle is built by `npm run build` / `build-prod` / `build-ng`. A dev setup that
+    only ran build-client has no stats file for it; serve the classic reader there, not an error.
+    """
+    built = os.path.exists(settings.WEBPACK_LOADER["NG"]["STATS_FILE"])
+    if not built:
+        logger.warning("NG reader bundle not built (npm run build-ng); serving the classic reader")
+    return built
+
+
 def render_ng_reader(request, panels, template_context):
     """
     Render the NG mobile reader (static/js/ng/) for a text panel: NgReaderApp through Node,
@@ -859,7 +870,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     
 
     panels = []
-    ng = sheet is None and request.active_module == LIBRARY_MODULE and use_ng_reader(request, oref)
+    ng = sheet is None and request.active_module == LIBRARY_MODULE and use_ng_reader(request, oref) and ng_bundle_built()
     multi_panel = not ng and not request.user_agent.is_mobile and not "mobile" in request.GET
     # Handle first panel which has a different signature in params
     primaryVersion = _extract_version_params(request, 'vhe')
