@@ -227,7 +227,7 @@ export default function NgReaderApp(props) {
   const currentHeRef = current ? current.heRef : (initialSection && initialSection.heRef);
 
   const api = {
-    interfaceLang, interfaceDir, strings,
+    interfaceLang, interfaceDir, strings, translationLanguagePreference,
     settings, setSetting, currentLayout,
     currVersions, setCurrVersions, openRef,
     overlay, openAssociated, openConfig, closeOverlay,

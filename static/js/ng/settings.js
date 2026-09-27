@@ -20,6 +20,26 @@ export const DEFAULT_SETTINGS = {
 
 export const COOKIE_OPTIONS = Object.keys(DEFAULT_SETTINGS);
 
+// Font size: the classic reader's multiplicative step (ReaderPanel.setOption), snapped to the
+// grid of steps from the default so repeated taps don't drift, and bounded to what a phone can
+// lay out: two steps down and five up.
+export const FONT_SIZE_STEP = 1.15;
+const MIN_LEVEL = -2;
+const MAX_LEVEL = 5;
+
+export function fontSizeLevel(size) {
+  return Math.round(Math.log(size / DEFAULT_SETTINGS.fontSize) / Math.log(FONT_SIZE_STEP));
+}
+
+/** The next font size in `direction` ('smaller' | 'larger'), or the same size at a bound. */
+export function stepFontSize(size, direction) {
+  const level = fontSizeLevel(size) + (direction === 'smaller' ? -1 : 1);
+  if (level < MIN_LEVEL || level > MAX_LEVEL) { return size; }
+  return Math.round(DEFAULT_SETTINGS.fontSize * (FONT_SIZE_STEP ** level) * 10000) / 10000;
+}
+
+export const canStepFontSize = (size, direction) => stepFontSize(size, direction) !== size;
+
 /** Initial settings: server cookies (initialSettings), overridden by the panel (e.g. ?lang=). */
 export function initialSettingsFromProps(props) {
   const fromServer = props.initialSettings || {};
@@ -62,7 +82,12 @@ export function persistSetting(option, value) {
  * the version_preferences_by_corpus cookie and the profile exactly as the classic reader does.
  */
 export function persistVersionPreference(sref, versionTitle, lang) {
-  if (Sefaria.versionPreferences && sref && versionTitle) {
+  if (!Sefaria.versionPreferences || !sref || !versionTitle) { return false; }
+  try {
+    // Needs the book's corpus, which comes from data.js; without it there is nothing to key on.
     Sefaria.setVersionPreference(sref, versionTitle, lang);
+    return true;
+  } catch (e) {
+    return false;
   }
 }

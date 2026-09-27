@@ -9,11 +9,11 @@
 import React, {useEffect} from 'react';
 import {OVERLAY, useNgReader} from './context';
 import AssociatedPanelStub from './panels/AssociatedPanelStub';
-import ConfigPanelStub from './panels/ConfigPanelStub';
+import ConfigPanel from './panels/ConfigPanel';
 
 export const DEFAULT_PANELS = {
   [OVERLAY.ASSOCIATED]: AssociatedPanelStub,
-  [OVERLAY.CONFIG]: ConfigPanelStub,
+  [OVERLAY.CONFIG]: ConfigPanel,
 };
 
 export default function OverlaySlot({panels = DEFAULT_PANELS}) {
