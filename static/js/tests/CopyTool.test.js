@@ -118,6 +118,41 @@ test('shows a note when a section copy is missing segments in a version', async 
   expect(container.querySelector('.copyToolMissingNote').textContent).toBe('Not in the chosen version: 1');
 });
 
+test('HTML format shows a Rendered/Code preview toggle, defaulting to Code; other formats hide it', async () => {
+  act(() => { ReactDOM.render(<CopyToolDialog target={target} onClose={() => {}} onCopied={() => {}} />, container); });
+  await flush(); await flush();
+
+  // Formatted (the default format): no toggle.
+  expect(container.querySelector('.copyToolPreviewToggle')).toBe(null);
+
+  act(() => { radio('copyToolFormat', 'html').click(); });
+  await flush();
+
+  const toggle = container.querySelector('.copyToolPreviewToggle');
+  expect(toggle).not.toBe(null);
+  const [renderedButton, codeButton] = toggle.querySelectorAll('button');
+
+  // Defaults to Code: the markup as text, in a <pre>.
+  expect(codeButton.getAttribute('aria-pressed')).toBe('true');
+  expect(renderedButton.getAttribute('aria-pressed')).toBe('false');
+  const pre = container.querySelector('.copyToolPreview pre');
+  expect(pre).not.toBe(null);
+  expect(pre.textContent).toContain('<p dir=');
+  expect(container.querySelector('.copyToolPreview p[dir]')).toBe(null);
+
+  // Rendered: the same markup, rendered as real elements.
+  act(() => { renderedButton.click(); });
+  await flush();
+  expect(renderedButton.getAttribute('aria-pressed')).toBe('true');
+  expect(container.querySelector('.copyToolPreview pre')).toBe(null);
+  expect(container.querySelector('.copyToolPreview p[dir]')).not.toBe(null);
+
+  // Switching away from HTML hides the toggle again.
+  act(() => { radio('copyToolFormat', 'plain').click(); });
+  await flush();
+  expect(container.querySelector('.copyToolPreviewToggle')).toBe(null);
+});
+
 test('menu hides "previous settings" until there are some', () => {
   const props = {x: 10, y: 10, onCopyPrevious: () => {}, onCopyDialog: () => {}, onClose: () => {}};
   act(() => { ReactDOM.render(<CopyToolMenu {...props} showPrevious={false} />, container); });

@@ -118,6 +118,7 @@ const CopyToolDialog = ({target, translationLanguagePreference, onClose, onCopie
   const [options, setOptions] = useState(null);
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  const [htmlPreviewMode, setHtmlPreviewMode] = useState('code');  // 'code' | 'rendered' — view only, not saved, not copied
   const dialogRef = useRef(null);
   const set = (changes) => setOptions(o => ({...o, ...changes}));
 
@@ -161,6 +162,7 @@ const CopyToolDialog = ({target, translationLanguagePreference, onClose, onCopie
   };
 
   const isWord = options?.level === LEVELS.WORD;
+  const isHtmlFormat = options?.format === FORMATS.HTML;
   const missingCount = output?.missingSegments || 0;
   const levelInfo = info && options && info.levels.find(l => l.level === options.level);
   const titleRef = levelInfo?.ref ? (Sefaria.interfaceLang === 'hebrew' ? levelInfo.heRef : levelInfo.ref) : target.ref;
@@ -259,12 +261,24 @@ const CopyToolDialog = ({target, translationLanguagePreference, onClose, onCopie
                         {value: VOWELS.NONE, label: 'copy_tool.vowels_none'},
                       ]} />}
 
-          <div className="copyToolPreviewLabel"><InterfaceText>copy_tool.preview</InterfaceText></div>
+          <div className="copyToolPreviewLabelRow">
+            <div className="copyToolPreviewLabel"><InterfaceText>copy_tool.preview</InterfaceText></div>
+            {isHtmlFormat &&
+              <div className="copyToolPreviewToggle" role="group" aria-label={Sefaria._('copy_tool.preview')}>
+                <button type="button" aria-pressed={htmlPreviewMode === 'rendered'} onClick={() => setHtmlPreviewMode('rendered')}>
+                  <InterfaceText>copy_tool.preview_rendered</InterfaceText>
+                </button>
+                <button type="button" aria-pressed={htmlPreviewMode === 'code'} onClick={() => setHtmlPreviewMode('code')}>
+                  <InterfaceText>copy_tool.preview_code</InterfaceText>
+                </button>
+              </div>}
+          </div>
           <div className={classNames({copyToolPreview: 1, copyToolPreviewSource: options.format !== FORMATS.FORMATTED})}>
             {error ? <InterfaceText>{error}</InterfaceText> :
               !output ? <InterfaceText>common.loading</InterfaceText> :
               !output.plain ? <InterfaceText>copy_tool.no_text</InterfaceText> :
               output.html ? <div dangerouslySetInnerHTML={{__html: output.html}} /> :
+              isHtmlFormat && htmlPreviewMode === 'rendered' ? <div dangerouslySetInnerHTML={{__html: output.plain}} /> :
               <pre>{output.plain}</pre>}
           </div>
 

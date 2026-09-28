@@ -1,8 +1,8 @@
 /* Testing done using Jest */
 import Sefaria from '../sefaria';
 import {
-  wordAt, toSegments, render, resolveOptions, recordCopy, shouldPitch, stashPending, takePending,
-  loadTargetInfo, LEVELS, FORMATS, NOTES, VOWELS, DEFAULT_SETTINGS,
+  wordAt, toSegments, render, resolveOptions, recordAnonymousCopy, stashPending, takePending,
+  getTargetFromElement, loadTargetInfo, LEVELS, FORMATS, NOTES, VOWELS, DEFAULT_SETTINGS,
 } from '../copyTool';
 
 const meta = {
@@ -161,22 +161,91 @@ describe('loadTargetInfo version ordering and defaults', () => {
   });
 });
 
-describe('anonymous gating and pending requests', () => {
+describe('anonymous copy counting and pending requests', () => {
   beforeEach(() => { window.localStorage.clear(); Sefaria._uid = null; });
-  test('anonymous users get one copy before the pitch', () => {
-    expect(shouldPitch()).toBe(false);
-    recordCopy();
-    expect(shouldPitch()).toBe(true);
+
+  test('the pitch shows on the 2nd anonymous copy, not the 1st or later ones', () => {
+    expect(recordAnonymousCopy()).toBe(false);  // 1st: no pitch
+    expect(recordAnonymousCopy()).toBe(true);   // 2nd: pitch
+    expect(recordAnonymousCopy()).toBe(false);  // 3rd: already pitched once
+    expect(recordAnonymousCopy()).toBe(false);  // 4th: still no repeat
   });
-  test('logged-in users are never pitched', () => {
+
+  test('logged-in users are never counted or pitched', () => {
     Sefaria._uid = 1;
-    recordCopy();
-    expect(shouldPitch()).toBe(false);
+    expect(recordAnonymousCopy()).toBe(false);
+    expect(recordAnonymousCopy()).toBe(false);
+    expect(recordAnonymousCopy()).toBe(false);
   });
+
   test('a pending request is taken once', () => {
     stashPending({ref: 'Genesis 1:1'});
     expect(takePending()).toEqual({ref: 'Genesis 1:1'});
     expect(takePending()).toBe(null);
+  });
+});
+
+describe('getTargetFromElement (the element-based part getTargetFromEvent shares with a plain selection)', () => {
+  afterEach(() => { document.body.innerHTML = ''; });
+
+  const buildSegment = () => {
+    document.body.innerHTML = `
+      <div class="readerPanel">
+        <div class="segment" data-ref="Genesis 1:1">
+          <span class="contentSpan primary">בְּרֵאשִׁית</span>
+          <span class="contentSpan translation">In the beginning</span>
+        </div>
+      </div>`;
+    return document.querySelector('.contentSpan.primary');
+  };
+
+  test('describes the containing segment, with word always null (no click point to find one at)', () => {
+    const el = buildSegment();
+    const panels = [{mode: 'Text', currVersions: {he: {languageFamilyName: 'hebrew', versionTitle: 'Miqra'}, en: null}}];
+    expect(getTargetFromElement(el, panels)).toEqual({
+      ref: 'Genesis 1:1',
+      word: null,
+      wordLang: 'source',
+      versions: {source: {languageFamilyName: 'hebrew', versionTitle: 'Miqra'}, translation: null},
+      // jsdom has no layout engine (getClientRects() is always empty), so `shown` reads false here
+      // regardless of the DOM; this is a jsdom limitation, not what a real browser would report.
+      shown: {source: false, translation: false},
+    });
+  });
+
+  test('reads the translation span the same way', () => {
+    buildSegment();
+    const el = document.querySelector('.contentSpan.translation');
+    const target = getTargetFromElement(el, [{mode: 'Text', currVersions: {}}]);
+    expect(target.ref).toBe('Genesis 1:1');
+    expect(target.wordLang).toBe('translation');
+  });
+
+  test('null outside a segment or search result', () => {
+    document.body.innerHTML = '<div class="notASegment">hi</div>';
+    expect(getTargetFromElement(document.querySelector('.notASegment'), [{mode: 'Text'}])).toBe(null);
+  });
+
+  test('null in Sheet mode, and null for a null element', () => {
+    const el = buildSegment();
+    expect(getTargetFromElement(el, [{mode: 'Sheet'}])).toBe(null);
+    expect(getTargetFromElement(null, [{mode: 'Text'}])).toBe(null);
+  });
+
+  test('a search result snippet', () => {
+    document.body.innerHTML = `
+      <div class="textResult" data-ref="Genesis 1:2" data-is-primary="true"
+           data-language-family="hebrew" data-version-title="Miqra">
+        <div class="snippet">וְהָאָ֗רֶץ</div>
+      </div>`;
+    const el = document.querySelector('.snippet');
+    expect(getTargetFromElement(el, [])).toEqual({
+      ref: 'Genesis 1:2',
+      word: null,
+      wordLang: 'source',
+      versions: {source: {languageFamilyName: 'hebrew', versionTitle: 'Miqra'}, translation: null},
+      shown: {source: true, translation: false},
+    });
   });
 });
 

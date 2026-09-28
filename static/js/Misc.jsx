@@ -2044,10 +2044,6 @@ class SignUpModal extends Component {
             <InterfaceText>misc.already_have_an_account</InterfaceText>&nbsp;
             <a href={"/login" + nextParam}><InterfaceText>misc.sign_in</InterfaceText></a>
           </div>
-          {this.props.secondaryAction &&
-            <button type="button" className="signUpModalSecondary" onClick={this.props.secondaryAction.onClick}>
-              <InterfaceText>{this.props.secondaryAction.text}</InterfaceText>
-            </button>}
         </div>
       </div>
     </div> : null);
@@ -2057,7 +2053,6 @@ SignUpModal.propTypes = {
   show: PropTypes.bool,
   onClose: PropTypes.func.isRequired,
   modalContentKind: PropTypes.symbol,
-  secondaryAction: PropTypes.shape({text: PropTypes.string, onClick: PropTypes.func}),  // e.g. "Not now, just …"
 };
 
   /**

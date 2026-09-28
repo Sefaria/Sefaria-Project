@@ -17180,10 +17180,36 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   padding: 4px;
   font-size: 14px;
 }
-.copyToolPreviewLabel {
+.copyToolPreviewLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding-top: 10px;
   border-top: 1px solid var(--lighter-grey);
+}
+.copyToolPreviewLabel {
   color: var(--dark-grey);
+}
+.copyToolPreviewToggle {
+  display: inline-flex;
+  border: 1px solid var(--lighter-grey);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.copyToolPreviewToggle button {
+  padding: 3px 10px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  color: var(--dark-grey);
+  cursor: pointer;
+}
+.copyToolPreviewToggle button + button {
+  border-inline-start: 1px solid var(--lighter-grey);
+}
+.copyToolPreviewToggle button[aria-pressed="true"] {
+  background-color: var(--sefaria-blue);
+  color: white;
 }
 .copyToolPreview {
   margin-top: 6px;
@@ -17236,14 +17262,5 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   border-radius: 6px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   font-size: 15px;
-}
-#interruptingMessage .signUpModalSecondary {
-  margin-top: 10px;
-  border: none;
-  background: none;
-  color: white;
-  text-decoration: underline;
-  font-size: 14px;
-  cursor: pointer;
 }
 /* ========== COPY TOOL - END ========== */

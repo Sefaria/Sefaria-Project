@@ -848,6 +848,7 @@ class ReaderPanel extends Component {
           setSideScrollPosition={this.props.setSideScrollPosition}
           toggleSignUpModal={this.props.toggleSignUpModal}
           openCopyTool={this.props.openCopyTool}
+          pitchCopyTool={this.props.pitchCopyTool}
           setConnectionsMode={this.setConnectionsMode}
           setConnectionsCategory={this.setConnectionsCategory}
           webPagesFilter={this.state.webPagesFilter}
@@ -1288,6 +1289,7 @@ ReaderPanel.propTypes = {
   checkIntentTimer:            PropTypes.func,
   toggleSignUpModal:           PropTypes.func.isRequired,
   openCopyTool:                PropTypes.func,  // desktop library only
+  pitchCopyTool:               PropTypes.func,  // desktop library only
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
   masterPanelMode:             PropTypes.string,

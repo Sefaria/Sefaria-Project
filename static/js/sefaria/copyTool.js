@@ -35,6 +35,7 @@ const NIKKUD_TEST_RE = /[֑-ׇ]/;
 
 const SETTINGS_KEY = 'copyTool.settings';
 const ANON_COUNT_KEY = 'copyTool.anonCopies';
+const ANON_PITCHED_KEY = 'copyTool.anonPitched';
 const PENDING_KEY = 'copyTool.pending';
 const PENDING_TTL_MS = 60 * 60 * 1000;
 
@@ -55,11 +56,17 @@ export const loadSettings = () => {
 export const saveSettings = (settings) => storageSet(SETTINGS_KEY, settings);
 export const hasPreviousSettings = () => !!storageGet(SETTINGS_KEY);
 
-// Anonymous users get one copy; every attempt after that shows the sign-up pitch.
-export const recordCopy = () => {
-  if (!Sefaria._uid) { storageSet(ANON_COUNT_KEY, (storageGet(ANON_COUNT_KEY) || 0) + 1); }
+// The Copy Tool itself is logged-in only. Anonymous users can still copy library text the regular
+// way (Ctrl+C / browser Copy); their 2nd such copy shows the sign-up pitch, once ever per browser.
+// Returns whether to show the pitch now. Never counts for a logged-in user.
+export const recordAnonymousCopy = () => {
+  if (Sefaria._uid) { return false; }
+  const count = (storageGet(ANON_COUNT_KEY) || 0) + 1;
+  storageSet(ANON_COUNT_KEY, count);
+  if (count !== 2 || storageGet(ANON_PITCHED_KEY)) { return false; }
+  storageSet(ANON_PITCHED_KEY, true);
+  return true;
 };
-export const shouldPitch = () => !Sefaria._uid && (storageGet(ANON_COUNT_KEY) || 0) >= 1;
 
 // A copy request interrupted by the sign-up pitch, resumed after login lands back on the page.
 export const stashPending = (target) => storageSet(PENDING_KEY, {target, time: Date.now()});
@@ -112,12 +119,13 @@ function wordAtPoint(container, x, y) {
 
 const versionOrNull = (v) => v && v.versionTitle ? {languageFamilyName: v.languageFamilyName, versionTitle: v.versionTitle} : null;
 
-export function getTargetFromEvent(e, panels) {
+export function getTargetFromElement(el, panels) {
   /*
-  Returns a serializable description of the right-clicked text, or null when the
-  click isn't on copyable library text (the browser menu then opens as usual).
+  Returns a serializable description of the library text containing `el` (a main-text segment or a
+  search result snippet), or null when `el` isn't inside one. `word` is always null here: this is the
+  element-based part shared by a right-click (which layers a clicked word on top, see getTargetFromEvent
+  below) and a plain text selection (which has no click point to find a word at).
   */
-  const el = e.target instanceof Element ? e.target : e.target?.parentElement;
   if (!el || el.closest('input, textarea, [contenteditable="true"], .sheetContent, a[href]:not(.namedEntityLink)')) { return null; }
 
   const segmentEl = el.closest('.readerPanel .segment[data-ref]');
@@ -130,7 +138,7 @@ export function getTargetFromEvent(e, panels) {
     const spanEl = el.closest('.contentSpan');
     return {
       ref: segmentEl.getAttribute('data-ref'),
-      word: wordAtPoint(segmentEl, e.clientX, e.clientY),
+      word: null,
       wordLang: spanEl ? (spanEl.classList.contains('primary') ? 'source' : 'translation') : null,
       versions: {source: versionOrNull(currVersions.he), translation: versionOrNull(currVersions.en)},
       shown: {
@@ -149,13 +157,25 @@ export function getTargetFromEvent(e, panels) {
     });
     return {
       ref: resultEl.getAttribute('data-ref'),
-      word: wordAtPoint(resultEl, e.clientX, e.clientY),
+      word: null,
       wordLang: isPrimary ? 'source' : 'translation',
       versions: {source: isPrimary ? version : null, translation: isPrimary ? null : version},
       shown: {source: isPrimary, translation: !isPrimary},
     };
   }
   return null;
+}
+
+export function getTargetFromEvent(e, panels) {
+  /*
+  Returns a serializable description of the right-clicked text, or null when the
+  click isn't on copyable library text (the browser menu then opens as usual).
+  */
+  const el = e.target instanceof Element ? e.target : e.target?.parentElement;
+  const target = getTargetFromElement(el, panels);
+  if (!target) { return null; }
+  const container = el.closest('.readerPanel .segment[data-ref]') || el.closest('.textResult[data-ref]');
+  return {...target, word: wordAtPoint(container, e.clientX, e.clientY)};
 }
 
 

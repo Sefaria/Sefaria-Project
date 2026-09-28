@@ -267,16 +267,19 @@ class ConnectionsPanel extends Component {
   }
   openCopyTool() {
     // Copy the selected segment(s) of the main text, in the versions and languages shown there.
+    // The tool is logged-in only: an anonymous user gets the sign-up pitch instead, as with Notes / Add to Sheet.
     const version = v => v?.versionTitle ? {languageFamilyName: v.languageFamilyName, versionTitle: v.versionTitle} : null;
     const {he, en} = this.props.currVersions || {};
     const language = this.props.masterPanelLanguage;
-    this.props.openCopyTool({
+    const target = {
       ref: Sefaria.normRefList(this.props.srefs),
       word: null,
       wordLang: null,
       versions: {source: version(he), translation: version(en)},
       shown: {source: language !== "english", translation: language !== "hebrew"},
-    });
+    };
+    if (!Sefaria._uid) { this.props.pitchCopyTool(target); return; }
+    this.props.openCopyTool(target);
   }
   render() {
     let content = null;

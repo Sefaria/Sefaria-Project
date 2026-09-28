@@ -132,7 +132,6 @@ class ReaderApp extends Component {
       showSignUpModal: false,
       copyToolMenu: null,          // {x, y, target} while the right-click menu is open
       copyToolDialogTarget: null,  // target of the open Copy dialog
-      copyToolPitchTarget: null,   // target an anonymous user tried to copy when shown the sign-up pitch
       copyToolToast: null,
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
@@ -1059,8 +1058,10 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     return this.props.multiPanel && Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
   }
   handleCopyToolContextMenu(e) {
-    // Right-click on library text opens the Copy Tool menu. Shift+right-click keeps the browser's menu.
-    if (e.shiftKey || !this.copyToolEnabled()) { return; }
+    // Right-click on library text opens the Copy Tool menu. The tool is logged-in only; anonymous
+    // users fall through to the browser's menu (they get the sign-up pitch from a regular copy instead,
+    // see handleCopyEvent). Shift+right-click also keeps the browser's menu.
+    if (e.shiftKey || !this.copyToolEnabled() || !Sefaria._uid) { return; }
     const target = CopyTool.getTargetFromEvent(e, this.state.panels);
     if (!target) { return; }
     e.preventDefault();
@@ -1070,38 +1071,27 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     this.setState({copyToolMenu: null});
   }
   openCopyTool(target) {
-    // Opens the Copy dialog, or the sign-up pitch for an anonymous user who has had their one copy.
-    this.setState({copyToolMenu: null});
-    if (CopyTool.shouldPitch()) { this.showCopyToolPitch(target); return; }
-    this.setState({copyToolDialogTarget: target});
+    // Opens the Copy dialog. Reachable only for logged-in users: the right-click menu is gated above,
+    // and the Tools-panel button pitches an anonymous user itself (see ConnectionsPanel.openCopyTool).
+    this.setState({copyToolMenu: null, copyToolDialogTarget: target});
   }
   copyWithPreviousSettings(target) {
     this.setState({copyToolMenu: null});
-    if (CopyTool.shouldPitch()) { this.showCopyToolPitch(target); return; }
     this.runCopy(target, CopyTool.loadSettings());
   }
   runCopy(target, settings) {
     CopyTool.copyWithSettings(target, settings, this.state.translationLanguagePreference)
-      .then(() => {
-        CopyTool.recordCopy();
-        this.setState({copyToolToast: 'copy_tool.copied'});
-      })
+      .then(() => this.setState({copyToolToast: 'copy_tool.copied'}))
       .catch(() => this.setState({copyToolToast: 'copy_tool.copy_failed'}));
   }
   handleCopyToolDialogCopied(settings) {
     CopyTool.saveSettings(settings);
-    CopyTool.recordCopy();
     this.setState({copyToolDialogTarget: null, copyToolToast: 'copy_tool.copied'});
   }
   showCopyToolPitch(target) {
     // Stash the request so that logging in or signing up (which returns here via ?next=) reopens it.
     CopyTool.stashPending(target);
-    this.setState({copyToolPitchTarget: target, showSignUpModal: true, modalContentKind: SignUpModalKind.CopyTool});
-  }
-  copyPlainInsteadOfSignUp() {
-    CopyTool.clearPending();
-    this.setState({showSignUpModal: false});
-    this.runCopy(this.state.copyToolPitchTarget, {...CopyTool.DEFAULT_SETTINGS, format: CopyTool.FORMATS.PLAIN});
+    this.setState({showSignUpModal: true, modalContentKind: SignUpModalKind.CopyTool});
   }
   resumePendingCopy() {
     if (!Sefaria._uid || !this.copyToolEnabled()) { return; }
@@ -2399,6 +2389,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     clipdata.setData('text/plain', textOnly);
     clipdata.setData('text/html', html);
     e.preventDefault();
+
+    // The Copy Tool is logged-in only, but an anonymous user's regular copies of library text still
+    // count toward the sign-up pitch, shown once on their 2nd such copy. The copy above has already
+    // happened; this never blocks or alters it.
+    if (!Sefaria._uid && this.copyToolEnabled()) {
+      const anchorEl = selection.anchorNode instanceof Element ? selection.anchorNode : selection.anchorNode?.parentElement;
+      const target = CopyTool.getTargetFromElement(anchorEl, this.state.panels);
+      if (target && CopyTool.recordAnonymousCopy()) {
+        this.showCopyToolPitch(target);
+      }
+    }
   }
   rerender() {
     this.forceUpdate();
@@ -2601,6 +2602,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       openMobileNavMenu={this.toggleMobileNavMenu}
                       toggleSignUpModal={this.toggleSignUpModal}
                       openCopyTool={this.copyToolEnabled() ? this.openCopyTool : null}
+                      pitchCopyTool={this.copyToolEnabled() ? this.showCopyToolPitch : null}
                       getHistoryObject={this.getHistoryObject}
                       clearSelectedWords={clearSelectedWords}
                       clearNamedEntity={clearNamedEntity}
@@ -2628,8 +2630,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         onClose={this.handleSignUpModalClose}
         show={this.state.showSignUpModal}
         modalContentKind={this.state.modalContentKind}
-        secondaryAction={this.state.modalContentKind === SignUpModalKind.CopyTool ?
-          {text: 'copy_tool.not_now', onClick: this.copyPlainInsteadOfSignUp} : null}
       />
     );
     const {copyToolMenu, copyToolDialogTarget, copyToolToast} = this.state;
