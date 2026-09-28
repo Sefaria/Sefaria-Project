@@ -107,15 +107,23 @@ const SiteWideBanner = ({
   imgSrc,
 }) => {
   const [bannerVisibility, setBannerVisibility] = useState("");
+  // Dismissal state lives in localStorage / document.cookie, which only exist in a
+  // browser. During Node SSR there is no way to read it, so the banner renders nothing
+  // until the component has mounted client-side. The first client render then matches
+  // the server HTML (no banner), and the real decision is made in the effect below.
+  const [isMounted, setIsMounted] = useState(false);
+  const [promoSessionCounter, setPromoSessionCounter] = useState(null);
   const storageKeys = getPromoStorageKeys(cookieName);
   const effectiveNudgeSchedule = nudgeSchedule || NUDGE_SCHEDULE;
   const sessionLengthSeconds = getPromoSessionLengthSeconds(promoSessionLengthSeconds);
-  if (enableBackoffDismissal) {
-    migrateLegacyCookieToBackoffState({ cookieName, storageKeys });
-  }
-  const promoSessionCounter = enableBackoffDismissal
-    ? updatePromoSessionCounter({ storageKeys, sessionLengthSeconds })
-    : null;
+
+  useEffect(() => {
+    if (enableBackoffDismissal) {
+      migrateLegacyCookieToBackoffState({ cookieName, storageKeys });
+      setPromoSessionCounter(updatePromoSessionCounter({ storageKeys, sessionLengthSeconds }));
+    }
+    setIsMounted(true);
+  }, []); // once, on mount: the storage reads above must never run during server rendering
 
   useEffect(() => {
     const promoViewedSessionKey = `promo_viewed_${cookieName}`;
@@ -178,6 +186,9 @@ const SiteWideBanner = ({
     trackBannerInteraction("close");
   };
 
+  if (!isMounted) {
+    return null;
+  }
   return (!isDismissed() && <div className={`siteWideBanner ${bannerVisibility}`}>
     <div className="siteWideBannerContent">
       {imgSrc && <img className="siteWideBannerIcon" src={imgSrc} alt="" aria-hidden="true" />}
@@ -238,7 +249,7 @@ SiteWideBanner.propTypes = {
 
 const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = 'Library Assistant';
-const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register", "/password/reset"];
+const CHATBOT_BANNER_EXCLUDED_PATHS = ["/login", "/register", "/password/reset/confirm"];
 
 // Keep authentication and password-recovery screens focused on the task at hand.
 const isChatbotBannerExcludedPath = (path, moduleUrl) => {

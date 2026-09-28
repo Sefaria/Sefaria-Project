@@ -55,6 +55,11 @@ restore:
   bucket: sefaria-mongo-backup
   # tarball:
   serviceAccount: database-backup-read
+  # Collections to skip, excluded at extraction time so they never hit disk.
+  # `sheets` alone is ~14GB of the ~27GB dump.
+  excludeCollections: []
+  # Fail the job if mongo is missing any collection that was extracted.
+  verify: true
 # config to backup environment DB
 backup:
   mongo:
