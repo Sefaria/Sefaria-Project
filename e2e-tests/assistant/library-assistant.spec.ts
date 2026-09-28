@@ -173,12 +173,14 @@ test.describe('Library Assistant — header menu', () => {
 
 /**
  * Responsive viewport — UX-085.
- * The Library Assistant must not render at mobile widths (375 px).
- * This test uses the LA user so we can confirm the suppression happens even
- * for a whitelisted user, not just for logged-out / non-whitelisted users.
+ * Mobile web is no longer restricted for a logged-in, enabled user: the closed
+ * state is the same small corner trigger as desktop, and opening it fills the
+ * viewport as a mostly-full-screen sheet rather than the desktop floating/docked
+ * panel. This test uses the LA user so it exercises the same account the desktop
+ * suite does, just at a mobile viewport.
  */
 test.describe('Library Assistant — responsive', () => {
-  test('UX-085: Library Assistant is hidden on a 375 px mobile viewport', async ({ context }) => {
+  test('UX-085: Library Assistant opens as a mostly-full-screen sheet on a 375 px mobile viewport', async ({ context }) => {
     // Navigate and wait for the component to mount at desktop size first
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -187,8 +189,13 @@ test.describe('Library Assistant — responsive', () => {
     // Resize to a typical mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
 
-    // The entire <lc-chatbot> host (and its trigger / panel) should be hidden
-    await expect(page.locator('lc-chatbot')).toBeHidden({ timeout: t(5000) });
+    // Closed state: the same small corner trigger pill as desktop.
+    await pm.onLibraryAssistant().ensureClosed();
+    await pm.onLibraryAssistant().expectTriggerVisible();
+
+    // Opening it fills the viewport as a mostly-full-screen sheet.
+    await pm.onLibraryAssistant().clickTriggerAndExpectOpen();
+    await pm.onLibraryAssistant().expectPanelFillsViewport();
   });
 });
 
