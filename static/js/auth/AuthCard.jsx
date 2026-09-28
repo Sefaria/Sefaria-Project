@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
+import Sefaria from '../sefaria/sefaria';
 
 /**
  * AuthCard — the white auth panel (Figma `Form Card`) that floats on the navy
