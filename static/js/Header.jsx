@@ -361,6 +361,7 @@ const Header = (props) => {
       {mobile &&
         <MobileNavMenu
           visible={props.mobileNavMenuOpen}
+          libraryAssistantAvailable={props.libraryAssistantAvailable}
           onRefClick={props.onRefClick}
           showSearch={props.showSearch}
           openTopic={props.openTopic}
@@ -376,6 +377,7 @@ const Header = (props) => {
 }
 
 Header.propTypes = {
+  libraryAssistantAvailable: PropTypes.bool,
   multiPanel: PropTypes.bool.isRequired,
   headerMode: PropTypes.bool.isRequired,
   onRefClick: PropTypes.func.isRequired,
@@ -422,11 +424,16 @@ const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
   );
 }
 
-const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications }) => {
+const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications, libraryAssistantAvailable }) => {
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
   });
+  const openLibraryAssistant = () => {
+    close();
+    // The <lc-chatbot> web component listens on document and opens as a full-screen sheet.
+    document.dispatchEvent(new CustomEvent("chatbot:open"));
+  };
       
   return (
     <nav className={classes} aria-label="Mobile navigation menu">
@@ -488,6 +495,15 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
                 >
                   <InterfaceText>header.saved_history_and_notes</InterfaceText>
                 </Button>
+                {libraryAssistantAvailable &&
+                  <Button
+                    variant="secondary"
+                    icon="ai-star-outline-24"
+                    className="libraryAssistantLink"
+                    onClick={openLibraryAssistant}
+                  >
+                    <InterfaceText>header.library_assistant</InterfaceText>
+                  </Button>}
               </>}
             {module === Sefaria.VOICES_MODULE &&
               <>

@@ -2416,9 +2416,14 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       widths = panelStates.map( panel => evenWidth );
     }
 
+    const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
+    // Rendered at every viewport: on phones the widget itself becomes a full-screen
+    // sheet, and the mobile drawer gets an entry point for it (see Header.jsx).
+    const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
+        libraryAssistantAvailable={displayChatbot}
         onRefClick={this.handleNavigationClick}
         showSearch={this.showSearch}
         openURL={this.openURL}
@@ -2569,8 +2574,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
     const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
-    const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
-    const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
     const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment;
     const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     

@@ -154,9 +154,9 @@ test.describe('Library Assistant — Hebrew', () => {
   });
 
   // Responsive — UX-085
-  test('UX-085 (HE): Library Assistant is hidden on a 375 px mobile viewport', { tag: '@sanity' }, async () => {
+  test('UX-085 (HE): Library Assistant switches to the compact layout on a 375 px mobile viewport', { tag: '@sanity' }, async () => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await expect(page.locator('lc-chatbot')).toBeHidden({ timeout: t(5000) });
+    await pm.onLibraryAssistant().expectCompactLayout();
   });
 });
 
