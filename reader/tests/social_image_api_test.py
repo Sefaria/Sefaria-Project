@@ -24,7 +24,23 @@ DOMAIN_MODULES = {
 }
 
 
+class DummyChunk:
+    def __init__(self, content):
+        self._content = content
+
+    def ja(self):
+        return self
+
+    def flatten_to_array(self):
+        return [self._content]
+
+    def strip_itags(self, s):
+        return s
+
+
 class DummyRef:
+    captured_kwargs = {}
+
     def normal(self):
         return "Genesis 1:1"
 
@@ -33,19 +49,17 @@ class DummyRef:
         # picks ref.he_normal() when lang="he".
         return "בראשית א׳:א׳"
 
+    @property
+    def primary_category(self):
+        return "Tanakh"
 
-class DummyTextFamily:
-    captured_kwargs = {}
+    def padded_ref(self):
+        return self
 
-    def __init__(self, *args, **kwargs):
+    def text(self, **kwargs):
         self.__class__.captured_kwargs = kwargs
-
-    def contents(self):
-        return {
-            "text": "In the beginning",
-            "he": "בראשית",
-            "primary_category": "Tanakh",
-        }
+        content = "בראשית" if kwargs.get("direction") == "rtl" else "In the beginning"
+        return DummyChunk(content)
 
 
 def _request(path, active_module=None, host="localsefaria.xyz:8000"):
@@ -72,7 +86,7 @@ def _capture_social_image_call(monkeypatch, path, active_module=None, host="loca
     # Replace the image builders with small recorders. These tests care about
     # which kind of image the view chooses, not about Pillow drawing pixels.
     captured = {}
-    DummyTextFamily.captured_kwargs = {}
+    DummyRef.captured_kwargs = {}
 
     def fake_response(text, category, ref_str, lang, platform, module):
         captured.update(
@@ -86,7 +100,7 @@ def _capture_social_image_call(monkeypatch, path, active_module=None, host="loca
                 "module": module,
             }
         )
-        captured["text_family_kwargs"] = DummyTextFamily.captured_kwargs
+        captured["text_kwargs"] = DummyRef.captured_kwargs
         return captured
 
     def fake_module_fallback(lang, platform, module):
@@ -121,7 +135,6 @@ def _capture_social_image_call(monkeypatch, path, active_module=None, host="loca
         return DummyRef()
 
     monkeypatch.setattr(views, "Ref", fake_ref)
-    monkeypatch.setattr(views, "TextFamily", DummyTextFamily)
     monkeypatch.setattr(views, "make_img_http_response", fake_response)
     monkeypatch.setattr(views, "make_module_fallback_img_http_response", fake_module_fallback)
     monkeypatch.setattr(views, "make_static_img_http_response", fake_static)
@@ -401,18 +414,18 @@ def test_social_image_api_extracts_translation_version_title_from_ven(monkeypatc
     )
     result = _capture_social_image_call(monkeypatch, path, tref="Genesis.1.1")
 
-    assert result["text_family_kwargs"]["version"] == "The Contemporary Torah, Jewish Publication Society, 2006"
+    assert result["text_kwargs"]["vtitle"] == "The Contemporary Torah, Jewish Publication Society, 2006"
 
 
 def test_social_image_api_extracts_hebrew_version_title_from_vhe(monkeypatch):
     path = "/api/img-gen/Genesis.1.1?lang=he&vhe=hebrew%7CTanach_with_Ta%27amei_Hamikra"
     result = _capture_social_image_call(monkeypatch, path, tref="Genesis.1.1")
 
-    assert result["text_family_kwargs"]["version"] == "Tanach with Ta'amei Hamikra"
+    assert result["text_kwargs"]["vtitle"] == "Tanach with Ta'amei Hamikra"
 
 
 def test_social_image_api_accepts_legacy_version_title_without_language_prefix(monkeypatch):
     path = "/api/img-gen/Genesis.1.1?lang=en&ven=The_Contemporary_Torah,_Jewish_Publication_Society,_2006"
     result = _capture_social_image_call(monkeypatch, path, tref="Genesis.1.1")
 
-    assert result["text_family_kwargs"]["version"] == "The Contemporary Torah, Jewish Publication Society, 2006"
+    assert result["text_kwargs"]["vtitle"] == "The Contemporary Torah, Jewish Publication Society, 2006"

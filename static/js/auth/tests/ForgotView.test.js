@@ -17,15 +17,19 @@ jest.mock('../../common/Button.jsx', () => ({ children, ...rest }) => (
   require('react').createElement('button', { type: 'submit', ...rest }, children)
 ));
 
+// AuthCard.jsx / utils.js import the Sefaria singleton; give them a minimal one.
+jest.mock('../../sefaria/sefaria', () => ({
+  __esModule: true,
+  default: { _: (key) => key, interfaceLang: 'english' },
+}));
+
 // eslint-disable-next-line import/first
 import ForgotView from '../ForgotView.jsx';
 
 let container = null;
 
-const realSefaria = global.Sefaria;
 const realFetch = global.fetch;
-beforeAll(() => { global.Sefaria = { _: (key) => key, interfaceLang: 'english' }; });
-afterAll(() => { global.Sefaria = realSefaria; global.fetch = realFetch; });
+afterAll(() => { global.fetch = realFetch; });
 
 function mount(props) {
   container = document.createElement('div');

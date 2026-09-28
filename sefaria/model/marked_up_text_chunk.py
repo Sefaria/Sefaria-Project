@@ -1,6 +1,6 @@
 from typing import Iterable
 from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
-from sefaria.model.text import TextChunk, Ref
+from sefaria.model.text import Ref
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.system.database import db
 from html import escape
@@ -9,6 +9,7 @@ from abc import ABC, abstractmethod
 from bisect import bisect_right
 import structlog
 from sefaria.system.progress_context import report_progress
+from sefaria.constants.model import get_direction_from_legacy_lang
 logger = structlog.get_logger(__name__)
 
 
@@ -74,7 +75,8 @@ class MarkedUpTextChunk(AbstractMongoRecord):
         oref = Ref(self.ref)
         if not oref.is_segment_level():
             raise InputError(type(self).__name__ + "._validate(): Ref must be at segment level: " + oref.normal())
-        tc = TextChunk(oref, lang=self.language, vtitle=self.versionTitle)
+        direction = get_direction_from_legacy_lang(self.language)
+        tc = oref.text(direction=direction, vtitle=self.versionTitle)
 
         if not tc.text:
             raise InputError(type(self).__name__ + "._validate(): Corresponding TextChunk is empty")
@@ -188,6 +190,13 @@ class MarkedUpTextChunk(AbstractMongoRecord):
 
         return out
 
+    @classmethod
+    def process_version_title_change(cls, ver, **kwargs):
+        report_progress("Cascading Marked Up Text Chunk version title from {} to {}".format(kwargs['old'], kwargs['new']))
+        query = _version_title_change_query(ver, **kwargs)
+        update = _version_title_change_update(**kwargs)
+        db.marked_up_text_chunks.update_many(query, update)
+
 
 class MarkedUpTextChunkSet(AbstractMongoSet):
     recordClass = MarkedUpTextChunk
@@ -195,7 +204,9 @@ class MarkedUpTextChunkSet(AbstractMongoSet):
 
 class LinkerOutput(MarkedUpTextChunk):
     """
-    Track linker resolutions for debugging purposes.
+    Stores the full linker output for a text segment/version/language, including
+    failed, ambiguous, and successful resolutions. Used by linker debug mode and
+    downstream workflows such as disambiguation and admin review.
     """
     collection = "linker_output"
     criteria_field = "ref"
@@ -257,6 +268,13 @@ class LinkerOutput(MarkedUpTextChunk):
             "required": True
         }
     }
+
+    @classmethod
+    def process_version_title_change(cls, ver, **kwargs):
+        report_progress("Cascading Linker Output version title from {} to {}".format(kwargs['old'], kwargs['new']))
+        query = _version_title_change_query(ver, **kwargs)
+        update = _version_title_change_update(**kwargs)
+        db.linker_output.update_many(query, update)
 
 
 class LinkerOutputSet(AbstractMongoSet):
@@ -393,6 +411,21 @@ def process_index_delete(indx, **kwargs):
     pattern = prepare_index_regex_for_dependency_process(indx)
     MarkedUpTextChunkSet({"ref": {"$regex": pattern}}).delete()
     LinkerOutputSet({"ref": {"$regex": pattern}}).delete()
+
+
+def _version_title_change_query(ver, **kwargs):
+    patterns = Ref(ver.title).regex(as_list=True)
+    return {
+        "$and": [
+            {"versionTitle": kwargs["old"]},
+            {"language": ver.language},
+            {"$or": [{"ref": {"$regex": pattern}} for pattern in patterns]},
+        ]
+    }
+
+
+def _version_title_change_update(**kwargs):
+    return {"$set": {"versionTitle": kwargs["new"]}}
 
 
 def process_category_path_change(category, **kwargs):

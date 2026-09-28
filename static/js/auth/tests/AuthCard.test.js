@@ -6,6 +6,13 @@ import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import AuthCard from '../AuthCard.jsx';
 
+// AuthCard.jsx imports the Sefaria singleton; mock the module rather than
+// setting a `global.Sefaria`, which the import would ignore.
+jest.mock('../../sefaria/sefaria', () => ({
+  __esModule: true,
+  default: { _: (key) => key },
+}));
+
 let container = null;
 
 function mount(props) {
@@ -19,10 +26,6 @@ function unmount() {
   document.body.removeChild(container);
   container = null;
 }
-
-const realSefaria = global.Sefaria;
-beforeAll(() => { global.Sefaria = { _: (key) => key }; });
-afterAll(() => { global.Sefaria = realSefaria; });
 
 afterEach(() => {
   if (container) unmount();

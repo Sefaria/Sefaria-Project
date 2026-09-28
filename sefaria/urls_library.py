@@ -58,7 +58,7 @@ urlpatterns = [
     path('translate/<path:ref>', reader_views.edit_text),
     path('edit/terms/<path:term>', reader_views.terms_editor),
     path('add/terms/<path:term>', reader_views.terms_editor),
-    re_path(r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.edit_text),
+    re_path(r'^edit/(?P<ref>.+)/(?P<language_family_name>[a-z]+)/(?P<version>.+)$', reader_views.edit_text),
     path('edit/<path:ref>', reader_views.edit_text),
 
     re_path(r'^dashboard/?$', reader_views.dashboard),
