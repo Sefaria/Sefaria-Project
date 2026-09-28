@@ -2,7 +2,7 @@
 import Sefaria from '../sefaria';
 import {
   wordAt, toSegments, render, resolveOptions, recordCopy, shouldPitch, stashPending, takePending,
-  LEVELS, FORMATS, NOTES, VOWELS, DEFAULT_SETTINGS,
+  loadTargetInfo, LEVELS, FORMATS, NOTES, VOWELS, DEFAULT_SETTINGS,
 } from '../copyTool';
 
 const meta = {
@@ -86,6 +86,31 @@ describe('render', () => {
     const wordData = {level: LEVELS.WORD, word: 'בְּרֵאשִׁ֖ית', wordLang: 'source', meta, versionInfo: {source: versionInfo.source}, segments: []};
     expect(render(wordData, opts({format: FORMATS.PLAIN, vowels: VOWELS.VOWELS})).plain).toBe('בְּרֵאשִׁית');
   });
+  test('missing counts segments with no text per language (fill_in_missing_segments=0 leaves them blank)', () => {
+    const partialSegments = toSegments(meta, {
+      source: ['בְּרֵאשִׁ֖ית בָּרָ֣א', ''],
+      translation: ['', 'The earth'],
+    });
+    const out = render({...data, segments: partialSegments}, opts({format: FORMATS.PLAIN}));
+    expect(out.missing).toEqual({source: 1, translation: 1});
+    // missingSegments is the distinct count (segment 1 missing translation, segment 2 missing source: 2 segments, not 2+2).
+    expect(out.missingSegments).toBe(2);
+  });
+  test('missingSegments counts a segment once even when it is missing in both selected languages', () => {
+    const partialSegments = toSegments(meta, {
+      source: ['', 'וְהָאָ֗רֶץ'],
+      translation: ['', 'The earth'],
+    });
+    const out = render({...data, segments: partialSegments}, opts({format: FORMATS.PLAIN}));
+    expect(out.missing).toEqual({source: 1, translation: 1});
+    expect(out.missingSegments).toBe(1);
+  });
+  test('missing and missingSegments are empty (nothing to count) at the word level', () => {
+    const wordData = {level: LEVELS.WORD, word: 'x', wordLang: 'source', meta, versionInfo: {source: versionInfo.source}, segments: []};
+    const out = render(wordData, opts({format: FORMATS.PLAIN}));
+    expect(out.missing).toEqual({});
+    expect(out.missingSegments).toBe(0);
+  });
 });
 
 describe('resolveOptions', () => {
@@ -98,6 +123,41 @@ describe('resolveOptions', () => {
     const o = resolveOptions(target, info, {...DEFAULT_SETTINGS, level: LEVELS.WORD});
     expect(o.level).toBe(LEVELS.SEGMENT);
     expect(o.languages).toEqual({source: true, translation: false});
+  });
+});
+
+describe('loadTargetInfo version ordering and defaults', () => {
+  const stubMeta = {ref: 'Genesis 3:1', heRef: 'בראשית ג׳:א׳', sectionRef: 'Genesis 3', heSectionRef: 'בראשית ג׳', sectionNames: ['Chapter', 'Verse'], textDepth: 2};
+  const target = {ref: 'Genesis 3:1', word: null, versions: {source: null, translation: null}, shown: {source: true, translation: true}};
+  const v = (versionTitle, extra) => ({languageFamilyName: 'hebrew', versionTitle, isSource: true, isPrimary: false, ...extra});
+
+  beforeEach(() => { jest.spyOn(Sefaria, '_ApiPromise').mockResolvedValue(stubMeta); });
+
+  test('sorts by priority desc (missing = 0), then isPrimary, then locked status', async () => {
+    jest.spyOn(Sefaria, 'getVersions').mockResolvedValue({he: [
+      v('Plain', {priority: 1}),
+      v('Locked', {priority: 1, status: 'locked'}),
+      v('Primary', {priority: 1, isPrimary: true}),
+      v('NoPriority'),
+      v('Top', {priority: 5}),
+    ]});
+    jest.spyOn(Sefaria, '_getVersionObjects').mockResolvedValue([{languageFamilyName: 'hebrew', versionTitle: 'Top'}, null]);
+    const info = await loadTargetInfo(target, null);
+    expect(info.versions.source.map(x => x.versionTitle)).toEqual(['Top', 'Primary', 'Locked', 'Plain', 'NoPriority']);
+  });
+
+  test('translation default: reader language preference, then English, then top priority', async () => {
+    const t = (versionTitle, actualLanguage, priority) => ({languageFamilyName: actualLanguage, versionTitle, isSource: false, isPrimary: false, actualLanguage, priority});
+    // _getVersionObjects resolved no specific title (just a language-family placeholder), as it does when
+    // the reader hasn't pinned a version.
+    jest.spyOn(Sefaria, '_getVersionObjects').mockResolvedValue([null, {languageFamilyName: 'translation'}]);
+
+    jest.spyOn(Sefaria, 'getVersions').mockResolvedValue({en: [t('English', 'en', 3)], fr: [t('French', 'fr', 8)]});
+    expect((await loadTargetInfo(target, null)).defaults.translation.versionTitle).toBe('English');
+    expect((await loadTargetInfo(target, 'fr')).defaults.translation.versionTitle).toBe('French');
+
+    Sefaria.getVersions.mockResolvedValue({fr: [t('French', 'fr', 8)], de: [t('German', 'de', 3)]});
+    expect((await loadTargetInfo(target, 'es')).defaults.translation.versionTitle).toBe('French');
   });
 });
 
@@ -123,7 +183,7 @@ describe('anonymous gating and pending requests', () => {
 describe('pipeline on real API responses (Genesis 1, trimmed)', () => {
   // Captured from /api/v3/texts/Genesis.1?version=primary|translation&fill_in_missing_segments=0
   const fixture = require('./fixtures/copyToolGenesis1.json');
-  const {loadTargetInfo, loadCopyData} = require('../copyTool');
+  const {loadCopyData} = require('../copyTool');
   const segment = (section) => ({
     ...section, ref: 'Genesis 1:1', heRef: 'בראשית א׳:א׳', sections: ['1', '1'], toSections: ['1', '1'],
     versions: [{...section.versions[0], text: section.versions[0].text[0]}],

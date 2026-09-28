@@ -154,6 +154,7 @@
     "copy_tool.notes_omit": "ללא",
     "copy_tool.preview": "תצוגה מקדימה",
     "copy_tool.segment_numbers": "מספור קטעים",
+    "copy_tool.segments_missing": "חסרים בגרסה שנבחרה:",
     "copy_tool.source": "מקור",
     "copy_tool.translation": "תרגום",
     "copy_tool.vowels": "ניקוד",

@@ -91,6 +91,33 @@ test('dialog loads, previews both languages, and copies with the chosen settings
   expect(onCopied.mock.calls[0][0].versions).toBeUndefined();
 });
 
+test('shows a note when a section copy is missing segments in a version', async () => {
+  // Chapter 2, distinct from the other test's chapter 1 fixture so cached fetches don't collide.
+  const partial = {
+    he: {...fixture.he, ref: 'Genesis 2', sectionRef: 'Genesis 2', sections: ['2'], toSections: ['2'],
+      versions: [{...fixture.he.versions[0], text: ['בְּרֵאשִׁ֖ית', 'וְהָאָ֗רֶץ']}]},
+    en: {...fixture.en, ref: 'Genesis 2', sectionRef: 'Genesis 2', sections: ['2'], toSections: ['2'],
+      versions: [{...fixture.en.versions[0], text: ['In the beginning', '']}]},  // 2nd verse missing from this version
+  };
+  const partialSegment = (section) => ({
+    ...section, ref: 'Genesis 2:1', heRef: 'בראשית ב׳:א׳', sections: ['2', '1'], toSections: ['2', '1'],
+    versions: [{...section.versions[0], text: section.versions[0].text[0]}],
+  });
+  Sefaria._ApiPromise.mockImplementation(url => {
+    const section = url.includes('version=hebrew') ? partial.he : partial.en;
+    return Promise.resolve(url.includes('/Genesis.2.1?') ? partialSegment(section) : section);
+  });
+  const partialTarget = {...target, ref: 'Genesis 2:1'};
+
+  act(() => { ReactDOM.render(<CopyToolDialog target={partialTarget} onClose={() => {}} onCopied={() => {}} />, container); });
+  await flush(); await flush();
+  expect(container.querySelector('.copyToolMissingNote')).toBe(null);  // segment level: the clicked verse is present
+
+  act(() => { radio('copyToolLevel', 'section').click(); });
+  await flush();
+  expect(container.querySelector('.copyToolMissingNote').textContent).toBe('Not in the chosen version: 1');
+});
+
 test('menu hides "previous settings" until there are some', () => {
   const props = {x: 10, y: 10, onCopyPrevious: () => {}, onCopyDialog: () => {}, onClose: () => {}};
   act(() => { ReactDOM.render(<CopyToolMenu {...props} showPrevious={false} />, container); });

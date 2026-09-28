@@ -161,6 +161,7 @@ const CopyToolDialog = ({target, translationLanguagePreference, onClose, onCopie
   };
 
   const isWord = options?.level === LEVELS.WORD;
+  const missingCount = output?.missingSegments || 0;
   const levelInfo = info && options && info.levels.find(l => l.level === options.level);
   const titleRef = levelInfo?.ref ? (Sefaria.interfaceLang === 'hebrew' ? levelInfo.heRef : levelInfo.ref) : target.ref;
   const toggleLanguage = (lang) => {
@@ -266,6 +267,11 @@ const CopyToolDialog = ({target, translationLanguagePreference, onClose, onCopie
               output.html ? <div dangerouslySetInnerHTML={{__html: output.html}} /> :
               <pre>{output.plain}</pre>}
           </div>
+
+          {options.level === LEVELS.SECTION && missingCount > 0 &&
+            <div className="copyToolMissingNote">
+              <InterfaceText>copy_tool.segments_missing</InterfaceText> {missingCount}
+            </div>}
 
           <div className="copyToolButtons">
             <button type="button" className="button small white" onClick={onClose}>

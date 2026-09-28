@@ -184,7 +184,10 @@ export async function loadTargetInfo(target, translationLanguagePreference) {
     Sefaria._getVersionObjects(target.ref, target.versions.source || {}, target.versions.translation || {}, translationLanguagePreference),
   ]);
   const all = Object.values(versionsByLang).flat();
-  const byPriority = (a, b) => (b.priority || 0) - (a.priority || 0);
+  // Highest priority wins (missing = 0); ties go to the primary version, then a locked one.
+  const byPriority = (a, b) => (b.priority || 0) - (a.priority || 0)
+    || (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0)
+    || (b.status === 'locked' ? 1 : 0) - (a.status === 'locked' ? 1 : 0);
   const sourceVersions = all.filter(v => v.isSource || v.isPrimary).sort(byPriority);
   const translationVersions = all.filter(v => !v.isSource && !v.isPrimary).sort(byPriority);
   const pick = (resolved, options) => {
@@ -192,7 +195,16 @@ export async function loadTargetInfo(target, translationLanguagePreference) {
     const v = match || options[0];
     return v ? {languageFamilyName: v.languageFamilyName, versionTitle: v.versionTitle} : null;
   };
-  const defaults = {source: pick(source, sourceVersions), translation: pick(translation, translationVersions)};
+  // _getVersionObjects can come back with no versionTitle (just {languageFamilyName: 'translation'}) when
+  // the reader didn't pin one; options[0] would then be whatever's globally top-priority, which can be a
+  // non-English translation. Match the reader: its language preference bucket, then English, then top priority.
+  const pickTranslation = (resolved, options) => {
+    if (resolved?.versionTitle) { return pick(resolved, options); }
+    const byLang = lang => options.find(v => (v.actualLanguage || v.language) === lang);
+    const v = (translationLanguagePreference && byLang(translationLanguagePreference)) || byLang('en') || options[0];
+    return v ? {languageFamilyName: v.languageFamilyName, versionTitle: v.versionTitle} : null;
+  };
+  const defaults = {source: pick(source, sourceVersions), translation: pickTranslation(translation, translationVersions)};
   if (!defaults.source && !defaults.translation) { throw new Error('no versions'); }
   const meta = await fetchText(target.ref, defaults.source || defaults.translation);
   const names = meta.sectionNames || [];
@@ -355,11 +367,15 @@ export function render(data, options) {
   const dirOf = (lang) => data.versionInfo[lang]?.direction || (lang === 'source' ? 'rtl' : 'ltr');
   const langAttr = (lang) => (data.versionInfo[lang]?.actualLanguage || data.versionInfo[lang]?.language || (lang === 'source' ? 'he' : 'en'));
   const blocks = [];  // [{lang, body, number}], rendered per format below
+  const missing = {};  // per language: segments with no text at all in that version (fill_in_missing_segments=0 leaves them blank)
+  let missingSegments = 0;  // distinct segments empty in any selected language (what the dialog's coverage note counts)
 
   if (data.level === LEVELS.WORD) {
     blocks.push({lang: data.wordLang, body: renderText(escapeHtml(data.word), format, ctx)});
   } else {
     const langs = ['source', 'translation'].filter(l => data.versionInfo[l]);
+    langs.forEach(l => { missing[l] = data.segments.filter(seg => !seg[l]).length; });
+    missingSegments = data.segments.filter(seg => langs.some(l => !seg[l])).length;
     const onlyHebrew = langs.length === 1 && dirOf(langs[0]) === 'rtl';
     data.segments.forEach(seg => {
       let first = true;
@@ -371,7 +387,7 @@ export function render(data, options) {
       });
     });
   }
-  if (!blocks.length) { return {plain: '', html: null, hasNotes: ctx.hasNotes}; }
+  if (!blocks.length) { return {plain: '', html: null, hasNotes: ctx.hasNotes, missing, missingSegments}; }
 
   const bilingual = new Set(blocks.map(b => b.lang)).size > 1;
   const cite = options.citation ? citation(data, format) : null;
@@ -386,8 +402,8 @@ export function render(data, options) {
     const html = lines.join('\n');
     // Formatted pastes as rich text with a plain fallback; HTML source pastes the markup itself.
     return format === FORMATS.HTML
-      ? {plain: html, html: null, hasNotes: ctx.hasNotes}
-      : {plain: render(data, {...options, format: FORMATS.PLAIN}).plain, html, hasNotes: ctx.hasNotes};
+      ? {plain: html, html: null, hasNotes: ctx.hasNotes, missing, missingSegments}
+      : {plain: render(data, {...options, format: FORMATS.PLAIN}).plain, html, hasNotes: ctx.hasNotes, missing, missingSegments};
   }
 
   const md = format === FORMATS.MARKDOWN;
@@ -402,7 +418,7 @@ export function render(data, options) {
     out += '\n\n' + ctx.endNotes.map((note, i) => md ? `[^${i + 1}]: ${note}` : `[${i + 1}] ${note}`).join('\n');
   }
   if (cite) { out += '\n\n' + cite; }
-  return {plain: out, html: null, hasNotes: ctx.hasNotes};
+  return {plain: out, html: null, hasNotes: ctx.hasNotes, missing, missingSegments};
 }
 
 

@@ -159,6 +159,7 @@
     "copy_tool.notes_omit": "Omit",
     "copy_tool.preview": "Preview",
     "copy_tool.segment_numbers": "Segment numbers",
+    "copy_tool.segments_missing": "Not in the chosen version:",
     "copy_tool.source": "Source",
     "copy_tool.translation": "Translation",
     "copy_tool.vowels": "Vowels",

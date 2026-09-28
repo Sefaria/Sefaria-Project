@@ -17209,6 +17209,11 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   font-family: Menlo, Consolas, monospace;
   font-size: 13px;
 }
+.copyToolMissingNote {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--dark-grey);
+}
 .copyToolButtons {
   display: flex;
   justify-content: flex-end;
