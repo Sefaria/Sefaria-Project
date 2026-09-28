@@ -15,8 +15,8 @@ describe('INDEX_FIELD_METADATA', () => {
     it('has all expected fields', () => {
       const expectedFields = [
         'enDesc', 'enShortDesc', 'heDesc', 'heShortDesc',
-        'categories', 'authors', 'compDate', 'compPlace', 'heCompPlace',
-        'pubDate', 'pubPlace', 'hePubPlace',
+        'categories', 'authors', 'compDate', 'compPlace',
+        'pubDate', 'pubPlace',
         'dependence', 'base_text_titles', 'collective_title'
       ];
       expectedFields.forEach(field => {
@@ -44,7 +44,7 @@ describe('INDEX_FIELD_METADATA', () => {
     });
 
     it('Hebrew fields have rtl direction', () => {
-      const hebrewFields = ['heDesc', 'heShortDesc', 'heCompPlace', 'hePubPlace'];
+      const hebrewFields = ['heDesc', 'heShortDesc'];
       hebrewFields.forEach(field => {
         expect(INDEX_FIELD_METADATA[field].dir).toBe('rtl');
       });

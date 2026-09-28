@@ -69,12 +69,6 @@ export const INDEX_FIELD_METADATA = {
     type: "text",
     placeholder: "e.g., 'Troyes, France'"
   },
-  "heCompPlace": {
-    label: "Hebrew Composition Place",
-    type: "text",
-    placeholder: "למשל: 'טרואה, צרפת'",
-    dir: "rtl"
-  },
   "pubDate": {
     label: "Publication Date",
     type: "daterange",
@@ -85,12 +79,6 @@ export const INDEX_FIELD_METADATA = {
     label: "Publication Place",
     type: "text",
     placeholder: "e.g., 'Venice, Italy'"
-  },
-  "hePubPlace": {
-    label: "Hebrew Publication Place",
-    type: "text",
-    placeholder: "למשל: 'ונציה, איטליה'",
-    dir: "rtl"
   },
   "dependence": {
     label: "Dependence Type",

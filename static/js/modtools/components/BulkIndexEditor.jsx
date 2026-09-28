@@ -68,10 +68,8 @@ const HELP_CONTENT = (
         <tr><td><code>authors</code></td><td>Author slugs (must exist in AuthorTopic). Comma-separated.</td></tr>
         <tr><td><code>compDate</code></td><td>Composition date. Single year or range like [1200, 1250]</td></tr>
         <tr><td><code>compPlace</code></td><td>Place of composition (English)</td></tr>
-        <tr><td><code>heCompPlace</code></td><td>Place of composition (Hebrew)</td></tr>
         <tr><td><code>pubDate</code></td><td>Publication date</td></tr>
         <tr><td><code>pubPlace</code></td><td>Place of publication (English)</td></tr>
-        <tr><td><code>hePubPlace</code></td><td>Place of publication (Hebrew)</td></tr>
         <tr><td><code>dependence</code></td><td>"Commentary" or "Targum" - marks text as dependent on another</td></tr>
         <tr><td><code>base_text_titles</code></td><td>For commentaries: exact titles of base texts. Comma-separated.</td></tr>
         <tr><td><code>collective_title</code></td><td>For commentaries: the commentary name (e.g., "Rashi")</td></tr>
@@ -153,6 +151,21 @@ const indexExists = async (title) => {
  * loaded is not in it. The warning below tells the user to reload in that case.
  */
 const termExists = (name) => name in Sefaria._translateTerms;
+
+/**
+ * Fetch the current saved Index record, bypassing all client-side caches.
+ * Returns null if the index can't be loaded. index_api is wrapped by catch_error_as_json,
+ * so a server-side failure comes back as HTTP 200 with an {error: ...} body.
+ */
+const fetchRawIndex = async (title) => {
+  const response = await fetch(`/api/v2/raw/index/${encodeURIComponent(title.replace(/ /g, "_"))}`, {
+    credentials: 'same-origin',
+    cache: 'no-store'
+  });
+  if (!response.ok) return null;
+  const data = await response.json();
+  return data && !data.error ? data : null;
+};
 
 const BulkIndexEditor = () => {
   // Search state
@@ -304,7 +317,8 @@ const BulkIndexEditor = () => {
           } else {
             const year = parseInt(value);
             if (!isNaN(year)) {
-              processedUpdates[field] = year;
+              // Index._validate requires compDate/pubDate to be a list of integers
+              processedUpdates[field] = [year];
             } else {
               setMsg(`Invalid date format for ${field}`);
               setSaving(false);
@@ -364,7 +378,10 @@ const BulkIndexEditor = () => {
       try {
         setMsg(`Updating ${indexTitle}...`);
 
-        const existingIndexData = await Sefaria.getIndexDetails(indexTitle);
+        // Fetch fresh raw data rather than Sefaria.getIndexDetails, whose client-side cache
+        // is never invalidated after a save: a second save in the same session would post
+        // stale categories/schema and silently revert the first save's changes.
+        const existingIndexData = await fetchRawIndex(indexTitle);
         if (!existingIndexData) {
           errors.push(`${indexTitle}: Could not fetch existing index data.`);
           continue;
@@ -441,7 +458,6 @@ const BulkIndexEditor = () => {
 
         const postData = {
           title: indexTitle,
-          heTitle: existingIndexData.heTitle,
           categories: existingIndexData.categories,
           schema: existingIndexData.schema,
           ...indexSpecificUpdates
