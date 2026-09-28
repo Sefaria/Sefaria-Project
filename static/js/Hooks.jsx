@@ -62,23 +62,16 @@ function useDebounce(value, delay) {
 // `visible` never does.
 const OVERFLOW_VALUES_THAT_CAN_SCROLL = ['scroll', 'auto', 'overlay'];
 
-// Both halves are needed, because `auto` is a condition rather than a promise: it means "scroll
-// only if the content does not fit". A container can report `auto` and still never scroll.
-const isScrollingElement = (el) => {
-  if (!el) { return false; }
+// Does the CSS permit a scrollbar? Not enough on its own (see observeNearBottom) -- `overflow-y:
+// visible` beside an `overflow-x` that is not visible computes to `auto`, which is what
+// .noOverflowX does to the topic and profile containers.
+const overflowAllowsScrolling = (el) => (
+  !!el && OVERFLOW_VALUES_THAT_CAN_SCROLL.includes(window.getComputedStyle(el).overflowY)
+);
 
-  // Does the CSS permit a scrollbar? Not enough on its own -- `overflow-y: visible` beside an
-  // `overflow-x` that is not visible computes to `auto`, which is what .noOverflowX does to the
-  // topic and profile containers.
-  const {overflowY} = window.getComputedStyle(el);
-  const overflowAllowsScrolling = OVERFLOW_VALUES_THAT_CAN_SCROLL.includes(overflowY);
-
-  // Is the box actually hiding anything? On singlePanel these containers grow to their full
-  // content height, so nothing is hidden, no scrollbar appears, and no scroll event ever fires.
-  const contentIsTallerThanBox = el.scrollHeight > el.clientHeight;
-
-  return overflowAllowsScrolling && contentIsTallerThanBox;
-};
+// Is the box actually hiding anything? On singlePanel these containers grow to their full
+// content height, so nothing is hidden, no scrollbar appears, and no scroll event ever fires.
+const contentIsTallerThanBox = (el) => el.scrollHeight > el.clientHeight;
 
 // A null scroller means the document scrolls.
 const pixelsToBottom = (scroller) => (
@@ -89,15 +82,26 @@ const pixelsToBottom = (scroller) => (
 
 // Returns an unsubscribe function.
 const observeNearBottom = (candidate, margin, onNearBottom) => {
-  const handler = () => {
+  // Both halves are needed, because `auto` is a condition rather than a promise: it means "scroll
+  // only if the content does not fit". A container can report `auto` and still never scroll.
+  // The CSS half is read once and refreshed on resize, where a breakpoint can change it, so the
+  // scroll handler never pays for getComputedStyle.
+  let cssAllowsScrolling = overflowAllowsScrolling(candidate);
+  const onResize = () => { cssAllowsScrolling = overflowAllowsScrolling(candidate); };
+
+  const onScroll = () => {
     // Re-checked per event: a container too short to scroll on page 1 can become the scroller.
-    const scroller = isScrollingElement(candidate) ? candidate : null;
+    const scroller = cssAllowsScrolling && contentIsTallerThanBox(candidate) ? candidate : null;
     if (pixelsToBottom(scroller) <= margin) { onNearBottom(); }
   };
   // Only one can fire: element scroll events don't bubble, document scroll is window-only.
   const targets = candidate ? [candidate, window] : [window];
-  targets.forEach(t => t.addEventListener('scroll', handler, {passive: true}));
-  return () => targets.forEach(t => t.removeEventListener('scroll', handler));
+  targets.forEach(t => t.addEventListener('scroll', onScroll, {passive: true}));
+  if (candidate) { window.addEventListener('resize', onResize, {passive: true}); }
+  return () => {
+    targets.forEach(t => t.removeEventListener('scroll', onScroll));
+    window.removeEventListener('resize', onResize);
+  };
 };
 
 /**

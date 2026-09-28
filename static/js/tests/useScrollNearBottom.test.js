@@ -32,9 +32,19 @@ const Probe = ({candidate, onNearBottom, margin = 300}) => {
   return null;
 };
 
-const renderProbe = (props) => {
+// Every mounted host, so afterEach can unmount it. Clearing the DOM alone would skip React's
+// effect cleanup and leave each test's window listeners bound for the tests after it.
+const mountedHosts = [];
+
+const mountHost = () => {
   const host = document.createElement('div');
   document.body.appendChild(host);
+  mountedHosts.push(host);
+  return host;
+};
+
+const renderProbe = (props) => {
+  const host = mountHost();
   act(() => { ReactDOM.render(<Probe {...props} />, host); });
   return () => act(() => { ReactDOM.unmountComponentAtNode(host); });
 };
@@ -49,7 +59,10 @@ describe('useScrollNearBottom', () => {
     setDocumentGeometry({scrollHeight: 10000, innerHeight: 800, scrollY: 0});
   });
 
-  afterEach(() => { document.body.innerHTML = ''; });
+  afterEach(() => {
+    act(() => { mountedHosts.splice(0).forEach(host => ReactDOM.unmountComponentAtNode(host)); });
+    document.body.innerHTML = '';
+  });
 
   test('desktop: fires on the container that scrolls', () => {
     // .readerNavMenu .content on desktop -- fixed height, own scrollbar, overflowing.
@@ -153,8 +166,7 @@ describe('useScrollNearBottom', () => {
     withGeometry(candidate, {scrollHeight: 5000, clientHeight: 800, scrollTop: 4000});
     const first = jest.fn();
     const second = jest.fn();
-    const host = document.createElement('div');
-    document.body.appendChild(host);
+    const host = mountHost();
 
     act(() => { ReactDOM.render(<Probe candidate={candidate} onNearBottom={first} />, host); });
     act(() => { ReactDOM.render(<Probe candidate={candidate} onNearBottom={second} />, host); });
@@ -162,5 +174,39 @@ describe('useScrollNearBottom', () => {
 
     expect(first).not.toHaveBeenCalled();
     expect(second).toHaveBeenCalled();
+  });
+
+  test('does not read computed style on scroll', () => {
+    // Scroll handlers run many times a second; the CSS half of the check is resolved at bind time.
+    candidate.style.overflowY = 'scroll';
+    withGeometry(candidate, {scrollHeight: 5000, clientHeight: 800, scrollTop: 4000});
+    const onNearBottom = jest.fn();
+    renderProbe({candidate, onNearBottom});
+    const getComputedStyle = jest.spyOn(window, 'getComputedStyle');
+
+    act(() => { candidate.dispatchEvent(new Event('scroll')); });
+    act(() => { window.dispatchEvent(new Event('scroll')); });
+
+    expect(onNearBottom).toHaveBeenCalled();
+    expect(getComputedStyle).not.toHaveBeenCalled();
+    getComputedStyle.mockRestore();
+  });
+
+  test('re-reads overflow on resize, where a breakpoint can change it', () => {
+    // Bound while the container scrolls; a resize then flips it to the singlePanel style.
+    candidate.style.overflowY = 'scroll';
+    withGeometry(candidate, {scrollHeight: 5000, clientHeight: 800, scrollTop: 0});
+    setDocumentGeometry({scrollHeight: 5000, innerHeight: 800, scrollY: 4000});
+    const onNearBottom = jest.fn();
+    renderProbe({candidate, onNearBottom});
+
+    act(() => { window.dispatchEvent(new Event('scroll')); });
+    expect(onNearBottom).not.toHaveBeenCalled();
+
+    candidate.style.overflowY = 'visible';
+    act(() => { window.dispatchEvent(new Event('resize')); });
+    act(() => { window.dispatchEvent(new Event('scroll')); });
+
+    expect(onNearBottom).toHaveBeenCalled();
   });
 });
