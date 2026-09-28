@@ -231,9 +231,18 @@ const SettingsNav = ({tab, onSelect}) => (
 
 /* The one way in. An account with Google or Apple goes straight in; any other account
    connects one first, then goes in. Developer settings stay on once they are on. */
-const GetStarted = ({connected, card, onStart, onConnectSso}) => {
+const GetStarted = ({connected, card, settingUp, onStart, onConnectSso}) => {
   const [askSso, setAskSso] = useState(false);
   const start = () => { if (connected) { onStart(); } else { setAskSso(true); } };
+
+  if (settingUp) {
+    return (
+      <div className={"devPocNotice devPocSettingUp" + (card ? " devPocCard" : "")} role="status">
+        <span className="devPocSpinner" aria-hidden="true" />
+        <strong>Setting up Developer settings&hellip;</strong>
+      </div>
+    );
+  }
 
   if (askSso && !connected) {
     return (
@@ -279,98 +288,82 @@ const GetStarted = ({connected, card, onStart, onConnectSso}) => {
 
 
 const emptyProfile = () => ({
-  developerName: "", description: "", contactEmail: "",
-  termsAccepted: false, apiEmails: false, notADeveloper: false,
+  developerName: "", description: "", additionalEmail: "",
+  termsAccepted: false, developerNews: false, notADeveloper: false,
 });
 
 const ABOUT_YOU_HELP = "A sentence or two about you and what you work on. It helps us understand your project if we need to get in touch.";
 
-/* A placeholder until the API terms are published. */
-const API_TERMS_URL = "#api-terms";
+const API_TERMS_URL = "/api-terms";
+
+/* The terms open in a new tab, so the form keeps what has been typed. */
+const TermsLink = () => (
+  <a href={API_TERMS_URL} target="_blank" rel="noopener noreferrer">Sefaria API terms</a>
+);
 
 /* Non-developers get the explanations inline; developers get them behind the "i". */
-const AboutYouFields = ({fields, set, novice}) => {
-  const [differentEmail, setDifferentEmail] = useState(!!fields.contactEmail);
-  const chooseEmail = (different) => {
-    setDifferentEmail(different);
-    if (!different) { set("contactEmail", ""); }
-  };
-  return (
-    <React.Fragment>
-      <label className="devPocChoice devPocNoviceChoice">
-        <input type="checkbox" checked={fields.notADeveloper} onChange={e => set("notADeveloper", e.target.checked)} />
-        <span>
-          I don't write code myself
-          <span className="devPocHelp">
-            For example, you build with AI tools, or someone else writes the code. We'll explain
-            each step in plain language.
-          </span>
+const AboutYouFields = ({fields, set, novice}) => (
+  <React.Fragment>
+    <label className="devPocChoice devPocNoviceChoice">
+      <input type="checkbox" checked={fields.notADeveloper} onChange={e => set("notADeveloper", e.target.checked)} />
+      <span>
+        I don't write code myself
+        <span className="devPocHelp">
+          For example, you build with AI tools, or someone else writes the code. We'll explain
+          each step in plain language.
         </span>
-      </label>
-      <div className="devPocField">
-        <label htmlFor="devPocName">Name</label>
-        <input id="devPocName" value={fields.developerName} onChange={e => set("developerName", e.target.value)} />
-        <p className="devPocHelp">You, your team, or your organization.</p>
+      </span>
+    </label>
+    <div className="devPocField">
+      <label htmlFor="devPocName">Name</label>
+      <input id="devPocName" value={fields.developerName} onChange={e => set("developerName", e.target.value)} />
+      <p className="devPocHelp">You, your team, or your organization.</p>
+    </div>
+    <div className="devPocField">
+      <div className="devPocLabelRow">
+        <label htmlFor="devPocDescription">What you work on <span className="devPocMuted">(optional)</span></label>
+        {novice ? null : <InfoTip label="Why we ask about you">{ABOUT_YOU_HELP}</InfoTip>}
       </div>
-      <div className="devPocField">
-        <div className="devPocLabelRow">
-          <label htmlFor="devPocDescription">What you work on <span className="devPocMuted">(optional)</span></label>
-          {novice ? null : <InfoTip label="Why we ask about you">{ABOUT_YOU_HELP}</InfoTip>}
-        </div>
-        <input id="devPocDescription" value={fields.description} onChange={e => set("description", e.target.value)} />
-        {novice ? <p className="devPocHelp">{ABOUT_YOU_HELP}</p> : null}
-      </div>
-      <fieldset className="devPocFieldset">
-        <legend>Where should we email you about your projects and keys?</legend>
-        <label className="devPocChoice">
-          <input type="radio" name="devPocContactEmail" checked={!differentEmail} onChange={() => chooseEmail(false)} />
-          <span>My account email{Sefaria._email ? <span className="devPocMuted"> ({Sefaria._email})</span> : null}</span>
-        </label>
-        <label className="devPocChoice">
-          <input type="radio" name="devPocContactEmail" checked={differentEmail} onChange={() => chooseEmail(true)} />
-          <span>A different address</span>
-        </label>
-        {differentEmail ?
-          <div className="devPocField devPocIndented">
-            <label htmlFor="devPocContactEmail">Email address</label>
-            <input id="devPocContactEmail" type="email" value={fields.contactEmail} onChange={e => set("contactEmail", e.target.value)} />
-            <p className="devPocHelp">
-              {novice
-                ? "For example a work address, or a colleague who looks after the project."
-                : "For example a work address or a shared team inbox."}
-            </p>
-          </div> : null}
-        <p className="devPocHelp">
-          {novice
-            ? "We only write when something affects your project, like a key that stops working."
-            : "Used for messages about your keys and changes that affect them."}
-        </p>
-      </fieldset>
-    </React.Fragment>
-  );
-};
+      <input id="devPocDescription" value={fields.description} onChange={e => set("description", e.target.value)} />
+      {novice ? <p className="devPocHelp">{ABOUT_YOU_HELP}</p> : null}
+    </div>
+    <div className="devPocField">
+      <label htmlFor="devPocEmail2">Also send project and key emails to <span className="devPocMuted">(optional)</span></label>
+      <input id="devPocEmail2" type="email" value={fields.additionalEmail} onChange={e => set("additionalEmail", e.target.value)} />
+      <p className="devPocHelp">
+        We always email your account address{Sefaria._email ? " (" + Sefaria._email + ")" : ""}.
+        {novice
+          ? " Add another address, like a work address or a colleague who looks after the project, and it gets the same emails."
+          : " An address added here, such as a work address or a team inbox, gets the same emails."}
+      </p>
+    </div>
+  </React.Fragment>
+);
 
-/* The legal part of the profile: terms (required, once) and API news (optional). */
+/* The legal part of the profile: one required agreement (terms, and email about keys and
+   projects) and one optional opt-in (developer news and promotions). */
 const LegalFields = ({fields, set, accepted, novice}) => (
   <section className="devPocLegal" aria-label="Terms and emails">
     {accepted ?
-      <p className="devPocHelp devPocAccepted">You've accepted the <a href={API_TERMS_URL}>API terms</a>.</p> :
+      <p className="devPocHelp devPocAccepted">
+        You've accepted the <TermsLink />, and agreed that Sefaria
+        may email you about your API keys and contact you about your projects.
+      </p> :
       <label className="devPocChoice">
         <input type="checkbox" checked={fields.termsAccepted} onChange={e => set("termsAccepted", e.target.checked)} />
         <span>
-          I accept the <a href={API_TERMS_URL}>Sefaria API terms</a>
+          I accept the <TermsLink />, and agree that Sefaria may
+          email me about my API keys and contact me about my projects
           <span className="devPocHelp">
-            {novice
-              ? "The rules for using Sefaria's texts in your project. You need to accept them to get a key."
-              : "Required to create projects and keys."}
+            {novice ? "Required. You need this to get a key." : "Required to create projects and keys."}
           </span>
         </span>
       </label>}
     <label className="devPocChoice">
-      <input type="checkbox" checked={!!fields.apiEmails} onChange={e => set("apiEmails", e.target.checked)} />
+      <input type="checkbox" checked={!!fields.developerNews} onChange={e => set("developerNews", e.target.checked)} />
       <span>
-        Send me news about the Sefaria API <span className="devPocMuted">(optional)</span>
-        <span className="devPocHelp">New features, changes and tips, a few times a year. You can stop them at any time.</span>
+        Send me Sefaria's developer news and promotional emails <span className="devPocMuted">(optional)</span>
+        <span className="devPocHelp">New features, events and ideas for building with Sefaria. You can unsubscribe at any time.</span>
       </span>
     </label>
   </section>
@@ -378,13 +371,13 @@ const LegalFields = ({fields, set, accepted, novice}) => (
 
 const profileError = (fields) => {
   if (!fields.developerName.trim()) { return "Enter your name."; }
-  if (fields.contactEmail && !/^\S+@\S+\.\S+$/.test(fields.contactEmail.trim())) { return "Enter a valid email address, or choose your account email."; }
+  if (fields.additionalEmail.trim() && !/^\S+@\S+\.\S+$/.test(fields.additionalEmail.trim())) { return "Enter a valid additional email, or leave it empty."; }
   if (!fields.termsAccepted) { return "Accept the API terms to continue."; }
   return "";
 };
 
 const cleanProfile = (fields) => ({
-  ...fields, developerName: fields.developerName.trim(), contactEmail: fields.contactEmail.trim(),
+  ...fields, developerName: fields.developerName.trim(), additionalEmail: fields.additionalEmail.trim(),
 });
 
 /* First visit: one form, with the legal part at the bottom. */
@@ -1244,12 +1237,12 @@ const ExternalIcon = () => (
   </svg>
 );
 
-const API_DOCS_URL = "https://developers.sefaria.org";
+const API_DOCS_URL = "https://developers.sefaria.org/reference/getting-started";
 
 const DeveloperTab = ({state, socialProviders, navOn, update, setConfirm, notice, setNotice,
                        connectedMessage, editingProfile, setEditingProfile, showNewProject,
                        setShowNewProject, onCreateProject, onSelectTab, setProjectId, onStart,
-                       onConnectSso}) => {
+                       onConnectSso, settingUp}) => {
   const novice = !!(state.profile && state.profile.notADeveloper);
 
   const toggleExpand = (project) => {
@@ -1289,6 +1282,7 @@ const DeveloperTab = ({state, socialProviders, navOn, update, setConfirm, notice
             <GetStarted
               connected={ssoConnected(state, socialProviders)}
               card={true}
+              settingUp={settingUp}
               onStart={onStart}
               onConnectSso={onConnectSso}
             /> :
@@ -1315,7 +1309,7 @@ const DeveloperTab = ({state, socialProviders, navOn, update, setConfirm, notice
                     <span>
                       <strong>{state.profile.developerName}</strong>
                       <span className="devPocHelp">
-                        {state.profile.contactEmail || Sefaria._email}
+                        {Sefaria._email}{state.profile.additionalEmail ? " and " + state.profile.additionalEmail : ""}
                         {state.profile.description ? " · " + state.profile.description : ""}
                       </span>
                     </span>
@@ -1478,7 +1472,7 @@ const loginMethod = (socialProviders) => {
   return {en: "Apple Sign-In with", he: "התחברות דרך אפל עם"};
 };
 
-const AccountTab = ({settings, pocState, socialProviders, navOn, onSelectTab, onStart, onConnectSso}) => {
+const AccountTab = ({settings, pocState, socialProviders, navOn, onSelectTab, onStart, onConnectSso, settingUp}) => {
   const torahSpecific = !!settings.torahSpecific;
   const translationLanguages = settings.translationLanguages || [];
 
@@ -1721,7 +1715,7 @@ const AccountTab = ({settings, pocState, socialProviders, navOn, onSelectTab, on
                 Your projects and API keys are in{" "}
                 <a href="/settings/developer" onClick={e => { e.preventDefault(); onSelectTab("developer"); }}>Developer settings</a>.
               </div> :
-              <GetStarted connected={connected} card={false} onStart={onStart} onConnectSso={onConnectSso} />}
+              <GetStarted connected={connected} card={false} settingUp={settingUp} onStart={onStart} onConnectSso={onConnectSso} />}
           </div>
 
           <div id="username-change" className="section">
@@ -1810,6 +1804,7 @@ const AccountTab = ({settings, pocState, socialProviders, navOn, onSelectTab, on
 
 const SAVE_FAILED = "Couldn't save the POC state. Your changes are only in this browser tab.";
 const CONNECTED_MS = 8000;
+const SETUP_MS = 1200;
 
 const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, setTab, setProjectId}) => {
   const settings = accountSettings || {};
@@ -1828,9 +1823,11 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
   const [notice, setNotice] = useState("");
   const [mockSso, setMockSso] = useState(null);
   const [connectedMessage, setConnectedMessage] = useState("");
+  const [settingUp, setSettingUp] = useState(false);
   const connectedTimer = useRef(null);
+  const setupTimer = useRef(null);
 
-  useEffect(() => () => clearTimeout(connectedTimer.current), []);
+  useEffect(() => () => { clearTimeout(connectedTimer.current); clearTimeout(setupTimer.current); }, []);
 
   /* The UI updates first and the write follows; a failed write only leaves a notice.
      Updates read through a ref, so a change made while a key is being "created" still
@@ -1865,9 +1862,16 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     setTab("developer");
     if (typeof window !== "undefined") { window.scrollTo(0, 0); }
   };
-  const startDeveloper = () => {
-    update(s => ({...s, developerEnabled: true}));
-    openDeveloper();
+  /* A short loader before the switch, so the jump to the other tab doesn't read as a reload. */
+  const startDeveloper = (onReady) => {
+    setSettingUp(true);
+    clearTimeout(setupTimer.current);
+    setupTimer.current = setTimeout(() => {
+      update(s => ({...s, developerEnabled: true}));
+      setSettingUp(false);
+      openDeveloper();
+      if (onReady) { onReady(); }
+    }, SETUP_MS);
   };
 
   const closeConfirm = (confirmed) => {
@@ -1878,11 +1882,12 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
   const finishMockSso = () => {
     const provider = mockSso;
     setMockSso(null);
-    update(s => ({...s, ssoOverride: true, developerEnabled: true}));
-    openDeveloper();
-    setConnectedMessage(provider + " is connected. From now on, you sign in to this account with " + provider + ".");
-    clearTimeout(connectedTimer.current);
-    connectedTimer.current = setTimeout(() => setConnectedMessage(""), CONNECTED_MS);
+    update(s => ({...s, ssoOverride: true}));
+    startDeveloper(() => {
+      setConnectedMessage(provider + " is connected. From now on, you sign in to this account with " + provider + ".");
+      clearTimeout(connectedTimer.current);
+      connectedTimer.current = setTimeout(() => setConnectedMessage(""), CONNECTED_MS);
+    });
   };
 
   return (
@@ -1900,8 +1905,9 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
               socialProviders={socialProviders}
               navOn={navOn}
               onSelectTab={setTab}
-              onStart={startDeveloper}
+              onStart={() => startDeveloper()}
               onConnectSso={setMockSso}
+              settingUp={settingUp}
             />
           </div>
           <div style={tab === "developer" ? null : {display: "none"}}>
@@ -1921,8 +1927,9 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
               onCreateProject={createProject}
               onSelectTab={setTab}
               setProjectId={setProjectId}
-              onStart={startDeveloper}
+              onStart={() => startDeveloper()}
               onConnectSso={setMockSso}
+              settingUp={settingUp}
             />
           </div>
         </div>

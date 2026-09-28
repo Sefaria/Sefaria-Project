@@ -17488,11 +17488,11 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 
 .devPocOnboarding { max-width: 560px; }
 .devPocNoviceChoice { padding-bottom: var(--devPoc-s3); border-bottom: 1px solid var(--devPoc-line); }
-.devPocIndented { margin: var(--devPoc-s2) 0 0 26px; }
 /* The legal part closes the profile form, set off by a rule so it reads as its own step. */
 .devPocLegal { display: grid; gap: var(--devPoc-s2); padding-top: var(--devPoc-s3); border-top: 1px solid var(--devPoc-line); }
 .devPocLegal .devPocChoice + .devPocChoice { margin-top: 0; }
 .devPocAccepted { margin-top: 0; }
+.devPocAccepted a { text-decoration: underline; }
 
 .devPocNewProject { margin-bottom: var(--devPoc-s4); animation: devPocOpen 0.2s ease-out; }
 @keyframes devPocOpen {

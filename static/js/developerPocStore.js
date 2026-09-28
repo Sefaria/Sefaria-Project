@@ -151,9 +151,9 @@ export const sampleState = () => {
     profile: {
       developerName: "Tova Levi",
       description: "Small learning tools for daily study.",
-      contactEmail: "",
+      additionalEmail: "",
       termsAccepted: true,
-      apiEmails: false,
+      developerNews: false,
       notADeveloper: false,
     },
     projects: [project],
