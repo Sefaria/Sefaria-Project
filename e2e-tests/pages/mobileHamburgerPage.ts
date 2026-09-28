@@ -553,6 +553,22 @@ export class MobileHamburgerPage extends HelperBase {
    * Django's trailing-slash behavior. Heading is `header.log_in` ("Log in"),
    * not a full-sentence document title.
    */
+  /** "Library Assistant" drawer item — rendered only for a logged-in user with the assistant enabled. */
+  private get libraryAssistantButton(): Locator {
+    return this.navMenu.getByRole('button', { name: MOBILE_HAMBURGER.LABELS.LIBRARY_ASSISTANT, exact: true });
+  }
+
+  async expectLibraryAssistantItemVisible(): Promise<void> {
+    await expect(this.libraryAssistantButton).toBeVisible({ timeout: t(5000) });
+  }
+
+  /** Tap "Library Assistant" in the open drawer. The drawer closes; the widget's sheet opens (assert via `pm.onLibraryAssistant()`). */
+  async tapLibraryAssistant(): Promise<void> {
+    await expect(this.libraryAssistantButton).toBeVisible({ timeout: t(5000) });
+    await this.libraryAssistantButton.tap();
+    await expect(this.navMenuOpen).toBeHidden({ timeout: t(5000) });
+  }
+
   async clickLogInAndExpectLoginPage(): Promise<void> {
     await expect(this.loginLink).toBeVisible({ timeout: t(5000) });
     await this.loginLink.tap();
