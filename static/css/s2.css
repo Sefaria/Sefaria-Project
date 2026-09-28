@@ -17056,9 +17056,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
 
 /* Settings page POC: the developer tab, and the developer controls on the account tab */
-.devPocPage {
-  --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family);
+.devPocPage, #developerSettings {
   --devPoc-ink: #252b32;
   --devPoc-muted: #626971;
   --devPoc-blue: #18345d;
@@ -17069,6 +17067,10 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   --devPoc-s2: 12px;
   --devPoc-s3: 20px;
   --devPoc-s4: 32px;
+}
+.devPocPage {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   color: var(--devPoc-ink);
   font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
   font-size: 15px;
@@ -17257,6 +17259,8 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   letter-spacing: normal;
   color: inherit;
 }
+/* the reader panel gives every heading a top margin; spacing here comes from the containers */
+.devPocPage h1, .devPocPage h2, .devPocPage h3 { margin-top: 0; }
 .devPocPage h2, .devPocPage h3 { font-family: inherit; font-weight: 600; line-height: 1.4; }
 .devPocPage h2 { font-size: 20px; }
 .devPocPage h3 { font-size: 17px; }
@@ -17450,35 +17454,50 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocMain, .devPocSettingsBody { min-width: 0; max-width: 660px; }
 /* the tab column widens the account page's 660px band instead of narrowing the settings */
 #accountSettingsPage .inner:has(.devPocShell:not(.devPocShellNoNav)) { max-width: 890px; }
-.devPocPageHeader { margin-bottom: var(--devPoc-s4); }
+.devPocPageHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--devPoc-s3); margin-bottom: var(--devPoc-s4); }
 .devPocPageHeader h1 { font-size: 26px; font-weight: 600; margin-bottom: var(--devPoc-s1); }
 .devPocPageHeader p { color: var(--devPoc-muted); }
-.devPocPageHeader a { display: inline-block; margin-top: var(--devPoc-s1); }
-
-.devPocHelp { display: block; font-size: 13px; color: #626971; line-height: 1.5; margin-top: var(--devPoc-s1); }
-.devPocMuted { color: #626971; font-weight: 400; }
-
-.devPocOnboarding {
+/* A link, but a loud one: larger and bolder than body text, underlined in the brand blue. */
+.devPocPage a.devPocDocsLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-top: 4px;
+  padding-bottom: 2px;
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  border-bottom: 2px solid currentColor;
+}
+.devPocPage a.devPocDocsLink:hover { color: #0d2443; border-bottom-width: 3px; padding-bottom: 1px; }
+.devPocCard {
   padding: var(--devPoc-s3);
   border: 1px solid var(--devPoc-line);
   border-radius: 6px;
   background: #fff;
-  max-width: 560px;
 }
-.devPocOnboarding h2 { margin-bottom: var(--devPoc-s1); }
-.devPocStepper {
-  margin-bottom: var(--devPoc-s3);
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--devPoc-muted);
-}
-.devPocAgreement {
-  padding: var(--devPoc-s3);
-  border: 1px solid #c3cdd8;
-  border-radius: 6px;
-  background: #f5f8fb;
+.devPocCard > h2, .devPocEmpty h2 { margin: 0 0 var(--devPoc-s1); }
+.devPocLead { margin: 0 0 var(--devPoc-s3); font-size: 14px; }
+
+.devPocHelp { display: block; font-size: 13px; color: #626971; line-height: 1.5; margin-top: var(--devPoc-s1); }
+/* outranks the page's reset, which gives paragraphs the inherited colour */
+.devPocPage p.devPocHelp { color: #626971; }
+.devPocMuted { color: #626971; font-weight: 400; }
+
+.devPocOnboarding { max-width: 560px; }
+.devPocNoviceChoice { padding-bottom: var(--devPoc-s3); border-bottom: 1px solid var(--devPoc-line); }
+.devPocIndented { margin: var(--devPoc-s2) 0 0 26px; }
+/* The legal part closes the profile form, set off by a rule so it reads as its own step. */
+.devPocLegal { display: grid; gap: var(--devPoc-s2); padding-top: var(--devPoc-s3); border-top: 1px solid var(--devPoc-line); }
+.devPocLegal .devPocChoice + .devPocChoice { margin-top: 0; }
+.devPocAccepted { margin-top: 0; }
+
+.devPocNewProject { margin-bottom: var(--devPoc-s4); animation: devPocOpen 0.2s ease-out; }
+@keyframes devPocOpen {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
 }
 
 /* No inline padding, so the profile row starts on the page header's left edge. */
@@ -17726,14 +17745,14 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocListingArea { margin: var(--devPoc-s2) 0 0 26px; }
 
 .devPocEmpty { padding: var(--devPoc-s3); border: 1px solid var(--devPoc-line); border-radius: 6px; background: #fff; }
-.devPocEmpty h2 { margin-bottom: var(--devPoc-s1); }
 .devPocEmpty p { color: #626971; max-width: 530px; }
+.devPocEmpty .devPocActions { margin-top: var(--devPoc-s2); }
 .devPocList { margin: var(--devPoc-s2) 0 0; padding-inline-start: 22px; font-size: 14px; }
 .devPocList li { margin-bottom: var(--devPoc-s1); }
 
 .devPocForm { display: grid; gap: var(--devPoc-s3); }
 .devPocFieldset { margin: 0; padding: 0; border: 0; }
-.devPocFieldset legend { margin-bottom: var(--devPoc-s2); font-weight: 500; font-size: 14px; }
+.devPocFieldset legend { margin-bottom: var(--devPoc-s2); padding: 0; font-weight: 500; font-size: 14px; }
 .devPocField { min-width: 0; }
 .devPocField > label { display: block; height: auto; min-height: 0; margin: 0 0 var(--devPoc-s1); font-size: 14px; font-weight: 500; line-height: 1.5; }
 .devPocLabelRow { display: flex; align-items: center; gap: 4px; margin-bottom: var(--devPoc-s1); }
@@ -17810,9 +17829,17 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 }
 .devPocWarning { background: #fcf6e9; border-color: #e8d5a6; color: #69501e; }
 .devPocSuccess { background: #edf5f0; border-color: #c9dfd1; color: #305840; }
-.devPocConnected { margin-top: 12px; font-size: 16px; color: #2a6b45; }
-.devPocGate { margin-top: 14px; padding: 18px; background: #eef3f8; border: 1px solid #d4dfea; border-radius: 6px; }
-.devPocGate p { font-size: 14px; margin: 8px 0 14px; }
+.devPocSuccess p { margin: 0; }
+.devPocGetStarted p { font-size: 14px; color: var(--devPoc-muted); margin: 0 0 var(--devPoc-s2); max-width: 520px; }
+.devPocGetStarted.devPocCard p { font-size: 15px; }
+.devPocSsoPrompt { margin-top: 14px; padding: var(--devPoc-s3); background: #eef3f8; border: 1px solid #d4dfea; border-radius: 6px; }
+.devPocSsoPrompt h2 { font-size: 17px; font-weight: 600; margin: 0 0 var(--devPoc-s1); text-align: left; text-transform: none; }
+.devPocSsoPrompt p { font-size: 14px; margin: 0; }
+.devPocSsoPrompt .devPocList { margin-bottom: var(--devPoc-s3); }
+.devPocInlineButton { margin-top: 0; font-size: inherit; }
+.devPocChoice a { text-decoration: underline; }
+.devPocBadgePending { background: #fcf6e9; border-color: #e8d5a6; color: #69501e; }
+.devPocListingPending p { margin: 0; }
 
 /* One button grid everywhere: primary first, secondary beside it, destructive at the end. */
 .devPocActions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--devPoc-s2); }
@@ -17868,6 +17895,8 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   .devPocNav a { border-inline-start: 0; border-bottom: 3px solid transparent; padding: 10px; }
   .devPocNav a[aria-current="page"] { background: transparent; border-bottom-color: #18345d; }
   .devPocPageHeader h1 { font-size: 22px; }
+  .devPocPageHeader { flex-direction: column; gap: var(--devPoc-s2); }
+  .devPocResult { flex-wrap: wrap; }
   .devPocProjectHeader { padding: var(--devPoc-s2); }
   .devPocProjectBody { padding: 0 var(--devPoc-s2) var(--devPoc-s2); }
   .devPocProjectTitle { font-size: 19px; }
@@ -17900,14 +17929,14 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   margin: 0;
 }
 #accountSettingsPage .devPocHelp { margin: 0; }
-#accountSettingsPage .devPocConnected { font-size: 16px; line-height: 1.5; }
-#accountSettingsPage .devPocGate strong { display: block; margin-bottom: 6px; }
-#accountSettingsPage .devPocGate .button { width: auto; display: inline-block; }
+#accountSettingsPage #developerSettings .button { width: auto; display: inline-block; margin: 0; }
+#accountSettingsPage .devPocSsoPrompt .devPocList { font-size: 14px; }
 #accountSettingsPage .devPocNav { margin: 0; }
 #accountSettingsPage .devPocNav a { margin: 0; padding: 10px 14px; width: auto; }
 #accountSettingsPage .devPocShell { margin-top: 28px; }
 #developerSettings .additional-info { margin-top: 12px; }
-#developerSettings #developerSettingsLink { margin-top: 10px; }
+#developerSettings .devPocGetStarted { margin-top: 12px; }
+#developerSettings .devPocOn a { color: var(--devPoc-blue); text-decoration: underline; }
 
 /* The mock provider chooser. It stands in for the Google or Apple sign-in window, and the
    magenta banner is the POC test panel's colour so nobody mistakes it for a real prompt. */

@@ -229,102 +229,189 @@ const SettingsNav = ({tab, onSelect}) => (
 );
 
 
+/* The one way in. An account with Google or Apple goes straight in; any other account
+   connects one first, then goes in. Developer settings stay on once they are on. */
+const GetStarted = ({connected, card, onStart, onConnectSso}) => {
+  const [askSso, setAskSso] = useState(false);
+  const start = () => { if (connected) { onStart(); } else { setAskSso(true); } };
+
+  if (askSso && !connected) {
+    return (
+      <div className={"devPocSsoPrompt" + (card ? " devPocCard" : "")} role="region" aria-label="Sign in with Google or Apple">
+        <h2>Sign in once with Google or Apple</h2>
+        <p>
+          Developer settings need a Google or Apple sign-in, so we know the email we use to
+          reach you about your keys is really yours.
+        </p>
+        <ul className="devPocList">
+          <li>
+            You're verifying the Sefaria account you're signed in to now
+            {Sefaria._email ? <React.Fragment> (<strong>{Sefaria._email}</strong>)</React.Fragment> : null}.
+            It doesn't add a second account.
+          </li>
+          <li>
+            This changes how you sign in: from now on you'll use Google or Apple to sign in to
+            this same account.
+          </li>
+        </ul>
+        <div className="devPocActions">
+          <button className="button small blue" type="button" onClick={() => onConnectSso("Google")}>Continue with Google</button>
+          <button className="button small blue" type="button" onClick={() => onConnectSso("Apple")}>Continue with Apple</button>
+          <button className="button small transparent" type="button" onClick={() => setAskSso(false)}>Cancel</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={"devPocGetStarted" + (card ? " devPocCard" : "")}>
+      {card ? <h2>Build with the Sefaria API</h2> : null}
+      <p>
+        Get an API key to use Sefaria's texts in your own website, app or tool, and tell us
+        what you're building.
+      </p>
+      <div className="devPocActions">
+        <button className="button small blue" type="button" onClick={start}>Get started</button>
+      </div>
+    </div>
+  );
+};
+
+
 const emptyProfile = () => ({
-  developerName: "", description: "", additionalEmail: "",
-  termsAccepted: false, notADeveloper: false,
+  developerName: "", description: "", contactEmail: "",
+  termsAccepted: false, apiEmails: false, notADeveloper: false,
 });
 
-const ABOUT_YOU_HELP = "Helps us understand your project if we need to contact you.";
+const ABOUT_YOU_HELP = "A sentence or two about you and what you work on. It helps us understand your project if we need to get in touch.";
+
+/* A placeholder until the API terms are published. */
+const API_TERMS_URL = "#api-terms";
 
 /* Non-developers get the explanations inline; developers get them behind the "i". */
-const AboutYouFields = ({fields, set, novice}) => (
-  <React.Fragment>
+const AboutYouFields = ({fields, set, novice}) => {
+  const [differentEmail, setDifferentEmail] = useState(!!fields.contactEmail);
+  const chooseEmail = (different) => {
+    setDifferentEmail(different);
+    if (!different) { set("contactEmail", ""); }
+  };
+  return (
+    <React.Fragment>
+      <label className="devPocChoice devPocNoviceChoice">
+        <input type="checkbox" checked={fields.notADeveloper} onChange={e => set("notADeveloper", e.target.checked)} />
+        <span>
+          I don't write code myself
+          <span className="devPocHelp">
+            For example, you build with AI tools, or someone else writes the code. We'll explain
+            each step in plain language.
+          </span>
+        </span>
+      </label>
+      <div className="devPocField">
+        <label htmlFor="devPocName">Name</label>
+        <input id="devPocName" value={fields.developerName} onChange={e => set("developerName", e.target.value)} />
+        <p className="devPocHelp">You, your team, or your organization.</p>
+      </div>
+      <div className="devPocField">
+        <div className="devPocLabelRow">
+          <label htmlFor="devPocDescription">What you work on <span className="devPocMuted">(optional)</span></label>
+          {novice ? null : <InfoTip label="Why we ask about you">{ABOUT_YOU_HELP}</InfoTip>}
+        </div>
+        <input id="devPocDescription" value={fields.description} onChange={e => set("description", e.target.value)} />
+        {novice ? <p className="devPocHelp">{ABOUT_YOU_HELP}</p> : null}
+      </div>
+      <fieldset className="devPocFieldset">
+        <legend>Where should we email you about your projects and keys?</legend>
+        <label className="devPocChoice">
+          <input type="radio" name="devPocContactEmail" checked={!differentEmail} onChange={() => chooseEmail(false)} />
+          <span>My account email{Sefaria._email ? <span className="devPocMuted"> ({Sefaria._email})</span> : null}</span>
+        </label>
+        <label className="devPocChoice">
+          <input type="radio" name="devPocContactEmail" checked={differentEmail} onChange={() => chooseEmail(true)} />
+          <span>A different address</span>
+        </label>
+        {differentEmail ?
+          <div className="devPocField devPocIndented">
+            <label htmlFor="devPocContactEmail">Email address</label>
+            <input id="devPocContactEmail" type="email" value={fields.contactEmail} onChange={e => set("contactEmail", e.target.value)} />
+            <p className="devPocHelp">
+              {novice
+                ? "For example a work address, or a colleague who looks after the project."
+                : "For example a work address or a shared team inbox."}
+            </p>
+          </div> : null}
+        <p className="devPocHelp">
+          {novice
+            ? "We only write when something affects your project, like a key that stops working."
+            : "Used for messages about your keys and changes that affect them."}
+        </p>
+      </fieldset>
+    </React.Fragment>
+  );
+};
+
+/* The legal part of the profile: terms (required, once) and API news (optional). */
+const LegalFields = ({fields, set, accepted, novice}) => (
+  <section className="devPocLegal" aria-label="Terms and emails">
+    {accepted ?
+      <p className="devPocHelp devPocAccepted">You've accepted the <a href={API_TERMS_URL}>API terms</a>.</p> :
+      <label className="devPocChoice">
+        <input type="checkbox" checked={fields.termsAccepted} onChange={e => set("termsAccepted", e.target.checked)} />
+        <span>
+          I accept the <a href={API_TERMS_URL}>Sefaria API terms</a>
+          <span className="devPocHelp">
+            {novice
+              ? "The rules for using Sefaria's texts in your project. You need to accept them to get a key."
+              : "Required to create projects and keys."}
+          </span>
+        </span>
+      </label>}
     <label className="devPocChoice">
-      <input type="checkbox" checked={fields.notADeveloper} onChange={e => set("notADeveloper", e.target.checked)} />
+      <input type="checkbox" checked={!!fields.apiEmails} onChange={e => set("apiEmails", e.target.checked)} />
       <span>
-        I'm not a developer
-        <span className="devPocHelp">We add extra explanations for building with AI tools or without code.</span>
+        Send me news about the Sefaria API <span className="devPocMuted">(optional)</span>
+        <span className="devPocHelp">New features, changes and tips, a few times a year. You can stop them at any time.</span>
       </span>
     </label>
-    <div className="devPocField">
-      <label htmlFor="devPocName">Your name</label>
-      <input id="devPocName" value={fields.developerName} onChange={e => set("developerName", e.target.value)} />
-      <p className="devPocHelp">Your name, or your team's name.</p>
-    </div>
-    <div className="devPocField">
-      <div className="devPocLabelRow">
-        <label htmlFor="devPocDescription">About yourself <span className="devPocMuted">(optional)</span></label>
-        {novice ? null : <InfoTip label="Why we ask about you">{ABOUT_YOU_HELP}</InfoTip>}
-      </div>
-      <input id="devPocDescription" value={fields.description} onChange={e => set("description", e.target.value)} />
-      {novice ? <p className="devPocHelp">{ABOUT_YOU_HELP}</p> : null}
-    </div>
-    <div className="devPocField">
-      <label htmlFor="devPocAccountEmail">Account email</label>
-      <input id="devPocAccountEmail" value={Sefaria._email || ""} disabled readOnly />
-      <p className="devPocHelp">
-        {novice ? "We'll contact you here. Change it in Account settings." : "Change it in Account settings."}
-      </p>
-    </div>
-    <div className="devPocField">
-      <label htmlFor="devPocEmail2">Additional email <span className="devPocMuted">(optional)</span></label>
-      <input id="devPocEmail2" type="email" value={fields.additionalEmail} onChange={e => set("additionalEmail", e.target.value)} />
-      <p className="devPocHelp">
-        {novice
-          ? "Another address we can reach, yours or a colleague's."
-          : "A second contact, or a work address."}
-      </p>
-    </div>
-  </React.Fragment>
+  </section>
 );
 
-const TermsFields = ({fields, set, accepted}) => (
-  <React.Fragment>
-    {accepted ?
-      <p className="devPocHelp">You accepted the API terms on this account.</p> :
-      <div className="devPocAgreement">
-        <label className="devPocChoice">
-          <input type="checkbox" checked={fields.termsAccepted} onChange={e => set("termsAccepted", e.target.checked)} />
-          <span><strong>I accept the API terms</strong> and agree to receive email about API changes.</span>
-        </label>
-      </div>}
-  </React.Fragment>
-);
+const profileError = (fields) => {
+  if (!fields.developerName.trim()) { return "Enter your name."; }
+  if (fields.contactEmail && !/^\S+@\S+\.\S+$/.test(fields.contactEmail.trim())) { return "Enter a valid email address, or choose your account email."; }
+  if (!fields.termsAccepted) { return "Accept the API terms to continue."; }
+  return "";
+};
 
-/* First visit: a two-step setup, so nothing else on the page competes with it. */
+const cleanProfile = (fields) => ({
+  ...fields, developerName: fields.developerName.trim(), contactEmail: fields.contactEmail.trim(),
+});
+
+/* First visit: one form, with the legal part at the bottom. */
 const ProfileOnboarding = ({onSave}) => {
-  const [step, setStep] = useState(1);
   const [fields, setFields] = useState(emptyProfile);
   const [error, setError] = useState("");
-  const set = (key, value) => setFields(f => ({...f, [key]: value}));
-
-  const next = (e) => {
-    e.preventDefault();
-    if (!fields.developerName.trim()) { setError("Enter your name."); return; }
-    setError("");
-    setStep(2);
-  };
+  const set = (key, value) => { setFields(f => ({...f, [key]: value})); setError(""); };
 
   const finish = (e) => {
     e.preventDefault();
-    if (!fields.termsAccepted) { setError("Accept the API terms to continue."); return; }
-    setError("");
-    onSave({...fields, developerName: fields.developerName.trim()});
+    const problem = profileError(fields);
+    setError(problem);
+    if (!problem) { onSave(cleanProfile(fields)); }
   };
 
   return (
-    <div className="devPocOnboarding">
-      <h2>Set up your developer profile</h2>
-      <p className="devPocStepper">Step {step} of 2 · {step === 1 ? "About you" : "Terms"}</p>
-      <form className="devPocForm" onSubmit={step === 1 ? next : finish}>
-        {step === 1 ?
-          <AboutYouFields fields={fields} set={set} novice={fields.notADeveloper} /> :
-          <TermsFields fields={fields} set={set} accepted={false} />}
+    <div className="devPocOnboarding devPocCard">
+      <h2>About you</h2>
+      <p className="devPocHelp devPocLead">
+        This takes a minute. Next, you'll describe your project and get a key.
+      </p>
+      <form className="devPocForm" onSubmit={finish}>
+        <AboutYouFields fields={fields} set={set} novice={fields.notADeveloper} />
+        <LegalFields fields={fields} set={set} accepted={false} novice={fields.notADeveloper} />
         {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
         <div className="devPocActions">
-          {step === 2 ?
-            <button type="button" className="button small transparent" onClick={() => { setError(""); setStep(1); }}>Back</button> : null}
-          <button type="submit" className="button small blue">{step === 1 ? "Next" : "Finish"}</button>
+          <button type="submit" className="button small blue">Continue</button>
         </div>
       </form>
     </div>
@@ -332,22 +419,21 @@ const ProfileOnboarding = ({onSave}) => {
 };
 
 const ProfileForm = ({profile, onSave, onCancel}) => {
-  const [fields, setFields] = useState(profile);
+  const [fields, setFields] = useState({...emptyProfile(), ...profile});
   const [error, setError] = useState("");
-  const set = (key, value) => setFields(f => ({...f, [key]: value}));
+  const set = (key, value) => { setFields(f => ({...f, [key]: value})); setError(""); };
 
   const submit = (e) => {
     e.preventDefault();
-    if (!fields.developerName.trim()) { setError("Enter your name."); return; }
-    if (!fields.termsAccepted) { setError("Accept the API terms to continue."); return; }
-    setError("");
-    onSave({...fields, developerName: fields.developerName.trim()});
+    const problem = profileError(fields);
+    setError(problem);
+    if (!problem) { onSave(cleanProfile(fields)); }
   };
 
   return (
     <form className="devPocForm" onSubmit={submit}>
       <AboutYouFields fields={fields} set={set} novice={fields.notADeveloper} />
-      <TermsFields fields={fields} set={set} accepted={!!(profile && profile.termsAccepted)} />
+      <LegalFields fields={fields} set={set} accepted={!!(profile && profile.termsAccepted)} novice={fields.notADeveloper} />
       {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
       <div className="devPocActions">
         <button type="submit" className="button small blue">Save profile</button>
@@ -368,9 +454,15 @@ const ListingPicker = ({listing, novice, onPick, onClear}) => {
 
   if (listing) {
     return (
-      <div className="devPocListingSearch">
+      <div className="devPocListingSearch devPocListingPending">
+        <p>
+          <span className="devPocBadge devPocBadgePending">Link requested</span>{" "}
+          <strong>{listing.name}</strong> <span className="devPocMuted">({listing.url})</span>
+        </p>
         <p className="devPocHelp">
-          Link requested to <strong>{listing.name}</strong> ({listing.url}), awaiting confirmation.
+          {novice
+            ? "Someone at Sefaria will check it and connect the two. Until then it shows as requested."
+            : "Pending until Sefaria confirms it. Your project and the listing stay separate records, linked together."}
         </p>
         <button type="button" className="devPocTextButton" onClick={onClear}>Cancel request</button>
       </div>
@@ -379,39 +471,40 @@ const ListingPicker = ({listing, novice, onPick, onClear}) => {
   if (!open) {
     return (
       <button type="button" className="devPocTextButton" onClick={() => setOpen(true)}>
-        Already on Powered by Sefaria? Link your listing
+        Already on Powered by Sefaria? Find your listing
       </button>
     );
   }
   return (
     <div className="devPocListingSearch">
       <div className="devPocField">
-        <label htmlFor="devPocListingSearch">Search existing listings by name or website</label>
+        <label htmlFor="devPocListingSearch">Find your listing</label>
         <input
           id="devPocListingSearch"
           type="search"
-          placeholder="Search by project name or website"
+          placeholder="Project name or website"
           value={query}
           onChange={e => setQuery(e.target.value)}
         />
+        <p className="devPocHelp">Search by the name or website it's listed under.</p>
       </div>
       {normalized.length >= 2 && results.length === 0 ?
-        <p className="devPocHelp">No matching listings. Try another name or website.</p> : null}
+        <p className="devPocHelp">No listings match. Try another name or website.</p> : null}
       {results.map(l => (
         <div className="devPocResult" key={l.url}>
           <div>
-            <strong>{l.name}</strong>
-            <p className="devPocHelp">{l.url}</p>
+            <strong>{l.name}</strong> <span className="devPocMuted">{l.url}</span>
+            <p className="devPocHelp">{l.description}</p>
           </div>
           <button type="button" className="button small white" onClick={() => { onPick(l); setOpen(false); }}>Request link</button>
         </div>
       ))}
       <p className="devPocHelp">
         {novice
-          ? "Sefaria checks the link, because someone else may have added the listing."
-          : "Sefaria confirms the connection, because someone else may have submitted the listing. The listing and your project stay linked, not merged."}
+          ? "Sefaria checks each request before connecting it, because anyone can submit a listing."
+          : "Sefaria confirms each request, because someone else may have submitted the listing. The listing and your project stay separate records, linked together."}
       </p>
-      <button type="button" className="devPocTextButton" onClick={() => setOpen(false)}>Close</button>
+      <button type="button" className="devPocTextButton" onClick={() => setOpen(false)}>Close search</button>
     </div>
   );
 };
@@ -424,50 +517,57 @@ const ProjectFields = ({fields, set, novice}) => (
       <input id="devPocProjectName" value={fields.name} onChange={e => set("name", e.target.value)} />
     </div>
     <div className="devPocField">
-      <label htmlFor="devPocProjectDescription">One-line description</label>
+      <label htmlFor="devPocProjectDescription">Short description</label>
       <input id="devPocProjectDescription" value={fields.description} onChange={e => set("description", e.target.value)} />
-      {novice ?
-        <p className="devPocHelp">One sentence, for example: a daily study tracker for my shul.</p> : null}
+      <p className="devPocHelp">
+        {novice
+          ? "One sentence, for example: a daily study tracker for my community."
+          : "One sentence on what it does."}
+      </p>
     </div>
-    <label className="devPocChoice">
-      <input type="checkbox" checked={fields.aiAssisted} onChange={e => set("aiAssisted", e.target.checked)} />
-      <span>
-        Built with AI assistance
-        <span className="devPocHelp">
-          {novice
-            ? "Tick this if an AI tool wrote the code. It just helps us learn how people build."
-            : "Helps us see how people build on Sefaria."}
-        </span>
-      </span>
-    </label>
     <div className="devPocField">
       <label htmlFor="devPocProjectOrg">Organization <span className="devPocMuted">(optional)</span></label>
       <input id="devPocProjectOrg" value={fields.organization} onChange={e => set("organization", e.target.value)} />
     </div>
     <div className="devPocField">
-      <label htmlFor="devPocProjectUrl">
-        {novice ? "Website address " : "Website URL "}<span className="devPocMuted">(optional)</span>
-      </label>
-      <input id="devPocProjectUrl" value={fields.websiteUrl} onChange={e => set("websiteUrl", e.target.value)} />
+      <label htmlFor="devPocProjectUrl">Website <span className="devPocMuted">(optional)</span></label>
+      <input
+        id="devPocProjectUrl"
+        placeholder="https://"
+        value={fields.websiteUrl}
+        onChange={e => set("websiteUrl", e.target.value)}
+      />
       <p className="devPocHelp">
         {novice
-          ? "The address people type to visit your project, like https://example.org."
-          : "Needed only if you want to lock a key to a client-only site: front-end code with no backend of its own."}
+          ? "The address people visit to use your project. We show it with your project on Powered by Sefaria, and you can use it to keep your key from working anywhere else."
+          : "Shown with your project on Powered by Sefaria, and lets you limit a key to your site."}
+        {" "}No website yet? You can add it later.
       </p>
     </div>
+    <label className="devPocChoice">
+      <input type="checkbox" checked={fields.aiAssisted} onChange={e => set("aiAssisted", e.target.checked)} />
+      <span>
+        Built with help from AI tools
+        <span className="devPocHelp">
+          {novice
+            ? "Tick this if an AI tool wrote some or all of the code. It helps us learn how people build."
+            : "Helps us learn how people build on Sefaria."}
+        </span>
+      </span>
+    </label>
     <fieldset className="devPocFieldset">
       <legend>Visibility</legend>
       <label className="devPocChoice">
         <input type="radio" name="devPocVisibility" checked={fields.visibility === "private"} onChange={() => set("visibility", "private")} />
-        <span>Private<span className="devPocHelp">Only you and Sefaria can see this project.</span></span>
+        <span>Private<span className="devPocHelp">Only you and the Sefaria team can see this project.</span></span>
       </label>
       <label className="devPocChoice">
         <input type="radio" name="devPocVisibility" checked={fields.visibility === "public"} onChange={() => set("visibility", "public")} />
         <span>
           Public
           <span className="devPocHelp">
-            I'm willing for this project to be shown publicly on Powered by Sefaria. Sefaria decides
-            what gets listed, so it may or may not appear.
+            Sefaria may show this project on Powered by Sefaria, our gallery of projects built
+            with Sefaria. We choose what to feature, so it may not appear.
           </span>
         </span>
       </label>
@@ -485,122 +585,104 @@ const ProjectFields = ({fields, set, novice}) => (
 );
 
 
+/* The only dialog in the project flow: the form itself stays on the page. */
 const NoWebsiteDialog = ({novice, onAddWebsite, onSaveAnyway}) => (
-  <div
-    className="devPocModalStage devPocConfirmStage"
-    role="dialog"
-    aria-label={novice ? "Add a website address?" : "Save without a website?"}
-  >
+  <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-label="Save without a website?">
     <section className="devPocDialog">
-      <h2>{novice ? "Add a website address?" : "Save without a website?"}</h2>
-      {novice ? <p>A website address helps in two ways:</p> : null}
+      <h2>Save without a website?</h2>
+      <p>A website helps your project in two ways:</p>
       <ul className="devPocList">
+        <li>We show it alongside your project on Powered by Sefaria.</li>
         <li>
           {novice
-            ? "If your project has a web address, we can lock your key to it, so nobody else can use your key."
-            : "Lets you lock a key to your site's origin, for keys that live in front-end code."}
-        </li>
-        <li>
-          {novice
-            ? "It helps Sefaria see who we're serving."
-            : "Tells Sefaria who is building on the API."}
+            ? "You can make your key work only on your site, so a copied key is no use anywhere else."
+            : "You can limit a key so it only works on your site."}
         </li>
       </ul>
+      <p>No website yet? That's fine. You can add it later with <strong>Edit project</strong>.</p>
       <div className="devPocActions">
         <button type="button" className="button small white" onClick={onAddWebsite}>Add a website</button>
-        <button type="button" className="button small blue" onClick={onSaveAnyway}>Save without it</button>
+        <button type="button" className="button small blue" onClick={onSaveAnyway}>Save without a website</button>
       </div>
     </section>
   </div>
 );
 
 
-const NewProjectDialog = ({novice, onCreate, onCancel}) => {
-  const [fields, setFields] = useState({
-    name: "", description: "", organization: "", websiteUrl: "",
-    visibility: "private", aiAssisted: false, listingRequest: null,
-  });
+/* One form for creating and editing a project. A missing website asks once before saving,
+   and the website field gets focus if the developer goes back to add one. */
+const ProjectForm = ({initial, novice, submitLabel, onSave, onCancel, onDelete}) => {
+  const [fields, setFields] = useState(initial);
   const [error, setError] = useState("");
   const [askWebsite, setAskWebsite] = useState(false);
-  const set = (key, value) => setFields(f => ({...f, [key]: value}));
+  const formRef = useRef(null);
+  const set = (key, value) => { setFields(f => ({...f, [key]: value})); setError(""); };
 
-  const save = () => onCreate({
+  const save = () => onSave({
     ...fields, name: fields.name.trim(), description: fields.description.trim(),
-    websiteUrl: fields.websiteUrl.trim(),
+    organization: fields.organization.trim(), websiteUrl: fields.websiteUrl.trim(),
   });
 
   const submit = (e) => {
     e.preventDefault();
     if (!fields.name.trim()) { setError("Enter a project name."); return; }
-    if (!fields.description.trim()) { setError("Enter a one-line description."); return; }
+    if (!fields.description.trim()) { setError("Enter a short description."); return; }
     setError("");
     if (!fields.websiteUrl.trim()) { setAskWebsite(true); return; }
     save();
   };
 
+  const addWebsite = () => {
+    setAskWebsite(false);
+    const input = formRef.current && formRef.current.querySelector("#devPocProjectUrl");
+    if (input) { input.focus(); }
+  };
+
   return (
     <React.Fragment>
-      <div className="devPocModalStage" role="dialog" aria-label="New project">
-        <section className="devPocDialog">
-          <header className="devPocDialogHeader">
-            <h2>New project</h2>
-            <p>{novice ? "Tell us what you're building. You'll add a key next." : "You can add a key next."}</p>
-          </header>
-          <form className="devPocForm" onSubmit={submit}>
-            <ProjectFields fields={fields} set={set} novice={novice} />
-            <p className="devPocNotice">This project belongs to your account and cannot be transferred.</p>
-            {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
-            <div className="devPocActions">
-              <button type="submit" className="button small blue">Create project</button>
-              <button type="button" className="button small transparent" onClick={onCancel}>Cancel</button>
-            </div>
-          </form>
-        </section>
-      </div>
+      <form className="devPocForm" onSubmit={submit} ref={formRef}>
+        <ProjectFields fields={fields} set={set} novice={novice} />
+        <p className="devPocHelp">This project belongs to your Sefaria account and can't be moved to another account.</p>
+        {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
+        <div className="devPocActions">
+          <button type="submit" className="button small blue">{submitLabel}</button>
+          <button type="button" className="button small transparent" onClick={onCancel}>Cancel</button>
+          {onDelete ?
+            <button type="button" className="button small transparent devPocDanger" onClick={onDelete}>Delete project</button> : null}
+        </div>
+      </form>
       {askWebsite ?
-        <NoWebsiteDialog novice={novice} onAddWebsite={() => setAskWebsite(false)} onSaveAnyway={save} /> : null}
+        <NoWebsiteDialog novice={novice} onAddWebsite={addWebsite} onSaveAnyway={() => { setAskWebsite(false); save(); }} /> : null}
     </React.Fragment>
   );
 };
 
+const newProjectFields = () => ({
+  name: "", description: "", organization: "", websiteUrl: "",
+  visibility: "private", aiAssisted: false, listingRequest: null,
+});
 
-const EditProjectForm = ({project, novice, onSave, onCancel, onDelete}) => {
-  const [fields, setFields] = useState({
-    name: project.name, description: project.description, organization: project.organization,
-    websiteUrl: project.websiteUrl, visibility: project.visibility, aiAssisted: project.aiAssisted,
-    listingRequest: project.listingRequest,
-  });
-  const [error, setError] = useState("");
-  const [askWebsite, setAskWebsite] = useState(false);
-  const set = (key, value) => setFields(f => ({...f, [key]: value}));
-
-  const save = () => onSave({
-    ...fields, name: fields.name.trim(), description: fields.description.trim(),
-  });
-
-  const submit = (e) => {
-    e.preventDefault();
-    if (!fields.name.trim()) { setError("Enter a project name."); return; }
-    if (!fields.description.trim()) { setError("Enter a one-line description."); return; }
-    setError("");
-    if (!fields.websiteUrl.trim()) { setAskWebsite(true); return; }
-    save();
-  };
-
+/* The new-project form opens in place at the top of the project list. */
+const NewProjectPanel = ({novice, onCreate, onCancel}) => {
+  const panelRef = useRef(null);
+  useEffect(() => {
+    const input = panelRef.current && panelRef.current.querySelector("#devPocProjectName");
+    if (input) { input.focus(); }
+  }, []);
   return (
-    <React.Fragment>
-      <form className="devPocForm devPocEditProject" onSubmit={submit}>
-        <ProjectFields fields={fields} set={set} novice={novice} />
-        {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
-        <div className="devPocActions">
-          <button type="submit" className="button small blue">Save project</button>
-          <button type="button" className="button small transparent" onClick={onCancel}>Cancel</button>
-          <button type="button" className="button small transparent devPocDanger" onClick={onDelete}>Delete project</button>
-        </div>
-      </form>
-      {askWebsite ?
-        <NoWebsiteDialog novice={novice} onAddWebsite={() => setAskWebsite(false)} onSaveAnyway={save} /> : null}
-    </React.Fragment>
+    <section className="devPocNewProject devPocCard" ref={panelRef} aria-label="New project">
+      <h2>New project</h2>
+      <p className="devPocHelp devPocLead">
+        {novice ? "Tell us what you're building. You'll get a key right after." : "You can add keys once it's saved."}
+      </p>
+      <ProjectForm
+        initial={newProjectFields()}
+        novice={novice}
+        submitLabel="Create project"
+        onSave={onCreate}
+        onCancel={onCancel}
+      />
+    </section>
   );
 };
 
@@ -616,27 +698,27 @@ const RestrictionToggle = ({project, apiKey, novice, onToggle}) => {
             className="devPocSwitch"
             checked={!!apiKey.restrictToWebsite}
             onChange={e => onToggle(e.target.checked)}
-            aria-label={"Restrict " + apiKey.label + " to " + host}
+            aria-label={"Only allow " + apiKey.label + " on " + host}
           />
-          <span>
-            {novice ? "Only let this key work on " : "Only accept requests from "}<code>{host}</code>
-          </span>
+          <span>Only allow this key on <code>{host}</code></span>
         </label>
         {novice ? null :
-          <InfoTip label="What does the website restriction do?">
-            Use it when the key ships in front-end code. Leave it off for servers, scripts and
-            apps: they send no origin and would be refused. Origins can be faked, so this stops
-            casual copying, not a determined attacker.
+          <InfoTip label="What does this do?" wide>
+            Sefaria refuses requests with this key that come from web pages on any other site.
+            Turn it on when the key is in code that runs in the browser, where anyone can read
+            it. Leave it off for servers, scripts and apps: their requests don't come from a
+            web page, so they would be refused. A determined attacker can get around it; it
+            stops casual copying.
           </InfoTip>}
       </div>
       {novice ?
         <React.Fragment>
           <p className="devPocHelp">
-            Turn this on if your key is inside a website people can visit. It stops anyone who
-            copies it from using it elsewhere.
+            Turn this on if your key is inside a web page people visit. Then a copied key won't
+            work on anyone else's site.
           </p>
           <p className="devPocHelp">
-            Leave it off if your key runs anywhere else, or your own project will stop working.
+            Leave it off if your key is used anywhere else, or your own project will stop working.
           </p>
         </React.Fragment> : null}
     </div>
@@ -682,7 +764,7 @@ const KeyValue = ({value}) => {
 };
 
 
-const KeyRow = ({project, apiKey, novice, isNew, onToggleRestriction, onDelete}) => (
+const KeyRow = ({project, apiKey, novice, isNew, onToggleRestriction, onDelete, onAddWebsite}) => (
   <article className={"devPocKey" + (isNew ? " devPocKeyNew" : "")}>
     <div className="devPocKeyHeading">
       <strong>{apiKey.label}</strong>
@@ -691,19 +773,20 @@ const KeyRow = ({project, apiKey, novice, isNew, onToggleRestriction, onDelete})
     <KeyValue value={apiKey.value} />
     <div className="devPocKeyMeta">
       <span>Created {formatDate(apiKey.created)}</span>
-      <span>Last used: {formatDate(apiKey.lastUsed)}</span>
-      <span>{apiKey.requests30.toLocaleString()} requests / 30 days</span>
+      <span>Last used {formatDate(apiKey.lastUsed)}</span>
+      <span>{apiKey.requests30.toLocaleString()} requests in the last 30 days</span>
     </div>
     {isNew ?
       <p className="devPocKeyReady" role="status">
-        {novice ? "Ready to use. Copy it into your tool now." : "Ready to use."}
+        {novice ? "Ready to use. Copy it into your tool." : "Ready to use."}
       </p> : null}
     {project.websiteUrl ?
       <RestrictionToggle project={project} apiKey={apiKey} novice={novice} onToggle={onToggleRestriction} /> :
       novice ? null :
       <p className="devPocHelp">
-        Add a website URL to the project to lock this key to it. Worth doing if the key ships in
-        front-end code with no backend.
+        Want this key to work only on your website?{" "}
+        <button type="button" className="devPocTextButton devPocInlineButton" onClick={onAddWebsite}>Add your website</button>
+        {" "}to the project, then switch it on here.
       </p>}
   </article>
 );
@@ -711,7 +794,7 @@ const KeyRow = ({project, apiKey, novice, isNew, onToggleRestriction, onDelete})
 
 const KEY_HIGHLIGHT_MS = 4000;
 
-const KeysSection = ({project, novice, update, setConfirm}) => {
+const KeysSection = ({project, novice, update, setConfirm, onAddWebsite}) => {
   const [creating, setCreating] = useState(false);   // showing the label form
   const [label, setLabel] = useState("");
   const [phase, setPhase] = useState("idle");        // idle | setting-up | error
@@ -728,7 +811,7 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
 
   const startCreate = (e) => {
     e.preventDefault();
-    if (!label.trim()) { setError(novice ? "Give the key a name." : "Enter a label."); return; }
+    if (!label.trim()) { setError("Give the key a name."); return; }
     setError("");
     setPhase("setting-up");
     const wanted = label.trim();
@@ -764,8 +847,8 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
   const deleteKey = (apiKey) => setConfirm({
     title: "Delete “" + apiKey.label + "”?",
     body: novice
-      ? "This key stops working right away. Anything using it will break. This cannot be undone."
-      : "This key for " + project.name + " stops working immediately. This cannot be undone.",
+      ? "The key stops working right away, and anything that uses it will stop working too. You can't undo this."
+      : "This key for " + project.name + " stops working immediately, and requests that use it will be refused. You can't undo this.",
     actionLabel: "Delete key",
     onConfirm: () => update(s => ({
       ...s,
@@ -778,13 +861,20 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
       <div className="devPocHeading">
         <div>
           <h3>API keys</h3>
-          <p className="devPocHelp">{project.keys.length} of {MAX_KEYS_PER_PROJECT} keys used</p>
+          <p className="devPocHelp">{project.keys.length} of {MAX_KEYS_PER_PROJECT} keys</p>
           {novice ?
             <p className="devPocHelp">
-              A key is like a password for your project. Paste it into your tool wherever it asks
-              for a Sefaria API key, and don't share it.
+              A key is like a password that lets your project use Sefaria. Paste it wherever your
+              tool asks for a Sefaria API key, and keep it private.
             </p> :
-            <p className="devPocHelp">Send the key in the <code>x-api-key</code> header. Keys stay viewable here.</p>}
+            <p className="devPocHelp">
+              Send the key in the <code>x-api-key</code> header of each request.{" "}
+              <InfoTip label="What is a header?">
+                A header is a named value sent along with a request. Add one called x-api-key,
+                with your key as its value, to every call your project makes to Sefaria.
+              </InfoTip>
+              {" "}You can come back and copy a key at any time.
+            </p>}
         </div>
         {creating || (novice && firstKeyPrompt) ? null :
           <button
@@ -797,17 +887,20 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
       {atLimit ?
         <p className="devPocNotice">
           {novice
-            ? "You have " + MAX_KEYS_PER_PROJECT + " keys, the most allowed. Delete one you don't use to make room."
-            : MAX_KEYS_PER_PROJECT + " of " + MAX_KEYS_PER_PROJECT + " keys. Delete one before creating another."}
+            ? "You have " + MAX_KEYS_PER_PROJECT + " keys, the most a project can have. Delete one you don't use to make room."
+            : "A project can have up to " + MAX_KEYS_PER_PROJECT + " keys. Delete one to create another."}
         </p> : null}
 
       {creating && phase === "idle" ?
         <form className="devPocForm devPocCreateKey" onSubmit={startCreate}>
           <div className="devPocField">
-            <label htmlFor="devPocKeyLabel">{novice ? "Name this key" : "Key label"}</label>
+            <label htmlFor="devPocKeyLabel">Key name</label>
             <input id="devPocKeyLabel" value={label} onChange={e => setLabel(e.target.value)} />
-            {novice ?
-              <p className="devPocHelp">A name just for you, so you can tell your keys apart.</p> : null}
+            <p className="devPocHelp">
+              {novice
+                ? "A name just for you, so you can tell your keys apart. For example: My website."
+                : "For telling your keys apart, for example Production or Local testing."}
+            </p>
           </div>
           {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
           <div className="devPocActions">
@@ -820,13 +913,13 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
           <span className="devPocSpinner" aria-hidden="true" />
           <span>
             <strong>Setting up your key&hellip;</strong>
-            <span className="devPocHelp">This can take a few seconds.</span>
+            <span className="devPocHelp">This takes a few seconds.</span>
           </span>
         </div> : null}
       {phase === "error" ?
         <div className="devPocWarning" role="alert">
           <strong>We couldn't create your key.</strong>
-          <p>No key was created. Please try again.</p>
+          <p>Nothing was created. Please try again.</p>
           <button type="button" className="button small white" onClick={() => setPhase("idle")}>Try again</button>
         </div> : null}
 
@@ -836,7 +929,7 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
             <div className="devPocActions">
               <button type="button" className="button small blue" onClick={startCreating}>Create your first key</button>
             </div> :
-            <p>Create a key to start using the API.</p>}
+            <p>Create a key to start making requests.</p>}
         </div> : null}
       {project.keys.length ?
         <div className="devPocInset">
@@ -850,6 +943,7 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
                 isNew={k.id === newKeyId}
                 onToggleRestriction={on => toggleRestriction(k.id, on)}
                 onDelete={() => deleteKey(k)}
+                onAddWebsite={onAddWebsite}
               />
             ))}
           </div>
@@ -861,12 +955,12 @@ const KeysSection = ({project, novice, update, setConfirm}) => {
 
 const listingStatus = (project) => {
   if (project.listingRequest) {
-    return "Link to " + project.listingRequest.name + " requested, awaiting Sefaria's confirmation.";
+    return "Link to the " + project.listingRequest.name + " listing requested. Waiting for Sefaria to confirm.";
   }
   if (project.visibility === "public") {
-    return "Public: may be listed on Powered by Sefaria.";
+    return "Public: Sefaria may show it on Powered by Sefaria.";
   }
-  return "Not listed on Powered by Sefaria.";
+  return "Private: not shown on Powered by Sefaria.";
 };
 
 
@@ -1016,8 +1110,18 @@ const UsageSection = ({project, novice}) => {
 };
 
 
-const ProjectCard = ({project, expanded, novice, update, setConfirm, onToggleExpand, notice, clearNotice}) => {
+const ProjectCard = ({project, expanded, novice, update, setConfirm, onToggleExpand, notice}) => {
   const [editing, setEditing] = useState(false);
+  const cardRef = useRef(null);
+
+  /* Opens the editor with the website field ready to type in. */
+  const addWebsite = () => {
+    setEditing(true);
+    setTimeout(() => {
+      const input = cardRef.current && cardRef.current.querySelector("#devPocProjectUrl");
+      if (input) { input.focus(); }
+    }, 0);
+  };
 
   const saveProject = (fields) => {
     const hadUrl = !!project.websiteUrl;
@@ -1035,8 +1139,8 @@ const ProjectCard = ({project, expanded, novice, update, setConfirm, onToggleExp
     setEditing(false);
     if (losingUrl && restrictedKeys.length) {
       notice(novice
-        ? restrictedKeys.join(", ") + " is no longer locked to your website, because you removed the website address."
-        : "Website restriction turned off on " + restrictedKeys.join(", ") + ": the project no longer has a website URL.");
+        ? restrictedKeys.join(", ") + " now works anywhere again, because the project no longer has a website."
+        : "“Only allow this key on your site” is now off for " + restrictedKeys.join(", ") + ", because the project no longer has a website.");
     }
   };
 
@@ -1045,10 +1149,8 @@ const ProjectCard = ({project, expanded, novice, update, setConfirm, onToggleExp
     body: project.keys.length
       ? (novice
         ? "These keys stop working right away: " + project.keys.map(k => k.label).join(", ") + ". You can't get the project or its keys back."
-        : "These keys stop working immediately: " + project.keys.map(k => k.label).join(", ") + ". The project and its keys cannot be recovered.")
-      : (novice
-        ? "This project has no keys. You can't get it back."
-        : "This project has no keys. It cannot be recovered."),
+        : "These keys stop working immediately: " + project.keys.map(k => k.label).join(", ") + ". You can't undo this.")
+      : "This project has no keys. You can't undo this.",
     actionLabel: "Delete project",
     onConfirm: () => update(s => ({
       ...s,
@@ -1058,7 +1160,7 @@ const ProjectCard = ({project, expanded, novice, update, setConfirm, onToggleExp
   });
 
   return (
-    <article className={"devPocProject" + (expanded ? " expanded" : "")}>
+    <article className={"devPocProject" + (expanded ? " expanded" : "")} ref={cardRef}>
       <header className="devPocProjectHeader">
         <div className="devPocProjectBar">
           <h2 className="devPocProjectTitle">
@@ -1083,7 +1185,7 @@ const ProjectCard = ({project, expanded, novice, update, setConfirm, onToggleExp
         <div className="devPocProjectBadgeRow">
           <div className="devPocBadges">
             <span className="devPocBadge">{project.visibility === "public" ? "Public" : "Private"}</span>
-            {project.aiAssisted ? <span className="devPocBadge">Built with AI assistance</span> : null}
+            {project.aiAssisted ? <span className="devPocBadge">Built with AI tools</span> : null}
           </div>
           {expanded ?
             <button type="button" className="button small transparent devPocProjectEdit" onClick={() => setEditing(e => !e)}>
@@ -1098,15 +1200,20 @@ const ProjectCard = ({project, expanded, novice, update, setConfirm, onToggleExp
               <div className="devPocHeading">
                 <div><h3>Project details</h3></div>
               </div>
-              <EditProjectForm
-                project={project}
+              <ProjectForm
+                initial={{
+                  name: project.name, description: project.description, organization: project.organization,
+                  websiteUrl: project.websiteUrl, visibility: project.visibility, aiAssisted: project.aiAssisted,
+                  listingRequest: project.listingRequest,
+                }}
                 novice={novice}
+                submitLabel="Save project"
                 onSave={saveProject}
                 onCancel={() => setEditing(false)}
                 onDelete={deleteProject}
               />
             </section> : null}
-          <KeysSection project={project} novice={novice} update={update} setConfirm={setConfirm} />
+          <KeysSection project={project} novice={novice} update={update} setConfirm={setConfirm} onAddWebsite={addWebsite} />
           {project.keys.length ? <UsageSection project={project} novice={novice} /> : null}
         </div> : null}
     </article>
@@ -1128,15 +1235,22 @@ const ConfirmDialog = ({confirm, onClose}) => (
 );
 
 
+const ExternalIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.2"
+    strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+    <path d="M14 4h6v6" />
+    <path d="M20 4 10 14" />
+    <path d="M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5" />
+  </svg>
+);
+
+const API_DOCS_URL = "https://developers.sefaria.org";
+
 const DeveloperTab = ({state, socialProviders, navOn, update, setConfirm, notice, setNotice,
-                       editingProfile, setEditingProfile, onNewProject, onSelectTab, setProjectId}) => {
-  const connected = ssoConnected(state, socialProviders);
-  const off = !connected || !state.developerEnabled;
+                       connectedMessage, editingProfile, setEditingProfile, showNewProject,
+                       setShowNewProject, onCreateProject, onSelectTab, setProjectId, onStart,
+                       onConnectSso}) => {
   const novice = !!(state.profile && state.profile.notADeveloper);
-  const profileReady = !!(state.profile && state.profile.termsAccepted);
-  const profileFirst = novice
-    ? "Finish your profile first. The API terms are part of it."
-    : "Save your developer profile first. The API terms are part of it.";
 
   const toggleExpand = (project) => {
     const expandedProjectId = state.expandedProjectId === project.id ? null : project.id;
@@ -1144,28 +1258,40 @@ const DeveloperTab = ({state, socialProviders, navOn, update, setConfirm, notice
     setProjectId(expandedProjectId);
   };
 
+  const newProjectButton = (label, className) => (
+    <button type="button" className={"button small " + className} onClick={() => setShowNewProject(true)}>{label}</button>
+  );
+
   return (
     <div className="devPocPage">
       <div className={"devPocShell" + (navOn ? "" : " devPocShellNoNav")}>
         {navOn ? <SettingsNav tab="developer" onSelect={onSelectTab} /> : null}
         <main className="devPocMain">
           <header className="devPocPageHeader">
-            <h1>Developer settings</h1>
-            <p>
-              {novice
-                ? "Tell us what you're building, and get a key for it."
-                : "Register your projects and manage their API keys."}
-            </p>
-            <a href="https://developers.sefaria.org" target="_blank" rel="noreferrer">
-              {novice ? "API documentation (for developers)" : "API documentation"}
+            <div>
+              <h1>Developer settings</h1>
+              <p>
+                {novice
+                  ? "Tell us what you're building, and get a key for it."
+                  : "Register your projects and manage their API keys."}
+              </p>
+            </div>
+            <a className="devPocDocsLink" href={API_DOCS_URL} target="_blank" rel="noreferrer">
+              <span>API documentation</span>
+              <ExternalIcon />
             </a>
           </header>
 
-          {off ?
-            <div className="devPocEmpty">
-              <h2>Developer settings are off</h2>
-              <p>Turn them on in <a href="/settings/account" onClick={e => { e.preventDefault(); onSelectTab("account"); }}>Account settings</a>.</p>
-            </div> :
+          {connectedMessage ?
+            <div className="devPocSuccess" role="status"><p>{connectedMessage}</p></div> : null}
+
+          {!navOn ?
+            <GetStarted
+              connected={ssoConnected(state, socialProviders)}
+              card={true}
+              onStart={onStart}
+              onConnectSso={onConnectSso}
+            /> :
             !state.profile ?
             <ProfileOnboarding onSave={profile => update(s => ({...s, profile}))} /> :
             <React.Fragment>
@@ -1178,7 +1304,7 @@ const DeveloperTab = ({state, socialProviders, navOn, update, setConfirm, notice
               <section className="devPocProfile">
                 {editingProfile ?
                   <React.Fragment>
-                    <h2>Developer profile</h2>
+                    <h2>About you</h2>
                     <ProfileForm
                       profile={state.profile}
                       onSave={profile => { update(s => ({...s, profile})); setEditingProfile(false); }}
@@ -1188,56 +1314,48 @@ const DeveloperTab = ({state, socialProviders, navOn, update, setConfirm, notice
                   <div className="devPocProfileSummary">
                     <span>
                       <strong>{state.profile.developerName}</strong>
-                      <span className="devPocHelp">{Sefaria._email}{state.profile.description ? " · " + state.profile.description : ""}</span>
+                      <span className="devPocHelp">
+                        {state.profile.contactEmail || Sefaria._email}
+                        {state.profile.description ? " · " + state.profile.description : ""}
+                      </span>
                     </span>
-                    <button type="button" className="button small transparent" onClick={() => setEditingProfile(true)}>Edit profile</button>
+                    <button type="button" className="button small transparent" onClick={() => setEditingProfile(true)}>Edit</button>
                   </div>}
               </section>
 
               <div className="devPocSectionHeading">
                 <h2>Projects</h2>
-                {state.projects.length ?
-                  <button
-                    type="button"
-                    className="button small white"
-                    disabled={!profileReady}
-                    onClick={onNewProject}
-                  >New project</button> : null}
+                {state.projects.length && !showNewProject ? newProjectButton("New project", "white") : null}
               </div>
-              {state.projects.length > 0 && !profileReady ?
-                <p className="devPocHelp">{profileFirst}</p> : null}
 
-              {state.projects.length === 0 ?
+              {showNewProject ?
+                <NewProjectPanel novice={novice} onCreate={onCreateProject} onCancel={() => setShowNewProject(false)} /> :
+                state.projects.length === 0 ?
                 <div className="devPocEmpty">
                   <h2>{novice ? "Your first project starts here" : "No projects yet"}</h2>
                   <p>
                     {novice
-                      ? "Tell us what you're building. You'll get a key on the next step."
-                      : "Create a project, then add a key to it."}
+                      ? "Tell us what you're building. You'll get a key right after."
+                      : "Create a project, then add keys to it."}
                   </p>
                   <div className="devPocActions">
-                    <button
-                      type="button"
-                      className="button small blue"
-                      disabled={!profileReady}
-                      onClick={onNewProject}
-                    >{novice ? "Create your first project" : "New project"}</button>
+                    {newProjectButton(novice ? "Create your first project" : "New project", "blue")}
                   </div>
-                  {profileReady ? null : <p className="devPocHelp">{profileFirst}</p>}
-                  <p className="devPocHelp">A project can also be listed on Powered by Sefaria without an API key.</p>
-                </div> :
-                state.projects.map(p => (
-                  <ProjectCard
-                    key={p.id}
-                    project={p}
-                    expanded={state.expandedProjectId === p.id}
-                    novice={novice}
-                    update={update}
-                    setConfirm={setConfirm}
-                    notice={setNotice}
-                    onToggleExpand={() => toggleExpand(p)}
-                  />
-                ))}
+                  <p className="devPocHelp">A project can be shown on Powered by Sefaria even without a key.</p>
+                </div> : null}
+
+              {state.projects.map(p => (
+                <ProjectCard
+                  key={p.id}
+                  project={p}
+                  expanded={state.expandedProjectId === p.id}
+                  novice={novice}
+                  update={update}
+                  setConfirm={setConfirm}
+                  notice={setNotice}
+                  onToggleExpand={() => toggleExpand(p)}
+                />
+              ))}
             </React.Fragment>}
         </main>
       </div>
@@ -1246,9 +1364,13 @@ const DeveloperTab = ({state, socialProviders, navOn, update, setConfirm, notice
 };
 
 
-/* The mock provider chooser. It stands in for the Google or Apple sign-in window. */
+/* The mock provider chooser. It stands in for the Google or Apple sign-in window, and
+   offers the Sefaria account's own email, because that is the account being verified. */
 const MockSsoDialog = ({provider, onCancel, onContinue}) => {
   const continueRef = useRef(null);
+  const email = Sefaria._email || "you@example.org";
+  const name = Sefaria.full_name || email.split("@")[0];
+  const initials = name.split(/\s+/).map(w => w.charAt(0)).join("").slice(0, 2).toUpperCase();
 
   useEffect(() => {
     if (continueRef.current) { continueRef.current.focus(); }
@@ -1267,10 +1389,10 @@ const MockSsoDialog = ({provider, onCancel, onContinue}) => {
           <h2>Choose an account</h2>
           <p className="devPocMockSsoSub">to continue to Sefaria</p>
           <div className="devPocMockSsoAccount">
-            <span className="devPocMockSsoAvatar" aria-hidden="true">TL</span>
+            <span className="devPocMockSsoAvatar" aria-hidden="true">{initials}</span>
             <span className="devPocMockSsoAccountText">
-              <strong>Tova Levi</strong>
-              <span>tova@example.org</span>
+              <strong>{name}</strong>
+              <span>{email}</span>
             </span>
           </div>
           <div className="devPocMockSsoActions">
@@ -1356,8 +1478,7 @@ const loginMethod = (socialProviders) => {
   return {en: "Apple Sign-In with", he: "התחברות דרך אפל עם"};
 };
 
-const AccountTab = ({settings, pocState, socialProviders, navOn, update, onSelectTab,
-                     onConnectSso, connectedMessage}) => {
+const AccountTab = ({settings, pocState, socialProviders, navOn, onSelectTab, onStart, onConnectSso}) => {
   const torahSpecific = !!settings.torahSpecific;
   const translationLanguages = settings.translationLanguages || [];
 
@@ -1595,35 +1716,12 @@ const AccountTab = ({settings, pocState, socialProviders, navOn, update, onSelec
 
           <div id="developerSettings" className="section">
             <label className="control-elem">Developer Settings</label>
-            {connected ? null :
-              <div id="developerSettingsGate" className="devPocGate">
-                <strong>Connect Google or Apple to get started</strong>
-                <p>We need a verified email so we can reach you about your API access.</p>
-                <button className="button small white" type="button" onClick={() => onConnectSso("Google")}>Connect Google</button>
-                <button className="button small white" type="button" onClick={() => onConnectSso("Apple")}>Connect Apple</button>
-              </div>}
-            {connected && connectedMessage ?
-              <p className="devPocConnected">{connectedMessage}</p> : null}
-            {connected ?
-              <div id="developerSettingsToggleWrapper">
-                <SettingToggle
-                  optionClass="doubleOption"
-                  ariaLabel="Developer Settings"
-                  value={pocState.developerEnabled ? "true" : "false"}
-                  onChange={value => update(s => ({...s, developerEnabled: value === "true"}))}
-                  options={[
-                    {value: "true", content: <span>On</span>},
-                    {value: "false", content: <span>Off</span>},
-                  ]}
-                />
-                <div className="additional-info">Register your projects and get API keys for the Sefaria API.</div>
-                {developerOn ?
-                  <p id="developerSettingsLink">
-                    <a href="/settings/developer" onClick={e => { e.preventDefault(); onSelectTab("developer"); }}>
-                      Open Developer settings
-                    </a>
-                  </p> : null}
-              </div> : null}
+            {developerOn ?
+              <div className="additional-info devPocOn">
+                Your projects and API keys are in{" "}
+                <a href="/settings/developer" onClick={e => { e.preventDefault(); onSelectTab("developer"); }}>Developer settings</a>.
+              </div> :
+              <GetStarted connected={connected} card={false} onStart={onStart} onConnectSso={onConnectSso} />}
           </div>
 
           <div id="username-change" className="section">
@@ -1711,7 +1809,7 @@ const AccountTab = ({settings, pocState, socialProviders, navOn, update, onSelec
 
 
 const SAVE_FAILED = "Couldn't save the POC state. Your changes are only in this browser tab.";
-const CONNECTED_MS = 4000;
+const CONNECTED_MS = 8000;
 
 const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, setTab, setProjectId}) => {
   const settings = accountSettings || {};
@@ -1753,14 +1851,23 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     setNotice("");
   };
 
-  const novice = !!(pocState.profile && pocState.profile.notADeveloper);
   const navOn = ssoConnected(pocState, socialProviders) && !!pocState.developerEnabled;
 
   const createProject = (fields) => {
     const project = makeProject(fields);
-    update(s => ({...s, projects: [...s.projects, project], expandedProjectId: project.id}));
+    update(s => ({...s, projects: [project, ...s.projects], expandedProjectId: project.id}));
     setProjectId(project.id);
     setShowNewProject(false);
+  };
+
+  /* Turning developer settings on is one action, and it lands in Developer settings. */
+  const openDeveloper = () => {
+    setTab("developer");
+    if (typeof window !== "undefined") { window.scrollTo(0, 0); }
+  };
+  const startDeveloper = () => {
+    update(s => ({...s, developerEnabled: true}));
+    openDeveloper();
   };
 
   const closeConfirm = (confirmed) => {
@@ -1771,8 +1878,9 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
   const finishMockSso = () => {
     const provider = mockSso;
     setMockSso(null);
-    update(s => ({...s, ssoOverride: true}));
-    setConnectedMessage(provider + " connected.");
+    update(s => ({...s, ssoOverride: true, developerEnabled: true}));
+    openDeveloper();
+    setConnectedMessage(provider + " is connected. From now on, you sign in to this account with " + provider + ".");
     clearTimeout(connectedTimer.current);
     connectedTimer.current = setTimeout(() => setConnectedMessage(""), CONNECTED_MS);
   };
@@ -1791,10 +1899,9 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
               pocState={pocState}
               socialProviders={socialProviders}
               navOn={navOn}
-              update={update}
               onSelectTab={setTab}
+              onStart={startDeveloper}
               onConnectSso={setMockSso}
-              connectedMessage={connectedMessage}
             />
           </div>
           <div style={tab === "developer" ? null : {display: "none"}}>
@@ -1806,18 +1913,21 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
               setConfirm={setConfirm}
               notice={notice}
               setNotice={setNotice}
+              connectedMessage={connectedMessage}
               editingProfile={editingProfile}
               setEditingProfile={setEditingProfile}
-              onNewProject={() => setShowNewProject(true)}
+              showNewProject={showNewProject}
+              setShowNewProject={setShowNewProject}
+              onCreateProject={createProject}
               onSelectTab={setTab}
               setProjectId={setProjectId}
+              onStart={startDeveloper}
+              onConnectSso={setMockSso}
             />
           </div>
         </div>
       </div>
       <div className="devPocPage">
-        {showNewProject ?
-          <NewProjectDialog novice={novice} onCreate={createProject} onCancel={() => setShowNewProject(false)} /> : null}
         {confirm ? <ConfirmDialog confirm={confirm} onClose={closeConfirm} /> : null}
         {mockSso ?
           <MockSsoDialog provider={mockSso} onCancel={() => setMockSso(null)} onContinue={finishMockSso} /> : null}

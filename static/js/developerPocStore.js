@@ -14,12 +14,37 @@ export const DEVELOPER_POC_STATE_URL = "/api/developer-poc/state";
 export const DEVELOPER_POC_VERSION = 1;
 export const MAX_KEYS_PER_PROJECT = 5;
 
+/* Stand-ins for Powered by Sefaria listings, so the listing search has something to find.
+   Only public listing fields are included, as the real search would return. */
 export const POWERED_BY_LISTINGS = [
-  {name: "Daf Yomi Portal", url: "dafyomiportal.org"},
-  {name: "Daf Yomi Review", url: "dafyomireview.com"},
-  {name: "Mishnah Flashcards", url: "mishnahcards.example.org"},
-  {name: "Parasha Weekly", url: "parashaweekly.example.com"},
-  {name: "Talmud Graph Explorer", url: "talmudgraph.example.net"},
+  {name: "Daf Yomi Companion", url: "dafyomicompanion.org",
+    description: "Today's daf with Steinsaltz, Rashi and a daily review quiz."},
+  {name: "Parsha Sheets for Educators", url: "parshasheets.org",
+    description: "Printable weekly source sheets for day-school classrooms."},
+  {name: "Mishnah Yomit Tracker", url: "mishnahtracker.app",
+    description: "Track your daily two mishnayot and share progress with a study group."},
+  {name: "Tehillim Circle", url: "tehillimcircle.org",
+    description: "Split the book of Psalms among a group, with the text in Hebrew and English."},
+  {name: "Chavruta Match", url: "chavrutamatch.com",
+    description: "Find a study partner and a text to learn together."},
+  {name: "Siddur Builder", url: "siddurbuilder.net",
+    description: "Assemble a custom prayer booklet for a simcha or a minyan."},
+  {name: "Rambam Daily Audio", url: "rambamdaily.fm",
+    description: "A daily Mishneh Torah podcast with the day's text alongside."},
+  {name: "Talmud Map", url: "talmudmap.org",
+    description: "An interactive map of the places named in the Talmud."},
+  {name: "Midrash Explorer", url: "midrashexplorer.org",
+    description: "Browse midrashim by verse, theme and character."},
+  {name: "My Bar Mitzvah Parsha", url: "mybarmitzvahparsha.com",
+    description: "Find your Torah portion by birth date and read it with trope."},
+  {name: "Shnayim Mikra Reader", url: "shnayimmikra.app",
+    description: "The weekly portion twice in Hebrew and once in Onkelos, verse by verse."},
+  {name: "Halacha Quiz for Kids", url: "halachaquiz.org",
+    description: "Short daily questions on everyday Jewish law for children."},
+  {name: "Luach Widgets", url: "luachwidgets.dev",
+    description: "Embeddable Hebrew calendar and daily learning widgets for synagogue websites."},
+  {name: "Jewish Text Graph", url: "jewishtextgraph.io",
+    description: "A visual network of how texts cite one another."},
 ];
 
 export const emptyState = () => ({
@@ -126,8 +151,9 @@ export const sampleState = () => {
     profile: {
       developerName: "Tova Levi",
       description: "Small learning tools for daily study.",
-      additionalEmail: "",
+      contactEmail: "",
       termsAccepted: true,
+      apiEmails: false,
       notADeveloper: false,
     },
     projects: [project],
