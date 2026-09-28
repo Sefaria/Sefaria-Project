@@ -1,0 +1,78 @@
+{
+  "he": {
+    "ref": "Genesis 1",
+    "heRef": "בראשית א׳",
+    "sections": [
+      "1"
+    ],
+    "toSections": [
+      "1"
+    ],
+    "sectionRef": "Genesis 1",
+    "heSectionRef": "בראשית א׳",
+    "isSpanning": false,
+    "book": "Genesis",
+    "textDepth": 2,
+    "sectionNames": [
+      "Chapter",
+      "Verse"
+    ],
+    "index_offsets_by_depth": {},
+    "versions": [
+      {
+        "versionTitle": "Miqra according to the Masorah",
+        "versionTitleInHebrew": "מקרא על פי המסורה",
+        "license": "CC-BY-SA",
+        "language": "he",
+        "actualLanguage": "he",
+        "languageFamilyName": "hebrew",
+        "isSource": true,
+        "isPrimary": true,
+        "direction": "rtl",
+        "priority": 2.0,
+        "text": [
+          "<big>בְּ</big>רֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃",
+          "וְהָאָ֗רֶץ הָיְתָ֥ה תֹ֙הוּ֙ וָבֹ֔הוּ וְחֹ֖שֶׁךְ עַל־פְּנֵ֣י תְה֑וֹם וְר֣וּחַ אֱלֹהִ֔ים מְרַחֶ֖פֶת עַל־פְּנֵ֥י הַמָּֽיִם׃"
+        ]
+      }
+    ]
+  },
+  "en": {
+    "ref": "Genesis 1",
+    "heRef": "בראשית א׳",
+    "sections": [
+      "1"
+    ],
+    "toSections": [
+      "1"
+    ],
+    "sectionRef": "Genesis 1",
+    "heSectionRef": "בראשית א׳",
+    "isSpanning": false,
+    "book": "Genesis",
+    "textDepth": 2,
+    "sectionNames": [
+      "Chapter",
+      "Verse"
+    ],
+    "index_offsets_by_depth": {},
+    "versions": [
+      {
+        "versionTitle": "THE JPS TANAKH: Gender-Sensitive Edition",
+        "versionTitleInHebrew": "",
+        "license": "CC-BY-NC",
+        "language": "en",
+        "actualLanguage": "en",
+        "languageFamilyName": "english",
+        "isSource": false,
+        "isPrimary": false,
+        "direction": "ltr",
+        "priority": 8.0,
+        "text": [
+          "When God began to create<sup class=\"footnote-marker\">a</sup><i class=\"footnote\"><b>When God began to create </b>In contrast to others “In the beginning God created.”</i> heaven and earth— ",
+          "the earth being unformed and void, with darkness over the surface of the deep and a wind from<sup class=\"footnote-marker\">b</sup><i class=\"footnote\"><b>a wind from </b>In contrast to others “the spirit of.”</i> God sweeping over the water— "
+        ]
+      }
+    ]
+  }
+}

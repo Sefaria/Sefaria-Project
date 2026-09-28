@@ -265,6 +265,19 @@ class ConnectionsPanel extends Component {
     this.props.setConnectionsMode("Translation Open");
     this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
   }
+  openCopyTool() {
+    // Copy the selected segment(s) of the main text, in the versions and languages shown there.
+    const version = v => v?.versionTitle ? {languageFamilyName: v.languageFamilyName, versionTitle: v.versionTitle} : null;
+    const {he, en} = this.props.currVersions || {};
+    const language = this.props.masterPanelLanguage;
+    this.props.openCopyTool({
+      ref: Sefaria.normRefList(this.props.srefs),
+      word: null,
+      wordLang: null,
+      versions: {source: version(he), translation: version(en)},
+      shown: {source: language !== "english", translation: language !== "hebrew"},
+    });
+  }
   render() {
     let content = null;
     if (!this.state.linksLoaded) {
@@ -333,6 +346,7 @@ class ConnectionsPanel extends Component {
               setConnectionsMode={this.props.setConnectionsMode}
               masterPanelMode={this.props.masterPanelMode}
               toggleSignUpModal={this.props.toggleSignUpModal}
+              openCopyTool={this.props.openCopyTool ? this.openCopyTool : null}
               openComparePanel={this.props.multiPanel ? this.props.openComparePanel : null}
               counts={toolsButtonsCounts} />
           </ConnectionsPanelSection>
@@ -684,7 +698,7 @@ ResourcesList.propTypes = {
   counts: PropTypes.object.isRequired,
 }
 
-const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openComparePanel, counts, masterPanelMode }) => {
+const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openCopyTool, openComparePanel, counts, masterPanelMode }) => {
   // A list of Resources in addition to connection
   return (
     <div className="toolButtonsList">
@@ -692,6 +706,7 @@ const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openComparePanel, co
       <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" urlConnectionsMode="Lexicon" onClick={() => setConnectionsMode("Lexicon")} />
       {openComparePanel ? <ToolsButton en="Compare Text" he="טקסט להשוואה" image="compare-panel.svg" onClick={openComparePanel} /> : null}
       <ToolsButton en="Notes" he="הערות" image="notes.svg" alwaysShow={true} count={counts["notes"]} urlConnectionsMode="Notes" onClick={() => !Sefaria._uid ? toggleSignUpModal(SignUpModalKind.Notes) : setConnectionsMode("Notes")} />
+      {openCopyTool ? <ToolsButton en="Copy" he="העתקה" image="copy-tool.svg" onClick={openCopyTool} /> : null}
       <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
       <ToolsButton en="Feedback" he="משוב" image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} />
       <ToolsButton en="Advanced" he="כלים מתקדמים" image="advancedtools.svg" onClick={() => setConnectionsMode("Advanced Tools")} />
@@ -701,6 +716,7 @@ const ToolsList = ({ setConnectionsMode, toggleSignUpModal, openComparePanel, co
 ToolsList.propTypes = {
   setConnectionsMode: PropTypes.func.isRequired,
   toggleSignUpModal: PropTypes.func.isRequired,
+  openCopyTool: PropTypes.func,
   counts: PropTypes.object.isRequired,
 }
 
