@@ -152,21 +152,6 @@ const indexExists = async (title) => {
  */
 const termExists = (name) => name in Sefaria._translateTerms;
 
-/**
- * Fetch the current saved Index record, bypassing all client-side caches.
- * Returns null if the index can't be loaded. index_api is wrapped by catch_error_as_json,
- * so a server-side failure comes back as HTTP 200 with an {error: ...} body.
- */
-const fetchRawIndex = async (title) => {
-  const response = await fetch(`/api/v2/raw/index/${encodeURIComponent(title.replace(/ /g, "_"))}`, {
-    credentials: 'same-origin',
-    cache: 'no-store'
-  });
-  if (!response.ok) return null;
-  const data = await response.json();
-  return data && !data.error ? data : null;
-};
-
 const BulkIndexEditor = () => {
   // Search state
   const [vtitle, setVtitle] = useState("");
@@ -381,7 +366,7 @@ const BulkIndexEditor = () => {
         // Fetch fresh raw data rather than Sefaria.getIndexDetails, whose client-side cache
         // is never invalidated after a save: a second save in the same session would post
         // stale categories/schema and silently revert the first save's changes.
-        const existingIndexData = await fetchRawIndex(indexTitle);
+        const existingIndexData = await Sefaria.getRawIndex(indexTitle);
         if (!existingIndexData) {
           errors.push(`${indexTitle}: Could not fetch existing index data.`);
           continue;
