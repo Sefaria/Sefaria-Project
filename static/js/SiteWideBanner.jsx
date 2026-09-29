@@ -101,6 +101,13 @@ const readPromoBackoffState = (storageKeys) => {
   }
 };
 
+// Whether the "Maybe later" backoff schedule says to keep a promo hidden right now.
+const isPromoHiddenForBackoff = ({ storageKeys, promoSessionCounter, nudgeSchedule }) => shouldHideForBackoff({
+  state: readPromoBackoffState(storageKeys),
+  sessionCounter: promoSessionCounter,
+  nudgeSchedule: nudgeSchedule || NUDGE_SCHEDULE,
+});
+
 // Records one "Maybe later" click in the backoff state. Shared by every promo surface
 // (banner, modal) so the nudge schedule sees the same history wherever it was dismissed.
 const recordPromoMaybeLater = ({ storageKeys, promoSessionCounter }) => {
@@ -144,14 +151,18 @@ const usePromoBackoffSession = ({ cookieName, enableBackoffDismissal, promoSessi
 };
 
 // Fires promo_viewed at most once per browser session per promo (keyed on cookieName).
-const usePromoViewedEvent = (cookieName, gtagParams) => {
+// Pass isVisible=false to hold the event until the promo is actually shown.
+const usePromoViewedEvent = (cookieName, gtagParams, isVisible = true) => {
   useEffect(() => {
+    if (!isVisible) {
+      return;
+    }
     const promoViewedSessionKey = `promo_viewed_${cookieName}`;
     if (!sessionStorage.getItem(promoViewedSessionKey)) {
       sessionStorage.setItem(promoViewedSessionKey, "1");
       gtag("event", "promo_viewed", gtagParams);
     }
-  }, [cookieName, gtagParams]);
+  }, [cookieName, gtagParams, isVisible]);
 };
 
 const SiteWideBanner = ({
@@ -173,12 +184,11 @@ const SiteWideBanner = ({
   const { isMounted, promoSessionCounter, storageKeys } = usePromoBackoffSession({
     cookieName, enableBackoffDismissal, promoSessionLengthSeconds,
   });
-  const effectiveNudgeSchedule = nudgeSchedule || NUDGE_SCHEDULE;
   usePromoViewedEvent(cookieName, gtagParams);
 
   const isDismissed = () => {
     if (enableBackoffDismissal) {
-      return shouldHideForBackoff({ state: readPromoBackoffState(storageKeys), sessionCounter: promoSessionCounter, nudgeSchedule: effectiveNudgeSchedule });
+      return isPromoHiddenForBackoff({ storageKeys, promoSessionCounter, nudgeSchedule });
     }
     return document.cookie.includes(cookieName);
   };
@@ -289,6 +299,7 @@ export {
   isChatbotBannerExcludedPath,
   usePromoBackoffSession,
   usePromoViewedEvent,
+  isPromoHiddenForBackoff,
   recordPromoMaybeLater,
   trackPromoClick,
 };

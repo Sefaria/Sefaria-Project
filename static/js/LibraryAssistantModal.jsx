@@ -27,21 +27,10 @@ const getLibraryAssistantLoginHref = (currentPath) => {
   return "/login?next=" + encodeURIComponent(enableDest);
 };
 
-/**
- * The Library Assistant promo (formerly the site-wide ChatbotExperimentBanner),
- * shown as a dialog when the user clicks "Assistant" in the header. Mounted only
- * while open, so promo_viewed / the session counter run when it opens.
- */
-const LibraryAssistantModal = ({ onClose, promoSessionLengthSeconds }) => {
+// Logged-in "Try It": turns the assistant on, then reloads so it appears. Shared by
+// every Library Assistant promo surface so they all join the same way.
+const useLibraryAssistantJoin = () => {
   const [isActionPending, setIsActionPending] = useState(false);
-  const isLoggedIn = !!Sefaria._uid;
-  const cookieName = getLibraryAssistantPromoCookieName(isLoggedIn);
-  const { promoSessionCounter, storageKeys } = usePromoBackoffSession({
-    cookieName, enableBackoffDismissal: true, promoSessionLengthSeconds,
-  });
-  usePromoViewedEvent(cookieName, GTAG_PARAMS);
-  const track = (featureName) => trackPromoClick(GTAG_PARAMS, featureName);
-
   const handleJoin = async () => {
     setIsActionPending(true);
     try {
@@ -54,6 +43,23 @@ const LibraryAssistantModal = ({ onClose, promoSessionLengthSeconds }) => {
       setIsActionPending(false);
     }
   };
+  return { isActionPending, handleJoin };
+};
+
+/**
+ * The Library Assistant promo (formerly the site-wide ChatbotExperimentBanner),
+ * shown as a dialog when the user clicks "Assistant" in the header. Mounted only
+ * while open, so promo_viewed / the session counter run when it opens.
+ */
+const LibraryAssistantModal = ({ onClose, promoSessionLengthSeconds }) => {
+  const { isActionPending, handleJoin } = useLibraryAssistantJoin();
+  const isLoggedIn = !!Sefaria._uid;
+  const cookieName = getLibraryAssistantPromoCookieName(isLoggedIn);
+  const { promoSessionCounter, storageKeys } = usePromoBackoffSession({
+    cookieName, enableBackoffDismissal: true, promoSessionLengthSeconds,
+  });
+  usePromoViewedEvent(cookieName, GTAG_PARAMS);
+  const track = (featureName) => trackPromoClick(GTAG_PARAMS, featureName);
 
   const handleMaybeLater = () => {
     recordPromoMaybeLater({ storageKeys, promoSessionCounter });
@@ -124,4 +130,10 @@ LibraryAssistantModal.propTypes = {
   promoSessionLengthSeconds: PropTypes.number,
 };
 
-export { LibraryAssistantModal, getLibraryAssistantLoginHref, getLibraryAssistantPromoCookieName };
+export {
+  LibraryAssistantModal,
+  GTAG_PARAMS as LIBRARY_ASSISTANT_GTAG_PARAMS,
+  getLibraryAssistantLoginHref,
+  getLibraryAssistantPromoCookieName,
+  useLibraryAssistantJoin,
+};

@@ -1716,6 +1716,53 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .readerPanel .navSidebarModule.blue h1 {
   color: white;
 }
+/* Library Assistant promo on the library homepage sidebar. Same hardcoded #653259
+   as the old .siteWideBanner promo (see the note there), rounded like its modal. */
+.navSidebarModule.libraryAssistantPromo {
+  margin: 0 44px 34px;
+  padding: 20px 20px 18px;
+  border-radius: 10px;
+  background-color: #653259;
+  color: white;
+}
+.singlePanel .navSidebarModule.libraryAssistantPromo {
+  margin: 0 15px 34px;
+}
+.readerPanel .navSidebarModule.libraryAssistantPromo h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  color: white;
+  border-bottom-color: rgba(255, 255, 255, 0.3);
+}
+/* Drawn white-on-transparent for the purple banner; 41x43 frame scaled down. */
+.libraryAssistantPromo .libraryAssistantPromoIcon {
+  width: 28px;
+  height: 29px;
+  flex-shrink: 0;
+}
+.libraryAssistantPromo .libraryAssistantPromoText {
+  margin: 0 0 12px;
+  line-height: 1.4;
+  opacity: 0.85;
+}
+.libraryAssistantPromo .libraryAssistantPromoLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+.libraryAssistantPromo .libraryAssistantPromoLinks a,
+.libraryAssistantPromo .libraryAssistantPromoLinks a:hover {
+  color: white;
+  font-weight: 600;
+  text-decoration: underline;
+}
+.libraryAssistantPromo .libraryAssistantPromoLinks a[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.7;
+}
 .navSidebarIcon {
   height: 18px;
   width: 18px;
