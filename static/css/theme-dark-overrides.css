@@ -9,7 +9,8 @@
  *     fallbacks all sit in the alias block below, one per line, marked theme-exempt.
  *
  * Sections: 0 aliases · 1 monochrome <img> icons · 2 icons painted by CSS · 3 logos ·
- *           4 user-generated content · 5 third-party / light islands · 6 JS-drawn charts and chips
+ *           4 user-generated content · 5 third-party / light islands · 6 JS-drawn charts and chips ·
+ *           7 accessibility (WCAG 2.1 contrast and link fixes that only dark mode needs)
  *
  * The icon selector lists in section 1 are GENERATED from scripts/darkmode/icon-inventory.json by
  * `node scripts/darkmode/icon-inventory.js`. Do not edit them by hand; re-run the script after adding
@@ -32,6 +33,8 @@
     /* palette.js fallback colours that have no category token and fail 3:1 on dark surfaces. */
     --dm-palette-raspberry: #B272A4; /* theme-exempt */
     --dm-palette-darkblue: #5B86C8; /* theme-exempt */
+    /* Mobile dark-mode switch track when on (section 7c). */
+    --dm-switch-track-on: var(--color-accent-fill-hover, #3A69AB); /* theme-exempt */
 
     /* #000-family ink (black, #121212, #333, brand navy) -> near-white; navy comes out light blue (#A3BCE1). */
     --dm-icon-filter: var(--color-icon-filter, invert(1) hue-rotate(180deg) brightness(.9));
@@ -423,5 +426,49 @@
   /* Staff-only linker debug chips keep their pastel type colours, so they need dark ink. */
   :root[data-theme="dark"] .linkerAdminPartChip {
     color: var(--dm-ink-on-light);
+  }
+
+  /* ── 7. Accessibility ──────────────────────────────────────────────────────────────────────────
+     Found by the WCAG 2.1 audit (static/js/tests/cssColorLiterals.test.js "WCAG token audit",
+     scripts/darkmode/a11y-audit.js). Each fix is dark-only, so light mode is unchanged. */
+
+  /* a. 1.4.1 Use of Color. In light mode these links in running text differ from the black body text
+     by colour contrast alone (about 4.4:1 to 4.8:1, above the 3:1 of technique G183). In dark mode
+     light-blue links on off-white text are about 1.7:1, and no dark link colour can be both 3:1 from
+     the text and 4.5:1 from the page, so the link gets an underline instead. */
+  :root[data-theme="dark"] .ai-info-messages-box a,
+  :root[data-theme="dark"] .topicPanel .topicDescription a,
+  :root[data-theme="dark"] .sheetContent .segment a,
+  :root[data-theme="dark"] .reactMarkdown a,
+  :root[data-theme="dark"] .feedbackOverlay a:not(.button),
+  :root[data-theme="dark"] .inlineTextRef {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  /* b. 1.4.3 Contrast (Minimum). White fills that stay white in dark mode (the on-accent surface)
+     need their dark text back. */
+  /* Blue Strapi sidebar ad: the white button's brand-blue text became light blue (1.8:1 on white). */
+  :root[data-theme="dark"] .sidebarPromo.blue a.button,
+  :root[data-theme="dark"] .sidebarPromo.blue.button a:hover {
+    color: var(--color-accent-fill, var(--dm-ink-on-light));
+  }
+  /* Google Docs add-on promo: "Install now" was light grey on a white pill (2.1:1). In dark it is a
+     control-coloured pill instead, like the other white buttons. */
+  :root[data-theme="dark"] .gDocAdvertBox #installNow a {
+    background: var(--color-bg-control, var(--dm-bg-page));
+  }
+  /* Beit Midrash modal: light-grey (#CCC) text on the dark inverse surface became --color-text-faint on
+     a mid-grey (1.8:1). */
+  :root[data-theme="dark"] #interruptingMessage.beitMidrashModalContentBox,
+  :root[data-theme="dark"] #interruptingMessage.beitMidrashModalContentBox button.dark-grey {
+    color: var(--color-text, var(--dm-text));
+  }
+
+  /* c. 1.4.11 Non-text Contrast. The mobile "Dark mode" switch (ThemeToggle.jsx) is always on while
+     the page is dark (switching it off turns the page light). Its on track, --color-accent-fill, was
+     2.6:1 against the menu; this one is 3.2:1, and the white knob on it is 5.5:1. */
+  :root[data-theme="dark"] .mobileNavMenu .mobileThemeToggle[aria-checked="true"] .mobileThemeToggleSwitch {
+    background-color: var(--dm-switch-track-on);
   }
 }

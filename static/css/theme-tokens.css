@@ -249,7 +249,7 @@
     --color-text-secondary: #B3B1AE;
     --color-text-muted: #A8A6A3;
     --color-text-caption: #A5A3A0;
-    --color-text-tertiary: #8F8D8A;
+    --color-text-tertiary: #959390;                /* 4.6:1 on --color-bg-muted and --color-bg-disabled */
     --color-text-disabled: #7A7875;
     --color-text-faint: #5E5E5E;
     --color-text-on-accent: #FFFFFF;
