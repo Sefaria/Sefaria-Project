@@ -56,22 +56,19 @@ const LibraryAssistantPromoWidget = () => {
     setIsDismissed(true);
   };
 
+  // Same markup as a Strapi sidebar ad (Promotions.jsx SidebarAd), so it matches its neighbours.
+  const langClass = Sefaria.interfaceLang === "hebrew" ? "int-he" : "int-en";
   return (
-    <div className="navSidebarModule sans-serif libraryAssistantPromo">
-      <h1>
-        <img className="libraryAssistantPromoIcon" src="/static/icons/ai-double-star.svg" alt="" aria-hidden="true" />
-        {Sefaria._("site_wide_banner.ask_the_library_assistant")}
-      </h1>
-      <p className="libraryAssistantPromoText">
-        {Sefaria._("site_wide_banner.discover_answers_to_your_questions")}
-      </p>
-      <div className="libraryAssistantPromoLinks">
+    <div className="navSidebarModule sans-serif">
+      <div className="sidebarPromo libraryAssistantPromo">
+        <h3 className={langClass}><span className="libraryAssistantPromoStar" aria-hidden="true">✦</span> {Sefaria._("site_wide_banner.ask_the_library_assistant")}</h3>
+        <p className={langClass}>{Sefaria._("site_wide_banner.discover_answers_to_your_questions")}</p>
         {isLoggedIn ? (
-          <a href="#" className="tryIt" onClick={actionLink(handleTryIt)} aria-disabled={isActionPending || undefined}>
+          <a href="#" className="button small tryIt" onClick={actionLink(handleTryIt)} aria-disabled={isActionPending || undefined}>
             {isActionPending ? Sefaria._("common.loading") : Sefaria._("site_wide_banner.try_it")}
           </a>
         ) : (
-          <a className="logInToTry" href={getLibraryAssistantLoginHref(Sefaria.util.currentPath())} onClick={() => track("login")}>
+          <a className="button small logInToTry" href={getLibraryAssistantLoginHref(Sefaria.util.currentPath())} onClick={() => track("login")}>
             {Sefaria._("site_wide_banner.log_in_to_try")}
           </a>
         )}
@@ -85,7 +82,7 @@ const LibraryAssistantPromoWidget = () => {
 
 /**
  * Library Assistant promo for the library homepage sidebar: the old site-wide banner's
- * icon, copy, events and "Maybe later" backoff, as a compact module with text links.
+ * copy, events and "Maybe later" backoff, styled as a standard sidebar promo.
  * Hidden for users who have already opted in or out of the assistant.
  */
 const LibraryAssistantPromo = () => (

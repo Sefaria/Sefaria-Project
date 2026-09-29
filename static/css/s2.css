@@ -1716,53 +1716,6 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
 .readerPanel .navSidebarModule.blue h1 {
   color: white;
 }
-/* Library Assistant promo on the library homepage sidebar. Same hardcoded #653259
-   as the old .siteWideBanner promo (see the note there), rounded like its modal. */
-.navSidebarModule.libraryAssistantPromo {
-  margin: 0 44px 34px;
-  padding: 20px 20px 18px;
-  border-radius: 10px;
-  background-color: #653259;
-  color: white;
-}
-.singlePanel .navSidebarModule.libraryAssistantPromo {
-  margin: 0 15px 34px;
-}
-.readerPanel .navSidebarModule.libraryAssistantPromo h1 {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  color: white;
-  border-bottom-color: rgba(255, 255, 255, 0.3);
-}
-/* Drawn white-on-transparent for the purple banner; 41x43 frame scaled down. */
-.libraryAssistantPromo .libraryAssistantPromoIcon {
-  width: 28px;
-  height: 29px;
-  flex-shrink: 0;
-}
-.libraryAssistantPromo .libraryAssistantPromoText {
-  margin: 0 0 12px;
-  line-height: 1.4;
-  opacity: 0.85;
-}
-.libraryAssistantPromo .libraryAssistantPromoLinks {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 20px;
-}
-.libraryAssistantPromo .libraryAssistantPromoLinks a,
-.libraryAssistantPromo .libraryAssistantPromoLinks a:hover {
-  color: white;
-  font-weight: 600;
-  text-decoration: underline;
-}
-.libraryAssistantPromo .libraryAssistantPromoLinks a[aria-disabled="true"] {
-  cursor: default;
-  opacity: 0.7;
-}
 .navSidebarIcon {
   height: 18px;
   width: 18px;
@@ -2871,6 +2824,31 @@ a.cardTitle:hover {
 }
 .sidebarPromo.blue.button a:hover {
   color: var(--sefaria-blue);
+}
+/* Library Assistant promo: a standard sidebar promo on a faint tint of the promo's
+   hardcoded #653259 (see the note above .siteWideBanner), full-bleed like .blue. */
+.sidebarPromo.libraryAssistantPromo {
+  padding-top: 30px;
+  padding-bottom: 30px;
+  background-color: #F5EFF4;
+}
+/* The ✦ takes the promo purple, as it does on the header's "✦ Assistant". */
+.sidebarPromo.libraryAssistantPromo .libraryAssistantPromoStar {
+  color: #653259;
+}
+.sidebarPromo.libraryAssistantPromo a.button,
+.sidebarPromo.libraryAssistantPromo a.button:hover {
+  background-color: #653259;
+  color: white;
+}
+.sidebarPromo.libraryAssistantPromo a.button[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.7;
+}
+.sidebarPromo.libraryAssistantPromo a.maybeLater {
+  margin-inline-start: 20px;
+  color: inherit;
+  text-decoration: underline;
 }
 .sidebarPromo img {
     height: 18px;

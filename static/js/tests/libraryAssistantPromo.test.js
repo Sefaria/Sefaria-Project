@@ -1,6 +1,6 @@
 /* Testing done using Jest */
 // The Library Assistant promo widget in the library homepage sidebar. It carries the old
-// banner's copy, analytics and "Maybe later" backoff, with text links instead of buttons.
+// banner's copy, analytics and "Maybe later" backoff, in the same markup as a Strapi sidebar ad.
 jest.mock("../sefaria/sefaria", () => ({ __esModule: true, default: {
   _: (k) => k,
   _uid: null,
@@ -33,6 +33,7 @@ describe("LibraryAssistantPromo sidebar widget", function () {
     sessionStorage.clear();
     global.gtag = jest.fn();
     mockSefaria._uid = null;
+    mockSefaria.interfaceLang = "english";
     mockSefaria.in_chatbot_experiment = undefined;
     mockSefaria.chatbot_promo_maybe_later_json = null;
     mockSefaria.getBreakpoint.mockReturnValue("desktop");
@@ -44,21 +45,32 @@ describe("LibraryAssistantPromo sidebar widget", function () {
   });
 
   const render = () => act(() => { ReactDOM.render(<LibraryAssistantPromo />, container); });
-  const widget = () => container.querySelector(".navSidebarModule.libraryAssistantPromo");
+  const widget = () => container.querySelector(".navSidebarModule > .sidebarPromo.libraryAssistantPromo");
   const click = (selector) => act(() => {
     container.querySelector(selector).dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
   });
   const clickedEvents = () => global.gtag.mock.calls.filter(([, name]) => name === "promo_clicked");
   const viewedEvents = () => global.gtag.mock.calls.filter(([, name]) => name === "promo_viewed");
 
-  it("renders the banner's icon and copy, with links and no buttons", function () {
+  it("renders as a standard sidebar promo: ✦ title, banner copy, a button-styled link and a text link", function () {
     render();
     expect(widget()).not.toBeNull();
-    expect(widget().querySelector("h1").textContent).toBe("site_wide_banner.ask_the_library_assistant");
-    expect(widget().querySelector("img").getAttribute("src")).toBe("/static/icons/ai-double-star.svg");
-    expect(widget().textContent).toContain("site_wide_banner.discover_answers_to_your_questions");
+    expect(widget().querySelector("h3.int-en").textContent).toBe("✦ site_wide_banner.ask_the_library_assistant");
+    expect(widget().querySelector("p.int-en").textContent).toBe("site_wide_banner.discover_answers_to_your_questions");
+    expect(widget().querySelector("img")).toBeNull();
     expect(widget().querySelector("button")).toBeNull();
-    expect(widget().querySelectorAll("a").length).toBe(2);
+    const links = widget().querySelectorAll("a");
+    expect(links.length).toBe(2);
+    expect(links[0].className).toBe("button small logInToTry");
+    expect(links[1].className).toBe("maybeLater");
+  });
+
+  it("uses the Hebrew language class in the Hebrew interface", function () {
+    mockSefaria.interfaceLang = "hebrew";
+    render();
+    expect(widget().querySelector("h3.int-he")).not.toBeNull();
+    expect(widget().querySelector("p.int-he")).not.toBeNull();
+    mockSefaria.interfaceLang = "english";
   });
 
   it("renders nothing during SSR", function () {
@@ -128,6 +140,7 @@ describe("LibraryAssistantPromo sidebar widget", function () {
     expect(container.querySelector("a.logInToTry")).toBeNull();
     expect(sessionStorage.getItem("promo_viewed_chatbot_experiment_banner_dismissed")).toBe("1");
     const tryIt = container.querySelector("a.tryIt");
+    expect(tryIt.className).toBe("button small tryIt");
     expect(tryIt.textContent).toBe("site_wide_banner.try_it");
     click("a.tryIt");
     expect(clickedEvents()).toEqual([["event", "promo_clicked", { ...GTAG_PARAMS, feature_name: "join" }]]);
