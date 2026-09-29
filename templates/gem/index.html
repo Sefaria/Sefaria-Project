@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>gem — Talmud</title>
+  <meta name="description" content="A calm, beautiful place to learn Talmud: Gemara with Rashi and Tosafot side by side, in Hebrew, English or both, with search and dictionary built in.">
+  <meta name="theme-color" content="#faf8f4">
+  <meta property="og:title" content="gem — Talmud">
+  <meta property="og:description" content="Gemara, Rashi and Tosafot side by side — Bavli and Yerushalmi, in Hebrew and English.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M9 4h14l6 8-13 16L3 12z' fill='%231f4e79'/%3E%3Cpath d='M3 12h26M9 4l7 24M23 4l-7 24' stroke='%23fff' stroke-opacity='.5' fill='none'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700&family=David+Libre:wght@400;500;700&family=Noto+Serif+Hebrew:wght@400;600&family=Noto+Rashi+Hebrew:wght@400;600&family=Heebo:wght@400;500;600&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="{{ css_url }}">
+  <script>
+    // Resolve the theme before first paint so there is no flash.
+    try {
+      var s = JSON.parse(localStorage.getItem("gem:settings:v1") || "null");
+      if (s && s.theme) document.documentElement.dataset.theme = s.theme;
+    } catch (e) {}
+  </script>
+  <script type="importmap">{{ import_map_json|safe }}</script>
+  {{ config|json_script:"gem-config" }}
+  <script>window.GEM_CONFIG = JSON.parse(document.getElementById("gem-config").textContent);</script>
+</head>
+<body>
+  <a class="skip" href="#pane-center-body">Skip to the Gemara</a>
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="tb-start">
+        <a class="brand" id="brand" href="/" aria-label="gem — home"><span class="brand-word">gem</span></a>
+        <div class="corpus-switch" role="radiogroup" aria-label="Talmud">
+          <button type="button" role="radio" data-corpus="bavli" aria-checked="true" class="on"><span lang="he">בבלי</span><span class="cs-en">Bavli</span></button>
+          <button type="button" role="radio" data-corpus="yerushalmi" aria-checked="false"><span lang="he">ירושלמי</span><span class="cs-en">Yerushalmi</span></button>
+        </div>
+      </div>
+      <nav class="tb-center" aria-label="Page">
+        <button type="button" class="nav-arrow" id="btn-next" aria-label="Next amud">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button type="button" class="where" id="btn-where" aria-haspopup="dialog" aria-label="Choose masechta and daf">
+          <span class="where-main"><span class="where-he" id="where-he" lang="he">&nbsp;</span><span class="where-en" id="where-en">&nbsp;</span><svg class="where-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+          <span class="where-perek" id="where-perek" lang="he"></span>
+        </button>
+        <button type="button" class="nav-arrow" id="btn-prev" aria-label="Previous amud">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </nav>
+      <div class="tb-end">
+        <button type="button" class="chip dafyomi" id="btn-dafyomi"><span class="dy-label">Daf Yomi</span><span class="dy-sub" lang="he"></span></button>
+        <button type="button" class="icon-btn search-btn" id="btn-search" aria-label="Search (/)" title="Search · jump to a daf ( / )">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          <span class="search-hint">Search</span><kbd>/</kbd>
+        </button>
+        <button type="button" class="icon-btn" id="btn-define" aria-pressed="false" aria-label="Tap to define" title="Tap-to-define ( D )">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 7v14M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+        </button>
+        <button type="button" class="icon-btn" id="btn-settings" aria-label="Reading settings" title="Theme &amp; settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="15" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="9" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="17" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+        </button>
+      </div>
+      <div class="progress" id="progress" role="progressbar" aria-label="Position in masechta" aria-valuemin="0" aria-valuemax="100"><div class="fill"></div><div class="ticks"></div></div>
+    </header>
+
+    <main class="panes" id="panes">
+      <section class="pane pane-side pane-left" data-pane="left" aria-label="Tosafot">
+        <div class="pane-head">
+          <button type="button" class="pane-title" data-action="commentator" aria-haspopup="dialog" title="Choose commentary">
+            <span class="pt-he" lang="he">תוספות</span><span class="pt-en">Tosafot</span>
+            <svg class="pt-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          </button>
+          <button type="button" class="icon-btn sm pane-aa" aria-label="Display settings for this column" title="Language, font &amp; size">Aa</button>
+        </div>
+        <div class="pane-body" tabindex="-1"></div>
+      </section>
+
+      <section class="pane pane-center" data-pane="center" aria-label="Gemara">
+        <div class="pane-head">
+          <div class="pane-title static"><span class="pt-he" lang="he">גמרא</span><span class="pt-en">Gemara</span></div>
+          <button type="button" class="icon-btn sm pane-aa" aria-label="Display settings for the Gemara" title="Language, font &amp; size">Aa</button>
+        </div>
+        <div class="pane-body" id="pane-center-body" tabindex="-1"></div>
+      </section>
+
+      <section class="pane pane-side pane-right" data-pane="right" aria-label="Rashi">
+        <div class="pane-head">
+          <button type="button" class="pane-title" data-action="commentator" aria-haspopup="dialog" title="Choose commentary">
+            <span class="pt-he" lang="he">רש״י</span><span class="pt-en">Rashi</span>
+            <svg class="pt-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          </button>
+          <button type="button" class="icon-btn sm pane-aa" aria-label="Display settings for this column" title="Language, font &amp; size">Aa</button>
+        </div>
+        <div class="pane-body" tabindex="-1"></div>
+      </section>
+    </main>
+
+    <nav class="tabbar" id="tabbar" aria-label="Columns">
+      <button type="button" data-pane="left"><span class="tb-he" lang="he">תוספות</span><span class="tb-en">Tosafot</span><span class="tb-badge" hidden></span></button>
+      <button type="button" data-pane="center" class="on"><span class="tb-he" lang="he">גמרא</span><span class="tb-en">Gemara</span></button>
+      <button type="button" data-pane="right"><span class="tb-he" lang="he">רש״י</span><span class="tb-en">Rashi</span><span class="tb-badge" hidden></span></button>
+    </nav>
+  </div>
+
+  <div id="selmenu" class="selmenu" role="toolbar" aria-label="Selection" hidden></div>
+  <div id="layer"></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <noscript><p style="padding:2rem;font-family:serif">gem needs JavaScript to open the Talmud.</p></noscript>
+  <script type="module" src="{{ main_url }}"></script>
+</body>
+</html>
