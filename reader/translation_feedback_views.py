@@ -20,7 +20,8 @@ from sefaria.client.util import jsonResponse
 from sefaria.model import Ref
 from sefaria.model.translation_feedback import ASSESSMENT_LEGEND, STATUSES, STATUS_LABELS, visible_text, has_markup
 from sefaria.helper.translation_feedback import (
-    create_feedback, accept_feedback, reject_feedback, reopen_feedback, list_feedback, get_segment_texts,
+    create_feedback, accept_feedback, reject_feedback, reopen_feedback, list_feedback, count_feedback,
+    get_segment_texts,
 )
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.system.exceptions import InputError
@@ -184,8 +185,11 @@ def translation_feedback_dashboard(request):
     except Exception:
         pass  # never let the dashboard fail because of the LLM retry sweep
     rows = [_row(fb) for fb in list_feedback()]
+    total_count = count_feedback()
     return render_template(request, "translation_feedback.html", None, {
         "rows": rows,
+        "total_count": total_count,
+        "capped": total_count > len(rows),  # only the newest rows are loaded, and filters only see those
         "legend": ASSESSMENT_LEGEND,
         "grade_options": [(g, grade_class(g)) for g in GRADE_ORDER],
         "status_options": [STATUS_LABELS[status] for status in STATUSES],

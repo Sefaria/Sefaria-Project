@@ -225,5 +225,13 @@ def reopen_feedback(feedback_id):
     return feedback
 
 
-def list_feedback(limit=500):
+DASHBOARD_LIMIT = 500  # newest records loaded into the dashboard; its filters only see these
+
+
+def list_feedback(limit=DASHBOARD_LIMIT):
     return TranslationFeedbackSet({}, sort=[("created", -1)], limit=limit)
+
+
+def count_feedback():
+    """Total number of feedback records (a count_documents call; nothing is loaded)."""
+    return TranslationFeedbackSet({}).count()

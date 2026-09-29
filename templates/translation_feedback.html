@@ -1,10 +1,15 @@
 {% extends "base.html" %}
-{% load sefaria_tags %}
+{% load sefaria_tags humanize %}
 
 {% block meta_title %}{% meta_title %}Translation Feedback | Sefaria{% endmeta_title %}<meta name="robots" content="noindex, nofollow">{% endblock %}
 
 {% block css %}
-    #translationFeedbackPage { max-width: 1400px; margin: 0 auto; padding: 40px 30px 80px; font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif; color: #333; }
+    /* The site header (#s2.headerOnly) is position:fixed and takes no space in the flow, so start the
+       page below it using the header's own --header-height token (header.css), as the auth pages do.
+       A site banner already pads <body> (s2.css), so only the header needs clearing here. */
+    html { scroll-padding-top: calc(var(--header-height, 60px) + 16px); }
+    html:has(> body.hasBannerMessage #bannerMessage:not(.hidden)) { scroll-padding-top: calc(var(--header-height, 60px) + 136px); }
+    #translationFeedbackPage { max-width: 1400px; margin: 0 auto; padding: calc(var(--header-height, 60px) + 40px) 30px 80px; font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif; color: #333; }
     #translationFeedbackPage h1 { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; font-size: 36px; font-weight: normal; margin: 0 0 6px; color: #000; }
     #translationFeedbackPage .subtitle { color: #666; font-size: 15px; margin-bottom: 16px; }
     #translationFeedbackPage .legend { margin-bottom: 16px; font-size: 14px; }
@@ -26,6 +31,7 @@
     #translationFeedbackPage .chip input:checked + span { background: #18345D; border-color: #18345D; color: #fff; }
     #translationFeedbackPage .chip input:focus-visible + span { outline: 2px solid #4B71B7; outline-offset: 1px; }
     #translationFeedbackPage .filterMeta { display: flex; align-items: center; gap: 12px; margin-left: auto; color: #666; }
+    #translationFeedbackPage .capNotice { font-size: 13px; color: #B26A00; }
     #translationFeedbackPage .clearFilters { font-size: 13px; padding: 4px 10px; border-radius: 6px; border: 1px solid #CCC; background: #fff; color: #333; cursor: pointer; }
     #translationFeedbackPage .tableWrap { overflow-x: auto; }
     #translationFeedbackPage table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.4; }
@@ -50,6 +56,9 @@
     #translationFeedbackPage tr:not([data-status=undecided]) .markupWarning { display: none; }
     #translationFeedbackPage td.comment { max-width: 340px; white-space: pre-wrap; }
     #translationFeedbackPage td.note { max-width: 380px; color: #444; }
+    #translationFeedbackPage .noteText:not(.expanded) { display: -webkit-box; -webkit-line-clamp: 6; line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+    #translationFeedbackPage .noteToggle { display: block; margin-top: 4px; padding: 0; border: 0; background: none; color: #18345D; font-size: 12px; cursor: pointer; }
+    #translationFeedbackPage .noteToggle[hidden] { display: none; }
     #translationFeedbackPage td.assessment { text-align: center; font-weight: bold; font-size: 18px; }
     #translationFeedbackPage .a1 { color: #2E7D32; } #translationFeedbackPage .a2 { color: #558B2F; }
     #translationFeedbackPage .a3 { color: #B26A00; } #translationFeedbackPage .a4 { color: #B71C1C; }
@@ -113,6 +122,7 @@
         </div>
         <div class="filterMeta">
             <span id="tfCount" aria-live="polite">Showing {{ rows|length }} of {{ rows|length }}</span>
+            {% if capped %}<span class="capNotice" title="Search, filters and sorting cover only these loaded records.">Showing the newest {{ rows|length|intcomma }} of {{ total_count|intcomma }} records</span>{% endif %}
             <button type="button" class="clearFilters" id="tfClear">Clear filters</button>
         </div>
     </form>
@@ -156,7 +166,7 @@
                         <span class="pending">pending</span>
                     {% endif %}
                 </td>
-                <td class="note">{% if row.note %}{{ row.note }}{% elif not row.assessment %}<span class="pending">pending</span>{% endif %}</td>
+                <td class="note">{% if row.note %}<div class="noteText">{{ row.note }}</div><button type="button" class="noteToggle" aria-expanded="false" hidden>Show all</button>{% elif not row.assessment %}<span class="pending">pending</span>{% endif %}</td>
                 <td class="status">
                     <span class="statusLabel">{% if row.status == "accepted" %}&#10003; Accepted{% elif row.status == "rejected" %}&#10007; Rejected{% else %}Undecided{% endif %}</span>
                     <span class="small decidedBy">{% if row.status != "undecided" and row.decided_by_label %}by {{ row.decided_by_label }}{% if row.decided_at %}, {{ row.decided_at }}{% endif %}{% endif %}</span>
@@ -241,6 +251,7 @@
         noMatch.hidden = shown !== 0;
         document.getElementById("tfCount").textContent = "Showing " + shown + " of " + rows.length;
         writeUrl(q, user, grades, statuses);
+        updateClamps();
     }
 
     function applySort() {
@@ -350,6 +361,33 @@
             });
         });
     });
+
+    // LLM notes are clamped to 6 lines; show the toggle only where the text actually overflows.
+    // Hidden (filtered-out) rows can't be measured, so they're rechecked whenever they become visible.
+    var notes = Array.prototype.map.call(tbody.querySelectorAll(".noteText"), function(el) {
+        var toggle = el.nextElementSibling;
+        toggle.addEventListener("click", function() {
+            var expanded = el.classList.toggle("expanded");
+            toggle.textContent = expanded ? "Show less" : "Show all";
+            toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+            if (!expanded) { updateClamps(); }
+        });
+        return {el: el, toggle: toggle, row: el.closest("tr")};
+    });
+
+    function updateClamps() {
+        notes.forEach(function(n) {
+            if (n.row.hidden || n.el.classList.contains("expanded")) { return; }
+            n.toggle.hidden = n.el.scrollHeight <= n.el.clientHeight + 1;
+        });
+    }
+
+    var resizeFrame = null;
+    window.addEventListener("resize", function() {
+        if (resizeFrame) { return; }
+        resizeFrame = requestAnimationFrame(function() { resizeFrame = null; updateClamps(); });
+    });
+    if (document.fonts && document.fonts.ready) { document.fonts.ready.then(updateClamps); }
 
     readUrl();
     applySort();

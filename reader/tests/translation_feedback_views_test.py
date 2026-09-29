@@ -105,16 +105,11 @@ def test_dashboard_rows(records):
 
 def test_dashboard_renders(records):
     records(word="beginning", occurrence=0, suggestion="start", llm_assessment="2", user_id=5)
-    records(llm_assessment="1", comment="<b>not html</b>")
+    records(llm_assessment="1", comment="<b>not html</b>", llm_note="Reads more naturally.")
     records(status=STATUS_ACCEPTED, accepted_by=6, accepted_at=1700000100, llm_assessment="3")
     records(status=STATUS_REJECTED, decided_by=6, decided_at=1700000200, llm_assessment="4")
     records(suggestion=None, comment="Comment only")
-    request = RequestFactory().get("/translation-feedback", {"status": "undecided"})
-    request.user = AnonymousUser()
-    with patch("sefaria.helper.llm.translation_feedback.assess_stale_in_background"), \
-         patch.object(views, "list_feedback", lambda: TranslationFeedbackSet({"ref": REF}, sort=[("created", -1)])), \
-         patch("reader.views.render_template", _render_plain):
-        html = views.translation_feedback_dashboard(request).content.decode()
+    html = _dashboard_html(limit=500, query={"status": "undecided"})
     assert '<details class="legend">' in html and "What do the grades mean?" in html
     assert 'id="tfFilters"' in html and 'id="tfUsers"' in html
     assert '<option value="anon">' in html and '<option value="#5">' in html
@@ -124,6 +119,29 @@ def test_dashboard_renders(records):
     assert 'data-status="accepted"' in html and 'data-status="rejected"' in html
     assert "&lt;b&gt;not html&lt;/b&gt;" in html
     assert "Log in to accept or reject" in html and 'data-action="reject"' not in html
+    assert html.count('class="noteText"') == 1 and html.count('class="noteToggle"') == 1  # only the row with a note
+    assert "Showing the newest" not in html  # all 5 records are loaded
+
+
+def test_dashboard_cap_notice(records):
+    for i in range(3):
+        records(llm_assessment="1", comment="c{}".format(i))
+    html = _dashboard_html(limit=2)
+    assert "Showing 2 of 2" in html
+    assert "Showing the newest 2 of 3 records" in html
+    assert html.count("<tr data-id=") == 2
+
+
+def _dashboard_html(limit, query=None):
+    """The dashboard with list_feedback()/count_feedback() scoped to this test's records, loading at most `limit`."""
+    request = RequestFactory().get("/translation-feedback", query or {})
+    request.user = AnonymousUser()
+    with patch("sefaria.helper.llm.translation_feedback.assess_stale_in_background"), \
+         patch.object(views, "list_feedback",
+                      lambda: TranslationFeedbackSet({"ref": REF}, sort=[("created", -1)], limit=limit)), \
+         patch.object(views, "count_feedback", lambda: TranslationFeedbackSet({"ref": REF}).count()), \
+         patch("reader.views.render_template", _render_plain):
+        return views.translation_feedback_dashboard(request).content.decode()
 
 
 def _render_plain(request, template_name, app_props=None, template_context=None, **kwargs):
