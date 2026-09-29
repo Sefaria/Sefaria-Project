@@ -17058,3 +17058,41 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   pointer-events: none;
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
+
+/* First-visit fork modal (proof of concept, mobile web, `/texts?fork=1`) */
+/* The Library Assistant's floating button would sit on top of the modal's backdrop */
+.readerApp:has(.firstVisitFork) lc-chatbot {
+  visibility: hidden;
+}
+.dialogModal .modal-content > .firstVisitFork {
+  padding: 28px 24px 24px;
+}
+.firstVisitFork h2 {
+  margin: 0 0 8px;
+  font-size: var(--serif-h3-font-size);
+  font-weight: 400;
+  text-align: center;
+  color: var(--darkest-grey);
+}
+.firstVisitForkSubtitle {
+  margin: 0 0 24px;
+  font-size: var(--sans-serif-body-font-size);
+  line-height: 1.4;
+  text-align: center;
+  color: var(--dark-grey);
+}
+.firstVisitForkStar {
+  margin-inline-end: 6px;
+}
+.firstVisitForkButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+/* Light button colors, as the theme defines for secondary buttons elsewhere */
+button.sefaria-common-button.firstVisitForkBrowse {
+  --theme-button-background: var(--white);
+  --theme-button-text: var(--dark-grey);
+  --theme-button-icon-filter: brightness(0) saturate(100%) invert(38%) sepia(1%) saturate(0%) hue-rotate(220deg) brightness(99%) contrast(84%);  /* --dark-grey */
+  --theme-button-border: var(--light-grey);
+}

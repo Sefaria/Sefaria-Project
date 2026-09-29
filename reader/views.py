@@ -1321,6 +1321,9 @@ def texts_list(request):
     title = get_page_title("", module=request.active_module, page_type=PageTypes.HOME)
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
     props = get_user_history_props(request)
+    # Proof of concept: first-visit fork screen on mobile web, never shown by default.
+    props["showFirstVisitFork"] = request.GET.get("fork") == "1"
+    props["openLibraryAssistantOnLoad"] = request.GET.get("open_assistant") == "1"
     return menu_page(request, page="navigation", title=title, desc=desc, props=props)
 
 def calendars(request):
