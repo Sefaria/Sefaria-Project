@@ -82,11 +82,9 @@ def test_reject_and_reopen_api(records):
         modify_text.assert_not_called()
 
 
-def test_user_labels(records):
-    with patch("django.contrib.auth.models.User.objects") as objects:
-        objects.filter.return_value.values_list.return_value = [(5, "Ada", "Lovelace"), (6, "", "")]
-        assert views.user_labels([5, 6, 8, None, 5]) == {5: "Ada Lovelace (#5)", 6: "#6", 8: "#8"}
-    assert views.user_labels([None]) == {}
+def test_user_label_is_id_only():
+    assert views.user_label(5) == "#5"
+    assert views.user_label(None) == "anon"
 
 
 def test_dashboard_rows(records):
@@ -95,10 +93,9 @@ def test_dashboard_rows(records):
     records(status=STATUS_ACCEPTED, accepted_by=6, accepted_at=1700000100, llm_assessment="3")  # accepted, older record
     records(status=STATUS_REJECTED, decided_by=6, decided_at=1700000200, llm_assessment="?")
     records(suggestion=None, comment="Comment only")                                             # pending
-    labels = {5: "Ada Lovelace (#5)", 6: "#6"}
-    rows = {r["grade"]: r for r in (views._row(fb, labels) for fb in TranslationFeedbackSet({"ref": REF}))}
+    rows = {r["grade"]: r for r in (views._row(fb) for fb in TranslationFeedbackSet({"ref": REF}))}
     assert rows["2"]["word"] == "beginning" and rows["2"]["diff"] is None
-    assert rows["1"]["diff"] and rows["1"]["user_label"] == "Ada Lovelace (#5)"
+    assert rows["1"]["diff"] and rows["1"]["user_label"] == "#5"
     assert rows["1"]["search_text"] == REF + " In the beginning Better & clearer"
     assert rows["3"]["status"] == "accepted" and rows["3"]["decided_by_label"] == "#6"
     assert rows["?"]["status"] == "rejected" and rows["?"]["grade_class"] == "aQ"
@@ -119,7 +116,8 @@ def test_dashboard_renders(records):
          patch("reader.views.render_template", _render_plain):
         html = views.translation_feedback_dashboard(request).content.decode()
     assert '<details class="legend">' in html and "What do the grades mean?" in html
-    assert 'id="tfFilters"' in html and 'id="tfUsers"' in html and '<option value="anon">' in html
+    assert 'id="tfFilters"' in html and 'id="tfUsers"' in html
+    assert '<option value="anon">' in html and '<option value="#5">' in html
     assert html.count('type="checkbox" name="grade"') == 7 and html.count('type="checkbox" name="status"') == 3
     assert 'data-sort="date"' in html and 'data-sort="grade"' in html
     assert html.count('data-status="undecided"') == 3

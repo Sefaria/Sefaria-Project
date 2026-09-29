@@ -100,24 +100,9 @@ def grade_class(grade):
     return "pending" if grade == "pending" else "a" + ("Q" if grade == "?" else grade)
 
 
-def user_labels(user_ids):
-    """
-    {user_id: "First Last (#id)"} for the given ids, in one query. Falls back to "#id" for users
-    without a name (or if the lookup fails). Never exposes email addresses: the dashboard is open.
-    """
-    ids = {uid for uid in user_ids if uid}
-    labels = {uid: "#{}".format(uid) for uid in ids}
-    if not ids:
-        return labels
-    try:
-        from django.contrib.auth.models import User
-        for uid, first, last in User.objects.filter(id__in=ids).values_list("id", "first_name", "last_name"):
-            name = " ".join(part for part in (first, last) if part).strip()
-            if name:
-                labels[uid] = "{} (#{})".format(name, uid)
-    except Exception:
-        pass
-    return labels
+def user_label(user_id):
+    """"#<id>" or "anon". Only ids, never names: the dashboard is open to anyone with the URL."""
+    return "#{}".format(user_id) if user_id else "anon"
 
 
 def _reader_url(fb):
@@ -156,7 +141,7 @@ def word_diff(old, new):
     return chunks
 
 
-def _row(fb, labels):
+def _row(fb):
     user_id = getattr(fb, "user_id", None)
     decided_by, decided_at = fb.decider()
     assessment = getattr(fb, "llm_assessment", None)
@@ -172,7 +157,7 @@ def _row(fb, labels):
         "word": getattr(fb, "word", None),
         "occurrence": (fb.occurrence + 1) if getattr(fb, "occurrence", None) is not None else None,
         "user_id": user_id,
-        "user_label": labels.get(user_id, "#{}".format(user_id)) if user_id else "anon",
+        "user_label": user_label(user_id),
         "suggestion": getattr(fb, "suggestion", None),
         "comment": getattr(fb, "comment", None),
         "search_text": " ".join(t for t in (fb.ref, getattr(fb, "suggestion", None), getattr(fb, "comment", None)) if t),
@@ -182,7 +167,7 @@ def _row(fb, labels):
         "grade_class": grade_class(grade),
         "note": getattr(fb, "llm_note", None),
         "status": fb.status_label(),
-        "decided_by_label": (labels.get(decided_by, "#{}".format(decided_by)) if decided_by else None),
+        "decided_by_label": user_label(decided_by) if decided_by else None,
         "decided_at": _format_time(decided_at),
         "diff": word_diff(visible_text(getattr(fb, "segment_text", "")), fb.suggestion)
                 if fb.has_suggestion() and not fb.is_word_level() else None,
@@ -198,17 +183,14 @@ def translation_feedback_dashboard(request):
         assess_stale_in_background()
     except Exception:
         pass  # never let the dashboard fail because of the LLM retry sweep
-    feedback = list_feedback().array()
-    me = request.user.id if request.user.is_authenticated else None
-    labels = user_labels([getattr(fb, "user_id", None) for fb in feedback] + [fb.decider()[0] for fb in feedback] + [me])
-    rows = [_row(fb, labels) for fb in feedback]
+    rows = [_row(fb) for fb in list_feedback()]
     return render_template(request, "translation_feedback.html", None, {
         "rows": rows,
         "legend": ASSESSMENT_LEGEND,
         "grade_options": [(g, grade_class(g)) for g in GRADE_ORDER],
         "status_options": [STATUS_LABELS[status] for status in STATUSES],
         "user_options": sorted({row["user_label"] for row in rows}, key=lambda l: (l != "anon", l.lower())),
-        "me_label": labels.get(me) if me else None,
+        "me_label": user_label(request.user.id) if request.user.is_authenticated else None,
         "logged_in": request.user.is_authenticated,
         "login_url": "/login?next=" + urllib.parse.quote(request.get_full_path()),
     })
