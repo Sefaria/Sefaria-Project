@@ -60,10 +60,10 @@ describe("LandyWelcome", function () {
     expect(onAsk).toHaveBeenCalledWith("landy.where_am_i", undefined);
   });
 
-  it("sends 'suggest things' with the personalize intent", function () {
+  it("sends 'suggest things' with the interview intent", function () {
     render();
     click(optionButtons()[1]);
-    expect(onAsk).toHaveBeenCalledWith("landy.suggest", "personalize");
+    expect(onAsk).toHaveBeenCalledWith("landy.suggest", "interview");
   });
 
   it("links to this week's parasha, today's daf, Pirkei Avot and Esther", function () {

@@ -131,7 +131,7 @@ const LandyWelcome = ({ mobile, onAsk, onClose }) => {
             </button>
           </li>
           <li>
-            <button type="button" className="landyWelcomeOption" onClick={() => ask("suggest", suggest, "personalize")}>
+            <button type="button" className="landyWelcomeOption" onClick={() => ask("suggest", suggest, "interview")}>
               <img src="/static/icons/ai-star-outline-18.svg" alt="" aria-hidden="true" />
               <span>{suggest}</span>
             </button>
