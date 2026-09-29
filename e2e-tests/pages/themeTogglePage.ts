@@ -1,7 +1,9 @@
-import { expect, BrowserContext, Locator, Page } from '@playwright/test';
+import { expect, BrowserContext, Locator, Page, TestInfo } from '@playwright/test';
 import { HelperBase } from './helperBase';
 import { hideAllModalsAndPopups } from '../utils';
 import { LANGUAGES, t } from '../globals';
+// In-page WCAG probes shared with scripts/darkmode/a11y-audit.js (plain CommonJS).
+import * as A11Y from '../support/a11y-scan.js';
 
 /**
  * Page object for the dark-mode theme toggle (desktop header + mobile hamburger).
@@ -110,6 +112,45 @@ export const THEME_CONTRAST_SELECTORS = {
     '.mobileNavMenu .mobileThemeToggle',
   ],
 } as const;
+
+/** Selectors and pages for the accessibility specs (theme-a11y.spec.ts, both configs). */
+export const THEME_A11Y = {
+  SKIP_LINK: 'a.skip-link',
+  MAIN: '#main',
+  HEADER: '.header',
+  MODULE_SWITCHER: '.headerDropdownMenu[data-anl-feature_name="module_switcher"]',
+  ACCOUNT_MENU: '.headerDropdownMenu:has(.profile-pic), .headerDropdownMenu:has(img[src*="profile_loggedout_mdl"])',
+  MOBILE_LANGUAGE_CONTROLS: '.mobileNavMenu .mobileInterfaceLanguageToggle :is(a, button)',
+  MOBILE_SWITCH_TRACK: '.mobileNavMenu .mobileThemeToggle .mobileThemeToggleSwitch',
+  /** Where the dark contrast scans look (the whole page body, or the open menu). */
+  SCAN_PAGE: ['body'],
+  SCAN_MOBILE_MENU: ['.mobileNavMenu'],
+  /** Links in running text (1.4.1): topic descriptions on the /topics landing page. */
+  RUNNING_TEXT_ROOTS: ['.topicDescription', '.reactMarkdown', '.sheetContent .segment'],
+  PATHS: {
+    TEXTS: '/texts',
+    READER: '/Genesis.1?lang=bi',
+    CONNECTIONS: '/Genesis.1.1?with=all',
+    TOPICS: '/topics',
+  },
+  /** Characters that must never be single-key shortcuts for the theme (2.1.4). */
+  CHARACTER_KEYS: ['d', 'D', 't', 'l', 'm', 'n'],
+  /** Tab presses allowed to walk from the top of the page through the header. */
+  MAX_TABS: 30,
+  MIN_FOCUS_CONTRAST: 3,
+} as const;
+
+export type ScanRow = {
+  selector: string; text: string; status: 'pass' | 'fail' | 'skip'; reason?: string;
+  fg?: string; bg?: string; ratio?: number; min?: number; large?: boolean;
+};
+export type FocusInfo = {
+  focused: boolean; tag?: string; name?: string; href?: string | null; inViewport?: boolean;
+  ring?: { source: string; width: number; offset: number; style: string; colour: string | null; background: string; contrast: number | null };
+  isToggle?: boolean; isMobileSwitch?: boolean; isSkipLink?: boolean;
+  inModuleSwitcher?: boolean; inAccount?: boolean; inHeader?: boolean;
+};
+export type FocusPixels = { changed: number; atLeast3: number; maxContrast: number; p90Contrast: number } | null;
 
 export type ThemeName = 'light' | 'dark';
 
@@ -740,5 +781,318 @@ export class ThemeTogglePage extends HelperBase {
   /** Non-text contrast (3:1) of the icon-only desktop toggle's glyph against the header. */
   async expectDesktopToggleIconContrast(): Promise<void> {
     await this.expectContrast([`${THEME_SELECTORS.HEADER_ICONS} ${THEME_SELECTORS.DESKTOP_TOGGLE}`], THEME.MIN_NON_TEXT_CONTRAST, true);
+  }
+
+  // --- accessibility (theme-a11y specs) ---------------------------------------
+  // The probes run in the page (e2e-tests/support/a11y-scan.js); these methods wrap them in
+  // assertions. See the compliance mapping in the spec headers.
+
+  private get skipLink(): Locator {
+    return this.page.locator(THEME_A11Y.SKIP_LINK);
+  }
+
+  /** Put the sequential-focus starting point at the start of <body>, as on a fresh load. */
+  async focusFromTop(): Promise<void> {
+    await hideAllModalsAndPopups(this.page);
+    await this.page.evaluate(() => {
+      window.scrollTo(0, 0);
+      const s = document.createElement('span');
+      s.tabIndex = -1;
+      document.body.prepend(s);
+      s.focus();
+      s.remove();
+    });
+  }
+
+  /** What has focus now, with where it sits relative to the header and the theme controls. */
+  async focusInfo(): Promise<FocusInfo> {
+    const info = (await this.page.evaluate(A11Y.describeFocus)) as FocusInfo;
+    const where = await this.page.evaluate((sel) => {
+      const a = document.activeElement;
+      const is = (s: string) => !!(a && a.matches(s));
+      const inside = (s: string) => !!(a && a.closest(s));
+      return {
+        isToggle: is(sel.toggle), isMobileSwitch: is(sel.mobile), isSkipLink: is(sel.skip),
+        inModuleSwitcher: inside(sel.modules), inAccount: inside(sel.account), inHeader: inside(sel.header),
+      };
+    }, {
+      toggle: `${THEME_SELECTORS.HEADER_ICONS} ${THEME_SELECTORS.DESKTOP_TOGGLE}`, mobile: `${THEME_SELECTORS.MOBILE_MENU} ${THEME_SELECTORS.MOBILE_TOGGLE}`,
+      skip: THEME_A11Y.SKIP_LINK, modules: THEME_A11Y.MODULE_SWITCHER, account: THEME_A11Y.ACCOUNT_MENU, header: THEME_A11Y.HEADER,
+    });
+    return { ...info, ...where };
+  }
+
+  /** Press Tab `count` times from the current point, recording every stop. */
+  async tabStops(count: number): Promise<FocusInfo[]> {
+    const stops: FocusInfo[] = [];
+    for (let i = 0; i < count; i++) {
+      await this.page.keyboard.press('Tab');
+      stops.push(await this.focusInfo());
+    }
+    return stops;
+  }
+
+  /**
+   * 2.1.1 / 2.1.2 / 2.4.3: from the top of the page Tab reaches the skip link first, then the
+   * header, with the desktop toggle right after the module switcher and right before the account
+   * menu, and focus keeps moving past the header (no trap).
+   */
+  async expectHeaderTabSequence(): Promise<FocusInfo[]> {
+    await this.focusFromTop();
+    const stops = await this.tabStops(THEME_A11Y.MAX_TABS);
+    const summary = stops.map((s) => `${s.tag}:${s.name}`).join(' | ');
+    expect(stops[0].isSkipLink, `first Tab stop is the skip link (${summary})`).toBe(true);
+    const i = stops.findIndex((s) => s.isToggle);
+    expect(i, `Tab reaches the toggle (${summary})`).toBeGreaterThan(0);
+    expect(stops[i - 1].inModuleSwitcher, `the stop before the toggle is the module switcher (${summary})`).toBe(true);
+    expect(stops[i + 1]?.inAccount, `the stop after the toggle is the account menu (${summary})`).toBe(true);
+    const after = stops.slice(i + 1);
+    expect(after.some((s) => s.focused && !s.inHeader), `focus leaves the header after the toggle (${summary})`).toBe(true);
+    expect(new Set(after.map((s) => `${s.tag}|${s.name}|${s.href}`)).size, `focus keeps moving (${summary})`).toBeGreaterThan(3);
+    return stops;
+  }
+
+  /** Tab from the top until the desktop toggle has keyboard focus. */
+  async tabToDesktopToggle(): Promise<void> {
+    await this.focusFromTop();
+    for (let i = 0; i < THEME_A11Y.MAX_TABS; i++) {
+      await this.page.keyboard.press('Tab');
+      if ((await this.focusInfo()).isToggle) return;
+    }
+    throw new Error(`the desktop toggle was not reached in ${THEME_A11Y.MAX_TABS} Tab presses`);
+  }
+
+  /**
+   * Pixel measurement of the focused element's indicator (focused vs unfocused screenshots of its
+   * box plus 8px), for rings the computed style cannot describe. Leaves the element focused.
+   */
+  async focusPixels(): Promise<FocusPixels> {
+    const vp = this.page.viewportSize();
+    const box = await this.page.evaluate(() => {
+      const a = document.activeElement;
+      if (!a || a === document.body) return null;
+      const r = a.getBoundingClientRect();
+      return { x: r.left, y: r.top, w: r.width, h: r.height };
+    });
+    if (!box || !vp || !box.w || !box.h) return null;
+    const x = Math.max(0, Math.floor(box.x - 8)), y = Math.max(0, Math.floor(box.y - 8));
+    const clip = { x, y, width: Math.min(vp.width - x, Math.ceil(box.w + 16)), height: Math.min(vp.height - y, Math.ceil(box.h + 16)) };
+    if (clip.width <= 0 || clip.height <= 0) return null;
+    const focused = (await this.page.screenshot({ clip, animations: 'disabled' })).toString('base64');
+    await this.page.evaluate(() => { (window as any).__a11yRefocus = document.activeElement; (document.activeElement as HTMLElement).blur(); });
+    const unfocused = (await this.page.screenshot({ clip, animations: 'disabled' })).toString('base64');
+    await this.page.evaluate(() => { (window as any).__a11yRefocus.focus(); delete (window as any).__a11yRefocus; });
+    return this.page.evaluate(A11Y.compareFocusPixels, { focused, unfocused });
+  }
+
+  /**
+   * 2.4.7 (AA): the focused element shows an indicator, and it reaches `min`:1 against what it is
+   * drawn on: by the computed outline colour, or by the pixels that change when focus arrives.
+   */
+  async expectFocusIndicator(min: number = THEME_A11Y.MIN_FOCUS_CONTRAST): Promise<{ info: FocusInfo; pixels: FocusPixels }> {
+    const info = await this.focusInfo();
+    expect(info.focused, 'something has focus').toBe(true);
+    const pixels = await this.focusPixels();
+    const detail = JSON.stringify({ name: info.name, ring: info.ring, pixels });
+    expect(info.ring?.source, `a focus indicator is drawn (${detail})`).not.toBe('none');
+    expect(pixels?.changed ?? 0, `focusing changes pixels (${detail})`).toBeGreaterThan(20);
+    const byStyle = (info.ring?.contrast ?? 0) >= min;
+    const byPixels = (pixels?.p90Contrast ?? 0) >= min && (pixels?.atLeast3 ?? 0) > 20;
+    expect(byStyle || byPixels, `focus indicator reaches ${min}:1 (${detail})`).toBe(true);
+    return { info, pixels };
+  }
+
+  /**
+   * 2.4.1: the skip link is the first Tab stop, is on screen with readable text and a focus ring
+   * while focused, and Enter moves the sequential-focus point into #main.
+   */
+  async expectSkipLinkWorks(): Promise<void> {
+    await this.focusFromTop();
+    await this.page.keyboard.press('Tab');
+    await expect(this.skipLink).toBeFocused({ timeout: t(5000) });
+    await expect(this.skipLink).toBeInViewport();
+    await expect(this.skipLink).toHaveAttribute('href', THEME_A11Y.MAIN);
+    // It slides in (transition: top 0.3s); measure it where it comes to rest.
+    await expect.poll(() => this.page.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      return el ? el.getAnimations().length : -1;
+    }, THEME_A11Y.SKIP_LINK), { timeout: t(5000), message: 'skip link transition finished' }).toBe(0);
+    const text =(await this.page.evaluate(A11Y.scanTextContrast, { roots: [THEME_A11Y.SKIP_LINK] })) as { rows: ScanRow[] };
+    const measured = text.rows.filter((r) => r.status !== 'skip');
+    expect(measured.length, `skip link text measured (${JSON.stringify(text.rows)})`).toBeGreaterThan(0);
+    expect(measured.filter((r) => r.status === 'fail'), JSON.stringify(measured)).toEqual([]);
+    await this.expectFocusIndicator();
+    await this.page.keyboard.press('Enter');
+    await expect(this.page).toHaveURL(/#main$/, { timeout: t(5000) });
+    await this.page.keyboard.press('Tab');
+    const next = await this.focusInfo();
+    expect(next.inHeader, `after the skip link, Tab continues in the main content (${next.tag}:${next.name})`).toBe(false);
+  }
+
+  /** The page state the "no change of context" checks compare. */
+  async contextState(): Promise<Record<string, unknown>> {
+    return this.page.evaluate((sel) => ({
+      url: location.href,
+      title: document.title,
+      lang: document.documentElement.getAttribute('lang'),
+      dir: document.documentElement.getAttribute('dir'),
+      theme: document.documentElement.getAttribute('data-theme'),
+      pressed: document.querySelector(sel.toggle)?.getAttribute('aria-pressed') ?? null,
+      checked: document.querySelector(sel.mobile)?.getAttribute('aria-checked') ?? null,
+      menuOpen: !!document.querySelector(sel.menuOpen),
+      focus: document.activeElement ? `${document.activeElement.tagName.toLowerCase()}.${(document.activeElement.className || '').toString().trim()}` : null,
+    }), {
+      toggle: `${THEME_SELECTORS.HEADER_ICONS} ${THEME_SELECTORS.DESKTOP_TOGGLE}`,
+      mobile: `${THEME_SELECTORS.MOBILE_MENU} ${THEME_SELECTORS.MOBILE_TOGGLE}`,
+      menuOpen: THEME_SELECTORS.MOBILE_MENU_OPEN,
+    });
+  }
+
+  /**
+   * 2.1.1 / 3.2.2 / 3.1.1: pressing `key` on the focused theme control flips the theme and its
+   * state attribute and changes nothing else: same URL, title, lang and dir, no page load, focus
+   * stays on the control, and (mobile) the menu stays open.
+   */
+  async expectKeyTogglesInPlace(key: 'Enter' | 'Space'): Promise<void> {
+    const loads = this.trackDocumentLoads();
+    const before = await this.contextState();
+    await this.page.keyboard.press(key);
+    const flipped = before.theme === THEME.DARK ? THEME.LIGHT : THEME.DARK;
+    await expect(this.html).toHaveAttribute(THEME.ATTR, flipped, { timeout: t(5000) });
+    const after = await this.contextState();
+    const same = (o: Record<string, unknown>) => ({ url: o.url, title: o.title, lang: o.lang, dir: o.dir, focus: o.focus, menuOpen: o.menuOpen });
+    expect(same(after), `${key} changed only the theme`).toEqual(same(before));
+    if (before.pressed !== null) expect(after.pressed).toBe(String(flipped === THEME.DARK));
+    if (before.checked !== null) expect(after.checked).toBe(String(flipped === THEME.DARK));
+    expect(loads(), 'no document load').toBe(0);
+  }
+
+  /** 3.2.1: moving focus onto the control changes nothing. */
+  async expectFocusAloneChangesNothing(): Promise<void> {
+    const before = await this.contextState();
+    await this.desktopToggle.focus();
+    await expect(this.desktopToggle).toBeFocused();
+    const after = await this.contextState();
+    expect({ ...after, focus: null }, 'focusing the toggle changed the page').toEqual({ ...before, focus: null });
+  }
+
+  /** 2.1.4: single character keys never switch the theme. */
+  async expectCharacterKeysDoNothing(): Promise<void> {
+    const before = await this.contextState();
+    await this.page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+    for (const k of THEME_A11Y.CHARACTER_KEYS) await this.page.keyboard.press(k);
+    const after = await this.contextState();
+    expect([after.theme, after.pressed, after.url]).toEqual([before.theme, before.pressed, before.url]);
+  }
+
+  /** Mobile: focus the last interface-language control, then Tab (at most 4 times) to the switch. */
+  async tabToMobileSwitchFromLanguageRow(): Promise<number> {
+    await this.expectMobileToggleVisible();
+    await this.page.locator(THEME_A11Y.MOBILE_LANGUAGE_CONTROLS).last().focus();
+    for (let i = 1; i <= 4; i++) {
+      await this.page.keyboard.press('Tab');
+      if ((await this.focusInfo()).isMobileSwitch) return i;
+    }
+    throw new Error('Tab from the interface-language row did not reach the dark mode switch');
+  }
+
+  /** Mobile, 2.1.2: Tab moves on from the switch to another control in the menu. */
+  async expectTabLeavesMobileSwitch(): Promise<void> {
+    await this.page.keyboard.press('Tab');
+    const next = await this.focusInfo();
+    expect(next.focused && !next.isMobileSwitch, `focus moved on (${next.tag}:${next.name})`).toBe(true);
+  }
+
+  /**
+   * 1.4.11: the switch's knob (::after) against its track, and the track against the menu,
+   * as painted. Returns the ratios; asserts them only when `min` is given.
+   */
+  async mobileSwitchContrast(min?: number): Promise<{ knobOnTrack: number; trackOnMenu: number; detail: string }> {
+    // The track and knob transition for 0.2s after a change; measure the settled colours.
+    await expect.poll(() => this.page.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      return el ? el.getAnimations({ subtree: true }).length : -1;
+    }, THEME_A11Y.MOBILE_SWITCH_TRACK), { timeout: t(5000), message: 'switch transitions finished' }).toBe(0);
+    const r = await this.page.evaluate((sel) => {
+      const track = document.querySelector(sel) as HTMLElement | null;
+      if (!track) return null;
+      const parse = (c: string) => { const m = /rgba?\(([^)]+)\)/.exec(c); if (!m) return null; const p = m[1].split(/[\s,/]+/).filter(Boolean).map(parseFloat); return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 }; };
+      const lum = (c: any) => { const f = (v: number) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }; return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b); };
+      const ratio = (a: any, b: any) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+      let menuBg: any = null;
+      for (let n = track.parentElement; n && !menuBg; n = n.parentElement) { const c = parse(getComputedStyle(n).backgroundColor); if (c && c.a >= 1) menuBg = c; }
+      if (!menuBg) menuBg = /dark/.test(getComputedStyle(document.documentElement).colorScheme) ? { r: 18, g: 18, b: 18, a: 1 } : { r: 255, g: 255, b: 255, a: 1 };
+      const trackBg = parse(getComputedStyle(track).backgroundColor)!;
+      const knob = parse(getComputedStyle(track, '::after').backgroundColor)!;
+      return { knobOnTrack: ratio(knob, trackBg), trackOnMenu: ratio(trackBg, menuBg), detail: JSON.stringify({ knob, trackBg, menuBg }) };
+    }, THEME_A11Y.MOBILE_SWITCH_TRACK);
+    expect(r, 'switch track found').not.toBeNull();
+    if (min !== undefined) {
+      expect(r!.knobOnTrack, `knob on track ${r!.detail}`).toBeGreaterThanOrEqual(min);
+      expect(r!.trackOnMenu, `track on menu ${r!.detail}`).toBeGreaterThanOrEqual(min);
+    }
+    return r!;
+  }
+
+  /** Text contrast of every visible text node's element under `roots` (see a11y-scan.js). */
+  async contrastScan(roots: readonly string[] = THEME_A11Y.SCAN_PAGE): Promise<ScanRow[]> {
+    await this.page.evaluate(() => document.fonts && document.fonts.ready);
+    const res = (await this.page.evaluate(A11Y.scanTextContrast, { roots: [...roots] })) as { rows: ScanRow[] };
+    return res.rows;
+  }
+
+  /** 1.4.3: no measured text below 4.5:1 (3:1 large). Attaches the full scan to the report. */
+  async expectTextContrast(testInfo: TestInfo, label: string, roots: readonly string[] = THEME_A11Y.SCAN_PAGE): Promise<void> {
+    const rows = await this.contrastScan(roots);
+    await testInfo.attach(`contrast-${label}.json`, { body: JSON.stringify(rows, null, 1), contentType: 'application/json' });
+    const measured = rows.filter((r) => r.status !== 'skip');
+    expect(measured.length, `${label}: text found to measure`).toBeGreaterThan(5);
+    const fails = measured.filter((r) => r.status === 'fail').map((r) => `${r.ratio}:1 < ${r.min} ${r.fg} on ${r.bg} ${r.selector} "${r.text}"`);
+    expect(fails, `${label}: text below the WCAG 1.4.3 minimum`).toEqual([]);
+  }
+
+  /** Light-mode baseline: the same scan, reported as an annotation and attachment, never failing. */
+  async reportTextContrast(testInfo: TestInfo, label: string, roots: readonly string[] = THEME_A11Y.SCAN_PAGE): Promise<number> {
+    const rows = await this.contrastScan(roots);
+    const fails = rows.filter((r) => r.status === 'fail');
+    await testInfo.attach(`contrast-${label}.json`, { body: JSON.stringify(rows, null, 1), contentType: 'application/json' });
+    testInfo.annotations.push({
+      type: 'light-baseline',
+      description: `${label}: ${fails.length} of ${rows.filter((r) => r.status !== 'skip').length} text elements below the minimum` +
+        (fails.length ? ': ' + fails.slice(0, 5).map((r) => `${r.ratio}:1 "${r.text}"`).join('; ') : ''),
+    });
+    return fails.length;
+  }
+
+  /** 1.4.1: links in running text are underlined or at least 3:1 from the text around them. */
+  async inlineLinks(roots: readonly string[] = THEME_A11Y.RUNNING_TEXT_ROOTS): Promise<Array<Record<string, unknown>>> {
+    return this.page.evaluate(A11Y.scanInlineLinks, { roots: [...roots] });
+  }
+
+  async expectInlineLinksDistinguishable(roots: readonly string[] = THEME_A11Y.RUNNING_TEXT_ROOTS): Promise<number> {
+    await expect.poll(async () => (await this.inlineLinks(roots)).length, { timeout: t(15000), message: 'links in running text rendered' }).toBeGreaterThan(0);
+    const rows = await this.inlineLinks(roots);
+    expect(rows.filter((r) => r.status === 'fail'), JSON.stringify(rows, null, 1)).toEqual([]);
+    return rows.length;
+  }
+
+  /** 4.1.1: no id is used twice, inside `scope` (checked against the whole document). */
+  async expectNoDuplicateIds(scope: string | null = null): Promise<void> {
+    expect(await this.page.evaluate(A11Y.duplicateIds, scope), `duplicate ids${scope ? ` in ${scope}` : ''}`).toEqual([]);
+  }
+
+  /**
+   * axe-core with the WCAG 2.0/2.1 A and AA tags, when axe-core is installed (it is not a repo
+   * dependency: set AXE_CORE_PATH or install it locally). Returns null without it.
+   */
+  async runAxe(include: readonly string[] | null = null): Promise<{ violations: Array<{ id: string; nodes: Array<{ target: string[]; html: string }> }> } | null> {
+    const axe = A11Y.axeSource();
+    if (!axe) return null;
+    if (!(await this.page.evaluate(() => typeof (window as any).axe === 'object'))) await this.page.addScriptTag({ content: axe.source });
+    return this.page.evaluate(async ({ include, tags }) => {
+      const ctx = include ? { include: include.filter((s: string) => document.querySelector(s)).map((s: string) => [s]) } : document;
+      const r = await (window as any).axe.run(ctx, { runOnly: { type: 'tag', values: tags }, resultTypes: ['violations'] });
+      return { violations: r.violations.map((v: any) => ({ id: v.id, nodes: v.nodes.map((n: any) => ({ target: n.target, html: n.html.slice(0, 160) })) })) };
+    }, { include: include ? [...include] : null, tags: A11Y.AXE_TAGS });
   }
 }

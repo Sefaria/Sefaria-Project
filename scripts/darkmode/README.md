@@ -115,3 +115,28 @@ Run base and branch on the same day. Calendar and daily-learning content change 
 * **Server-side changes are not exercised.** The HTML is production's, apart from the injected
   pieces above. The authoritative end-to-end check is the Playwright suite against the `dark`
   cauldron (`e2e-tests/library/theme-toggle.spec.ts`, `e2e-tests/mobile web/theme-toggle.spec.ts`).
+
+## Accessibility audit (`a11y-audit.js`)
+
+`scripts/darkmode/a11y-audit.js` loads the same live-HTML-plus-branch-assets pages (it reuses this
+harness's routing) and records WCAG 2.1 evidence for light and dark in `<out>/a11y-report.json`:
+
+* the contrast of every visible text node's element against its effective background (1.4.3),
+  links in running text (1.4.1) and duplicate ids (4.1.1), using the in-page probes in
+  `e2e-tests/support/a11y-scan.js` (shared with `e2e-tests/*/theme-a11y.spec.ts`);
+* on `/texts` (English and Hebrew), desktop: the Tab sequence from the top with a pixel measurement
+  of every focus ring, the skip link, the toggle with Enter and Space (same URL, focus, `lang`),
+  single character keys, and each header dropdown and the search autocomplete opened;
+* on mobile: the menu opened and scanned, and the switch reached with Tab and toggled with Space and
+  Enter while the menu stays open;
+* an axe-core run (`wcag2a`, `wcag21a`, `wcag2aa`, `wcag21aa`) when axe-core is available.
+  axe-core is **not** a dependency of this repo. Install it somewhere outside the repo and pass it:
+
+```bash
+npm install --prefix /tmp/axe axe-core
+node scripts/darkmode/a11y-audit.js --out /tmp/a11y --axe /tmp/axe/node_modules/axe-core/axe.min.js
+```
+
+The summary at the end splits dark-mode contrast failures into "dark only" (they do not fail in light
+on the same page, so the dark theme caused them) and failures in both themes (pre-existing). The same
+`AXE_CORE_PATH` makes the axe tests in `theme-a11y.spec.ts` run instead of skipping.

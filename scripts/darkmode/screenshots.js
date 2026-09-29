@@ -729,4 +729,7 @@ if (require.main === module) {
     .catch((e) => { console.error(e); process.exit(1); });
 }
 
-module.exports = { transformHtml, parseArgs, buildPageSpecs, installRoutes, readThemeHead, findBundle, launchOptions, VIEWPORTS, DEFAULT_PAGES };
+module.exports = {
+  transformHtml, parseArgs, buildPageSpecs, installRoutes, readThemeHead, findBundle, launchOptions,
+  resolveRedirects, waitForQuiet, VIEWPORTS, DEFAULT_PAGES, FREEZE_CSS,
+};
