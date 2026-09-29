@@ -76,8 +76,9 @@ export function closeAll(except) {
  * Opens a floating panel anchored to `anchor` (element or DOMRect). On narrow screens it becomes a
  * bottom sheet. Returns {el, close}.
  */
-export function popover(content, { anchor, className = "", label = "", placement = "bottom", onClose, modal = false, sheetOnNarrow = true } = {}) {
-  const narrow = sheetOnNarrow && isNarrow();
+export function popover(content, { anchor, className = "", label = "", placement = "bottom", onClose, modal = false, sheetOnNarrow = true, passthrough = false } = {}) {
+  // passthrough: a hover card — no scrim, the page stays live underneath, focus stays put.
+  const narrow = sheetOnNarrow && isNarrow() && !passthrough;
   const scrim = h("div", { class: `scrim ${narrow || modal ? "scrim-dim" : ""}` });
   const panel = h("div", {
     class: `pop ${narrow ? "pop-sheet" : ""} ${className}`,
@@ -87,7 +88,7 @@ export function popover(content, { anchor, className = "", label = "", placement
   });
   if (narrow) panel.appendChild(h("div", { class: "sheet-grip", "aria-hidden": "true" }));
   panel.appendChild(content);
-  const wrap = h("div", { class: "pop-wrap" }, scrim, panel);
+  const wrap = h("div", { class: `pop-wrap ${passthrough ? "pop-pass" : ""}` }, scrim, panel);
   layer().appendChild(wrap);
   const prevFocus = document.activeElement;
 
@@ -110,6 +111,7 @@ export function popover(content, { anchor, className = "", label = "", placement
   requestAnimationFrame(() => {
     place();
     wrap.classList.add("open");
+    if (passthrough) return;
     const f = panel.querySelector("[autofocus]") || panel;
     f.focus({ preventScroll: true });
   });
@@ -127,7 +129,7 @@ export function popover(content, { anchor, className = "", label = "", placement
       setTimeout(() => wrap.remove(), 180);
       document.removeEventListener("keydown", onKey, true);
       window.removeEventListener("resize", onResize);
-      if (prevFocus && prevFocus.focus && document.contains(prevFocus)) prevFocus.focus({ preventScroll: true });
+      if (!passthrough && prevFocus && prevFocus.focus && document.contains(prevFocus)) prevFocus.focus({ preventScroll: true });
       onClose && onClose();
     },
   };

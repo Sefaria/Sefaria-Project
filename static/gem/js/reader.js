@@ -4,7 +4,7 @@ import { h, icon, isTouch, isNarrow, toast, copyText, popover } from "./ui.js";
 import { richFragment, splitDH, hebNum, amudLabelHe, perekOrdinalHe, ordinalEn, markRegex, markMatches, plainText } from "./text.js";
 import { loadSection, loadCommentary, orderedCommentaries, heName } from "./data.js";
 import { parseRef, getMasechet, neighborSection, loadChapters, sectionLabel, corpusOf, refToUrl } from "./catalog.js";
-import { settings, set, COMMENTATORS, applyPane } from "./settings.js";
+import { settings, set, COMMENTATORS, applyPane, lookupMode } from "./settings.js";
 
 const SIDES = ["right", "left"];
 const cssEsc = (s) => (window.CSS && CSS.escape ? CSS.escape(s) : s.replace(/"/g, '\\"'));
@@ -84,10 +84,24 @@ export class Reader {
       }
       return;
     }
+    const tab = t.closest && t.closest(".cm-tab");
+    if (tab) {
+      // "Rashi has 2 comments on this line" → select the line and bring those comments into view
+      const seg = tab.closest(".seg");
+      const side = tab.dataset.side;
+      this.select(seg.dataset.ref, { from: "center" });
+      this.app.showPane(side);
+      const first = this.panes[side].body.querySelector(`.cmt[data-anchor="${cssEsc(seg.dataset.ref)}"]`);
+      if (first) {
+        first.classList.add("sel-focus");
+        setTimeout(() => first.classList.remove("sel-focus"), 1600);
+      }
+      return;
+    }
     if (t.closest && t.closest(".seg-tools, .side-note button, .sec-more, .perek-card button, .hadran button")) return;
     const sel = window.getSelection();
     if (!viaKeyboard && sel && !sel.isCollapsed && sel.toString().trim().length > 0) return; // selecting text
-    if (!viaKeyboard && settings.tapDefine && this.app.defineAtPoint(e)) return;
+    if (!viaKeyboard && lookupMode() === "tap" && this.app.defineAtPoint(e)) return;
     if (key === "center") {
       const seg = t.closest(".seg");
       if (!seg) return;
@@ -333,7 +347,7 @@ export class Reader {
       enEl.appendChild(richFragment(s.en, { literal: d.corpus === "bavli" && p.literal !== "full" }));
       if (!s.he) heEl.classList.add("missing");
       if (!s.en) enEl.classList.add("missing");
-      segEl.append(heEl, enEl, h("span", { class: "tick tr", "aria-hidden": "true" }), h("span", { class: "tick tl", "aria-hidden": "true" }));
+      segEl.append(heEl, enEl);
       sec.appendChild(segEl);
       if (!isJT) {
         const end = chapters.find((c) => c.end && c.end.section === d.key && c.end.seg === s.n);
@@ -440,6 +454,16 @@ export class Reader {
       const l = counts.left.get(seg.dataset.ref) || 0;
       if (r) seg.dataset.cr = r; else delete seg.dataset.cr;
       if (l) seg.dataset.cl = l; else delete seg.dataset.cl;
+      seg.querySelectorAll(":scope > .cm-tab").forEach((x) => x.remove());
+      for (const [side, n] of [["right", r], ["left", l]]) {
+        if (!n) continue;
+        const name = entry.comm[side].name;
+        seg.appendChild(h("button", {
+          type: "button", class: `cm-tab cm-${side}`, "data-side": side, tabindex: "-1",
+          title: `${n} ${name} comment${n > 1 ? "s" : ""} on this line`,
+          "aria-label": `${n} ${name} comment${n > 1 ? "s" : ""} on this line — show`,
+        }, h("span", { class: "cm-n" }, String(n)), h("span", { class: "cm-arrow", "aria-hidden": "true" })));
+      }
     });
   }
 

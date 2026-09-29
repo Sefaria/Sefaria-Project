@@ -59,7 +59,7 @@ function renderEntry(e, app) {
   return art;
 }
 
-export function openDictionary(app, word, { anchor, ref } = {}) {
+export function openDictionary(app, word, { anchor, ref, hover = false } = {}) {
   const q = normalizeForLookup(word);
   const input = h("input", { class: "dict-input", lang: "he", dir: "rtl", value: q, "aria-label": "Word or phrase", spellcheck: "false", autocomplete: "off" });
   const tabs = h("div", { class: "dict-tabs", role: "tablist" });
@@ -76,7 +76,7 @@ export function openDictionary(app, word, { anchor, ref } = {}) {
       h("button", { class: "link-btn", type: "button", onclick: () => { pop.close(); app.openSearch(input.value); } }, icon("search"), " Find in the Talmud"),
       h("span", { class: "muted" }, "Jastrow · Klein · BDB via Sefaria")));
 
-  const pop = popover(root, { anchor, label: `Dictionary: ${q}`, className: "pop-dict" });
+  const pop = popover(root, { anchor, label: `Dictionary: ${q}`, className: `pop-dict ${hover ? "pop-hover" : ""}`, passthrough: hover });
 
   async function run(w) {
     const form = normalizeForLookup(w);

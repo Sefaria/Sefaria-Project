@@ -1,7 +1,7 @@
 // gem — the Talmud learning tool. App shell: header, routing, keyboard, global menus.
 
 import { h, icon, gemMark, popover, closeAll, toast, toggle, segmented, copyText, isNarrow, isTouch } from "./ui.js";
-import { settings, set, applyPane, applyGlobal, openPaneSettings, onChange as onSettings, reset as resetSettings, COMMENTATORS } from "./settings.js";
+import { settings, set, applyPane, applyGlobal, openPaneSettings, onChange as onSettings, reset as resetSettings, COMMENTATORS, lookupMode, lookupChooser, canHover, LOOKUP_MODES } from "./settings.js";
 import { loadCatalog, parseRef, getMasechet, ensureMasechet, sectionLabel, loadChapters, chapterAt, chapterTitleHe, corpusOf, refToUrl, urlToRef, firstSectionRef, CORPORA } from "./catalog.js";
 import { api, sefariaUrl } from "./api.js";
 import { Reader } from "./reader.js";
@@ -26,6 +26,7 @@ class App {
     this.bindPanes();
     this.bindKeys();
     this.bindSelection();
+    this.bindHoverLookup();
     this.bindTabs();
     this.bindTheme();
     window.addEventListener("popstate", () => this.routeFromLocation(false));
@@ -243,12 +244,7 @@ class App {
     this.$("#btn-next").addEventListener("click", () => this.reader.stepSection(1));
     this.$("#btn-search").addEventListener("click", () => this.openSearch());
     this.$("#btn-dafyomi").addEventListener("click", () => this.dafYomi());
-    this.$("#btn-define").addEventListener("click", () => {
-      set("tapDefine", !settings.tapDefine);
-      applyGlobal();
-      this.syncDefineBtn();
-      toast(settings.tapDefine ? "Tap any word to look it up" : "Tap-to-define off — double-click a word any time");
-    });
+    this.$("#btn-define").addEventListener("click", (e) => this.openLookupMenu(e.currentTarget));
     this.syncDefineBtn();
     this.$("#btn-settings").addEventListener("click", (e) => this.openGlobalMenu(e.currentTarget));
     document.querySelectorAll(".corpus-switch button").forEach((b) => b.addEventListener("click", () => {
@@ -273,8 +269,28 @@ class App {
 
   syncDefineBtn() {
     const b = this.$("#btn-define");
-    b.setAttribute("aria-pressed", String(!!settings.tapDefine));
-    b.classList.toggle("on", !!settings.tapDefine);
+    const mode = lookupMode();
+    const m = LOOKUP_MODES.find((x) => x.value === mode);
+    b.classList.toggle("on", mode !== "dbl");
+    b.title = `Word lookup: ${canHover() ? m.label : m.touch} ( D )`;
+  }
+
+  openLookupMenu(anchor) {
+    const body = h("div", { class: "ps" },
+      h("div", { class: "ps-head" }, h("span", { class: "ps-title" }, "Word lookup"), h("span", { class: "ps-sub" }, "How a Hebrew or Aramaic word opens the dictionary")),
+      lookupChooser(() => this.syncDefineBtn()),
+      h("div", { class: "ps-sub" }, "Selecting a phrase always offers “Define”."));
+    popover(body, { anchor, label: "Word lookup", className: "pop-settings pop-lookup" });
+  }
+
+  cycleLookup() {
+    const order = LOOKUP_MODES.map((m) => m.value).filter((v) => v !== "hover" || canHover());
+    const next = order[(order.indexOf(lookupMode()) + 1) % order.length];
+    set("lookup", next);
+    applyGlobal();
+    this.syncDefineBtn();
+    const m = LOOKUP_MODES.find((x) => x.value === next);
+    toast(canHover() ? m.hint : m.hintTouch);
   }
 
   calendarItem(corpus) {
@@ -404,44 +420,110 @@ class App {
     openSearch(this, { query, ctx: c });
   }
 
-  define(word, { anchor, ref } = {}) {
-    openDictionary(this, word, { anchor, ref: ref || this.selectedRef || (this.cur && this.cur.sectionRef) });
+  define(word, { anchor, ref, hover = false } = {}) {
+    if (!hover && this.hoverCard) this.hoverCard.close();
+    return openDictionary(this, word, { anchor, ref: ref || this.selectedRef || (this.cur && this.cur.sectionRef), hover });
   }
 
-  /** Tap-to-define: finds the word under the pointer and opens the dictionary. */
-  defineAtPoint(e) {
-    const x = e.clientX, y = e.clientY;
-    if (x == null) return false;
-    const heEl = e.target.closest && e.target.closest(".seg-he, .cmt-he");
-    if (!heEl) return false;
+  /**
+   * The Hebrew/Aramaic word under a point: {word, node, a, b, range, rect, ref}, or null.
+   * `strict` requires the point to be on the word itself (not the blank end of a line).
+   */
+  wordAt(x, y, target, strict = false) {
+    if (x == null) return null;
+    const heEl = target && target.closest && target.closest(".seg-he, .cmt-he");
+    if (!heEl) return null;
     let node, offset;
     if (document.caretPositionFromPoint) {
       const cp = document.caretPositionFromPoint(x, y);
-      if (!cp) return false;
+      if (!cp) return null;
       node = cp.offsetNode; offset = cp.offset;
     } else if (document.caretRangeFromPoint) {
       const r = document.caretRangeFromPoint(x, y);
-      if (!r) return false;
+      if (!r) return null;
       node = r.startContainer; offset = r.startOffset;
     }
-    if (!node || node.nodeType !== 3) return false;
+    if (!node || node.nodeType !== 3 || !heEl.contains(node)) return null;
     const t = node.nodeValue;
-    const isW = (ch) => /[֑-״'"״׳]/.test(ch) && ch !== "־";
+    const isW = (ch) => /[\u0591-\u05F4'"״׳]/.test(ch) && ch !== "\u05BE";
     let a = offset, b = offset;
     while (a > 0 && isW(t[a - 1])) a--;
     while (b < t.length && isW(t[b])) b++;
     const word = t.slice(a, b).trim();
-    if (!word || !/[א-ת]/.test(word)) return false;
+    if (!word || !/[א-ת]/.test(word)) return null;
     const range = document.createRange();
     range.setStart(node, a);
     range.setEnd(node, b);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
+    const rect = range.getBoundingClientRect();
+    if (strict && !(x >= rect.left - 2 && x <= rect.right + 2 && y >= rect.top - 2 && y <= rect.bottom + 2)) return null;
     const holder = heEl.closest(".seg, .cmt");
     const ref = holder ? (holder.dataset.anchor || holder.dataset.ref) : null;
-    this.define(word, { anchor: range.getBoundingClientRect(), ref });
+    return { word, node, a, b, range, rect, ref };
+  }
+
+  /** Single-tap lookup: finds the word under the pointer and opens the dictionary. */
+  defineAtPoint(e) {
+    const w = this.wordAt(e.clientX, e.clientY, e.target);
+    if (!w) return false;
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(w.range);
+    this.define(w.word, { anchor: w.rect, ref: w.ref });
     return true;
+  }
+
+  /**
+   * Hover lookup: resting the mouse on a word for 500ms opens a live dictionary card. Moving to
+   * another word re-arms the timer; leaving word and card closes it. Dragging (selecting) or an
+   * active selection never triggers it, and it does not touch the DOM or the selection — the
+   * word is marked with the CSS Custom Highlight API where available.
+   */
+  bindHoverLookup() {
+    const panes = this.$("#panes");
+    const hl = window.CSS && CSS.highlights && window.Highlight ? CSS.highlights : null;
+    let timer = 0, closeTimer = 0, cur = null;
+    const mark = (range, name) => {
+      if (!hl) return;
+      if (range) hl.set(name, new Highlight(range)); else hl.delete(name);
+    };
+    const same = (x, y) => x && y && x.node === y.node && x.a === y.a;
+    const cancelClose = () => clearTimeout(closeTimer);
+    const scheduleClose = () => {
+      cancelClose();
+      closeTimer = setTimeout(() => { if (this.hoverCard) this.hoverCard.close(); }, 420);
+    };
+    const disarm = () => { clearTimeout(timer); cur = null; mark(null, "gem-dwell"); };
+    panes.addEventListener("pointermove", (e) => {
+      if (e.pointerType !== "mouse" || lookupMode() !== "hover") return;
+      if (e.buttons) { disarm(); return; } // selecting text
+      const w = this.wordAt(e.clientX, e.clientY, e.target, true);
+      if (same(w, cur)) return;
+      disarm();
+      if (!w) { if (this.hoverCard) scheduleClose(); return; }
+      cur = w;
+      if (this.hoverCard && this.hoverCard.key && same(this.hoverCard.key, w)) { cancelClose(); return; }
+      if (this.hoverCard) scheduleClose();
+      mark(w.range, "gem-dwell");
+      timer = setTimeout(() => {
+        const sel = window.getSelection();
+        if (sel && !sel.isCollapsed) return;
+        if (document.querySelector(".pop-wrap:not(.pop-pass)")) return; // a menu or search is open
+        cancelClose();
+        if (this.hoverCard) this.hoverCard.close();
+        mark(null, "gem-dwell");
+        mark(w.range, "gem-hover");
+        const card = this.define(w.word, { anchor: w.rect, ref: w.ref, hover: true });
+        card.key = { node: w.node, a: w.a };
+        this.hoverCard = card;
+        card.el.addEventListener("pointerenter", cancelClose);
+        card.el.addEventListener("pointerleave", scheduleClose);
+        const close = card.close;
+        card.close = () => { if (this.hoverCard === card) { this.hoverCard = null; mark(null, "gem-hover"); } close(); };
+      }, 500);
+    });
+    panes.addEventListener("pointerdown", disarm);
+    panes.addEventListener("pointerleave", () => { disarm(); if (this.hoverCard) scheduleClose(); });
+    panes.addEventListener("scroll", () => { disarm(); if (this.hoverCard) this.hoverCard.close(); }, { capture: true, passive: true });
   }
 
   // Text selection → floating "Define · Search · Copy" menu; double-click a Hebrew word → define.
@@ -452,11 +534,18 @@ class App {
       const heEl = e.target.closest(".seg-he, .cmt-he");
       if (!heEl) return;
       const sel = window.getSelection();
-      const word = sel.toString().trim();
-      if (!word || !hasHebrew(word) || /\s/.test(word)) return;
       const holder = heEl.closest(".seg, .cmt");
+      const ref = holder && (holder.dataset.anchor || holder.dataset.ref);
+      let word = sel.toString().trim();
+      let rect = word && sel.rangeCount ? sel.getRangeAt(0).getBoundingClientRect() : null;
+      if (!word || !hasHebrew(word) || /\s/.test(word)) {
+        // touch browsers don't always select the word on double-tap
+        const w = this.wordAt(e.clientX, e.clientY, e.target);
+        if (!w) return;
+        word = w.word; rect = w.rect;
+      }
       this.hideSelMenu();
-      this.define(word, { anchor: sel.getRangeAt(0).getBoundingClientRect(), ref: holder && (holder.dataset.anchor || holder.dataset.ref) });
+      this.define(word, { anchor: rect, ref });
     });
     const show = () => {
       const sel = window.getSelection();
@@ -543,14 +632,15 @@ class App {
     body.appendChild(tw);
     body.appendChild(h("div", { class: "ps-toggles" },
       toggle("Follow along", settings.sync, (v) => set("sync", v), "Commentaries scroll with the Gemara"),
-      toggle("Tap to define", settings.tapDefine, (v) => { set("tapDefine", v); applyGlobal(); this.syncDefineBtn(); }, "A single tap on a word opens the dictionary"),
+
       toggle("Line numbers", settings.segNums, (v) => { set("segNums", v); applyGlobal(); }, "Small Hebrew numerals beside each line"),
       toggle("Cite when copying", settings.citeOnCopy, (v) => set("citeOnCopy", v), "Adds the reference and a link"),
       toggle("Focus mode", settings.focus, (v) => { set("focus", v); applyGlobal(); }, "Just the Gemara (F)")));
+    body.appendChild(h("div", { class: "ps-block" }, h("span", { class: "ps-label" }, "Look up words by"), lookupChooser(() => this.syncDefineBtn())));
     body.appendChild(h("div", { class: "gm-keys" },
       h("div", { class: "ps-label" }, "Keyboard"),
       h("dl", {},
-        ...[["←  →", "Next / previous amud"], ["J  K", "Next / previous line"], ["/", "Search"], ["G", "Go to a masechta"], ["D", "Tap-to-define"], ["F", "Focus mode"], ["T", "Today’s daf"], ["Esc", "Close / deselect"]]
+        ...[["←  →", "Next / previous amud"], ["J  K", "Next / previous line"], ["/", "Search"], ["G", "Go to a masechta"], ["D", "Cycle word-lookup mode"], ["F", "Focus mode"], ["T", "Today’s daf"], ["Esc", "Close / deselect"]]
           .flatMap(([k, v]) => [h("dt", {}, ...k.split("  ").map((x) => h("kbd", {}, x))), h("dd", {}, v)]))));
     body.appendChild(h("div", { class: "gm-foot" },
       h("button", { type: "button", class: "link-btn", onclick: () => { resetSettings(); pop.close(); toast("Settings reset"); } }, "Reset all settings"),
@@ -569,7 +659,7 @@ class App {
       const typing = tag === "input" || tag === "textarea" || e.target.isContentEditable;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); this.openSearch(); return; }
       if (typing || e.metaKey || e.ctrlKey || e.altKey) return;
-      if (document.querySelector(".pop-wrap")) return;
+      if (document.querySelector(".pop-wrap:not(.pop-pass)")) return;
       switch (e.key) {
         case "ArrowLeft": e.preventDefault(); this.reader.stepSection(1); break;
         case "ArrowRight": e.preventDefault(); this.reader.stepSection(-1); break;
@@ -577,7 +667,7 @@ class App {
         case "g": case "G": e.preventDefault(); this.openNavigator(); break;
         case "j": this.reader.moveSelection(1); break;
         case "k": this.reader.moveSelection(-1); break;
-        case "d": case "D": this.$("#btn-define").click(); break;
+        case "d": case "D": this.cycleLookup(); break;
         case "f": case "F": set("focus", !settings.focus); applyGlobal(); break;
         case "t": case "T": this.dafYomi(); break;
         case "Escape": this.reader.select(null); this.hideSelMenu(); break;

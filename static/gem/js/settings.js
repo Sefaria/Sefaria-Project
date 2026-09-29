@@ -41,7 +41,7 @@ const DEFAULTS = {
   theme: "auto",
   corpus: "bavli",
   sync: true,
-  tapDefine: false,
+  lookup: "dbl", // word lookup: "dbl" (double-click / double-tap), "tap" (single tap), "hover" (rest 500ms)
   segNums: false,
   citeOnCopy: true,
   focus: false,
@@ -65,8 +65,59 @@ function merge(base, over) {
 
 function load() {
   const s = clone(DEFAULTS);
-  try { merge(s, JSON.parse(localStorage.getItem(KEY) || "null")); } catch (e) { /* ignore */ }
+  try {
+    const raw = JSON.parse(localStorage.getItem(KEY) || "null");
+    merge(s, raw);
+    // v1 had a boolean tap-to-define switch
+    if (raw && raw.lookup === undefined && raw.tapDefine) s.lookup = "tap";
+  } catch (e) { /* ignore */ }
+  if (!["dbl", "tap", "hover"].includes(s.lookup)) s.lookup = "dbl";
   return s;
+}
+
+export const canHover = () => window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+/** The lookup mode in force on this device (hover falls back to double-tap on touch screens). */
+export function lookupMode() {
+  return settings.lookup === "hover" && !canHover() ? "dbl" : settings.lookup;
+}
+
+export const LOOKUP_MODES = [
+  { value: "dbl", label: "Double-click", touch: "Double-tap", hint: "Double-click a word — single clicks still select lines", hintTouch: "Double-tap a word — single taps still select lines" },
+  { value: "tap", label: "Single click", touch: "Single tap", hint: "One click on any Hebrew word opens the dictionary", hintTouch: "One tap on any Hebrew word opens the dictionary" },
+  { value: "hover", label: "Hover", touch: "Hover", hint: "Rest the pointer on a word for half a second", hintTouch: "Needs a mouse or trackpad — double-tap is used on this device" },
+];
+
+/** A three-way chooser for how words are looked up. */
+export function lookupChooser(onPicked) {
+  const touch = !canHover();
+  const hint = h("div", { class: "lk-hint" });
+  const wrap = h("div", { class: "lk" });
+  const sync = () => {
+    const m = LOOKUP_MODES.find((x) => x.value === settings.lookup) || LOOKUP_MODES[0];
+    hint.textContent = touch ? m.hintTouch : m.hint;
+  };
+  const ctl = h("div", { class: "seg-ctl lk-ctl", role: "radiogroup", "aria-label": "Look up words by" });
+  for (const m of LOOKUP_MODES) {
+    const disabled = m.value === "hover" && touch;
+    const b = h("button", {
+      type: "button", role: "radio", "aria-checked": String(lookupMode() === m.value),
+      class: lookupMode() === m.value ? "on" : "", disabled: disabled || null,
+      title: disabled ? m.hintTouch : m.hint,
+      onclick: () => {
+        ctl.querySelectorAll("button").forEach((x) => { x.classList.remove("on"); x.setAttribute("aria-checked", "false"); });
+        b.classList.add("on"); b.setAttribute("aria-checked", "true");
+        set("lookup", m.value);
+        applyGlobal();
+        sync();
+        onPicked && onPicked(m.value);
+      },
+    }, touch ? m.touch : m.label);
+    ctl.appendChild(b);
+  }
+  sync();
+  wrap.append(ctl, hint);
+  return wrap;
 }
 
 export const settings = load();
@@ -122,7 +173,8 @@ export function applyGlobal() {
   const root = document.documentElement;
   root.dataset.theme = settings.theme;
   document.body.classList.toggle("seg-nums", !!settings.segNums);
-  document.body.classList.toggle("tap-define", !!settings.tapDefine);
+  document.body.classList.toggle("tap-define", lookupMode() === "tap");
+  document.body.classList.toggle("hover-define", lookupMode() === "hover");
   document.body.classList.toggle("focus-mode", !!settings.focus);
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
