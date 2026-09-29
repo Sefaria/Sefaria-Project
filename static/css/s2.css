@@ -818,6 +818,212 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   max-width: 500px;
   width: 100%;
 }
+/* POC landy: the first-visit welcome (static/js/LandyWelcome.jsx). A centered dialog on
+   desktop; on mobile web a bottom sheet 3/4 of the screen tall. The Library Assistant
+   options use the assistant promo's hardcoded #653259 (see the note above .siteWideBanner). */
+dialog.landyWelcome {
+  border: none;
+  padding: 0;
+  background: #fff;
+  color: var(--darkest-grey);
+  font-family: var(--english-sans-serif-font-family);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+.interface-hebrew dialog.landyWelcome {
+  direction: rtl;
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+dialog.landyWelcome::backdrop {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+dialog.landyWelcomeModal {
+  width: 560px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 48px);
+  border-radius: 12px;
+}
+dialog.landyWelcomeSheet {
+  position: fixed;
+  inset: auto 0 0 0;
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 75vh;
+  max-height: 75vh;
+  border-radius: 16px 16px 0 0;
+  animation: landyWelcomeSlideUp 0.25s ease-out;
+}
+@keyframes landyWelcomeSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  dialog.landyWelcomeSheet { animation: none; }
+}
+.landyWelcome .landyWelcomeContent {
+  position: relative;
+  padding: 36px 36px 28px;
+}
+.landyWelcomeSheet .landyWelcomeContent {
+  padding: 12px 20px 24px;
+}
+.landyWelcome .landyWelcomeHandle {
+  width: 40px;
+  height: 4px;
+  margin: 0 auto 16px;
+  border-radius: 2px;
+  background: var(--light-grey);
+}
+.landyWelcome .landyWelcomeClose {
+  position: absolute;
+  top: 12px;
+  inset-inline-end: 16px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 28px;
+  line-height: 1;
+  color: var(--medium-grey);
+  cursor: pointer;
+}
+.landyWelcome .landyWelcomeTitle {
+  margin: 0;
+  font-family: var(--english-serif-font-family);
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--sefaria-blue);
+}
+.interface-hebrew .landyWelcome .landyWelcomeTitle {
+  font-family: var(--hebrew-serif-font-family);
+}
+.landyWelcomeSheet .landyWelcomeTitle {
+  font-size: 26px;
+}
+.landyWelcome .landyWelcomeSubtitle {
+  margin: 4px 0 20px;
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--dark-grey);
+}
+.landyWelcome .landyWelcomeAssist {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 500;
+}
+.landyWelcome .landyWelcomeOptions {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.landyWelcome .landyWelcomeOption,
+.landyWelcome .landyWelcomeLearn {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid var(--lighter-grey);
+  border-radius: 8px;
+  background: var(--lightest-grey);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.35;
+  color: var(--darkest-grey);
+  text-align: start;
+}
+.landyWelcome .landyWelcomeOption {
+  cursor: pointer;
+}
+.landyWelcome .landyWelcomeOption:hover,
+.landyWelcome .landyWelcomeOption:focus-visible {
+  border-color: #653259;
+  background: #F5EFF4;
+}
+.landyWelcome .landyWelcomeOption img,
+.landyWelcome .landyWelcomeLearn img {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+}
+.landyWelcome .landyWelcomeLearn a {
+  color: var(--sefaria-blue);
+  text-decoration: underline;
+}
+.landyWelcome .landyWelcomeHelp {
+  margin: 0 0 16px;
+}
+.landyWelcome .landyWelcomeHelpLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 16px;
+  font-weight: 500;
+}
+.landyWelcome .landyWelcomeHelpLabel img {
+  width: 18px;
+  height: 18px;
+}
+.landyWelcome .landyWelcomeHelpBox {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--light-grey);
+  border-radius: 8px;
+  background: #fff;
+}
+.landyWelcome .landyWelcomeHelpBox:focus-within {
+  border-color: #653259;
+}
+.landyWelcome .landyWelcomeHelpBox textarea {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px 12px 0;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 22px;
+  /* 3 visible lines */
+  height: calc(22px * 3 + 10px);
+}
+.landyWelcome .landyWelcomeHelpSend {
+  align-self: flex-end;
+  margin: 6px 8px 8px;
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #653259;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.landyWelcome .landyWelcomeHelpSend:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.landyWelcome .landyWelcomeGood {
+  display: block;
+  margin: 0 auto;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 16px;
+  color: var(--dark-grey);
+  text-decoration: underline;
+  cursor: pointer;
+}
 .sefariaModalBox {
   transition: none;
 }

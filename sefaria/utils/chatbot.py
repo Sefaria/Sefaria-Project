@@ -7,6 +7,7 @@ from datetime import timedelta
 
 from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from django.conf import settings
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
@@ -18,19 +19,21 @@ def resolve_chatbot_version(request):
     """
     The ai-chatbot PR preview this request should use: ``?chatbot_version=<PR#>`` is
     remembered in the session for later pages, and ``?chatbot_version=clear`` forgets it.
+    With neither, ``settings.CHATBOT_DEFAULT_VERSION`` (the landy POC pins its preview there).
 
     Both the script tag (context processor) and the widget's API base (``base_props``)
     read it through here. ``base_props`` runs before the context processors, so reading
     only the session there pointed the first page at the default backend.
     """
     requested = request.GET.get("chatbot_version", "").strip()
+    default = getattr(settings, "CHATBOT_DEFAULT_VERSION", None)
     if requested == "clear":
         request.session.pop("chatbot_version", None)
-        return None
+        return default
     if requested:
         request.session["chatbot_version"] = requested
         return requested
-    return request.session.get("chatbot_version")
+    return request.session.get("chatbot_version") or default
 
 
 def _hash_user_id(user_id):

@@ -5,7 +5,15 @@ Which ai-chatbot PR preview a request uses (?chatbot_version=<PR#>).
 
 from types import SimpleNamespace
 
+import pytest
+from django.conf import settings
+
 from sefaria.utils.chatbot import resolve_chatbot_version
+
+
+@pytest.fixture(autouse=True)
+def no_default_version(monkeypatch):
+    monkeypatch.setattr(settings, "CHATBOT_DEFAULT_VERSION", None, raising=False)
 
 
 def request(get=None, session=None):
@@ -36,3 +44,11 @@ def test_clear_forgets_it():
 
 def test_clear_without_a_stored_version_is_fine():
     assert resolve_chatbot_version(request(get={"chatbot_version": "clear"})) is None
+
+
+def test_default_version_when_nothing_is_set(monkeypatch):
+    monkeypatch.setattr(settings, "CHATBOT_DEFAULT_VERSION", "227")
+
+    assert resolve_chatbot_version(request()) == "227"
+    assert resolve_chatbot_version(request(session={"chatbot_version": "222"})) == "222"
+    assert resolve_chatbot_version(request(get={"chatbot_version": "clear"})) == "227"

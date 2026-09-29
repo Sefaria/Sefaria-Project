@@ -81,6 +81,9 @@ SECRET_KEY = ''
 CHATBOT_USER_ID_SECRET = 'secret'
 SESSION_ID_AUTH_HEADER = 'HTTP_X_SESSION_ID'
 CHATBOT_USE_LOCAL_SCRIPT = False
+# POC landy: the ai-chatbot PR preview used when no ?chatbot_version is set
+# (Sefaria/ai-chatbot#227, which adds host asks and 3 free anonymous answers). None = the default chatbot.
+CHATBOT_DEFAULT_VERSION = "227"
 
 TEMPLATES = [
     {
