@@ -42,6 +42,7 @@ import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
+import { openLibraryAssistant } from './FirstVisitFork';
 import AuthPage from './auth/AuthPage';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
 import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
@@ -136,7 +137,11 @@ class ReaderApp extends Component {
       // A direct/typed-URL/bookmarked arrival at /register has no clicked element and
       // legitimately has no attributable source.
       authSource: null,
+      showFirstVisitFork: !!props.showFirstVisitFork,
     };
+  }
+  dismissFirstVisitFork = () => {
+    this.setState({ showFirstVisitFork: false });
   }
   setEditorSaveState = (nextState) => {
     this.setState({ editorSaveState: nextState });
@@ -217,6 +222,9 @@ class ReaderApp extends Component {
     window.addEventListener("beforeprint", this.handlePrint);
     document.addEventListener('copy', this.handleCopyEvent);
     this.setPanelCap();
+    if (this.props.openLibraryAssistantOnLoad) {
+      openLibraryAssistant();
+    }
     if (this.props.headerMode) {
       // Handle in app links on static pages outside of react container
       $("a").not($(ReactDOM.findDOMNode(this)).find("a"))
@@ -2549,6 +2557,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       openTopic={this.openTopic}
                       editorSaveState={this.state.editorSaveState}
                       setEditorSaveState={this.setEditorSaveState}
+                      showFirstVisitFork={this.state.showFirstVisitFork && i === 0}
+                      dismissFirstVisitFork={this.dismissFirstVisitFork}
+                      libraryAssistantAvailable={displayChatbot}
                     />
                   </div>);
     }
@@ -2639,6 +2650,8 @@ ReaderApp.propTypes = {
   initialRefs:                 PropTypes.array,
   initialFilter:               PropTypes.array,
   initialMenu:                 PropTypes.string,
+  showFirstVisitFork:          PropTypes.bool,  // POC: `?fork=1` on /texts
+  openLibraryAssistantOnLoad:  PropTypes.bool,  // POC: `?open_assistant=1` on /texts
   initialCollection:           PropTypes.string,
   initialCollectionData:       PropTypes.object,
   initialQuery:                PropTypes.string,
