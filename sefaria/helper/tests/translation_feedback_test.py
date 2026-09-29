@@ -7,9 +7,13 @@ from unittest.mock import patch
 import pytest
 
 from sefaria.model import Index, Ref, Version, VersionSet, TextChunk
-from sefaria.model.translation_feedback import TranslationFeedback, TranslationFeedbackSet, STATUS_ACCEPTED
+from sefaria.model.translation_feedback import (
+    TranslationFeedback, TranslationFeedbackSet, STATUS_ACCEPTED, STATUS_REJECTED, STATUS_NEW,
+)
 from sefaria.helper.llm.translation_feedback import parse_response, assess, build_prompt
-from sefaria.helper.translation_feedback import create_feedback, accept_feedback, get_segment_texts
+from sefaria.helper.translation_feedback import (
+    create_feedback, accept_feedback, reject_feedback, reopen_feedback, get_segment_texts,
+)
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
@@ -138,9 +142,15 @@ def test_accept_replaces_segment_and_logs_history(synthetic_text):
     assert TextChunk(oref, vtitle=EN_VTITLE, actual_lang="en").text == expected
     hist = db.history.find_one({"ref": oref.normal(), "version": EN_VTITLE})
     assert hist is not None and hist["user"] == 1 and hist["method"] == "Translation Feedback"
-    assert TranslationFeedback().load_by_id(fb._id).status == STATUS_ACCEPTED
+    loaded = TranslationFeedback().load_by_id(fb._id)
+    assert loaded.status == STATUS_ACCEPTED and loaded.status_label() == "accepted"
+    assert loaded.decided_by == 1 and loaded.decided_at and loaded.accepted_by == 1
     with pytest.raises(InputError):  # can't accept twice
         accept_feedback(str(fb._id), 1)
+    with pytest.raises(InputError):  # nor reject (or reopen) once the text changed
+        reject_feedback(str(fb._id), 1)
+    with pytest.raises(InputError):
+        reopen_feedback(str(fb._id))
 
 
 def test_accept_fails_when_text_changed(synthetic_text):
@@ -161,6 +171,62 @@ def test_accept_legacy_word_level_record(synthetic_text):
     with patch("sefaria.tracker.USE_VARNISH", False):
         _, new_text = accept_feedback(str(fb._id), 1)
     assert new_text == "And God saw the light, that it was <b>good</b>; and the radiance was good."
+
+
+def _en_text():
+    return TextChunk(Ref(f"{TITLE} 1:1"), vtitle=EN_VTITLE, actual_lang="en").text
+
+
+def test_reject_records_decision_and_leaves_text(synthetic_text):
+    fb = create_feedback(_payload(), user_id=None, run_assessment=False)
+    history_before = db.history.count_documents({"ref": f"{TITLE} 1:1"})
+    rejected = reject_feedback(str(fb._id), 7)
+    assert rejected.status == STATUS_REJECTED
+    loaded = TranslationFeedback().load_by_id(fb._id)
+    assert loaded.status == STATUS_REJECTED and loaded.status_label() == "rejected"
+    assert loaded.decided_by == 7 and loaded.decided_at
+    assert loaded.decider() == (7, loaded.decided_at)
+    assert _en_text() == SEGMENT_EN
+    assert db.history.count_documents({"ref": f"{TITLE} 1:1"}) == history_before
+    with pytest.raises(InputError):  # already rejected
+        reject_feedback(str(fb._id), 7)
+    with pytest.raises(InputError, match="reopen"):  # must reopen before accepting
+        accept_feedback(str(fb._id), 7)
+
+
+def test_reject_comment_only(synthetic_text):
+    fb = create_feedback(_payload(suggestion=None), run_assessment=False)
+    assert not fb.has_suggestion()
+    assert reject_feedback(str(fb._id), 7).status == STATUS_REJECTED
+    assert _en_text() == SEGMENT_EN
+
+
+def test_reopen_returns_to_undecided(synthetic_text):
+    fb = create_feedback(_payload(), run_assessment=False)
+    with pytest.raises(InputError):  # only rejected feedback can be reopened
+        reopen_feedback(str(fb._id))
+    reject_feedback(str(fb._id), 7)
+    reopened = reopen_feedback(str(fb._id))
+    loaded = TranslationFeedback().load_by_id(fb._id)
+    assert reopened.status == loaded.status == STATUS_NEW
+    assert loaded.status_label() == "undecided"
+    assert loaded.decider() == (None, None)
+    with patch("sefaria.tracker.USE_VARNISH", False):  # and can then be accepted
+        accept_feedback(str(fb._id), 7)
+    assert TranslationFeedback().load_by_id(fb._id).status == STATUS_ACCEPTED
+
+
+def test_reject_unknown_id(synthetic_text):
+    with pytest.raises(InputError, match="not found"):
+        reject_feedback("0" * 24, 7)
+
+
+def test_record_without_status_is_undecided_and_rejectable(synthetic_text):
+    fb = create_feedback(_payload(), run_assessment=False)
+    db.translation_feedback.update_one({"_id": fb._id}, {"$unset": {"status": ""}})
+    loaded = TranslationFeedback().load_by_id(fb._id)
+    assert loaded.status_label() == "undecided"
+    assert reject_feedback(str(fb._id), 7).status == STATUS_REJECTED
 
 
 def test_assess_without_api_key(synthetic_text):

@@ -1,12 +1,13 @@
 """
-Business logic for the translation-feedback POC: creating feedback records from the reader and
-accepting a suggestion into the text (through sefaria.tracker, so it shows in history/activity).
+Business logic for the translation-feedback POC: creating feedback records from the reader,
+accepting a suggestion into the text (through sefaria.tracker, so it shows in history/activity), and
+rejecting / reopening feedback (status only, the text is never touched).
 """
 import structlog
 
 from sefaria.model import Ref, Version, VersionSet, TextChunk
 from sefaria.model.translation_feedback import (
-    TranslationFeedback, TranslationFeedbackSet, STATUS_NEW, STATUS_ACCEPTED,
+    TranslationFeedback, TranslationFeedbackSet, STATUS_NEW, STATUS_ACCEPTED, STATUS_REJECTED,
     MAX_SUGGESTION_LEN, MAX_COMMENT_LEN,
     replace_word, WordReplacementError, now_epoch,
     visible_text, normalize_space, segment_replacement,
@@ -48,6 +49,24 @@ def _segment_text(oref, version):
     chunk = TextChunk(oref, vtitle=version.versionTitle, actual_lang=getattr(version, "actualLanguage", None),
                       direction=getattr(version, "direction", None))
     return chunk.text
+
+
+def _load_feedback(feedback_id):
+    try:
+        feedback = TranslationFeedback().load_by_id(feedback_id)
+    except Exception:
+        feedback = None
+    if not feedback:
+        raise InputError("Feedback not found.")
+    return feedback
+
+
+def _check_undecided(feedback):
+    status = getattr(feedback, "status", None)
+    if status == STATUS_ACCEPTED:
+        raise InputError("This suggestion was already accepted.")
+    if status == STATUS_REJECTED:
+        raise InputError("This feedback was already rejected; reopen it first.")
 
 
 def _segment_ref(tref):
@@ -149,14 +168,8 @@ def accept_feedback(feedback_id, user_id):
     (feedback, new_segment_text).
     """
     from sefaria import tracker
-    try:
-        feedback = TranslationFeedback().load_by_id(feedback_id)
-    except Exception:
-        feedback = None
-    if not feedback:
-        raise InputError("Feedback not found.")
-    if feedback.status == STATUS_ACCEPTED:
-        raise InputError("This suggestion was already accepted.")
+    feedback = _load_feedback(feedback_id)
+    _check_undecided(feedback)
     if not feedback.has_suggestion():
         raise InputError("This feedback has no suggestion to accept.")
 
@@ -180,10 +193,36 @@ def accept_feedback(feedback_id, user_id):
                         new_text, direction=getattr(version, "direction", None), method=HISTORY_METHOD)
 
     feedback.status = STATUS_ACCEPTED
-    feedback.accepted_by = user_id
-    feedback.accepted_at = now_epoch()
+    feedback.accepted_by = feedback.decided_by = user_id
+    feedback.accepted_at = feedback.decided_at = now_epoch()
     feedback.save()
     return feedback, new_text
+
+
+def reject_feedback(feedback_id, user_id):
+    """
+    Mark feedback (with or without a suggestion) as rejected. Never touches the text. Returns the
+    feedback.
+    """
+    feedback = _load_feedback(feedback_id)
+    _check_undecided(feedback)
+    feedback.status = STATUS_REJECTED
+    feedback.decided_by = user_id
+    feedback.decided_at = now_epoch()
+    feedback.save()
+    return feedback
+
+
+def reopen_feedback(feedback_id):
+    """Return rejected feedback to undecided. Accepted feedback can't be reopened (the text changed)."""
+    feedback = _load_feedback(feedback_id)
+    if getattr(feedback, "status", None) != STATUS_REJECTED:
+        raise InputError("Only rejected feedback can be reopened.")
+    feedback.status = STATUS_NEW
+    feedback.decided_by = None
+    feedback.decided_at = None
+    feedback.save()
+    return feedback
 
 
 def list_feedback(limit=500):

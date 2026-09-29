@@ -6,7 +6,8 @@ POC (discovery): reader feedback on one segment of a translation. A reader doubl
 segment's translation (non-primary version) and may suggest a replacement translation for the whole
 segment and/or leave a comment. An LLM then rates the feedback (see
 sefaria.helper.llm.translation_feedback) and staff can accept a suggestion, which replaces the
-segment's text through sefaria.tracker.modify_text.
+segment's text through sefaria.tracker.modify_text, or reject it (the text is not touched; a
+rejected record can be reopened).
 
 Records created before the move to segment level carry `word` / `occurrence` (a single-word
 suggestion); they are still displayed but can no longer be accepted.
@@ -18,9 +19,14 @@ import regex
 
 from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
 
-STATUS_NEW = "new"
-STATUS_ACCEPTED = "accepted"
-STATUSES = (STATUS_NEW, STATUS_ACCEPTED)
+STATUS_NEW = "new"            # undecided
+STATUS_ACCEPTED = "accepted"  # suggestion applied to the text; final
+STATUS_REJECTED = "rejected"  # dismissed without touching the text; can be reopened
+STATUSES = (STATUS_NEW, STATUS_ACCEPTED, STATUS_REJECTED)
+
+# what the dashboard calls each stored status
+STATUS_UNDECIDED_LABEL = "undecided"
+STATUS_LABELS = {STATUS_NEW: STATUS_UNDECIDED_LABEL, STATUS_ACCEPTED: "accepted", STATUS_REJECTED: "rejected"}
 
 # "1".."4" rate a suggestion, "C" = comment only, "?" = the LLM could not be reached / parsed
 ASSESSMENT_VALUES = ("1", "2", "3", "4", "C", "?")
@@ -55,8 +61,10 @@ class TranslationFeedback(AbstractMongoRecord):
         "llm_model",
         "llm_started",       # epoch seconds when an assessment attempt was claimed
         "llm_assessed",      # epoch seconds when the assessment finished
-        "accepted_by",
+        "accepted_by",       # set on accept (kept alongside decided_by for older records)
         "accepted_at",
+        "decided_by",        # user id who accepted or rejected
+        "decided_at",        # epoch seconds of that decision
     ]
     attr_schemas = {
         "ref": {"type": "string", "required": True},
@@ -70,6 +78,8 @@ class TranslationFeedback(AbstractMongoRecord):
         "comment": {"type": "string", "nullable": True, "maxlength": MAX_COMMENT_LEN},
         "user_id": {"type": "integer", "nullable": True},
         "llm_assessment": {"type": "string", "nullable": True, "allowed": list(ASSESSMENT_VALUES)},
+        "decided_by": {"type": "integer", "nullable": True},
+        "decided_at": {"type": "integer", "nullable": True},
     }
 
     def _sanitize(self):
@@ -83,6 +93,15 @@ class TranslationFeedback(AbstractMongoRecord):
 
     def is_word_level(self):
         return bool(getattr(self, "word", None))
+
+    def status_label(self):
+        """"undecided", "accepted" or "rejected". Records without a status count as undecided."""
+        return STATUS_LABELS.get(getattr(self, "status", None), STATUS_UNDECIDED_LABEL)
+
+    def decider(self):
+        """(user_id, epoch) of the accept/reject decision, falling back to accepted_* on older records."""
+        return (getattr(self, "decided_by", None) or getattr(self, "accepted_by", None),
+                getattr(self, "decided_at", None) or getattr(self, "accepted_at", None))
 
 
 class TranslationFeedbackSet(AbstractMongoSet):

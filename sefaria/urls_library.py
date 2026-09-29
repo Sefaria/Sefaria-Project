@@ -95,6 +95,8 @@ urlpatterns += [
     re_path(r'^api/translation-feedback/segment/?$', translation_feedback_views.translation_feedback_segment_api),
     re_path(r'^api/translation-feedback/?$', translation_feedback_views.translation_feedback_api),
     re_path(r'^api/translation-feedback/(?P<feedback_id>[0-9a-f]{24})/accept/?$', translation_feedback_views.translation_feedback_accept_api),
+    re_path(r'^api/translation-feedback/(?P<feedback_id>[0-9a-f]{24})/reject/?$', translation_feedback_views.translation_feedback_reject_api),
+    re_path(r'^api/translation-feedback/(?P<feedback_id>[0-9a-f]{24})/reopen/?$', translation_feedback_views.translation_feedback_reopen_api),
 ]
 
 # Operational tooling

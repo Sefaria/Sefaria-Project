@@ -2,7 +2,7 @@ import pytest
 
 from sefaria.model.translation_feedback import (
     TranslationFeedback, visible_text_with_map, locate_word, occurrence_at_offset, replace_word,
-    WordReplacementError, STATUS_NEW, now_epoch, visible_text, has_markup, normalize_space, segment_replacement,
+    WordReplacementError, STATUS_NEW, STATUS_ACCEPTED, STATUS_REJECTED, now_epoch, visible_text, has_markup, normalize_space, segment_replacement,
 )
 from sefaria.system.exceptions import InputError
 
@@ -121,6 +121,27 @@ class TestModel:
             assert TranslationFeedback().load_by_id(fb._id).is_word_level()
         finally:
             fb.delete()
+
+    def test_status_labels_and_decider(self):
+        assert TranslationFeedback(self._attrs()).status_label() == "undecided"
+        attrs = self._attrs()
+        del attrs["status"]
+        assert TranslationFeedback(attrs).status_label() == "undecided"
+        assert TranslationFeedback(self._attrs(status=STATUS_REJECTED, decided_by=3, decided_at=5)).decider() == (3, 5)
+        # records accepted before decided_by/decided_at existed
+        legacy = TranslationFeedback(self._attrs(status=STATUS_ACCEPTED, accepted_by=4, accepted_at=6))
+        assert legacy.status_label() == "accepted" and legacy.decider() == (4, 6)
+
+    def test_rejected_status_saves(self):
+        fb = TranslationFeedback(self._attrs(status=STATUS_REJECTED, decided_by=3, decided_at=now_epoch())).save()
+        try:
+            assert TranslationFeedback().load_by_id(fb._id).status == STATUS_REJECTED
+        finally:
+            fb.delete()
+
+    def test_rejects_unknown_status(self):
+        with pytest.raises(InputError):
+            TranslationFeedback(self._attrs(status="maybe")).save()
 
     def test_rejects_bad_assessment(self):
         with pytest.raises(InputError):
