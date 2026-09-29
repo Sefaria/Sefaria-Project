@@ -454,6 +454,11 @@ export class Reader {
       pane.el.querySelector(".pt-he").textContent = heName(shown, comm && comm.he);
       pane.el.querySelector(".pt-en").textContent = shown;
       pane.el.setAttribute("aria-label", shown);
+      const titleBtn = pane.el.querySelector(".pane-title");
+      titleBtn.title = comm && comm.substituted
+        ? `${shown} — ${comm.requested} does not comment here. Choose another commentary…`
+        : comm && comm.missing ? `No ${name} here. Choose another commentary…` : "Choose commentary";
+      titleBtn.classList.toggle("subst", !!(comm && (comm.substituted || comm.missing)));
       pane.el.classList.toggle("no-en", !!(entry.els && entry.els[s] && entry.els[s].classList.contains("no-en")));
       this.app.setTabLabel(s, heName(shown, comm && comm.he), shown);
     }
@@ -503,12 +508,24 @@ export class Reader {
     const p = parseRef(ref);
     const secIdx = this.entries.findIndex((e) => e.ref === p.sectionRef);
     if (secIdx < 0) return;
+    const offset = this.levelOffset(ref, 0.3);
     for (const side of SIDES) {
       if (!force && performance.now() - this.touched[side] < 2500) continue;
       const g = this.findGroup(side, secIdx, p.seg);
       if (!g) continue;
-      this.scrollPaneTo(side, g, 10);
+      this.scrollPaneTo(side, g, offset);
     }
+  }
+
+  /** How far below the pane top a Gemara line sits, so its comments can be drawn level with it. */
+  levelOffset(ref, maxFrac) {
+    if (isNarrow() || window.matchMedia("(max-width: 1179px)").matches) return 10;
+    const body = this.panes.center.body;
+    const seg = body.querySelector(`.seg[data-ref="${cssEsc(ref)}"]`);
+    if (!seg) return 10;
+    const br = body.getBoundingClientRect();
+    const top = seg.getBoundingClientRect().top - br.top;
+    return Math.max(10, Math.min(br.height * maxFrac, top));
   }
 
   findGroup(side, secIdx, n) {
@@ -575,7 +592,7 @@ export class Reader {
         if (opts.comment && comments[s].some((c) => c.dataset.ref === opts.comment)) continue;
         // no comment on this line: glide to the next one this commentator does have
         const target = comments[s][0] ? comments[s][0].parentElement : this.findGroup(s, secIdx, p.seg);
-        if (target) this.scrollPaneTo(s, target, 10, opts.from === "open" ? "auto" : "smooth");
+        if (target) this.scrollPaneTo(s, target, this.levelOffset(ref, 0.4), opts.from === "open" ? "auto" : "smooth");
       }
     }
     if (opts.from === "right" || opts.from === "left") {

@@ -340,6 +340,8 @@ class App {
         const r = panes.getBoundingClientRect();
         let best = null, bestV = -1;
         for (const p of panes.querySelectorAll(".pane")) {
+          const tab = tabs.find((t) => t.dataset.pane === p.dataset.pane);
+          if (tab && !tab.offsetParent) continue; // tablet: the Gemara is always in view
           const pr = p.getBoundingClientRect();
           const v = Math.min(pr.right, r.right) - Math.max(pr.left, r.left);
           if (v > bestV) { bestV = v; best = p.dataset.pane; }

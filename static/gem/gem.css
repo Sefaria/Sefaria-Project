@@ -899,6 +899,7 @@ mark.hit { background: var(--hit); color: inherit; border-radius: 3px; padding: 
   .pane-side .sec { padding: 0 18px; }
   .pane-head { height: 42px; }
   .seg { margin: 0 -10px 6px; padding: 5px 10px; }
+  .seg-he { text-align: right; text-align-last: auto; } /* short phone lines justify badly */
   .kind-label, .seg-num { display: none !important; }
   .mishnah-mark .seg[data-kind="mishnah"]::after { right: -4px; }
   .tick.tr { right: 1px; }
@@ -947,3 +948,4 @@ mark.hit { background: var(--hit); color: inherit; border-radius: 3px; padding: 
 .nav-today { height: 38px; padding: 0 12px; font-size: 13px; white-space: nowrap; }
 .nav-today .ic svg { width: 16px; height: 16px; }
 @media (max-width: 820px) { .nav-today { order: 2; } }
+.pane-title.subst .pt-en::after { content: " · in its place"; text-transform: none; letter-spacing: 0; font-style: italic; color: var(--accent-2); }

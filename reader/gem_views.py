@@ -9,14 +9,24 @@ import hashlib
 import json
 import os
 from functools import lru_cache
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.contrib.staticfiles import finders
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-from django.templatetags.static import static
+from django.templatetags.static import static as _django_static
 
 GEM_STATIC_DIR = "gem"
+
+
+def static(path):
+    """
+    Same-origin, path-only static URL. STATIC_URL may be absolute (FRONT_END_URL); ES modules
+    and the import map must resolve on the page's own origin, and nginx serves /static/ on
+    every host.
+    """
+    return urlparse(_django_static(path)).path
 
 
 @lru_cache(maxsize=1)
