@@ -1,3 +1,5 @@
+// Must come first: defines the server data sefaria.js reads when it loads.
+import "./serverData";
 import React from "react";
 import "@static/css/common.css";
 import "@static/css/s2.css";
@@ -6,10 +8,10 @@ import {
   AdContext,
   StrapiDataContext,
 } from "@static/js/context";
-import sefariaStub from "./sefariaStub";
+// The real Sefaria object, not a hand-written fake.
+import Sefaria from "@static/js/sefaria/sefaria";
 
 if (typeof globalThis !== "undefined") {
-  globalThis.Sefaria = sefariaStub;
   globalThis.sa_event = globalThis.sa_event || (() => {});
   globalThis.gtag = globalThis.gtag || (() => {});
 }
@@ -53,7 +55,7 @@ const preview = {
   decorators: [
     (Story, context) => {
       const interfaceLang = context.globals.interfaceLang;
-      sefariaStub.interfaceLang = interfaceLang;
+      Sefaria.interfaceLang = interfaceLang;
       const readerPanelValue = { language: interfaceLang };
       return (
         <ReaderPanelContext.Provider value={readerPanelValue}>

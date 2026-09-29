@@ -42,16 +42,6 @@ const config = {
     return mergeConfig(baseConfig, {
       plugins: [
         {
-          name: "mock-sefaria-module",
-          enforce: "pre",
-          resolveId(source) {
-            if (/\/sefaria(\.js)?$/.test(source)) {
-              return path.resolve(configDirname, "./mocks/sefaria.js");
-            }
-            return null;
-          },
-        },
-        {
           name: "mock-sefaria-jquery",
           enforce: "pre",
           resolveId(source) {
@@ -81,6 +71,36 @@ const config = {
           },
         },
         {
+          // sefaria.js loads two helpers with CommonJS require(), which webpack
+          // accepts but Vite does not in the browser. Rewrite just those lines as imports,
+          // plus one line that only works after Babel's let -> var conversion.
+          name: "sefaria-js-require-to-import",
+          enforce: "pre",
+          transform(code, id) {
+            if (!id.endsWith("/static/js/sefaria/sefaria.js")) {
+              return null;
+            }
+            const original =
+              "var extend     = require('extend'),\n    param      = require('querystring').stringify;";
+            if (!code.includes(original)) {
+              this.error("sefaria.js require() lines changed; update .storybook/main.js");
+            }
+            // `let Sefaria = Sefaria || {...}` reads Sefaria before it exists, which native
+            // `let` forbids. Babel turns it into `var` for the real site, where Sefaria is
+            // always undefined at that point, so the line always takes the `{...}` branch.
+            const selfReference = "let Sefaria = Sefaria || {";
+            if (!code.includes(selfReference)) {
+              this.error("sefaria.js `let Sefaria = Sefaria ||` line changed; update .storybook/main.js");
+            }
+            return code
+              .replace(
+                original,
+                "import extend from 'extend';\nimport querystring from 'querystring';\nvar param = querystring.stringify;",
+              )
+              .replace(selfReference, "let Sefaria = {");
+          },
+        },
+        {
           name: "context-jsx-loader",
           enforce: "pre",
           async transform(code, id) {
@@ -104,10 +124,6 @@ const config = {
           {
             find: "@static",
             replacement: path.resolve(configDirname, "../static"),
-          },
-          {
-            find: /static\/js\/sefaria\/sefaria(?:\.js)?$/,
-            replacement: path.resolve(configDirname, "./mocks/sefaria.js"),
           },
           {
             find: "jquery",
