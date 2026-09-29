@@ -42,7 +42,7 @@ import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
-import { openLibraryAssistant } from './FirstVisitFork';
+import { FirstVisitFork, openLibraryAssistant } from './FirstVisitFork';
 import AuthPage from './auth/AuthPage';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
 import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
@@ -2557,9 +2557,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       openTopic={this.openTopic}
                       editorSaveState={this.state.editorSaveState}
                       setEditorSaveState={this.setEditorSaveState}
-                      showFirstVisitFork={this.state.showFirstVisitFork && i === 0}
-                      dismissFirstVisitFork={this.dismissFirstVisitFork}
-                      libraryAssistantAvailable={displayChatbot}
                     />
                   </div>);
     }
@@ -2634,6 +2631,11 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               )}
               </main>
               {signUpModal}
+              {this.state.showFirstVisitFork && !this.props.multiPanel && (
+                <FirstVisitFork
+                  libraryAssistantAvailable={displayChatbot}
+                  close={this.dismissFirstVisitFork} />
+              )}
               <CookiesNotification />
             </div>
             <BannerImpressionProbe />

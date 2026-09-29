@@ -8,7 +8,6 @@ import {ReaderPanelContext} from './context';
 import $  from './sefaria/sefariaJquery';
 import TextColumn  from './TextColumn';
 import TextsPage  from './TextsPage';
-import { FirstVisitFork } from './FirstVisitFork';
 import UserHistoryPanel from './UserHistoryPanel';
 import {
   ConnectionsPanel,
@@ -887,11 +886,7 @@ class ReaderPanel extends Component {
       );
     }
 
-    if (this.state.menuOpen === "navigation" && this.props.showFirstVisitFork && !this.props.multiPanel) {
-      menu = (<FirstVisitFork
-                    libraryAssistantAvailable={this.props.libraryAssistantAvailable}
-                    onBrowse={this.props.dismissFirstVisitFork} />);
-    } else if (this.state.menuOpen === "navigation") {
+    if (this.state.menuOpen === "navigation") {
 
       const openNav = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
       const openTextTOC = this.state.compare ? this.openCompareTextTOC : null;
@@ -1248,9 +1243,6 @@ class ReaderPanel extends Component {
   }
 }
 ReaderPanel.propTypes = {
-  showFirstVisitFork:          PropTypes.bool,
-  dismissFirstVisitFork:       PropTypes.func,
-  libraryAssistantAvailable:   PropTypes.bool,
   initialState:                PropTypes.object,
   interfaceLang:               PropTypes.string,
   setCentralState:             PropTypes.func,

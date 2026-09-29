@@ -17059,81 +17059,40 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
 
-/* First-visit fork (proof of concept, mobile web, `/texts?fork=1`) */
-/* The fork's first card is the entry point, so the Library Assistant's floating button would duplicate it */
+/* First-visit fork modal (proof of concept, mobile web, `/texts?fork=1`) */
+/* The Library Assistant's floating button would sit on top of the modal's backdrop */
 .readerApp:has(.firstVisitFork) lc-chatbot {
   visibility: hidden;
 }
-.singlePanel .readerNavMenu.firstVisitFork .content {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  min-height: 100dvh;
-  padding: 100px 20px 24px;
+.dialogModal .modal-content > .firstVisitFork {
+  padding: 28px 24px 24px;
 }
-.firstVisitForkIntro {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.readerNavMenu.firstVisitFork h1 {
-  margin: 0;
-  font-size: 34px;
+.firstVisitFork h2 {
+  margin: 0 0 8px;
+  font-size: var(--serif-h3-font-size);
   font-weight: 400;
-  line-height: 1.15;
-  color: var(--sefaria-blue);
+  text-align: center;
+  color: var(--darkest-grey);
 }
-.firstVisitForkIntro p {
-  margin: 0;
+.firstVisitForkSubtitle {
+  margin: 0 0 24px;
   font-size: var(--sans-serif-body-font-size);
-  line-height: 1.5;
-  color: var(--darker-grey);
+  line-height: 1.4;
+  text-align: center;
+  color: var(--dark-grey);
 }
-.firstVisitForkOptions {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+.firstVisitForkStar {
+  margin-inline-end: 6px;
 }
-.firstVisitForkOption {
+.firstVisitForkButtons {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 22px 20px;
-  border: 1px solid var(--light-grey);
-  border-radius: 12px;
-  background-color: var(--white);
-  text-decoration: none;
 }
-.firstVisitForkOption:hover {
-  text-decoration: none;
-}
-.firstVisitForkOption.primary {
-  border-color: var(--sefaria-blue);
-  background-color: var(--sefaria-blue);
-}
-.firstVisitForkOption img {
-  width: 28px;
-  height: 28px;
-}
-.firstVisitForkOptionTitle {
-  font-size: 20px;
-  font-weight: 500;
-  color: var(--sefaria-blue);
-}
-.firstVisitForkOptionDescription {
-  font-size: 15px;
-  line-height: 1.45;
-  color: var(--darker-grey);
-}
-.firstVisitForkOption.primary .firstVisitForkOptionTitle {
-  color: var(--white);
-}
-.firstVisitForkOption.primary .firstVisitForkOptionDescription {
-  color: var(--highlight-blue-light);
-}
-.firstVisitForkFooter {
-  margin: auto 0 0;
-  font-size: var(--sans-serif-small-font-size);
-  color: var(--dark-grey);
-  text-align: center;
+/* Light button colors, as the theme defines for secondary buttons elsewhere */
+button.sefaria-common-button.firstVisitForkBrowse {
+  --theme-button-background: var(--white);
+  --theme-button-text: var(--dark-grey);
+  --theme-button-icon-filter: brightness(0) saturate(100%) invert(38%) sepia(1%) saturate(0%) hue-rotate(220deg) brightness(99%) contrast(84%);  /* --dark-grey */
+  --theme-button-border: var(--light-grey);
 }

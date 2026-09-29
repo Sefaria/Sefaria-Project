@@ -1,6 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { InterfaceText } from './Misc';
+import Button from './common/Button';
+import Modal from './common/modal';
 
 const LIBRARY_ASSISTANT_SOURCE = 'first_visit_fork';
 
@@ -9,15 +11,16 @@ const LIBRARY_ASSISTANT_SOURCE = 'first_visit_fork';
 const openLibraryAssistant = (source = LIBRARY_ASSISTANT_SOURCE) => {
   if (typeof window === 'undefined' || !window.customElements) { return; }
   customElements.whenDefined('lc-chatbot').then(() => {
-    requestAnimationFrame(() => {
+    // A task, not a frame: hidden tabs don't run requestAnimationFrame callbacks.
+    setTimeout(() => {
       document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {source}}));
-    });
+    }, 0);
   });
 };
 
-// Proof of concept: a mobile-web first-visit screen that asks whether the visitor wants help
-// finding something (Library Assistant) or wants to browse. Only shown with `?fork=1`.
-const FirstVisitFork = ({ libraryAssistantAvailable, onBrowse }) => {
+// Proof of concept: a mobile-web first-visit modal over the homepage that offers the Library
+// Assistant or browsing. Only shown with `?fork=1`.
+const FirstVisitFork = ({ libraryAssistantAvailable, close }) => {
   // Without the assistant on the page, route through the enable flow (logging in if needed) and
   // come back to the homepage with the assistant opening on load.
   const enableAssistantUrl = '/enable-library-assistant?next=' + encodeURIComponent('/texts?open_assistant=1');
@@ -25,54 +28,31 @@ const FirstVisitFork = ({ libraryAssistantAvailable, onBrowse }) => {
   const handleAskClick = (e) => {
     if (!libraryAssistantAvailable) { return; }
     e.preventDefault(); // keeps ReaderApp's in-app link handler off the click
-    onBrowse();
+    close();
     openLibraryAssistant();
   };
 
-  const handleBrowseClick = (e) => {
-    e.preventDefault();
-    onBrowse();
-  };
-
   return (
-    <div className="readerNavMenu firstVisitFork sans-serif">
-      <div className="content">
-        <div className="firstVisitForkIntro">
-          <h1 className="serif"><InterfaceText>first_visit_fork.title</InterfaceText></h1>
-          <p><InterfaceText>first_visit_fork.subtitle</InterfaceText></p>
+    <Modal close={close}>
+      <div className="firstVisitFork">
+        <h2 className="serif sans-serif-in-hebrew"><InterfaceText>first_visit_fork.title</InterfaceText></h2>
+        <p className="firstVisitForkSubtitle"><InterfaceText>first_visit_fork.subtitle</InterfaceText></p>
+        <div className="firstVisitForkButtons">
+          <Button size="fullwidth" href={enableAssistantUrl} onClick={handleAskClick}>
+            <span className="firstVisitForkStar" aria-hidden="true">✦</span>
+            <InterfaceText>first_visit_fork.ask</InterfaceText>
+          </Button>
+          <Button size="fullwidth" icon="lucide-book-open" className="firstVisitForkBrowse" onClick={close}>
+            <InterfaceText>first_visit_fork.browse</InterfaceText>
+          </Button>
         </div>
-        <div className="firstVisitForkOptions">
-          <a
-            href={enableAssistantUrl}
-            className="firstVisitForkOption primary"
-            onClick={handleAskClick}
-            data-anl-event="first_visit_fork:click"
-            data-anl-text="library_assistant"
-          >
-            <img src="/static/icons/lucide-message-square-white.svg" alt="" aria-hidden="true" />
-            <span className="firstVisitForkOptionTitle"><InterfaceText>first_visit_fork.ask_title</InterfaceText></span>
-            <span className="firstVisitForkOptionDescription"><InterfaceText>first_visit_fork.ask_description</InterfaceText></span>
-          </a>
-          <a
-            href="/texts"
-            className="firstVisitForkOption"
-            onClick={handleBrowseClick}
-            data-anl-event="first_visit_fork:click"
-            data-anl-text="browse"
-          >
-            <img src="/static/icons/lucide-book-open-blue.svg" alt="" aria-hidden="true" />
-            <span className="firstVisitForkOptionTitle"><InterfaceText>first_visit_fork.browse_title</InterfaceText></span>
-            <span className="firstVisitForkOptionDescription"><InterfaceText>first_visit_fork.browse_description</InterfaceText></span>
-          </a>
-        </div>
-        <p className="firstVisitForkFooter"><InterfaceText>first_visit_fork.switch_anytime</InterfaceText></p>
       </div>
-    </div>
+    </Modal>
   );
 };
 FirstVisitFork.propTypes = {
   libraryAssistantAvailable: PropTypes.bool,
-  onBrowse:                  PropTypes.func.isRequired,
+  close:                     PropTypes.func.isRequired,
 };
 
 export { FirstVisitFork, openLibraryAssistant };
