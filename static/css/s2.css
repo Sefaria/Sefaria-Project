@@ -17075,7 +17075,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
   font-size: 15px;
   line-height: 1.55;
-  text-align: left;
+  text-align: start;
 }
 /* Both settings tabs sit in one menu page, which carries the page padding the account
    settings template used to apply to its own .inner. */
@@ -17253,7 +17253,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   padding: 0;
 }
 .devPocPage h1, .devPocPage h2, .devPocPage h3, .devPocPage p, .devPocPage ol {
-  text-align: left;
+  text-align: start;
   text-transform: none;
   letter-spacing: normal;
   color: inherit;
@@ -17537,7 +17537,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   background: transparent;
   color: inherit;
   font: inherit;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
 }
 .devPocChevron {
@@ -17547,6 +17547,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   transition: transform 0.15s ease;
 }
 .devPocChevron[data-open="true"] { transform: rotate(0deg); }
+.interface-hebrew .devPocChevron[data-open="false"] { transform: rotate(90deg); }
 /* Everything in the header starts on the same left edge as the project title's text, so
    the collapsed and expanded cards read as one block. */
 .devPocProjectDescription { margin-top: var(--devPoc-s1); font-size: 15px; }
@@ -17709,8 +17710,8 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocRestrictionRow .devPocPopover { inset-inline-start: auto; inset-inline-end: 0; }
 
 .devPocStats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--devPoc-s3); }
-.devPocStat { border-right: 1px solid var(--devPoc-line); padding-right: var(--devPoc-s2); }
-.devPocStat:last-child { border-right: 0; }
+.devPocStat { border-inline-end: 1px solid var(--devPoc-line); padding-inline-end: var(--devPoc-s2); }
+.devPocStat:last-child { border-inline-end: 0; }
 .devPocStat strong { display: block; font-size: 23px; font-weight: 500; }
 .devPocStat span { font-size: 13px; color: #626971; }
 
@@ -17738,7 +17739,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocSwatch { display: block; width: 12px; height: 12px; border-radius: 3px; }
 .devPocLegendLabel { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .devPocLegendValue { font-variant-numeric: tabular-nums; }
-.devPocLegendPercent { color: var(--devPoc-muted); text-align: right; font-variant-numeric: tabular-nums; }
+.devPocLegendPercent { color: var(--devPoc-muted); text-align: end; font-variant-numeric: tabular-nums; }
 
 .devPocResult { display: flex; justify-content: space-between; align-items: center; gap: var(--devPoc-s3); padding: var(--devPoc-s2) 0; border-bottom: 1px solid var(--devPoc-line); }
 .devPocListingSearch { margin-top: var(--devPoc-s2); }
@@ -17817,6 +17818,8 @@ input.devPocSwitch::after {
 }
 input.devPocSwitch:checked { background: #18345d; }
 input.devPocSwitch:checked::after { transform: translateX(16px); }
+.interface-hebrew .settingsPanel input.devPocSwitch::after { left: auto; right: 3px; }
+.interface-hebrew .settingsPanel input.devPocSwitch:checked::after { transform: translateX(-16px); }
 
 .devPocNotice, .devPocWarning, .devPocSuccess {
   border-radius: 4px;
@@ -17833,7 +17836,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocGetStarted p { font-size: 14px; color: var(--devPoc-muted); margin: 0 0 var(--devPoc-s2); max-width: 520px; }
 .devPocGetStarted.devPocCard p { font-size: 15px; }
 .devPocSsoPrompt { margin-top: 14px; padding: var(--devPoc-s3); background: #eef3f8; border: 1px solid #d4dfea; border-radius: 6px; }
-.devPocSsoPrompt h2 { font-size: 17px; font-weight: 600; margin: 0 0 var(--devPoc-s1); text-align: left; text-transform: none; }
+.devPocSsoPrompt h2 { font-size: 17px; font-weight: 600; margin: 0 0 var(--devPoc-s1); text-align: start; text-transform: none; }
 .devPocSsoPrompt p { font-size: 14px; margin: 0; }
 .devPocSsoPrompt .devPocList { margin-bottom: var(--devPoc-s3); }
 .devPocInlineButton { margin-top: 0; font-size: inherit; }
@@ -17875,21 +17878,21 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   background: #fff;
   border: 1px solid #d9dee3;
   border-radius: 6px;
-  text-align: left;
+  text-align: start;
   color: #252b32;
   font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
   font-size: 15px;
 }
 /* Confirms are a question and two buttons; they stay narrow rather than filling the band. */
 .devPocConfirmStage .devPocDialog { max-width: 440px; }
-.devPocDialog h2 { font-size: 20px; font-weight: 600; margin: 0; text-align: left; }
-.devPocDialog p { margin: 12px 0 0; text-align: left; }
+.devPocDialog h2 { font-size: 20px; font-weight: 600; margin: 0; text-align: start; }
+.devPocDialog p { margin: 12px 0 0; text-align: start; }
 .devPocDialogHeader { margin-bottom: var(--devPoc-s3); }
 .devPocDialog .devPocActions { margin-top: var(--devPoc-s3); }
 
 @media (max-width: 760px) {
   .settingsShell { display: block; max-width: none; }
-  .readerNavMenu.settingsPage .content .contentInner { padding: 40px 22px 60px; }
+  .readerNavMenu.settingsPage .content .contentInner { padding: 40px 16px 60px; }
   .settingsNav { display: flex; flex-wrap: wrap; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
   .settingsNavTitle { width: 100%; padding: 0 0 8px; }
   .settingsNav a { border-inline-start: 0; border-bottom: 3px solid transparent; padding: 10px; }
@@ -17904,8 +17907,15 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   .devPocSplit { flex-direction: column; align-items: stretch; gap: var(--devPoc-s3); }
   .devPocDonut { margin: 0 auto; }
   .devPocStats { grid-template-columns: minmax(0, 1fr); }
-  .devPocPopover, .devPocPopoverWide { max-width: min(280px, 70vw); }
-  .devPocStat { border-right: 0; }
+  .devPocPopover, .devPocPopoverWide, .devPocRestrictionRow .devPocPopover {
+    position: fixed;
+    top: auto;
+    bottom: 16px;
+    inset-inline: 16px;
+    width: auto;
+    max-width: none;
+  }
+  .devPocStat { border-inline-end: 0; }
   .devPocHeading { flex-wrap: wrap; }
   .devPocKeyValue { flex-wrap: wrap; }
   .devPocPanel { right: 0; left: 0; bottom: 0; }
