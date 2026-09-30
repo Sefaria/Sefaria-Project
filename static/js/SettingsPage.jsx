@@ -22,6 +22,7 @@ import {
 const KEY_SETUP_MS = 4000;
 
 const API_DOCS_URL = "https://developers.sefaria.org/reference/getting-started";
+const POWERED_BY_URL = "https://developers.sefaria.org/docs/powered-by-sefaria";
 const API_TERMS_URL = "/api-terms";
 
 const maskKey = (value) => {
@@ -631,7 +632,7 @@ const ListingPicker = ({listing, onPick, onClear}) => {
 };
 
 
-const ProjectFields = ({fields, set}) => (
+const ProjectFields = ({fields, set, onChoosePublic}) => (
   <React.Fragment>
     <div className="devPocField">
       <label htmlFor="devPocProjectName"><InterfaceText text={{en: "Project name", he: "שם הפרויקט"}} /></label>
@@ -691,7 +692,7 @@ const ProjectFields = ({fields, set}) => (
         </span>
       </label>
       <label className="devPocChoice">
-        <input type="radio" name="devPocVisibility" checked={fields.visibility === "public"} onChange={() => set("visibility", "public")} />
+        <input type="radio" name="devPocVisibility" checked={fields.visibility === "public"} onChange={onChoosePublic} />
         <span>
           <InterfaceText text={{en: "Public", he: "ציבורי"}} />
           <span className="devPocHelp">
@@ -713,6 +714,64 @@ const ProjectFields = ({fields, set}) => (
     </fieldset>
   </React.Fragment>
 );
+
+
+/* Asked when a project is switched to Public, not when the form opens, so the extra step
+   never puts anyone off choosing Public in the first place. */
+const PublicPreviewDialog = ({fields, authorName, onConfirm, onCancel}) => {
+  const confirmRef = useRef(null);
+  useDialogKeys(confirmRef, onCancel);
+  const notYet = <span className="devPocMuted"><InterfaceText text={{en: "Not filled in yet", he: "עדיין לא מולא"}} /></span>;
+  const rows = [
+    {label: {en: "Project name", he: "שם הפרויקט"}, value: fields.name.trim(), dir: "auto"},
+    {label: {en: "Description", he: "תיאור"}, value: fields.description.trim(), dir: "auto"},
+    {label: {en: "Made by", he: "נוצר על ידי"}, value: authorName, dir: "auto"},
+    {label: {en: "Organization", he: "ארגון"}, value: fields.organization.trim(), dir: "auto", optional: true},
+    {label: {en: "Website", he: "אתר"}, value: fields.websiteUrl.trim(), dir: "ltr", optional: true},
+  ].filter(row => row.value || !row.optional);
+
+  return (
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocPublicTitle">
+      <section className="devPocDialog">
+        <h2 id="devPocPublicTitle"><InterfaceText text={{en: "Make this project public?", he: "להפוך את הפרויקט לציבורי?"}} /></h2>
+        <p>
+          <InterfaceText text={{
+            en: "If Sefaria features it on Powered by Sefaria, anyone will be able to see:",
+            he: "אם ספריא תציג אותו ב־Powered by Sefaria, כל אחד יוכל לראות:",
+          }} />
+        </p>
+        <dl className="devPocPreview">
+          {rows.map(row => (
+            <div className="devPocPreviewRow" key={row.label.en}>
+              <dt><InterfaceText text={row.label} /></dt>
+              <dd dir={row.value ? row.dir : null}>{row.value || notYet}</dd>
+            </div>
+          ))}
+        </dl>
+        <p>
+          <InterfaceText text={{
+            en: "Your API keys and usage are never shown. You can change these details, or make the project private again, with Edit project.",
+            he: "מפתחות ה־API והשימוש בהם לעולם לא מוצגים. אפשר לשנות את הפרטים האלה, או להחזיר את הפרויקט למצב פרטי, דרך עריכת הפרויקט.",
+          }} />
+        </p>
+        <p>
+          <a className="devPocExternalLink" href={POWERED_BY_URL} target="_blank" rel="noopener noreferrer">
+            <InterfaceText text={{en: "See the projects on Powered by Sefaria", he: "לפרויקטים ב־Powered by Sefaria"}} />
+            <ExternalIcon />
+          </a>
+        </p>
+        <div className="devPocActions">
+          <button type="button" className="button small white" onClick={onCancel}>
+            <InterfaceText text={{en: "Keep private", he: "להשאיר פרטי"}} />
+          </button>
+          <button type="button" className="button small blue" ref={confirmRef} onClick={onConfirm}>
+            <InterfaceText text={{en: "Make public", he: "להפוך לציבורי"}} />
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+};
 
 
 const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => (
@@ -750,10 +809,11 @@ const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => (
 
 /* One form for creating and editing a project. A missing website asks once before saving,
    and the website field gets focus if the developer goes back to add one. */
-const ProjectForm = ({initial, submitLabel, onSave, onCancel, onDelete}) => {
+const ProjectForm = ({initial, authorName, submitLabel, onSave, onCancel, onDelete}) => {
   const [fields, setFields] = useState(initial);
   const [error, setError] = useState("");
   const [askWebsite, setAskWebsite] = useState(false);
+  const [previewPublic, setPreviewPublic] = useState(false);
   const formRef = useRef(null);
   const set = (key, value) => { setFields(f => ({...f, [key]: value})); setError(""); };
 
@@ -777,10 +837,19 @@ const ProjectForm = ({initial, submitLabel, onSave, onCancel, onDelete}) => {
     if (input) { input.focus(); }
   };
 
+  const closePreview = (makePublic) => {
+    setPreviewPublic(false);
+    if (makePublic) { set("visibility", "public"); }
+  };
+
   return (
     <React.Fragment>
       <form className="devPocForm" onSubmit={submit} ref={formRef}>
-        <ProjectFields fields={fields} set={set} />
+        <ProjectFields
+          fields={fields}
+          set={set}
+          onChoosePublic={() => { if (fields.visibility !== "public") { setPreviewPublic(true); } }}
+        />
         <p className="devPocHelp">
           <InterfaceText text={{
             en: "This project belongs to your Sefaria account and can't be moved to another account.",
@@ -803,6 +872,13 @@ const ProjectForm = ({initial, submitLabel, onSave, onCancel, onDelete}) => {
       </form>
       {askWebsite ?
         <NoWebsiteDialog onAddWebsite={addWebsite} onSaveAnyway={() => { setAskWebsite(false); save(); }} /> : null}
+      {previewPublic ?
+        <PublicPreviewDialog
+          fields={fields}
+          authorName={authorName}
+          onConfirm={() => closePreview(true)}
+          onCancel={() => closePreview(false)}
+        /> : null}
     </React.Fragment>
   );
 };
@@ -813,7 +889,7 @@ const newProjectFields = () => ({
 });
 
 /* The new-project form opens in place at the top of the project list. */
-const NewProjectPanel = ({onCreate, onCancel}) => {
+const NewProjectPanel = ({authorName, onCreate, onCancel}) => {
   const panelRef = useRef(null);
   useEffect(() => {
     const input = panelRef.current && panelRef.current.querySelector("#devPocProjectName");
@@ -827,6 +903,7 @@ const NewProjectPanel = ({onCreate, onCancel}) => {
       </p>
       <ProjectForm
         initial={newProjectFields()}
+        authorName={authorName}
         submitLabel={{en: "Create project", he: "יצירת פרויקט"}}
         onSave={onCreate}
         onCancel={onCancel}
@@ -1298,7 +1375,7 @@ const UsageSection = ({project}) => {
 };
 
 
-const ProjectCard = ({project, expanded, update, setConfirm, onToggleExpand, notice}) => {
+const ProjectCard = ({project, expanded, authorName, update, setConfirm, onToggleExpand, notice}) => {
   const [editing, setEditing] = useState(false);
   const cardRef = useRef(null);
 
@@ -1404,6 +1481,7 @@ const ProjectCard = ({project, expanded, update, setConfirm, onToggleExpand, not
                   websiteUrl: project.websiteUrl, visibility: project.visibility, aiAssisted: project.aiAssisted,
                   listingRequest: project.listingRequest,
                 }}
+                authorName={authorName}
                 submitLabel={{en: "Save project", he: "שמירת הפרויקט"}}
                 onSave={saveProject}
                 onCancel={() => setEditing(false)}
@@ -1535,7 +1613,7 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
           </div>
 
           {showNewProject ?
-            <NewProjectPanel onCreate={onCreateProject} onCancel={() => setShowNewProject(false)} /> :
+            <NewProjectPanel authorName={authorName} onCreate={onCreateProject} onCancel={() => setShowNewProject(false)} /> :
             state.projects.length === 0 ?
             <div className="devPocEmpty">
               <h2><InterfaceText text={{en: "No projects yet", he: "עדיין אין פרויקטים"}} /></h2>
@@ -1561,6 +1639,7 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
               key={p.id}
               project={p}
               expanded={state.expandedProjectId === p.id}
+              authorName={authorName}
               update={update}
               setConfirm={setConfirm}
               notice={setNotice}

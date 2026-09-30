@@ -17900,6 +17900,11 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocDialog p { margin: 12px 0 0; text-align: start; }
 .devPocDialogHeader { margin-bottom: var(--devPoc-s3); }
 .devPocDialog .devPocActions { margin-top: var(--devPoc-s3); }
+.devPocPreview { margin: var(--devPoc-s2) 0 0; padding: var(--devPoc-s2); border: 1px solid var(--devPoc-line); border-radius: 6px; background: #fbfbfa; }
+.devPocPreviewRow { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: var(--devPoc-s2); padding: 4px 0; font-size: 14px; }
+.devPocPreviewRow dt { color: var(--devPoc-muted); }
+.devPocPreviewRow dd { margin: 0; overflow-wrap: anywhere; }
+.devPocDialog a.devPocExternalLink { display: inline-flex; align-items: center; gap: 4px; color: var(--devPoc-blue); text-decoration: underline; }
 
 @media (max-width: 760px) {
   .settingsShell { display: block; max-width: none; }
@@ -17927,6 +17932,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
     max-width: none;
   }
   .devPocStat { border-inline-end: 0; }
+  .devPocPreviewRow { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   .devPocHeading { flex-wrap: wrap; }
   .devPocKeyValue { flex-wrap: wrap; }
   .devPocPanel { right: 0; left: 0; bottom: 0; }
