@@ -293,7 +293,7 @@ class VersionBlock extends Component {
       );
     } else {
       return (
-        <div className="versionBlock">
+        <div className={classNames({versionBlock: 1, tocLangFilterNoMatch: !!this.props.filteredOut})}>
           <div className="versionBlockHeading">
             <div className="versionTitle" role="heading" aria-level="2">
             <VersionBlockHeader

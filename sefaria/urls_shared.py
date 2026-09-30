@@ -71,6 +71,7 @@ shared_patterns = [
     re_path(r'^api/texts/version-status/tree/?(?P<lang>.*)?/?$', reader_views.version_status_tree_api),
     re_path(r'^api/texts/version-status/?$', reader_views.version_status_api),
     path('api/texts/parashat_hashavua', reader_views.parashat_hashavua_api),  # legacy, documented as broken (504s) -- see docs/decisions/documented_endpoints.md
+    re_path(r'^api/texts/translation-titles/(?P<lang>[A-Za-z]{2,3})/?$', reader_views.translation_titles_api),
     re_path(r'^api/texts/translations/?$', reader_views.translations_api),
     re_path(r'^api/texts/translations/(?P<lang>.+)', reader_views.translations_api),
     re_path(r'^api/texts/random?$', reader_views.random_text_api),

@@ -8,6 +8,7 @@ import {InterfaceText, ProfileListing, Dropdown} from './Misc';
 import { Promotions } from './Promotions'
 import {SignUpModalKind} from "./sefaria/signupModalContent";
 import Util from "./sefaria/util";
+import {getFilterLanguageOptions} from "./sefaria/tocLanguageFilter";
 import Button from "./common/Button";
 
 
@@ -433,9 +434,9 @@ const AboutText = ({index, hideTitle}) => {
 const TranslationLinks = () => {
   return (
     <div className="navSidebarLink serif language">
-      {<ul>{Object.keys(Sefaria.ISOMap).map(key => Sefaria.ISOMap[key]["showTranslations"] ? <li key={key}><a href={`/translations/${key}`}>
+      {<ul>{getFilterLanguageOptions().map(key => <li key={key}><a href={`/translations/${key}`}>
           {Sefaria.ISOMap[key]["nativeName"]}
-          </a></li> : null)} </ul>}
+          </a></li>)} </ul>}
       </div>
   );
 };
