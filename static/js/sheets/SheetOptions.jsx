@@ -160,7 +160,7 @@ const CollectionsButton = ({editable}) => {
 }
 
 const CopyButton = () => {
-  return <DropdownMenuItemWithIcon textEn={"sheet_modals.copy"} icon="/static/img/copy.png"/>
+  return <DropdownMenuItemWithIcon textEn={"sheet_modals.copy"} icon="/static/icons/copy.svg"/>
 }
 
 const GoogleDocExportButton = () => {

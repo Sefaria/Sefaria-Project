@@ -27,7 +27,7 @@
     /** button colors **/
   --theme-button-background: var(--theme-primary);
   --theme-button-text: white;
-  --theme-button-icon-filter: brightness(0) saturate(100%) invert(100%) sepia(100%) saturate(0%) hue-rotate(106deg) brightness(101%) contrast(103%);  /* white */
+  --theme-button-icon-filter: brightness(0) invert(1);  /* --icon-inverse */
   --theme-button-border: transparent;
   --theme-button-dropshadow: 0 1px 3px rgba(0,0,0,0.25);
 
@@ -48,7 +48,7 @@ a.secondary[data-active-module="voices"]
   /** light button colors **/
   --theme-button-background: white;
   --theme-button-text: var(--dark-grey);
-  --theme-button-icon-filter: brightness(0) saturate(100%) invert(38%) sepia(1%) saturate(0%) hue-rotate(220deg) brightness(99%) contrast(84%);  /* --dark-grey */
+  --theme-button-icon-filter: brightness(0) invert(7%);  /* --icon-default (#121212) */
   --theme-button-border: transparent;
   --theme-button-dropshadow: none;
 }
@@ -63,7 +63,7 @@ a.secondary:disabled[data-active-module="voices"]{
   /** disabled button colors (NOTE: button property must be set to disabled not a css class) **/
   --theme-button-background: var(--lightest-grey);
   --theme-button-text: var(--medium-grey);
-  --theme-button-icon-filter: brightness(0) saturate(100%) invert(66%) sepia(0%) saturate(1333%) hue-rotate(200deg) brightness(92%) contrast(91%);;  /* --medium-grey */
+  --theme-button-icon-filter: brightness(0) invert(60%);  /* --icon-disabled (#999999) */
   --theme-button-border: var(--light-grey);
   --theme-button-dropshadow: none;
 }

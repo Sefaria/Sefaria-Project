@@ -48,4 +48,9 @@
   --select-blue: #0056b3;
   --select-green: #00827F;
   --focus-blue: #1976d2;
+  /* Icon tokens (sefaria-design-foundations). SVG files bake these values in; use the vars for masks and currentColor icons. */
+  --icon-default: #121212;
+  --icon-muted: #6f6f6f;
+  --icon-disabled: #999999;
+  --icon-inverse: #FFFFFF;
 }
