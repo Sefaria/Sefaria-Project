@@ -17114,7 +17114,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-top: 57px;
+  margin-top: 0;
 }
 .settingsPage #accountSettingsPage .headerWithButtons h1 {
   flex: 0 0 auto;
