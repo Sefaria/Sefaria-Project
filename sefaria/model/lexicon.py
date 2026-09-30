@@ -663,6 +663,7 @@ class LexiconEntrySubClassMapping(object):
         "Jastrow Unabbreviated" : JastrowDictionaryEntry,
         'Klein Dictionary': KleinDictionaryEntry,
         'Sefer HaShorashim': HebrewDictionaryEntry,
+        'Sefer HaShorashim, Ibn Janah': HebrewDictionaryEntry,
         'Animadversions by Elias Levita on Sefer HaShorashim': HebrewDictionaryEntry,
         'BDB Dictionary': BDBEntry,
         'BDB Aramaic Dictionary': BDBEntry,
