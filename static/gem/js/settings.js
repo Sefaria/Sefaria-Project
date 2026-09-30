@@ -24,10 +24,13 @@ export const COMMENTATORS = {
   bavli: {
     right: ["Rashi", "Rashbam", "Ran", "Mefaresh", "Rabbeinu Gershom", "Commentary of the Rosh", "Steinsaltz"],
     left: ["Tosafot", "Commentary of the Rosh", "Tosafot HaRosh", "Tosafot Rid", "Ritva", "Rashba", "Meiri", "Rabbeinu Gershom", "Steinsaltz"],
+    extra: ["Steinsaltz", "Rabbeinu Chananel", "Meiri", "Rashba", "Ritva", "Rabbeinu Gershom", "Commentary of the Rosh"],
   },
   yerushalmi: {
     right: ["Penei Moshe", "Korban HaEdah", "Sirilio", "Mareh HaPanim"],
     left: ["Korban HaEdah", "Sirilio", "Mareh HaPanim", "Sheyarei Korban", "Penei Moshe"],
+    // Steinsaltz covers the Bavli only; Mareh HaPanim (by the author of Penei Moshe) is the natural third voice.
+    extra: ["Mareh HaPanim", "Sirilio", "Sheyarei Korban", "Noam Yerushalmi", "Chiddushei Ridbaz"],
   },
 };
 
@@ -35,18 +38,26 @@ const PANE_DEFAULTS = {
   center: { lang: "he", heFont: "taamey", enFont: "garamond", size: 25, lead: 1.85, nikud: true, literal: "full", both: "side", flow: "lines", mishnah: true },
   right: { lang: "he", heFont: "rashi", enFont: "crimson", size: 17, lead: 1.7, nikud: true },
   left: { lang: "he", heFont: "rashi", enFont: "crimson", size: 17, lead: 1.7, nikud: true },
+  extra: { lang: "he", heFont: "frank", enFont: "crimson", size: 17, lead: 1.7, nikud: true },
 };
 
+// System defaults (Mickey, 2026-09-30): Paper theme, follow along, line numbers, cite on copy, single-click lookup.
 const DEFAULTS = {
-  theme: "auto",
+  theme: "light",
   corpus: "bavli",
   sync: true,
-  lookup: "dbl", // word lookup: "dbl" (double-click / double-tap), "tap" (single tap), "hover" (rest 500ms)
-  segNums: false,
+  // word lookup: "dbl" double-click/tap · "tap" single click · "hover" rest 500ms · "long" long press · "shift" shift-click
+  lookup: "tap",
+  segNums: true,
   citeOnCopy: true,
   focus: false,
+  extra: { on: false, side: "right" }, // an optional third commentary column, outermost on one side
+  widths: { "3": null, "4": null }, // user-dragged column widths as fractions, per column count
   panes: PANE_DEFAULTS,
-  commentators: { bavli: { right: "Rashi", left: "Tosafot" }, yerushalmi: { right: "Penei Moshe", left: "Korban HaEdah" } },
+  commentators: {
+    bavli: { right: "Rashi", left: "Tosafot", extra: "Steinsaltz" },
+    yerushalmi: { right: "Penei Moshe", left: "Korban HaEdah", extra: "Mareh HaPanim" },
+  },
 };
 
 const KEY = "gem:settings:v1";
@@ -71,53 +82,50 @@ function load() {
     // v1 had a boolean tap-to-define switch
     if (raw && raw.lookup === undefined && raw.tapDefine) s.lookup = "tap";
   } catch (e) { /* ignore */ }
-  if (!["dbl", "tap", "hover"].includes(s.lookup)) s.lookup = "dbl";
+  if (!["dbl", "tap", "hover", "long", "shift"].includes(s.lookup)) s.lookup = DEFAULTS.lookup;
   return s;
 }
 
 export const canHover = () => window.matchMedia("(hover: hover) and (pointer: fine)").matches;
 
-/** The lookup mode in force on this device (hover falls back to double-tap on touch screens). */
-export function lookupMode() {
-  return settings.lookup === "hover" && !canHover() ? "dbl" : settings.lookup;
-}
-
 export const LOOKUP_MODES = [
-  { value: "dbl", label: "Double-click", touch: "Double-tap", hint: "Double-click a word — single clicks still select lines", hintTouch: "Double-tap a word — single taps still select lines" },
-  { value: "tap", label: "Single click", touch: "Single tap", hint: "One click on any Hebrew word opens the dictionary", hintTouch: "One tap on any Hebrew word opens the dictionary" },
-  { value: "hover", label: "Hover", touch: "Hover", hint: "Rest the pointer on a word for half a second", hintTouch: "Needs a mouse or trackpad — double-tap is used on this device" },
+  { value: "dbl", label: "Double-click", touch: "Double-tap", hint: "Double-click a word", hintTouch: "Double-tap a word" },
+  { value: "tap", label: "Single click", touch: "Single tap", hint: "One click on a word opens it and selects its line", hintTouch: "One tap on a word opens it and selects its line" },
+  { value: "hover", label: "Hover", touch: "Hover", hint: "Rest the pointer on a word for half a second", hintTouch: "Needs a mouse or trackpad", pointerOnly: true },
+  { value: "long", label: "Long press", touch: "Long press", hint: "Press and hold a word for half a second", hintTouch: "Press and hold a word for half a second" },
+  { value: "shift", label: "Shift-click", touch: "Shift-click", hint: "Hold Shift and click a word — plain clicks select lines", hintTouch: "Needs a keyboard and mouse", pointerOnly: true },
 ];
 
-/** A three-way chooser for how words are looked up. */
+/** The lookup mode in force on this device (hover / shift-click fall back to single tap on touch screens). */
+export function lookupMode() {
+  const m = LOOKUP_MODES.find((x) => x.value === settings.lookup);
+  return m && m.pointerOnly && !canHover() ? "tap" : settings.lookup;
+}
+
+/** A chooser for how words are looked up (five modes, as a compact radio list). */
 export function lookupChooser(onPicked) {
   const touch = !canHover();
-  const hint = h("div", { class: "lk-hint" });
-  const wrap = h("div", { class: "lk" });
-  const sync = () => {
-    const m = LOOKUP_MODES.find((x) => x.value === settings.lookup) || LOOKUP_MODES[0];
-    hint.textContent = touch ? m.hintTouch : m.hint;
-  };
-  const ctl = h("div", { class: "seg-ctl lk-ctl", role: "radiogroup", "aria-label": "Look up words by" });
+  const list = h("div", { class: "lk", role: "radiogroup", "aria-label": "Look up words by" });
   for (const m of LOOKUP_MODES) {
-    const disabled = m.value === "hover" && touch;
+    const disabled = !!m.pointerOnly && touch;
+    const on = lookupMode() === m.value;
     const b = h("button", {
-      type: "button", role: "radio", "aria-checked": String(lookupMode() === m.value),
-      class: lookupMode() === m.value ? "on" : "", disabled: disabled || null,
-      title: disabled ? m.hintTouch : m.hint,
+      type: "button", role: "radio", "aria-checked": String(on), class: `lk-opt ${on ? "on" : ""}`,
+      disabled: disabled || null,
       onclick: () => {
-        ctl.querySelectorAll("button").forEach((x) => { x.classList.remove("on"); x.setAttribute("aria-checked", "false"); });
+        list.querySelectorAll(".lk-opt").forEach((x) => { x.classList.remove("on"); x.setAttribute("aria-checked", "false"); });
         b.classList.add("on"); b.setAttribute("aria-checked", "true");
         set("lookup", m.value);
         applyGlobal();
-        sync();
         onPicked && onPicked(m.value);
       },
-    }, touch ? m.touch : m.label);
-    ctl.appendChild(b);
+    },
+    h("span", { class: "lk-dot", "aria-hidden": "true" }),
+    h("span", { class: "lk-label" }, touch ? m.touch : m.label),
+    h("span", { class: "lk-hint" }, touch ? m.hintTouch : m.hint));
+    list.appendChild(b);
   }
-  sync();
-  wrap.append(ctl, hint);
-  return wrap;
+  return list;
 }
 
 export const settings = load();
@@ -173,6 +181,7 @@ export function applyGlobal() {
   const root = document.documentElement;
   root.dataset.theme = settings.theme;
   document.body.classList.toggle("seg-nums", !!settings.segNums);
+  for (const m of LOOKUP_MODES) document.body.classList.toggle(`lk-${m.value}`, lookupMode() === m.value);
   document.body.classList.toggle("tap-define", lookupMode() === "tap");
   document.body.classList.toggle("hover-define", lookupMode() === "hover");
   document.body.classList.toggle("focus-mode", !!settings.focus);
@@ -185,7 +194,7 @@ export function applyGlobal() {
 // ------------------------------------------------------------------------------------------
 // Per-pane display popover ("Aa")
 
-const SAMPLE_HE = { center: "תנא היכא קאי", right: "מאימתי קורין", left: "מאימתי קורין" };
+const SAMPLE_HE = { center: "תנא היכא קאי", right: "מאימתי קורין", left: "מאימתי קורין", extra: "מאימתי קורין" };
 
 export function openPaneSettings(key, anchor, { title, hasEnglish = true, onChanged } = {}) {
   const p = settings.panes[key];

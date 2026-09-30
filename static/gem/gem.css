@@ -34,6 +34,7 @@
   --scrim: rgba(28, 22, 12, .26);
   --gem-a: #3c7dbb;
   --gem-b: #1b3a5c;
+  --accent-3: #3d7a5a;
   color-scheme: light;
 }
 
@@ -55,6 +56,7 @@
   --hit: rgba(235, 180, 70, .5);
   --gem-a: #b9803e;
   --gem-b: #6d421c;
+  --accent-3: #55713a;
 }
 
 :root[data-theme="dark"] {
@@ -77,6 +79,7 @@
   --scrim: rgba(0, 0, 0, .5);
   --gem-a: #9cc6f0;
   --gem-b: #3f6f9f;
+  --accent-3: #8cc7a4;
   color-scheme: dark;
 }
 
@@ -101,6 +104,7 @@
     --scrim: rgba(0, 0, 0, .5);
     --gem-a: #9cc6f0;
     --gem-b: #3f6f9f;
+    --accent-3: #8cc7a4;
     color-scheme: dark;
   }
 }
@@ -340,6 +344,7 @@ button.pane-title:hover { background: var(--chip); }
   outline: none;
 }
 .seg:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+.seg.sel:focus-visible { box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--sel-line) 55%, transparent); }
 @media (hover: hover) { .seg:hover { background: var(--peer); } }
 .seg.peer { background: var(--peer); }
 .seg.sel { background: var(--sel); }
@@ -395,28 +400,62 @@ button.pane-title:hover { background: var(--chip); }
 .lang-en .kind-label { right: auto; left: -38px; }
 .both-side .kind-label { right: -38px; left: auto; }
 
-/* Commentary tabs: this line has Rashi (right) / Tosafot (left) — tap to jump to them */
+/* Commentary tabs: this line has Rashi (right) / Tosafot (left) / the third column — tap to jump.
+   A side with two commentary columns stacks two tabs, inner column on top. */
 .cm-tab {
-  position: absolute; top: 9px; z-index: 2;
+  position: absolute; top: calc(9px + var(--stack, 0) * 27px); z-index: 2;
   display: inline-flex; align-items: center; justify-content: center; gap: 3px; height: 23px; min-width: 27px; padding: 0 5px;
   border-radius: 7px; border: 1px solid; font: 650 12px/1 var(--ui); letter-spacing: -.01em;
+  --c: var(--accent-2);
+  color: var(--c); background: color-mix(in srgb, var(--c) 12%, var(--paper)); border-color: color-mix(in srgb, var(--c) 42%, transparent);
   transition: transform .18s var(--ease), background-color .18s, color .18s, box-shadow .18s;
 }
-.cm-right { right: -36px; color: var(--accent-2); background: color-mix(in srgb, var(--accent-2) 13%, var(--paper)); border-color: color-mix(in srgb, var(--accent-2) 45%, transparent); flex-direction: row; }
-.cm-left { left: -36px; color: var(--accent); background: color-mix(in srgb, var(--accent) 11%, var(--paper)); border-color: color-mix(in srgb, var(--accent) 40%, transparent); flex-direction: row-reverse; }
+.cm-right { --c: var(--accent-2); }
+.cm-left { --c: var(--accent); }
+.cm-extra { --c: var(--accent-3); }
+.at-r { right: -36px; flex-direction: row; --nudge: 2px; }
+.at-l { left: -36px; flex-direction: row-reverse; --nudge: -2px; }
 .cm-arrow { width: 0; height: 0; border-block: 4px solid transparent; }
-.cm-right .cm-arrow { border-left: 5px solid currentColor; }
-.cm-left .cm-arrow { border-right: 5px solid currentColor; }
-.cm-tab:hover, .seg.peer .cm-tab { transform: translateX(var(--nudge)); box-shadow: 0 2px 6px -2px color-mix(in srgb, currentColor 45%, transparent); }
-.cm-right { --nudge: 2px; }
-.cm-left { --nudge: -2px; }
-.seg.sel .cm-right { background: var(--accent-2); color: var(--paper); border-color: var(--accent-2); }
-.seg.sel .cm-left { background: var(--accent); color: var(--paper); border-color: var(--accent); }
-.cm-tab:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.at-r .cm-arrow { border-left: 5px solid currentColor; }
+.at-l .cm-arrow { border-right: 5px solid currentColor; }
+.cm-tab:hover, .seg.peer .cm-tab { transform: translateX(var(--nudge)); box-shadow: 0 2px 6px -2px color-mix(in srgb, var(--c) 45%, transparent); }
+.seg.sel .cm-tab { background: var(--c); color: var(--paper); border-color: var(--c); }
+.cm-tab:focus-visible { outline: 2px solid var(--c); outline-offset: 2px; }
 /* the pane titles carry the same colours, so the tabs read as "→ Rashi", "← Tosafot" */
-.pane-right .pane-title::before, .pane-left .pane-title::before { content: ""; width: 7px; height: 7px; border-radius: 2px; align-self: center; }
-.pane-right .pane-title::before { background: var(--accent-2); }
-.pane-left .pane-title::before { background: var(--accent); }
+.pane-side .pane-title::before { content: ""; width: 7px; height: 7px; border-radius: 2px; align-self: center; background: var(--c); }
+.pane-right { --c: var(--accent-2); }
+.pane-left { --c: var(--accent); }
+.pane-extra { --c: var(--accent-3); }
+/* the line's labels drop below a stacked pair of tabs */
+body.x-right .pane-center:not(.lang-en) .kind-label, body.x-left .pane-center.lang-en .kind-label { top: 65px; }
+body.x-right .pane-center:not(.lang-en) .seg-num, body.x-left .pane-center.lang-en .seg-num { top: 65px; }
+body.x-right.seg-nums .pane-center:not(.lang-en) .kind-label, body.x-left.seg-nums .pane-center.lang-en .kind-label { top: 84px; }
+/* Steinsaltz: the Gemara's words in bold, his explanation softer */
+.cmt-flow .cmt-he { color: var(--ink-2); }
+.cmt-flow .cmt-he b, .cmt-flow .cmt-he strong { color: var(--ink); font-weight: 700; }
+.cmt-flow .cmt-he big { font-size: 1em; font-weight: 700; color: var(--accent-3); }
+
+/* Column resize handles (desktop) */
+.panes { position: relative; }
+.panes.resizing { transition: none; cursor: col-resize; user-select: none; }
+.panes.resizing * { cursor: col-resize !important; }
+.col-handle {
+  position: absolute; top: 0; bottom: 0; width: 14px; margin-left: -7px; z-index: 6;
+  cursor: col-resize; touch-action: none; outline: none;
+}
+.col-handle::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 6.5px; width: 1px; background: transparent; transition: background-color .15s;
+}
+.ch-grip {
+  position: absolute; left: 3px; top: 50%; width: 8px; height: 38px; margin-top: -19px; border-radius: 5px;
+  background: var(--paper); border: 1px solid var(--line); box-shadow: 0 1px 3px rgba(0, 0, 0, .06);
+  opacity: .8; transition: opacity .15s, border-color .15s, background-color .15s, transform .15s;
+}
+.ch-grip::before, .ch-grip::after { content: ""; position: absolute; left: 2.5px; width: 1px; height: 14px; top: 11px; background: var(--ink-3); opacity: .55; }
+.ch-grip::after { left: 4.5px; }
+.col-handle:hover::before, .col-handle.dragging::before, .col-handle:focus-visible::before { background: var(--accent); }
+.col-handle:hover .ch-grip, .col-handle.dragging .ch-grip, .col-handle:focus-visible .ch-grip { opacity: 1; border-color: var(--accent); transform: scaleY(1.08); }
+.focus-mode .col-handle { display: none; }
 
 .seg-num {
   display: none; position: absolute; top: 38px; right: -37px; width: 22px; text-align: center;
@@ -882,6 +921,9 @@ mark.hit { background: var(--hit); color: inherit; border-radius: 3px; padding: 
   .pane-center { width: 62vw; order: 2; }
   .pane-left { width: 38vw; order: 1; }
   .pane-right { width: 38vw; order: 3; }
+  .pane-extra { width: 38vw; order: 4; }
+  .panes.x-left .pane-extra { order: 0; }
+  .col-handle { display: none; }
   .focus-mode .pane-center { width: 100vw; }
   .tabbar {
     display: flex; justify-content: center; gap: 6px; padding: 6px 10px calc(6px + env(safe-area-inset-bottom));
@@ -920,7 +962,7 @@ mark.hit { background: var(--hit); color: inherit; border-radius: 3px; padding: 
   .nav-arrow { width: 36px; height: 36px; }
   .search-btn { border: 0; background: none; width: 38px; padding: 0; justify-content: center; margin: 0; }
   .search-btn kbd { display: none; }
-  .pane-center, .pane-left, .pane-right { width: 100vw; }
+  .pane-center, .pane-left, .pane-right, .pane-extra { width: 100vw; }
   .pane-center .sec { padding: 0 22px; }
   .pane-side .sec { padding: 0 18px; }
   .pane-head { height: 42px; }
@@ -928,10 +970,10 @@ mark.hit { background: var(--hit); color: inherit; border-radius: 3px; padding: 
   .seg-he { text-align: right; text-align-last: auto; } /* short phone lines justify badly */
   .kind-label, .seg-num { display: none !important; }
   .mishnah-mark .seg[data-kind="mishnah"]::after { right: -4px; }
-  /* phones: slim tabs hugging the screen edges, pointing at the Rashi / Tosafot pages */
-  .cm-tab { top: 7px; height: 24px; min-width: 21px; padding: 0 3px; font-size: 11.5px; gap: 2px; border-radius: 7px; }
-  .cm-right { right: -12px; border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: 0; }
-  .cm-left { left: -12px; border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: 0; }
+  /* phones: slim tabs hugging the screen edges, pointing at the commentary pages */
+  .cm-tab { top: calc(7px + var(--stack, 0) * 28px); height: 24px; min-width: 21px; padding: 0 3px; font-size: 11.5px; gap: 2px; border-radius: 7px; }
+  .at-r { right: -12px; border-top-right-radius: 0; border-bottom-right-radius: 0; border-right: 0; }
+  .at-l { left: -12px; border-top-left-radius: 0; border-bottom-left-radius: 0; border-left: 0; }
   .cm-tab:hover { transform: none; }
   .seg-tools { left: 6px; right: auto; bottom: -19px; }
   .st-ref { display: none; }
@@ -988,8 +1030,33 @@ mark.hit { background: var(--hit); color: inherit; border-radius: 3px; padding: 
 ::highlight(gem-dwell) { background-color: color-mix(in srgb, var(--accent) 10%, transparent); }
 ::highlight(gem-hover) { background-color: color-mix(in srgb, var(--accent) 20%, transparent); }
 .hover-define .seg-he, .hover-define .cmt-he { cursor: default; }
-.lk { display: flex; flex-direction: column; gap: 6px; }
-.lk-ctl { align-self: flex-start; }
-.lk-ctl button:disabled { opacity: .4; cursor: not-allowed; }
-.lk-hint { font-size: 11.5px; color: var(--ink-3); }
+.lk { display: flex; flex-direction: column; gap: 1px; background: var(--chip); border-radius: 12px; padding: 3px; }
+.lk-opt {
+  display: grid; grid-template-columns: 16px auto 1fr; align-items: center; column-gap: 9px; text-align: start;
+  border: 0; background: none; border-radius: 9px; padding: 7px 10px; transition: background-color .15s, box-shadow .15s;
+}
+.lk-opt:hover:not(:disabled):not(.on) { background: color-mix(in srgb, var(--paper) 55%, transparent); }
+.lk-opt.on { background: var(--paper); box-shadow: 0 1px 3px rgba(0, 0, 0, .1); }
+.lk-opt:disabled { opacity: .45; cursor: not-allowed; }
+.lk-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--ink-3); position: relative; }
+.lk-opt.on .lk-dot { border-color: var(--accent); }
+.lk-opt.on .lk-dot::after { content: ""; position: absolute; inset: 2.5px; border-radius: 50%; background: var(--accent); }
+.lk-label { font: 500 13px var(--ui); color: var(--ink); white-space: nowrap; }
+.lk-hint { font-size: 11.5px; color: var(--ink-3); line-height: 1.3; }
+@media (pointer: coarse) {
+  /* long press owns the press-and-hold gesture on text */
+  .lk-long .seg-he, .lk-long .cmt-he { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+}
+.x-block.off .x-side { opacity: .4; pointer-events: none; }
+.x-side { padding-top: 4px; }
 .pop-lookup { width: 340px; }
+
+/* Third column */
+.pane[hidden], .tabbar button[hidden] { display: none !important; }
+.panes.x-right .pane-extra { border-left: 1px solid var(--line-2); }
+.panes.x-left .pane-extra { border-right: 1px solid var(--line-2); }
+/* narrow columns: keep the title on one line */
+.pane-side { container-type: inline-size; }
+.pane-title { white-space: nowrap; min-width: 0; overflow: hidden; }
+.pane-title .pt-he, .pane-title .pt-en { overflow: hidden; text-overflow: ellipsis; }
+@container (max-width: 310px) { .pane-title .pt-en { display: none; } }

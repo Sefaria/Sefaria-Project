@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="auto">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -93,12 +93,24 @@
         </div>
         <div class="pane-body" tabindex="-1"></div>
       </section>
+
+      <section class="pane pane-side pane-extra" data-pane="extra" aria-label="Steinsaltz" hidden>
+        <div class="pane-head">
+          <button type="button" class="pane-title" data-action="commentator" aria-haspopup="dialog" title="Choose commentary">
+            <span class="pt-he" lang="he">שטיינזלץ</span><span class="pt-en">Steinsaltz</span>
+            <svg class="pt-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          </button>
+          <button type="button" class="icon-btn sm pane-aa" aria-label="Display settings for this column" title="Language, font &amp; size">Aa</button>
+        </div>
+        <div class="pane-body" tabindex="-1"></div>
+      </section>
     </main>
 
     <nav class="tabbar" id="tabbar" aria-label="Columns">
       <button type="button" data-pane="left"><span class="tb-he" lang="he">תוספות</span><span class="tb-en">Tosafot</span><span class="tb-badge" hidden></span></button>
       <button type="button" data-pane="center" class="on"><span class="tb-he" lang="he">גמרא</span><span class="tb-en">Gemara</span></button>
       <button type="button" data-pane="right"><span class="tb-he" lang="he">רש״י</span><span class="tb-en">Rashi</span><span class="tb-badge" hidden></span></button>
+      <button type="button" data-pane="extra" hidden><span class="tb-he" lang="he">שטיינזלץ</span><span class="tb-en">Steinsaltz</span><span class="tb-badge" hidden></span></button>
     </nav>
   </div>
 

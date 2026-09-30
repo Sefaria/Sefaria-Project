@@ -5,6 +5,7 @@ import { settings, set, applyPane, applyGlobal, openPaneSettings, onChange as on
 import { loadCatalog, parseRef, getMasechet, ensureMasechet, sectionLabel, loadChapters, chapterAt, chapterTitleHe, corpusOf, refToUrl, urlToRef, firstSectionRef, CORPORA } from "./catalog.js";
 import { api, sefariaUrl } from "./api.js";
 import { Reader } from "./reader.js";
+import { Layout } from "./layout.js";
 import { openNavigator } from "./navigator.js";
 import { openSearch } from "./search.js";
 import { openDictionary } from "./dictionary.js";
@@ -20,13 +21,16 @@ class App {
     this.corpus = settings.corpus;
     this.$ = (s) => document.querySelector(s);
     applyGlobal();
-    for (const k of ["center", "right", "left"]) applyPane(document.querySelector(`.pane[data-pane="${k}"]`), k);
+    for (const k of ["center", "right", "left", "extra"]) applyPane(document.querySelector(`.pane[data-pane="${k}"]`), k);
     this.reader = new Reader(this);
+    this.layout = new Layout(this);
+    this.layout.apply();
     this.bindHeader();
     this.bindPanes();
     this.bindKeys();
     this.bindSelection();
     this.bindHoverLookup();
+    this.bindLongPress();
     this.bindTabs();
     this.bindTheme();
     window.addEventListener("popstate", () => this.routeFromLocation(false));
@@ -318,7 +322,7 @@ class App {
   }
 
   bindPanes() {
-    for (const key of ["center", "right", "left"]) {
+    for (const key of ["center", "right", "left", "extra"]) {
       const pane = document.querySelector(`.pane[data-pane="${key}"]`);
       const btn = pane.querySelector(".pane-aa");
       btn.addEventListener("click", () => {
@@ -327,6 +331,7 @@ class App {
           title,
           onChanged: (field, rerender) => {
             this.reader.restyle(key, rerender);
+            if (key === "center" && (field === "lang" || field === "both")) this.layout.apply();
           },
         });
       });
@@ -336,9 +341,12 @@ class App {
     onSettings((path) => {
       if (path === "*") {
         applyGlobal();
-        for (const k of ["center", "right", "left"]) this.reader.restyle(k, true);
+        for (const k of ["center", "right", "left", "extra"]) this.reader.restyle(k, true);
+        this.layout.apply();
         this.reader.reloadSide("right");
         this.reader.reloadSide("left");
+        this.reader.setExtra(settings.extra.on);
+        this.syncDefineBtn();
       }
     });
   }
@@ -387,7 +395,11 @@ class App {
     let dx = 0;
     if (pr.left < r.left) dx = pr.left - r.left;
     else if (pr.right > r.right) dx = pr.right - r.right;
+    // scroll-snap-stop would halt a jump across an intermediate page (e.g. Gemara → third column)
+    panes.style.scrollSnapType = "none";
     panes.scrollBy({ left: dx, behavior: "smooth" });
+    clearTimeout(this._snapTimer);
+    this._snapTimer = setTimeout(() => { panes.style.scrollSnapType = ""; }, 700);
   }
 
   setTabLabel(side, he, en) {
@@ -398,7 +410,7 @@ class App {
   }
 
   updateTabBadges(ref) {
-    for (const side of ["right", "left"]) {
+    for (const side of ["right", "left", "extra"]) {
       const t = document.querySelector(`#tabbar button[data-pane="${side}"] .tb-badge`);
       if (!t) continue;
       const n = ref ? document.querySelectorAll(`.pane[data-pane="${side}"] .cmt[data-anchor="${CSS.escape(ref)}"]`).length : 0;
@@ -420,9 +432,36 @@ class App {
     openSearch(this, { query, ctx: c });
   }
 
-  define(word, { anchor, ref, hover = false } = {}) {
-    if (!hover && this.hoverCard) this.hoverCard.close();
-    return openDictionary(this, word, { anchor, ref: ref || this.selectedRef || (this.cur && this.cur.sectionRef), hover });
+  define(word, { anchor, ref } = {}) {
+    if (this.hoverCard) this.hoverCard.close();
+    return openDictionary(this, word, { anchor, ref: ref || this.selectedRef || (this.cur && this.cur.sectionRef) });
+  }
+
+  /** Marks a range with a CSS custom highlight (no DOM or selection changes). */
+  mark(range, name) {
+    const hl = window.CSS && CSS.highlights && window.Highlight ? CSS.highlights : null;
+    if (!hl) return;
+    if (range) hl.set(name, new Highlight(range)); else hl.delete(name);
+  }
+
+  /**
+   * Opens the dictionary for a word found by wordAt(). `live` cards (desktop tap / hover / long
+   * press) float without a scrim, so the next word is one click away; they close on Esc, on a
+   * click elsewhere, or when their column scrolls.
+   */
+  openCard(w, { live = false } = {}) {
+    if (this.hoverCard) this.hoverCard.close();
+    const ref = w.ref || this.selectedRef || (this.cur && this.cur.sectionRef);
+    const card = openDictionary(this, w.word, { anchor: w.rect, ref, hover: live });
+    if (!live) return card;
+    const pane = w.node.parentElement && w.node.parentElement.closest(".pane");
+    card.key = { node: w.node, a: w.a };
+    card.paneKey = pane ? pane.dataset.pane : null;
+    this.hoverCard = card;
+    this.mark(w.range, "gem-hover");
+    const close = card.close;
+    card.close = () => { if (this.hoverCard === card) { this.hoverCard = null; this.mark(null, "gem-hover"); } close(); };
+    return card;
   }
 
   /**
@@ -465,11 +504,55 @@ class App {
   defineAtPoint(e) {
     const w = this.wordAt(e.clientX, e.clientY, e.target);
     if (!w) return false;
+    const live = !isNarrow();
     const sel = window.getSelection();
     sel.removeAllRanges();
-    sel.addRange(w.range);
-    this.define(w.word, { anchor: w.rect, ref: w.ref });
+    if (!live) sel.addRange(w.range);
+    this.openCard(w, { live });
     return true;
+  }
+
+  /**
+   * Long press: hold a word ~500ms (finger or mouse). Moving more than a few pixels cancels, so
+   * scrolling and drag-selecting still work; the click that ends a long press is swallowed and
+   * the native callout/context menu is suppressed while it is in flight.
+   */
+  bindLongPress() {
+    const panes = this.$("#panes");
+    let timer = 0, start = null, firedAt = 0;
+    const cancel = () => { clearTimeout(timer); if (start) this.mark(null, "gem-dwell"); start = null; };
+    panes.addEventListener("pointerdown", (e) => {
+      if (lookupMode() !== "long" || e.button !== 0 || e.shiftKey) return;
+      const w = this.wordAt(e.clientX, e.clientY, e.target, true);
+      if (!w) return;
+      cancel();
+      start = { x: e.clientX, y: e.clientY, id: e.pointerId };
+      this.mark(w.range, "gem-dwell");
+      timer = setTimeout(() => {
+        start = null;
+        firedAt = performance.now();
+        this.mark(null, "gem-dwell");
+        const sel = window.getSelection();
+        if (sel) sel.removeAllRanges();
+        if (navigator.vibrate) try { navigator.vibrate(8); } catch (err) { /* ignore */ }
+        this.openCard(w, { live: !isNarrow() });
+      }, 500);
+    });
+    panes.addEventListener("pointermove", (e) => {
+      if (start && e.pointerId === start.id && Math.hypot(e.clientX - start.x, e.clientY - start.y) > 8) cancel();
+    });
+    panes.addEventListener("pointerup", cancel);
+    panes.addEventListener("pointercancel", cancel);
+    panes.addEventListener("click", (e) => {
+      if (performance.now() - firedAt < 700) { e.stopPropagation(); e.preventDefault(); firedAt = 0; }
+    }, true);
+    panes.addEventListener("contextmenu", (e) => {
+      if (lookupMode() === "long" && (start || performance.now() - firedAt < 1200) && e.target.closest(".seg-he, .cmt-he")) e.preventDefault();
+    });
+    // Shift-click mode: keep Shift from extending the text selection
+    panes.addEventListener("mousedown", (e) => {
+      if (lookupMode() === "shift" && e.shiftKey && e.target.closest(".seg-he, .cmt-he")) e.preventDefault();
+    });
   }
 
   /**
@@ -480,12 +563,8 @@ class App {
    */
   bindHoverLookup() {
     const panes = this.$("#panes");
-    const hl = window.CSS && CSS.highlights && window.Highlight ? CSS.highlights : null;
     let timer = 0, closeTimer = 0, cur = null;
-    const mark = (range, name) => {
-      if (!hl) return;
-      if (range) hl.set(name, new Highlight(range)); else hl.delete(name);
-    };
+    const mark = (range, name) => this.mark(range, name);
     const same = (x, y) => x && y && x.node === y.node && x.a === y.a;
     const cancelClose = () => clearTimeout(closeTimer);
     const scheduleClose = () => {
@@ -499,7 +578,7 @@ class App {
       const w = this.wordAt(e.clientX, e.clientY, e.target, true);
       if (same(w, cur)) return;
       disarm();
-      if (!w) { if (this.hoverCard) scheduleClose(); return; }
+      if (!w) { if (this.hoverCard && this.hoverCard.key) scheduleClose(); return; }
       cur = w;
       if (this.hoverCard && this.hoverCard.key && same(this.hoverCard.key, w)) { cancelClose(); return; }
       if (this.hoverCard) scheduleClose();
@@ -509,21 +588,19 @@ class App {
         if (sel && !sel.isCollapsed) return;
         if (document.querySelector(".pop-wrap:not(.pop-pass)")) return; // a menu or search is open
         cancelClose();
-        if (this.hoverCard) this.hoverCard.close();
         mark(null, "gem-dwell");
-        mark(w.range, "gem-hover");
-        const card = this.define(w.word, { anchor: w.rect, ref: w.ref, hover: true });
-        card.key = { node: w.node, a: w.a };
-        this.hoverCard = card;
+        const card = this.openCard(w, { live: true });
         card.el.addEventListener("pointerenter", cancelClose);
-        card.el.addEventListener("pointerleave", scheduleClose);
-        const close = card.close;
-        card.close = () => { if (this.hoverCard === card) { this.hoverCard = null; mark(null, "gem-hover"); } close(); };
+        card.el.addEventListener("pointerleave", () => { if (lookupMode() === "hover") scheduleClose(); });
       }, 500);
     });
     panes.addEventListener("pointerdown", disarm);
-    panes.addEventListener("pointerleave", () => { disarm(); if (this.hoverCard) scheduleClose(); });
-    panes.addEventListener("scroll", () => { disarm(); if (this.hoverCard) this.hoverCard.close(); }, { capture: true, passive: true });
+    panes.addEventListener("pointerleave", () => { disarm(); if (this.hoverCard && lookupMode() === "hover") scheduleClose(); });
+    panes.addEventListener("scroll", (e) => {
+      disarm();
+      const pane = e.target.closest && e.target.closest(".pane");
+      if (this.hoverCard && pane && pane.dataset.pane === this.hoverCard.paneKey) this.hoverCard.close();
+    }, { capture: true, passive: true });
   }
 
   // Text selection → floating "Define · Search · Copy" menu; double-click a Hebrew word → define.
@@ -531,6 +608,7 @@ class App {
     const panesEl = this.$("#panes");
     panesEl.addEventListener("dblclick", (e) => {
       clearTimeout(this.reader.deselectTimer);
+      if (lookupMode() === "tap" || lookupMode() === "long") return; // the first click / the press already did it
       const heEl = e.target.closest(".seg-he, .cmt-he");
       if (!heEl) return;
       const sel = window.getSelection();
@@ -607,6 +685,27 @@ class App {
     e.preventDefault();
   }
 
+  setFocus(v) {
+    set("focus", v);
+    applyGlobal();
+    this.layout.apply();
+  }
+
+  async setExtra(on) {
+    set("extra", { ...settings.extra, on });
+    this.layout.apply();
+    await this.reader.setExtra(on);
+    this.layout.apply();
+    this.updateTabBadges(this.selectedRef);
+  }
+
+  setExtraSide(side) {
+    set("extra", { ...settings.extra, side });
+    this.layout.apply();
+    for (const e of this.reader.entries) this.reader.markTicks(e);
+    if (this.reader.selected) this.reader.select(this.reader.selected, { keepScroll: true });
+  }
+
   openGlobalMenu(anchor) {
     const body = h("div", { class: "ps gm" });
     body.appendChild(h("div", { class: "ps-head" }, h("span", { class: "ps-title" }, "Reading room"), h("span", { class: "ps-sub" }, "Theme and behaviour")));
@@ -635,12 +734,21 @@ class App {
 
       toggle("Line numbers", settings.segNums, (v) => { set("segNums", v); applyGlobal(); }, "Small Hebrew numerals beside each line"),
       toggle("Cite when copying", settings.citeOnCopy, (v) => set("citeOnCopy", v), "Adds the reference and a link"),
-      toggle("Focus mode", settings.focus, (v) => { set("focus", v); applyGlobal(); }, "Just the Gemara (F)")));
+      toggle("Focus mode", settings.focus, (v) => this.setFocus(v), "Just the Gemara (F)")));
+    const sideCtl = segmented([
+      { value: "left", html: "Outer left" },
+      { value: "right", html: "Outer right" },
+    ], settings.extra.side, (v) => this.setExtraSide(v), { label: "Third column position" });
+    const xBlock = h("div", { class: "ps-block x-block" },
+      toggle("Third commentary column", settings.extra.on, (v) => { this.setExtra(v); xBlock.classList.toggle("off", !v); }, "Steinsaltz by default — choose any other from its title"),
+      h("div", { class: "ps-row x-side" }, h("span", { class: "ps-label" }, "Position"), sideCtl));
+    xBlock.classList.toggle("off", !settings.extra.on);
+    body.appendChild(xBlock);
     body.appendChild(h("div", { class: "ps-block" }, h("span", { class: "ps-label" }, "Look up words by"), lookupChooser(() => this.syncDefineBtn())));
     body.appendChild(h("div", { class: "gm-keys" },
       h("div", { class: "ps-label" }, "Keyboard"),
       h("dl", {},
-        ...[["←  →", "Next / previous amud"], ["J  K", "Next / previous line"], ["/", "Search"], ["G", "Go to a masechta"], ["D", "Cycle word-lookup mode"], ["F", "Focus mode"], ["T", "Today’s daf"], ["Esc", "Close / deselect"]]
+        ...[["←  →", "Next / previous amud"], ["↑  ↓", "Previous / next line (also K / J)"], ["/", "Search"], ["G", "Go to a masechta"], ["D", "Cycle word-lookup mode"], ["F", "Focus mode"], ["T", "Today’s daf"], ["Esc", "Close / deselect"]]
           .flatMap(([k, v]) => [h("dt", {}, ...k.split("  ").map((x) => h("kbd", {}, x))), h("dd", {}, v)]))));
     body.appendChild(h("div", { class: "gm-foot" },
       h("button", { type: "button", class: "link-btn", onclick: () => { resetSettings(); pop.close(); toast("Settings reset"); } }, "Reset all settings"),
@@ -665,10 +773,10 @@ class App {
         case "ArrowRight": e.preventDefault(); this.reader.stepSection(-1); break;
         case "/": e.preventDefault(); this.openSearch(); break;
         case "g": case "G": e.preventDefault(); this.openNavigator(); break;
-        case "j": this.reader.moveSelection(1); break;
-        case "k": this.reader.moveSelection(-1); break;
+        case "ArrowDown": case "j": e.preventDefault(); this.reader.moveSelection(1); break;
+        case "ArrowUp": case "k": e.preventDefault(); this.reader.moveSelection(-1); break;
         case "d": case "D": this.cycleLookup(); break;
-        case "f": case "F": set("focus", !settings.focus); applyGlobal(); break;
+        case "f": case "F": this.setFocus(!settings.focus); break;
         case "t": case "T": this.dafYomi(); break;
         case "Escape": this.reader.select(null); this.hideSelMenu(); break;
         default: break;

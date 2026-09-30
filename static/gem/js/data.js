@@ -62,7 +62,7 @@ export async function loadSection(sectionRef) {
 }
 
 function prefetchCommentary(p, corpus) {
-  for (const side of ["right", "left"]) {
+  for (const side of settings.extra.on ? ["right", "left", "extra"] : ["right", "left"]) {
     const name = settings.commentators[corpus][side];
     api.text(`${name} on ${p.book} ${p.section}`).catch(() => {});
   }
@@ -86,7 +86,7 @@ export function availableCommentaries(sec) {
 /** Orders commentators for a menu: the corpus' classic list first, then by count. */
 export function orderedCommentaries(sec) {
   const av = availableCommentaries(sec);
-  const pri = [...new Set([...COMMENTATORS[sec.corpus].right, ...COMMENTATORS[sec.corpus].left])];
+  const pri = [...new Set([...COMMENTATORS[sec.corpus].right, ...COMMENTATORS[sec.corpus].left, ...COMMENTATORS[sec.corpus].extra])];
   return [...av.values()].sort((a, b) => {
     const ia = pri.indexOf(a.en), ib = pri.indexOf(b.en);
     if (ia !== -1 || ib !== -1) return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
@@ -100,6 +100,7 @@ const HE_NAMES = {
   "Korban HaEdah": "קרבן העדה", "Sirilio": "ר״ש סיריליו", "Mareh HaPanim": "מראה הפנים",
   "Commentary of the Rosh": "פירוש הרא״ש", "Tosafot HaRosh": "תוספות הרא״ש", "Ritva": "ריטב״א",
   "Rashba": "רשב״א", "Meiri": "מאירי", "Tosafot Rid": "תוספות רי״ד", "Sheyarei Korban": "שיירי קרבן",
+  "Rabbeinu Chananel": "רבינו חננאל", "Noam Yerushalmi": "נועם ירושלמי", "Chiddushei Ridbaz": "חידושי רידב״ז",
 };
 export function heName(en, fallback) {
   return HE_NAMES[en] || fallback || en;
@@ -113,7 +114,7 @@ export async function loadCommentary(sec, prefs, avoid) {
   const av = availableCommentaries(sec);
   let chosen = null;
   if (sec.links) {
-    chosen = prefs.find((n) => av.has(n) && n !== avoid) || null;
+    chosen = prefs.find((n) => av.has(n) && !(avoid && avoid.has(n))) || null;
     if (!chosen) return { name: prefs[0], he: heName(prefs[0]), comments: [], missing: true, requested: prefs[0] };
   } else {
     chosen = prefs[0];

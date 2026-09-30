@@ -6,14 +6,16 @@ import { loadSection, loadCommentary, orderedCommentaries, heName } from "./data
 import { parseRef, getMasechet, neighborSection, loadChapters, sectionLabel, corpusOf, refToUrl } from "./catalog.js";
 import { settings, set, COMMENTATORS, applyPane, lookupMode } from "./settings.js";
 
-const SIDES = ["right", "left"];
+const ALL_SIDES = ["right", "left", "extra"];
+/** Commentary columns in use: Rashi & Tosafot, plus the optional third column. */
+const sidesOn = () => (settings.extra.on ? ALL_SIDES : ["right", "left"]);
 const cssEsc = (s) => (window.CSS && CSS.escape ? CSS.escape(s) : s.replace(/"/g, '\\"'));
 
 export class Reader {
   constructor(app) {
     this.app = app;
     this.panes = {};
-    for (const key of ["center", "right", "left"]) {
+    for (const key of ["center", "right", "left", "extra"]) {
       const el = document.querySelector(`.pane[data-pane="${key}"]`);
       this.panes[key] = { key, el, head: el.querySelector(".pane-head"), body: el.querySelector(".pane-body") };
     }
@@ -22,7 +24,7 @@ export class Reader {
     this.selected = null;
     this.reading = null;
     this.lockUntil = 0;
-    this.touched = { right: 0, left: 0 };
+    this.touched = { right: 0, left: 0, extra: 0 };
     this.loadingMore = false;
     this.kindState = null;
     this.mark = null;
@@ -40,13 +42,13 @@ export class Reader {
       raf = requestAnimationFrame(() => { raf = 0; this.onCenterScroll(); });
     }, { passive: true });
 
-    for (const side of SIDES) {
+    for (const side of ALL_SIDES) {
       const b = this.panes[side].body;
       const touch = () => { this.touched[side] = performance.now(); };
       ["wheel", "touchstart", "pointerdown", "keydown"].forEach((ev) => b.addEventListener(ev, touch, { passive: true }));
     }
 
-    for (const key of ["center", "right", "left"]) {
+    for (const key of ["center", ...ALL_SIDES]) {
       const body = this.panes[key].body;
       body.addEventListener("click", (e) => this.onClick(e, key));
       body.addEventListener("keydown", (e) => {
@@ -101,7 +103,20 @@ export class Reader {
     if (t.closest && t.closest(".seg-tools, .side-note button, .sec-more, .perek-card button, .hadran button")) return;
     const sel = window.getSelection();
     if (!viaKeyboard && sel && !sel.isCollapsed && sel.toString().trim().length > 0) return; // selecting text
-    if (!viaKeyboard && lookupMode() === "tap" && this.app.defineAtPoint(e)) return;
+    const mode = lookupMode();
+    if (!viaKeyboard && (mode === "tap" || (mode === "shift" && e.shiftKey))) {
+      if (e.detail > 1) return; // the first click of a double-click already opened it
+      if (this.app.defineAtPoint(e)) {
+        // a single-click lookup also selects the line, so the commentaries still follow
+        if (mode === "tap") {
+          const seg = key === "center" ? t.closest(".seg") : null;
+          const cmt = key !== "center" ? t.closest(".cmt") : null;
+          if (seg && this.selected !== seg.dataset.ref) this.select(seg.dataset.ref, { from: "center" });
+          if (cmt && this.selected !== cmt.dataset.anchor) this.select(cmt.dataset.anchor, { from: key, comment: cmt.dataset.ref });
+        }
+        return;
+      }
+    }
     if (key === "center") {
       const seg = t.closest(".seg");
       if (!seg) return;
@@ -153,7 +168,7 @@ export class Reader {
       throw e;
     }
     if (token !== this.token) return;
-    for (const key of ["center", "right", "left"]) this.panes[key].body.innerHTML = "";
+    for (const key of ["center", ...ALL_SIDES]) this.panes[key].body.innerHTML = "";
     this.renderTop();
     this.insert(entry, "end");
     this.panes.center.body.appendChild(this.sentinel);
@@ -162,7 +177,7 @@ export class Reader {
     const target = p.seg ? `${p.sectionRef}:${p.seg}` : null;
     const c = this.panes.center.body;
     c.scrollTop = 0;
-    SIDES.forEach((s) => (this.panes[s].body.scrollTop = 0));
+    sidesOn().forEach((s) => (this.panes[s].body.scrollTop = 0));
     if (target) {
       requestAnimationFrame(() => {
         this.scrollCenterTo(target, "auto", "center");
@@ -177,22 +192,39 @@ export class Reader {
     const p = parseRef(sectionRef);
     const [data, chapters] = await Promise.all([loadSection(sectionRef), loadChapters(p.book)]);
     const entry = { ref: sectionRef, data, chapters, comm: {} };
-    await Promise.all(SIDES.map((side) => this.loadSide(entry, side)));
+    await Promise.all(["right", "left"].map((side) => this.loadSide(entry, side)));
+    // the third column goes last so it can step aside for whatever Rashi/Tosafot fell back to
+    if (settings.extra.on) await this.loadSide(entry, "extra");
     return entry;
   }
 
   async loadSide(entry, side) {
     const corpus = entry.data.corpus;
-    const chosen = settings.commentators[corpus][side];
-    const other = settings.commentators[corpus][side === "right" ? "left" : "right"];
-    const prefs = [chosen, ...COMMENTATORS[corpus][side].filter((n) => n !== chosen && n !== other)];
-    entry.comm[side] = await loadCommentary(entry.data, prefs, null);
+    const names = settings.commentators[corpus];
+    const chosen = names[side];
+    const avoid = new Set(sidesOn().filter((x) => x !== side).map((x) => names[x]));
+    if (side === "extra") for (const x of ["right", "left"]) if (entry.comm[x] && !entry.comm[x].missing) avoid.add(entry.comm[x].name);
+    avoid.delete(chosen);
+    const prefs = [chosen, ...COMMENTATORS[corpus][side].filter((n) => n !== chosen && !avoid.has(n))];
+    entry.comm[side] = await loadCommentary(entry.data, prefs, avoid);
+  }
+
+  /** Turns the optional third commentary column on or off without reloading the page. */
+  async setExtra(on) {
+    const body = this.panes.extra.body;
+    if (!on) {
+      body.replaceChildren();
+      for (const e of this.entries) { delete e.comm.extra; delete e.els.extra; this.markTicks(e); }
+      this.updateHeads();
+      return;
+    }
+    await this.reloadSide("extra");
   }
 
   skeleton() {
     const lines = (n, cls) => h("div", { class: `skel ${cls}` }, ...Array.from({ length: n }, (_, i) => h("span", { style: { width: `${70 + ((i * 37) % 30)}%` } })));
     this.panes.center.body.replaceChildren(h("div", { class: "skel-wrap" }, h("div", { class: "skel-title" }), lines(6, "big"), lines(5, "big"), lines(4, "big")));
-    for (const s of SIDES) this.panes[s].body.replaceChildren(h("div", { class: "skel-wrap" }, lines(4, ""), lines(3, ""), lines(5, ""), lines(3, "")));
+    for (const s of sidesOn()) this.panes[s].body.replaceChildren(h("div", { class: "skel-wrap" }, lines(4, ""), lines(3, ""), lines(5, ""), lines(3, "")));
   }
 
   error(e, retry) {
@@ -201,7 +233,7 @@ export class Reader {
       h("div", { class: "empty-he", lang: "he" }, "אופס"),
       h("p", {}, msg),
       h("button", { class: "btn", type: "button", onclick: retry }, "Try again")));
-    for (const s of SIDES) this.panes[s].body.replaceChildren();
+    for (const s of sidesOn()) this.panes[s].body.replaceChildren();
   }
 
   renderTop() {
@@ -256,9 +288,9 @@ export class Reader {
       const entry = await this.load(prevRef);
       if (token !== this.token) return;
       const before = {};
-      for (const k of ["center", "right", "left"]) before[k] = this.panes[k].body.scrollHeight;
+      for (const k of ["center", ...sidesOn()]) before[k] = this.panes[k].body.scrollHeight;
       this.insert(entry, "start");
-      for (const k of ["center", "right", "left"]) {
+      for (const k of ["center", ...sidesOn()]) {
         const b = this.panes[k].body;
         b.scrollTop += b.scrollHeight - before[k];
       }
@@ -286,15 +318,15 @@ export class Reader {
 
   insert(entry, where) {
     entry.els = { center: this.renderCenter(entry) };
-    for (const s of SIDES) entry.els[s] = this.renderSide(entry, s);
+    for (const s of sidesOn()) entry.els[s] = this.renderSide(entry, s);
     if (where === "start") {
       this.entries.unshift(entry);
       this.topBtn.after(entry.els.center);
-      for (const s of SIDES) this.panes[s].body.prepend(entry.els[s]);
+      for (const s of sidesOn()) this.panes[s].body.prepend(entry.els[s]);
     } else {
       this.entries.push(entry);
       this.sentinel.parentNode ? this.sentinel.before(entry.els.center) : this.panes.center.body.appendChild(entry.els.center);
-      for (const s of SIDES) this.panes[s].body.appendChild(entry.els[s]);
+      for (const s of sidesOn()) this.panes[s].body.appendChild(entry.els[s]);
     }
     this.markTicks(entry);
     this.refreshTop();
@@ -304,7 +336,7 @@ export class Reader {
   /** Marks the selected line's comments inside a newly rendered entry. */
   paintSelection(entry) {
     const ref = this.selected;
-    for (const s of SIDES) {
+    for (const s of sidesOn()) {
       entry.els[s].querySelectorAll(`.cmt[data-anchor="${cssEsc(ref)}"]`).forEach((c) => {
         c.classList.add("sel");
         c.parentElement.classList.add("sel");
@@ -412,6 +444,10 @@ export class Reader {
             h("p", {}, h("span", { lang: "he" }, `${comm.he}`), ` · ${comm.name} comments here in place of ${comm.requested}.`));
       sec.appendChild(note);
     }
+    if (side === "extra" && d.corpus === "yerushalmi" && (!this.entries.length || this.entries[0] === entry)) {
+      sec.appendChild(h("div", { class: "side-note soft x-note" },
+        h("p", {}, "Steinsaltz covers the Bavli only. Here the third column opens with ", h("b", {}, comm.name || "another commentary"), " — choose any other from the column title.")));
+    }
     const hasEn = comm.comments.some((c) => c.en);
     let group = null, groupN = null;
     for (const c of comm.comments) {
@@ -431,14 +467,17 @@ export class Reader {
   renderComment(c, comm) {
     const el = h("article", { class: "cmt", "data-ref": c.ref, "data-anchor": c.anchor, tabindex: "0" });
     const he = h("div", { class: "cmt-he", lang: "he", dir: "rtl" });
+    // Steinsaltz weaves the Gemara (bold) into his explanation — there is no dibbur hamatchil
+    const flowing = comm.name === "Steinsaltz";
+    if (flowing) el.classList.add("cmt-flow");
     if (c.he) {
-      const { dh, body } = splitDH(c.he);
+      const { dh, body } = flowing ? { dh: "", body: c.he } : splitDH(c.he);
       if (dh) he.append(h("span", { class: "dh" }, richFragment(dh)), h("span", { class: "dh-sep" }, " "));
       he.appendChild(richFragment(body));
     } else he.classList.add("missing");
     const en = h("div", { class: "cmt-en", lang: "en", dir: "ltr" });
     if (c.en) {
-      const { dh, body } = splitDH(c.en);
+      const { dh, body } = flowing ? { dh: "", body: c.en } : splitDH(c.en);
       if (dh) en.append(h("span", { class: "dh" }, richFragment(dh)), document.createTextNode(" — "));
       en.appendChild(richFragment(body));
     } else en.classList.add("missing");
@@ -446,23 +485,34 @@ export class Reader {
     return el;
   }
 
+  /** Which visual side each commentary column sits on, inner column first. */
+  tabSides() {
+    const x = settings.extra.on ? settings.extra.side : null;
+    return { r: ["right", ...(x === "right" ? ["extra"] : [])], l: ["left", ...(x === "left" ? ["extra"] : [])] };
+  }
+
   markTicks(entry) {
-    const counts = { right: new Map(), left: new Map() };
-    for (const s of SIDES) for (const c of entry.comm[s].comments) counts[s].set(c.anchor, (counts[s].get(c.anchor) || 0) + 1);
+    const on = sidesOn();
+    const counts = {};
+    for (const s of on) {
+      counts[s] = new Map();
+      for (const c of (entry.comm[s] || { comments: [] }).comments) counts[s].set(c.anchor, (counts[s].get(c.anchor) || 0) + 1);
+    }
+    const vis = this.tabSides();
     entry.els.center.querySelectorAll(".seg").forEach((seg) => {
-      const r = counts.right.get(seg.dataset.ref) || 0;
-      const l = counts.left.get(seg.dataset.ref) || 0;
-      if (r) seg.dataset.cr = r; else delete seg.dataset.cr;
-      if (l) seg.dataset.cl = l; else delete seg.dataset.cl;
       seg.querySelectorAll(":scope > .cm-tab").forEach((x) => x.remove());
-      for (const [side, n] of [["right", r], ["left", l]]) {
-        if (!n) continue;
-        const name = entry.comm[side].name;
-        seg.appendChild(h("button", {
-          type: "button", class: `cm-tab cm-${side}`, "data-side": side, tabindex: "-1",
-          title: `${n} ${name} comment${n > 1 ? "s" : ""} on this line`,
-          "aria-label": `${n} ${name} comment${n > 1 ? "s" : ""} on this line — show`,
-        }, h("span", { class: "cm-n" }, String(n)), h("span", { class: "cm-arrow", "aria-hidden": "true" })));
+      for (const [at, cols] of Object.entries(vis)) {
+        cols.forEach((side, stack) => {
+          const n = counts[side] ? counts[side].get(seg.dataset.ref) || 0 : 0;
+          if (!n) return;
+          const name = entry.comm[side].name;
+          seg.appendChild(h("button", {
+            type: "button", class: `cm-tab cm-${side} at-${at}`, "data-side": side, tabindex: "-1",
+            style: { "--stack": stack },
+            title: `${n} ${name} comment${n > 1 ? "s" : ""} on this line`,
+            "aria-label": `${n} ${name} comment${n > 1 ? "s" : ""} on this line — show`,
+          }, h("span", { class: "cm-n" }, String(n)), h("span", { class: "cm-arrow", "aria-hidden": "true" })));
+        });
       }
     });
   }
@@ -470,7 +520,7 @@ export class Reader {
   updateHeads() {
     const entry = this.currentEntry() || this.entries[0];
     if (!entry) return;
-    for (const s of SIDES) {
+    for (const s of sidesOn()) {
       const comm = entry.comm[s];
       const pane = this.panes[s];
       const name = settings.commentators[entry.data.corpus][s];
@@ -533,7 +583,7 @@ export class Reader {
     const secIdx = this.entries.findIndex((e) => e.ref === p.sectionRef);
     if (secIdx < 0) return;
     const offset = this.levelOffset(ref, 0.3);
-    for (const side of SIDES) {
+    for (const side of sidesOn()) {
       if (!force && performance.now() - this.touched[side] < 2500) continue;
       const g = this.findGroup(side, secIdx, p.seg);
       if (!g) continue;
@@ -593,7 +643,7 @@ export class Reader {
     if (!seg) return;
     seg.classList.add("sel");
     const comments = {};
-    for (const s of SIDES) {
+    for (const s of sidesOn()) {
       comments[s] = [...this.panes[s].body.querySelectorAll(`.cmt[data-anchor="${cssEsc(ref)}"]`)];
       comments[s].forEach((c) => c.classList.add("sel"));
       comments[s].forEach((c) => c.parentElement.classList.add("sel"));
@@ -612,17 +662,19 @@ export class Reader {
     if (opts.from === "center" || opts.from === "open") {
       const p = parseRef(ref);
       const secIdx = this.entries.findIndex((e) => e.ref === p.sectionRef);
-      for (const s of SIDES) {
+      for (const s of sidesOn()) {
         if (opts.comment && comments[s].some((c) => c.dataset.ref === opts.comment)) continue;
         // no comment on this line: glide to the next one this commentator does have
         const target = comments[s][0] ? comments[s][0].parentElement : this.findGroup(s, secIdx, p.seg);
-        if (target) this.scrollPaneTo(s, target, this.levelOffset(ref, 0.4), opts.from === "open" ? "auto" : "smooth");
+        const level = opts.level != null ? Math.max(10, Math.min(opts.level, this.panes.center.body.clientHeight * 0.4)) : this.levelOffset(ref, 0.4);
+        if (target) this.scrollPaneTo(s, target, level, opts.from === "open" ? "auto" : "smooth");
       }
     }
-    if (opts.from === "right" || opts.from === "left") {
+    if (ALL_SIDES.includes(opts.from)) {
       this.scrollCenterTo(ref, "smooth", "center");
-      const other = opts.from === "right" ? "left" : "right";
-      if (comments[other][0]) this.scrollPaneTo(other, comments[other][0].parentElement, 10);
+      for (const other of sidesOn()) {
+        if (other !== opts.from && comments[other][0]) this.scrollPaneTo(other, comments[other][0].parentElement, 10);
+      }
     }
   }
 
@@ -633,7 +685,7 @@ export class Reader {
     const entry = this.entries.find((e) => e.ref === p.sectionRef);
     const bar = h("div", { class: "seg-tools", role: "toolbar", "aria-label": "Segment actions" },
       h("span", { class: "st-ref" }, h("span", { lang: "he" }, `${label.heSection} ${hebNum(p.seg)}`), h("span", {}, `${label.enSection}:${p.seg}`)));
-    for (const s of SIDES) {
+    for (const s of sidesOn()) {
       const n = comments[s].length;
       if (!n || !entry) continue;
       const nm = entry.comm[s];
@@ -677,15 +729,42 @@ export class Reader {
     }
   }
 
-  moveSelection(delta) {
-    const segs = [...this.panes.center.body.querySelectorAll(".seg")];
+  /**
+   * ↑/↓ (and J/K): move the selection to the previous/next Gemara line, loading the adjacent
+   * amud when needed. The line is kept in a comfortable band of the pane and the commentary
+   * columns glide level with it.
+   */
+  async moveSelection(delta) {
+    const all = () => [...this.panes.center.body.querySelectorAll(".seg")];
+    let segs = all();
     if (!segs.length) return;
-    let i = segs.findIndex((s) => s.dataset.ref === (this.selected || this.reading));
-    i = i < 0 ? 0 : Math.max(0, Math.min(segs.length - 1, i + delta));
-    const ref = segs[i].dataset.ref;
-    this.select(ref, { from: "center" });
-    this.scrollCenterTo(ref, "smooth", "center");
-    segs[i].focus({ preventScroll: true });
+    const cur = this.selected || this.reading;
+    let i = segs.findIndex((x) => x.dataset.ref === cur);
+    if (i < 0) i = 0;
+    let j = this.selected ? i + delta : i; // the first press picks up the line you're reading
+    if (j >= segs.length) {
+      await this.appendNext();
+      segs = all();
+      if (j >= segs.length) return;
+    } else if (j < 0) {
+      await this.prependPrev();
+      segs = all();
+      j = segs.findIndex((x) => x.dataset.ref === cur) - 1;
+      if (j < 0) return;
+    }
+    const seg = segs[j];
+    const ref = seg.dataset.ref;
+    const body = this.panes.center.body;
+    const br = body.getBoundingClientRect();
+    const sr = seg.getBoundingClientRect();
+    let level = sr.top - br.top;
+    const comfy = sr.top >= br.top + br.height * 0.12 && sr.bottom <= br.bottom - br.height * 0.18;
+    if (!comfy) {
+      level = sr.height > br.height * 0.6 ? 24 : Math.round(br.height * 0.28);
+      body.scrollTo({ top: Math.max(0, body.scrollTop + (sr.top - br.top) - level), behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    }
+    this.select(ref, { from: "center", level });
+    seg.focus({ preventScroll: true });
   }
 
   // Keyboard ←/→: jump to the next/previous amud (scrolls if already loaded).
@@ -743,9 +822,11 @@ export class Reader {
     body.classList.add("reloading");
     await Promise.all(this.entries.map((e) => this.loadSide(e, side)));
     if (token !== this.token) return;
+    if (!this.entries.every((e) => e.els[side])) body.replaceChildren();
     for (const e of this.entries) {
       const fresh = this.renderSide(e, side);
-      e.els[side].replaceWith(fresh);
+      if (e.els[side]) e.els[side].replaceWith(fresh);
+      else body.appendChild(fresh);
       e.els[side] = fresh;
       this.markTicks(e);
     }
@@ -764,7 +845,7 @@ export class Reader {
     const label = sectionLabel(entry.ref);
     const menu = h("div", { class: "cm-menu" },
       h("div", { class: "ps-head" },
-        h("span", { class: "ps-title" }, side === "right" ? "Right column" : "Left column"),
+        h("span", { class: "ps-title" }, { right: "Right column", left: "Left column", extra: "Third column" }[side]),
         h("span", { class: "ps-sub" }, `Commentaries on ${label.en}`)));
     const ul = h("div", { class: "cm-list", role: "listbox", "aria-label": "Commentaries" });
     let pop;
@@ -773,12 +854,13 @@ export class Reader {
         type: "button", role: "option", "aria-selected": String(c.en === current),
         class: `cm-item ${c.en === current ? "on" : ""}`,
         onclick: () => {
-          const otherSide = side === "right" ? "left" : "right";
-          if (settings.commentators[corpus][otherSide] === c.en) set(`commentators.${corpus}.${otherSide}`, current);
+          // picking a commentator shown in another column swaps the two
+          const clash = sidesOn().find((x) => x !== side && settings.commentators[corpus][x] === c.en);
+          if (clash) set(`commentators.${corpus}.${clash}`, current);
           set(`commentators.${corpus}.${side}`, c.en);
           pop.close();
           this.reloadSide(side);
-          if (settings.commentators[corpus][otherSide] === current) this.reloadSide(otherSide);
+          if (clash) this.reloadSide(clash);
         },
       },
       h("span", { class: "cm-he", lang: "he" }, heName(c.en, c.he)),

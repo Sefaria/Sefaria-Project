@@ -9,7 +9,12 @@ export function h(tag, attrs = {}, ...children) {
     else if (k === "text") el.textContent = v;
     else if (k.startsWith("on") && typeof v === "function") el.addEventListener(k.slice(2), v);
     else if (k === "dataset") Object.assign(el.dataset, v);
-    else if (k === "style" && typeof v === "object") Object.assign(el.style, v);
+    else if (k === "style" && typeof v === "object") {
+      for (const [sk, sv] of Object.entries(v)) {
+        if (sk.startsWith("--")) el.style.setProperty(sk, String(sv)); // custom properties need setProperty
+        else el.style[sk] = sv;
+      }
+    }
     else el.setAttribute(k, v === true ? "" : v);
   }
   for (const c of children.flat()) {
@@ -129,6 +134,7 @@ export function popover(content, { anchor, className = "", label = "", placement
       setTimeout(() => wrap.remove(), 180);
       document.removeEventListener("keydown", onKey, true);
       window.removeEventListener("resize", onResize);
+      document.removeEventListener("pointerdown", onOutside, true);
       if (!passthrough && prevFocus && prevFocus.focus && document.contains(prevFocus)) prevFocus.focus({ preventScroll: true });
       onClose && onClose();
     },
@@ -141,6 +147,9 @@ export function popover(content, { anchor, className = "", label = "", placement
     }
   };
   const onResize = () => place();
+  // live (passthrough) cards close on a press anywhere else
+  const onOutside = (e) => { if (!panel.contains(e.target)) api.close(); };
+  if (passthrough) setTimeout(() => document.addEventListener("pointerdown", onOutside, true), 0);
   scrim.addEventListener("click", () => api.close());
   document.addEventListener("keydown", onKey, true);
   window.addEventListener("resize", onResize);
