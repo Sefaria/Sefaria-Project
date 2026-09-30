@@ -1536,11 +1536,11 @@ const DeveloperTab = ({state, socialProviders, developerOn, update, setConfirm, 
             <NewProjectPanel onCreate={onCreateProject} onCancel={() => setShowNewProject(false)} /> :
             state.projects.length === 0 ?
             <div className="devPocEmpty">
-              <h2><InterfaceText text={{en: "Your first project starts here", he: "הפרויקט הראשון שלכם מתחיל כאן"}} /></h2>
+              <h2><InterfaceText text={{en: "No projects yet", he: "עדיין אין פרויקטים"}} /></h2>
               <p>
                 <InterfaceText text={{
-                  en: "Tell us what you're building. You'll get a key right after.",
-                  he: "ספרו לנו מה אתם בונים. מיד אחר כך תקבלו מפתח.",
+                  en: "To use the Sefaria API, start by creating a project. Then you'll add an API key to it.",
+                  he: "כדי להשתמש ב־API של ספריא, מתחילים ביצירת פרויקט. אחר כך מוסיפים לו מפתח API.",
                 }} />
               </p>
               <div className="devPocActions">
