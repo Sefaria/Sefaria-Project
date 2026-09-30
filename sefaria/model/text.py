@@ -2209,6 +2209,43 @@ class RefCacheType(type):
         except KeyError:
             pass
 
+    def remove_ref_from_cache(cls, index_title, tref):
+        """
+        Removes only the cached trefs/uids for one specific entry within Index `index_title`
+        (the entry named by `tref`, e.g. a dictionary headword) from the Ref cache, leaving
+        every other entry's cached refs in that same Index untouched. Every string this Index
+        has ever been constructed with is grouped under __index_tref_map[index_title]
+        regardless of which specific entry it names, so this filters that list down to the
+        ones naming this entry rather than dropping the whole Index's cache
+        (remove_index_from_cache) for what's usually a single-entry edit.
+
+        Takes a plain tref string, not a Ref, so this can be published as a multiserver
+        event ([index_title, tref] round-trips through JSON) and re-run identically on
+        every other server process, each reconstructing its own Ref to derive normal()/url()
+        from -- Ref objects themselves are per-process and can't be shared that way.
+        """
+        try:
+            trefs = cls.__index_tref_map[index_title]
+        except KeyError:
+            return
+        oref = cls(tref)
+        # A request's raw tref reaches Ref() as-is and gets cached under that literal string
+        # -- for a URL-decoded request that's oref.url() (spaces as "_"), not oref.normal().
+        # Matching only the normal() form left every real browser request's cache entry
+        # (always url()-shaped) permanently unreachable. A tref naming this entry either is
+        # one of these two forms exactly (no section) or continues with a separator -- ". "/
+        # " "/":" from DictionaryEntryNode's own parsing regex or other stored ref strings
+        # (e.g. links.refs), "_" from the url() form -- before a section number.
+        prefixes = "|".join(regex.escape(p) for p in {oref.normal(), oref.url()})
+        pattern = regex.compile(rf"^(?:{prefixes})(?:[. :_]|$)")
+        remaining = []
+        for tref in trefs:
+            if pattern.match(tref):
+                cls.__tref_oref_map.pop(tref, None)
+            else:
+                remaining.append(tref)
+        cls.__index_tref_map[index_title] = remaining
+
     def __call__(cls, *args, **kwargs):
         if len(args) == 1:
             tref = args[0]
