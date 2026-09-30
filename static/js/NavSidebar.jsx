@@ -338,7 +338,7 @@ const SupportSefaria = ({blue}) => (
     <InterfaceText>nav_sidebar.sefaria_is_an_open_source_nonprofit_project_support</InterfaceText>
     <br />
     <DonateLink classes={"button small" + (blue ? " white" : "")} source={"NavSidebar-SupportSefaria"}>
-      <img src="/static/img/heart.png" alt={Sefaria._("common.donation_icon")} />
+      <img src="/static/icons/heart.svg" alt={Sefaria._("common.donation_icon")} />
       <InterfaceText>nav_sidebar.make_a_donation</InterfaceText>
     </DonateLink>
   </SidebarModule>
@@ -351,7 +351,7 @@ const SponsorADay = () => (
     <InterfaceText>nav_sidebar.with_your_help_we_can_add_more_texts</InterfaceText>
     <br />
     <DonateLink classes={"button small"} link={"dayOfLearning"} source={"NavSidebar-SponsorADay"}>
-      <img src="/static/img/heart.png" alt={Sefaria._("common.donation_icon")} />
+      <img src="/static/icons/heart.svg" alt={Sefaria._("common.donation_icon")} />
       <InterfaceText>nav_sidebar.sponsor_a_day</InterfaceText>
     </DonateLink>
   </SidebarModule>

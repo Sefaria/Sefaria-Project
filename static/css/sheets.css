@@ -1652,8 +1652,8 @@ body.hasBannerMessage .sheetsEditNavTop {
 }
 #customTextLanguageToggle .toggleOption img {
 	margin-bottom: 13px;
-	height: 16px;
-	width: 16px;
+	height: 18px;
+	width: 18px;
 }
 #customTextContainer, #addmediaDiv, #addcommentDiv, #addsourceDiv{
 	width: 702px;
@@ -1726,7 +1726,7 @@ a.userLink{
 	margin: auto;
 }
 .sheetsEditNavTop #save img, .sheetsEditNavTop #share img  {
-    height: 10px;
+    height: 12px;
     margin-right: 2px;
 }
 #sheetsContent #shareURL {
@@ -1911,8 +1911,8 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
 	margin-left: 5px;
 }
 .tagit .ui-icon {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     display: block;
     text-indent: -99999px;
     overflow: hidden;
@@ -1940,7 +1940,7 @@ a.tagit-close {
 	content: "X"
 }
 .moveSourceUp img, .moveSourceDown img, .highlighterSource img  {
-    width:16px;
+    width:18px;
 }
 .source .highlighter, .highlighterTools, .highlighterTagWindow, .addTagPanel {
 	display: none;
