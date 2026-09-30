@@ -181,6 +181,47 @@ nameService:
         memory: "4Gi"
         cpu: "1000m"
 
+authService:
+  # Envoy ext_authz server for the API Key Program (Phase 1). Classifies every request on the environment's
+  # HTTPRoute (anonymous / embed / developer key) from an in-memory key map loaded from the cluster key registry,
+  # and stamps x-sefaria-tier, x-sefaria-project, x-sefaria-auth-result. Enabling this attaches a SecurityPolicy
+  # to the HTTPRoute: every request goes through the auth service (failOpen: true, so an outage degrades to the
+  # anonymous tier). No JWT verification and no rate limiting in Phase 1. Off by default everywhere.
+  enabled: false
+  # enforce: unknown/revoked keys get the product-spec 401/403. observe: never denies; records what
+  # would have been rejected in x-sefaria-auth-result (dark launch).
+  mode: enforce
+  # Comma-separated path prefixes that require a key (401 api_key_required without one).
+  gatedPaths: "/api/knn-search"
+  helpURL: https://developers.sefaria.org/help/
+  # One is enough for a cauldron (failOpen covers the restart gap); production sets more. A PDB is
+  # rendered only when this is > 1.
+  replicaCount: 1
+  containerImage:
+    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-auth-service
+    tag: latest
+  resources:
+    requests: {cpu: 100m, memory: 64Mi}
+    limits: {cpu: "1", memory: 256Mi}
+  extAuth:
+    failOpen: true
+    timeout: 200ms  # Envoy Gateway's default is 10s
+  reloadInterval: 60s       # full reload from Postgres; also the revocation SLA when LISTEN/NOTIFY is down
+  push:
+    # Key changes reach every auth service in the cluster through Postgres LISTEN/NOTIFY on the key registry:
+    # triggers in the registry schema NOTIFY on this channel whatever the writer. The name is fixed in the schema.
+    pgChannel: sefaria_apikeys
+  postgres:
+    # The cluster's one key registry: a database in the cluster's shared Postgres, read by every auth
+    # service in the cluster. The chart never runs a Postgres of its own. The Secret is a cluster-level
+    # object from the infrastructure repo, not per release.
+    secrets:
+      dsn:
+        ref: auth-service-registry
+        key: AUTH_PG_DSN
+  monitoring:
+    enabled: true
+
 redis:
   containerImage:
     # Full path of the image registry inclusive of the image name
