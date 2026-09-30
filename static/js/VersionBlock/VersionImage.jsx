@@ -15,11 +15,11 @@ function VersionImage({version}) {
       <div className="versionDetailsImage">
         <div className={classNames(VersionBlockUtils.makeAttrClassNames(version, {"versionBuyImage": 1, "versionDetailsElement": 1} , "purchaseInformationImage"))}>
           <a className="versionDetailsLink versionDetailsImageLink" href={makeImageLink()} target="_blank">
-            <img className="versionImage" src={makeImageSrc()} alt={Sefaria._("Buy Now")} />
+            <img className="versionImage" src={makeImageSrc()} alt={Sefaria._("version_image.buy_now")} />
           </a>
         </div>
       </div>
-    )
+    );
 }
 VersionImage.prototypes = {
     version: PropTypes.object.isRequired,

@@ -7,19 +7,19 @@ const options_for_form = {
     // "Picture": {label: "Picture", field: "picture", placeholder: "Add a picture.", type: "picture"},
     "English Caption": {label: "English Caption", field: "enImgCaption", placeholder: "Add a caption for topic picture"},
     "Hebrew Caption": {label: "Hebrew Caption", field: "heImgCaption", placeholder: "Add a Hebrew caption for topic picture"},
-    "Title": {label: "Title", field: "enTitle", placeholder: "Add a title."},
-    "Hebrew Title": {label: "Hebrew Title", field: "heTitle", placeholder: "Add a title."},
+    "Title": {label: "publish_menu.title", field: "enTitle", placeholder: "admin_editor.add_a_title"},
+    "Hebrew Title": {label: "book_page.hebrew_title", field: "heTitle", placeholder: "admin_editor.add_a_title"},
     "English Description": {
-        label: "English Description",
+        label: "book_page.english_description",
         field: "enDescription",
-        placeholder: "Add a description.",
+        placeholder: "admin_editor.add_a_description",
         type: 'textarea',
         markdown: true,
     },
     "Hebrew Description": {
-        label: "Hebrew Description",
+        label: "book_page.hebrew_description",
         field: "heDescription",
-        placeholder: "Add a description.",
+        placeholder: "admin_editor.add_a_description",
         type: 'textarea',
         markdown: true
     },
@@ -28,20 +28,20 @@ const options_for_form = {
     "Context for Prompt": {label: "Context for Prompt", field: "ai_context", placeholder: "Why was this source added", type: 'textarea'},
     "Previous Title": {label: "Previous Title", field: "enTitle", placeholder: "", readOnly:true},
     "English Short Description": {
-        label: "English Short Description for Table of Contents", field: "enCategoryDescription",
-        placeholder: "Add a short description.", type: 'input'
+        label: "admin_editor.english_short_description_for_table_of_contents", field: "enCategoryDescription",
+        placeholder: "admin_editor.add_a_short_description", type: 'input'
     },
     "Hebrew Short Description": {
-        label: "Hebrew Short Description for Table of Contents", field: "heCategoryDescription",
-        placeholder: "Add a short description.", type: 'input'
+        label: "admin_editor.hebrew_short_description_for_table_of_contents", field: "heCategoryDescription",
+        placeholder: "admin_editor.add_a_short_description", type: 'input'
     },
     "English Alternate Titles": {
         label: "English Alternate Titles", field: "enAltTitles",
-        placeholder: "Add a title.", type: 'title variants'
+        placeholder: "admin_editor.add_a_title", type: 'title variants'
     },
     "Hebrew Alternate Titles": {
         label: "Hebrew Alternate Titles", field: "heAltTitles",
-        placeholder: "Add a title.", type: 'title variants'
+        placeholder: "admin_editor.add_a_title", type: 'title variants'
     },
     "Birth Place": {
         label: "Place of Birth", field: "birthPlace", placeholder: "Place of birth", type: 'input'
@@ -197,40 +197,42 @@ const AdminEditor = ({title, data, close, catMenu, pictureUploader, secondaryPic
         }
     }
     
-    return <div className="editTextInfo">
-        <div className="static">
-            <div className="inner">
-                {(savingStatus || validatingLinks) &&
-                <div className="collectionsWidget">{Sefaria._("Saving...")}</div>}
-                <div id="newIndex">
-                    <AdminToolHeader title={title} close={close} validate={preprocess}/>
-                    {items.map((x) => {
-                        if (!x) {
-                            return null;
-                        } else if (x.includes("Hebrew") && (!Sefaria._siteSettings.TORAH_SPECIFIC)) {
-                            return null;
-                        } else if (x === "Category Menu") {
-                            return catMenu;
-                        } else if (x === "Picture Uploader") {
-                            return pictureUploader;
-                        } else if (x === "Secondary Picture Cropper") {
-                            return secondaryPictureCropper;
-                        }
-                        else {
-                            return item({...options_for_form[x]});
-                        }
-                    })}
-                    {extras}
-                    {!isNew &&
-                    <div onClick={confirmDelete} id="deleteTopic" className="button small deleteTopic" tabIndex="0"
-                         role="button">
-                        <InterfaceText>Delete</InterfaceText>
-                    </div>}
+    return (
+        <div className="editTextInfo">
+            <div className="static">
+                <div className="inner">
+                    {(savingStatus || validatingLinks) &&
+                    <div className="collectionsWidget">{Sefaria._("common.saving")}</div>}
+                    <div id="newIndex">
+                        <AdminToolHeader title={title} close={close} validate={preprocess}/>
+                        {items.map((x) => {
+                            if (!x) {
+                                return null;
+                            } else if (x.includes("Hebrew") && (!Sefaria._siteSettings.TORAH_SPECIFIC)) {
+                                return null;
+                            } else if (x === "Category Menu") {
+                                return catMenu;
+                            } else if (x === "Picture Uploader") {
+                                return pictureUploader;
+                            } else if (x === "Secondary Picture Cropper") {
+                                return secondaryPictureCropper;
+                            }
+                            else {
+                                return item({...options_for_form[x]});
+                            }
+                        })}
+                        {extras}
+                        {!isNew &&
+                        <div onClick={confirmDelete} id="deleteTopic" className="button small deleteTopic" tabIndex="0"
+                             role="button">
+                            <InterfaceText>common.delete</InterfaceText>
+                        </div>}
 
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    );
 }
 
 export {AdminEditor, AdminEditorButton, useEditToggle, validateMarkdownLinks};

@@ -64,7 +64,7 @@ class SearchTextResult extends Component {
             } else {
                 Sefaria.track.event("Search", "Search Result Text Click", `${this.props.query} - ${parsedRef.ref}/${s.version}/${s.lang}`);
             }
-            const lang = (s.isPrmary) ? 'he' : 'en';
+            const lang = (s.isPrimary) ? 'he' : 'en';
             const versionTitle = s.version;
             const {languageFamilyName} = s;
             this.props.onResultClick(parsedRef.ref, {[lang]: {languageFamilyName, versionTitle}}, {textHighlights});

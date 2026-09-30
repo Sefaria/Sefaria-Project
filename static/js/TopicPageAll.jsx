@@ -84,16 +84,16 @@ class TopicPageAll extends Component {
           <div className="sidebarLayout">
             <div className="contentInner">
               <h1>
-                <InterfaceText>All Topics</InterfaceText>
+                <InterfaceText>topic_page_all.all_topics</InterfaceText>
               </h1>
 
               <div className="topicFilterBox">
-                <img className="searchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" alt={Sefaria._("Search topics")} />
-                <input className={inputClasses} placeholder={Sefaria._("Search Topics")} onChange={this.handleFilterChange} />
+                <img className="searchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" alt={Sefaria._("topic_page_all.search_topics")} />
+                <input className={inputClasses} placeholder={Sefaria._("topic_page_all.search_topics_2")} onChange={this.handleFilterChange} />
                 { this.state.filter.length ?
-                <div className="topicsFilterReset sans-serif" onClick={this.resetFilter} role="button" tabIndex="0" aria-label={Sefaria._("Reset topic filter")}>
-                  <InterfaceText>Reset</InterfaceText>
-                  <img className="topicsFilterResetIcon" src="/static/icons/circled-x.svg" alt={Sefaria._("Reset filter")} />
+                <div className="topicsFilterReset sans-serif" onClick={this.resetFilter} role="button" tabIndex="0" aria-label={Sefaria._("topic_page_all.reset_topic_filter")}>
+                  <InterfaceText>common.reset</InterfaceText>
+                  <img className="topicsFilterResetIcon" src="/static/icons/circled-x.svg" alt={Sefaria._("topic_page_all.reset_filter")} />
                 </div>
                 : null }
               </div>

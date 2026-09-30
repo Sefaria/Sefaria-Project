@@ -17,7 +17,7 @@ export const TopicLandingParasha = () => {
     return (
         <div className="topic-landing-parasha" data-anl-feature_name="Parashah">
             <TopicLandingCalendar
-                header={<InterfaceText>This Week’s Torah Portion</InterfaceText>}
+                header={<InterfaceText>common.this_week_s_torah_portion</InterfaceText>}
                 title={parashah.displayValue}
                 description={parashah.description}
                 link={`topics/${parashah?.topic}`}
@@ -28,7 +28,7 @@ export const TopicLandingParasha = () => {
                       data-anl-text={`Learn More about ${parashah.displayValue?.en} ›`}
                       data-anl-event="navto_topic:click">
                         <InterfaceText text={{en:`Learn More about ${parashah.displayValue?.en} ›`,
-                            he: `${Sefaria._("Learn More about")} ${parashah.displayValue?.he} ›`}} />
+                            he: `${Sefaria._("topic_landing_parasha.learn_more_about")} ${parashah.displayValue?.he} ›`}} />
                     </a>
                 </div>
                 <div className="parashah-link">
@@ -43,7 +43,7 @@ export const TopicLandingParasha = () => {
                     data-anl-text="Read the Portion"
                     data-anl-event="navto_topic:click"
                     >
-                        <InterfaceText>Read the Portion</InterfaceText>
+                        <InterfaceText>common.read_the_portion</InterfaceText>
                     </a>
                 </div>
                 <div className="browse-all-parashot-prompt">
@@ -52,7 +52,7 @@ export const TopicLandingParasha = () => {
                     data-anl-text="Browse All Torah Portions"
                     data-anl-event="navto_topic:click"
                     >
-                        <InterfaceText>Browse All Torah Portions</InterfaceText></a >
+                        <InterfaceText>topic_landing_parasha.browse_all_torah_portions</InterfaceText></a >
                 </div>
             </TopicLandingCalendar>
         </div>

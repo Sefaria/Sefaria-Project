@@ -90,11 +90,11 @@ const _filterContentTextByLang = ({text, html, markdown, overrideLanguage, defau
   return langAndContentItems;
 }
 
-const ContentSpan = ({lang, content, isHTML, markdown, primaryOrTranslation}) => {
+const ContentSpan = ({lang, content, isHTML, markdown, primaryOrTranslation, disallowedMarkdownElements=['p']}) => {
   return isHTML ?
           <span className={`contentSpan ${lang} ${primaryOrTranslation || ''}`} lang={lang} key={lang} dangerouslySetInnerHTML={{__html: content}}/>
           : markdown ? <span className={`contentSpan ${lang}`} lang={lang} key={lang}>
-                         <ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={['p']}>{content}</ReactMarkdown>
+                         <ReactMarkdown className={'reactMarkdown'} unwrapDisallowed={true} disallowedElements={disallowedMarkdownElements}>{content}</ReactMarkdown>
                        </span>
           : <span className={`contentSpan ${lang}`} lang={lang} key={lang}>{content}</span>;
 }

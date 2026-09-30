@@ -5,11 +5,32 @@ logger = structlog.get_logger(__name__)
 
 from sefaria.system.database import db
 from sefaria.system.exceptions import BookNameError, InputError, DuplicateRecordError
+from sefaria.helper.skip_tracking import bad_record_guard
+skip_bad_record = bad_record_guard(logger)
 from . import abstract as abstract
 from . import schema as schema
 from . import text as text
 from . import collection as collection
 from .linker.has_match_template import MatchTemplateMixin
+
+
+def toc_node_id(node):
+    """Identify a ToC node for the skip log: its path, e.g. "Tanakh/Torah/Genesis".
+
+    Defensive because `record=` is an ARGUMENT to skip_bad_record, so it is evaluated
+    before the guard is entered — anything raised here escapes uncaught and aborts the
+    build the guard exists to protect. `full_path` reads primary_title() off every
+    ancestor, and a broken title_group is exactly the corruption this guard catches.
+
+    Returns None on failure rather than a shared string: skip_tracking gives None a unique
+    placeholder, so a site whose ids all fail degrades to counting occurrences instead of
+    collapsing into one bucket and silencing the signature breaker. It renders as
+    "<unknown>" in the summary either way.
+    """
+    try:
+        return "/".join(node.full_path)
+    except Exception:
+        return None
 
 
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject, MatchTemplateMixin):
@@ -214,60 +235,70 @@ class TocTree(object):
         self._library = lib
         self._collections_in_library = []
 
-        # Store first section ref.
+        # Store first section ref. A single vstate doc missing "title" must not abort startup.
         vss = db.vstate.find({}, {"title": 1, "first_section_ref": 1, "flags": 1})
-        self._vs_lookup = {vs["title"]: {
-            "first_section_ref": vs.get("first_section_ref"),
-            "heComplete": bool(vs.get("flags", {}).get("heComplete", False)),
-            "enComplete": bool(vs.get("flags", {}).get("enComplete", False)),
-        } for vs in vss}
+        self._vs_lookup = {}
+        for vs in vss:
+            with skip_bad_record("reset_toc,startup", "TocTree vstate record", record=vs.get("_id")):
+                self._vs_lookup[vs["title"]] = {
+                    "first_section_ref": vs.get("first_section_ref"),
+                    "heComplete": bool(vs.get("flags", {}).get("heComplete", False)),
+                    "enComplete": bool(vs.get("flags", {}).get("enComplete", False)),
+                }
 
         # Build Category object tree from stored Category objects
         for c in CategorySet(sort=[("depth", 1)]):
             self._add_category(c)
 
-        # Get all of the first comment links
+        # Get all of the first comment links. A single link missing either field must not abort startup.
         ls = db.links.find({"is_first_comment": True}, {"first_comment_indexes":1, "first_comment_section_ref":1})
-        self._first_comment_lookup = {frozenset(l["first_comment_indexes"]): l["first_comment_section_ref"] for l in ls}
+        self._first_comment_lookup = {}
+        for l in ls:
+            with skip_bad_record("reset_toc,startup", "TocTree first_comment link", record=l.get("_id")):
+                self._first_comment_lookup[frozenset(l["first_comment_indexes"])] = l["first_comment_section_ref"]
 
-        # Place Indexes
+        # Place Indexes. Wrap each index so one malformed record (empty categories,
+        # bad base_text_titles, broken schema, etc.) logs and is skipped rather than
+        # aborting the whole TOC build and preventing server startup.
         indx_set = self._library.all_index_records() if self._library else text.IndexSet()
         for i in indx_set:
-            if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record
-                continue
-            node = self._make_index_node(i, mobile=mobile)
-            cat = self.lookup(i.categories)
-            if not cat:
-                logger.warning("Failed to find category for {}".format(i.categories))
-                continue
-            cat.append(node)
-            vs = self._vs_lookup.get(i.title, None)
-            if not vs:
-                continue
-            # If any text in this category is incomplete, the category itself and its parents are incomplete
-            for field in ("enComplete", "heComplete"):
-                for acat in [cat] + list(reversed(cat.ancestors())):
-                    # Start each category completeness as True, set to False whenever we hit an incomplete text below it
-                    flag = False if not vs[field] else getattr(acat, field, True)
-                    setattr(acat, field, flag)
-                    if acat.get_primary_title() == "Commentary":
-                        break # Don't consider a category incomplete for containing incomplete commentaries
+            with skip_bad_record("reset_toc,startup", "TocTree index", record=getattr(i, "title", None), level="error"):
+                if i.categories and i.categories[0] == "_unlisted":  # For the dummy sheet Index record
+                    continue
+                node = self._make_index_node(i, mobile=mobile)
+                cat = self.lookup(i.categories)
+                if not cat:
+                    logger.warning("Failed to find category for {}".format(i.categories))
+                    continue
+                cat.append(node)
+                vs = self._vs_lookup.get(i.title, None)
+                if not vs:
+                    continue
+                # If any text in this category is incomplete, the category itself and its parents are incomplete
+                for field in ("enComplete", "heComplete"):
+                    for acat in [cat] + list(reversed(cat.ancestors())):
+                        # Start each category completeness as True, set to False whenever we hit an incomplete text below it
+                        flag = False if not vs[field] else getattr(acat, field, True)
+                        setattr(acat, field, flag)
+                        if acat.get_primary_title() == "Commentary":
+                            break # Don't consider a category incomplete for containing incomplete commentaries
 
-            self._path_hash[tuple(i.categories + [i.title])] = node
+                self._path_hash[tuple(i.categories + [i.title])] = node
 
-        # Include Collections in TOC that has a `toc` field set
+        # Include Collections in TOC that has a `toc` field set. Skip-and-log per collection.
         collections = collection.CollectionSet({"toc": {"$exists": True}, "listed": True, "slug": {"$exists": True}})
         for c in collections:
-            self._collections_in_library.append(c.slug)
-            node = TocCollectionNode(collection_object=c)
-            categories = node.categories
-            cat  = self.lookup(node.categories)
-            if not cat:
-                logger.warning("Failed to find category for {}".format(categories))
-                continue
-            cat.append(node)
-           
-            self._path_hash[tuple(node.categories + [c.slug])] = node
+            with skip_bad_record("reset_toc,startup", "TocTree collection", record=getattr(c, "slug", None), level="error"):
+                self._collections_in_library.append(c.slug)
+                node = TocCollectionNode(collection_object=c)
+                categories = node.categories
+                cat  = self.lookup(node.categories)
+                if not cat:
+                    logger.warning("Failed to find category for {}".format(categories))
+                    continue
+                cat.append(node)
+
+                self._path_hash[tuple(node.categories + [c.slug])] = node
 
         self._sort()
 
@@ -322,13 +353,14 @@ class TocTree(object):
         return TocTextIndex(d, index_object=index)
 
     def _add_category(self, cat):
-        try:
+        # One malformed or orphaned category (get_primary_title raises, or its parent isn't
+        # yet in the path hash -> KeyError) is skipped+signaled rather than aborting the
+        # whole TocTree build.
+        with skip_bad_record("reset_toc,startup", "TocTree._add_category", record='/'.join(getattr(cat, "path", []) or [])):
             tc = TocCategory(category_object=cat)
             parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
             parent.append(tc)
             self._path_hash[tuple(cat.path)] = tc
-        except KeyError:
-            logger.warning(f"Failed to find parent category for {'/'.join(cat.path)}")
 
     def get_root(self):
         return self._root
@@ -442,7 +474,14 @@ class TocNode(schema.TitledTreeNode):
     def serialize(self, **kwargs):
         d = {}
         if self.children:
-            d["contents"] = [n.serialize(**kwargs) for n in self.children]
+            # Serialize each child independently so one malformed node (e.g. a broken
+            # title_group, or an index whose author lookup raises) is logged-and-skipped
+            # rather than aborting serialization of the entire ToC. Skipping a node also
+            # drops its subtree.
+            d["contents"] = []
+            for n in self.children:
+                with skip_bad_record("reset_toc,startup", "TocTree.serialize node", record=toc_node_id(n), level="error"):
+                    d["contents"].append(n.serialize(**kwargs))
 
         # thin param is used for generating search toc, and can be removed when search toc is retired.
         if kwargs.get("thin") is True:

@@ -36,6 +36,7 @@ from sefaria.model.collection import Collection, CollectionSet, process_sheet_de
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.system.cache import django_cache
 from sefaria.utils.util import strip_tags, get_redirect_to_help_center
+from sefaria.constants.model import get_direction_from_legacy_lang
 from sefaria.site.site_settings import SITE_SETTINGS
 
 from reader.views import render_template, catchall, get_search_params, get_page_title, PageTypes, menu_page
@@ -84,7 +85,6 @@ def new_sheet(request):
         'language':    "bilingual",
         'numbered':    0,
         'assignable':    0,
-        'divineNames':    "noSub",
         'collaboration':    "none",
         'highlightMode':    0,
         'langLayout':    "heRight",
@@ -735,10 +735,11 @@ def add_source_to_sheet_api(request, sheet_id):
             del source_obj[lang]
             return lang_tc
         else:  # otherwise get the text chunk for the prvided ref, either with a version (if provided) or the default.
-            lang_tc = TextChunk(ref_obj, lang, source["version-"+lang]) if source.get("version-"+lang, None) else TextChunk(ref_obj, lang)
-            lang_tc = lang_tc.ja().flatten_to_string()
-            if "version-"+lang in source_obj:
-                del source_obj["version-"+lang]
+            # Keyed by direction, not real language -- sheets still carry the old en/he-as-ltr/rtl dichotomy.
+            direction = get_direction_from_legacy_lang(lang)
+            lang_tc = ref_obj.text(direction=direction, vtitle=source.get(f"version-{lang}", None)).ja().flatten_to_string()
+            if f"version-{lang}" in source_obj:
+                del source_obj[f"version-{lang}"]
             return lang_tc if lang_tc != "" else "..."
 
     sheet = db.sheets.find_one({"id": int(sheet_id)})
@@ -877,10 +878,12 @@ def tag_list_api(request, sort_by="count"):
     return response
 
 
-def user_tag_list_api(request, user_id):
+def user_tag_list_api(request, user_id=None):
     """
     API to retrieve the list of public tags ordered by count.
     """
+    if user_id is None:
+        return jsonResponse({"error": "user_id is required."}, status=400)
     #if int(user_id) != request.user.id:
         #return jsonResponse({"error": "You are not authorized to view that."})
     response = sheet_topics_counts({"owner": int(user_id)})
@@ -942,7 +945,9 @@ def sheet_list_to_story_list(request, sid_list, public=True):
     return dict_list
 
 
-def story_form_sheets_by_tag(request, tag):
+def story_form_sheets_by_tag(request, tag=None):
+    if tag is None:
+        return jsonResponse({"error": "tag is required."}, status=400)
     sheets   = get_sheets_by_topic(tag, public=True)
     sheets   = [sheet_to_story_dict(request, s["id"]) for s in sheets]
     response = {"tag": tag, "sheets": sheets}
@@ -951,10 +956,12 @@ def story_form_sheets_by_tag(request, tag):
     return response
 
 
-def sheets_by_tag_api(request, tag):
+def sheets_by_tag_api(request, tag=None):
     """
     API to get a list of sheets by `tag`.
     """
+    if tag is None:
+        return jsonResponse({"error": "tag is required."}, status=400)
     sheets   = get_sheets_by_topic(tag, public=True)
     sheets   = [sheet_to_dict(s) for s in sheets]
     response = {"tag": tag, "sheets": sheets}

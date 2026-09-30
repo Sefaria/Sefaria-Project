@@ -170,13 +170,12 @@ class SheetContent extends Component {
             {sources}
           </div>
         </div>
-
         <div id="printFooter" style={{display:"none"}}>
           <span className="int-en">Created with <img src="/static/img/logo.svg" alt={Sefaria._("Sefaria logo")} /></span>
-          <span className="int-he">{Sefaria._("Created with")} <img src="/static/img/logo.svg" alt={Sefaria._("Sefaria logo")} /></span>
+          <span className="int-he">{Sefaria._("sheet_content.created_with")} <img src="/static/img/logo.svg" alt={Sefaria._("Sefaria logo")} /></span>
         </div>
       </div>
-    )
+    );
   }
 }
 

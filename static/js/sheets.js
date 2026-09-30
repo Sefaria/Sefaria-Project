@@ -45,10 +45,10 @@ isHebrew = Sefaria.hebrew.isHebrew;
 $(window).on("beforeunload", function() {
 	if (!($("#save").data("mode") == "saving")) {
 		if (Sefaria._uid && !(sjs.current.id) && $("#empty").length === 0) {
-			return _("Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.");
+			return _("sheets.your_source_sheet_has_unsaved_changes_before_leaving");
 		}
 		else if ($("#lastSaved").text() == "Saving...") {
-			return _("Your Source Sheet has unsaved changes. Please wait for the autosave to finish.");
+			return _("sheets.your_source_sheet_has_unsaved_changes_please_wait");
 		}
 	}
 });
@@ -66,8 +66,7 @@ $(window).scroll(function() {
 var oldOnError = window.onerror || function(){};
 function errorWarning(errorMsg, url, lineNumber) {
 	if (sjs.can_edit || sjs.can_add) {
-		sjs.alert.message(_("Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure" +
-		" your work is properly saved."))
+		sjs.alert.message(_("sheets.unfortunately_an_error_has_occurred"))
 	}
 }
 
@@ -314,7 +313,7 @@ $(function() {
 		$(this).hide();
 		$("#StopCollectingAssignmentsButton").show();
 		$("#sheet").addClass('assignable');
-		$("#assignmentDirections").html(_('Students can complete their assignment at this link:'));
+		$("#assignmentDirections").html(_("sheets.students_can_complete_their_assignment_at_this_link"));
 		$("#assignmentURLLink").show();
 		$("#assignedSheets").show();
 		autoSave();
@@ -325,7 +324,7 @@ $(function() {
 		$(this).hide();
 		$("#makeSheetAssignableButton").show();
 		$("#sheet").removeClass('assignable');
-		$("#assignmentDirections").html(_('Assignments allow you to create a template that your students can fill out on their own.'));
+		$("#assignmentDirections").html(_("sheets.assignments_allow_you_to_create_a_template_that"));
 		$("#assignmentURLLink").hide();
 		if ( $("#assignedSheets a").length > 0) {
 			$("#assignedSheets").show();
@@ -651,7 +650,7 @@ $(function() {
 				if (!text.length) {
 					// Title
 					if ($el.prop("id") === "title") {
-						$el.text(_("Untitled"));
+						$el.text(_("common.untitled"));
 
 					// Comment
 					} else if ($el.hasClass("comment")) {
@@ -855,13 +854,13 @@ $(function() {
 
 		var likeCount = parseInt($("#likeCount").text());
 		if ($(this).hasClass("liked")) {
-			$(this).removeClass("liked").text(_("Like"));
+			$(this).removeClass("liked").text(_("sheets.like"));
 			likeCount -= 1;
 			$("#likeCount").text(likeCount);
 			$.post("/api/sheets/" + sjs.current.id + "/unlike");
     		Sefaria.track.sheets("Unlike", sjs.current.id);
 		} else {
-			$(this).addClass("liked").text(_("Unlike"));
+			$(this).addClass("liked").text(_("sheets.unlike"));
 			$.post("/api/sheets/" + sjs.current.id + "/like");
 			likeCount += 1;
 			$("#likeCount").text(likeCount);
@@ -871,11 +870,11 @@ $(function() {
 	$(".likes").click(function(e) {
 		$.getJSON("/api/sheets/" + sjs.current.id + "/likers", function(data) {
 			if (data.likers.length == 0) {
-				var title = _("No one has liked this sheet yet. Will you be the first?");
+				var title = _("sheets.no_one_has_liked_this_sheet_yet_will");
 			} else if (data.likers.length == 1) {
-				var title = _("1 Person Likes This Sheet");
+				var title = _("sheets.1_person_likes_this_sheet");
 			} else {
-				var title = data.likers.length + _(" People Like This Sheet");
+				var title = data.likers.length + _("sheets.people_like_this_sheet");
 			}
 			sjs.peopleList(data.likers, title);
 		});
@@ -899,7 +898,7 @@ $(function() {
 		buildSheet(sjs.current);
 		afterAction();
 	} else {
-		$("#title").html(Sefaria._("New Source Sheet"));
+		$("#title").html(Sefaria._("sheets.new_source_sheet"));
 		$("#bilingual, #enLeft, #sideBySide").trigger("click");
 		$("#viewButtons").show();
 		$("#empty").show();
@@ -994,30 +993,30 @@ $(function() {
   var indent_img = (sjs.interfaceLang == "en") ? '/static/img/indent.png' : '/static/img/outdent.png';
 
   var ownerControls = "<div id='sourceControls' class='sideControls'>" +
-              "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
-              "<div class='removeSource' title='"+_('Remove')+"'><img src='/static/img/remove.png'></div>" +
-              "<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
-              "<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
-              "<div class='moveSourceUp' title='"+_('Move Source Up')+"'><img src='/static/img/triangle-up.svg'></div>" +
-              "<div class='moveSourceDown' title='"+_('Move Source Down')+"'><img src='/static/img/triangle-down.svg'></div>" +
+              "<div class='copySource' title='"+_("sheets.copy_to_sheet")+"'><img src='/static/img/copy.png'></div>" +
+              "<div class='removeSource' title='"+_("collection_page.remove")+"'><img src='/static/img/remove.png'></div>" +
+              "<div class='moveSourceRight' title='"+_("sheets.indent_source")+"'><img src='"+indent_img+"'></div>" +
+              "<div class='moveSourceLeft' title='"+_("sheets.outdent_source")+"'><img src='"+outdent_img+"'></div>" +
+              "<div class='moveSourceUp' title='"+_("sheets.move_source_up")+"'><img src='/static/img/triangle-up.svg'></div>" +
+              "<div class='moveSourceDown' title='"+_("sheets.move_source_down")+"'><img src='/static/img/triangle-down.svg'></div>" +
             "</div>";
 
   var adderControls = "<div id='sourceControls' class='sideControls'>" +
-              "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
-              "<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
-              "<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
+              "<div class='copySource' title='"+_("sheets.copy_to_sheet")+"'><img src='/static/img/copy.png'></div>" +
+              "<div class='moveSourceRight' title='"+_("sheets.indent_source")+"'><img src='"+indent_img+"'></div>" +
+              "<div class='moveSourceLeft' title='"+_("sheets.outdent_source")+"'><img src='"+outdent_img+"'></div>" +
             "</div>";
   var viewerControls = "<div id='sourceControls' class='sideControls'>" +
-              "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
+              "<div class='copySource' title='"+_("sheets.copy_to_sheet")+"'><img src='/static/img/copy.png'></div>" +
             "</div>";
 
   var ownerSimpleControls = "<div id='sourceControls' class='sideControls'>" +
-              "<div class='copySource' title='"+_('Copy to Sheet')+"'><img src='/static/img/copy.png'></div>" +
-              "<div class='removeSource' title='"+_('Remove')+"'><img src='/static/img/remove.png'></div>" +
-              "<div class='moveSourceRight' title='"+_('Indent Source')+"'><img src='"+indent_img+"'></div>" +
-              "<div class='moveSourceLeft' title='"+_('Outdent Source')+"'><img src='"+outdent_img+"'></div>" +
-              "<div class='moveSourceUp' title='"+_('Move Source Up')+"'><img src='/static/img/triangle-up.svg'></div>" +
-              "<div class='moveSourceDown' title='"+_('Move Source Down')+"'><img src='/static/img/triangle-down.svg'></div>" +
+              "<div class='copySource' title='"+_("sheets.copy_to_sheet")+"'><img src='/static/img/copy.png'></div>" +
+              "<div class='removeSource' title='"+_("collection_page.remove")+"'><img src='/static/img/remove.png'></div>" +
+              "<div class='moveSourceRight' title='"+_("sheets.indent_source")+"'><img src='"+indent_img+"'></div>" +
+              "<div class='moveSourceLeft' title='"+_("sheets.outdent_source")+"'><img src='"+outdent_img+"'></div>" +
+              "<div class='moveSourceUp' title='"+_("sheets.move_source_up")+"'><img src='/static/img/triangle-up.svg'></div>" +
+              "<div class='moveSourceDown' title='"+_("sheets.move_source_down")+"'><img src='/static/img/triangle-down.svg'></div>" +
             "</div>";
 
 
@@ -1118,14 +1117,14 @@ $(function() {
     $("#addInterface").on("click", "#connectionButton", function(e) {
 
       var ref = $("#addInterface").prev(".source").attr("data-ref");
-      $("#connectionsToAdd").text(_("Looking up Connections..."));
+      $("#connectionsToAdd").text(_("sheets.looking_up_connections"));
 
       $.getJSON("/api/texts/" + ref + "?context=0&commentary=1&pad=0", function(data) {
         sjs.alert.clear();
         if ("error" in data) {
           $("#connectionsToAdd").text(data.error)
         } else if (data.commentary.length == 0) {
-          $("#connectionsToAdd").text(_("No connections known for this source."));
+          $("#connectionsToAdd").text(_("sheets.no_connections_known_for_this_source"));
         } else {
           data.commentary = [].concat.apply([], data.commentary);
 
@@ -1541,7 +1540,7 @@ $(function() {
 		// Remove Source
 		$(".removeSource").on("click", function() {
 			var $item = $(this).closest(".sheetItem"); // Firefox triggers mouseout when opening confirm
-			if (confirm(_("Are you sure you want to remove this?"))) {
+			if (confirm(_("sheets.are_you_sure_you_want_to_remove_this"))) {
 				$item.remove();
 				autoSave();
 				setSourceNumbers();
@@ -1589,7 +1588,7 @@ $(function() {
 	// Reset Source Text
 	$(".resetSource").on("click", function() {
 		var options = {
-			message: _("Reset text of Hebrew, English or both?")+"<br><small>"+_("Any edits you have made to this source will be lost")+".</small>",
+			message: _("sheets.reset_text_of_hebrew_english_or_both")+"<br><small>"+_("sheets.any_edits_you_have_made_to_this_source")+".</small>",
 			options: ["Hebrew", "English", "Both"]
 		};
 		var $target = $(this).closest(".source");
@@ -1706,7 +1705,7 @@ $(function() {
 	$(".highlighterTagWindow").on('click','.close-button', function() {closeHighlighterTagWindow()});
 
 	function saveNewlyCreatedTag(newTagName,newTagColor) {
-		if (newTagName !== _('Create New') && newTagName !== "") {
+		if (newTagName !== _("sheets.create_new") && newTagName !== "") {
 			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
 			$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
 			resetSplitHighlighterSegment();
@@ -1714,18 +1713,18 @@ $(function() {
 			autoSave();
 		}
 
-		$(".createNewHighlighterTag .tagName").text(_('Create New'))
+		$(".createNewHighlighterTag .tagName").text(_("sheets.create_new"))
 	}
 
 	function applyNewlyCreatedTag(newTagName,newTagColor) {
-		if (newTagName !== _('Create New') && newTagName !== "") {
+		if (newTagName !== _("sheets.create_new") && newTagName !== "") {
 			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment active" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
 			$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id ="'+newTagName+'_highlighterTag" value="' + newTagName + '" checked="checked"> <label for="'+newTagName+'_highlighterTag" style="background-color: ' + newTagColor + '">' + newTagName + '</label></div>');
 			resetSplitHighlighterSegment();
 			resetHighlighterFilterTags();
 			if (sjs.selection.startOffset !== sjs.selection.endOffset) {
         $(".highlighterTagWindow .save").click();
-				$(".createNewHighlighterTag .tagName").text(_('Create New'))
+				$(".createNewHighlighterTag .tagName").text(_("sheets.create_new"))
       }
       else {
 				$(".createNewHighlighterTag .tagName").text("")
@@ -1741,7 +1740,7 @@ $(function() {
 	});
 
 	$(".createNewHighlighterTag .tagName").focus(function(e){
-		if ($(this).text()==_('Create New')) {
+		if ($(this).text()==_("sheets.create_new")) {
 			$(this).text('');
 		}
 	});
@@ -2742,7 +2741,7 @@ function autoSave() {
 		var sheet = readSheet();
 		if (sheet.sources.length > 2) {
 			setTimeout(function() {
-				var save = confirm(_("Would you like to save this sheet? You only need to save once, after that changes are saved automatically."));
+				var save = confirm(_("sheets.would_you_like_to_save_this_sheet_you"));
 				if (save) {
 					handleSave();
 				}
@@ -2799,7 +2798,7 @@ function buildSheet(data){
 			$("#title").addClass("heTitle");
 		}
 	} else {
-		$("#title").html(_("Untitled"));
+		$("#title").html(_("common.untitled"));
 	}
 	$("#sources").css("min-height",($("#sources").css("height"))); //To prevent 'jumping' as the sheet is rebuilt when polling is triggered we temporarily set the min-height, and remove it at the end of the function.
 
@@ -3379,14 +3378,14 @@ function copyToSheet(source) {
 
 	// Get sheet list if necessary
 	if (!$("#sheetList .sheet").length) {
-		$("#sheetList").html(Sefaria._("Loading..."));
+		$("#sheetList").html(Sefaria._("common.loading"));
 		$.getJSON("/api/sheets/user/" + Sefaria._uid, function(data) {
 			$("#sheetList").empty();
 			var sheets = "";
-			sheets += '<li class="sheet new"><i>'+Sefaria._("Start a New Source Sheet")+'</i></li>';
+			sheets += '<li class="sheet new"><i>'+Sefaria._("sheets.start_a_new_source_sheet")+'</i></li>';
 			for (i = 0; i < data.sheets.length; i++) {
 				sheets += '<li class="sheet" data-id="'+data.sheets[i].id+'">'+
-					(data.sheets[i].title === null ? Sefaria._("Untitled"): data.sheets[i].title.stripHtml()) +
+					(data.sheets[i].title === null ? Sefaria._("common.untitled"): data.sheets[i].title.stripHtml()) +
 					"</li>";
 			}
 			$("#sheetList").html(sheets);
@@ -3399,7 +3398,7 @@ function copyToSheet(source) {
 		})
 	}
 	var name = source.ref ? source.ref :
-				(source.comment ? Sefaria._("this comment") : Sefaria._("this source"));
+				(source.comment ? Sefaria._("sheets.this_comment") : Sefaria._("sheets.this_source"));
 
 	$("#addToSheetModal .sourceName").text(name);
 
@@ -3420,12 +3419,12 @@ $("#addToSheetModal .ok").click(function(){
 	if (sjs.flags.saving === true) { return false; }
 	var selected = $(".sheet.selected");
 	if (!selected.length) {
-		sjs.alert.message(Sefaria._("Please select a source sheet."));
+		sjs.alert.message(Sefaria._("sheets.please_select_a_source_sheet"));
 		return false;
 	}
 
 	if (selected.hasClass("new")) {
-		var title = prompt(Sefaria._("New Source Sheet Name:"), "");
+		var title = prompt(Sefaria._("sheets.new_source_sheet_name"), "");
 		var sheet = {
 			title: title,
 			options: {numbered: 0},
@@ -3457,9 +3456,9 @@ $("#addToSheetModal .ok").click(function(){
 			sjs.alert.message(data.error)
 		} else {
 			var name = data.ref ? data.ref :
-				(data.comment ? Sefaria._("This comment") : Sefaria._("This source"));
+				(data.comment ? Sefaria._("sheets.this_comment_2") : Sefaria._("sheets.this_source_2"));
 			//sjs.alert.message(`${name} ${Sefaria._("was added to")} "${title}".<br><br><a target="_blank" href="/sheets/${data.id}">${Sefaria._("View sheet")}</a>`);
-			sjs.alert.message(name + " " + Sefaria._("was added to") + " \"" + title + "\".<br><br><a target=\"_blank\" href=\"/sheets/" + data.id + "\">" + Sefaria._("View sheet") + "</a>");
+			sjs.alert.message(name + " " + Sefaria._("sheets.was_added_to") + " \"" + title + "\".<br><br><a target=\"_blank\" href=\"/sheets/" + data.id + "\">" + Sefaria._("sheets.view_sheet") + "</a>");
 			Sefaria.track.sheets("Source Copied");
 		}
 	}
@@ -3585,7 +3584,7 @@ function showShareModal(){
 
 
 function deleteSheet() {
-	if (confirm(_("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
+	if (confirm(_("common.are_you_sure_you_want_to_delete_this_sheet_there"))) {
 		$.post("/api/sheets/" + sjs.current.id + "/delete", function (data){
 			if ("error" in data) {
 				sjs.alert.message(data.error);

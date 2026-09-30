@@ -10,6 +10,7 @@ from sefaria.sheets import save_sheet
 from sefaria.utils.util import list_depth, traverse_dict_tree
 
 import re
+import unicodedata
 
 """
 
@@ -84,10 +85,15 @@ def attach_branch(new_node, parent_node, place=0):
     handle_dependant_indices(index.title)
 
 
-def remove_branch(node):
+def remove_branch(node, handle_dependencies=True):
     """
     This will delete any text in `node`
     :param node: SchemaNode to remove
+    :param handle_dependencies: When True (the default), clears base_text_mapping on every
+        structure-matched commentary, which disables their automatic commentary linking.
+        That is the right call for a structural change that leaves the base/commentary
+        mapping invalid.  Pass False when base text and commentaries are being changed in
+        lockstep and the mapping stays correct, so it is not thrown away needlessly.
     :return:
     """
     assert isinstance(node, SchemaNode)
@@ -111,7 +117,8 @@ def remove_branch(node):
     library.rebuild()
     refresh_version_state(index.title)
 
-    handle_dependant_indices(index.title)
+    if handle_dependencies:
+        handle_dependant_indices(index.title)
 
 
 def reorder_children(parent_node, new_order):
@@ -529,12 +536,12 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
         assert isinstance(v, Version)
 
         if v.get_index() == index:
-            chunk = TextChunk(ja_node.ref(), lang=v.language, vtitle=v.versionTitle)
+            chunk = TextChunk(ja_node.ref(), lang=v.languageFamilyName, vtitle=v.versionTitle, direction=v.direction)
         else:
             library.refresh_index_record_in_cache(v.get_index())
             ref_name = ja_node.ref().normal()
             ref_name = ref_name.replace(index.title, v.get_index().title)
-            chunk = TextChunk(Ref(ref_name), lang=v.language, vtitle=v.versionTitle)
+            chunk = TextChunk(Ref(ref_name), lang=v.languageFamilyName, vtitle=v.versionTitle, direction=v.direction)
         ja = chunk.ja()
         if ja.get_depth() == 0:
             continue
@@ -704,6 +711,10 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
     print('Updating Ref Data')
     generic_rewrite(RefDataSet(construct_query('ref', identifier)))
     print('Updating Topic Links')
+    # The second pass QUERIES on expandedRefs but REWRITES 'ref' (generic_rewrite's
+    # default attr_name) — a second net for records the first query missed.  Rewriting
+    # the primary ref is the point: RefTopicLink._normalize() regenerates expandedRefs
+    # from it on every save, so writing the expansion directly would be overwritten.
     generic_rewrite(RefTopicLinkSet(construct_query('ref', identifier)))
     generic_rewrite(RefTopicLinkSet(construct_query('expandedRefs', identifier)))
     print('Updating Garden Stops')
@@ -715,11 +726,30 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
     print('Updating Marked Up Text Chunks')
     generic_rewrite(MarkedUpTextChunkSet(construct_query('ref', identifier)))
     print('Updating Manuscripts')
-    generic_rewrite(ManuscriptSet(construct_query('contained_refs', identifier)))
-    generic_rewrite(ManuscriptSet(construct_query('expanded_refs', identifier)))
+    generic_rewrite(ManuscriptPageSet(construct_query('contained_refs', identifier)), attr_name='contained_refs')
+    generic_rewrite(ManuscriptPageSet(construct_query('expanded_refs', identifier)), attr_name='expanded_refs')
     print('Updating WebPages')
-    generic_rewrite(WebPageSet(construct_query('refs', identifier)))
-    generic_rewrite(ManuscriptSet(construct_query('expandedRefs', identifier)))
+    # Same shape as the Topic Links pair above: query on expandedRefs, but rewrite the
+    # primary 'refs', because WebPage._normalize() recomputes expandedRefs from refs.
+    # (_normalize runs inside every save() — see AbstractMongoRecord.save — so it is not
+    # something a caller can sequence around; every save here recomputes the expansion.)
+    #
+    # CAVEAT FOR DOWNSIZING CALLERS.  A downsize has to cascade BEFORE the structure
+    # changes, because the old refs stop resolving once it does — change_node_structure()
+    # does exactly this in its `delta < 0` branch.  That ordering means the expansions
+    # recomputed here are built from the OLD text.
+    #
+    # For a segment-level primary ref that is harmless: the rewriter changed the ref, so
+    # the fresh expansion is correct.  It is NOT harmless for a section-level or ranged
+    # primary ref ('Seder Olam Rabbah 9'), which no segment rewriter matches — the ref
+    # keeps its value, the expansion is regenerated unchanged from the pre-resize text,
+    # and it will still list a segment that the resize is about to delete.  Nothing here
+    # revisits it, so a downsizing caller must re-save the affected records afterwards.
+    #
+    # ManuscriptPage above is the exception: nothing recomputes its expanded_refs on save,
+    # so rewriting that field directly is both necessary and effective.
+    generic_rewrite(WebPageSet(construct_query('refs', identifier)), attr_name='refs')
+    generic_rewrite(WebPageSet(construct_query('expandedRefs', identifier)), attr_name='refs')
     if not skip_history:
         print('Updating History')
         generic_rewrite(HistorySet(construct_query('ref', identifier), sort=[('ref', 1)]))
@@ -930,7 +960,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             orig_ref = orig_ref.replace(orig_title, version.title)
             print(orig_ref)
             orRef = Ref(orig_ref)
-            tc = orRef.text(lang=version.language, vtitle=version.versionTitle)
+            tc = orRef.text(direction=version.direction, vtitle=version.versionTitle)
             ref_text = tc.text
 
             #this makes the destination mapping contain both the correct text/commentary title
@@ -947,7 +977,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             for i in range(implied_depth, desired_depth):
                 ref_text = [ref_text]
 
-            new_tc = dRef.text(lang=version.language, vtitle=version.versionTitle)
+            new_tc = dRef.text(direction=version.direction, vtitle=version.versionTitle)
             new_tc.versionSource = version.versionSource
             new_tc.text = ref_text
             new_tc.save()
@@ -1007,14 +1037,17 @@ def change_term_hebrew(en_primary, new_he):
     t.save()
 
 
-def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
+def change_lexicon_headword(parent_lexicon, old_headword, new_headword, rebuild_library=True):
     """
     Changes the headword of an entry.
     NOTICE: many lexicon has internal references, wrapped with an a tag within the data. This function won't change this.
     :param parent_lexicon: string
     :param old_headword: string
     :param new_headword: string
-    :return: None
+    :param rebuild_library: set False to skip the library.rebuild() call (e.g. when renaming many entries in a
+        batch and rebuilding once afterward instead of once per rename)
+    :return: the actually-persisted headword -- callers should use this, not their own
+        new_headword argument, since entry.save() can still transform it (NFC-normalize)
 
     Example: change_lexicon_headword('Jastrow Dictionary', 'אַפּוּכִי.1', 'אַפּוּכִי 1')
     """
@@ -1051,20 +1084,33 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
     if LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': new_headword}):
         raise ValueError(f'Entry of {parent_lexicon} with headword {new_headword} already exists')
 
+    entry = LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': old_headword})
+
+    # Captured before entry.save(): entry._normalize() NFC-normalizes prev_hw/next_hw as a
+    # side effect of that save, which can change their value out from under us if the
+    # neighbor's own headword isn't NFC yet. Re-reading them from entry afterward would
+    # then look up a headword the neighbor doesn't actually have.
+    old_prev_hw = getattr(entry, 'prev_hw', None)
+    old_next_hw = getattr(entry, 'next_hw', None)
+
+    # Fail before any writes, not partway through: prev_hw/next_hw pointing at a headword
+    # with no matching entry is bad pre-existing data, not something to paper over here.
+    for attr, adj_hw in (('prev_hw', old_prev_hw), ('next_hw', old_next_hw)):
+        if adj_hw and not LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': adj_hw}):
+            raise ValueError(f'{attr} "{adj_hw}" on entry "{old_headword}" does not match any entry in {parent_lexicon}')
+
     # change entry itself
     print('Updating entry')
-    entry = LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': old_headword})
     entry.headword = new_headword
     entry.save()
+    new_headword = entry.headword  # save() may have NFC-normalized it in place
 
     # change prev and next
     print('Updating previous and next entries')
-    adjacents = ['prev_hw', 'next_hw']
-    for i in [1, -1]:
-        adj_hw = getattr(entry, adjacents[::i][0], None)
+    for adj_hw, neighbor_attr in ((old_prev_hw, 'next_hw'), (old_next_hw, 'prev_hw')):
         if adj_hw:
             adj_entry = LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': adj_hw})
-            setattr(adj_entry, adjacents[::i][1], new_headword)
+            setattr(adj_entry, neighbor_attr, new_headword)
             adj_entry.save()
 
     # change index
@@ -1105,7 +1151,8 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
         }]
     )
 
-    library.rebuild()
+    if rebuild_library:
+        library.rebuild()
 
     # other entries in the same dictionary that includes wrapped ref for the old headword
     # changing another entry is too complicated, for any lexicon has different entries structure, so it will be only printed
@@ -1119,3 +1166,42 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword):
         if quoted:
             print(f'Other entries in this lexicon with this old headword as ref: {", ".join(quoted)}')
         print('Warning: old ref can appear as wrapped ref in other places in the library.')
+
+    return new_headword
+
+
+_SUPERSCRIPT_TRANS = str.maketrans('0123456789', '⁰¹²³⁴⁵⁶⁷⁸⁹')
+_SUPERSCRIPT_STRIP_RE = re.compile(r'[⁰¹²³⁴-⁹]+$')
+
+
+def get_available_lexicon_headword(parent_lexicon, headword, exclude_headword=None):
+    """
+    Returns `headword` stripped, NFC-normalized, and guaranteed free in `parent_lexicon`.
+    Strips any trailing superscript-digit suffix first (so a resubmitted already-numbered
+    headword doesn't stack, e.g. "b²²"), then appends a fresh superscript digit starting at
+    2 if the base collides -- matching the existing Jastrow/BDB superscript-homograph
+    convention. Numbering doesn't need to be contiguous or sorted relative to other
+    numbered homographs: if "b²" is taken but "b³" isn't, this returns "b³" as-is.
+
+    :param exclude_headword: the CURRENT headword of the entry being renamed, if any --
+        excluded from the collision check so resubmitting that same word in a different (but
+        NFC-equivalent) byte encoding resolves back to itself instead of being treated as a
+        collision against its own entry and bumped to a needless superscript.
+    :raises ValueError: if headword is empty after stripping whitespace and its superscript
+        suffix (covers both an empty/whitespace-only input and one that's nothing but a
+        superscript, e.g. a bare "²" -- stripping a superscript out of an already-empty
+        string is still empty, so checking once here after both steps covers either case).
+        Checked here, not left for a caller to catch on the final result, so this stays safe
+        even against a future change to the stripping logic introducing a new way to reach
+        empty.
+    """
+    headword = unicodedata.normalize('NFC', headword.strip())
+    base = _SUPERSCRIPT_STRIP_RE.sub('', headword)
+    if not base:
+        raise ValueError('headword must not be empty')
+    n = 1
+    candidate = base
+    while candidate != exclude_headword and LexiconEntry().load({'parent_lexicon': parent_lexicon, 'headword': candidate}):
+        n += 1
+        candidate = f'{base}{str(n).translate(_SUPERSCRIPT_TRANS)}'
+    return candidate

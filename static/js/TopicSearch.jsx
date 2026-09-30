@@ -107,15 +107,17 @@ class TopicSearch extends Component {
             return <TopicEditor origData={topicData} close={this.reset} onCreateSuccess={this.post}/>;
         }
         else {
-            return (<Autocompleter selectedCallback={this.validate}
-                 getSuggestions={this.getSuggestions}
-                 inputPlaceholder={Sefaria.translation(this.props.contentLang, "Search for a Topic")}
-                 buttonTitle={Sefaria.translation(this.props.contentLang, "Add Topic")}
-                 inputValue={this.state.value}
-                 changeInputValue={this.changeInputValue}
-                 showSuggestionsOnSelect={false}
-                 autocompleteClassNames="topicSearch addInterfaceInput"
-            />)
+            return (
+              <Autocompleter selectedCallback={this.validate}
+                   getSuggestions={this.getSuggestions}
+                   inputPlaceholder={Sefaria.translation(this.props.contentLang, "Search for a Topic")}
+                   buttonTitle={"topic_search.add_topic"}
+                   inputValue={this.state.value}
+                   changeInputValue={this.changeInputValue}
+                   showSuggestionsOnSelect={false}
+                   autocompleteClassNames="topicSearch addInterfaceInput"
+              />
+            );
         }
   }
 }

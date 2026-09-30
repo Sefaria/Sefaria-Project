@@ -1,268 +1,367 @@
-import {DEFAULT_LANGUAGE, LANGUAGES, BROWSER_SETTINGS} from './globals'
-import {BrowserContext}  from '@playwright/test';
+import { DEFAULT_LANGUAGE, LANGUAGES, t } from './globals'
+import { BrowserContext } from '@playwright/test';
 import type { Page } from '@playwright/test';
 import { expect, Locator } from '@playwright/test';
-import { LoginPage } from './pages/loginPage';
+import { MODULE_URLS, MODULE_SELECTORS, AUTH_LABELS } from './constants';
 import path from 'path';
 import fs from 'fs';
 
 let currentLocation: string = '';
 
-// Clear all auth files before starting tests to ensure fresh login
-const clearAuthFiles = () => {
-  const authFiles = Object.values(BROWSER_SETTINGS).map((setting) => path.join(__dirname, setting.file));
-  authFiles.forEach((filePath) => {
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-  });
-};
 
-clearAuthFiles();
-
+interface Cookie {
+  name: string;
+  value: string;
+  domain: string;
+  path: string;
+  expires: number;
+  httpOnly: boolean;
+  secure: boolean;
+  sameSite: 'Strict' | 'Lax' | 'None';
+}
 
 /**
- * Gets the path to a test fixture file
- * @param fixtureName - Name of the fixture file (e.g., 'test-image.jpg')
- * @returns Absolute path to the fixture file
+ * Fixes cookie domains to use parent domain for cross-subdomain access
+ * Converts subdomain-specific cookies (e.g., www.example.com) to parent domain (.example.com)
+ * This allows cookies to work across all subdomains (www, voices, etc.)
  */
-export const getFixturePath = (fixtureName: string): string => {
-  return path.join(__dirname, 'fixtures', fixtureName);
+export const fixCookieDomainsForCrossSubdomain = (cookies: Cookie[]): Cookie[] => {
+  return cookies.map((cookie: Cookie) => {
+    // Extract parent domain from subdomain-specific domain
+    // e.g., "www.baseurl.org" -> ".baseurl.org"
+    // e.g., "baseurl.org" -> ".baseurl.org"
+
+    let domain = cookie.domain;
+
+    // Remove leading dot if present
+    if (domain.startsWith('.')) {
+      domain = domain.substring(1);
+    }
+
+    // Split domain into parts
+    const parts = domain.split('.');
+
+    // Determine the registrable domain so we only strip a leftmost *subdomain*
+    // label (www, voices, chiburim, …) and never a label that belongs to the
+    // registrable domain itself. Israeli domains use a 2-level public suffix
+    // (.org.il / .co.il / .ac.il / …), so their registrable domain is the last
+    // THREE labels (sefaria.org.il); everywhere else it's the last two
+    // (sefaria.org). Without this, "sefaria.org.il" would be wrongly reduced to
+    // the public suffix ".org.il" — a domain browsers reject, silently dropping
+    // the session on the Hebrew site.
+    const isIsraeliCompoundTld =
+      parts.length >= 3 &&
+      parts[parts.length - 1] === 'il' &&
+      /^(org|co|ac|gov|net|k12|muni|idf)$/.test(parts[parts.length - 2]);
+    const minRegistrableLabels = isIsraeliCompoundTld ? 3 : 2;
+
+    if (parts.length > minRegistrableLabels) {
+      // Strip the leftmost subdomain label, keep the rest as the parent domain.
+      // e.g. www.sefaria.org -> .sefaria.org ; www.sefaria.org.il -> .sefaria.org.il ;
+      //      www.modularization.cauldron.sefaria.org -> .modularization.cauldron.sefaria.org
+      return { ...cookie, domain: '.' + parts.slice(1).join('.') };
+    }
+
+    // Already at the registrable domain — just ensure a leading dot.
+    return { ...cookie, domain: '.' + domain };
+  });
 };
 
 /**
- * Gets the path to a test image for upload testing
- * @param imageName - Name of the image file (defaults to 'test-image.jpg')
- * @returns Absolute path to the test image
+ * Installs context-level overlay suppression for Strapi-driven interrupting
+ * messages and banners. Layer 1 of the two-layer overlay-suppression model
+ * (see `hideAllModalsAndPopups` for the click-through fallback layer).
+ *
+ * Two independent guards, both wired before the first page is created so the
+ * preconditions exist before any navigation:
+ *
+ * 1. `addInitScript` monkey-patches `Storage.prototype.getItem` so any
+ *    `modal_*` / `banner_*` key returns the string `"true"`. Every campaign
+ *    therefore reads as already dismissed — which now bites at SELECTION
+ *    (the dismissal gate in strapiSelection.js rules every document out, so
+ *    context.js sets no modal/banner at all), with the `shouldShow()`
+ *    re-checks in `InterruptingMessage` and `Banner` (Misc.jsx) as backstop.
+ *    Either way the Strapi "Sustainer" modal dies before its `showDelay`
+ *    timer arms. SignUpModal (Misc.jsx:1988) renders from `this.props.show`
+ *    and never touches localStorage, so auth-gated tests
+ *    (RP-121/122/123/131/132/161) are unaffected. `TopicsLaunchBanner` uses
+ *    `sessionStorage`, not `localStorage`, so the patch doesn't reach it.
+ *
+ * 2. `context.route('**\/api/strapi/graphql-cache*')` short-circuits the
+ *    GraphQL fetch with an empty payload matching the live response shape
+ *    (`{ data: { modals: { data: [] }, banners: { data: [] },
+ *    sidebarAds: { data: [] } } }`). Belt-and-braces fallback for the case
+ *    where Sefaria changes the localStorage key shape; with the script in
+ *    place, this guard is strictly redundant, but it costs nothing and
+ *    documents intent.
+ *
+ * @param context - The Playwright browser context. Call BEFORE
+ *   `context.newPage()` — both guards apply to all pages created after this
+ *   call (`addInitScript` is documented as applying to every page in the
+ *   context; `route` is registered context-wide).
  */
-export const getTestImagePath = (imageName: string = 'test-image.jpg'): string => {
-  return getFixturePath(imageName);
+export const installOverlaySuppression = async (context: BrowserContext) => {
+  // Layer 1a: monkey-patch localStorage.getItem for modal_/banner_ keys.
+  // Runs before any page script (init scripts execute after document is
+  // created but before any other script — Playwright docs).
+  await context.addInitScript(() => {
+    const originalGetItem = Storage.prototype.getItem;
+    Storage.prototype.getItem = function (key: string) {
+      if (typeof key === 'string' && (key.startsWith('modal_') || key.startsWith('banner_'))) {
+        return 'true';
+      }
+      return originalGetItem.call(this, key);
+    };
+  });
+
+  // Layer 1b: short-circuit the Strapi GraphQL cache endpoint with an empty
+  // payload. Matches the live response shape captured 2026-05-20 against
+  // www.sefaria.org/api/strapi/graphql-cache.
+  await context.route('**/api/strapi/graphql-cache*', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: {
+          modals: { data: [] },
+          banners: { data: [] },
+          sidebarAds: { data: [] },
+        },
+      }),
+    });
+  });
+
+  // Layer 1c: pre-seed the cookies-accepted cookie so the CookiesNotification
+  // component (Misc.jsx:2799) short-circuits at constructor time and never
+  // renders. Without this, the banner appears post-hydration (after
+  // hideAllModalsAndPopups has already run) when the storage-state lacks the
+  // accepted cookie — observed mid-test on Voices during the Sanity suite.
+  // Cookie domains are derived from SANDBOX_URL / SANDBOX_URL_IL (via
+  // MODULE_URLS) and prepended with `.` so they apply across all subdomains
+  // (www, voices, chiburim) the tests visit. This keeps the suppression
+  // working on every configured sandbox — production (.sefaria.org), staging
+  // (.sefariastaging.org), and cauldron branches alike.
+  const cookieDomainEN = '.' + new URL(MODULE_URLS.EN.LIBRARY).hostname.replace(/^www\./, '');
+  const cookieDomainIL = '.' + new URL(MODULE_URLS.HE.LIBRARY).hostname.replace(/^www\./, '');
+  await context.addCookies([
+    { name: 'cookiesNotificationAccepted', value: '1', domain: cookieDomainEN, path: '/' },
+    { name: 'cookiesNotificationAccepted', value: '1', domain: cookieDomainIL, path: '/' },
+  ]);
 };
 
-/*METHODS TO HIDE MODALS/POPUPS THAT INTERRUPT THE USER EXPERIENCE */
-
-/**Note, for all of these miding/dismiss methods, we currently use CSS to hide them
- * We may want to opt for a more robust solution in the future, or something user-realistic such as 
- * clicking an "x" or "okay" button,but this is a workaround for now.
- * 
- * They are all exports in the case that they will be used individually in tests outside this file, 
- * rather than only calling hideAllModalsAndPopups()
-*/
-
-const updateStorageState = async (storageState: any, key: string, value: any) => {
-  // Modify the cookies as needed
-  interface Cookie {
-    name: string;
-    value: string;
-    domain: string;
-    path: string;
-    expires: number;
-    httpOnly: boolean;
-    secure: boolean;
-    sameSite: 'Strict' | 'Lax' | 'None';
-  }
-
-  interface StorageState {
-    cookies: Cookie[];
-    origins: any[];
-  }
-
-  const updateStorageState = async (storageState: StorageState, key: string, value: any) => {
-    // Modify the cookies as needed
-    storageState.cookies = storageState.cookies.map((cookie: Cookie) => {
-      if (cookie.name === key) {
-        return { ...cookie, value: value };
-      }
-      return cookie;
-    });
-    return storageState.cookies;
-  }
-  return storageState.cookies;
+/** One captured `/api/entity-search` call, in the order the page made it. */
+export interface EntitySearchRequest {
+  type: string;
+  start: number;
+  query: string;
+  /** `sort` param — 'relevance' | 'alpha' | 'year_asc' | 'year_desc'. */
+  sort: string;
+  /** Repeated `filter` params: the selected category paths (books only). */
+  filters: string[];
+  url: string;
 }
 
-// Dismisses the main modal interrupting message by clicking close button or injecting CSS to hide it.
-export const hideModals = async (page: Page) => {
-    //await page.waitForLoadState('networkidle'); 
-      try {
-        const closeButton = page.locator('#interruptingMessageClose');
-        if (await closeButton.isVisible({ timeout: 2000 })) {
-            await closeButton.click();
-            return;
-        }
-    } catch (error) {
-    }
-    await page.evaluate(() => {
-        const style = document.createElement('style');
-        style.innerHTML = '#interruptingMessageBox, #interruptingMessageOverlay, #interruptingMessage {display: none !important;}';
-        document.head.appendChild(style); 
-    });
+/** Handle returned by `installEntitySearchMock`, for asserting on traffic. */
+export interface EntitySearchMock {
+  /** Every captured request, in order. */
+  requests: EntitySearchRequest[];
+  /** Just the requests for one entity type (`topic` | `author` | `book`). */
+  requestsFor(type: string): EntitySearchRequest[];
 }
 
-export const hideTipsAndTricks = async (page: Page) => {
-  // First try to click the close button if visible
-  try {
-    const closeButton = page.locator('.guideOverlay .readerNavMenuCloseButton.circledX');
-    if (await closeButton.isVisible({ timeout: 2000 })) {
-      await closeButton.click();
-      await page.waitForTimeout(500); // Allow overlay to close
-      // console.log('Guide overlay closed via close button');
-      return;
-    }
-  } catch (error) {
-    console.log('Failed to close guide overlay via button, falling back to CSS hiding');
+export interface EntitySearchMockOptions {
+  /** Hits per page. Mirrors the API's own default (reader/views.py:4900). */
+  pageSize?: number;
+  /**
+   * Override the reported `total` per type. Defaults to the fixture length.
+   * Useful for driving the "10,000+" badge cap without shipping 10k fixtures.
+   */
+  totals?: Record<string, number>;
+  /**
+   * Simulated latency in ms before fulfilling. Set this when a test needs an
+   * observable in-flight window (e.g. proving the infinite-scroll guard blocks
+   * a duplicate fetch). Deliberately NOT wrapped in `t()` — this models network
+   * latency inside the mock, not a wait for page state.
+   */
+  delayMs?: number;
+}
+
+/** A fixture hit, as far as the mock's own sort/filter logic needs to see it. */
+interface MockEntityHit {
+  title_en?: string;
+  title_he?: string;
+  /** books: composition year; authors: the year the backend derived at index time. */
+  compDate?: number | string | null;
+  sortYear?: number | string | null;
+  /** books only — the category path, mirroring the ES `path` field minus the title. */
+  categories?: string[];
+}
+
+/** Mirrors `_ENTITY_YEAR_SORT_FIELDS` in sefaria/helper/search.py. */
+const mockSortYear = (hit: MockEntityHit, type: string): number | null => {
+  const raw = type === 'book' ? hit.compDate : hit.sortYear;
+  if (raw === null || raw === undefined || raw === '') return null;
+  const num = Number(raw);
+  return Number.isFinite(num) ? num : null;
+};
+
+/**
+ * Order a fixture list the way Elasticsearch would for a given `sort`, so the mock
+ * is a faithful stand-in for the real endpoint (see `_entity_sort_clauses`):
+ * 'alpha' is A-Z on the lowercased English title; the year sorts run on the
+ * per-type year field with missing values LAST in either direction.
+ */
+const applyMockSort = (hits: MockEntityHit[], type: string, sort: string): MockEntityHit[] => {
+  if (sort === 'relevance') return hits;
+  const sorted = [...hits];
+  if (sort === 'alpha') {
+    return sorted.sort((a, b) =>
+      (a.title_en || '').toLowerCase().localeCompare((b.title_en || '').toLowerCase()));
   }
-  
-  // If not visible, inject CSS to hide the overlay
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    // Hide the tips and tricks overlay
-    style.innerHTML = `
-      .guideOverlay,
-      .guideOverlayContent,
-      .guideOverlayHeader,
-      .guideOverlayBody,
-      .guideOverlayFooter,
-      .guideOverlayCenteredContent,
-      .guideOverlayVideoContainer,
-      .guideOverlayTextContainer,
-      .guide-overlay,
-      .quickStartGuide,
-      .tourOverlay,
-      [class*="guide"][class*="overlay"],
-      [class*="tour"][class*="overlay"] {
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-        opacity: 0 !important;
-        z-index: -1 !important;
-      }
-      
-      /* Ensure body doesn't have overlay-related classes that might affect interaction */
-      body.guide-active,
-      body.overlay-active {
-        pointer-events: auto !important;
-      }
-      
-      /* Ensure videos in the overlay are stopped */
-      .guideOverlayVideo {
-        display: none !important;
-        visibility: hidden !important;
-      }
-    `;
-    document.head.appendChild(style);
+  const asc = sort === 'year_asc';
+  return sorted.sort((a, b) => {
+    const ya = mockSortYear(a, type);
+    const yb = mockSortYear(b, type);
+    if (ya === null && yb === null) return 0;
+    if (ya === null) return 1;   // missing: _last, in BOTH directions
+    if (yb === null) return -1;
+    return asc ? ya - yb : yb - ya;
   });
 };
 
-//try clicking the close button, else hide the modal and overlay forcibly
-export const hideExploreTopicsModal = async (page: Page) => {
-  await page.evaluate(() => {
-    const closeBtn = document.querySelector('.ub-emb-close');
-    if (closeBtn) {
-      (closeBtn as HTMLElement).click();
-    } else {
-      const modal = document.querySelector('.ub-emb-iframe-wrapper');
-      if (modal) {
-        (modal as HTMLElement).style.display = 'none';
-        (modal as HTMLElement).style.visibility = 'hidden';
-        (modal as HTMLElement).style.pointerEvents = 'none';
-      }
-      const iframe = document.querySelector('.ub-emb-iframe');
-      if (iframe) {
-        (iframe as HTMLElement).style.display = 'none';
-        (iframe as HTMLElement).style.visibility = 'hidden';
-        (iframe as HTMLElement).style.pointerEvents = 'none';
-      }
+/**
+ * Keep only hits at or under one of the selected category paths — the same
+ * "path itself, or anything nested under it" rule as `make_path_filter`, with
+ * multiple paths OR'd together.
+ */
+const applyMockCategoryFilter = (hits: MockEntityHit[], filters: string[]): MockEntityHit[] => {
+  if (!filters.length) return hits;
+  return hits.filter((hit) => {
+    const path = (hit.categories || []).join('/');
+    return filters.some((f) => path === f || path.startsWith(`${f}/`));
+  });
+};
+
+/**
+ * Per-category counts over the WHOLE match set, exactly as the real endpoint's
+ * terms aggregation reports them: computed before the category filter and
+ * independent of paging, with one entry per ancestor category.
+ */
+const mockCategoryCounts = (hits: MockEntityHit[]): Record<string, number> => {
+  const counts: Record<string, number> = {};
+  hits.forEach((hit) => {
+    const parts = hit.categories || [];
+    for (let depth = 1; depth <= parts.length; depth++) {
+      const key = parts.slice(0, depth).join('/');
+      counts[key] = (counts[key] || 0) + 1;
     }
   });
-}
-
-export const dismissNewsletterPopupIfPresent = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    // Hide all known newsletter popup elements and overlays; !important ensures they are not shown
-    style.innerHTML = `
-      .ub-emb-scroll-wrapper,
-      .ub-emb-iframe-wrapper,
-      .ub-emb-iframe,
-      iframe[src*="ubembed.com"],
-      .ub-emb-close,
-      div[class*="ub-emb"] {
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important; // Prevents interaction with hidden elements
-      }
-    `;
-    document.head.appendChild(style);
-  });
+  return counts;
 };
 
-//method to hide Welcome to New Editor banner
-export const hideGenericBanner = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .genericBanner {
-        display: none !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-      }
-    `;
-    document.head.appendChild(style);
-  });
-};
+/**
+ * Serve `/api/entity-search` from fixtures instead of Elasticsearch.
+ *
+ * Registered on the CONTEXT (not the page) so it is live before
+ * `goToPageWithLang` creates the page and navigates — the same reason
+ * `installOverlaySuppression` routes at context level.
+ *
+ * Paging mirrors the real endpoint: the client sends `start` and the server
+ * returns a slice plus the FULL `total` (see `entitySearch` in
+ * static/js/sefaria/search.js and `makeEntityEntry` in SearchPage.jsx).
+ *
+ * So do sorting and category filtering, which are the SERVER's job — the page
+ * sends `sort` and repeated `filter` params and renders whatever comes back
+ * (see `entity_search` in sefaria/helper/search.py). The mock therefore sorts,
+ * then filters, then slices, and reports `total` as the size of the filtered
+ * set. `categoryCounts` is deliberately computed BEFORE filtering: that is what
+ * keeps the Books sidebar complete once a category is selected.
+ *
+ * Note this covers the Books / Authors / Topics tabs only. The Sources tab is
+ * served by the text-search API and is untouched by this mock.
+ */
+export const installEntitySearchMock = async (
+  context: BrowserContext,
+  hitsByType: Record<string, unknown[]>,
+  options: EntitySearchMockOptions = {},
+): Promise<EntitySearchMock> => {
+  const { pageSize = 20, totals = {}, delayMs = 0 } = options;
+  const requests: EntitySearchRequest[] = [];
 
-export const hideCookiesPopup = async (page: Page) => {
-    await page.evaluate(() => {
-      const style = document.createElement('style');
-      style.innerHTML = `
-        .cookiesNotification {
-          display: none !important;
-          visibility: hidden !important;
-          pointer-events: none !important;
-        }
-      `;
-      document.head.appendChild(style);
+  await context.route('**/api/entity-search*', async (route) => {
+    const requestUrl = route.request().url();
+    const params = new URL(requestUrl).searchParams;
+    const type = params.get('type') || 'topic';
+    const start = Number.parseInt(params.get('start') || '0', 10) || 0;
+    const query = params.get('q') || '';
+    const sort = params.get('sort') || 'relevance';
+    const filters = params.getAll('filter').filter(Boolean);
+
+    requests.push({ type, start, query, sort, filters, url: requestUrl });
+
+    const all = (hitsByType[type] ?? []) as MockEntityHit[];
+    const matching = applyMockCategoryFilter(applyMockSort(all, type, sort), filters);
+    const total = totals[type] ?? matching.length;
+
+    if (delayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        hits: matching.slice(start, start + pageSize),
+        total,
+        // Books only, matching the real response shape.
+        ...(type === 'book' ? { categoryCounts: mockCategoryCounts(all) } : {}),
+      }),
     });
+  });
+
+  return {
+    requests,
+    requestsFor: (type: string) => requests.filter((r) => r.type === type),
   };
-  
-export const hideTopUnbounceBanner = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      #bannerMessage { display: none !important;}
-    `;
-    document.head.appendChild(style);
-  });
-}
-
-export const hideTopBanner = async (page: Page) => {
-  await page.evaluate(() => {
-    const style = document.createElement('style');
-    style.innerHTML = `
-      .readerControlsOuter {
-        display: none !important;
-        pointer-events: none !important;
-        visibility: hidden !important;
-      }
-    `;
-    document.head.appendChild(style);
-  });
 };
 
 /**
- * Hides all common popups, modals, and banners that might interfere with tests
- * This is called automatically by navigation functions but can also be called manually
+ * Click-through fallback for the residual non-Strapi overlays — layer 2 of
+ * the overlay-suppression model. Strapi-driven banners (`Sustainer` modal,
+ * generic banner, sidebar promos) are suppressed at the context level by
+ * `installOverlaySuppression`; this helper only needs to deal with the
+ * survivors:
+ *
+ *   - `.cookiesNotification` — first-visit EU/CCPA banner
+ *   - `.ub-emb-iframe-wrapper`/`.ub-emb-close` — UseBounce third-party widget
+ *   - `.guideOverlay` — GuideOverlay.jsx in-app guide cards
+ *   - `#bannerMessage` — Sefaria's own non-Strapi banner wrapper
+ *   - `.siteWideBannerContent` — SiteWideBanner.jsx (chatbot/signup promo,
+ *     dismissed by cookie not localStorage so still needs UI click)
+ *
+ * Selectors are queried in parallel with `Promise.all`; the longest wait is
+ * `t(500)`, not 6 × `t(500)`, because Playwright's `isVisible({ timeout })`
+ * polls until the element appears OR the timeout expires.
  */
 export const hideAllModalsAndPopups = async (page: Page) => {
-  await hideModals(page);
-  await dismissNewsletterPopupIfPresent(page);
-  await hideGenericBanner(page);
-  await hideCookiesPopup(page);
-  await hideExploreTopicsModal(page);
-  await hideTipsAndTricks(page);
-  await hideTopUnbounceBanner(page);
-  // Additional wait to ensure all overlays are fully dismissed
-  await page.waitForTimeout(1000);
+  const selectors = [
+    '.cookiesNotification .accept, .cookiesNotification button.accept, .cookiesNotification .close',
+    '.cookiesNotification [role="button"]',
+    '.ub-emb-close',
+    '.ub-emb-iframe-wrapper .ub-emb-visible',
+    '.guideOverlay .readerNavMenuCloseButton.circledX',
+    '#bannerMessage .close, #bannerMessage button.close, #bannerMessageClose',
+    '.siteWideBannerContent .siteWideBannerClose',
+  ];
+
+  await Promise.all(selectors.map(async (s) => {
+    try {
+      const el = page.locator(s).first();
+      if (await el.isVisible({ timeout: t(500) })) {
+        await el.click({ timeout: t(2000) }).catch(() => {});
+      }
+    } catch { /* selector miss is fine — overlay isn't present */ }
+  }));
 };
 
 /**
@@ -272,62 +371,83 @@ export const hideAllModalsAndPopups = async (page: Page) => {
  * @param language - Target language (LANGUAGES.EN or LANGUAGES.HE)
  */
 export const changeLanguage = async (page: Page, language: string) => {
-    await toggleLanguage(page, language)
-  };
+  await toggleLanguage(page, language)
+};
+
+/**
+ * /login and /register (static/js/auth/AuthPage.jsx) both land on ChooseView
+ * (provider buttons + "Continue with Email") before any email/password form
+ * exists. Shared by LoginPage and SignUpPage rather than duplicated per class.
+ */
+export const clickContinueWithEmail = async (page: Page, language: string) => {
+  const label = language === LANGUAGES.HE
+    ? AUTH_LABELS.CONTINUE_WITH_EMAIL[LANGUAGES.HE]
+    : AUTH_LABELS.CONTINUE_WITH_EMAIL[LANGUAGES.EN];
+  const button = page.getByRole('button', { name: label });
+  await button.waitFor({ state: 'visible', timeout: t(15000) });
+  await button.click();
+};
 
 
 export const toggleLanguage = async (page: Page, language: string) => {
-    const expectedElement = language === LANGUAGES.HE ? 'מקורות' : 'Texts';
-    const expectedBodyClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
-    const langParam = language === LANGUAGES.HE ? 'he' : 'en';
-    // Helper function to verify language is correct
-    const verifyLanguage = async (): Promise<boolean> => {
-        await page.waitForLoadState('domcontentloaded');
-        const elementVisible = await page.getByRole('banner').getByRole('link', { name: expectedElement, exact: true }).first().isVisible().catch(() => false);
-        const bodyClass = await page.locator('body').getAttribute('class') || '';
-        return elementVisible && bodyClass.includes(expectedBodyClass);
-    };
-    // Check if we're already in the correct language
-    if (await verifyLanguage()) {
-        return;
+  await hideAllModalsAndPopups(page);
+
+  const expectedBodyClass = language === LANGUAGES.HE ? 'interface-hebrew' : 'interface-english';
+  const languageClass = language === LANGUAGES.HE ? '.hebrewLanguageLink' : '.englishLanguageLink';
+  const langParam = language === LANGUAGES.HE ? 'he' : 'en';
+
+  // Check if already in target language
+  const body = page.locator('body');
+  const currentClasses = await body.getAttribute('class') || '';
+  if (currentClasses.includes(expectedBodyClass)) {
+    return;
+  }
+
+  try {
+    // Use dropdown menu to toggle language
+    await openHeaderDropdown(page, 'user');
+    await page.waitForTimeout(t(1000));
+
+
+
+    const languageToggle = page.locator(`.header .headerDropdownMenu .dropdownLinks-menu.open .dropdownLinks-options .dropdownLanguageToggle`);
+    await languageToggle.waitFor({ state: 'visible', timeout: t(5000) });
+    const languageToggleClass = languageToggle.locator(languageClass);
+    await languageToggleClass.waitFor({ state: 'visible', timeout: t(5000) });
+    await languageToggleClass.click();
+
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(t(500));
+
+    // Verify language changed
+    const newBodyClass = await body.getAttribute('class') || '';
+    if (!newBodyClass.includes(expectedBodyClass)) {
+      throw new Error(`Language toggle failed. Expected ${expectedBodyClass}`);
     }
+  } catch (error) {
+    console.error('Dropdown language toggle failed, using cookie fallback:', error);
+    // Fallback: cookie + URL navigation
     const currentUrl = page.url();
-    // Strategy 1: Direct URL navigation with lang parameter (most reliable for staging)
+    const urlObj = new URL(currentUrl);
+    urlObj.searchParams.set('lang', langParam);
+
     try {
-        const urlObj = new URL(currentUrl);
-        urlObj.searchParams.set('lang', langParam);
-        await page.goto(urlObj.toString(), { waitUntil: 'domcontentloaded', timeout: 30000 });
-        await page.waitForLoadState('domcontentloaded');
-        if (await verifyLanguage()) {
-            return;
-        }
-    } catch (error) {
-        console.log('Strategy 1 (URL navigation) failed:', error);
-    }
-    // Strategy 2: UI-based language change
-    try {
-        const isLoggedIn = await page.getByRole('link', { name: /see my saved texts|צפה בטקסטים שמורים/i }).isVisible().catch(() => false);
-        if (isLoggedIn) {
-            await page.locator('.myProfileBox .profile-pic').click();
-            await expect(page.locator('.interfaceLinks-menu.profile-menu')).toBeVisible({ timeout: 3000 });
-        } else {
-            await page.locator('.interfaceLinks-button').click();
-        }
-        if (language === LANGUAGES.EN) {
-            await page.getByRole('banner').getByRole('link', { name: /English/i }).click();
-        } else if (language === LANGUAGES.HE) {
-            await page.getByRole('banner').getByRole('link', { name: /עברית/i }).click();
-        }
-        await page.waitForTimeout(1000);
-        await page.waitForLoadState('domcontentloaded');
-        if (await verifyLanguage()) {
-            console.log(`Strategy 2: UI-based language change succeeded`);
-            return;
-        }
-    } catch (error) {
-        console.log(`Strategy 2: UI-based language change failed:`, error);
-    }
-    throw new Error(`All language change strategies failed for ${language}. Current URL: ${page.url()}`);
+      const cookie = {
+        name: 'interfaceLang',
+        value: langParam,
+        domain: urlObj.hostname,
+        path: '/',
+        httpOnly: false,
+        secure: urlObj.protocol === 'https:',
+        sameSite: 'Lax' as const,
+        expires: Math.floor(Date.now() / 1000) + 3600
+      };
+      await page.context().addCookies([cookie]);
+    } catch (e) { }
+
+    await page.goto(urlObj.toString(), { waitUntil: 'domcontentloaded', timeout: t(30000) });
+    await page.waitForLoadState('domcontentloaded');
+  }
 };
 
 
@@ -341,132 +461,156 @@ export const toggleLanguage = async (page: Page, language: string) => {
  */
 export const expireLogoutCookie = async (context: BrowserContext) => {
   const cookies = await context.cookies();
-  const sessionCookie = cookies.find((c: any) => c.name === 'sessionid');
-  if (sessionCookie) {    // Overwrite the sessionid cookie with an expired one to remove it
-    await context.addCookies([
-      {
-        name: 'sessionid',
-        value: '',
-        domain: sessionCookie.domain,
-        path: sessionCookie.path,
-        expires: Math.floor(Date.now() / 1000) - 1000, // Expired in the past
-        httpOnly: sessionCookie.httpOnly,
-        secure: sessionCookie.secure,
-        sameSite: sessionCookie.sameSite,
-      }
-    ]);
-    return true;
-  } else {
+  const sessionCookies = cookies.filter((c: any) => c.name === 'sessionid');
+  if (sessionCookies.length === 0) {
     return false;
   }
+  // Sefaria can set sessionid on multiple domain/path tuples after
+  // fixCookieDomainsForCrossSubdomain (parent domain + per-host duplicates).
+  // Clear every match — clearing only the first one leaves the auth alive
+  // on the surviving entry.
+  const expiredAt = Math.floor(Date.now() / 1000) - 1000;
+  await context.addCookies(sessionCookies.map((c: any) => ({
+    name: 'sessionid',
+    value: '',
+    domain: c.domain,
+    path: c.path,
+    expires: expiredAt,
+    httpOnly: c.httpOnly,
+    secure: c.secure,
+    sameSite: c.sameSite,
+  })));
+  return true;
 };
-        
+
 /*METHODS TO NAVIGATE TO A PAGE */
 
-export const goToPageWithLang = async (context: BrowserContext, url: string, language=DEFAULT_LANGUAGE) => {
-    let page: Page = await context.newPage();
-    const settings = BROWSER_SETTINGS[language as keyof typeof BROWSER_SETTINGS];
-    const filePath = path.join(__dirname, settings.file);
-    if (!fs.existsSync(filePath)) {
-      await page.goto(url);
-      await changeLanguage(page, language);
-      await page.context().storageState({ path: filePath });
-      await page.goto(url);
-    } else {
-      const storageState = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-      const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
-      if (storageCookies == null) {
-          throw new Error(`No cookies found in storage state for language ${language}`);
-      }
-      await page.context().addCookies(storageCookies);
-      await page.goto(url);
-    }
+/**
+ * Anonymous entry point — seeds the interfaceLang cookie on the parent domain
+ * and navigates once. No file caching: anonymous sessions don't need
+ * persistence and the previous file-cache layer caused stale-state bugs after
+ * Sefaria changed the geo-detection cookie shape.
+ */
+export const goToPageWithLang = async (context: BrowserContext, url: string, language = DEFAULT_LANGUAGE) => {
+  const parsed = new URL(url);
+  const parts = parsed.hostname.split('.');
+  // Same parent-domain rule fixCookieDomainsForCrossSubdomain uses, so that
+  // www.* and voices.* share the cookie.
+  const parentDomain = parts.length >= 3
+    ? '.' + parts.slice(1).join('.')
+    : '.' + parsed.hostname;
 
-    //await hideAllModalsAndPopups(page);
-    await hideAllModalsAndPopups(page);
-    return page
-}
+  await context.addCookies([{
+    name: 'interfaceLang',
+    value: language,
+    domain: parentDomain,
+    path: '/',
+    expires: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
+    httpOnly: false,
+    secure: parsed.protocol === 'https:',
+    sameSite: 'Lax',
+  }]);
 
+  // MUST be wired before context.newPage(): the init-script side of
+  // installOverlaySuppression applies to every page in the context, but only
+  // for pages created after the call (per Playwright docs on
+  // BrowserContext.addInitScript).
+  await installOverlaySuppression(context);
+
+  const page = await context.newPage();
+  await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+  // CLAUDE.md rule 6 smell: this is "wait for state" (React hydration to
+  // attach event handlers), not "deliberate pacing." Tried replacing with
+  // document.fonts.ready + 2 RAFs — RP-001 and RP-002 then flaked 3/5,
+  // confirming the wait is gating on React hydration, not on layout/fonts.
+  // Replacing it cleanly requires probing a Sefaria-specific
+  // post-hydration signal (e.g. a window flag set in ReaderApp.componentDidMount,
+  // or an element class added only client-side). See utils.ts cleanup backlog.
+  await page.waitForTimeout(t(1500));
+  await hideAllModalsAndPopups(page);
+  return page;
+};
+
+/**
+ * Authenticated entry point — applies the storage state written by
+ * global-setup.ts. The file MUST already exist; if it doesn't, the suite is
+ * being driven without globalSetup wired up.
+ */
 export const goToPageWithUser = async (context: BrowserContext, url: string, settings: any) => {
-    // Use a persistent auth file to store/reuse login state
-    const language = settings.lang;
-    const user = settings.user;
-    const authPath = path.join(__dirname, settings.file);
-    let page: Page;
-    if (!fs.existsSync(authPath)) {
-        // No auth file, perform login and save storage state
-        page = await context.newPage();
-        await page.goto('/login', {waitUntil: 'domcontentloaded'});
-        const loginPage = new LoginPage(page, language);
-        await changeLanguage(page, language);
-        await loginPage.loginAs(user);
-        // Save storage state for future reuse
-        await page.context().storageState({ path: authPath });
-        await page.goto(url, {waitUntil: 'domcontentloaded'});
-        return page;
-    }
-    // If auth file exists, create a new context with storageState and open the page
-    const browser = context.browser();
-    if (!browser) {
-        throw new Error('Browser instance is null. Cannot create a new context.');
-    }
-    page = await browser.newPage();
-    // Load the storage state from the auth file
-    const storageState = JSON.parse(fs.readFileSync(authPath, 'utf8'));
-    const storageCookies = await updateStorageState(storageState, 'interfaceLang', language);
-    if (storageCookies == null) {
-        throw new Error(`No cookies found in storage state for language ${language}`);
-    }
-    await page.context().addCookies(storageCookies);
-    // Navigate to the desired URL
-    await page.goto(url, {waitUntil: 'domcontentloaded'});
-    await changeLanguage(page, language);
-    await page.goto(url, {waitUntil: 'domcontentloaded'});
-    await hideAllModalsAndPopups(page);
-    return page;
-}
+  const language = settings.lang;
+  const authPath = path.join(__dirname, settings.file);
+  if (!fs.existsSync(authPath)) {
+    throw new Error(
+      `Auth file '${settings.file}' is missing — this test requires a logged-in user that was ` +
+      `never set up, so it cannot run. global-setup.ts writes this file once before any worker ` +
+      `starts; an absent file means that account's login FAILED or was SKIPPED during global-setup ` +
+      `(login failures are non-fatal there, so the run continues for other suites). ` +
+      `Look at the [global-setup] output at the top of this run for a "FAILED to authenticate" / ` +
+      `"SKIPPED" line naming this profile and explaining why — common causes: missing or wrong ` +
+      `PLAYWRIGHT_*_EMAIL / PLAYWRIGHT_*_PASSWORD credentials, an unreachable /login, or (for a ` +
+      `Hebrew / .org.il profile) an account whose Site-Language is not Hebrew. Fix that account and re-run.`
+    );
+  }
+  const storageState = JSON.parse(fs.readFileSync(authPath, 'utf8'));
+  // Defensive re-application — global-setup.ts already fixed cookie domains,
+  // but the cost is negligible and protects against a hand-edited file.
+  storageState.cookies = fixCookieDomainsForCrossSubdomain(storageState.cookies);
+  storageState.cookies = storageState.cookies.map((c: Cookie) =>
+    c.name === 'interfaceLang' ? { ...c, value: language } : c
+  );
+  await context.addCookies(storageState.cookies);
+
+  // Same ordering rule as goToPageWithLang — must precede context.newPage().
+  await installOverlaySuppression(context);
+
+  const page = await context.newPage();
+  await gotoOrThrow(page, url, { waitUntil: 'domcontentloaded' });
+  await page.waitForTimeout(t(1500));
+  await hideAllModalsAndPopups(page);
+  return page;
+};
 
 export const getPathAndParams = (url: string) => {
-    const urlObj = new URL(url);
-    return urlObj.pathname + urlObj.search;
+  const urlObj = new URL(url);
+  return urlObj.pathname + urlObj.search;
 }
 
 
 export const getCountryByIp = async (page: Page) => {
-    const services = [
-        {
-            url: 'https://ipapi.co/json/',
-            extract: (data: any) => data.country
-        },
-        {
-            url: 'https://api.ipbase.com/v1/json/',
-            extract: (data: any) => data.country_code
-        }
-    ];
-
-    for (const service of services) {
-        try {
-            const data = await page.evaluate(async (url) => {
-                const response = await fetch(url);
-                return await response.json();
-            }, service.url);
-            
-            if (data) {
-                return service.extract(data);
-            }
-        } catch (e) {
-            console.log(`Failed to get country from ${service.url}`, e);
-            continue;
-        }
+  const services = [
+    {
+      url: 'https://ipapi.co/json/',
+      extract: (data: any) => data.country
+    },
+    {
+      url: 'https://api.ipbase.com/v1/json/',
+      extract: (data: any) => data.country_code
     }
-    return null;
+  ];
+
+  for (const service of services) {
+    try {
+      const data = await page.evaluate(async (url) => {
+        const response = await fetch(url);
+        return await response.json();
+      }, service.url);
+
+      if (data) {
+        return service.extract(data);
+      }
+    } catch (e) {
+      console.log(`Failed to get country from ${service.url}`, e);
+      continue;
+    }
+  }
+  return null;
 }
 
 export const isIsraelIp = async (page: Page) => {
-    if (!currentLocation) {
-        currentLocation = await getCountryByIp(page);
-    }
-    return currentLocation === "IL";
+  if (!currentLocation) {
+    currentLocation = await getCountryByIp(page);
+  }
+  return currentLocation === "IL";
 }
 
 
@@ -501,4 +645,290 @@ export const simulateOfflineMode = async (page: Page) => {
 
 export const simulateOnlineMode = async (page: Page) => {
   await page.context().setOffline(false);
+};
+
+/**
+ * Wrapper for page.goto that throws on 404 responses.
+ * @param page - Playwright page
+ * @param url - URL to navigate to
+ * @param options - optional goto options
+ */
+export const gotoOrThrow = async (page: Page, url: string, options?: Parameters<Page['goto']>[1]) => {
+  let response = await page.goto(url, options);
+  // Retry once on transient 5xx — sandbox occasionally throttles under parallel-worker burst load.
+  if (response && response.status() >= 500 && response.status() < 600) {
+    await page.waitForTimeout(t(1500));
+    response = await page.goto(url, options);
+  }
+  if (response && response.status() === 404) {
+    throw new Error(`Error 404: Navigation to ${url} returned 404`);
+  }
+  else if (response && response.status() >= 400) {
+    throw new Error(`Error ${response.status()}: Navigation to ${url} returned status ${response.status()}`);
+  }
+
+  return response;
+};
+
+// ==============================================================================
+// MDL HELPER FUNCTIONS
+// ==============================================================================
+
+/**
+ * Open a dropdown menu in header
+ * @param page - Playwright page
+ * @param dropdownType - Type of dropdown: 'user' | 'module'
+ */
+export const openHeaderDropdown = async (page: Page, dropdownType: 'user' | 'module') => {
+  await hideAllModalsAndPopups(page);
+
+  let button;
+  if (dropdownType === 'user') {
+    // Click the user menu icon (works for both logged-in and logged-out states)
+    // For logged-out: clicks the profile_loggedout_mdl.svg icon
+    // For logged-in: clicks the profile pic
+    const loggedOutIcon = page.locator(MODULE_SELECTORS.ICONS.USER_MENU);
+    const profilePic = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
+
+    // Check which one is visible
+    const isLoggedOut = await loggedOutIcon.isVisible().catch(() => false);
+    button = isLoggedOut ? loggedOutIcon : profilePic;
+  } else {
+    // Module switcher - use the icon directly as it's always visible
+    button = page.locator(MODULE_SELECTORS.ICONS.MODULE_SWITCHER);
+  }
+
+  await button.waitFor({ state: 'visible', timeout: t(5000) });
+  await hideAllModalsAndPopups(page);
+  await button.click();
+
+  // Wait for dropdown to appear (use .open to avoid strict mode violation with multiple dropdowns)
+  await page.locator(`${MODULE_SELECTORS.DROPDOWN}.open`).waitFor({ state: 'visible', timeout: t(5000) });
+};
+
+/**
+ * Select an option from a dropdown menu
+ * @param page - Playwright page
+ * @param optionText - Text of the option to select (supports regex)
+ * @param openNewTab - Whether the option opens in a new tab
+ */
+export const selectDropdownOption = async (
+  page: Page,
+  optionText: string | RegExp,
+  openNewTab: boolean = false
+) => {
+  const option = page.locator(MODULE_SELECTORS.DROPDOWN_OPTION).filter({ hasText: optionText }).first();
+  await option.waitFor({ state: 'visible', timeout: t(5000) });
+
+  if (openNewTab) {
+    const [newPage] = await Promise.all([
+      page.context().waitForEvent('page'),
+      option.click()
+    ]);
+    await newPage.waitForLoadState('domcontentloaded');
+    return newPage;
+  } else {
+    await option.click();
+    await page.waitForLoadState('domcontentloaded');
+    return null;
+  }
+};
+
+/**
+ * Check if user is logged in
+ * @param page - Playwright page
+ * @returns true if logged in, false otherwise
+ */
+export const isUserLoggedIn = async (page: Page): Promise<boolean> => {
+  try {
+    // Wait for potential logged-out icon or profile pic to load (whichever appears first)
+    await page.waitForLoadState('domcontentloaded', { timeout: t(4000) }).catch(() => { /* continue if it times out */ });
+
+    // Check if logged-out icon is visible
+    const loggedOutIcon = page.locator(MODULE_SELECTORS.ICONS.USER_MENU);
+    const isLoggedOut = await loggedOutIcon.isVisible({ timeout: t(2000) });
+    if (isLoggedOut) {
+      // log that logged out icon is visible for debugging purposes
+      // console.log(`User is not logged in (logged-out icon visible)`);
+      return false;
+    }
+
+    // Check if profile pic is visible (logged in)
+    const profilePic = page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC);
+    const isLoggedIn = await profilePic.isVisible({ timeout: t(2000) }).catch(() => false);
+    if (isLoggedIn) {
+      // console.log('User is logged in (profile pic visible)');
+    }
+    return isLoggedIn;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Log out via dropdown menu
+ * @param page - Playwright page
+ */
+export const logout = async (page: Page) => {
+  if (!(await isUserLoggedIn(page))) {
+    // console.log('User is not logged in, skipping logout. Check if test was supposed to be logged in or not.');
+    return;
+  }
+
+  await openHeaderDropdown(page, 'user');
+  const logoutOption = page.locator(MODULE_SELECTORS.DROPDOWN_OPTION)
+    .filter({ hasText: /log out|sign out|logout|ניתוק/i });
+
+  await logoutOption.waitFor({ state: 'visible', timeout: t(5000) });
+  await logoutOption.click();
+  await page.waitForLoadState('domcontentloaded');
+};
+
+/**
+ * Create a new sheet using the "Create" button in header
+ * @param page - Playwright page (should be on Voices module)
+ * @returns The sheet URL
+ */
+export const createNewSheet = async (page: Page): Promise<string> => {
+  await hideAllModalsAndPopups(page);
+
+  const createButton = page.getByRole('banner').getByRole('button', { name: /create/i });
+  const createLink = page.getByRole('banner').getByRole('link', { name: /create/i });
+
+  const initialUrl = page.url();
+
+  if (await createButton.isVisible({ timeout: t(2000) })) {
+    await createButton.click();
+  } else if (await createLink.isVisible({ timeout: t(2000) })) {
+    await createLink.click();
+  } else {
+    await page.goto(`${MODULE_URLS.EN.VOICES}/sheets/new`);
+  }
+
+  await page.waitForURL(url => url.toString() !== initialUrl, { timeout: t(10000) });
+  await page.waitForLoadState('domcontentloaded');
+  await hideAllModalsAndPopups(page);
+
+  const currentUrl = page.url();
+  if (!/\/sheets\/(new|\d+)/.test(currentUrl)) {
+    throw new Error(`Failed to create sheet. Current URL: ${currentUrl}`);
+  }
+
+  return currentUrl;
+};
+
+/**
+ * Switch between Library and Voices modules
+ * @param page - Playwright page
+ * @param targetModule - 'Library' or 'Voices'
+ * @returns New page if opened in new tab, null otherwise
+ */
+export const switchModule = async (
+  page: Page,
+  targetModule: 'Library' | 'Voices'
+): Promise<Page | null> => {
+  await openHeaderDropdown(page, 'module');
+
+  const currentUrl = page.url();
+  const isOnLibrary = currentUrl.includes(MODULE_URLS.EN.LIBRARY);
+  const isOnVoices = currentUrl.includes(MODULE_URLS.EN.VOICES);
+
+  const needsNewTab = (targetModule === 'Library' && isOnVoices) ||
+    (targetModule === 'Voices' && isOnLibrary);
+
+  return await selectDropdownOption(page, targetModule, needsNewTab);
+};
+
+/**
+ * Wait for a text segment to be visible
+ * @param page - Playwright page
+ * @param selector - Selector for the segment
+ */
+export const waitForSegment = async (page: Page, selector: string) => {
+  const loadingHeading = page.getByRole('heading', { name: 'Loading...' });
+  await loadingHeading.waitFor({ state: 'detached', timeout: t(15000) }).catch(() => { });
+
+  const segment = page.locator(selector);
+  await segment.waitFor({ state: 'visible', timeout: t(10000) });
+  return segment;
+};
+
+/**
+ * Get module name from URL
+ * @param url - Page URL
+ * @returns 'library' | 'voices' | 'unknown'
+ */
+export const getModuleFromUrl = (url: string): 'library' | 'voices' | 'unknown' => {
+  if (url.includes(MODULE_URLS.EN.LIBRARY) || url.includes('www.')) {
+    return 'library';
+  } else if (url.includes(MODULE_URLS.EN.VOICES) || url.includes('voices.')) {
+    return 'voices';
+  }
+  return 'unknown';
+};
+
+// ==============================================================================
+// CROSS-MODULE REDIRECT HELPER FUNCTIONS
+// ==============================================================================
+
+/**
+ * Normalize URLs for comparison (handles trailing slashes and query params)
+ * @param url - The URL to normalize
+ * @param options - Options for normalization
+ * @returns Normalized URL string
+ */
+export const normalizeUrl = (url: string, options: { ignoreQueryParams?: boolean, ignoreTrailingSlash?: boolean } = {}) => {
+  const urlObj = new URL(url);
+  let normalized = `${urlObj.origin}${urlObj.pathname}`;
+
+  if (!options.ignoreTrailingSlash && !normalized.endsWith('/') && urlObj.pathname !== '/') {
+    // Keep trailing slashes as-is for exact matching
+  }
+
+  if (!options.ignoreQueryParams && urlObj.search) {
+    normalized += urlObj.search;
+  }
+
+  return normalized;
+};
+
+/**
+ * Check if URLs match (with optional query param ignoring)
+ * @param actual - The actual URL
+ * @param expected - The expected URL
+ * @param ignoreQueryParams - Whether to ignore query parameters in comparison
+ * @returns true if URLs match, false otherwise
+ */
+export const urlMatches = (actual: string, expected: string, ignoreQueryParams: boolean = false) => {
+  if (ignoreQueryParams) {
+    return normalizeUrl(actual, { ignoreQueryParams: true }) === normalizeUrl(expected, { ignoreQueryParams: true });
+  }
+  return normalizeUrl(actual) === normalizeUrl(expected);
+};
+
+/**
+ * Assert that URLs match, throwing a detailed error if they don't
+ * @param actual - The actual URL
+ * @param expectedBase - The expected base URL
+ * @param ignoreQueryParams - Whether to ignore query parameters in comparison
+ * @throws Error with expected vs actual URL details if URLs don't match
+ */
+export const assertUrlMatches = (actual: string, expectedBase: string, ignoreQueryParams: boolean = false) => {
+  if (!urlMatches(actual, expectedBase, ignoreQueryParams)) {
+    throw new Error(`URL mismatch — expected base: "${expectedBase}" (ignoreQuery=${ignoreQueryParams})\nActual: "${actual}"`);
+  }
+};
+
+/**
+ * Assert that a response status is NOT one of the error codes
+ * @param status - The response status code
+ * @param errorCodes - Array of error codes to check against
+ * @param url - Optional URL that was being navigated to
+ * @throws Error if status is one of the error codes
+ */
+export const assertStatusNotError = (status: number, errorCodes: number[] = [404, 500, 502, 503, 504], url?: string) => {
+  if (errorCodes.includes(status)) {
+    const urlPart = url ? ` from URL: ${url}` : '';
+    throw new Error(`Response returned error status: ${status} (expected one of: ${errorCodes.join(', ')})${urlPart}`);
+  }
 };

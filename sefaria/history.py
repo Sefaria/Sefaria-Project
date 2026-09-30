@@ -9,6 +9,7 @@ from bson.code import Code
 
 from sefaria.model import *
 from sefaria.system.database import db
+from sefaria.constants.model import get_direction_from_legacy_lang
 
 dmp = diff_match_patch()
 
@@ -51,8 +52,10 @@ def filter_type_to_query(filter_type):
     Translates an activity filter string into a query that searches for it.
     Most strings search for filter_type in the rev_type field, but others may have different behavior:
 
-    'translate' - version is SCT and type is 'add text'
-    'flagged'   - type is review and score is less thatn 0.4
+    'translate'        - version is SCT and type is 'add text'
+    'index_change'     - matches both 'add index' and 'edit index' rev_types
+    'flagged'          - type is review and score is less than 0.4
+    'version_metadata' - version metadata edits (license, status, priority, etc.)
     """
     q = {}
 
@@ -60,6 +63,8 @@ def filter_type_to_query(filter_type):
         q = {"$and": [dict(list(q.items()) + list({"rev_type": "add text"}.items())), {"version": "Sefaria Community Translation"}]}
     elif filter_type == "index_change":
         q = {"rev_type": {"$in": ["add index", "edit index"]}}
+    elif filter_type == "version_metadata":
+        q = {"rev_type": "edit version_metadata"}
     elif filter_type == "flagged":
         q = {"$and": [dict(list(q.items()) + list({"rev_type": "review"}.items())), {"score": {"$lte": 0.4}}]}
     elif filter_type:
@@ -166,7 +171,8 @@ def text_at_revision(tref, version, lang, revision):
     Returns the state of a text (identified by ref/version/lang) at revision number 'revision'
     """
     changes = db.history.find({"ref": tref, "version": version, "language": lang}).sort([['revision', -1]])
-    current = TextChunk(Ref(tref), lang, version)
+    direction = get_direction_from_legacy_lang(lang)
+    current = TextChunk(Ref(tref), direction=direction, vtitle=version)
     text = str(current.text)  # needed?
 
     for r in changes:
@@ -291,7 +297,7 @@ def make_leaderboard(condition):
     This function queries and calculates for all currently matching history.
     """
 
-    reducer = Code("""
+    reducer = Code(r"""
                     function(obj, prev) {
 
                         // Total Points

@@ -3,11 +3,15 @@
 Writes to MongoDB Collection: word_form, lexicon_entry
 """
 import re
+import html
 import unicodedata
+import bleach
 from . import abstract as abst
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError
 from sefaria.utils.hebrew import has_hebrew, strip_cantillation, has_cantillation
+from sefaria.utils.util import deep_map, deep_prune
+from sefaria.system.database import db
 
 
 class WordForm(abst.AbstractMongoRecord):
@@ -132,8 +136,120 @@ class LexiconEntry(abst.AbstractMongoRecord):
         'a': ['dir', 'class', 'href', 'data-ref'],
     }
 
+    # is_key_changed('headword') tells _validate() whether headword itself is being set to
+    # a new value on this save, vs. an unrelated field changing on an entry whose headword
+    # already happens to collide with another one.
+    track_pkeys = True
+    pkeys = ["headword"]
+
+    # Attrs the content-replace API (replace_content_attrs) is not allowed to overwrite:
+    # headword/parent_lexicon are identity; prev_hw/next_hw are sibling pointers only
+    # change_lexicon_headword maintains; rid is an external xref id; quotes isn't read by
+    # any rendering method.
+    content_patch_excluded_attrs = ["headword", "parent_lexicon", "prev_hw", "next_hw", "rid", "quotes"]
+
+    def load(self, query, proj=None):
+        # Resolve the correct dictionary subclass before super().load(), since its
+        # known-keys assertion needs self.__class__ to already be e.g. KrupnikEntry to
+        # accept fields (pos_list, emendation, ...) the base class doesn't know about.
+        parent_lexicon = query.get('parent_lexicon')
+        if parent_lexicon is None:  # query didn't include it (e.g. lookup by _id alone)
+            peek = getattr(db, self.collection).find_one(query, {'parent_lexicon': 1})
+            parent_lexicon = peek['parent_lexicon'] if peek else None
+        if parent_lexicon is not None:
+            self.__class__ = LexiconEntrySubClassMapping.class_factory(parent_lexicon)
+        return super(LexiconEntry, self).load(query, proj)
+
+    def _normalize(self):
+        # Relies on headword/prev_hw/next_hw always being NFC on every write path (this
+        # one, and change_lexicon_headword): re-normalizing an already-NFC value is a
+        # no-op, so nothing that depends on the byte value (Index, WordForm, cascaded refs)
+        # is ever desynced here. Existing non-NFC data needs a backfill first -- see
+        # scripts/lexicon/normalize_lexicon_headwords.py.
+        self.headword = unicodedata.normalize('NFC', self.headword)
+        for attr in ('prev_hw', 'next_hw'):
+            if hasattr(self, attr):
+                setattr(self, attr, unicodedata.normalize('NFC', getattr(self, attr)))
+        self._prune_empty_attrs()
+
+    def _prune_empty_attrs(self):
+        # Deletes optional attrs that end up empty (e.g. after clearing a value via the
+        # content editor). required_attrs are pruned internally but never deleted -- takes
+        # precedence for attrs some subclasses list as both (e.g. "content").
+        for attr in self.required_attrs + self.optional_attrs:
+            if not hasattr(self, attr):
+                continue
+            pruned = deep_prune(getattr(self, attr))
+            if pruned in ("", {}, [], None) and attr not in self.required_attrs:
+                delattr(self, attr)
+            else:
+                setattr(self, attr, pruned)
+
+    # Hyphen/dash, period, and colon each make a headword fail to resolve as a ref (Ref's
+    # tref parsing, sefaria/model/text.py). Comma and underscore were checked and don't.
+    HEADWORD_REF_UNSAFE_CHARS = re.compile(r'[-\u2010-\u2015.:]')
+
+    def _validate(self):
+        super(LexiconEntry, self)._validate()
+        # Unlike the ref-safety/uniqueness checks below, this applies regardless of
+        # is_rendered_as_text: headword_string() (BDBEntry, KovetzYesodotEntry) interpolates
+        # self.headword raw into HTML for every dictionary entry, lookup-only or not. Reject
+        # rather than silently bleach-clean it, so the persisted value always matches what
+        # the caller (and any API response built from it) thinks was saved.
+        if self.is_key_changed('headword') and bleach.clean(self.headword, tags=[], attributes={}) != self.headword:
+            raise InputError(f"Headword {self.headword!r} contains characters that would not render safely")
+        lexicon = Lexicon().load({'name': self.parent_lexicon})
+        is_rendered_as_text = bool(getattr(lexicon, 'index_title', None))
+        if is_rendered_as_text and self.is_key_changed('headword'):
+            if self.HEADWORD_REF_UNSAFE_CHARS.search(self.headword):
+                raise InputError(f"Headword {self.headword!r} would not resolve as a ref in {self.parent_lexicon}")
+            existing = LexiconEntry().load({'parent_lexicon': self.parent_lexicon, 'headword': self.headword})
+            if existing and getattr(existing, '_id', None) != getattr(self, '_id', None):
+                raise InputError(f"Entry of {self.parent_lexicon} with headword {self.headword} already exists")
+
     def _sanitize(self):
-        pass
+        # Recurses via deep_map because the inherited generic _sanitize() only bleaches
+        # top-level string attrs -- content is a dict, so it would be skipped entirely.
+        # Dict keys are deliberately NOT escaped here: unlike values, a content dict's keys
+        # aren't a "rich HTML" data type with an established sanitize-at-save convention
+        # elsewhere in this codebase (bleach.clean on values matches abstract.py's own
+        # default _sanitize() and AbstractTextRecord.sanitize_text, used for actual Torah/
+        # Talmud text) -- a key is a plain label, and escaping it at save time would corrupt
+        # it for any non-HTML consumer (e.g. this entry's own GET API) for no benefit, since
+        # nothing reads it back and re-escapes it except the one place that actually renders
+        # it into HTML (KovetzYesodotEntry.as_strings(), which escapes it there instead).
+        # set() dedupes: some subclasses list an attr (e.g. "content") in both required_attrs
+        # and optional_attrs -- harmless for idempotent bleach, but wasteful to process twice.
+        # content_patch_excluded_attrs (headword, parent_lexicon, prev_hw, next_hw, rid,
+        # quotes) are identity/pointer fields, not rich content -- bleaching them doesn't
+        # protect anything (prev_hw/next_hw are never rendered raw, they're exact-match
+        # lookups against another entry's headword) and actively breaks that lookup if
+        # bleach rewrites so much as an "&". headword's own safety is enforced by rejecting
+        # an unsafe value in _validate() instead, so the persisted value always matches what
+        # the caller was told was saved.
+        for attr in set(self.required_attrs + self.optional_attrs) - set(self.content_patch_excluded_attrs):
+            if hasattr(self, attr):
+                setattr(self, attr, deep_map(
+                    getattr(self, attr),
+                    leaf_fn=lambda v: bleach.clean(v, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS) if isinstance(v, str) else v,
+                ))
+
+    def content_attr_names(self):
+        return (set(self.required_attrs) | set(self.optional_attrs)) - set(self.content_patch_excluded_attrs)
+
+    def replace_content_attrs(self, new_values):
+        # The one sanctioned way to bulk-replace content: wipes existing content-patchable
+        # attrs and sets new ones, rejecting anything else -- enforces
+        # content_patch_excluded_attrs here once, rather than per caller.
+        content_attr_names = self.content_attr_names()
+        unknown = set(new_values.keys()) - content_attr_names
+        if unknown:
+            raise InputError(f"Cannot set non-content or unknown attrs via content patch: {sorted(unknown)}")
+        for attr in content_attr_names:
+            if hasattr(self, attr):
+                delattr(self, attr)
+        for attr, value in new_values.items():
+            setattr(self, attr, value)
 
     def factory(self, lexicon_name):
         pass
@@ -146,6 +262,13 @@ class LexiconEntry(abst.AbstractMongoRecord):
 
 
 class DictionaryEntry(LexiconEntry):
+    attr_schemas = {
+        'content': {
+            'type': 'dict',
+            'allow_unknown': True,
+            'schema': {'senses': {'type': 'list', 'schema': {'type': 'dict', 'allow_unknown': True}}},
+        },
+    }
 
     def get_sense(self, sense):
         text = ''
@@ -168,13 +291,14 @@ class DictionaryEntry(LexiconEntry):
     def as_strings(self, with_headword=True):
         new_content = ""
         next_line = ""
+        content = getattr(self, 'content', {})
 
         if with_headword:
             next_line = self.headword_string()
 
         for field in ['morphology']:
-            if field in self.content:
-                next_line += " " + self.content[field]
+            if field in content:
+                next_line += " " + content[field]
 
         lang = ''
         if hasattr(self, 'language_code'):
@@ -186,7 +310,10 @@ class DictionaryEntry(LexiconEntry):
         if lang:
             next_line += lang
 
-        for sense in self.content['senses']:
+        # senses may be absent (content is optional for some subclasses) or present but
+        # empty (e.g. an entry whose real content is in notes/morphology instead) -- neither
+        # is a crash, both should just contribute nothing here.
+        for sense in content.get('senses', []):
             if 'grammar' in sense:
                 # This is where we would start a new segment for the new form
                 new_content += next_line
@@ -347,12 +474,16 @@ class BDBEntry(DictionaryEntry):
 
     def as_strings(self, with_headword=True):
         strings = []
-        for sense in self.content['senses']:
+        # senses may be absent or empty (e.g. an entry whose real content is in
+        # notes/morphology instead) -- not a crash, just nothing to add here.
+        for sense in self.content.get('senses', []):
             sense = self.get_sense(sense)
             if type(sense) == list:
                 strings.append(' '.join(sense))
             else:
                 strings.append(sense)
+        if not strings:
+            strings = ['']  # keeps strings[0] below safe when there were no senses
         if with_headword:
             strings[0] = self.headword_string() + ' ' + strings[0]
         return ['<br>'.join(strings)]
@@ -370,7 +501,10 @@ class KovetzYesodotEntry(DictionaryEntry):
             strings.append(self.headword_string())
         for key, value in self.content.items():
             if key != 'reference':
-                strings.append(f'<br><small>{key}</small>')
+                # escaped here, not at save time: a content key is a plain label typed by a
+                # moderator, stored exactly as entered, and only needs to be safe at the one
+                # place it's actually interpolated into HTML -- here.
+                strings.append(f'<br><small>{html.escape(key)}</small>')
             strings += value
         return ['<br>'.join(strings)]
 
@@ -387,8 +521,13 @@ class KrupnikEntry(DictionaryEntry):
         'used_in': {'type': 'string'},
         'pos_list': {'type': 'list', 'schema': {'type': 'string'}}
     }
+    # 'required': True on each schema's own discriminating key, since _validate()'s outer
+    # allow_unknown=True would otherwise let oneof/oneof_schema alternatives below match
+    # any dict regardless of which keys it actually has, rather than picking out the one
+    # shape it's actually meant to recognize.
     senses_schema = {'senses':
                          {'type': 'list',
+                          'required': True,
                           'schema': {
                               'type': 'dict',
                               'schema': {
@@ -415,21 +554,25 @@ class KrupnikEntry(DictionaryEntry):
             'oneof': [
                 {'type': 'string'},
                 {'type': 'dict',
+                 'allow_unknown': False,
                  'schema': {'binyans': {
                      'type': 'list',
+                     'required': True,
                      'schema': {
                          'type': 'list',
                          'schema': {
                              'type': 'dict',
                              'required': True,
+                             'allow_unknown': False,
                              'oneof_schema': [
                                  senses_schema,
-                                 pos_schema,
-                                 {'binyan-form': {'type': 'string'}},
-                                 {'binyan-name': {'type': 'string'}}
+                                 {'pos': {'type': 'string', 'required': True}},
+                                 {'binyan-form': {'type': 'string', 'required': True}},
+                                 {'binyan-name': {'type': 'string', 'required': True}}
                              ]},
                      }}}},
                 {'type': 'dict',
+                 'allow_unknown': False,
                  'schema': senses_schema}
             ]
         }

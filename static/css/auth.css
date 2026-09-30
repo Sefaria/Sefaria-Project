@@ -1,0 +1,313 @@
+:root {
+  --bp-tablet-min: 843px;
+  --bp-desktop-min: 1087px;
+}
+
+.sefaria-auth-fields, .sefaria-auth-provider-options, .sefaria-auth-choose,
+.sefaria-auth-sso-group,
+.sefaria-auth-email-form, .sefaria-auth-stack, .sefaria-auth-card-header, .sefaria-auth-card {
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes sefaria-auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.sefaria-auth-page {
+  position: absolute;
+  top: var(--header-offset);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow-y: auto;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 56px 32px;
+  background-color: var(--sefaria-blue);
+  background-image: url("/static/img/auth/auth-bg-desktop.png");
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+}
+@media (max-width: 842px) {
+  .sefaria-auth-page {
+    padding: 56px 32px 24px;
+    background-image: url("/static/img/auth/auth-bg-mobile.png");
+    background-position: center top;
+  }
+}
+
+.sefaria-auth-card {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 640px;
+  min-height: 480px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 56px 24px;
+  gap: 32px;
+  align-items: center;
+  justify-content: center;
+}
+.sefaria-auth-card a {
+  text-decoration: underline;
+}
+.sefaria-auth-card--choose {
+  min-height: 535px;
+}
+.sefaria-auth-card--login-email {
+  min-height: 538px;
+}
+.sefaria-auth-card--register-email {
+  min-height: 823px;
+}
+.sefaria-auth-card--register-email.sefaria-auth-card--email-error {
+  min-height: 892px;
+}
+.sefaria-auth-card--login-email.sefaria-auth-card--email-error {
+  min-height: 567px;
+}
+.sefaria-auth-card-back {
+  position: absolute;
+  inset-inline-start: 32px;
+  top: 32px;
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  padding: 12px;
+  margin: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #121212;
+}
+.sefaria-auth-card-back img {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+.interface-hebrew .sefaria-auth-card-back img {
+  transform: scaleX(-1);
+}
+@media (max-width: 842px) {
+  .sefaria-auth-card-back {
+    top: 8px;
+    inset-inline-start: 8px;
+    padding: 16px;
+  }
+}
+.sefaria-auth-card-header {
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.sefaria-auth-card-heading {
+  margin: 0;
+  font-size: 40px;
+  font-weight: 400;
+  text-align: center;
+  color: #121212;
+}
+@media (max-width: 842px) {
+  .sefaria-auth-card-heading {
+    font-size: 30px;
+  }
+}
+.sefaria-auth-card-sub {
+  text-align: center;
+  font-size: 16px;
+  color: #121212;
+}
+.sefaria-auth-card-sub a {
+  color: var(--sefaria-blue);
+}
+.sefaria-auth-card-sub .sefaria-auth-loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--sefaria-blue);
+}
+.sefaria-auth-card-sub .sefaria-auth-loading-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(24, 52, 93, 0.25);
+  border-top-color: var(--sefaria-blue);
+  border-radius: 50%;
+  animation: sefaria-auth-spin 0.8s linear infinite;
+}
+.sefaria-auth-card > :not(.sefaria-auth-card-back):not(.sefaria-auth-card-header):not(.sefaria-auth-card-sub) {
+  width: 100%;
+  max-width: 348px;
+}
+.sefaria-auth-card.sefaria-message-view .sefaria-auth-card-header {
+  gap: 32px;
+}
+@media (max-width: 842px) {
+  .sefaria-auth-card {
+    min-height: 0;
+    border-radius: 16px;
+    padding: 56px 24px 24px;
+  }
+}
+
+.sefaria-auth-stack {
+  gap: 12px;
+}
+
+.sefaria-auth-choose,
+.sefaria-auth-sso-group,
+.sefaria-auth-email-form {
+  gap: 24px;
+}
+
+.sefaria-auth-provider-options {
+  gap: 16px;
+}
+
+.sefaria-auth-fields {
+  gap: 20px;
+}
+
+.sefaria-auth-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c03522;
+  font-size: 16px;
+  line-height: 1.25;
+  text-align: start;
+}
+.sefaria-auth-error a {
+  color: #c03522;
+}
+.sefaria-auth-error-icon {
+  align-self: flex-start;
+}
+.sefaria-auth-error-content {
+  min-width: 0;
+}
+
+.sefaria-auth-email-form > .sefaria-auth-error {
+  margin-bottom: -8px;
+}
+
+.sefaria-auth-provider-action {
+  display: inline;
+  margin-inline-start: 4px;
+  font-weight: 400;
+  color: #c03522;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.sefaria-auth-provider-action--google-target {
+  position: relative;
+  display: inline-block;
+}
+
+.sefaria-provider-button-shell {
+  position: relative;
+  width: 100%;
+  height: 51px;
+}
+.sefaria-provider-button-shell:hover .sefaria-provider-button {
+  background-color: var(--highlight-blue-light);
+  border-color: #264764;
+}
+.sefaria-provider-button-shell.is-disabled {
+  cursor: not-allowed;
+}
+.sefaria-provider-button-shell.is-disabled .sefaria-provider-button {
+  background-color: #e6e6e6;
+  border-color: #e6e6e6;
+  color: var(--medium-grey-legacy);
+  cursor: not-allowed;
+}
+.sefaria-provider-button-shell.is-disabled .sefaria-provider-button * {
+  color: var(--medium-grey-legacy);
+}
+
+.sefaria-provider-button {
+  box-sizing: border-box;
+  width: 100%;
+  height: 51px;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #ffffff;
+  border: 1.5px solid var(--sefaria-blue);
+  border-radius: 4px;
+  color: #121212;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+}
+.sefaria-provider-button * {
+  color: #121212;
+}
+.sefaria-provider-button:hover {
+  background-color: var(--highlight-blue-light);
+  border-color: #264764;
+}
+.sefaria-provider-button:disabled {
+  background-color: #e6e6e6;
+  border-color: #e6e6e6;
+  cursor: not-allowed;
+  color: var(--medium-grey-legacy);
+}
+.sefaria-provider-button:disabled * {
+  color: var(--medium-grey-legacy);
+}
+.sefaria-provider-button-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+
+.sefaria-provider-sdk-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.0001;
+  overflow: hidden;
+  z-index: var(--z-overlay);
+}
+.sefaria-provider-sdk-overlay > div,
+.sefaria-provider-sdk-overlay iframe {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+}
+
+.sefaria-divider {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #707070;
+  font-size: 14px;
+}
+.sefaria-divider::before, .sefaria-divider::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: #e6e6e6;
+}
+
+.sefaria-legal-text {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #121212;
+  text-align: center;
+}
+.sefaria-legal-text a {
+  color: var(--sefaria-blue);
+}
+
+/*# sourceMappingURL=auth.css.map */

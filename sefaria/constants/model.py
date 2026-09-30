@@ -31,6 +31,28 @@ LANGUAGE_CODES = {
     "jrb": "arabic",
 }
 
+
+def get_direction_from_legacy_lang(lang):
+    """
+    Legacy en/he-bucket convention: "he" is rtl, everything else (including non-en/he languages
+    forced into the "en" bucket to satisfy the old binary schema) is ltr.
+    """
+    return "rtl" if lang == "he" else "ltr"
+
+
+def get_legacy_lang_from_direction(direction):
+    """Inverse of get_direction_from_legacy_lang: the legacy en/he bucket for a given direction."""
+    return "he" if direction == "rtl" else "en"
+
+
 # Module constants that correspond to DOMAIN_MODULES keys
 LIBRARY_MODULE = "library"
 VOICES_MODULE = "voices"
+
+# Topics with fewer sources than this are hidden from the A-Z listing, category browse pages, and Google search
+MIN_SOURCES_FOR_TOPIC_DISPLAY = 3
+
+# Key for the Library Assistant preference in `profile.settings`, re-exported by
+# sefaria/helper/library_assistant.py as SETTING_KEY. Defined here, not there, to keep the
+# dependency one-way: that helper imports UserProfile, which writes this key on creation.
+LIBRARY_ASSISTANT_SETTING_KEY = "library_assistant"

@@ -92,8 +92,8 @@ class NotificationsPanel extends Component {
               <div className="notificationsTopContainer">
                 <div className="notificationsHeaderBox">
                   <h1>
-                    <img className="notificationsTitleIcon" src="/static/icons/notification.svg" alt={Sefaria._("Notification icon")}/>
-                    <InterfaceText>Notifications</InterfaceText>
+                    <img className="notificationsTitleIcon" src="/static/icons/notification.svg" alt={Sefaria._("notifications_panel.notification_icon")}/>
+                    <InterfaceText>common.notifications</InterfaceText>
                   </h1>
                 </div>
                 {!Sefaria._uid && <LoginPrompt fullPanel={true} />}
@@ -132,23 +132,23 @@ const Notifications = ({type, props}) => {
 
 const EmptyNotificationsMessage = () => {
   return (
-        <div className="emptyNotificationPage">
-          <div className="emptyNotificationsTitle" aria-label={Sefaria._("No notifications message title")}>
-            <InterfaceText en={"Looks like you don’t have any notifications yet."} 
-                           he={"נראה שעדיין אין לך התראות"}/>
-          </div>
-          <div className="emptyNotificationsMessage" aria-label={Sefaria._("No notifications message body")}>
-            <InterfaceText en={"Try following sheet creators to get notified when they publish a new sheet."} 
-                           he={"מומלץ לעקוב אחרי יוצרים של דפי מקורות כדי לקבל התראה כאשר יפרסמו דף מקורות חדש"}/> 
-          </div>
-        </div>
-  )
+    <div className="emptyNotificationPage">
+      <div className="emptyNotificationsTitle" aria-label={Sefaria._("notifications_panel.no_notifications_message_title")}>
+        <InterfaceText en={"Looks like you don’t have any notifications yet."} 
+                       he={"נראה שעדיין אין לך התראות"}/>
+      </div>
+      <div className="emptyNotificationsMessage" aria-label={Sefaria._("notifications_panel.no_notifications_message_body")}>
+        <InterfaceText en={"Try following sheet creators to get notified when they publish a new sheet."} 
+                       he={"מומלץ לעקוב אחרי יוצרים של דפי מקורות כדי לקבל התראה כאשר יפרסמו דף מקורות חדש"}/> 
+      </div>
+    </div>
+  );
 };
 
 
 const Notification = ({imageUrl, imageLink, topLine, date, body}) => {
   
-  let image = imageUrl ? <img src={imageUrl} alt={Sefaria._("Notification image")} /> : null
+  let image = imageUrl ? <img src={imageUrl} alt={Sefaria._("notifications_panel.notification_image")} /> : null
   image     = imageLink ? <a href={imageLink}>{image}</a> : image;
 
   return (
@@ -180,7 +180,7 @@ const SheetPublishNotification = ({date, content}) => {
   const topLine = (
     <>
       <a href={content.profileUrl} data-target-module={Sefaria.VOICES_MODULE} className="notificationUserName">{content.name}</a>&nbsp;
-      <InterfaceText>published a new sheet</InterfaceText>
+      <InterfaceText>notifications_panel.published_a_new_sheet</InterfaceText>
     </>
   );
 
@@ -210,7 +210,7 @@ const SheetLikeNotification = ({date, content}) => {
   const topLine = (
     <>
       <a href={content.profileUrl} className="notificationUserName">{content.name}</a>&nbsp;
-      <InterfaceText>liked your sheet</InterfaceText>
+      <InterfaceText>notifications_panel.liked_your_sheet</InterfaceText>
     </>
   );
 
@@ -236,7 +236,7 @@ const FollowNotification = ({date, content}) => {
   const topLine = (
     <>
       <a href={content.profileUrl} className="notificationUserName">{content.name}</a>&nbsp;
-      <InterfaceText>is now following you</InterfaceText>
+      <InterfaceText>notifications_panel.is_now_following_you</InterfaceText>
     </>
   );
 
@@ -265,7 +265,7 @@ const CollectionAddNotification = ({date, content}) => {
   const topLine = (
     <>
       <a href={content.profileUrl}>{content.name}</a>&nbsp;
-      <InterfaceText>added you to a collection</InterfaceText>
+      <InterfaceText>notifications_panel.added_you_to_a_collection</InterfaceText>
     </>
   );
 
@@ -295,7 +295,7 @@ const IndexNotification = ({date, content}) => {
 
   const topLine = (
     <>
-      <InterfaceText>New Text</InterfaceText>:&nbsp;
+      <InterfaceText>notifications_panel.new_text</InterfaceText>:&nbsp;
       <a href={url}>
         <InterfaceText text={{en: title, he: heTitle}} />
       </a>

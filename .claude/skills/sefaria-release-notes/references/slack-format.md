@@ -1,0 +1,134 @@
+# Slack mrkdwn Format Reference
+
+## Rules — strictly no raw Markdown
+
+| Want | Write | NOT |
+|------|-------|-----|
+| Bold | `*text*` | `**text**` |
+| Italic | `_text_` | `*text*` |
+| Link | `<https://url\|display text>` | `[text](url)` or bare URL |
+| Bullet | `•` | `-` or `*` |
+| Section header | `*Header text*` (bold, on its own line) | `## Header` |
+| Horizontal rule | _(blank line between sections)_ | `---` |
+| Inline code | `` `code` `` | (same — this works fine) |
+| Emoji | `:emoji_name:` | (same) |
+
+**Never use** `##`, `###`, `---`, `**`, or `[text](url)` — these render as literal characters in Slack.
+
+---
+
+## Tech File Structure
+
+This runs AFTER the rollout is already confirmed healthy — headers describe
+something that already happened, not something upcoming.
+
+```
+:rocket: *Production Release — preprod → prod*
+*Release:* app `X.X.X` / chart `X.X.X`
+*Deployed:* <release_date, formatted> | *Range:* ~N commits / N net feature PRs
+
+:large_green_circle: *User-Facing Fixes & Features*
+
+• <https://app.shortcut.com/sefaria/story/XXXXX|sc-XXXXX> — *Story title*
+PR <https://github.com/Sefaria/Sefaria-Project/pull/XXXX|#XXXX>
+1–3 sentence technical description: what changed, why, what it enables.
+
+[repeat for each user-facing item]
+
+:gear: *Backend / Performance / Stability*
+
+[items using same bullet format]
+
+:bricks: *Infrastructure / DevOps*
+
+[items using same bullet format]
+```
+
+If `release_date` is `null`, drop the `*Deployed:* <date> | ` prefix and start the line with `*Range:*` instead — never fabricate a date.
+
+**Per-item format:**
+```
+• <SC_URL|sc-XXXXX> — *Title*
+PR <GH_URL|#XXXX>
+Description sentence(s).
+```
+
+If no SC story: omit the SC link line, just use `• *Title*`.
+If no PR: omit the PR line.
+Flag risk: append `:warning:` to the title line.
+
+---
+
+## Product File Structure (release announcement)
+
+This also runs AFTER the rollout is confirmed healthy — past tense, not "upcoming".
+
+```
+*Production Release — What Shipped*
+Deployed <release_date, formatted>
+
+<1–2 sentence overview: how many changes, any standout themes>
+
+:eye: *What users will see and feel*
+
+• *Feature or fix name.* Plain-language sentence(s) describing the user experience change. No jargon.
+
+[repeat]
+
+:wrench: *Fixes to visible bugs*
+
+• *Bug description* — what it was, what it does now. One sentence.
+
+:electric_plug: *Relevant for partners, API users, and external developers*
+
+[only include this section if there are relevant items]
+
+:building_construction: *Stability, speed, and operational maturity*
+
+• *Area name.* What it means for reliability or performance in plain language.
+```
+
+If `release_date` is `null`, drop the `Deployed <date>` line entirely rather than guessing.
+
+---
+
+## Translation Guide (tech → plain language)
+
+| Technical term | Plain language |
+|----------------|----------------|
+| Django upgrade | Web framework upgrade |
+| Postgres / PostgreSQL | Database |
+| Elasticsearch | Search index |
+| Helm / chart | Infrastructure configuration |
+| MCP tool | AI assistant capability |
+| CSRF | Security configuration |
+| preprod / staging | Testing environment |
+| CI/CD | Deployment pipeline |
+| PR #XXXX | (omit — use the feature name instead) |
+| sc-XXXXX | (omit — use the story name) |
+| commit SHA | (omit) |
+
+---
+
+## Short correct example — tech item
+
+```
+• <https://app.shortcut.com/sefaria/story/11111|sc-11111> — *Upgrade Django 1.11 → 6.0 on Python 3.12* :warning:
+PR <https://github.com/Sefaria/Sefaria-Project/pull/3251|#3251>
+Long-running upgrade finally merged and deploying to prod. :warning: Highest-risk item in this deploy — monitor closely post-deploy.
+```
+
+## Short correct example — product item
+
+```
+• *Web framework upgrade complete.* The site's core framework is now on a modern, supported version — this was years in the making and keeps the platform secure and maintainable. Engineering will monitor closely for a few days after this goes live.
+```
+
+## Short incorrect example (do NOT do this)
+
+```
+### sc-11111: Upgrade Django (wrong: ## heading, no slack links)
+**PR #3251** (wrong: ** bold, bare PR ref)
+See [details](https://github.com/...) (wrong: markdown link)
+---  (wrong: horizontal rule)
+```

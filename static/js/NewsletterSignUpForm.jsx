@@ -26,42 +26,42 @@ export function NewsletterSignUpForm({
         }
         if (showNameInputs === true) { // submit
             if (firstName.length > 0 && lastName.length > 0) {
-                setSubscribeMessage("Subscribing...");
+                setSubscribeMessage("common.subscribing");
                 setIsSubmitting(true);
                 subscribe(firstName, lastName, email, educatorCheck, additionalNewsletterMailingLists).then(res => {
                     setIsSubscribed(true);
                     setIsSubmitting(false);
-                    setSubscribeMessage("Subscribed! Welcome to our list.");
+                    setSubscribeMessage("common.subscribed_welcome_to_our_list");
                     Sefaria.track.event("Newsletter", "Subscribe from " + contextName, "");
                 }).catch(error => {
                     setIsSubmitting(false);
-                    setSubscribeMessage(error?.message || "Sorry, there was an error.");
+                    setSubscribeMessage(error?.message || "common.sorry_there_was_an_error");
                     setShowNameInputs(false);
                 });
             } else {
-                setSubscribeMessage("Please enter a valid first and last name");
+                setSubscribeMessage("newsletter_sign_up_form.please_enter_a_valid_first_and_last_name");
             }
         } else if (Sefaria.util.isValidEmailAddress(email)) {
             setShowNameInputs(true);
         } else {
             setShowNameInputs(false);
-            setSubscribeMessage("Please enter a valid email address.");
+            setSubscribeMessage("common.please_enter_a_valid_email_address");
         }
     }
 
     return (
         <div className="newsletterSignUpBox">
-      <span className="int-en">
-        <input
-            className="newsletterInput"
-            placeholder={emailPlaceholder.en}
-            aria-label={Sefaria._("Email address")}
-            type="email"
-            value={email}
-            disabled={isFormDisabled}
-            onChange={e => setEmail(e.target.value)}
-            onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
-      </span>
+            <span className="int-en">
+              <input
+                  className="newsletterInput"
+                  placeholder={emailPlaceholder.en}
+                  aria-label={Sefaria._("newsletter_sign_up_form.email_address")}
+                  type="email"
+                  value={email}
+                  disabled={isFormDisabled}
+                  onChange={e => setEmail(e.target.value)}
+                  onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
+            </span>
             <span className="int-he">
         <input
             className="newsletterInput"
@@ -73,13 +73,13 @@ export function NewsletterSignUpForm({
             onChange={e => setEmail(e.target.value)}
             onKeyUp={(e) => Util.handleEnterKey(e, handleSubscribe)}/>
       </span>
-            {!showNameInputs && !isFormDisabled ? <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/> : null}
+            {!showNameInputs && !isFormDisabled ? <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("newsletter_sign_up_form.submit")} onClick={handleSubscribe}/> : null}
             {showNameInputs ?
                 <><span className="int-en">
         <input
             className="newsletterInput firstNameInput"
             placeholder="First Name"
-            aria-label={Sefaria._("First Name")}
+            aria-label={Sefaria._("common.first_name")}
             type="text"
             value={firstName}
             autoFocus
@@ -102,7 +102,7 @@ export function NewsletterSignUpForm({
         <input
             className="newsletterInput"
             placeholder="Last Name"
-            aria-label={Sefaria._("Last Name")}
+            aria-label={Sefaria._("common.last_name")}
             type="text"
             value={lastName}
             disabled={isFormDisabled}
@@ -122,7 +122,7 @@ export function NewsletterSignUpForm({
       </span>
                     {includeEducatorOption ?
                         <EducatorCheckbox educatorCheck={educatorCheck} setEducatorCheck={setEducatorCheck} disabled={isFormDisabled}/> : null}
-                    {!isFormDisabled && <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("Submit")} onClick={handleSubscribe}/>}
+                    {!isFormDisabled && <img src="/static/img/circled-arrow-right.svg" alt={Sefaria._("newsletter_sign_up_form.submit")} onClick={handleSubscribe}/>}
                 </>
                 : null}
             {subscribeMessage ?

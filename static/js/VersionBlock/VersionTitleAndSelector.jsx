@@ -15,7 +15,7 @@ function VersionTitleAndSelector({currentRef, version, currObjectVersions, openV
     const renderMode = 'translation'; //for now this component is only rendered from TranslationsBox
     const openVersionInMainPanel = VersionBlockUtils.openVersionInMainPanel.bind(null, currentRef, version, currObjectVersions, renderMode,
         null, openVersionInReader);
-    const buttonText = isSelected ? 'Currently Selected' : 'Select';
+    const buttonText = isSelected ? 'version_block.currently_selected' : 'version_block.select';
     return (
         <div className='version-with-preview-title-line'>
             <div className='open-details'>

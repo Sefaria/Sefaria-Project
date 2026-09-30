@@ -89,7 +89,7 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
   return (
     <>
       <div className="dropdownHeader">
-        <img src={icon} alt={Sefaria._("Menu icon")} />
+        <img src={icon} alt={Sefaria._("dropdown_menu.menu_icon")} />
         <span className='dropdownHeaderText'>
           <InterfaceText>{textEn}</InterfaceText>
         </span>
@@ -99,7 +99,7 @@ const DropdownMenuItemWithIcon = ({icon, textEn='', descEn='', descHe=''}) => {
           <InterfaceText text={{'en': descEn, 'he': descHe}} />
         </div>
       }
-  </>
+    </>
   );
 }
 
@@ -293,7 +293,7 @@ const DropdownLanguageToggle = () => {
   return (
     <>
       <div className="languageHeader">
-        <InterfaceText>Site Language</InterfaceText>
+        <InterfaceText>dropdown_menu.site_language</InterfaceText>
       </div>
       <div className='dropdownLanguageToggle'>
       <span className='englishLanguageButton'>
@@ -312,7 +312,7 @@ const DropdownLanguageToggle = () => {
       </NextRedirectAnchor>
       </div>
     </>
-  )
+  );
 }
   export {
     DropdownMenu,

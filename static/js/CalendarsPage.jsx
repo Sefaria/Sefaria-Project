@@ -42,15 +42,15 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
         <div className="sidebarLayout">
           <div className="contentInner">
             {about}
-            <h2 className="styledH1 sans-serif"><InterfaceText>Weekly Torah Portion</InterfaceText></h2>
+            <h2 className="styledH1 sans-serif"><InterfaceText>common.weekly_torah_portion</InterfaceText></h2>
             <div className="readerNavCategories">
               <ResponsiveNBox content={parashaListings} initialWidth={initialWidth} />
             </div>
-            <h2 className="styledH1 sans-serif"><InterfaceText>Daily Learning</InterfaceText></h2>
+            <h2 className="styledH1 sans-serif"><InterfaceText>calendars_page.daily_learning</InterfaceText></h2>
             <div className="readerNavCategories">
               <ResponsiveNBox content={dailyListings} initialWidth={initialWidth} />
             </div>
-            <h2 className="styledH1 sans-serif"><InterfaceText>Weekly Learning</InterfaceText></h2>
+            <h2 className="styledH1 sans-serif"><InterfaceText>calendars_page.weekly_learning</InterfaceText></h2>
             <div className="readerNavCategories">
               <ResponsiveNBox content={weeklyListings} initialWidth={initialWidth} />
             </div>
@@ -63,6 +63,10 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
 };
 
 
+const CALENDAR_SUBTITLE_IDS = {
+  "Tanakh": "calendar_listing.tanakh",
+  "Talmud": "calendar_listing.talmud",
+};
 const CalendarListing = ({calendar}) => {
   const style = {"borderColor": Sefaria.palette.categoryColor(calendar.category)};
   return (
@@ -71,19 +75,19 @@ const CalendarListing = ({calendar}) => {
         <InterfaceText text={calendar.displayTitle} />
         {calendar.enSubtitle ?
         <span className="subtitle">
-          <InterfaceText context="CalendarListing">{calendar.enSubtitle}</InterfaceText>
+          <InterfaceText>{CALENDAR_SUBTITLE_IDS[calendar.enSubtitle] || calendar.enSubtitle}</InterfaceText>
         </span> : null }
       </a>
       <div className="calendarRefs">
         {calendar.refs.map(ref => (
         <div className="calendarRef" key={ref.url}>
-          <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
+          <img src="/static/icons/book.svg" className="navSidebarIcon" alt={Sefaria._("common.book_icon")} />
           <a href={`/${ref.url || calendar.url}`} className="">
             <InterfaceText text={ref.displayValue} />
           </a>
         </div>
         ))}
-      </div>          
+      </div>
       { calendar.description ?
       <div className="navBlockDescription">
         <InterfaceText text={calendar.description} />

@@ -80,13 +80,50 @@ spec:
                   echo "Restoring to database: $PGDATABASE"
                   echo "Using PostgreSQL host: $PGHOST"
 
-                  # Ensure database exists (create if not exists)
-                  echo "Ensuring database exists..."
-                  psql -h "$PGHOST" -U "$PGUSER" -d postgres -c "CREATE DATABASE \"$PGDATABASE\";" 2>/dev/null || echo "Database already exists"
+                  # An empty value here would shift the flags of the DROP/CREATE commands
+                  # below, so refuse before anything destructive runs.
+                  for VAR in PGHOST PGUSER PGDATABASE; do
+                    if [[ -z "${!VAR}" ]]; then
+                      echo "ERROR: $VAR is empty; refusing to run."
+                      exit 1
+                    fi
+                  done
 
-                  # Perform the restore with --clean to update existing tables
-                  echo "Restoring PostgreSQL data (updating existing tables)..."
-                  pg_restore --clean --if-exists --no-owner --no-privileges --dbname="$PGDATABASE" --host="$PGHOST" --username="$PGUSER" /storage/pg.dump
+                  # Never drop the shared database; mirrors the postgres-destroy guard.
+                  if [[ "$PGDATABASE" == "sefaria_auth" ]]; then
+                    echo "ERROR: refusing to sync into the default 'sefaria_auth' database."
+                    echo "Set postgres.db to an environment-specific name to enable this job."
+                    exit 1
+                  fi
+
+                  # An array, not a string: word-splitting a string would let a stray space
+                  # in a value silently become an extra argument.
+                  PSQL=(psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d postgres)
+
+                  # Recreate rather than pg_restore --clean, whose DROP SCHEMA public fails
+                  # when this env holds objects production lacks. FORCE avoids racing
+                  # reconnecting app pods.
+                  echo "Dropping and recreating database $PGDATABASE..."
+                  "${PSQL[@]}" -c "DROP DATABASE IF EXISTS \"$PGDATABASE\" WITH (FORCE);"
+                  "${PSQL[@]}" -c "CREATE DATABASE \"$PGDATABASE\" TEMPLATE template0 ENCODING 'UTF8';"
+
+                  # --single-transaction: a mid-restore failure rolls back rather than
+                  # leaving a half-populated database.
+                  echo "Restoring PostgreSQL data..."
+                  pg_restore --no-owner --no-privileges --exit-on-error --single-transaction \
+                    --dbname="$PGDATABASE" --host="$PGHOST" --username="$PGUSER" /storage/pg.dump
+
+                  # A dump lacking --section=post-data restores cleanly but carries no
+                  # indexes or constraints. Fail rather than sit silently unindexed.
+                  echo "Verifying indexes and constraints were restored..."
+                  IDX_COUNT=$(psql -v ON_ERROR_STOP=1 -h "$PGHOST" -U "$PGUSER" -d "$PGDATABASE" -tAc \
+                    "SELECT count(*) FROM pg_index i JOIN pg_class c ON c.oid = i.indrelid
+                     JOIN pg_namespace n ON n.oid = c.relnamespace AND n.nspname = 'public';")
+                  if [[ "$IDX_COUNT" -eq 0 ]]; then
+                    echo "ERROR: restore produced 0 indexes -- the dump is missing its post-data section."
+                    exit 1
+                  fi
+                  echo "Restored $IDX_COUNT indexes."
 
                   echo "Production PostgreSQL data sync completed successfully"
               envFrom:
