@@ -4,12 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"strings"
 	"sync/atomic"
+	"syscall"
 	"time"
 
 	authv3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
@@ -24,6 +28,11 @@ import (
 	"github.com/Sefaria/Sefaria-Project/auth-service/internal/registry"
 )
 
+const (
+	loadTimeout     = 10 * time.Second
+	shutdownTimeout = 20 * time.Second
+)
+
 func envOr(k, d string) string {
 	if v := os.Getenv(k); v != "" {
 		return v
@@ -32,7 +41,8 @@ func envOr(k, d string) string {
 }
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
+	// SIGTERM (rollout, drain) cancels ctx: the background loops exit and both servers drain in-flight calls.
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGTERM, os.Interrupt)
 	defer cancel()
 
 	promReg := prometheus.NewRegistry()
@@ -41,9 +51,9 @@ func main() {
 	keysGauge := prometheus.NewGauge(prometheus.GaugeOpts{Name: "authsvc_registry_keys"})
 	versionGauge := prometheus.NewGauge(prometheus.GaugeOpts{Name: "authsvc_registry_version"})
 	reloads := prometheus.NewCounterVec(prometheus.CounterOpts{Name: "authsvc_reload_total"}, []string{"result"})
-	pushes := prometheus.NewCounterVec(prometheus.CounterOpts{Name: "authsvc_push_events_total"}, []string{"channel", "result"})
+	notifyReloads := prometheus.NewCounterVec(prometheus.CounterOpts{Name: "authsvc_notify_reload_total"}, []string{"result"})
 	startup := prometheus.NewGauge(prometheus.GaugeOpts{Name: "authsvc_startup_load_seconds"})
-	promReg.MustRegister(keysGauge, versionGauge, reloads, pushes, startup)
+	promReg.MustRegister(keysGauge, versionGauge, reloads, notifyReloads, startup)
 
 	cfg := authz.Config{
 		Mode:    authz.Mode(envOr("AUTH_MODE", "enforce")),
@@ -55,6 +65,10 @@ func main() {
 	if cfg.Mode != authz.ModeEnforce && cfg.Mode != authz.ModeObserve {
 		panic("AUTH_MODE must be enforce or observe")
 	}
+	interval, err := time.ParseDuration(envOr("RELOAD_INTERVAL", "60s"))
+	if err != nil || interval <= 0 {
+		panic(fmt.Sprintf("RELOAD_INTERVAL must be a positive Go duration such as 60s, got %q", os.Getenv("RELOAD_INTERVAL")))
+	}
 
 	reg := registry.New()
 	var ready atomic.Bool
@@ -62,7 +76,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	load := func(ctx context.Context) ([]registry.Key, error) { return registry.LoadAll(ctx, db) }
+	// A hung Postgres must not stall startup past the liveness probe or block the reload loops for good.
+	load := func(ctx context.Context) ([]registry.Key, error) {
+		ctx, cancel := context.WithTimeout(ctx, loadTimeout)
+		defer cancel()
+		return registry.LoadAll(ctx, db)
+	}
 	gauges := func() {
 		keysGauge.Set(float64(reg.Len()))
 		versionGauge.Set(float64(reg.Version()))
@@ -103,11 +122,11 @@ func main() {
 				reloads.WithLabelValues("error").Inc()
 			}
 			if err != nil {
-				pushes.WithLabelValues("postgres", "error").Inc()
+				notifyReloads.WithLabelValues("error").Inc()
 				slog.Warn("notify reload failed; keeping in-memory set", "err", err)
 				return
 			}
-			pushes.WithLabelValues("postgres", "ok").Inc()
+			notifyReloads.WithLabelValues("ok").Inc()
 			slog.Info("notify reload", "keys", reg.Len(), "took", time.Since(t0))
 		})
 		go co.Run(ctx)
@@ -123,7 +142,6 @@ func main() {
 			OnErr: func(err error) { slog.Warn("postgres listener", "err", err) },
 		})
 	}
-	interval, _ := time.ParseDuration(envOr("RELOAD_INTERVAL", "60s"))
 	go registry.PeriodicReload(ctx, interval, func(ctx context.Context) ([]registry.Key, error) {
 		k, err := load(ctx)
 		if err != nil {
@@ -155,23 +173,40 @@ func main() {
 		})
 	})
 
+	lis, err := net.Listen("tcp", envOr("GRPC_ADDR", ":9090"))
+	if err != nil {
+		panic(err)
+	}
+	gs := grpc.NewServer()
+	authv3.RegisterAuthorizationServer(gs, authz.NewGRPCServer(reg, opts, rec))
+	reflection.Register(gs)
 	go func() {
-		lis, err := net.Listen("tcp", envOr("GRPC_ADDR", ":9090"))
-		if err != nil {
-			panic(err)
-		}
-		s := grpc.NewServer()
-		authv3.RegisterAuthorizationServer(s, authz.NewGRPCServer(reg, opts, rec))
-		reflection.Register(s)
 		slog.Info("grpc listening", "addr", lis.Addr().String())
-		if err := s.Serve(lis); err != nil {
+		if err := gs.Serve(lis); err != nil {
 			panic(err)
 		}
 	}()
 
-	addr := envOr("HTTP_ADDR", ":8080")
-	slog.Info("http listening", "addr", addr, "reload_interval", interval, "pg_notify", os.Getenv("PG_NOTIFY_CHANNEL") != "")
-	if err := http.ListenAndServe(addr, mux); err != nil && !strings.Contains(err.Error(), "closed") {
-		panic(err)
+	hs := &http.Server{Addr: envOr("HTTP_ADDR", ":8080"), Handler: mux, ReadHeaderTimeout: 5 * time.Second}
+	go func() {
+		slog.Info("http listening", "addr", hs.Addr, "reload_interval", interval, "pg_notify", os.Getenv("PG_NOTIFY_CHANNEL") != "")
+		if err := hs.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			panic(err)
+		}
+	}()
+
+	<-ctx.Done()
+	slog.Info("shutting down")
+	ready.Store(false)
+	done := make(chan struct{})
+	go func() { gs.GracefulStop(); close(done) }()
+	select {
+	case <-done:
+	case <-time.After(shutdownTimeout):
+		gs.Stop()
 	}
+	sctx, scancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer scancel()
+	_ = hs.Shutdown(sctx)
+	_ = db.Close()
 }

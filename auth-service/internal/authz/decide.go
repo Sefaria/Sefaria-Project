@@ -24,7 +24,6 @@ const (
 	CodeKeyRequired      = "api_key_required"
 	CodeKeyInvalid       = "api_key_invalid"
 	CodeOriginNotAllowed = "origin_not_allowed"
-	CodeRateLimited      = "rate_limited"
 )
 
 type Lookup interface {

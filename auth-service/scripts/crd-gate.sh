@@ -15,4 +15,5 @@ check securitypolicy.spec.extAuth.grpc.backendRefs                       yes "[E
 check securitypolicy.spec.extAuth.headersToExtAuth                       yes ""
 check securitypolicy.spec.extAuth.failOpen                               yes "auth service down -> anonymous tier"
 check securitypolicy.spec.extAuth.timeout                                yes "default 10s -- must be set"
+check clienttrafficpolicy.spec.headers.earlyRequestHeaders.remove        yes "strips client-sent x-sefaria-* before ext_authz"
 exit $rc

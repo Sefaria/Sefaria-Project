@@ -100,6 +100,8 @@ func main() {
 	key := sub.String("key", "", "explicit key value (tests) or target key")
 	count := sub.Int("count", 0, "number of keys for seed")
 	_ = sub.Parse(args[1:])
+	set := map[string]bool{}
+	sub.Visit(func(f *flag.Flag) { set[f.Name] = true })
 
 	fail := func(err error) {
 		if err != nil {
@@ -125,9 +127,13 @@ func main() {
 		if k == "" {
 			k = registry.NewKey()
 		}
-		_, err := db.ExecContext(ctx, `INSERT INTO projects(id,name,tier,allowed_origins) VALUES ($1,$1,$2,$3)
-			ON CONFLICT (id) DO UPDATE SET tier=EXCLUDED.tier, allowed_origins=EXCLUDED.allowed_origins`, *project, *tier, splitOrigins())
+		// An existing project keeps its tier and origins; change them with set-tier / set-origins.
+		res, err := db.ExecContext(ctx, `INSERT INTO projects(id,name,tier,allowed_origins) VALUES ($1,$1,$2,$3)
+			ON CONFLICT (id) DO NOTHING`, *project, *tier, splitOrigins())
 		fail(err)
+		if n, _ := res.RowsAffected(); n == 0 && (set["tier"] || set["origins"]) {
+			fail(fmt.Errorf("project %q exists; --tier/--origins are ignored on create, use set-tier or set-origins", *project))
+		}
 		_, err = db.ExecContext(ctx, `INSERT INTO api_keys(key,project_id,label) VALUES ($1,$2,$3)`, k, *project, *label)
 		fail(err)
 		full, err := loadOne(ctx, db, k)

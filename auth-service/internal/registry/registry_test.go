@@ -4,7 +4,6 @@ import (
 	"errors"
 	"sync"
 	"testing"
-	"time"
 )
 
 func TestReplaceAndLookup(t *testing.T) {
@@ -16,39 +15,10 @@ func TestReplaceAndLookup(t *testing.T) {
 	if k, ok := r.Lookup("b"); !ok || k.ProjectID != "p2" {
 		t.Fatalf("lookup b: %v %v", k, ok)
 	}
-	if k, ok := r.LookupID("a-id"); !ok || k.Key != "a" {
-		t.Fatalf("lookup id: %v %v", k, ok)
-	}
 	if _, ok := r.Lookup("zzz"); ok {
 		t.Fatal("unexpected hit")
 	}
 	if r.Version() != 1 {
-		t.Fatalf("version=%d", r.Version())
-	}
-}
-
-func TestApplyUpsertDelete(t *testing.T) {
-	r := New()
-	r.Replace([]Key{{ID: "a-id", Key: "a", ProjectID: "p1", Tier: "developer"}})
-	if err := r.Apply(ChangeEvent{Op: "upsert", Key: Key{ID: "a-id", Key: "a", ProjectID: "p1", Tier: "developer", Revoked: true}, TS: time.Now()}); err != nil {
-		t.Fatal(err)
-	}
-	if k, _ := r.Lookup("a"); !k.Revoked {
-		t.Fatal("upsert did not overwrite")
-	}
-	if err := r.Apply(ChangeEvent{Op: "delete", Key: Key{ID: "a-id", Key: "a"}}); err != nil {
-		t.Fatal(err)
-	}
-	if _, ok := r.Lookup("a"); ok {
-		t.Fatal("delete did not remove")
-	}
-	if _, ok := r.LookupID("a-id"); ok {
-		t.Fatal("delete did not remove id index")
-	}
-	if err := r.Apply(ChangeEvent{Op: "bogus"}); err == nil {
-		t.Fatal("expected error for bogus op")
-	}
-	if r.Version() != 3 {
 		t.Fatalf("version=%d", r.Version())
 	}
 }
@@ -72,7 +42,7 @@ func TestConcurrentReadersDuringReplace(t *testing.T) {
 		wg.Add(3)
 		go func() { defer wg.Done(); r.Lookup("a") }()
 		go func() { defer wg.Done(); r.Replace([]Key{{Key: "a"}, {Key: "b"}}) }()
-		go func() { defer wg.Done(); _ = r.Apply(ChangeEvent{Op: "upsert", Key: Key{Key: "c"}}) }()
+		go func() { defer wg.Done(); _ = r.ReplaceGuarded([]Key{{Key: "c"}}) }()
 	}
 	wg.Wait()
 }

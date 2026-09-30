@@ -26,13 +26,20 @@ spec:
         stackRole: auth-service
         {{- include "sefaria.selectorLabels" . | nindent 8 }}
     spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile: { type: RuntimeDefault }
       affinity:
         nodeAffinity:
           {{- include "sefaria.nodeAffinities" . | nindent 10 }}
       containers:
         - name: auth-service
-          image: "{{ .Values.authService.containerImage.imageRegistry }}:{{ .Values.authService.containerImage.tag }}"
-          imagePullPolicy: Always
+          image: "{{ required "authService.image.repository is required" .Values.authService.image.repository }}:{{ required "authService.image.tag is required when authService.enabled (an immutable sha tag from CI, not latest)" .Values.authService.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
           env:
             - { name: HTTP_ADDR, value: ":8080" }
             - { name: GRPC_ADDR, value: ":9090" }

@@ -31,6 +31,7 @@ jobs:
       id-token: 'write'
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         app: [ web, node, auth-service ]
     steps:
@@ -185,6 +186,43 @@ jobs:
       - name: Handle Jest Test Results
         run: cat /home/runner/jestResults.json; STATUS=`jq ".numFailedTestSuites" /home/runner/jestResults.json`; exit $STATUS
         if: ${{ always() }}
+  auth-service-tests:
+    name: "Continuous Testing: auth-service Go"
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for auth-service changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            auth_service:
+              - 'auth-service/**'
+      - uses: actions/setup-go@v5
+        if: steps.changes.outputs.auth_service == 'true'
+        with:
+          go-version-file: auth-service/go.mod
+          cache-dependency-path: auth-service/go.sum
+      - name: go vet and race tests (Postgres tests included)
+        if: steps.changes.outputs.auth_service == 'true'
+        working-directory: auth-service
+        env:
+          PG_TEST_DSN: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
+        run: |
+          go vet ./...
+          go test -race -count=1 ./...
   check-python-files:
     runs-on: ubuntu-latest
     outputs:

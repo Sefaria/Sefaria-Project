@@ -18,7 +18,10 @@ In:
   set-tier, set-origins, seed, init-schema). Running services pick changes up via NOTIFY.
 - Helm (`helm-chart/sefaria/templates/authservice/*`, `templates/gateway/securitypolicy.yaml`):
   Deployment, Services, PDB, ServiceMonitor, and a SecurityPolicy with `extAuth` only (no `jwt`),
-  all behind `authService.enabled` (default `false`).
+  all behind `authService.enabled` (default `false`). When enabled, the gateway's ClientTrafficPolicy
+  strips client-sent `x-sefaria-tier`, `x-sefaria-project` and `x-sefaria-auth-result` at the listener,
+  so a fail-open pass cannot carry spoofed identity upstream. Enabling requires
+  `authService.image.tag` (an immutable `sha-...` tag pushed by the Continuous workflow).
 
 Out (later phases): first-party JWT minting and verification, rate limiting
 (BackendTrafficPolicy), the legacy body-borne `apikey`, the HTTP ext_authz transport, Redis/HTTP
@@ -38,5 +41,6 @@ leaves only the periodic reload.
 
 ## Checks
 
-`make test` (Go vet and race tests; the Postgres tests run when `PG_TEST_DSN` is set),
+`make test` (Go vet and race tests; the Postgres tests run when `PG_TEST_DSN` is set, as they do in
+the Continuous workflow's auth-service job),
 `make helm-matrix`, `make helm-render`, `make shellcheck`.

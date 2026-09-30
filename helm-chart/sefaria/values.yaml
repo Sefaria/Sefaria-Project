@@ -197,9 +197,12 @@ authService:
   # One is enough for a cauldron (failOpen covers the restart gap); production sets more. A PDB is
   # rendered only when this is > 1.
   replicaCount: 1
-  containerImage:
-    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-auth-service
-    tag: latest
+  # Continuous CI pushes us-east1-docker.pkg.dev/<dev project>/containers/sefaria-auth-service-<branch> with tags
+  # sha-<short sha>-<date>, sha-<full sha> and latest. Pin an immutable sha tag: a plain Deployment never rolls on
+  # a re-pushed tag. The tag has no default and must be set when the service is enabled.
+  image:
+    repository: us-east1-docker.pkg.dev/development-205018/containers/sefaria-auth-service-master
+    tag: ""
   resources:
     requests: {cpu: 100m, memory: 64Mi}
     limits: {cpu: "1", memory: 256Mi}
