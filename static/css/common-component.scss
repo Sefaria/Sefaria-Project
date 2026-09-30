@@ -9,12 +9,12 @@
  */
 
 // ── SCSS vars ────────────────────────────────────────────────────────────────
-$sef-error:           #c03522;
-$sef-text-primary:    #121212;
-$sef-text-muted:      #707070;
-$sef-surface:         #ffffff;
-$sef-border-default:  #e6e6e6;
-$sef-surface-disabled:#f5f5f5;
+$sef-error:           var(--color-danger);
+$sef-text-primary:    var(--color-text-primary);
+$sef-text-muted:      var(--color-text-caption);
+$sef-surface:         var(--color-bg-control);
+$sef-border-default:  var(--color-border-input);
+$sef-surface-disabled:var(--color-bg-control-disabled);
 
 $sp-1:  4px;
 $sp-2:  8px;
@@ -53,13 +53,13 @@ $stroke-strong:   1.5px;
 
   &-trailingLink {
     font-size: $font-size-label;
-    color: var(--sefaria-blue);
+    color: var(--color-accent);
     text-decoration: underline;
     cursor: pointer;
   }
 
   &--disabled .sefaria-input-label {
-    color: var(--medium-grey-legacy);
+    color: var(--color-text-tertiary);
   }
 
   &-field {
@@ -88,17 +88,17 @@ $stroke-strong:   1.5px;
     appearance: none;
 
     &::placeholder {
-      color: var(--medium-grey-legacy);
+      color: var(--color-text-tertiary);
       font-size: $font-size-label;
       opacity: 1;
     }
 
-    &:hover:not(:disabled)  { border-color: var(--medium-grey-legacy); }
-    &:focus                 { border-color: var(--light-grey); }
+    &:hover:not(:disabled)  { border-color: var(--color-border-strong); }
+    &:focus                 { border-color: var(--color-border); }
 
     &:disabled {
       background: $sef-surface-disabled;
-      color: var(--medium-grey-legacy);
+      color: var(--color-text-tertiary);
       border-color: $sef-border-default;
       cursor: not-allowed;
     }
@@ -146,17 +146,17 @@ $stroke-strong:   1.5px;
 // ══════════════════════════════════════════════════════════════════════════════
 button.sefaria-common-button.auth-primary,
 a.sefaria-common-button.auth-primary {
-  background-color: var(--sefaria-blue);
-  border: $stroke-strong solid var(--sefaria-blue);
+  background-color: var(--color-accent-fill);
+  border: $stroke-strong solid var(--color-accent-fill);
   border-radius: 4px;
   font-size: $font-size-field;
   font-weight: 600;
   height: 51px;
-  color: #ffffff;
+  color: var(--color-text-on-accent);
 
-  * { color: #ffffff; }
+  * { color: var(--color-text-on-accent); }
 
-  &:hover { background-color: #132b4c; }
+  &:hover { background-color: var(--color-accent-fill-hover); }
 }
 
 button.sefaria-common-button.auth-primary:disabled {

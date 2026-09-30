@@ -1,11 +1,12 @@
 @import 'breakpoints';
 
 // ── Auth-specific SCSS vars (no matching site CSS var) ───────────────────────
-$sef-error:          #c03522;
-$sef-text-primary:   #121212;
-$sef-text-muted:     #707070;
-$sef-surface:        #ffffff;
-$sef-border-default: #e6e6e6;
+$sef-error:          var(--color-danger);
+$sef-text-primary:   var(--color-text-primary);
+$sef-text-muted:     var(--color-text-caption);
+$sef-surface:        var(--color-bg-raised);
+$sef-border-default: var(--color-border-input);
+$sef-disabled-bg:    var(--color-bg-disabled);
 
 $sp-1:  4px;
 $sp-2:  8px;
@@ -43,7 +44,7 @@ $stroke-strong:   1.5px;
   align-items: flex-start;
   justify-content: center;
   padding: 56px 32px; // pure design gap — top offset handled by `top: var(--header-height)`
-  background-color: var(--sefaria-blue);
+  background-color: var(--color-bg-brand);
   background-image: url('/static/img/auth/auth-bg-desktop.png');
   background-size: cover;
   background-position: center bottom;
@@ -132,20 +133,20 @@ $stroke-strong:   1.5px;
     font-size: 16px;
     color: $sef-text-primary;
 
-    a { color: var(--sefaria-blue); }
+    a { color: var(--color-accent); }
 
     .sefaria-auth-loading {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: var(--sefaria-blue);
+      color: var(--color-accent);
     }
 
     .sefaria-auth-loading-spinner {
       width: 14px;
       height: 14px;
-      border: 2px solid rgba(24, 52, 93, 0.25); // --sefaria-blue at low opacity
-      border-top-color: var(--sefaria-blue);
+      border: 2px solid var(--color-accent-track); // --sefaria-blue at low opacity
+      border-top-color: var(--color-accent);
       border-radius: 50%;
       animation: sefaria-auth-spin 0.8s linear infinite;
     }
@@ -247,21 +248,21 @@ $stroke-strong:   1.5px;
   height: 51px;
 
   &:hover .sefaria-provider-button {
-    background-color: var(--highlight-blue-light);
-    border-color: #264764;
+    background-color: var(--color-highlight-light);
+    border-color: var(--color-accent-hover);
   }
 
   &.is-disabled {
     cursor: not-allowed;
 
     & .sefaria-provider-button {
-      background-color: $sef-border-default;
+      background-color: $sef-disabled-bg;
       border-color: $sef-border-default;
-      color: var(--medium-grey-legacy);
+      color: var(--color-text-tertiary);
       cursor: not-allowed;
 
       * {
-        color: var(--medium-grey-legacy);
+        color: var(--color-text-tertiary);
       }
     }
   }
@@ -277,7 +278,7 @@ $stroke-strong:   1.5px;
   justify-content: center;
   gap: $sp-2;
   background-color: $sef-surface;
-  border: $stroke-strong solid var(--sefaria-blue);
+  border: $stroke-strong solid var(--color-accent);
   border-radius: 4px;
   color: $sef-text-primary;
   cursor: pointer;
@@ -288,16 +289,16 @@ $stroke-strong:   1.5px;
   * { color: $sef-text-primary; }
 
   &:hover {
-    background-color: var(--highlight-blue-light);
-    border-color: #264764;
+    background-color: var(--color-highlight-light);
+    border-color: var(--color-accent-hover);
   }
 
   &:disabled {
-    background-color: $sef-border-default;
+    background-color: $sef-disabled-bg;
     border-color: $sef-border-default;
     cursor: not-allowed;
-    color: var(--medium-grey-legacy);
-    * { color: var(--medium-grey-legacy); }
+    color: var(--color-text-tertiary);
+    * { color: var(--color-text-tertiary); }
   }
 
   &-icon { width: 16px; height: 16px; flex: 0 0 16px; }
@@ -340,7 +341,7 @@ $stroke-strong:   1.5px;
     content: "";
     flex: 1 1 auto;
     height: 1px;
-    background: $sef-border-default;
+    background: var(--color-border-hairline);
   }
 }
 
@@ -355,5 +356,5 @@ $stroke-strong:   1.5px;
   color: $sef-text-primary;
   text-align: center;
 
-  a { color: var(--sefaria-blue); }
+  a { color: var(--color-accent); }
 }

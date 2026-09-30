@@ -82,6 +82,7 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 from sefaria.system.cache import django_cache
 from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
 from sefaria.system.database import db
+from sefaria.system.theme import get_stored_theme
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.search import get_search_categories
@@ -367,6 +368,9 @@ def base_props(request):
         "_debug": DEBUG,
         "_debug_mode": request.GET.get("debug_mode", None),
         "appVersion": APP_VERSION,
+        # Always present (None when unset): Node reuses one Sefaria object across visitors, so a
+        # key sent only for some requests would leak one visitor's theme into the next render.
+        "theme": get_stored_theme(request),
     })
     
     chatbot_version = request.session.get("chatbot_version")

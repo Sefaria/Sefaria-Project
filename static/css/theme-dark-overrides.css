@@ -1,0 +1,474 @@
+/*
+ * theme-dark-overrides.css: dark-mode fixes for colours that the semantic tokens cannot reach by themselves.
+ *
+ * Loaded right after s2.css (templates/base.html). Scope contract, enforced by
+ * static/js/tests/themeDarkOverrides.test.js:
+ *   - every rule lives inside one top-level `@media screen { … }` (print always stays light), and
+ *     every selector starts with `:root[data-theme="dark"]`;
+ *   - values use only custom properties, filter functions, url() and keywords. The literal dark
+ *     fallbacks all sit in the alias block below, one per line, marked theme-exempt.
+ *
+ * Sections: 0 aliases · 1 monochrome <img> icons · 2 icons painted by CSS · 3 logos ·
+ *           4 user-generated content · 5 third-party / light islands · 6 JS-drawn charts and chips ·
+ *           7 accessibility (WCAG 2.1 contrast and link fixes that only dark mode needs)
+ *
+ * The icon selector lists in section 1 are GENERATED from scripts/darkmode/icon-inventory.json by
+ * `node scripts/darkmode/icon-inventory.js`. Do not edit them by hand; re-run the script after adding
+ * or recolouring an icon.
+ */
+@media screen {
+
+  /* ── 0. Aliases ─────────────────────────────────────────────────────────────────────────────────
+     Each alias reads a token from theme-tokens.css and carries the design doc's dark value as the
+     fallback, so this file still renders sensibly if the token file is missing. Only these lines
+     contain colour literals. */
+  :root[data-theme="dark"] {
+    --dm-bg-page: var(--color-bg-page, #121212); /* theme-exempt */
+    --dm-text: var(--color-text, #E8E6E3); /* theme-exempt */
+    /* Ink for text that sits on a light, user-chosen highlight: the raw palette's constant near-black. */
+    --dm-ink-on-light: var(--near-black, #121212); /* theme-exempt */
+    /* Page-default ink/paper for third-party widgets that only have a light design. Raw palette constants. */
+    --dm-island-text: var(--darkest-grey, #333333); /* theme-exempt */
+    --dm-island-bg: var(--white, #FFFFFF); /* theme-exempt */
+    /* palette.js fallback colours that have no category token and fail 3:1 on dark surfaces. */
+    --dm-palette-raspberry: #B272A4; /* theme-exempt */
+    --dm-palette-darkblue: #5B86C8; /* theme-exempt */
+    /* Mobile dark-mode switch track when on (section 7c). */
+    --dm-switch-track-on: var(--color-accent-fill-hover, #3A69AB); /* theme-exempt */
+
+    /* #000-family ink (black, #121212, #333, brand navy) -> near-white; navy comes out light blue (#A3BCE1). */
+    --dm-icon-filter: var(--color-icon-filter, invert(1) hue-rotate(180deg) brightness(.9));
+    /* #666-family ink (--dark-grey, #6f6f6f, #575757) -> about #B5B5B5, i.e. dark --color-text-secondary. */
+    --dm-icon-filter-secondary: invert(1) hue-rotate(180deg) brightness(1.18);
+
+    /* The canvas behind <body>: VWO's anti-flicker style sets `body { background: none }` while it
+       loads, so the root itself must be dark or the page flashes white. */
+    background-color: var(--dm-bg-page);
+  }
+
+  /* ── 1. Monochrome <img> icons ──────────────────────────────────────────────────────────────────
+     Matched by src, so coloured images (profile pictures, category art, manuscripts, the Google mark,
+     CMS art, anything user-uploaded) can never be caught. "light" icons such as the #999 set are
+     already readable on dark and are left alone, because inverting them would darken them. */
+
+  /* @generated icons:strong start (scripts/darkmode/icon-inventory.js) */
+  :root[data-theme="dark"] img[src$="static/icons/android.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/apple.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/arrow-left.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/book-icon-black.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/calendar-black.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/chevron-down-line.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/chevron.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/collection-black.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/community-black.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/editing-pencil.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/email-newsletter.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/eye-off.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/eye.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/help-black.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-arrow-25.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-book-15.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-book-2.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-chart-2.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-copy-9.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-eye-4.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-favorite-4.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-file-3.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-gear-2.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-hashtag-1.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-layer-22.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-link-7.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-magnifier-2-240.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-magnifier-2.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-menu-1.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-pen-17.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-pencil-2.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-refresh-6.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-script-2.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-share-2.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-share-6.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-star-5.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-time-2.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-user-2 (1).svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-view-6.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-x-mark-2.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/iconmonstr-x-mark-7.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/ios.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/little-chevron-down.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/little-chevron-up.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/magnifier.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/new-sheet-black.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/plus.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/safari-pinned-tab.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/twitter.svg"],
+  :root[data-theme="dark"] img[src$="static/img/aleph.svg"],
+  :root[data-theme="dark"] img[src$="static/img/arrow-down.png"],
+  :root[data-theme="dark"] img[src$="static/img/arrow-up.png"],
+  :root[data-theme="dark"] img[src$="static/img/audio.svg"],
+  :root[data-theme="dark"] img[src$="static/img/aye.svg"],
+  :root[data-theme="dark"] img[src$="static/img/book-2.svg"],
+  :root[data-theme="dark"] img[src$="static/img/book-icon-black.svg"],
+  :root[data-theme="dark"] img[src$="static/img/calendar.svg"],
+  :root[data-theme="dark"] img[src$="static/img/check-mark.svg"],
+  :root[data-theme="dark"] img[src$="static/img/checkbox-checked.svg"],
+  :root[data-theme="dark"] img[src$="static/img/checkbox-partially.svg"],
+  :root[data-theme="dark"] img[src$="static/img/checkbox-unchecked.svg"],
+  :root[data-theme="dark"] img[src$="static/img/circled-arrow-left.svg"],
+  :root[data-theme="dark"] img[src$="static/img/circled-arrow-right.svg"],
+  :root[data-theme="dark"] img[src$="static/img/circled-edit.svg"],
+  :root[data-theme="dark"] img[src$="static/img/controls.svg"],
+  :root[data-theme="dark"] img[src$="static/img/eye-slash.svg"],
+  :root[data-theme="dark"] img[src$="static/img/facebook.svg"],
+  :root[data-theme="dark"] img[src$="static/img/file-icon-black.svg"],
+  :root[data-theme="dark"] img[src$="static/img/group.svg"],
+  :root[data-theme="dark"] img[src$="static/img/iconmonstr-school-17.svg"],
+  :root[data-theme="dark"] img[src$="static/img/keyboard.svg"],
+  :root[data-theme="dark"] img[src$="static/img/linkedin.svg"],
+  :root[data-theme="dark"] img[src$="static/img/logo-hebrew.png"],
+  :root[data-theme="dark"] img[src$="static/img/logo.svg"],
+  :root[data-theme="dark"] img[src$="static/img/logo/logo.svg"],
+  :root[data-theme="dark"] img[src$="static/img/logo/logotype.svg"],
+  :root[data-theme="dark"] img[src$="static/img/logo/samekh.svg"],
+  :root[data-theme="dark"] img[src$="static/img/logotype.svg"],
+  :root[data-theme="dark"] img[src$="static/img/logout.svg"],
+  :root[data-theme="dark"] img[src$="static/img/more.svg"],
+  :root[data-theme="dark"] img[src$="static/img/new-sheet.svg"],
+  :root[data-theme="dark"] img[src$="static/img/pause.svg"],
+  :root[data-theme="dark"] img[src$="static/img/pin.svg"],
+  :root[data-theme="dark"] img[src$="static/img/play.svg"],
+  :root[data-theme="dark"] img[src$="static/img/plus-icon-black.svg"],
+  :root[data-theme="dark"] img[src$="static/img/profile.svg"],
+  :root[data-theme="dark"] img[src$="static/img/readinghistory.svg"],
+  :root[data-theme="dark"] img[src$="static/img/samekh.svg"],
+  :root[data-theme="dark"] img[src$="static/img/three-dots.svg"],
+  :root[data-theme="dark"] img[src$="static/img/tools-compare.svg"],
+  :root[data-theme="dark"] img[src$="static/img/tools-my-notes.svg"],
+  :root[data-theme="dark"] img[src$="static/img/twitter.svg"],
+  :root[data-theme="dark"] img[src$="static/img/video.svg"],
+  :root[data-theme="dark"] img[src$="static/img/webpage.svg"],
+  :root[data-theme="dark"] img[src$="static/img/youtube.svg"]
+  /* @generated icons:strong end */ {
+    filter: var(--dm-icon-filter);
+  }
+
+  /* @generated icons:secondary start (scripts/darkmode/icon-inventory.js) */
+  :root[data-theme="dark"] img[src$="static/icons/ai-assisted.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/ai-info.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/ai-star-outline-18.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/ai-star-outline-24.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/ai-star-solid-18.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/ai-star-solid-24.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/arrow-down-bold.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/arrow-up-bold.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/bookmark-filled.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/bookmark.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/bookmarkset_outline_mdl.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/chevron-right-sm.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/clock.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/enlarge_font.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/facebook.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/filter.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/globallanguageswitcher_mdl.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/heavy-x-dark.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/help_mdl.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/image.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/instagram.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/keyboard_mdl.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/logged_out.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/module_switcher_icon.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/moduleswitcher_mdl.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/new_editor_saving/cloud-done-rounded.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/new_editor_saving/cloud-off-rounded.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/new_editor_saving/directory-sync-rounded.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/new_editor_saving/error-rounded.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/new_editor_saving/person-off.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/notes-icon.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/notifications_mdl.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/notifications-1_mdl.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/profile_loggedin_mdl.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/profile_loggedout_mdl.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/quotation.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/reduce_font.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/search_mdl.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/sliders-horizontal.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/sliders.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/sort.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/trash.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/unpublish.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/video.svg"],
+  :root[data-theme="dark"] img[src$="static/icons/youtube.svg"],
+  :root[data-theme="dark"] img[src$="static/img/about-text.svg"],
+  :root[data-theme="dark"] img[src$="static/img/arrow-left-bold.svg"],
+  :root[data-theme="dark"] img[src$="static/img/arrow-right-bold.svg"],
+  :root[data-theme="dark"] img[src$="static/img/book-icon.svg"],
+  :root[data-theme="dark"] img[src$="static/img/bulb.svg"],
+  :root[data-theme="dark"] img[src$="static/img/chat_submit_arrow_blue.svg"],
+  :root[data-theme="dark"] img[src$="static/img/file-icon.svg"],
+  :root[data-theme="dark"] img[src$="static/img/lang_icon_english.svg"],
+  :root[data-theme="dark"] img[src$="static/img/lang_icon_hebrew.svg"],
+  :root[data-theme="dark"] img[src$="static/img/network-icon-white.svg"],
+  :root[data-theme="dark"] img[src$="static/img/network-icon.svg"],
+  :root[data-theme="dark"] img[src$="static/img/newspaper-icon.svg"],
+  :root[data-theme="dark"] img[src$="static/img/no-results-search-illustrations/NoResultsAuthors.svg"],
+  :root[data-theme="dark"] img[src$="static/img/no-results-search-illustrations/NoResultsBooks.svg"],
+  :root[data-theme="dark"] img[src$="static/img/no-results-search-illustrations/NoResultsSource.svg"],
+  :root[data-theme="dark"] img[src$="static/img/no-results-search-illustrations/NoResultsTopics.svg"],
+  :root[data-theme="dark"] img[src$="static/img/share-icon-white.svg"],
+  :root[data-theme="dark"] img[src$="static/img/share-icon.svg"]
+  /* @generated icons:secondary end */ {
+    filter: var(--dm-icon-filter-secondary);
+  }
+
+  /* 1a. Module buttons recolour their icon with --theme-button-icon-filter (common-components.css).
+     That rule must keep winning over the src lists above (primary buttons: white icon on the accent
+     fill), so restate it with higher specificity. */
+  :root[data-theme="dark"] button.sefaria-common-button img.button-icon,
+  :root[data-theme="dark"] a.sefaria-common-button img.button-icon {
+    filter: var(--theme-button-icon-filter);
+  }
+  /* Secondary/disabled module buttons get their dark icon ink from chunk C's --filter-icon-secondary /
+     --filter-icon-disabled tokens, which the theme files feed into --theme-button-icon-filter. */
+
+  /* 1b. Context rules that s2.css already has for light mode, restated for dark. */
+  /* White buttons become dark surfaces, so their icons (incl. the black donate heart.png) need light ink.
+     Light mode: `.navSidebar .button.white img { filter: none }` / `.sideColumn …`. */
+  :root[data-theme="dark"] .navSidebar .button.white img,
+  :root[data-theme="dark"] .sideColumn .button.white img {
+    filter: var(--dm-icon-filter);
+  }
+  /* The text-browser tabs dim the non-current tab icon (light: brightness(1.5), #666 -> #999). */
+  :root[data-theme="dark"] .readerNavMenu h1 .navTitleTab img {
+    filter: invert(1) hue-rotate(180deg) brightness(.75);
+  }
+  :root[data-theme="dark"] .readerNavMenu h1 .navTitleTab.current img {
+    filter: var(--dm-icon-filter-secondary);
+  }
+  /* The greyscale "no results" illustrations (mono-dark in the inventory) have large near-white fills:
+     after inversion those would be pure black holes, so pull the ends in to sit on the dark surface. */
+  :root[data-theme="dark"] img[src*="/static/img/no-results-search-illustrations/"] {
+    filter: invert(1) hue-rotate(180deg) brightness(1.18) contrast(.85);
+  }
+  /* Search result cards force the topic icon to black (light: brightness(0)). */
+  :root[data-theme="dark"] .searchResultCard-iconImg--topic {
+    filter: brightness(0) var(--dm-icon-filter);
+  }
+
+  /* ── 2. Icons painted by CSS (pseudo-element content / background-image) ─────────────────────────
+     Where the icon is the element's only paint, filter the element. Where the element also paints
+     text or a background colour, swap in a recoloured copy of the same SVG as a data: URL instead
+     (filtering would invert the text and the surface too). The data: URLs use the dark secondary ink. */
+  :root[data-theme="dark"] .versionBlock.with-preview details summary::before,
+  :root[data-theme="dark"] .addToSourceSheetBox .dropdownMain.noselect::after,
+  :root[data-theme="dark"] .searchContent .searchFilterBoxes li input[type="checkbox"] + label span {
+    filter: var(--dm-icon-filter);
+  }
+  /* Topic story headers: arrow-{down,up}-bold.svg behind the title text. */
+  :root[data-theme="dark"] .story details > summary .storyTitleBlock {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M0 8.122 4 4l8 8 8-8 4 4.122L12 20z' fill='%23B5B5B5'/%3E%3C/svg%3E"); /* theme-exempt */
+  }
+  :root[data-theme="dark"] .story details[open] > summary .storyTitleBlock {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M24 15.878 20 20l-8-8-8 8-4-4.122L12 4z' fill='%23B5B5B5'/%3E%3C/svg%3E"); /* theme-exempt */
+  }
+  /* Sheet editor: the round "+" (heavy-x-dark.svg rotated 45°) on its own surface colour. */
+  :root[data-theme="dark"] .editorAddInterface:before,
+  :root[data-theme="dark"] .editorAddLineButton:before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 18 18'%3E%3Cpath d='M13.95 12.536 10.414 9l3.536-3.536-1.415-1.414L9 7.586 5.464 4.05 4.05 5.464 7.586 9 4.05 12.536l1.414 1.414L9 10.414l3.535 3.536z' fill='%23B5B5B5'/%3E%3C/svg%3E"); /* theme-exempt */
+  }
+  /* Sheet editor "add" buttons (quotation / image / video), painted on a muted surface. */
+  :root[data-theme="dark"] #addSourceButton.editorAddInterfaceButton {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='11' viewBox='0 0 14 11'%3E%3Cpath d='M7.583 6.84C7.583 3.84 9.854.703 13.417 0l.574 1.24c-1.292.487-2.429 2.183-2.555 3.352A3.03 3.03 0 0 1 14 7.596c0 1.856-1.507 2.904-3.033 2.904-1.759 0-3.384-1.345-3.384-3.66zM0 6.84C0 3.84 2.27.703 5.833 0l.574 1.24C5.115 1.727 3.98 3.423 3.852 4.592a3.03 3.03 0 0 1 2.565 3.004c0 1.856-1.508 2.904-3.033 2.904C1.625 10.5 0 9.155 0 6.84z' fill='%23B5B5B5'/%3E%3C/svg%3E"); /* theme-exempt */
+  }
+  :root[data-theme="dark"] #addImageButton.editorAddInterfaceButton {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='12' viewBox='0 0 16 12'%3E%3Cpath d='M7.481 7 10 3l6 9H0l5-6.96zM2 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4z' fill='%23B5B5B5'/%3E%3C/svg%3E"); /* theme-exempt */
+  }
+  :root[data-theme="dark"] #addMediaButton.editorAddInterfaceButton {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='12' viewBox='0 0 16 12'%3E%3Cpath d='M13.077.123c-2.403-.164-7.754-.164-10.154 0C.325.3.02 1.87 0 6c.02 4.123.323 5.7 2.923 5.877 2.4.164 7.751.164 10.154 0C15.675 11.7 15.98 10.13 16 6c-.02-4.123-.323-5.7-2.923-5.877zM6 8.667V3.333l5.333 2.662z' fill='%23B5B5B5'/%3E%3C/svg%3E"); /* theme-exempt */
+  }
+  /* Sheet editor source search box: magnifier behind the typed text. */
+  :root[data-theme="dark"] .addInterfaceInput input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath d='M23.809 21.646l-6.205-6.205c1.167-1.605 1.857-3.579 1.857-5.711 0-5.365-4.365-9.73-9.731-9.73-5.365 0-9.73 4.365-9.73 9.73 0 5.366 4.365 9.73 9.73 9.73 2.034 0 3.923-.627 5.487-1.698l6.238 6.238 2.354-2.354zm-20.955-11.916c0-3.792 3.085-6.877 6.877-6.877s6.877 3.085 6.877 6.877-3.085 6.877-6.877 6.877c-3.793 0-6.877-3.085-6.877-6.877z' fill='%23B5B5B5' fill-opacity='.8'/%3E%3C/svg%3E"); /* theme-exempt */
+  }
+  :root[data-theme="dark"] .addInterfaceInput.mediaInput input {
+    background-image: url("/static/icons/link_grey.svg");
+  }
+
+  /* ── 3. Logos ────────────────────────────────────────────────────────────────────────────────────
+     Header wordmarks: header.scss sets `background: url(/static/img/<module>-logo-<lang>.svg)` on
+     `.home` at the desktop and mobile breakpoints (the tablet samekh is a mask filled with
+     --theme-primary and themes itself). Swap only background-image to the existing white PNGs; size,
+     position and `contain` come from header.scss, so the box keeps its 25px height and width. */
+  @media (min-width: 1087px), (max-width: 842px) {
+    :root[data-theme="dark"] [data-active-module="library"] .interface-english .home {
+      background-image: url("/static/img/library-logo-english-white.png");
+    }
+    :root[data-theme="dark"] [data-active-module="library"] .interface-hebrew .home {
+      background-image: url("/static/img/library-logo-hebrew-white.png");
+    }
+    :root[data-theme="dark"] [data-active-module="voices"] .interface-english .home {
+      background-image: url("/static/img/voices-logo-english-white.png");
+    }
+    :root[data-theme="dark"] [data-active-module="voices"] .interface-hebrew .home {
+      background-image: url("/static/img/voices-logo-hebrew-white.png");
+    }
+  }
+  /* The module-switcher dropdown logo (Header.jsx: logo.svg / logo-hebrew.png, both one black ink)
+     is inverted by the src lists in section 1. */
+
+  /* ── 4. User-generated content ───────────────────────────────────────────────────────────────────
+     Policy (dark mode only, scoped to containers that render user or editor HTML):
+       a. Inline text colours are dropped (`color: inherit`). Pasted content very often carries
+          `color: #000` / `rgb(0,0,0)`, which would be invisible on a dark page; legibility wins over the
+          author's colour.
+       b. Any element with an inline background (sheet highlight marks, pasted cell shading) keeps its
+          background and gets dark ink on itself and every descendant, links included.
+       c. An inline white background is removed instead (pasted Word/Docs HTML), so it doesn't
+          leave a white slab with dark text on a dark page.
+       d. User images are never filtered. Transparent images get a white backdrop so black-on-
+          transparent diagrams stay visible, as the author saw them.
+     Known limit: a deliberately dark user background now gets dark ink. The editor offers only the
+     five pastel highlights (Editor.jsx), so this only affects legacy pasted HTML. */
+  :root[data-theme="dark"] .sheetContent [style*="color"],
+  :root[data-theme="dark"] .editorContent [style*="color"],
+  :root[data-theme="dark"] .sourceContentText [style*="color"],
+  :root[data-theme="dark"] .contentSpan [style*="color"],
+  :root[data-theme="dark"] .extendedNotesText [style*="color"],
+  :root[data-theme="dark"] .versionBlock [style*="color"],
+  :root[data-theme="dark"] .noteText [style*="color"],
+  :root[data-theme="dark"] .aboutText [style*="color"],
+  :root[data-theme="dark"] .collectionDescription [style*="color"],
+  :root[data-theme="dark"] .libraryMessage [style*="color"],
+  :root[data-theme="dark"] #defaultModalBody [style*="color"] {
+    color: inherit !important;
+  }
+  :root[data-theme="dark"] .sheetContent [style*="background"],
+  :root[data-theme="dark"] .sheetContent [style*="background"] *,
+  :root[data-theme="dark"] .editorContent [style*="background"],
+  :root[data-theme="dark"] .editorContent [style*="background"] *,
+  :root[data-theme="dark"] .sourceContentText [style*="background"],
+  :root[data-theme="dark"] .sourceContentText [style*="background"] *,
+  :root[data-theme="dark"] .contentSpan [style*="background"],
+  :root[data-theme="dark"] .contentSpan [style*="background"] *,
+  :root[data-theme="dark"] .aboutText [style*="background"],
+  :root[data-theme="dark"] .aboutText [style*="background"] *,
+  :root[data-theme="dark"] .collectionDescription [style*="background"],
+  :root[data-theme="dark"] .collectionDescription [style*="background"] * {
+    color: var(--dm-ink-on-light) !important;
+  }
+  :root[data-theme="dark"] .sheetContent [style*="background-color: rgb(255, 255, 255)"],
+  :root[data-theme="dark"] .sheetContent [style*="background-color:rgb(255,255,255)"],
+  :root[data-theme="dark"] .sheetContent [style*="background-color: #ffffff" i],
+  :root[data-theme="dark"] .sheetContent [style*="background-color:#ffffff" i],
+  :root[data-theme="dark"] .sheetContent [style*="background-color: #fff;" i],
+  :root[data-theme="dark"] .sheetContent [style*="background-color:#fff;" i],
+  :root[data-theme="dark"] .sheetContent [style*="background-color: white" i],
+  :root[data-theme="dark"] .sheetContent [style*="background-color:white" i],
+  :root[data-theme="dark"] .editorContent [style*="background-color: rgb(255, 255, 255)"],
+  :root[data-theme="dark"] .editorContent [style*="background-color: #ffffff" i],
+  :root[data-theme="dark"] .editorContent [style*="background-color: white" i] {
+    background-color: transparent !important;
+  }
+  :root[data-theme="dark"] .sheetContent [style*="background-color: rgb(255, 255, 255)"],
+  :root[data-theme="dark"] .sheetContent [style*="background-color: rgb(255, 255, 255)"] *,
+  :root[data-theme="dark"] .sheetContent [style*="background-color:rgb(255,255,255)"],
+  :root[data-theme="dark"] .sheetContent [style*="background-color:rgb(255,255,255)"] *,
+  :root[data-theme="dark"] .sheetContent [style*="background-color: #ffffff" i],
+  :root[data-theme="dark"] .sheetContent [style*="background-color: #ffffff" i] *,
+  :root[data-theme="dark"] .sheetContent [style*="background-color:#ffffff" i],
+  :root[data-theme="dark"] .sheetContent [style*="background-color:#ffffff" i] *,
+  :root[data-theme="dark"] .sheetContent [style*="background-color: #fff;" i],
+  :root[data-theme="dark"] .sheetContent [style*="background-color: #fff;" i] *,
+  :root[data-theme="dark"] .sheetContent [style*="background-color:#fff;" i],
+  :root[data-theme="dark"] .sheetContent [style*="background-color:#fff;" i] *,
+  :root[data-theme="dark"] .sheetContent [style*="background-color: white" i],
+  :root[data-theme="dark"] .sheetContent [style*="background-color: white" i] *,
+  :root[data-theme="dark"] .sheetContent [style*="background-color:white" i],
+  :root[data-theme="dark"] .sheetContent [style*="background-color:white" i] *,
+  :root[data-theme="dark"] .editorContent [style*="background-color: rgb(255, 255, 255)"],
+  :root[data-theme="dark"] .editorContent [style*="background-color: rgb(255, 255, 255)"] *,
+  :root[data-theme="dark"] .editorContent [style*="background-color: #ffffff" i],
+  :root[data-theme="dark"] .editorContent [style*="background-color: #ffffff" i] *,
+  :root[data-theme="dark"] .editorContent [style*="background-color: white" i],
+  :root[data-theme="dark"] .editorContent [style*="background-color: white" i] * {
+    color: inherit !important;
+  }
+  :root[data-theme="dark"] .sheetContent img:not([src*="/static/"]),
+  :root[data-theme="dark"] .editorContent img:not([src*="/static/"]),
+  :root[data-theme="dark"] .sourceContentText img:not([src*="/static/"]),
+  :root[data-theme="dark"] .aboutText img:not([src*="/static/"]),
+  :root[data-theme="dark"] .collectionDescription img:not([src*="/static/"]) {
+    filter: none;
+    background-color: var(--dm-island-bg);
+  }
+
+  /* ── 5. Third-party widgets and islands that only have a light design ─────────────────────────── */
+  /* Library Assistant <lc-chatbot>: a shadow-DOM widget with its own light design and --lc-* tokens
+     declared on :host. It publishes no dark palette yet (only --lc-font / --lc-tooltip-* / --lc-user-bg
+     are documented), so keep it a light island: stop the page's dark `color` and `color-scheme` from
+     inheriting into the shadow tree, where they would give light text on its white panel. */
+  :root[data-theme="dark"] lc-chatbot {
+    color-scheme: light;
+    color: var(--dm-island-text);
+  }
+  /* reCAPTCHA (rendered with data-theme="white") and Google One Tap are cross-origin iframes with light
+     designs. Keep their containers light so the iframe edge matches, and never filter them. */
+  :root[data-theme="dark"] .g-recaptcha,
+  :root[data-theme="dark"] #credential_picker_container,
+  :root[data-theme="dark"] #credential_picker_iframe {
+    color-scheme: light;
+    filter: none;
+  }
+
+  /* ── 6. JS-drawn charts and chips ──────────────────────────────────────────────────────────────── */
+  /* UserStats d3 charts: <text> without a fill paints black. Fills set from JS as inline styles win. */
+  :root[data-theme="dark"] .chartWrapper svg text {
+    fill: var(--dm-text);
+  }
+  /* Staff-only linker debug chips keep their pastel type colours, so they need dark ink. */
+  :root[data-theme="dark"] .linkerAdminPartChip {
+    color: var(--dm-ink-on-light);
+  }
+
+  /* ── 7. Accessibility ──────────────────────────────────────────────────────────────────────────
+     Found by the WCAG 2.1 audit (static/js/tests/cssColorLiterals.test.js "WCAG token audit",
+     scripts/darkmode/a11y-audit.js). Each fix is dark-only, so light mode is unchanged. */
+
+  /* a. 1.4.1 Use of Color. In light mode these links in running text differ from the black body text
+     by colour contrast alone (about 4.4:1 to 4.8:1, above the 3:1 of technique G183). In dark mode
+     light-blue links on off-white text are about 1.7:1, and no dark link colour can be both 3:1 from
+     the text and 4.5:1 from the page, so the link gets an underline instead. */
+  :root[data-theme="dark"] .ai-info-messages-box a,
+  :root[data-theme="dark"] .topicPanel .topicDescription a,
+  :root[data-theme="dark"] .sheetContent .segment a,
+  :root[data-theme="dark"] .reactMarkdown a,
+  :root[data-theme="dark"] .feedbackOverlay a:not(.button),
+  :root[data-theme="dark"] .inlineTextRef {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  /* b. 1.4.3 Contrast (Minimum). White fills that stay white in dark mode (the on-accent surface)
+     need their dark text back. */
+  /* Blue Strapi sidebar ad: the white button's brand-blue text became light blue (1.8:1 on white). */
+  :root[data-theme="dark"] .sidebarPromo.blue a.button,
+  :root[data-theme="dark"] .sidebarPromo.blue.button a:hover {
+    color: var(--color-accent-fill, var(--dm-ink-on-light));
+  }
+  /* Google Docs add-on promo: "Install now" was light grey on a white pill (2.1:1). In dark it is a
+     control-coloured pill instead, like the other white buttons. */
+  :root[data-theme="dark"] .gDocAdvertBox #installNow a {
+    background: var(--color-bg-control, var(--dm-bg-page));
+  }
+  /* Beit Midrash modal: light-grey (#CCC) text on the dark inverse surface became --color-text-faint on
+     a mid-grey (1.8:1). */
+  :root[data-theme="dark"] #interruptingMessage.beitMidrashModalContentBox,
+  :root[data-theme="dark"] #interruptingMessage.beitMidrashModalContentBox button.dark-grey {
+    color: var(--color-text, var(--dm-text));
+  }
+
+  /* c. 1.4.11 Non-text Contrast. The mobile "Dark mode" switch (ThemeToggle.jsx) is always on while
+     the page is dark (switching it off turns the page light). Its on track, --color-accent-fill, was
+     2.6:1 against the menu; this one is 3.2:1, and the white knob on it is 5.5:1. */
+  :root[data-theme="dark"] .mobileNavMenu .mobileThemeToggle[aria-checked="true"] .mobileThemeToggleSwitch {
+    background-color: var(--dm-switch-track-on);
+  }
+}

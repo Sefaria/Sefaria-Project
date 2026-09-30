@@ -1,0 +1,77 @@
+{
+  "_comment": "Colour-literal ratchet baseline: per stylesheet, the number of colour literals and raw palette var() uses. Counts may only go down. Regenerate with `node scripts/darkmode/tokenize-css.js --baseline`. See static/js/tests/cssColorLiterals.test.js.",
+  "files": {
+    "base.css": {
+      "literals": 144,
+      "paletteVars": 1
+    },
+    "categorize-sheets.css": {
+      "literals": 1,
+      "paletteVars": 0
+    },
+    "common.css": {
+      "literals": 11,
+      "paletteVars": 0
+    },
+    "dc.css": {
+      "literals": 30,
+      "paletteVars": 0
+    },
+    "hopscotch.css": {
+      "literals": 86,
+      "paletteVars": 0
+    },
+    "jquery.countdown.css": {
+      "literals": 3,
+      "paletteVars": 0
+    },
+    "linker-editor.css": {
+      "literals": 102,
+      "paletteVars": 0
+    },
+    "modtools.css": {
+      "literals": 56,
+      "paletteVars": 0
+    },
+    "reader.css": {
+      "literals": 111,
+      "paletteVars": 0
+    },
+    "s2-print.css": {
+      "literals": 3,
+      "paletteVars": 0
+    },
+    "s2.css": {
+      "literals": 85,
+      "paletteVars": 1
+    },
+    "sheets-print.css": {
+      "literals": 1,
+      "paletteVars": 0
+    },
+    "sheets-visual.css": {
+      "literals": 15,
+      "paletteVars": 0
+    },
+    "sheets.css": {
+      "literals": 155,
+      "paletteVars": 20
+    },
+    "static.css": {
+      "literals": 20,
+      "paletteVars": 0
+    },
+    "tablesorter/style.css": {
+      "literals": 7,
+      "paletteVars": 0
+    },
+    "tooltipster.css": {
+      "literals": 2,
+      "paletteVars": 0
+    },
+    "topics-launch-banner.css": {
+      "literals": 2,
+      "paletteVars": 1
+    }
+  }
+}
