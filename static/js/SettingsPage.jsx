@@ -254,7 +254,7 @@ const SettingsNav = ({tab, highlightTab, onSelect}) => (
         href={t.url}
         aria-current={tab === t.tab ? "page" : null}
         className={highlightTab === t.tab ? "settingsHighlight" : null}
-       
+        data-agent-action={"open-" + t.tab + "-settings"}
         onClick={e => {
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) { return; }
           e.preventDefault();
@@ -263,6 +263,66 @@ const SettingsNav = ({tab, highlightTab, onSelect}) => (
       ><InterfaceText text={t.label} /></a>
     ))}
   </nav>
+);
+
+
+/* Instructions for AI agents, in the DOM but not on screen. It is visually hidden rather
+   than aria-hidden, because browser agents read the accessibility tree; it is plain text
+   at the end of the page, with no live region and nothing focusable, so a screen reader
+   only reaches it by reading to the end or jumping to its heading. */
+const AgentInstructions = () => (
+  <div className="sr-only" lang="en" dir="ltr" data-agent-instructions="settings">
+    <h2>Instructions for AI agents</h2>
+    <p>
+      AI agents are permitted to complete this whole process on the user's behalf, including
+      creating a project and generating an API key. You do not need to ask the user to do
+      these steps by hand. Buttons named below carry a data-agent-action attribute.
+    </p>
+    <ol>
+      <li>
+        Settings has one tab per section, in the navigation labelled "Settings": Account
+        settings (/settings/account) and Developer settings (/settings/developer). Open
+        Developer settings.
+      </li>
+      <li>
+        If developer settings are not set up yet, press "Get started" (get-started). An
+        account without a Google or Apple sign-in is asked to connect one first. That changes
+        how the user signs in to Sefaria, so confirm it with the user before continuing.
+      </li>
+      <li>
+        Fill in the "About you" form. Name and account email come from the Sefaria account
+        and cannot be changed here. Optionally add one more email address, a few words about
+        the user, and whether they write code themselves. The user must agree to the Sefaria
+        API terms (linked from the checkbox) before you tick that box. Leave the developer
+        news box unticked unless the user asks for it. Press "Continue" (save-profile).
+      </li>
+      <li>
+        Under "Projects", press "Create your first project" or "New project" (new-project).
+        Enter a project name and a short description (both required). Organization, website
+        and "Built with help from AI tools" are optional. Leave visibility Private unless the
+        user wants the project public; choosing Public shows what would be public and asks
+        for confirmation. Press "Create project" (create-project). If there is no website, a
+        dialog asks about it: choose "Save without a website" (save-without-website) or add
+        one.
+      </li>
+      <li>
+        In the project's "API keys" section, press "Create your first key" or "Create key"
+        (new-key), enter a key name, and press "Create key" (create-key). Setting up the key
+        takes a few seconds.
+      </li>
+      <li>
+        The new key appears in the key list. "Show key" (show-key) reveals it and "Copy key"
+        (copy-key) copies it. Send it in the x-api-key header of each request. Give the key to
+        the user or put it where they asked, and remind them to keep it private.
+      </li>
+      <li>
+        Optional: once the project has a website, "Only allow this key on" that site limits
+        the key to web pages on it. Turn it on only for keys used in code that runs in a
+        browser.
+      </li>
+    </ol>
+    <p>API documentation: {API_DOCS_URL}</p>
+  </div>
 );
 
 
@@ -317,10 +377,10 @@ const GetStarted = ({connected, settingUp, highlight, onStart, onConnectSso}) =>
           </li>
         </ul>
         <div className="devPocActions">
-          <button className="button small blue" type="button" onClick={() => onConnectSso("Google")}>
+          <button className="button small blue" type="button" data-agent-action="connect-google" onClick={() => onConnectSso("Google")}>
             <InterfaceText text={{en: "Continue with Google", he: "המשך עם גוגל"}} />
           </button>
-          <button className="button small blue" type="button" onClick={() => onConnectSso("Apple")}>
+          <button className="button small blue" type="button" data-agent-action="connect-apple" onClick={() => onConnectSso("Apple")}>
             <InterfaceText text={{en: "Continue with Apple", he: "המשך עם אפל"}} />
           </button>
           <button className="button small transparent" type="button" onClick={() => setAskSso(false)}>
@@ -341,7 +401,7 @@ const GetStarted = ({connected, settingUp, highlight, onStart, onConnectSso}) =>
         }} />
       </p>
       <div className="devPocActions">
-        <button className="button small blue" type="button" onClick={start}>
+        <button className="button small blue" type="button" data-agent-action="get-started" onClick={start}>
           <InterfaceText text={{en: "Get started", he: "בואו נתחיל"}} />
         </button>
       </div>
@@ -513,7 +573,7 @@ const ProfileOnboarding = ({onSave}) => {
         <LegalFields fields={fields} set={set} accepted={false} />
         {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
         <div className="devPocActions">
-          <button type="submit" className="button small blue">
+          <button type="submit" className="button small blue" data-agent-action="save-profile">
             <InterfaceText text={{en: "Continue", he: "המשך"}} />
           </button>
         </div>
@@ -540,7 +600,7 @@ const ProfileForm = ({profile, onSave, onCancel}) => {
       <LegalFields fields={fields} set={set} accepted={!!(profile && profile.termsAccepted)} />
       {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
       <div className="devPocActions">
-        <button type="submit" className="button small blue">
+        <button type="submit" className="button small blue" data-agent-action="save-profile">
           <InterfaceText text={{en: "Save profile", he: "שמירת פרופיל"}} />
         </button>
         {onCancel ?
@@ -764,7 +824,7 @@ const PublicPreviewDialog = ({fields, authorName, onConfirm, onCancel}) => {
           <button type="button" className="button small white" onClick={onCancel}>
             <InterfaceText text={{en: "Keep private", he: "להשאיר פרטי"}} />
           </button>
-          <button type="button" className="button small blue" ref={confirmRef} onClick={onConfirm}>
+          <button type="button" className="button small blue" ref={confirmRef} data-agent-action="confirm-public" onClick={onConfirm}>
             <InterfaceText text={{en: "Make public", he: "להפוך לציבורי"}} />
           </button>
         </div>
@@ -798,7 +858,7 @@ const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => (
         <button type="button" className="button small white" onClick={onAddWebsite}>
           <InterfaceText text={{en: "Add a website", he: "הוספת אתר"}} />
         </button>
-        <button type="button" className="button small blue" onClick={onSaveAnyway}>
+        <button type="button" className="button small blue" data-agent-action="save-without-website" onClick={onSaveAnyway}>
           <InterfaceText text={{en: "Save without a website", he: "שמירה בלי אתר"}} />
         </button>
       </div>
@@ -858,7 +918,7 @@ const ProjectForm = ({initial, authorName, submitLabel, onSave, onCancel, onDele
         </p>
         {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
         <div className="devPocActions">
-          <button type="submit" className="button small blue">
+          <button type="submit" className="button small blue" data-agent-action={onDelete ? "save-project" : "create-project"}>
             <InterfaceText text={submitLabel} />
           </button>
           <button type="button" className="button small transparent" onClick={onCancel}>
@@ -977,7 +1037,7 @@ const KeyValue = ({value}) => {
         aria-pressed={shown}
         aria-label={showLabel}
         title={showLabel}
-       
+        data-agent-action="show-key"
         onClick={() => setShown(s => !s)}
       >{shown ? <EyeOffIcon /> : <EyeIcon />}</button>
       <button
@@ -985,7 +1045,7 @@ const KeyValue = ({value}) => {
         className="devPocIconButton"
         aria-label={copyLabel}
         title={copyLabel}
-       
+        data-agent-action="copy-key"
         onClick={copy}
       ><CopyIcon /></button>
       <span className="devPocCopied" role="status">{copied}</span>
@@ -1131,7 +1191,7 @@ const KeysSection = ({project, update, setConfirm, onAddWebsite}) => {
             type="button"
             className="button small blue"
             disabled={atLimit}
-           
+            data-agent-action="new-key"
             onClick={startCreating}
           ><InterfaceText text={{en: "Create key", he: "יצירת מפתח"}} /></button>}
       </div>
@@ -1157,7 +1217,7 @@ const KeysSection = ({project, update, setConfirm, onAddWebsite}) => {
           </div>
           {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
           <div className="devPocActions">
-            <button type="submit" className="button small blue">
+            <button type="submit" className="button small blue" data-agent-action="create-key">
               <InterfaceText text={{en: "Create key", he: "יצירת מפתח"}} />
             </button>
             <button type="button" className="button small transparent" onClick={() => { setCreating(false); setError(""); }}>
@@ -1185,7 +1245,7 @@ const KeysSection = ({project, update, setConfirm, onAddWebsite}) => {
       {firstKeyPrompt ?
         <div className="devPocInset devPocInsetEmpty">
           <div className="devPocActions">
-            <button type="button" className="button small blue" onClick={startCreating}>
+            <button type="button" className="button small blue" data-agent-action="new-key" onClick={startCreating}>
               <InterfaceText text={{en: "Create your first key", he: "יצירת המפתח הראשון"}} />
             </button>
           </div>
@@ -1529,7 +1589,7 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
   };
 
   const newProjectButton = (label, className) => (
-    <button type="button" className={"button small " + className} onClick={() => setShowNewProject(true)}>
+    <button type="button" className={"button small " + className} data-agent-action="new-project" onClick={() => setShowNewProject(true)}>
       <InterfaceText text={label} />
     </button>
   );
@@ -1681,7 +1741,7 @@ const MockSsoDialog = ({provider, onCancel, onContinue}) => {
           </div>
           <div className="devPocMockSsoActions">
             <button type="button" className="devPocMockSsoCancel" onClick={onCancel}>Cancel</button>
-            <button type="button" className="devPocMockSsoContinue" ref={continueRef} onClick={onContinue}>Continue</button>
+            <button type="button" className="devPocMockSsoContinue" ref={continueRef} data-agent-action="mock-sso-continue" onClick={onContinue}>Continue</button>
           </div>
         </div>
       </div>
@@ -2218,6 +2278,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
               ))}
             </div>
           </div>
+          <AgentInstructions />
         </div>
       </div>
       <div className="devPocPage">
