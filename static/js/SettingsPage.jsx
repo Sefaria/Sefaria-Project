@@ -58,7 +58,7 @@ const copyToClipboard = (text, node, onDone) => {
   onDone(Sefaria._v({en: "Copy failed", he: "ההעתקה נכשלה"}));
 };
 
-/* The name and email the account itself carries. */
+/* The name and email the account itself carries, which the developer profile shows locked. */
 const accountName = () => (Sefaria.full_name || "").trim();
 const accountEmail = () => (Sefaria._email && Sefaria._email !== "null" ? Sefaria._email : "");
 
@@ -364,11 +364,57 @@ const OptionalMark = () => (
   <span className="devPocMuted"><InterfaceText text={{en: "(optional)", he: "(לא חובה)"}} /></span>
 );
 
+/* Name and email come from the Sefaria account and are shown locked; an account without a
+   name types one here instead. */
 const AboutYouFields = ({fields, set}) => {
+  const name = accountName();
   const email = accountEmail();
   return (
     <React.Fragment>
-      <label className="devPocChoice devPocNoviceChoice">
+      <div className="devPocField">
+        <label htmlFor="devPocName"><InterfaceText text={{en: "Name", he: "שם"}} /></label>
+        {name ?
+          <input id="devPocName" value={name} readOnly aria-readonly="true" className="devPocLocked" dir="auto" /> :
+          <input id="devPocName" value={fields.developerName} onChange={e => set("developerName", e.target.value)} dir="auto" />}
+        {name ?
+          <p className="devPocHelp"><InterfaceText text={{en: "From your Sefaria account.", he: "מתוך חשבון ספריא שלך."}} /></p> : null}
+      </div>
+      {email ?
+        <div className="devPocField">
+          <label htmlFor="devPocEmail"><InterfaceText text={{en: "Email", he: "דוא״ל"}} /></label>
+          <input id="devPocEmail" type="email" value={email} readOnly aria-readonly="true" className="devPocLocked" dir="ltr" />
+          <p className="devPocHelp">
+            <InterfaceText text={{
+              en: "From your Sefaria account. We send project and key emails here.",
+              he: "מתוך חשבון ספריא שלך. לכתובת הזו נשלח הודעות על פרויקטים ומפתחות.",
+            }} />
+          </p>
+        </div> : null}
+      <div className="devPocField">
+        <label htmlFor="devPocEmail2">
+          <InterfaceText text={{en: "Also send project and key emails to", he: "לשלוח הודעות על פרויקטים ומפתחות גם אל"}} /> <OptionalMark />
+        </label>
+        <input id="devPocEmail2" type="email" dir="ltr" value={fields.additionalEmail} onChange={e => set("additionalEmail", e.target.value)} />
+        <p className="devPocHelp">
+          <InterfaceText text={{
+            en: "Add another address, like a work address or a colleague who looks after the project, and it gets the same emails.",
+            he: "הוסיפו כתובת נוספת, למשל כתובת עבודה או של עמית שמטפל בפרויקט, והיא תקבל את אותן הודעות.",
+          }} />
+        </p>
+      </div>
+      <div className="devPocField">
+        <label htmlFor="devPocDescription">
+          <InterfaceText text={{en: "Tell us about yourself", he: "ספרו לנו על עצמכם"}} /> <OptionalMark />
+        </label>
+        <textarea id="devPocDescription" rows={3} dir="auto" value={fields.description} onChange={e => set("description", e.target.value)} />
+        <p className="devPocHelp">
+          <InterfaceText text={{
+            en: "Who you are, where you work or study, what you like to build. It helps us understand who uses the API.",
+            he: "מי אתם, איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות. זה עוזר לנו להבין מי משתמש ב־API.",
+          }} />
+        </p>
+      </div>
+      <label className="devPocChoice">
         <input type="checkbox" checked={!!fields.notADeveloper} onChange={e => set("notADeveloper", e.target.checked)} />
         <span>
           <InterfaceText text={{en: "I don't write code myself", he: "אני לא כותב/ת קוד בעצמי"}} />
@@ -380,41 +426,6 @@ const AboutYouFields = ({fields, set}) => {
           </span>
         </span>
       </label>
-      <div className="devPocField">
-        <label htmlFor="devPocName"><InterfaceText text={{en: "Name", he: "שם"}} /></label>
-        <input id="devPocName" dir="auto" value={fields.developerName} onChange={e => set("developerName", e.target.value)} />
-        <p className="devPocHelp"><InterfaceText text={{en: "You, your team, or your organization.", he: "את/ה, הצוות או הארגון שלך."}} /></p>
-      </div>
-      <div className="devPocField">
-        <label htmlFor="devPocDescription">
-          <InterfaceText text={{en: "What you work on", he: "במה את/ה עוסק/ת"}} /> <OptionalMark />
-        </label>
-        <input id="devPocDescription" dir="auto" value={fields.description} onChange={e => set("description", e.target.value)} />
-        <p className="devPocHelp">
-          <InterfaceText text={{
-            en: "A sentence or two about you and what you work on. It helps us understand your project if we need to get in touch.",
-            he: "משפט או שניים עליכם ועל מה שאתם עושים. זה עוזר לנו להבין את הפרויקט אם נצטרך ליצור קשר.",
-          }} />
-        </p>
-      </div>
-      <div className="devPocField">
-        <label htmlFor="devPocEmail2">
-          <InterfaceText text={{en: "Also send project and key emails to", he: "לשלוח הודעות על פרויקטים ומפתחות גם אל"}} /> <OptionalMark />
-        </label>
-        <input id="devPocEmail2" type="email" dir="ltr" value={fields.additionalEmail} onChange={e => set("additionalEmail", e.target.value)} />
-        <p className="devPocHelp">
-          <InterfaceText text={{
-            en: <React.Fragment>
-              We always email your account address{email ? <React.Fragment> (<bdi dir="ltr">{email}</bdi>)</React.Fragment> : null}.
-              Add another address, like a work address or a colleague who looks after the project, and it gets the same emails.
-            </React.Fragment>,
-            he: <React.Fragment>
-              אנחנו תמיד שולחים הודעות לכתובת של החשבון{email ? <React.Fragment> (<bdi dir="ltr">{email}</bdi>)</React.Fragment> : null}.
-              הוסיפו כתובת נוספת, למשל כתובת עבודה או של עמית שמטפל בפרויקט, והיא תקבל את אותן הודעות.
-            </React.Fragment>,
-          }} />
-        </p>
-      </div>
     </React.Fragment>
   );
 };
@@ -458,7 +469,7 @@ const LegalFields = ({fields, set, accepted}) => (
 );
 
 const profileError = (fields) => {
-  if (!fields.developerName.trim()) { return Sefaria._v({en: "Enter your name.", he: "נא להזין שם."}); }
+  if (!accountName() && !fields.developerName.trim()) { return Sefaria._v({en: "Enter your name.", he: "נא להזין שם."}); }
   if (fields.additionalEmail.trim() && !/^\S+@\S+\.\S+$/.test(fields.additionalEmail.trim())) {
     return Sefaria._v({en: "Enter a valid additional email, or leave it empty.", he: "נא להזין כתובת דוא״ל נוספת תקינה, או להשאיר את השדה ריק."});
   }
@@ -467,7 +478,10 @@ const profileError = (fields) => {
 };
 
 const cleanProfile = (fields) => ({
-  ...fields, developerName: fields.developerName.trim(), additionalEmail: fields.additionalEmail.trim(),
+  ...fields,
+  developerName: accountName() || fields.developerName.trim(),
+  description: fields.description.trim(),
+  additionalEmail: fields.additionalEmail.trim(),
 });
 
 /* First visit: one form, with the legal part at the bottom. */
@@ -1427,6 +1441,8 @@ const DeveloperTab = ({state, socialProviders, developerOn, update, setConfirm, 
                        connectedMessage, editingProfile, setEditingProfile, showNewProject,
                        setShowNewProject, onCreateProject, setProjectId, onStart,
                        onConnectSso, settingUp}) => {
+  const authorName = accountName() || (state.profile ? state.profile.developerName : "");
+
   const toggleExpand = (project) => {
     const expandedProjectId = state.expandedProjectId === project.id ? null : project.id;
     update(s => ({...s, expandedProjectId}));
@@ -1493,7 +1509,7 @@ const DeveloperTab = ({state, socialProviders, developerOn, update, setConfirm, 
               </React.Fragment> :
               <div className="devPocProfileSummary">
                 <span>
-                  <strong dir="auto">{state.profile.developerName}</strong>
+                  <strong dir="auto">{authorName}</strong>
                   <span className="devPocHelp">
                     {profileEmails.map((email, i) => (
                       <React.Fragment key={email}>
