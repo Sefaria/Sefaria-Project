@@ -262,10 +262,9 @@ def recolor_legacy(src, color, size):
     scale = size / max(vw, vh)
     new_tag = re.sub(r'\s(width|height)="[^"]*"', "", open_tag)
     new_tag = new_tag.replace("<svg", '<svg width="%g" height="%g"' % (round(vw * scale, 2), round(vh * scale, 2)), 1)
-    out = out.replace(open_tag, new_tag, 1)
     if not re.search(r"\bfill\s*[=:]", out):  # glyph relied on default black
-        out = out.replace("<svg", '<svg fill="%s"' % color, 1)
-    return out
+        new_tag = new_tag.replace("<svg", '<svg fill="%s"' % color, 1)
+    return out.replace(open_tag, new_tag, 1)
 
 
 def main():
