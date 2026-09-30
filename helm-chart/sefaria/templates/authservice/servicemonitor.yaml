@@ -1,0 +1,17 @@
+{{- if and .Values.authService.enabled .Values.authService.monitoring.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: "{{ .Values.deployEnv }}-auth-service-servicemonitor"
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  endpoints:
+    - interval: 15s
+      port: http
+      path: /metrics
+  selector:
+    matchLabels:
+      app: auth-service-{{ .Values.deployEnv }}
+      stackRole: auth-service
+{{- end }}
