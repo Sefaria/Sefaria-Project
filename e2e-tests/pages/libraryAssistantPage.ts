@@ -215,6 +215,17 @@ export class LibraryAssistantPage extends HelperBase {
 
   // --- Assertions / actions used by individual tests ---
 
+  // UX-085: at phone sizes the widget is a full-screen sheet (the widget's own media query)
+  async expectFullScreenSheet(): Promise<void> {
+    await expect(this.container).toHaveClass(/mode-fullscreen/, { timeout: t(5000) });
+    await this.ensureOpen();
+    const { width, height } = this.page.viewportSize()!;
+    await expect.poll(async () => {
+      const box = await this.panel.boundingBox();
+      return box && [Math.round(box.width), Math.round(box.height)];
+    }, { timeout: t(5000) }).toEqual([width, height]);
+  }
+
   // UX-001: trigger pill visible when panel is closed
   async expectTriggerVisible(): Promise<void> {
     await expect(this.triggerBtn).toBeVisible({ timeout: t(10000) });
