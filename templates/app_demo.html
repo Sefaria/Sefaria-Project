@@ -212,6 +212,24 @@
   .verse.hl { background: #fdf6e0; }
   .lang-he .v-en, .lang-en .v-he { display: none; }
   .lang-en .v-en { margin-top: 0; }
+  /* A segment with only one language shows it whatever the setting. */
+  .lang-en .verse.only-he .v-he, .lang-he .verse.only-en .v-en { display: block; }
+
+  /* ---------- Reader (texts opened from Today, inside the app) ---------- */
+  .reader-bar { position: sticky; top: 0; z-index: 2; display: flex; align-items: center; gap: 6px; margin: -16px -16px 14px; padding: 7px 12px 7px 4px; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); }
+  .reader-back { display: inline-flex; align-items: center; height: 36px; padding: 0 10px 0 2px; border-radius: 999px; color: var(--navy); font-weight: 500; flex: none; }
+  .reader-back svg { width: 22px; height: 22px; }
+  .reader-bar .rb-title { flex: 1; min-width: 0; text-align: center; font-family: var(--serif); font-size: 17px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .reader-bar .aa { flex: none; font-family: var(--serif); font-size: 18px; color: var(--navy); width: 38px; height: 32px; border-radius: 8px; background: #f1efea; }
+  .reader-sub { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
+  .reader-desc { font-size: 14px; color: var(--ink-2); margin-top: 10px; }
+  .part-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 22px 0 2px; padding-bottom: 6px; border-bottom: 2px solid var(--c, var(--navy)); }
+  .part-head .t { font-family: var(--serif); font-size: 21px; }
+  .part-head .s { font-size: 12px; color: var(--ink-3); text-align: right; }
+  .sec-head { margin: 16px 0 0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-3); font-weight: 500; }
+  .part-err { padding: 12px 4px; font-size: 13px; color: var(--ink-2); }
+  .reader-foot { margin-top: 20px; text-align: center; }
+  .sbs-rows .part-head, .sbs-rows .sec-head { margin-left: 10px; margin-right: 10px; }
 
   /* ---------- Side by side (landscape) ---------- */
   .sbs { display: none; }
@@ -219,6 +237,11 @@
   .app.landscape.tab-text #panel-text > .portrait { display: none; }
   .app.landscape.tab-text #panel-text { padding: 0; }
   .app.landscape.tab-text .sbs { display: block; }
+  /* The reader shares the text view's landscape layout. */
+  .app.landscape.tab-read .appbar, .app.landscape.tab-read .tabbar { display: none; }
+  .app.landscape.tab-read #panel-read > .portrait { display: none; }
+  .app.landscape.tab-read #panel-read { padding: 0; }
+  .app.landscape.tab-read .sbs { display: block; }
   .sbs-bar { position: sticky; top: 0; z-index: 2; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding: 10px 20px; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); font-size: 13px; }
   .sbs-bar .mode { color: var(--ink-2); display: flex; align-items: center; gap: 8px; }
   .sbs-bar .mode b { color: var(--navy); font-weight: 500; }
@@ -394,7 +417,7 @@
 
   /* Landscape (non-text tabs): keep content readable */
   .app.landscape .panel { max-width: 640px; margin: 0 auto; }
-  .app.landscape.tab-text .panel { max-width: none; }
+  .app.landscape.tab-text .panel, .app.landscape.tab-read .panel { max-width: none; }
   .app.landscape .lock-clock { font-size: 64px; }
   .app.landscape .notifs { max-width: 420px; margin-bottom: 60px; }
   .app.landscape .lock { flex-wrap: wrap; }
@@ -421,6 +444,10 @@
     <section class="panel" id="panel-goals"></section>
     <section class="panel" id="panel-share"></section>
     <section class="panel" id="panel-text">
+      <div class="portrait"></div>
+      <div class="sbs"></div>
+    </section>
+    <section class="panel" id="panel-read">
       <div class="portrait"></div>
       <div class="sbs"></div>
     </section>
@@ -617,13 +644,13 @@
     var r = TEHILLIM[h.day];
     if (h.day === 29 && heb(addDays(TODAY, 1)).day === 1) r = '140-150';
     var url = 'Psalms.' + r.replace(':', '.').replace(/(\d+)\.(\d+)-(\d+)/, '$1.$2-$3');
-    return { en: 'Psalms ' + r.replace('-', '–'), he: 'תהלים', url: url, note: 'Day ' + h.day + ' of ' + (MONTH_EN[h.month] || h.month) };
+    return { en: 'Psalms ' + r.replace('-', '–'), he: 'תהלים', ref: 'Psalms ' + r, url: url, note: 'Day ' + h.day + ' of ' + (MONTH_EN[h.month] || h.month) };
   }
   var AVOT_LEN = [18, 16, 18, 22, 23, 11];
   function avotToday() {
     var n = ((daysBetween(new Date(2024, 0, 1, 12), TODAY) % 108) + 108) % 108, c = 0;
     while (n >= AVOT_LEN[c]) { n -= AVOT_LEN[c]; c++; }
-    return { en: 'Pirkei Avot ' + (c + 1) + ':' + (n + 1), he: 'פרקי אבות ' + gematria(c + 1) + ':' + gematria(n + 1), url: 'Pirkei_Avot.' + (c + 1) + '.' + (n + 1), note: 'One mishnah a day' };
+    return { en: 'Pirkei Avot ' + (c + 1) + ':' + (n + 1), he: 'פרקי אבות ' + gematria(c + 1) + ':' + gematria(n + 1), ref: 'Pirkei Avot ' + (c + 1) + ':' + (n + 1), url: 'Pirkei_Avot.' + (c + 1) + '.' + (n + 1), note: 'One mishnah a day' };
   }
   function hasLearning() { return S.cycles.length > 0 && !S.exploring; }
   function primaryCycleLabel() {
@@ -696,6 +723,63 @@
     }).then(function (p) { PASSAGE = p; }).catch(function (e) { PASSAGE_ERR = e; });
   }
 
+  /* ---------- Reader: any ref (or list of refs) from the Today tab ---------- */
+  function versionText(j, lang) {
+    var v = (j.versions || []).filter(function (x) { return x.language === lang; })[0];
+    return v ? v.text : null;
+  }
+  // Flattens a v3 response into rows. Spanning refs (a whole daf, a multi-chapter
+  // range) come back one array per section; each section gets a small heading.
+  function refRows(j) {
+    var he = versionText(j, 'he'), en = versionText(j, 'en'), rows = [];
+    var depth = j.textDepth || 1, secs = j.sections || [];
+    // Numbering starts mid-section only when the ref names a segment (e.g. 14:22).
+    var first = secs.length >= depth ? parseInt(secs[secs.length - 1], 10) || 1 : 1;
+    function leaves(t, out) {
+      if (Array.isArray(t)) t.forEach(function (x) { leaves(x, out); });
+      else if (t != null && t !== '') out.push(t);
+      return out;
+    }
+    function addSection(h, e, start) {
+      var hs = leaves(h, []), es = leaves(e, []);
+      for (var i = 0; i < Math.max(hs.length, es.length); i++) rows.push({ n: start + i, he: cleanText(hs[i]), en: cleanText(es[i]) });
+    }
+    if (j.isSpanning && Array.isArray(j.spanningRefs)) {
+      var name = (j.sectionNames || [])[0] || '', title = j.indexTitle || '';
+      j.spanningRefs.forEach(function (sr, i) {
+        var label = sr.indexOf(title) === 0 ? sr.slice(title.length).trim().split(':')[0] : sr;
+        rows.push({ sec: (name ? name + ' ' : '') + label });
+        addSection(he && he[i], en && en[i], i === 0 ? first : 1);
+      });
+    } else {
+      addSection(he, en, first);
+    }
+    return rows.filter(function (r) { return r.sec || r.he || r.en; });
+  }
+  function loadRef(tref) {
+    return fetchJSON(API + '/api/v3/texts/' + encodeURIComponent(tref) + '?version=hebrew&version=english&return_format=text_only').then(function (j) {
+      var rows = refRows(j);
+      if (!rows.some(function (r) { return !r.sec; })) throw new Error('No text');
+      return { ref: j.ref || tref, heRef: j.heRef || '', rows: rows };
+    });
+  }
+  // parts: [{ ref, head? }]. Parts load in parallel; one failing part becomes a
+  // note in place, and only a total failure shows the error state.
+  function loadReader(parts) {
+    return Promise.all(parts.map(function (p) {
+      return loadRef(p.ref).catch(function (e) { return { ref: p.ref, err: e }; });
+    })).then(function (res) {
+      if (res.every(function (r) { return r.err; })) throw res[0].err;
+      var rows = [], k = 0;
+      res.forEach(function (r, i) {
+        if (parts.length > 1) rows.push({ head: parts[i].head || r.ref, sub: r.err ? '' : r.ref });
+        if (r.err) { rows.push({ err: 'Couldn’t load ' + parts[i].ref }); return; }
+        r.rows.forEach(function (x) { if (!x.sec) x.k = ++k; rows.push(x); });
+      });
+      return { rows: rows, heRef: res.length === 1 ? res[0].heRef : '', single: res.length === 1 ? res[0].ref : null };
+    });
+  }
+
   /* ======================================================================
      Log, streak, goal
      ====================================================================== */
@@ -765,7 +849,7 @@
       what = S.goal.book + ' · ' + S.goal.done + ' of ' + BOOKS[S.goal.book].total;
     } else {
       var d = calItem('Daf Yomi');
-      what = S.cycles.indexOf('daf') >= 0 && d ? d.displayValue.en : primaryCycleLabel();
+      what = currentTab === 'read' && READ ? READ.item.en : S.cycles.indexOf('daf') >= 0 && d ? d.displayValue.en : primaryCycleLabel();
     }
     S.log.push({ date: TODAY_ISO, minutes: S.goal.type === 'minutes' ? S.goal.minutes : 12, what: what });
     save(); renderAll();
@@ -780,8 +864,11 @@
     return '<svg class="ring" viewBox="0 0 48 48"><circle class="bg" cx="24" cy="24" r="' + r + '"/><circle class="fg" cx="24" cy="24" r="' + r + '" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '"/></svg>';
   }
   function greeting() { var h = NOW.getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'; }
+  // Cards open in the in-app reader; the href stays as a fallback (and for items with no ref).
+  var TODAY_ITEMS = [];
   function lcard(opts) {
-    return '<a class="card lcard" style="--c:' + (CAT_COLOR[opts.cat] || 'var(--navy)') + '" href="' + esc(readerUrl(opts.url)) + '">' +
+    var read = opts.parts && opts.parts.length ? ' data-read="' + (TODAY_ITEMS.push(opts) - 1) + '"' : '';
+    return '<a class="card lcard" style="--c:' + (CAT_COLOR[opts.cat] || 'var(--navy)') + '" href="' + esc(readerUrl(opts.url)) + '"' + read + '>' +
       '<div class="kicker"><span>' + esc(opts.kicker) + '</span><span>' + esc(opts.mins || '') + '</span></div>' +
       '<div class="trow"><div class="title">' + esc(opts.en) + '</div>' +
       (opts.he && S.lang !== 'en' ? '<div class="htitle">' + esc(opts.he) + '</div>' : '') + '</div>' +
@@ -832,6 +919,7 @@
         '<button class="btn secondary sm" data-act="retry">Try again</button></div>';
     } else {
       var cards = [], shown = {};
+      TODAY_ITEMS = [];
       var want = ['daf', 'parasha'].concat(S.cycles.filter(function (c) { return c !== 'daf' && c !== 'parasha'; }));
       want.forEach(function (key) {
         if (shown[key]) return; shown[key] = 1;
@@ -840,16 +928,32 @@
           var it = calItem(c.cal); if (!it) return;
           var desc = key === 'parasha' && it.description ? it.description.en : '';
           cards.push(lcard({ kicker: c.label, en: key === 'parasha' ? parshaInfo().label : it.displayValue.en, he: it.displayValue.he, url: it.url, cat: c.cat, mins: c.mins,
-            desc: desc, note: key === 'parasha' ? it.ref : it.category }));
+            desc: desc, note: key === 'parasha' ? it.ref : it.category, ref: it.ref, parts: key === 'parasha' ? parshaParts(it) : itemParts(it) }));
         } else {
           var loc = key === 'tehillim' ? tehillimToday() : avotToday(); if (!loc) return;
-          cards.push(lcard({ kicker: c.label, en: loc.en, he: loc.he, url: loc.url, cat: c.cat, mins: c.mins, note: loc.note }));
+          cards.push(lcard({ kicker: c.label, en: loc.en, he: loc.he, url: loc.url, cat: c.cat, mins: c.mins, note: loc.note, ref: loc.ref, parts: [{ ref: loc.ref }] }));
         }
       });
       html += '<div class="stack">' + cards.join('') + '</div>';
       html += '<p class="small muted" style="text-align:center;margin-top:16px"><a class="link" href="' + esc(readerUrl('calendars')) + '">See all learning schedules</a></p>';
     }
     el.innerHTML = html;
+  }
+  // What the reader loads for a calendar item: its refs array if it has one, else its ref.
+  function itemParts(it) {
+    if (Array.isArray(it.refs) && it.refs.length) return it.refs.map(function (r) { return { ref: r, head: r }; });
+    return it.ref ? [{ ref: it.ref }] : [];
+  }
+  // The parashah reads aliyah by aliyah (maftir included), then the haftarah(ot).
+  var ALIYAH = ['Rishon', 'Sheni', 'Shlishi', 'Revi’i', 'Chamishi', 'Shishi', 'Shvi’i'];
+  function parshaParts(it) {
+    var al = (it.extraDetails && it.extraDetails.aliyot) || [];
+    var parts = al.length > 1 ? al.map(function (r, i) { return { ref: r, head: i === al.length - 1 ? 'Maftir' : (ALIYAH[i] || 'Aliyah ' + (i + 1)) }; }) : itemParts(it);
+    if (parts.length === 1) parts[0].head = 'Torah reading';
+    CAL.calendar_items.forEach(function (h) {
+      if (h.title.en === 'Haftarah') itemParts(h).forEach(function (p) { parts.push({ ref: p.ref, head: 'Haftarah' }); });
+    });
+    return parts;
   }
   function fmtTime(t) {
     var m = /^(\d{1,2}):(\d{2})/.exec(t || '07:00'), hh = +m[1], ap = hh >= 12 ? 'pm' : 'am';
@@ -1039,23 +1143,102 @@
     var P = PASSAGE;
     var h = '<div class="dateline">' + esc(p.fallback ? 'Start at the beginning' : 'This week · ' + p.label) + '</div>' +
       '<div class="text-head"><div><div class="text-head ref">' + esc(P.ref) + '</div><div class="heref">' + esc(P.heRef) + '</div></div></div>';
-    h += '<div class="seg" data-seg="lang" style="margin-top:14px">' + [['he', 'Hebrew'], ['bi', 'Bilingual'], ['en', 'English']].map(function (l) {
-      return '<button data-v="' + l[0] + '" class="' + (S.lang === l[0] ? 'on' : '') + '">' + l[1] + '</button>'; }).join('') + '</div>';
-    h += '<div class="rotate-hint">' + I.rotate + '<span>Turn your phone sideways for <b>side-by-side</b> Hebrew and English.</span></div>';
-    h += '<div class="verses lang-' + S.lang + '">' + P.rows.map(function (r) {
-      return '<div class="verse' + (hlVerse === r.n ? ' hl' : '') + '" data-v="' + r.n + '"><span class="num">' + r.n + '</span>' +
-        '<div class="v-he">' + esc(r.he) + '</div><div class="v-en">' + esc(r.en) + '</div></div>';
-    }).join('') + '</div>';
+    h += langSegHTML() + rotateHintHTML() + versesHTML(P.rows, hlVerse);
     h += '<p class="small" style="text-align:center;margin-top:18px"><a class="link" href="' + esc(readerUrl(p.url)) + '">Continue in the Sefaria reader</a></p>';
     portrait.innerHTML = h;
 
     var s = '<div class="sbs-bar"><div class="mode"><button data-act="exit-sbs" aria-label="Back">' + I.back + '</button><b>Bilingual</b> · side by side</div>' +
       '<div class="center">' + esc(P.ref) + '<span class="he">' + esc(P.heRef) + '</span></div>' +
       '<button class="aa" data-act="aa" aria-label="Text size">Aa</button></div>';
-    s += '<div class="sbs-rows">' + P.rows.map(function (r) {
-      return '<div class="sbs-row' + (hlVerse === r.n ? ' hl' : '') + '" data-v="' + r.n + '"><div class="en">' + esc(r.en) + '</div><div class="n">' + r.n + '</div><div class="hb">' + esc(r.he) + '</div></div>';
-    }).join('') + '</div>';
+    s += sbsRowsHTML(P.rows, hlVerse);
     sbs.innerHTML = s;
+  }
+
+  /* ---------- Shared pieces of the text view (Text tab + reader) ---------- */
+  // Rows are verses { n, he, en, k? } (k: unique key when numbers repeat), part
+  // headings { head, sub }, section headings { sec } and load notes { err }.
+  function rowKey(r) { return r.k != null ? r.k : r.n; }
+  function headHTML(r) {
+    if (r.head) return '<div class="part-head"><span class="t">' + esc(r.head) + '</span><span class="s">' + esc(r.sub || '') + '</span></div>';
+    if (r.sec) return '<div class="sec-head">' + esc(r.sec) + '</div>';
+    return '<div class="part-err">' + esc(r.err) + '</div>';
+  }
+  function langSegHTML() {
+    return '<div class="seg" data-seg="lang" style="margin-top:14px">' + [['he', 'Hebrew'], ['bi', 'Bilingual'], ['en', 'English']].map(function (l) {
+      return '<button data-v="' + l[0] + '" class="' + (S.lang === l[0] ? 'on' : '') + '">' + l[1] + '</button>'; }).join('') + '</div>';
+  }
+  function rotateHintHTML() { return '<div class="rotate-hint">' + I.rotate + '<span>Turn your phone sideways for <b>side-by-side</b> Hebrew and English.</span></div>'; }
+  function versesHTML(rows, hl) {
+    return '<div class="verses lang-' + S.lang + '">' + rows.map(function (r) {
+      if (r.n == null) return headHTML(r);
+      var only = !r.en ? ' only-he' : !r.he ? ' only-en' : '';
+      return '<div class="verse' + only + (hl === rowKey(r) ? ' hl' : '') + '" data-v="' + rowKey(r) + '"><span class="num">' + r.n + '</span>' +
+        '<div class="v-he">' + esc(r.he) + '</div><div class="v-en">' + esc(r.en) + '</div></div>';
+    }).join('') + '</div>';
+  }
+  function sbsRowsHTML(rows, hl) {
+    return '<div class="sbs-rows">' + rows.map(function (r) {
+      if (r.n == null) return headHTML(r);
+      return '<div class="sbs-row' + (hl === rowKey(r) ? ' hl' : '') + '" data-v="' + rowKey(r) + '"><div class="en">' + esc(r.en) + '</div><div class="n">' + r.n + '</div><div class="hb">' + esc(r.he) + '</div></div>';
+    }).join('') + '</div>';
+  }
+
+  /* ======================================================================
+     Reader: texts opened from Today, shown inside the app
+     ====================================================================== */
+  var READ = null, readHl = null, readSeq = 0, todayScroll = 0;
+  function openReader(item) {
+    if (currentTab === 'today') todayScroll = $('#main').scrollTop;
+    READ = { item: item, token: ++readSeq, data: null, err: null };
+    readHl = null;
+    switchTab('read');
+    renderReader();
+    var tok = READ.token;
+    loadReader(item.parts).then(function (d) { if (READ && READ.token === tok) { READ.data = d; renderReader(); } },
+      function (e) { if (READ && READ.token === tok) { READ.err = e; renderReader(); } });
+  }
+  function closeReader() {
+    switchTab('today');
+    $('#main').scrollTop = todayScroll;
+  }
+  function renderReader() {
+    var el = $('#panel-read'), portrait = $('.portrait', el), sbs = $('.sbs', el);
+    el.style.setProperty('--ts', S.textScale || 1);
+    if (!READ) { portrait.innerHTML = sbs.innerHTML = ''; return; }
+    var it = READ.item, d = READ.data, done = loggedOn(TODAY_ISO);
+    el.style.setProperty('--c', CAT_COLOR[it.cat] || 'var(--navy)');
+    var he = it.he || (d && d.heRef) || '', ref = (d && d.single) || it.ref || '';
+    var sefaria = '<a class="link" href="' + esc(readerUrl(it.url)) + '" target="_blank" rel="noopener">Open on Sefaria.org</a>';
+    var h = '<div class="reader-bar"><button class="reader-back" data-act="reader-back" aria-label="Back to Today">' + I.back + 'Today</button>' +
+      '<div class="rb-title">' + esc(it.kicker) + '</div><button class="aa" data-act="aa" aria-label="Text size">Aa</button></div>';
+    h += '<div class="text-head"><div class="grow"><div class="ref">' + esc(it.en) + '</div>' +
+      (he && S.lang !== 'en' ? '<div class="heref">' + esc(he) + '</div>' : '') + '</div></div>';
+    if (ref && ref !== it.en) h += '<div class="reader-sub">' + esc(ref) + '</div>';
+    if (it.desc) h += '<div class="reader-desc">' + esc(it.desc) + '</div>';
+    var s = '<div class="sbs-bar"><div class="mode"><button data-act="exit-sbs" aria-label="Back">' + I.back + '</button><b>Bilingual</b> · side by side</div>' +
+      '<div class="center">' + esc(it.en) + (he ? '<span class="he">' + esc(he) + '</span>' : '') + '</div>' +
+      '<button class="aa" data-act="aa" aria-label="Text size">Aa</button></div>';
+    if (!d && !READ.err) {
+      h += '<div class="stack" style="margin-top:16px"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>';
+      portrait.innerHTML = h;
+      sbs.innerHTML = s + '<div class="sbs-rows"><div class="stack" style="margin-top:12px"><div class="skeleton"></div><div class="skeleton"></div></div></div>';
+      return;
+    }
+    if (READ.err) {
+      var err = '<div class="card error-card" style="margin-top:16px"><div class="t">We couldn’t load this text</div>' +
+        '<p class="muted small">Check your connection and try again, or read it on the website.</p>' +
+        '<button class="btn secondary sm" data-act="reader-retry">Try again</button><p class="small" style="margin:14px 0 0">' + sefaria + '</p></div>';
+      portrait.innerHTML = h + err;
+      sbs.innerHTML = s + '<div class="sbs-rows">' + err + '</div>';
+      return;
+    }
+    h += langSegHTML() + rotateHintHTML() + versesHTML(d.rows, readHl);
+    // Finishing a text is the natural moment to log the day (same toggle as on Today).
+    h += '<div class="reader-foot"><button class="btn ' + (done ? 'secondary done' : 'primary') + ' block learned-btn" data-act="learned">' +
+      (done ? I.check + ' Learned today · tap to undo' : 'I learned today') + '</button>' +
+      '<p class="small" style="margin-top:14px">' + sefaria + '</p></div>';
+    portrait.innerHTML = h;
+    sbs.innerHTML = s + sbsRowsHTML(d.rows, readHl);
   }
 
   /* ======================================================================
@@ -1424,16 +1607,17 @@
   var currentTab = 'today';
   function switchTab(t) {
     currentTab = t;
-    $$('.tab').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === t); });
+    // The reader is a screen pushed on top of Today, so Today stays lit in the tab bar.
+    $$('.tab').forEach(function (b) { b.classList.toggle('active', b.getAttribute('data-tab') === (t === 'read' ? 'today' : t)); });
     $$('.panel').forEach(function (p) { p.classList.toggle('active', p.id === 'panel-' + t); });
-    var app = $('#app'); ['today', 'goals', 'share', 'text'].forEach(function (x) { app.classList.toggle('tab-' + x, x === t); });
+    var app = $('#app'); ['today', 'goals', 'share', 'text', 'read'].forEach(function (x) { app.classList.toggle('tab-' + x, x === t); });
     if (t !== 'share') shareOverride = null;
     if (t === 'share') renderShare();
     $('#main').scrollTop = 0;
   }
   function renderAll() {
     $('#avatarBtn').innerHTML = S.signedIn ? 'M' : I.user;
-    renderToday(); renderGoals(); renderShare(); renderText();
+    renderToday(); renderGoals(); renderShare(); renderText(); renderReader();
   }
   var forcedRotate = false;
   var mq = window.matchMedia('(orientation: landscape) and (max-height: 600px)');
@@ -1446,18 +1630,23 @@
   $('#avatarBtn').addEventListener('click', openSettings);
   $('#rotateBtn').addEventListener('click', function () { forcedRotate = !forcedRotate; $('#app').classList.toggle('rotated', forcedRotate); applyOrientation(); });
   $('#main').addEventListener('click', function (e) {
+    var rd = e.target.closest('[data-read]');
+    if (rd) { e.preventDefault(); openReader(TODAY_ITEMS[+rd.getAttribute('data-read')]); return; }
     var a = e.target.closest('[data-act],[data-share],[data-seg] button,[data-pills] button,.verse,.sbs-row');
     if (!a) return;
     if (a.classList.contains('verse') || a.classList.contains('sbs-row')) {
-      var n = +a.getAttribute('data-v'); hlVerse = hlVerse === n ? null : n;
-      $$('.verse,.sbs-row', $('#panel-text')).forEach(function (r) { r.classList.toggle('hl', +r.getAttribute('data-v') === hlVerse); });
+      // Text tab and reader each keep their own highlighted verse.
+      var panel = a.closest('.panel'), n = +a.getAttribute('data-v');
+      if (panel.id === 'panel-read') n = readHl = readHl === n ? null : n;
+      else n = hlVerse = hlVerse === n ? null : n;
+      $$('.verse,.sbs-row', panel).forEach(function (r) { r.classList.toggle('hl', +r.getAttribute('data-v') === n); });
       return;
     }
     if (a.hasAttribute('data-share')) { doShare(a.getAttribute('data-share')); return; }
     var seg = a.parentNode && a.parentNode.getAttribute && (a.parentNode.getAttribute('data-seg') || a.parentNode.getAttribute('data-pills'));
     if (seg) {
       var v = a.getAttribute('data-v');
-      if (seg === 'lang') { S.lang = v; save(); renderText(); renderToday(); return; }
+      if (seg === 'lang') { S.lang = v; save(); renderText(); renderReader(); renderToday(); return; }
       if (seg === 'gtype') { draftGoal = v === 'minutes' ? { type: 'minutes', minutes: draftGoal.minutes || 10 } : v === 'finish' ? { type: 'finish', book: draftGoal.book || 'Berakhot', by: draftGoal.by || 'pesach', done: draftGoal.done || 0 } : { type: 'custom', text: draftGoal.text || '' }; renderGoals(); return; }
       if (seg === 'minutes') { draftGoal.minutes = +v; renderGoals(); return; }
       if (seg === 'by') { draftGoal.by = v; renderGoals(); return; }
@@ -1467,6 +1656,8 @@
     else if (act === 'lock') openLock();
     else if (act === 'siyum') openSiyum();
     else if (act === 'retry') boot();
+    else if (act === 'reader-back') closeReader();
+    else if (act === 'reader-retry') openReader(READ.item);
     else if (act === 'goal-edit') { editingGoal = true; draftGoal = clone(S.goal); renderGoals(); }
     else if (act === 'goal-cancel') { editingGoal = false; renderGoals(); }
     else if (act === 'goal-save') {
@@ -1477,8 +1668,8 @@
     }
     else if (act === 'native-share') doShare('native');
     else if (act === 'cheer') toast('Sent a “yasher koach” to ' + a.getAttribute('data-name'));
-    else if (act === 'aa') { var sc = [1, 1.15, 1.3, 0.9], i = sc.indexOf(S.textScale || 1); S.textScale = sc[(i + 1) % sc.length]; save(); $('#panel-text').style.setProperty('--ts', S.textScale); }
-    else if (act === 'exit-sbs') { if (forcedRotate) { forcedRotate = false; $('#app').classList.remove('rotated'); applyOrientation(); } else switchTab('today'); }
+    else if (act === 'aa') { var sc = [1, 1.15, 1.3, 0.9], i = sc.indexOf(S.textScale || 1); S.textScale = sc[(i + 1) % sc.length]; save(); $$('#panel-text,#panel-read').forEach(function (p) { p.style.setProperty('--ts', S.textScale); }); }
+    else if (act === 'exit-sbs') { if (forcedRotate) { forcedRotate = false; $('#app').classList.remove('rotated'); applyOrientation(); } else if (currentTab === 'read') closeReader(); else switchTab('today'); }
   });
   $('#main').addEventListener('change', function (e) {
     var t = e.target;
