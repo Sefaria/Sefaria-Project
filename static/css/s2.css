@@ -17453,6 +17453,15 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   border-inline-start-color: #18345d;
   font-weight: 600;
 }
+/* Marks what a deep link pointed at: a background that fades out once. */
+.settingsHighlight { animation: settingsHighlight 2.4s ease-out; }
+@keyframes settingsHighlight {
+  0%, 35% { background-color: #d5e4f4; box-shadow: 0 0 0 4px #d5e4f4; }
+  100% { box-shadow: 0 0 0 4px transparent; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .settingsHighlight { animation: none; outline: 2px solid #93b6d6; outline-offset: 2px; }
+}
 
 .devPocPageHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--devPoc-s3); margin-bottom: var(--devPoc-s4); }
 .devPocPageHeader h1 { font-size: 26px; font-weight: 600; margin-bottom: var(--devPoc-s1); }

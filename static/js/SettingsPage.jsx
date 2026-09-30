@@ -244,7 +244,7 @@ const SETTINGS_TABS = [
 
 /* Tabs, not links: clicking switches the mounted tab and pushes the matching URL. The
    anchors keep the addresses linkable, so opening one in a new tab still works. */
-const SettingsNav = ({tab, onSelect}) => (
+const SettingsNav = ({tab, highlightTab, onSelect}) => (
   <nav className="settingsNav" aria-label={Sefaria._v({en: "Settings", he: "הגדרות"})}>
     <div className="settingsNavTitle"><InterfaceText text={{en: "Settings", he: "הגדרות"}} /></div>
     {SETTINGS_TABS.map(t => (
@@ -252,6 +252,7 @@ const SettingsNav = ({tab, onSelect}) => (
         key={t.tab}
         href={t.url}
         aria-current={tab === t.tab ? "page" : null}
+        className={highlightTab === t.tab ? "settingsHighlight" : null}
        
         onClick={e => {
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) { return; }
@@ -267,10 +268,10 @@ const SettingsNav = ({tab, onSelect}) => (
 /* The one way in to developer settings. An account with Google or Apple goes straight in;
    any other account connects one first, then goes in. Developer settings stay on once
    they are on. */
-const GetStarted = ({connected, settingUp, onStart, onConnectSso}) => {
+const GetStarted = ({connected, settingUp, highlight, onStart, onConnectSso}) => {
   const [askSso, setAskSso] = useState(false);
   const start = () => { if (connected) { onStart(); } else { setAskSso(true); } };
-  const cardClass = "devPocCard";
+  const cardClass = "devPocCard" + (highlight ? " settingsHighlight" : "");
 
   if (settingUp) {
     return (
@@ -1437,7 +1438,7 @@ const ConfirmDialog = ({confirm, onClose}) => {
 };
 
 
-const DeveloperTab = ({state, socialProviders, developerOn, update, setConfirm, notice, setNotice,
+const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, setConfirm, notice, setNotice,
                        connectedMessage, editingProfile, setEditingProfile, showNewProject,
                        setShowNewProject, onCreateProject, setProjectId, onStart,
                        onConnectSso, settingUp}) => {
@@ -1460,7 +1461,7 @@ const DeveloperTab = ({state, socialProviders, developerOn, update, setConfirm, 
 
   return (
     <div className="devPocPage">
-      <header className="devPocPageHeader">
+      <header className={"devPocPageHeader" + (highlight && developerOn ? " settingsHighlight" : "")}>
         <div>
           <h1><InterfaceText text={{en: "Developer settings", he: "הגדרות מפתחים"}} /></h1>
           <p>
@@ -1483,6 +1484,7 @@ const DeveloperTab = ({state, socialProviders, developerOn, update, setConfirm, 
         <GetStarted
           connected={ssoConnected(state, socialProviders)}
           settingUp={settingUp}
+          highlight={highlight}
           onStart={onStart}
           onConnectSso={onConnectSso}
         /> :
@@ -2001,6 +2003,7 @@ const SAVE_FAILED = {
 };
 const CONNECTED_MS = 8000;
 const SETUP_MS = 1200;
+const ARRIVAL_HIGHLIGHT_MS = 2400;
 
 const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, setTab, setProjectId}) => {
   const settings = accountSettings || {};
@@ -2020,10 +2023,23 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
   const [mockSso, setMockSso] = useState(null);
   const [connectedMessage, setConnectedMessage] = useState("");
   const [settingUp, setSettingUp] = useState(false);
+  const [arrivalHighlight, setArrivalHighlight] = useState(false);
   const connectedTimer = useRef(null);
   const setupTimer = useRef(null);
+  const highlightTimer = useRef(null);
 
-  useEffect(() => () => { clearTimeout(connectedTimer.current); clearTimeout(setupTimer.current); }, []);
+  /* Arriving on a settings URL other than the default tab marks where the link pointed. */
+  useEffect(() => {
+    if (tab !== SETTINGS_TABS[0].tab) {
+      setArrivalHighlight(true);
+      highlightTimer.current = setTimeout(() => setArrivalHighlight(false), ARRIVAL_HIGHLIGHT_MS);
+    }
+    return () => {
+      clearTimeout(connectedTimer.current);
+      clearTimeout(setupTimer.current);
+      clearTimeout(highlightTimer.current);
+    };
+  }, []);
 
   /* The UI updates first and the write follows; a failed write only leaves a notice.
      Updates read through a ref, so a change made while a key is being "created" still
@@ -2092,6 +2108,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
         state={pocState}
         socialProviders={socialProviders}
         developerOn={developerOn}
+        highlight={arrivalHighlight}
         update={update}
         setConfirm={setConfirm}
         notice={notice}
@@ -2115,7 +2132,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
       <div className="content">
         <div className="contentInner">
           <div className="settingsShell">
-            <SettingsNav tab={tab} onSelect={setTab} />
+            <SettingsNav tab={tab} highlightTab={arrivalHighlight ? tab : null} onSelect={setTab} />
             <div className="settingsPanels">
               {SETTINGS_TABS.map(t => (
                 <div key={t.tab} className="settingsPanel" hidden={tab !== t.tab}>{panels[t.tab]}</div>
