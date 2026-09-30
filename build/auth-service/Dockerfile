@@ -15,5 +15,5 @@ FROM gcr.io/distroless/static-debian13:nonroot AS runtime
 COPY --from=build /out/authsvc /authsvc
 COPY --from=build /out/keyadmin /keyadmin
 COPY auth-service/internal/registry/schema.sql /schema.sql
-USER nonroot
+USER 65532:65532
 ENTRYPOINT ["/authsvc"]
