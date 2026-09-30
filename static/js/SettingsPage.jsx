@@ -15,9 +15,9 @@ import {
   writeState,
 } from './developerPocStore';
 
-/* Account and developer settings, one page with two tabs. Everything the developer tab
-   shows is mock data saved through api/developer-poc/state; no key here authorizes
-   anything. See developerPocStore.js. */
+/* Account and developer settings, one page with a tab per settings section. Everything the
+   developer tab shows is mock data saved through api/developer-poc/state; no key here
+   authorizes anything. See developerPocStore.js. */
 
 const KEY_SETUP_MS = 4000;
 
@@ -203,41 +203,45 @@ const PocTestPanel = ({state, realProviders, update, reset, showSimulate}) => {
 };
 
 
+/* One entry per settings section. A new section is an entry here, a panel in
+   SettingsPage, and a URL in urls_library.py and ReaderApp's history. */
 const SETTINGS_TABS = [
-  {tab: "account", url: "/settings/account", label: "Account settings"},
-  {tab: "developer", url: "/settings/developer", label: "Developer settings"},
+  {tab: "account", url: "/settings/account", label: {en: "Account settings", he: "הגדרות חשבון"}},
+  {tab: "developer", url: "/settings/developer", label: {en: "Developer settings", he: "הגדרות מפתחים"}},
 ];
 
 /* Tabs, not links: clicking switches the mounted tab and pushes the matching URL. The
    anchors keep the addresses linkable, so opening one in a new tab still works. */
 const SettingsNav = ({tab, onSelect}) => (
-  <nav className="devPocNav" aria-label="Settings">
-    <div className="devPocNavTitle">Settings</div>
+  <nav className="settingsNav" aria-label={Sefaria._v({en: "Settings", he: "הגדרות"})}>
+    <div className="settingsNavTitle"><InterfaceText text={{en: "Settings", he: "הגדרות"}} /></div>
     {SETTINGS_TABS.map(t => (
       <a
         key={t.tab}
         href={t.url}
         aria-current={tab === t.tab ? "page" : null}
+       
         onClick={e => {
           if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) { return; }
           e.preventDefault();
           onSelect(t.tab);
         }}
-      >{t.label}</a>
+      ><InterfaceText text={t.label} /></a>
     ))}
   </nav>
 );
 
 
-/* The one way in. An account with Google or Apple goes straight in; any other account
-   connects one first, then goes in. Developer settings stay on once they are on. */
-const GetStarted = ({connected, card, settingUp, onStart, onConnectSso}) => {
+/* The one way in to developer settings. An account with Google or Apple goes straight in;
+   any other account connects one first, then goes in. Developer settings stay on once
+   they are on. */
+const GetStarted = ({connected, settingUp, onStart, onConnectSso}) => {
   const [askSso, setAskSso] = useState(false);
   const start = () => { if (connected) { onStart(); } else { setAskSso(true); } };
 
   if (settingUp) {
     return (
-      <div className={"devPocNotice devPocSettingUp" + (card ? " devPocCard" : "")} role="status">
+      <div className={"devPocNotice devPocSettingUp" + " devPocCard"} role="status">
         <span className="devPocSpinner" aria-hidden="true" />
         <strong>Setting up Developer settings&hellip;</strong>
       </div>
@@ -246,7 +250,7 @@ const GetStarted = ({connected, card, settingUp, onStart, onConnectSso}) => {
 
   if (askSso && !connected) {
     return (
-      <div className={"devPocSsoPrompt" + (card ? " devPocCard" : "")} role="region" aria-label="Sign in with Google or Apple">
+      <div className={"devPocSsoPrompt" + " devPocCard"} role="region" aria-label="Sign in with Google or Apple">
         <h2>Sign in once with Google or Apple</h2>
         <p>
           Developer settings need a Google or Apple sign-in, so we know the email we use to
@@ -273,8 +277,8 @@ const GetStarted = ({connected, card, settingUp, onStart, onConnectSso}) => {
   }
 
   return (
-    <div className={"devPocGetStarted" + (card ? " devPocCard" : "")}>
-      {card ? <h2>Build with the Sefaria API</h2> : null}
+    <div className={"devPocGetStarted" + " devPocCard"}>
+      <h2>Build with the Sefaria API</h2>
       <p>
         Get an API key to use Sefaria's texts in your own website, app or tool, and tell us
         what you're building.
@@ -1239,9 +1243,9 @@ const ExternalIcon = () => (
 
 const API_DOCS_URL = "https://developers.sefaria.org/reference/getting-started";
 
-const DeveloperTab = ({state, socialProviders, navOn, update, setConfirm, notice, setNotice,
+const DeveloperTab = ({state, socialProviders, developerOn, update, setConfirm, notice, setNotice,
                        connectedMessage, editingProfile, setEditingProfile, showNewProject,
-                       setShowNewProject, onCreateProject, onSelectTab, setProjectId, onStart,
+                       setShowNewProject, onCreateProject, setProjectId, onStart,
                        onConnectSso, settingUp}) => {
   const novice = !!(state.profile && state.profile.notADeveloper);
 
@@ -1257,102 +1261,96 @@ const DeveloperTab = ({state, socialProviders, navOn, update, setConfirm, notice
 
   return (
     <div className="devPocPage">
-      <div className={"devPocShell" + (navOn ? "" : " devPocShellNoNav")}>
-        {navOn ? <SettingsNav tab="developer" onSelect={onSelectTab} /> : null}
-        <main className="devPocMain">
-          <header className="devPocPageHeader">
-            <div>
-              <h1>Developer settings</h1>
+      <header className="devPocPageHeader">
+        <div>
+          <h1>Developer settings</h1>
+          <p>
+            {novice
+              ? "Tell us what you're building, and get a key for it."
+              : "Register your projects and manage their API keys."}
+          </p>
+        </div>
+        <a className="devPocDocsLink" href={API_DOCS_URL} target="_blank" rel="noreferrer">
+          <span>API documentation</span>
+          <ExternalIcon />
+        </a>
+      </header>
+
+      {connectedMessage ?
+        <div className="devPocSuccess" role="status"><p>{connectedMessage}</p></div> : null}
+
+      {!developerOn ?
+        <GetStarted
+          connected={ssoConnected(state, socialProviders)}
+          settingUp={settingUp}
+          onStart={onStart}
+          onConnectSso={onConnectSso}
+        /> :
+        !state.profile ?
+        <ProfileOnboarding onSave={profile => update(s => ({...s, profile}))} /> :
+        <React.Fragment>
+          {notice ?
+            <div className="devPocNotice" role="status">
+              <p>{notice}</p>
+              <button type="button" className="button small transparent" onClick={() => setNotice("")}>Dismiss</button>
+            </div> : null}
+
+          <section className="devPocProfile">
+            {editingProfile ?
+              <React.Fragment>
+                <h2>About you</h2>
+                <ProfileForm
+                  profile={state.profile}
+                  onSave={profile => { update(s => ({...s, profile})); setEditingProfile(false); }}
+                  onCancel={() => setEditingProfile(false)}
+                />
+              </React.Fragment> :
+              <div className="devPocProfileSummary">
+                <span>
+                  <strong>{state.profile.developerName}</strong>
+                  <span className="devPocHelp">
+                    {Sefaria._email}{state.profile.additionalEmail ? " and " + state.profile.additionalEmail : ""}
+                    {state.profile.description ? " · " + state.profile.description : ""}
+                  </span>
+                </span>
+                <button type="button" className="button small transparent" onClick={() => setEditingProfile(true)}>Edit</button>
+              </div>}
+          </section>
+
+          <div className="devPocSectionHeading">
+            <h2>Projects</h2>
+            {state.projects.length && !showNewProject ? newProjectButton("New project", "white") : null}
+          </div>
+
+          {showNewProject ?
+            <NewProjectPanel novice={novice} onCreate={onCreateProject} onCancel={() => setShowNewProject(false)} /> :
+            state.projects.length === 0 ?
+            <div className="devPocEmpty">
+              <h2>{novice ? "Your first project starts here" : "No projects yet"}</h2>
               <p>
                 {novice
-                  ? "Tell us what you're building, and get a key for it."
-                  : "Register your projects and manage their API keys."}
+                  ? "Tell us what you're building. You'll get a key right after."
+                  : "Create a project, then add keys to it."}
               </p>
-            </div>
-            <a className="devPocDocsLink" href={API_DOCS_URL} target="_blank" rel="noreferrer">
-              <span>API documentation</span>
-              <ExternalIcon />
-            </a>
-          </header>
-
-          {connectedMessage ?
-            <div className="devPocSuccess" role="status"><p>{connectedMessage}</p></div> : null}
-
-          {!navOn ?
-            <GetStarted
-              connected={ssoConnected(state, socialProviders)}
-              card={true}
-              settingUp={settingUp}
-              onStart={onStart}
-              onConnectSso={onConnectSso}
-            /> :
-            !state.profile ?
-            <ProfileOnboarding onSave={profile => update(s => ({...s, profile}))} /> :
-            <React.Fragment>
-              {notice ?
-                <div className="devPocNotice" role="status">
-                  <p>{notice}</p>
-                  <button type="button" className="button small transparent" onClick={() => setNotice("")}>Dismiss</button>
-                </div> : null}
-
-              <section className="devPocProfile">
-                {editingProfile ?
-                  <React.Fragment>
-                    <h2>About you</h2>
-                    <ProfileForm
-                      profile={state.profile}
-                      onSave={profile => { update(s => ({...s, profile})); setEditingProfile(false); }}
-                      onCancel={() => setEditingProfile(false)}
-                    />
-                  </React.Fragment> :
-                  <div className="devPocProfileSummary">
-                    <span>
-                      <strong>{state.profile.developerName}</strong>
-                      <span className="devPocHelp">
-                        {Sefaria._email}{state.profile.additionalEmail ? " and " + state.profile.additionalEmail : ""}
-                        {state.profile.description ? " · " + state.profile.description : ""}
-                      </span>
-                    </span>
-                    <button type="button" className="button small transparent" onClick={() => setEditingProfile(true)}>Edit</button>
-                  </div>}
-              </section>
-
-              <div className="devPocSectionHeading">
-                <h2>Projects</h2>
-                {state.projects.length && !showNewProject ? newProjectButton("New project", "white") : null}
+              <div className="devPocActions">
+                {newProjectButton(novice ? "Create your first project" : "New project", "blue")}
               </div>
+              <p className="devPocHelp">A project can be shown on Powered by Sefaria even without a key.</p>
+            </div> : null}
 
-              {showNewProject ?
-                <NewProjectPanel novice={novice} onCreate={onCreateProject} onCancel={() => setShowNewProject(false)} /> :
-                state.projects.length === 0 ?
-                <div className="devPocEmpty">
-                  <h2>{novice ? "Your first project starts here" : "No projects yet"}</h2>
-                  <p>
-                    {novice
-                      ? "Tell us what you're building. You'll get a key right after."
-                      : "Create a project, then add keys to it."}
-                  </p>
-                  <div className="devPocActions">
-                    {newProjectButton(novice ? "Create your first project" : "New project", "blue")}
-                  </div>
-                  <p className="devPocHelp">A project can be shown on Powered by Sefaria even without a key.</p>
-                </div> : null}
-
-              {state.projects.map(p => (
-                <ProjectCard
-                  key={p.id}
-                  project={p}
-                  expanded={state.expandedProjectId === p.id}
-                  novice={novice}
-                  update={update}
-                  setConfirm={setConfirm}
-                  notice={setNotice}
-                  onToggleExpand={() => toggleExpand(p)}
-                />
-              ))}
-            </React.Fragment>}
-        </main>
-      </div>
+          {state.projects.map(p => (
+            <ProjectCard
+              key={p.id}
+              project={p}
+              expanded={state.expandedProjectId === p.id}
+              novice={novice}
+              update={update}
+              setConfirm={setConfirm}
+              notice={setNotice}
+              onToggleExpand={() => toggleExpand(p)}
+            />
+          ))}
+        </React.Fragment>}
     </div>
   );
 };
@@ -1472,7 +1470,7 @@ const loginMethod = (socialProviders) => {
   return {en: "Apple Sign-In with", he: "התחברות דרך אפל עם"};
 };
 
-const AccountTab = ({settings, pocState, socialProviders, navOn, onSelectTab, onStart, onConnectSso, settingUp}) => {
+const AccountTab = ({settings, socialProviders}) => {
   const torahSpecific = !!settings.torahSpecific;
   const translationLanguages = settings.translationLanguages || [];
 
@@ -1500,9 +1498,6 @@ const AccountTab = ({settings, pocState, socialProviders, navOn, onSelectTab, on
 
   const [gauthEmail, setGauthEmail] = useState((settings.sheetsExport && settings.sheetsExport.gauthEmail) || "");
   const [gauthError, setGauthError] = useState("");
-
-  const connected = ssoConnected(pocState, socialProviders);
-  const developerOn = connected && !!pocState.developerEnabled;
 
   const save = () => {
     const transPref = translationLanguages.length ? translationLanguage : undefined;
@@ -1594,207 +1589,194 @@ const AccountTab = ({settings, pocState, socialProviders, navOn, onSelectTab, on
   );
 
   return (
-    <div className="inner">
-      <div className="headerWithButtons">
-        <h1>
-          <InterfaceText text={{en: "Account Settings", he: "הגדרות חשבון"}} />
-        </h1>
-        <div className="end">
-          {cancelButton("small transparent")}
-          {saveButton}
-        </div>
-      </div>
-      <div className={"devPocShell" + (navOn ? "" : " devPocShellNoNav")}>
-        {navOn ? <SettingsNav tab="account" onSelect={onSelectTab} /> : null}
-        <div className="devPocSettingsBody">
-          <SettingSection
-            id="emailNotifications"
-            label={<InterfaceText text={{en: "Notification Frequency (Maximum)", he: "תדירות שליחת הודעות (מקסימלית)"}} />}
-          >
-            <SettingToggle
-              optionClass="tripleOption"
-              value={emailNotifications}
-              onChange={setEmailNotifications}
-              options={[
-                {value: "daily", content: <InterfaceText text={{en: "Daily", he: "יומית"}} />},
-                {value: "weekly", content: <InterfaceText text={{en: "Weekly", he: "שבועית"}} />},
-                {value: "never", content: <InterfaceText text={{en: "Never", he: "לעולם לא"}} />},
-              ]}
-            />
-          </SettingSection>
-
-          {torahSpecific ?
-            <React.Fragment>
-              <SettingSection
-                id="siteLanguage"
-                label={<InterfaceText text={{en: "Site Language", he: "שפת ממשק"}} />}
-              >
-                <SettingToggle
-                  optionClass="doubleOption"
-                  value={interfaceLanguage}
-                  onChange={setInterfaceLanguage}
-                  options={[
-                    {value: "english", content: <span className="int-bi">English</span>},
-                    {value: "hebrew", content: <span className="int-bi">עברית</span>},
-                  ]}
-                />
-              </SettingSection>
-
-              {translationLanguages.length ?
-                <SettingSection
-                  id="translationLanguagePreference"
-                  label={<InterfaceText text={{en: "Preferred Translation Language", he: "שפה מועדפת לתרגום"}} />}
-                >
-                  <SettingToggle
-                    optionClass="quadrupleOption"
-                    value={translationLanguage}
-                    onChange={setTranslationLanguage}
-                    options={translationLanguages.map(lang => (
-                      {value: lang.code, content: <span className="int-bi">{lang.name}</span>}
-                    ))}
-                  />
-                </SettingSection> : null}
-
-              <SettingSection
-                id="readingHistory"
-                label={<InterfaceText text={{en: "Reading History", he: "היסטורית קריאה"}} />}
-              >
-                <SettingToggle
-                  optionClass="doubleOption"
-                  value={readingHistory}
-                  onChange={setReadingHistory}
-                  options={[
-                    {value: "true", name: "reading-history", content: <InterfaceText text={{en: "On", he: "פעילה"}} />},
-                    {value: "false", name: "reading-history", content: <InterfaceText text={{en: "Off", he: "כבויה"}} />},
-                  ]}
-                >
-                  <span id="reading-history-warning" className={readingHistory === "false" ? "on" : null}>
-                    {readingHistory === "false" ? Sefaria._("Turning this feature off will permanently delete your reading history.") : null}
-                  </span>
-                </SettingToggle>
-              </SettingSection>
-
-              <SettingSection
-                id="textualCustom"
-                label={<InterfaceText text={{en: "Preferred Custom (Weekly Haftarot)", he: "מנהג מועדף (להפטרות)"}} />}
-              >
-                <SettingToggle
-                  optionClass="doubleOption"
-                  value={textualCustom}
-                  onChange={setTextualCustom}
-                  options={[
-                    {value: "sephardi", content: <InterfaceText text={{en: "Sephardi", he: "עדות המזרח"}} />},
-                    {value: "ashkenazi", content: <InterfaceText text={{en: "Ashkenazi", he: "אשכנז"}} />},
-                  ]}
-                />
-              </SettingSection>
-            </React.Fragment> : null}
-
-          {/* The Library Assistant is a plain user setting, shown to every logged-in user. Its
-              value is the effective one: users who are on through the pre-migration rule carry
-              no setting key yet. */}
-          <SettingSection
-            id="libraryAssistantSetting"
-            label={<InterfaceText text={{en: "Library Assistant", he: "עוזר הספרייה"}} />}
-          >
-            <SettingToggle
-              optionClass="doubleOption"
-              value={libraryAssistant}
-              onChange={setLibraryAssistant}
-              options={[
-                {value: "true", content: <InterfaceText text={{en: "On", he: "פעיל"}} />},
-                {value: "false", content: <InterfaceText text={{en: "Off", he: "כבוי"}} />},
-              ]}
-            />
-          </SettingSection>
-
-          <div id="developerSettings" className="section">
-            <label className="control-elem">Developer Settings</label>
-            {developerOn ?
-              <div className="additional-info devPocOn">
-                Your projects and API keys are in{" "}
-                <a href="/settings/developer" onClick={e => { e.preventDefault(); onSelectTab("developer"); }}>Developer settings</a>.
-              </div> :
-              <GetStarted connected={connected} card={false} settingUp={settingUp} onStart={onStart} onConnectSso={onConnectSso} />}
-          </div>
-
-          <div id="username-change" className="section">
-            <label className="control-elem">
-              <InterfaceText text={{en: "Login Method", he: "אמצעי התחברות"}} />
-            </label>
-            {socialProviders.length ?
-              <div className="form-section">
-                <LoginMethodText method={loginMethod(socialProviders)} email={email} />
-              </div> :
-              <React.Fragment>
-                <div id="username-change-display" className="form-section" style={editingEmail ? {display: "none"} : null}>
-                  <input id="email-display" type="text" disabled="disabled" value={email} readOnly />
-                  <button id="change-email" type="button" className="button blue fillWidth" onClick={() => setEditingEmail(true)}>
-                    <InterfaceText text={{en: "Change Email", he: "שינוי כתובת דוא״ל"}} />
-                  </button>
-                  <span id="email-edit-ok" style={emailOk ? null : {display: "none"}}>{emailOk}</span>
-                </div>
-                <div id="username-change-edit" className="form-section" style={editingEmail ? null : {display: "none"}}>
-                  <input
-                    id="email"
-                    type="text"
-                    placeholder={Sefaria._("New Email")}
-                    autoComplete="off"
-                    value={emailFields.email}
-                    onChange={e => setEmailFields({...emailFields, email: e.target.value})}
-                  />
-                  <input
-                    id="confirmEmail"
-                    type="text"
-                    placeholder={Sefaria._("Confirm New Email")}
-                    autoComplete="off"
-                    value={emailFields.confirmEmail}
-                    onChange={e => setEmailFields({...emailFields, confirmEmail: e.target.value})}
-                  />
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder={Sefaria._("Password")}
-                    autoComplete="new-password"
-                    value={emailFields.confirmPassword}
-                    onChange={e => setEmailFields({...emailFields, confirmPassword: e.target.value})}
-                  />
-                  <button id="update-email" type="button" className="button blue fillWidth" onClick={updateEmail}>
-                    <InterfaceText text={{en: "Update Email", he: 'עדכון כתובת דוא"ל'}} />
-                  </button>
-                  <span id="email-edit-errors">{emailError}</span>
-                </div>
-              </React.Fragment>}
-          </div>
-
-          <div id="gauth-email-change" className="section" style={gauthEmail ? null : {display: "none"}}>
-            <label className="control-elem">
-              <InterfaceText text={{en: "Sheets Export: Google Drive Connected", he: "ייצוא דפי מקורות: גוגל דרייב מחובר"}} />
-            </label>
-            <div id="gauth-email-disconnect-display" className="form-section">
-              <input id="gauth-email-display" type="text" disabled="disabled" value={gauthEmail} readOnly />
-              <button id="disconnect-gauth-email" type="button" className="button blue fillWidth" onClick={disconnectGauth}>
-                <InterfaceText text={{en: "Disconnect", he: "ניתוק"}} />
-              </button>
-              <span id="gauth-disconnect-messages">{gauthError}</span>
-            </div>
-          </div>
-          <div id="gauth-email-disconnected" className="section" style={gauthEmail ? {display: "none"} : null}>
-            <label className="control-elem">
-              <InterfaceText text={{en: "Sheets Export: No Google Drive Connected", he: "ייצוא דפי מקורות: גוגל דרייב אינו מחובר"}} />
-            </label>
-            <div className="additional-info">
-              <InterfaceText text={{
-                en: "No Google Drive connected. You can link one the next time you export a sheet.",
-                he: "גוגל דרייב אינו מחובר. ניתן לחבר אותו בפעם הבאה שתייצאו דף מקורות.",
-              }} />
-            </div>
-          </div>
-
-          <div className="saveCancel">
+    <div id="accountSettingsPage" className="static biReady">
+      <div className="inner">
+        <div className="headerWithButtons">
+          <h1>
+            <InterfaceText text={{en: "Account Settings", he: "הגדרות חשבון"}} />
+          </h1>
+          <div className="end">
+            {cancelButton("small transparent")}
             {saveButton}
-            {cancelButton("transparent small")}
           </div>
+        </div>
+        <SettingSection
+          id="emailNotifications"
+          label={<InterfaceText text={{en: "Notification Frequency (Maximum)", he: "תדירות שליחת הודעות (מקסימלית)"}} />}
+        >
+          <SettingToggle
+            optionClass="tripleOption"
+            value={emailNotifications}
+            onChange={setEmailNotifications}
+            options={[
+              {value: "daily", content: <InterfaceText text={{en: "Daily", he: "יומית"}} />},
+              {value: "weekly", content: <InterfaceText text={{en: "Weekly", he: "שבועית"}} />},
+              {value: "never", content: <InterfaceText text={{en: "Never", he: "לעולם לא"}} />},
+            ]}
+          />
+        </SettingSection>
+
+        {torahSpecific ?
+          <React.Fragment>
+            <SettingSection
+              id="siteLanguage"
+              label={<InterfaceText text={{en: "Site Language", he: "שפת ממשק"}} />}
+            >
+              <SettingToggle
+                optionClass="doubleOption"
+                value={interfaceLanguage}
+                onChange={setInterfaceLanguage}
+                options={[
+                  {value: "english", content: <span className="int-bi">English</span>},
+                  {value: "hebrew", content: <span className="int-bi">עברית</span>},
+                ]}
+              />
+            </SettingSection>
+
+            {translationLanguages.length ?
+              <SettingSection
+                id="translationLanguagePreference"
+                label={<InterfaceText text={{en: "Preferred Translation Language", he: "שפה מועדפת לתרגום"}} />}
+              >
+                <SettingToggle
+                  optionClass="quadrupleOption"
+                  value={translationLanguage}
+                  onChange={setTranslationLanguage}
+                  options={translationLanguages.map(lang => (
+                    {value: lang.code, content: <span className="int-bi">{lang.name}</span>}
+                  ))}
+                />
+              </SettingSection> : null}
+
+            <SettingSection
+              id="readingHistory"
+              label={<InterfaceText text={{en: "Reading History", he: "היסטורית קריאה"}} />}
+            >
+              <SettingToggle
+                optionClass="doubleOption"
+                value={readingHistory}
+                onChange={setReadingHistory}
+                options={[
+                  {value: "true", name: "reading-history", content: <InterfaceText text={{en: "On", he: "פעילה"}} />},
+                  {value: "false", name: "reading-history", content: <InterfaceText text={{en: "Off", he: "כבויה"}} />},
+                ]}
+              >
+                <span id="reading-history-warning" className={readingHistory === "false" ? "on" : null}>
+                  {readingHistory === "false" ? Sefaria._("Turning this feature off will permanently delete your reading history.") : null}
+                </span>
+              </SettingToggle>
+            </SettingSection>
+
+            <SettingSection
+              id="textualCustom"
+              label={<InterfaceText text={{en: "Preferred Custom (Weekly Haftarot)", he: "מנהג מועדף (להפטרות)"}} />}
+            >
+              <SettingToggle
+                optionClass="doubleOption"
+                value={textualCustom}
+                onChange={setTextualCustom}
+                options={[
+                  {value: "sephardi", content: <InterfaceText text={{en: "Sephardi", he: "עדות המזרח"}} />},
+                  {value: "ashkenazi", content: <InterfaceText text={{en: "Ashkenazi", he: "אשכנז"}} />},
+                ]}
+              />
+            </SettingSection>
+          </React.Fragment> : null}
+
+        {/* The Library Assistant is a plain user setting, shown to every logged-in user. Its
+            value is the effective one: users who are on through the pre-migration rule carry
+            no setting key yet. */}
+        <SettingSection
+          id="libraryAssistantSetting"
+          label={<InterfaceText text={{en: "Library Assistant", he: "עוזר הספרייה"}} />}
+        >
+          <SettingToggle
+            optionClass="doubleOption"
+            value={libraryAssistant}
+            onChange={setLibraryAssistant}
+            options={[
+              {value: "true", content: <InterfaceText text={{en: "On", he: "פעיל"}} />},
+              {value: "false", content: <InterfaceText text={{en: "Off", he: "כבוי"}} />},
+            ]}
+          />
+        </SettingSection>
+
+        <div id="username-change" className="section">
+          <label className="control-elem">
+            <InterfaceText text={{en: "Login Method", he: "אמצעי התחברות"}} />
+          </label>
+          {socialProviders.length ?
+            <div className="form-section">
+              <LoginMethodText method={loginMethod(socialProviders)} email={email} />
+            </div> :
+            <React.Fragment>
+              <div id="username-change-display" className="form-section" style={editingEmail ? {display: "none"} : null}>
+                <input id="email-display" type="text" disabled="disabled" value={email} readOnly />
+                <button id="change-email" type="button" className="button blue fillWidth" onClick={() => setEditingEmail(true)}>
+                  <InterfaceText text={{en: "Change Email", he: "שינוי כתובת דוא״ל"}} />
+                </button>
+                <span id="email-edit-ok" style={emailOk ? null : {display: "none"}}>{emailOk}</span>
+              </div>
+              <div id="username-change-edit" className="form-section" style={editingEmail ? null : {display: "none"}}>
+                <input
+                  id="email"
+                  type="text"
+                  placeholder={Sefaria._("New Email")}
+                  autoComplete="off"
+                  value={emailFields.email}
+                  onChange={e => setEmailFields({...emailFields, email: e.target.value})}
+                />
+                <input
+                  id="confirmEmail"
+                  type="text"
+                  placeholder={Sefaria._("Confirm New Email")}
+                  autoComplete="off"
+                  value={emailFields.confirmEmail}
+                  onChange={e => setEmailFields({...emailFields, confirmEmail: e.target.value})}
+                />
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder={Sefaria._("Password")}
+                  autoComplete="new-password"
+                  value={emailFields.confirmPassword}
+                  onChange={e => setEmailFields({...emailFields, confirmPassword: e.target.value})}
+                />
+                <button id="update-email" type="button" className="button blue fillWidth" onClick={updateEmail}>
+                  <InterfaceText text={{en: "Update Email", he: 'עדכון כתובת דוא"ל'}} />
+                </button>
+                <span id="email-edit-errors">{emailError}</span>
+              </div>
+            </React.Fragment>}
+        </div>
+
+        <div id="gauth-email-change" className="section" style={gauthEmail ? null : {display: "none"}}>
+          <label className="control-elem">
+            <InterfaceText text={{en: "Sheets Export: Google Drive Connected", he: "ייצוא דפי מקורות: גוגל דרייב מחובר"}} />
+          </label>
+          <div id="gauth-email-disconnect-display" className="form-section">
+            <input id="gauth-email-display" type="text" disabled="disabled" value={gauthEmail} readOnly />
+            <button id="disconnect-gauth-email" type="button" className="button blue fillWidth" onClick={disconnectGauth}>
+              <InterfaceText text={{en: "Disconnect", he: "ניתוק"}} />
+            </button>
+            <span id="gauth-disconnect-messages">{gauthError}</span>
+          </div>
+        </div>
+        <div id="gauth-email-disconnected" className="section" style={gauthEmail ? {display: "none"} : null}>
+          <label className="control-elem">
+            <InterfaceText text={{en: "Sheets Export: No Google Drive Connected", he: "ייצוא דפי מקורות: גוגל דרייב אינו מחובר"}} />
+          </label>
+          <div className="additional-info">
+            <InterfaceText text={{
+              en: "No Google Drive connected. You can link one the next time you export a sheet.",
+              he: "גוגל דרייב אינו מחובר. ניתן לחבר אותו בפעם הבאה שתייצאו דף מקורות.",
+            }} />
+          </div>
+        </div>
+
+        <div className="saveCancel">
+          {saveButton}
+          {cancelButton("transparent small")}
         </div>
       </div>
     </div>
@@ -1848,7 +1830,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     setNotice("");
   };
 
-  const navOn = ssoConnected(pocState, socialProviders) && !!pocState.developerEnabled;
+  const developerOn = ssoConnected(pocState, socialProviders) && !!pocState.developerEnabled;
 
   const createProject = (fields) => {
     const project = makeProject(fields);
@@ -1857,19 +1839,14 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     setShowNewProject(false);
   };
 
-  /* Turning developer settings on is one action, and it lands in Developer settings. */
-  const openDeveloper = () => {
-    setTab("developer");
-    if (typeof window !== "undefined") { window.scrollTo(0, 0); }
-  };
-  /* A short loader before the switch, so the jump to the other tab doesn't read as a reload. */
+  /* A short loader before developer settings appear, so the change doesn't read as a reload. */
   const startDeveloper = (onReady) => {
     setSettingUp(true);
     clearTimeout(setupTimer.current);
     setupTimer.current = setTimeout(() => {
       update(s => ({...s, developerEnabled: true}));
       setSettingUp(false);
-      openDeveloper();
+      if (typeof window !== "undefined") { window.scrollTo(0, 0); }
       if (onReady) { onReady(); }
     }, SETUP_MS);
   };
@@ -1890,47 +1867,42 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     });
   };
 
+  const panels = {
+    account: <AccountTab settings={settings} socialProviders={socialProviders} />,
+    developer: (
+      <DeveloperTab
+        state={pocState}
+        socialProviders={socialProviders}
+        developerOn={developerOn}
+        update={update}
+        setConfirm={setConfirm}
+        notice={notice}
+        setNotice={setNotice}
+        connectedMessage={connectedMessage}
+        editingProfile={editingProfile}
+        setEditingProfile={setEditingProfile}
+        showNewProject={showNewProject}
+        setShowNewProject={setShowNewProject}
+        onCreateProject={createProject}
+        setProjectId={setProjectId}
+        onStart={() => startDeveloper()}
+        onConnectSso={setMockSso}
+        settingUp={settingUp}
+      />
+    ),
+  };
+
   return (
-    <div className={"readerNavMenu settingsPage" + (tab === "developer" ? " settingsPageDeveloper" : "")} key="settings">
+    <div className={"readerNavMenu settingsPage settingsPage-" + tab} key="settings">
       <div className="content">
         <div className="contentInner">
-          <div
-            id="accountSettingsPage"
-            className="static biReady"
-            style={tab === "account" ? null : {display: "none"}}
-          >
-            <AccountTab
-              settings={settings}
-              pocState={pocState}
-              socialProviders={socialProviders}
-              navOn={navOn}
-              onSelectTab={setTab}
-              onStart={() => startDeveloper()}
-              onConnectSso={setMockSso}
-              settingUp={settingUp}
-            />
-          </div>
-          <div style={tab === "developer" ? null : {display: "none"}}>
-            <DeveloperTab
-              state={pocState}
-              socialProviders={socialProviders}
-              navOn={navOn}
-              update={update}
-              setConfirm={setConfirm}
-              notice={notice}
-              setNotice={setNotice}
-              connectedMessage={connectedMessage}
-              editingProfile={editingProfile}
-              setEditingProfile={setEditingProfile}
-              showNewProject={showNewProject}
-              setShowNewProject={setShowNewProject}
-              onCreateProject={createProject}
-              onSelectTab={setTab}
-              setProjectId={setProjectId}
-              onStart={() => startDeveloper()}
-              onConnectSso={setMockSso}
-              settingUp={settingUp}
-            />
+          <div className="settingsShell">
+            <SettingsNav tab={tab} onSelect={setTab} />
+            <div className="settingsPanels">
+              {SETTINGS_TABS.map(t => (
+                <div key={t.tab} className="settingsPanel" hidden={tab !== t.tab}>{panels[t.tab]}</div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

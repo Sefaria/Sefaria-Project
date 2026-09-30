@@ -17055,8 +17055,8 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
 
-/* Settings page POC: the developer tab, and the developer controls on the account tab */
-.devPocPage, #developerSettings {
+/* Settings page: the settings tabs, and the developer tab POC */
+.devPocPage {
   --devPoc-ink: #252b32;
   --devPoc-muted: #626971;
   --devPoc-blue: #18345d;
@@ -17115,7 +17115,6 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   align-items: center;
   gap: 16px;
   margin-top: 57px;
-  max-width: 890px;
 }
 .settingsPage #accountSettingsPage .headerWithButtons h1 {
   flex: 0 0 auto;
@@ -17245,7 +17244,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   }
 }
 /* The account tab keeps the page background of the static page it replaces. */
-.readerNavMenu.settingsPage:not(.settingsPageDeveloper) { background-color: #FBFBFA; }
+.readerNavMenu.settingsPage-account { background-color: #FBFBFA; }
 /* Spacing goes through :where() so it stays at .devPocPage specificity and the component
    rules further down can set their own margins. The appearance resets have to outrank the
    reader's own heading rules, so they keep full specificity. */
@@ -17414,13 +17413,25 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   cursor: pointer;
 }
 
-/* The settings tabs: one vertical list in a left column, shared by both tabs. */
-.devPocNav {
+/* The settings tabs: one vertical list in a left column, present on every settings tab,
+   beside the panel of the tab that is open. */
+.settingsShell {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 40px;
+  align-items: start;
+  max-width: 890px;
+}
+.settingsPanels { min-width: 0; }
+.settingsPanel > .devPocPage { max-width: 660px; }
+.settingsNav {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   font-family: var(--english-sans-serif-font-family, Arial, sans-serif);
   font-size: 16px;
-  text-align: left;
+  text-align: start;
 }
-.devPocNavTitle {
+.settingsNavTitle {
   padding: 0 14px 10px;
   font-size: 13px;
   font-weight: 600;
@@ -17428,7 +17439,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   text-transform: uppercase;
   color: #999;
 }
-.devPocNav a {
+.settingsNav a {
   display: block;
   padding: 10px 14px;
   font-size: 16px;
@@ -17436,24 +17447,13 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   text-decoration: none;
   color: #18345d;
 }
-.devPocNav a:hover { background: #f4f7fa; }
-.devPocNav a[aria-current="page"] {
+.settingsNav a:hover { background: #f4f7fa; }
+.settingsNav a[aria-current="page"] {
   background: #eaf0f6;
   border-inline-start-color: #18345d;
   font-weight: 600;
 }
 
-.devPocShell {
-  display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
-  gap: 40px;
-  align-items: start;
-  max-width: 890px;
-}
-.devPocShell.devPocShellNoNav { display: block; }
-.devPocMain, .devPocSettingsBody { min-width: 0; max-width: 660px; }
-/* the tab column widens the account page's 660px band instead of narrowing the settings */
-#accountSettingsPage .inner:has(.devPocShell:not(.devPocShellNoNav)) { max-width: 890px; }
 .devPocPageHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--devPoc-s3); margin-bottom: var(--devPoc-s4); }
 .devPocPageHeader h1 { font-size: 26px; font-weight: 600; margin-bottom: var(--devPoc-s1); }
 .devPocPageHeader p { color: var(--devPoc-muted); }
@@ -17888,12 +17888,12 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocDialog .devPocActions { margin-top: var(--devPoc-s3); }
 
 @media (max-width: 760px) {
-  .devPocShell { display: block; max-width: none; }
+  .settingsShell { display: block; max-width: none; }
   .readerNavMenu.settingsPage .content .contentInner { padding: 40px 22px 60px; }
-  .devPocNav { display: flex; flex-wrap: wrap; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
-  .devPocNavTitle { width: 100%; padding: 0 0 8px; }
-  .devPocNav a { border-inline-start: 0; border-bottom: 3px solid transparent; padding: 10px; }
-  .devPocNav a[aria-current="page"] { background: transparent; border-bottom-color: #18345d; }
+  .settingsNav { display: flex; flex-wrap: wrap; border-bottom: 1px solid #dce0e4; margin-bottom: 22px; }
+  .settingsNavTitle { width: 100%; padding: 0 0 8px; }
+  .settingsNav a { border-inline-start: 0; border-bottom: 3px solid transparent; padding: 10px; }
+  .settingsNav a[aria-current="page"] { background: transparent; border-bottom-color: #18345d; }
   .devPocPageHeader h1 { font-size: 22px; }
   .devPocPageHeader { flex-direction: column; gap: var(--devPoc-s2); }
   .devPocResult { flex-wrap: wrap; }
@@ -17918,25 +17918,6 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
     border-radius: 0;
   }
 }
-
-/* Developer settings POC controls inside the account tab, which styles all its own
-   inputs and labels full width. */
-#accountSettingsPage .devPocChoice {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: auto;
-  margin: 0;
-}
-#accountSettingsPage .devPocHelp { margin: 0; }
-#accountSettingsPage #developerSettings .button { width: auto; display: inline-block; margin: 0; }
-#accountSettingsPage .devPocSsoPrompt .devPocList { font-size: 14px; }
-#accountSettingsPage .devPocNav { margin: 0; }
-#accountSettingsPage .devPocNav a { margin: 0; padding: 10px 14px; width: auto; }
-#accountSettingsPage .devPocShell { margin-top: 28px; }
-#developerSettings .additional-info { margin-top: 12px; }
-#developerSettings .devPocGetStarted { margin-top: 12px; }
-#developerSettings .devPocOn a { color: var(--devPoc-blue); text-decoration: underline; }
 
 /* The mock provider chooser. It stands in for the Google or Apple sign-in window, and the
    magenta banner is the POC test panel's colour so nobody mistakes it for a real prompt. */
