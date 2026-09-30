@@ -268,7 +268,7 @@
 .sefaria-provider-button-icon {
   width: 18px;
   height: 18px;
-  flex: 0 0 16px;
+  flex: 0 0 18px;
 }
 
 .sefaria-provider-sdk-overlay {
@@ -309,5 +309,3 @@
 .sefaria-legal-text a {
   color: var(--sefaria-blue);
 }
-
-/*# sourceMappingURL=auth.css.map */
