@@ -20,7 +20,7 @@ http {
   opentracing_load_tracer /usr/local/lib/libjaegertracing_plugin.so /etc/nginx/opentracing.json;
   {{- end }}
 
-  # Caller-classification fields for the access log (sc-47234). Each map outputs a short
+  # Caller-classification fields for the access log. Each map outputs a short
   # constant or a Sec-Fetch/Origin value, never a credential. No Helm template braces in
   # these maps: this file goes through Helm tpl.
   # secFetch: Sec-Fetch-Site/Mode/Dest as "site/mode/dest"; empty when the caller sends none.
