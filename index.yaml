@@ -273,6 +273,21 @@ entries:
     version: 0.89.2-mf2.1
   - apiVersion: v2
     appVersion: v7.2.2
+    created: "2026-09-30T08:42:28.439808056Z"
+    description: Chart to deploy complete Sefaria environment
+    digest: 72903b57b7d13dba472578c720a30bba1538716580b50f2859233d256c7ae03a
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - name: Sefaria
+    name: sefaria
+    sources:
+    - https://github.com/Sefaria/Sefaria-Project
+    urls:
+    - https://Sefaria.github.io/Sefaria-Project/sefaria-0.89.2-ibn-janah-lexicon.1.tgz
+    version: 0.89.2-ibn-janah-lexicon.1
+  - apiVersion: v2
+    appVersion: v7.2.2
     created: "2026-09-28T11:39:09.027701522Z"
     description: Chart to deploy complete Sefaria environment
     digest: fdcc3210a3cc49540b6f328bfd10a71be24d31ebef6e04652d35f9630aa7058f
@@ -21915,4 +21930,4 @@ entries:
     urls:
     - https://github.com/Sefaria/Sefaria-Project/releases/download/helm-chart-v0.0.9/sefaria-v0.0.9.tgz
     version: v0.0.9
-generated: "2026-09-28T11:39:09.02494786Z"
+generated: "2026-09-30T08:42:28.43636515Z"
