@@ -289,8 +289,20 @@ def main():
     for fa, name in sorted(FONT_AWESOME.items()):
         open(os.path.join(mask_dir, name + ".svg"), "w").write(lucide_svg(name, "#000000", 24))
         rules.append(".fa.fa-%s::before { -webkit-mask-image: url(\"/static/icons/lucide/%s.svg\"); mask-image: url(\"/static/icons/lucide/%s.svg\"); }" % (fa, name, name))
+    # Hover: icon-muted files turn icon-default when the icon, or the control it sits in, is hovered.
+    # <img> can't take a CSS color, so a filter paints the muted file #121212 (invert(7%) of black).
+    muted = sorted('[src$="%s"]' % rel for rel, spec in ICONS.items() if spec[1] == "muted")
+    muted_imgs = "img:is(\n  %s\n):not(.highlighted *, .blue *, .primary *, .button:not(.white) *)" % ",\n  ".join(muted)
+    hover = (
+        "%s:hover,\n"
+        ":is(a, button, summary, label, [role=\"button\"], [role=\"link\"], [role=\"tab\"], [tabindex])"
+        ":not(.button, .blue, .primary, .highlighted):hover > %s,\n"
+        ":is(a, button, [role=\"button\"], [role=\"link\"]):not(.button, .blue, .primary, .highlighted):hover > :not(a, button) > %s {\n"
+        "  filter: brightness(0) invert(7%%); /* --icon-default */\n}"
+    ) % (muted_imgs, muted_imgs, muted_imgs)
     css = open(os.path.join(os.path.dirname(__file__), "lucide-icons.css.tmpl")).read()
-    open(os.path.join(ROOT, "static", "css", "lucide-icons.css"), "w").write(css.replace("/* RULES */", "\n".join(rules)))
+    css = css.replace("/* RULES */", "\n".join(rules)).replace("/* HOVER */", hover)
+    open(os.path.join(ROOT, "static", "css", "lucide-icons.css"), "w").write(css)
     print("wrote %d icons and %d Font Awesome replacements" % (len(ICONS), len(FONT_AWESOME)))
 
 
