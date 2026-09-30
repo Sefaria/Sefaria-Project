@@ -39,6 +39,8 @@ import { Promotions } from './Promotions';
 import Component from 'react-class';
 import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import * as CopyTool from './sefaria/copyTool';
+import { CopyToolMenu, CopyToolDialog, CopyToolToast } from './CopyTool';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
@@ -128,6 +130,9 @@ class ReaderApp extends Component {
       panelCap: props.initialPanelCap,
       initialAnalyticsTracked: false,
       showSignUpModal: false,
+      copyToolMenu: null,          // {x, y, target} while the right-click menu is open
+      copyToolDialogTarget: null,  // target of the open Copy dialog
+      copyToolToast: null,
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
       notificationCount: props.notificationCount || 0,
@@ -232,6 +237,8 @@ class ReaderApp extends Component {
 
     // Handle right-clicks on links with data-target-module to ensure correct domain
     document.addEventListener('contextmenu', this.handleModuleLinkRightClick);
+    document.addEventListener('contextmenu', this.handleCopyToolContextMenu);
+    this.resumePendingCopy();
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
     if (Sefaria._uid) {
@@ -265,6 +272,7 @@ class ReaderApp extends Component {
     document.removeEventListener('sefaria:bootstrap-url', this.handleBootstrapUrlEvent);
     document.removeEventListener('sefaria:settings-updated', this.handleSettingsUpdatedEvent);
     document.removeEventListener('contextmenu', this.handleModuleLinkRightClick);
+    document.removeEventListener('contextmenu', this.handleCopyToolContextMenu);
   }
   componentDidUpdate(prevProps, prevState) {
     $(".content").off("scroll.scrollPosition").on("scroll.scrollPosition", this.setScrollPositionInHistory); // when .content may have rerendered
@@ -1046,6 +1054,54 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
   }
 }
 
+  copyToolEnabled() {
+    return this.props.multiPanel && Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
+  }
+  handleCopyToolContextMenu(e) {
+    // Right-click on library text opens the Copy Tool menu. The tool is logged-in only; anonymous
+    // users fall through to the browser's menu (they get the sign-up pitch from a regular copy instead,
+    // see handleCopyEvent). Shift+right-click also keeps the browser's menu.
+    if (e.shiftKey || !this.copyToolEnabled() || !Sefaria._uid) { return; }
+    const target = CopyTool.getTargetFromEvent(e, this.state.panels);
+    if (!target) { return; }
+    e.preventDefault();
+    this.setState({copyToolMenu: {x: e.clientX, y: e.clientY, target}});
+  }
+  closeCopyToolMenu() {
+    this.setState({copyToolMenu: null});
+  }
+  openCopyTool(target) {
+    // Opens the Copy dialog. Reachable only for logged-in users: the right-click menu is gated above,
+    // and the Tools-panel button pitches an anonymous user itself (see ConnectionsPanel.openCopyTool).
+    this.setState({copyToolMenu: null, copyToolDialogTarget: target});
+  }
+  copyWithPreviousSettings(target) {
+    this.setState({copyToolMenu: null});
+    this.runCopy(target, CopyTool.loadSettings());
+  }
+  runCopy(target, settings) {
+    CopyTool.copyWithSettings(target, settings, this.state.translationLanguagePreference)
+      .then(() => this.setState({copyToolToast: 'copy_tool.copied'}))
+      .catch(() => this.setState({copyToolToast: 'copy_tool.copy_failed'}));
+  }
+  handleCopyToolDialogCopied(settings) {
+    CopyTool.saveSettings(settings);
+    this.setState({copyToolDialogTarget: null, copyToolToast: 'copy_tool.copied'});
+  }
+  showCopyToolPitch(target) {
+    // Stash the request so that logging in or signing up (which returns here via ?next=) reopens it.
+    CopyTool.stashPending(target);
+    this.setState({showSignUpModal: true, modalContentKind: SignUpModalKind.CopyTool});
+  }
+  resumePendingCopy() {
+    if (!Sefaria._uid || !this.copyToolEnabled()) { return; }
+    const target = CopyTool.takePending();
+    if (target) { this.setState({copyToolDialogTarget: target}); }
+  }
+  handleSignUpModalClose() {
+    if (this.state.modalContentKind === SignUpModalKind.CopyTool) { CopyTool.clearPending(); }
+    this.toggleSignUpModal();
+  }
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
   }
@@ -2333,6 +2389,17 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     clipdata.setData('text/plain', textOnly);
     clipdata.setData('text/html', html);
     e.preventDefault();
+
+    // The Copy Tool is logged-in only, but an anonymous user's regular copies of library text still
+    // count toward the sign-up pitch, shown once on their 2nd such copy. The copy above has already
+    // happened; this never blocks or alters it.
+    if (!Sefaria._uid && this.copyToolEnabled()) {
+      const anchorEl = selection.anchorNode instanceof Element ? selection.anchorNode : selection.anchorNode?.parentElement;
+      const target = CopyTool.getTargetFromElement(anchorEl, this.state.panels);
+      if (target && CopyTool.recordAnonymousCopy()) {
+        this.showCopyToolPitch(target);
+      }
+    }
   }
   rerender() {
     this.forceUpdate();
@@ -2534,6 +2601,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                       checkIntentTimer={this.checkIntentTimer}
                       openMobileNavMenu={this.toggleMobileNavMenu}
                       toggleSignUpModal={this.toggleSignUpModal}
+                      openCopyTool={this.copyToolEnabled() ? this.openCopyTool : null}
+                      pitchCopyTool={this.copyToolEnabled() ? this.showCopyToolPitch : null}
                       getHistoryObject={this.getHistoryObject}
                       clearSelectedWords={clearSelectedWords}
                       clearNamedEntity={clearNamedEntity}
@@ -2558,10 +2627,32 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
 
     const signUpModal = (
       <SignUpModal
-        onClose={this.toggleSignUpModal}
+        onClose={this.handleSignUpModalClose}
         show={this.state.showSignUpModal}
         modalContentKind={this.state.modalContentKind}
       />
+    );
+    const {copyToolMenu, copyToolDialogTarget, copyToolToast} = this.state;
+    const copyTool = (
+      <>
+        {copyToolMenu &&
+          <CopyToolMenu
+            x={copyToolMenu.x}
+            y={copyToolMenu.y}
+            showPrevious={CopyTool.hasPreviousSettings()}
+            onCopyPrevious={() => this.copyWithPreviousSettings(copyToolMenu.target)}
+            onCopyDialog={() => this.openCopyTool(copyToolMenu.target)}
+            onClose={this.closeCopyToolMenu}
+          />}
+        {copyToolDialogTarget &&
+          <CopyToolDialog
+            target={copyToolDialogTarget}
+            translationLanguagePreference={this.state.translationLanguagePreference}
+            onClose={() => this.setState({copyToolDialogTarget: null})}
+            onCopied={this.handleCopyToolDialogCopied}
+          />}
+        {copyToolToast && <CopyToolToast message={copyToolToast} onDone={() => this.setState({copyToolToast: null})} />}
+      </>
     );
 
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
@@ -2621,6 +2712,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               )}
               </main>
               {signUpModal}
+              {copyTool}
               <CookiesNotification />
             </div>
             <BannerImpressionProbe />
