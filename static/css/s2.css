@@ -1464,10 +1464,10 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   pointer-events: none;
 }
 .readerNavMenu h1 .navTitleTab img {
-  height: 12px;
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
   margin-inline-end: 6px;
-}
-.readerNavMenu h1 .navTitleTab.current img {
 }
 .sidebarLayout {
   display: flex;
@@ -8238,8 +8238,8 @@ But not to use a display block directive that might break continuous mode for ot
   color: #000;
 }
 .textList .sheet .sheetLeft .sheetTitle img.sheetIcon {
-  width: 12px;
-  height: 12px;
+  width: 18px;
+  height: 18px;
   margin: 3px 0 0 0;
 }
 .textList .sheet .sheetTitle .sheetTitleText{
@@ -11275,6 +11275,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   line-height: 19px;
 }
 .dropdown .dropdownOpenButton {
+  width: 18px;
+  height: 18px;
+  align-self: center;
   margin-inline-start: 6px;
   cursor: pointer;
   color: var(--dark-grey);
