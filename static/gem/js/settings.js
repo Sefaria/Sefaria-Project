@@ -44,6 +44,7 @@ const PANE_DEFAULTS = {
 // System defaults (Mickey, 2026-09-30): Paper theme, follow along, line numbers, cite on copy, single-click lookup.
 const DEFAULTS = {
   theme: "light",
+  palette: "gem", // colour palette, independent of the light/dark theme (see PALETTES)
   corpus: "bavli",
   sync: true,
   // word lookup: "dbl" double-click/tap · "tap" single click · "hover" rest 500ms · "long" long press · "shift" shift-click
@@ -87,6 +88,14 @@ function load() {
 }
 
 export const canHover = () => window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+/** Colour palettes. Each supplies light and dark variants in gem.css ([data-palette]). */
+export const PALETTES = [
+  { id: "gem", name: "Gem", note: "Default" },
+  { id: "vilna", name: "Vilna", note: "Ink & parchment" },
+  { id: "stone", name: "Jerusalem Stone", note: "Clay, olive, slate" },
+  { id: "clear", name: "Clear", note: "High contrast" },
+];
 
 export const LOOKUP_MODES = [
   { value: "dbl", label: "Double-click", touch: "Double-tap", hint: "Double-click a word", hintTouch: "Double-tap a word" },
@@ -180,6 +189,7 @@ export function applyPane(paneEl, key) {
 export function applyGlobal() {
   const root = document.documentElement;
   root.dataset.theme = settings.theme;
+  root.dataset.palette = PALETTES.some((p) => p.id === settings.palette) ? settings.palette : "gem";
   document.body.classList.toggle("seg-nums", !!settings.segNums);
   for (const m of LOOKUP_MODES) document.body.classList.toggle(`lk-${m.value}`, lookupMode() === m.value);
   document.body.classList.toggle("tap-define", lookupMode() === "tap");

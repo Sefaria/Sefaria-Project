@@ -14,97 +14,145 @@
   --ease: cubic-bezier(.2, .7, .2, 1);
   --topbar: 64px;
   --r: 12px;
+}
 
-  --bg: #f6f3ec;
-  --paper: #fffdf8;
-  --side: #f6f3ec;
-  --ink: #1e1b16;
-  --ink-2: #555049;
-  --ink-3: #8a8379;
-  --line: #e4ddcf;
-  --line-2: #eee8dd;
-  --chip: #eee8dc;
-  --accent: #1f4e79;
-  --accent-2: #9a7646;
-  --sel: rgba(201, 158, 52, .15);
-  --sel-line: #c29a3c;
-  --peer: rgba(31, 78, 121, .055);
-  --hit: rgba(255, 205, 90, .55);
-  --shadow: 0 18px 40px -16px rgba(50, 36, 10, .28), 0 2px 8px rgba(50, 36, 10, .07);
-  --scrim: rgba(28, 22, 12, .26);
-  --gem-a: #3c7dbb;
-  --gem-b: #1b3a5c;
-  --accent-3: #3d7a5a;
+/*
+ * Colour = palette × theme.
+ * Each palette defines a light (--L-*) and a dark (--D-*) variant. The theme then maps one of
+ * them onto the working tokens (--bg, --ink, --accent…): Paper → light, Night → dark,
+ * Auto → follows the OS, Parchment → the light variant on warmed surfaces.
+ * Palettes are set on [data-palette] so any element (e.g. a picker tile) can preview one.
+ * Roles: --accent = links, controls and the Tosafot column; --accent-2 = Rashi;
+ * --accent-3 = the third column. Every text/background pair is AA-checked (see PR notes).
+ */
+
+/* Gem — Mickey's palette (Coolors, 2026-09-30).
+   Originals: #CDC392 khaki gold · #E8E5DA warm off-white · #9EB7E5 periwinkle ·
+   #648DE5 cornflower · #304C89 deep navy. Everything else below is derived from them. */
+:root, [data-palette="gem"] {
+  --L-bg: #E8E5DA;          /* original */
+  --L-paper: #F8F7F2;       /* derived: lifted off-white */
+  --L-side: #EFEDE5;        /* derived */
+  --L-chip: #DEDACC;        /* derived */
+  --L-line: #CFCABA;        /* derived */
+  --L-line-2: #DDD9CC;      /* derived */
+  --L-ink: #1A2238;         /* derived: navy-black */
+  --L-ink-2: #3A4460;       /* derived */
+  --L-ink-3: #4B5469;       /* derived */
+  --L-accent: #304C89;      /* original navy — Tosafot, links, controls */
+  --L-accent-2: #6B5E20;    /* derived: deep khaki (the gold family, dark enough for text) */
+  --L-accent-3: #28625C;    /* derived: sea-green, distinct from gold and blue */
+  --L-sel: rgba(205, 195, 146, .42);  /* original gold as a wash */
+  --L-sel-line: #6E6428;    /* derived */
+  --L-peer: rgba(158, 183, 229, .22); /* original periwinkle as a wash */
+  --L-hit: rgba(158, 183, 229, .75);  /* original periwinkle */
+  --L-gem-a: #648DE5;       /* original cornflower */
+  --L-gem-b: #304C89;       /* original navy */
+
+  --D-bg: #10141F;          /* derived from navy */
+  --D-paper: #161B29;
+  --D-side: #121724;
+  --D-chip: #222A3D;
+  --D-line: #2C3550;
+  --D-line-2: #202840;
+  --D-ink: #E8E5DA;         /* original off-white */
+  --D-ink-2: #C4C6CE;
+  --D-ink-3: #A2A8B8;
+  --D-accent: #9EB7E5;      /* original periwinkle */
+  --D-accent-2: #CDC392;    /* original khaki gold */
+  --D-accent-3: #86CFC2;    /* derived sea-green */
+  --D-sel: rgba(205, 195, 146, .15);
+  --D-sel-line: #CDC392;
+  --D-peer: rgba(158, 183, 229, .08);
+  --D-hit: rgba(100, 141, 229, .5);   /* original cornflower */
+  --D-gem-a: #9EB7E5;
+  --D-gem-b: #648DE5;
+}
+
+/* Vilna — ink on parchment: warm browns, oxblood, bottle-green */
+[data-palette="vilna"] {
+  --L-bg: #ECE2CC; --L-paper: #FBF6EA; --L-side: #F1E8D4; --L-chip: #E4D8BE; --L-line: #D8C8A8; --L-line-2: #E6DAC2;
+  --L-ink: #2A1D12; --L-ink-2: #574431; --L-ink-3: #5E4B38;
+  --L-accent: #7E2230; --L-accent-2: #7A520E; --L-accent-3: #2F5A43;
+  --L-sel: rgba(201, 150, 64, .26); --L-sel-line: #8A5A1A; --L-peer: rgba(126, 34, 48, .06); --L-hit: rgba(222, 176, 84, .55);
+  --L-gem-a: #A8434D; --L-gem-b: #5A1520;
+  --D-bg: #15100B; --D-paper: #1C1610; --D-side: #17120D; --D-chip: #2B2219; --D-line: #3A2E21; --D-line-2: #2A2118;
+  --D-ink: #EFE5D0; --D-ink-2: #CDBDA0; --D-ink-3: #AE9D83;
+  --D-accent: #E7959A; --D-accent-2: #DDB56C; --D-accent-3: #92C9A5;
+  --D-sel: rgba(221, 181, 108, .14); --D-sel-line: #DDB56C; --D-peer: rgba(231, 149, 154, .07); --D-hit: rgba(221, 181, 108, .36);
+  --D-gem-a: #E7959A; --D-gem-b: #A8434D;
+}
+
+/* Jerusalem Stone — limestone, clay, olive and slate */
+[data-palette="stone"] {
+  --L-bg: #E9E6DC; --L-paper: #FAF9F4; --L-side: #EFEDE5; --L-chip: #E0DDD1; --L-line: #D2CEC0; --L-line-2: #E0DDD2;
+  --L-ink: #1F2419; --L-ink-2: #474D40; --L-ink-3: #50564A;
+  --L-accent: #2B5866; --L-accent-2: #99442A; --L-accent-3: #4D6324;
+  --L-sel: rgba(196, 180, 120, .30); --L-sel-line: #7A6A2C; --L-peer: rgba(43, 88, 102, .07); --L-hit: rgba(214, 196, 128, .6);
+  --L-gem-a: #C8805F; --L-gem-b: #2B5866;
+  --D-bg: #121410; --D-paper: #181B15; --D-side: #141611; --D-chip: #262A20; --D-line: #33382B; --D-line-2: #252920;
+  --D-ink: #E8E7DD; --D-ink-2: #C2C3B3; --D-ink-3: #A0A291;
+  --D-accent: #8FC2CF; --D-accent-2: #E59C80; --D-accent-3: #B8CC8C;
+  --D-sel: rgba(205, 191, 134, .13); --D-sel-line: #CDBF86; --D-peer: rgba(143, 194, 207, .07); --D-hit: rgba(205, 191, 134, .34);
+  --D-gem-a: #E59C80; --D-gem-b: #8FC2CF;
+}
+
+/* Clear — maximum contrast, colour-blind-safe hues (blue · orange · magenta) */
+[data-palette="clear"] {
+  --L-bg: #F2F2F2; --L-paper: #FFFFFF; --L-side: #F7F7F7; --L-chip: #E4E4E4; --L-line: #8C8C8C; --L-line-2: #C4C4C4;
+  --L-ink: #000000; --L-ink-2: #1E1E1E; --L-ink-3: #3B3B3B;
+  --L-accent: #0035A8; --L-accent-2: #9A3D00; --L-accent-3: #9C1668;
+  --L-sel: rgba(255, 214, 64, .45); --L-sel-line: #7A5A00; --L-peer: rgba(0, 53, 168, .08); --L-hit: #FFE066;
+  --L-gem-a: #3D6FE0; --L-gem-b: #0035A8;
+  --D-bg: #000000; --D-paper: #0B0B0B; --D-side: #050505; --D-chip: #242424; --D-line: #8C8C8C; --D-line-2: #3A3A3A;
+  --D-ink: #FFFFFF; --D-ink-2: #EDEDED; --D-ink-3: #CFCFCF;
+  --D-accent: #93BBFF; --D-accent-2: #FFB877; --D-accent-3: #FF94D6;
+  --D-sel: rgba(255, 214, 64, .22); --D-sel-line: #FFD24D; --D-peer: rgba(147, 187, 255, .12); --D-hit: rgba(255, 210, 77, .5);
+  --D-gem-a: #93BBFF; --D-gem-b: #3D6FE0;
+}
+
+/* Theme → working tokens */
+:root {
+  --bg: var(--L-bg); --paper: var(--L-paper); --side: var(--L-side); --chip: var(--L-chip);
+  --line: var(--L-line); --line-2: var(--L-line-2);
+  --ink: var(--L-ink); --ink-2: var(--L-ink-2); --ink-3: var(--L-ink-3);
+  --accent: var(--L-accent); --accent-2: var(--L-accent-2); --accent-3: var(--L-accent-3);
+  --sel: var(--L-sel); --sel-line: var(--L-sel-line); --peer: var(--L-peer); --hit: var(--L-hit);
+  --gem-a: var(--L-gem-a); --gem-b: var(--L-gem-b);
+  --shadow: 0 18px 40px -16px rgba(30, 30, 40, .26), 0 2px 8px rgba(30, 30, 40, .07);
+  --scrim: rgba(20, 20, 28, .26);
   color-scheme: light;
 }
-
+/* Parchment: the palette's light variant on warmed, aged surfaces */
 :root[data-theme="sepia"] {
-  --bg: #ede2ca;
-  --paper: #f7efdc;
-  --side: #efe5ce;
-  --ink: #37291a;
-  --ink-2: #66553f;
-  --ink-3: #978468;
-  --line: #d9caa9;
-  --line-2: #e4d8bd;
-  --chip: #e5d9bf;
-  --accent: #7a4a1d;
-  --accent-2: #8f5d2a;
-  --sel: rgba(176, 116, 32, .15);
-  --sel-line: #b07a2a;
-  --peer: rgba(122, 74, 29, .07);
-  --hit: rgba(235, 180, 70, .5);
-  --gem-a: #b9803e;
-  --gem-b: #6d421c;
-  --accent-3: #55713a;
+  --bg: color-mix(in srgb, var(--L-bg) 55%, #DCC89C);
+  --paper: color-mix(in srgb, var(--L-paper) 62%, #EEDDB6);
+  --side: color-mix(in srgb, var(--L-side) 58%, #E2CFA4);
+  --chip: color-mix(in srgb, var(--L-chip) 60%, #D6C08E);
+  --line: color-mix(in srgb, var(--L-line) 60%, #C8B283);
+  --line-2: color-mix(in srgb, var(--L-line-2) 60%, #D6C398);
 }
-
 :root[data-theme="dark"] {
-  --bg: #111214;
-  --paper: #17181b;
-  --side: #121315;
-  --ink: #e9e5dc;
-  --ink-2: #b3ac9f;
-  --ink-3: #7f796f;
-  --line: #2a2b30;
-  --line-2: #212226;
-  --chip: #232429;
-  --accent: #93bbe8;
-  --accent-2: #d2b27c;
-  --sel: rgba(210, 178, 124, .13);
-  --sel-line: #d2b27c;
-  --peer: rgba(147, 187, 232, .07);
-  --hit: rgba(210, 178, 124, .38);
+  --bg: var(--D-bg); --paper: var(--D-paper); --side: var(--D-side); --chip: var(--D-chip);
+  --line: var(--D-line); --line-2: var(--D-line-2);
+  --ink: var(--D-ink); --ink-2: var(--D-ink-2); --ink-3: var(--D-ink-3);
+  --accent: var(--D-accent); --accent-2: var(--D-accent-2); --accent-3: var(--D-accent-3);
+  --sel: var(--D-sel); --sel-line: var(--D-sel-line); --peer: var(--D-peer); --hit: var(--D-hit);
+  --gem-a: var(--D-gem-a); --gem-b: var(--D-gem-b);
   --shadow: 0 20px 48px -16px rgba(0, 0, 0, .7), 0 2px 10px rgba(0, 0, 0, .35);
   --scrim: rgba(0, 0, 0, .5);
-  --gem-a: #9cc6f0;
-  --gem-b: #3f6f9f;
-  --accent-3: #8cc7a4;
   color-scheme: dark;
 }
-
 @media (prefers-color-scheme: dark) {
   :root[data-theme="auto"] {
-    --bg: #111214;
-    --paper: #17181b;
-    --side: #121315;
-    --ink: #e9e5dc;
-    --ink-2: #b3ac9f;
-    --ink-3: #7f796f;
-    --line: #2a2b30;
-    --line-2: #212226;
-    --chip: #232429;
-    --accent: #93bbe8;
-    --accent-2: #d2b27c;
-    --sel: rgba(210, 178, 124, .13);
-    --sel-line: #d2b27c;
-    --peer: rgba(147, 187, 232, .07);
-    --hit: rgba(210, 178, 124, .38);
+    --bg: var(--D-bg); --paper: var(--D-paper); --side: var(--D-side); --chip: var(--D-chip);
+    --line: var(--D-line); --line-2: var(--D-line-2);
+    --ink: var(--D-ink); --ink-2: var(--D-ink-2); --ink-3: var(--D-ink-3);
+    --accent: var(--D-accent); --accent-2: var(--D-accent-2); --accent-3: var(--D-accent-3);
+    --sel: var(--D-sel); --sel-line: var(--D-sel-line); --peer: var(--D-peer); --hit: var(--D-hit);
+    --gem-a: var(--D-gem-a); --gem-b: var(--D-gem-b);
     --shadow: 0 20px 48px -16px rgba(0, 0, 0, .7), 0 2px 10px rgba(0, 0, 0, .35);
     --scrim: rgba(0, 0, 0, .5);
-    --gem-a: #9cc6f0;
-    --gem-b: #3f6f9f;
-    --accent-3: #8cc7a4;
     color-scheme: dark;
   }
 }
@@ -699,10 +747,11 @@ mark.hit { background: var(--hit); color: inherit; border-radius: 3px; padding: 
 .theme-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .theme-sw { display: flex; flex-direction: column; align-items: center; gap: 5px; border: 0; background: none; padding: 4px; border-radius: 10px; font: 500 11.5px var(--ui); color: var(--ink-3); }
 .sw-swatch { width: 100%; height: 44px; border-radius: 10px; display: grid; place-items: center; border: 1px solid var(--line); font: 500 20px var(--serif-he); transition: box-shadow .15s; }
-.sw-light { background: #fffdf8; color: #1e1b16; }
-.sw-sepia { background: #f3e9d2; color: #37291a; }
-.sw-dark { background: #17181b; color: #e9e5dc; border-color: #2a2b30; }
-.sw-auto { background: linear-gradient(135deg, #fffdf8 50%, #17181b 50%); color: #9a7646; }
+/* theme tiles preview the current palette */
+.sw-light { background: var(--L-paper); color: var(--L-ink); }
+.sw-sepia { background: color-mix(in srgb, var(--L-paper) 62%, #EEDDB6); color: var(--L-ink); }
+.sw-dark { background: var(--D-paper); color: var(--D-ink); border-color: var(--D-line); }
+.sw-auto { background: linear-gradient(135deg, var(--L-paper) 50%, var(--D-paper) 50%); color: var(--L-accent-2); }
 .theme-sw.on { color: var(--ink); }
 .theme-sw.on .sw-swatch { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent); }
 
@@ -1060,3 +1109,19 @@ mark.hit { background: var(--hit); color: inherit; border-radius: 3px; padding: 
 .pane-title { white-space: nowrap; min-width: 0; overflow: hidden; }
 .pane-title .pt-he, .pane-title .pt-en { overflow: hidden; text-overflow: ellipsis; }
 @container (max-width: 310px) { .pane-title .pt-en { display: none; } }
+
+/* Palette picker: each tile carries its own data-palette, so it previews that palette's
+   light (top) and dark (bottom) variants — Rashi, Tosafot and third-column colours. */
+.pal-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.pal-tile { display: flex; flex-direction: column; align-items: stretch; gap: 2px; border: 0; background: none; padding: 4px; border-radius: 10px; text-align: center; }
+.pal-swatch { display: flex; flex-direction: column; height: 50px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); transition: box-shadow .15s; }
+.pal-l, .pal-d { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.pal-l { background: var(--L-paper); }
+.pal-d { background: var(--D-paper); }
+.pal-swatch i { width: 10px; height: 10px; border-radius: 3px; }
+.pal-l .c1 { background: var(--L-accent); } .pal-l .c2 { background: var(--L-accent-2); } .pal-l .c3 { background: var(--L-accent-3); }
+.pal-d .c1 { background: var(--D-accent); } .pal-d .c2 { background: var(--D-accent-2); } .pal-d .c3 { background: var(--D-accent-3); }
+.pal-name { font: 500 11.5px var(--ui); color: var(--ink-2); line-height: 1.2; margin-top: 3px; }
+.pal-note { font: 400 10px var(--ui); color: var(--ink-3); line-height: 1.2; }
+.pal-tile.on .pal-name { color: var(--ink); }
+.pal-tile.on .pal-swatch { box-shadow: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent); }

@@ -1,7 +1,7 @@
 // gem — the Talmud learning tool. App shell: header, routing, keyboard, global menus.
 
 import { h, icon, gemMark, popover, closeAll, toast, toggle, segmented, copyText, isNarrow, isTouch } from "./ui.js";
-import { settings, set, applyPane, applyGlobal, openPaneSettings, onChange as onSettings, reset as resetSettings, COMMENTATORS, lookupMode, lookupChooser, canHover, LOOKUP_MODES } from "./settings.js";
+import { settings, set, applyPane, applyGlobal, openPaneSettings, onChange as onSettings, reset as resetSettings, COMMENTATORS, lookupMode, lookupChooser, canHover, LOOKUP_MODES, PALETTES } from "./settings.js";
 import { loadCatalog, parseRef, getMasechet, ensureMasechet, sectionLabel, loadChapters, chapterAt, chapterTitleHe, corpusOf, refToUrl, urlToRef, firstSectionRef, CORPORA } from "./catalog.js";
 import { api, sefariaUrl } from "./api.js";
 import { Reader } from "./reader.js";
@@ -729,6 +729,27 @@ class App {
       tw.appendChild(b);
     }
     body.appendChild(tw);
+    // Colour palette — independent of the theme; each tile previews its light and dark variants
+    const pw = h("div", { class: "pal-row", role: "radiogroup", "aria-label": "Colour palette" });
+    for (const pal of PALETTES) {
+      const on = (settings.palette || "gem") === pal.id;
+      const b = h("button", {
+        type: "button", role: "radio", "aria-checked": String(on), class: `pal-tile ${on ? "on" : ""}`, "data-palette": pal.id,
+        title: `${pal.name} — ${pal.note}`,
+        onclick: () => {
+          pw.querySelectorAll(".pal-tile").forEach((x) => { x.classList.remove("on"); x.setAttribute("aria-checked", "false"); });
+          b.classList.add("on"); b.setAttribute("aria-checked", "true");
+          set("palette", pal.id); applyGlobal();
+        },
+      },
+      h("span", { class: "pal-swatch", "aria-hidden": "true" },
+        h("span", { class: "pal-l" }, h("i", { class: "c2" }), h("i", { class: "c1" }), h("i", { class: "c3" })),
+        h("span", { class: "pal-d" }, h("i", { class: "c2" }), h("i", { class: "c1" }), h("i", { class: "c3" }))),
+      h("span", { class: "pal-name" }, pal.name),
+      h("span", { class: "pal-note" }, pal.note));
+      pw.appendChild(b);
+    }
+    body.appendChild(h("div", { class: "ps-block" }, h("span", { class: "ps-label" }, "Colour palette"), pw));
     body.appendChild(h("div", { class: "ps-toggles" },
       toggle("Follow along", settings.sync, (v) => set("sync", v), "Commentaries scroll with the Gemara"),
 
