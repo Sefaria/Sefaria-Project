@@ -81,6 +81,7 @@ from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, 
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
 from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
+from reader.ng import use_ng_reader, apply_ng_cookie, ng_reader_props
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -285,6 +286,71 @@ def render_react_component(component, props, request):
             return render_to_string("elements/loading.html", request=request)
 
 
+def reader_initial_settings(request):
+    """Reader display settings from the same cookies ReaderPanel.setOption writes."""
+    return {
+        "language":          getattr(request, "contentLang", "english"),
+        "layoutDefault":     request.COOKIES.get("layoutDefault", "segmented"),
+        "layoutTalmud":      request.COOKIES.get("layoutTalmud", "continuous"),
+        "layoutTanakh":      request.COOKIES.get("layoutTanakh", "segmented"),
+        "aliyotTorah":       request.COOKIES.get("aliyotTorah", "aliyotOff"),
+        "vowels":            request.COOKIES.get("vowels", "all"),
+        "punctuationTalmud": request.COOKIES.get("punctuationTalmud", "punctuationOn"),
+        "biLayout":          request.COOKIES.get("biLayout", "stacked"),
+        "color":             request.COOKIES.get("color", "light"),
+        "fontSize":          request.COOKIES.get("fontSize", 62.5),
+    }
+
+
+def ng_base_props(request):
+    """
+    The subset of base_props() the NG reader reads (see reader.ng.NG_BASE_PROP_KEYS),
+    computed without base_props()'s profile, calendar and notification lookups.
+    """
+    authenticated = request.user.is_authenticated
+    return {
+        "_uid":                          request.user.id if authenticated else None,
+        "_email":                        request.user.email if authenticated else "",
+        "activeModule":                  getattr(request, "active_module", LIBRARY_MODULE),
+        "last_cached":                   library.get_last_cached_time(),
+        "initialPath":                   request.get_full_path(),
+        "interfaceLang":                 request.interfaceLang,
+        "initialSettings":               reader_initial_settings(request),
+        "translationLanguagePreference": request.translation_language_preference,
+        "versionPrefsByCorpus":          request.version_preferences_by_corpus,
+        "domainModules":                 settings.DOMAIN_MODULES,
+        "_siteSettings":                 SITE_SETTINGS,
+        "_debug":                        DEBUG,
+        "appVersion":                    APP_VERSION,
+    }
+
+
+def ng_bundle_built():
+    """
+    The NG client bundle is built by `npm run build` / `build-prod` / `build-ng`. A dev setup that
+    only ran build-client has no stats file for it; serve the classic reader there, not an error.
+    """
+    built = os.path.exists(settings.WEBPACK_LOADER["NG"]["STATS_FILE"])
+    if not built:
+        logger.warning("NG reader bundle not built (npm run build-ng); serving the classic reader")
+    return built
+
+
+def render_ng_reader(request, panels, template_context):
+    """
+    Render the NG mobile reader (static/js/ng/) for a text panel: NgReaderApp through Node,
+    inside templates/ng/reader.html. The counterpart of render_template() for ReaderApp.
+    """
+    props = ng_reader_props(ng_base_props(request), panels, remoteConfigCache.get(CLIENT_REMOTE_CONFIG_JSON, {}))
+    props_json = json.dumps(props, ensure_ascii=False)
+    template_context["ng_props"] = props
+    panel = props["initialPanel"] or {}
+    language = (panel.get("settings") or {}).get("language") or props["initialSettings"]["language"]
+    template_context["ng_preload_hebrew"] = language != "english"
+    template_context["html"] = render_react_component("NgReaderApp", props_json, request=request)
+    return render(request, template_name="ng/reader.html", context=template_context)
+
+
 def base_props(request):
     """
     Returns a dictionary of props that all App pages get based on the request
@@ -350,18 +416,7 @@ def base_props(request):
         "countryCode": request.country_code,
         "domainModules": settings.DOMAIN_MODULES,
         "translation_language_preference_suggestion": request.translation_language_preference_suggestion,
-        "initialSettings": {
-            "language":          getattr(request, "contentLang", "english"),
-            "layoutDefault":     request.COOKIES.get("layoutDefault", "segmented"),
-            "layoutTalmud":      request.COOKIES.get("layoutTalmud", "continuous"),
-            "layoutTanakh":      request.COOKIES.get("layoutTanakh", "segmented"),
-            "aliyotTorah":       request.COOKIES.get("aliyotTorah", "aliyotOff"),
-            "vowels":            request.COOKIES.get("vowels", "all"),
-            "punctuationTalmud": request.COOKIES.get("punctuationTalmud", "punctuationOn"),
-            "biLayout":          request.COOKIES.get("biLayout", "stacked"),
-            "color":             request.COOKIES.get("color", "light"),
-            "fontSize":          request.COOKIES.get("fontSize", 62.5),
-        },
+        "initialSettings": reader_initial_settings(request),
         "numLibraryTopics": get_num_library_topics(),
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
@@ -815,7 +870,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     
 
     panels = []
-    multi_panel = not request.user_agent.is_mobile and not "mobile" in request.GET
+    ng = sheet is None and request.active_module == LIBRARY_MODULE and use_ng_reader(request, oref) and ng_bundle_built()
+    multi_panel = not ng and not request.user_agent.is_mobile and not "mobile" in request.GET
     # Handle first panel which has a different signature in params
     primaryVersion = _extract_version_params(request, 'vhe')
     translationVersion = _extract_version_params(request, 'ven')
@@ -952,13 +1008,18 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     if len(panels) > 0 and panels[0].get("refs") == [] and panels[0].get("mode") == "Text":
         logger.debug("Mangled panel state: {}".format(panels), stack_info=True)
-    return render_template(request, 'base.html', props, {
+    template_context = {
         "title":          title,
         "desc":           desc,
         "canonical_url":  canonical_url(request),
         "ldBreadcrumbs":  breadcrumb,
         "noindex":        noindex,
-    })
+    }
+    if ng:
+        response = render_ng_reader(request, panels, template_context)
+    else:
+        response = render_template(request, 'base.html', props, template_context)
+    return apply_ng_cookie(request, response)
 
 
 def _reduce_ranged_ref_text_to_first_section(text_list):
