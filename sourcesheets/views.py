@@ -824,9 +824,14 @@ def visual_sheet_api(request, sheet_id):
     API for visual source sheet layout
     """
     if not request.user.is_authenticated:
-        return {"error": "You must be logged in to save a sheet layout."}
+        return jsonResponse({"error": "You must be logged in to save a sheet layout."})
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
+    sheet = get_sheet(int(sheet_id))
+    if "error" in sheet:
+        return jsonResponse(sheet)
+    if not can_edit(request.user, sheet):
+        return jsonResponse({"error": "You don't have permission to edit this sheet's layout."})
 
     visualNodes = json.loads(request.POST.get("visualNodes"))
     zoomLevel =  json.loads(request.POST.get("zoom"))
@@ -839,7 +844,7 @@ def like_sheet_api(request, sheet_id):
     API to like sheet_id.
     """
     if not request.user.is_authenticated:
-        return {"error": "You must be logged in to like sheets."}
+        return jsonResponse({"error": "You must be logged in to like sheets."})
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
 
