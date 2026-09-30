@@ -36,7 +36,7 @@ skip_bad_record = bad_record_guard(logger)
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string, flatten_jagged_array
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER, DISABLE_STRING_WAREHOUSE
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
 from sefaria.helper.normalization import NormalizerFactory
@@ -4511,6 +4511,12 @@ class Library(object):
 
         self.langs = ["en", "he"]
 
+        # String warehouse for search-query auto-correction (sc-47189, sefaria/helper/string_warehouse.py).
+        # Empty until build_string_warehouse() populates it from Mongo during init_library_cache()
+        # (reader/startup.py) -- mirrors the autocompleters' staged, flag-gated build below rather
+        # than doing Mongo I/O unconditionally inside __init__.
+        self._string_warehouse = {}
+
         # Maps, keyed by language, from index key to array of titles
         self._index_title_maps = {lang:{} for lang in self.langs}
 
@@ -4605,6 +4611,15 @@ class Library(object):
                         tree_titles = tree.title_dict(lang)
                         self._index_title_maps[lang][tree.key] = list(tree_titles.keys())
                         self._title_node_maps[lang].update(tree_titles)
+
+    def autocorrect_query(self, query):
+        """
+        Fuzzy-search POC (sc-47189). See sefaria.helper.string_warehouse.autocorrect_query
+        for the algorithm. Returns (corrected_query, original_query) if `query` should be
+        auto-corrected against the string warehouse, else None (search `query` as typed).
+        """
+        from sefaria.helper.string_warehouse import autocorrect_query
+        return autocorrect_query(query, self._string_warehouse)
 
     def _reset_index_derivative_objects(self, include_auto_complete=False):
         """
@@ -5004,6 +5019,21 @@ class Library(object):
             self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
             self._cross_lexicon_auto_completer_is_ready = True
 
+    def build_string_warehouse(self):
+        """
+        Loads the string warehouse (search-query auto-correction, sc-47189) from Mongo, where
+        it's written by the scheduled `scripts/build_string_warehouse.py` CronJob -- this is a
+        read of a precomputed artifact, not a build, so unlike the autocompleters above there's
+        no expensive in-process construction here. No-op when DISABLE_STRING_WAREHOUSE is set.
+        Missing/not-yet-built data just leaves the warehouse empty, silently disabling
+        auto-correction rather than failing startup.
+        """
+        if DISABLE_STRING_WAREHOUSE:
+            logger.warning("DISABLE_STRING_WAREHOUSE is set; skipping string warehouse load.")
+            return
+        from sefaria.helper.string_warehouse import load_warehouse
+        with build_pathway("build_string_warehouse"):
+            self._string_warehouse = load_warehouse()
 
     def cross_lexicon_auto_completer(self):
         """

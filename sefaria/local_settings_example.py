@@ -235,6 +235,11 @@ DISABLE_AUTOCOMPLETER = False
 # that run with DISABLE_AUTOCOMPLETER = True.
 NAME_SERVICE = False
 
+# When True this process skips loading the string warehouse (search-query auto-correction,
+# sc-47189, sefaria/helper/string_warehouse.py) at startup -- e.g. on task/Celery pods, which
+# never serve search_wrapper_api and so have no use for it in memory.
+DISABLE_STRING_WAREHOUSE = False
+
 # Turns on loading of machine learning models to run linker
 ENABLE_LINKER = False
 

@@ -239,6 +239,9 @@ data:
     # When true this process neither builds nor serves autocompleters; completion
     # endpoints fail fast and belong to the name service when deployed
     DISABLE_AUTOCOMPLETER = os.getenv("DISABLE_AUTOCOMPLETER", "false").lower() == "true"
+    # When true this process skips loading the string warehouse (search-query auto-correction,
+    # sc-47189) at startup -- set on pods, like task/Celery, that never serve search_wrapper_api
+    DISABLE_STRING_WAREHOUSE = os.getenv("DISABLE_STRING_WAREHOUSE", "false").lower() == "true"
     # When true this process serves only the completion endpoints (sefaria/urls_name.py)
     NAME_SERVICE = os.getenv("NAME_SERVICE", "false").lower() == "true"
     ENABLE_LINKER = os.getenv("ENABLE_LINKER", "false").lower() == "true"

@@ -4923,6 +4923,31 @@ def dummy_search_api(request):
     return resp
 
 
+def _apply_query_autocorrect(query, disable_autocorrect):
+    """
+    Fuzzy-search query auto-correction (sc-47189), shared by search_wrapper_api (Sources tab)
+    and entity_search_api (Books/Topics/Authors tabs) so a query corrects the same way
+    regardless of which tab searched it. `library.autocorrect_query` is a pure function of
+    `query` against the string warehouse, so calling it once per tab -- rather than sharing
+    one result across tabs -- still always agrees; it just means every tab's request/response
+    cycle handles its own correction independently, matching how each tab already runs its
+    own search.
+
+    Returns (effective_query, corrected_query): `effective_query` is what should actually be
+    searched (the correction, if one applies, else `query` unchanged); `corrected_query` is
+    non-None only when a correction was applied, for the response's "results for X / search
+    instead for Y" banner. `disable_autocorrect` is set by that banner's "search instead"
+    action, to force the original query back through untouched.
+    """
+    if not query or disable_autocorrect:
+        return query, None
+    correction = library.autocorrect_query(query)
+    if correction is None:
+        return query, None
+    corrected_query, _ = correction
+    return corrected_query, corrected_query
+
+
 @csrf_exempt
 def search_wrapper_api(request, es6_compat=False):
     """
@@ -4938,6 +4963,12 @@ def search_wrapper_api(request, es6_compat=False):
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
+
+        # Fuzzy-search query auto-correction (sc-47189) -- see _apply_query_autocorrect.
+        original_query = j.get("query")
+        disable_autocorrect = j.pop("disable_autocorrect", False)
+        j["query"], corrected_query = _apply_query_autocorrect(original_query, disable_autocorrect)
+
         es_client = get_elasticsearch_client_for_online_search()
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
@@ -4946,6 +4977,9 @@ def search_wrapper_api(request, es6_compat=False):
             response_json = response.to_dict().body
             if es6_compat and isinstance(response_json['hits']['total'], dict):
                 response_json['hits']['total'] = response_json['hits']['total']['value']
+            if corrected_query is not None:
+                response_json['corrected_query'] = corrected_query
+                response_json['original_query'] = original_query
             return jsonResponse(response_json, callback=request.GET.get("callback", None))
         return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
@@ -4957,6 +4991,12 @@ def entity_search_api(request):
 
     GET /api/entity-search?q=<query>&type=<topic|author|book>&sort=<relevance|alpha|year_asc|year_desc>
                           &filter=<category path>&start=<offset>&size=<page size>
+                          &disable_autocorrect=<true|false>
+
+    Fuzzy-search query auto-correction (sc-47189) applies here too, same as search_wrapper_api
+    (Sources tab): see _apply_query_autocorrect. A correction adds `corrected_query` /
+    `original_query` to the response; `disable_autocorrect=true` (sent by that banner's
+    "search instead" action) searches `q` exactly as given.
 
     `start` (default 0) and `size` (default 20, capped at 100) page the results; the tab
     fetches successive pages on scroll. `total` always reports the full match count.
@@ -4985,11 +5025,13 @@ def entity_search_api(request):
     """
     from sefaria.helper.search import entity_search, ENTITY_TYPES, ENTITY_SORTS, ENTITY_MAX_RESULT_WINDOW
 
-    query = request.GET.get("q", "").strip()
+    original_query = request.GET.get("q", "").strip()
     entity_type = request.GET.get("type", "topic").strip()
     sort = request.GET.get("sort", "relevance").strip()
     category_paths = [f.strip() for f in request.GET.getlist("filter") if f.strip()]
     callback = request.GET.get("callback", None)
+    disable_autocorrect = request.GET.get("disable_autocorrect", "").strip().lower() == "true"
+    query, corrected_query = _apply_query_autocorrect(original_query, disable_autocorrect)
 
     if not query:
         return jsonResponse({"error": "Missing required query parameter 'q'."}, callback=callback)
@@ -5031,6 +5073,10 @@ def entity_search_api(request):
     except Exception as e:
         logger.error(f"entity_search_api failed - q: {query}, type: {entity_type}, sort: {sort}, filter: {category_paths}, error: {e}", exc_info=True)
         return jsonResponse({"error": "Error running entity search."}, callback=callback)
+
+    if corrected_query is not None:
+        results["corrected_query"] = corrected_query
+        results["original_query"] = original_query
 
     return jsonResponse(results, callback=callback)
 

@@ -103,7 +103,14 @@ class ElasticSearchQuerier extends Component {
         pagesLoaded:    0,
         hits:           [],
         error:          false,
-        topics:         []
+        topics:         [],
+        // Fuzzy-search POC (sc-47189): correctedQuery is set from the server's response
+        // when the typed query was auto-corrected against the string warehouse.
+        // disableAutoCorrect is flipped on by the user clicking "Search instead for
+        // <original query>" in the resulting banner, and reset whenever the query text
+        // itself changes (see componentWillReceiveProps).
+        correctedQuery: null,
+        disableAutoCorrect: false,
       }
 
       // Load search results from cache so they are available for immediate render
@@ -219,6 +226,10 @@ class ElasticSearchQuerier extends Component {
             // entry whose query and tab both changed in one update, and this runs
             // before SearchPage.componentDidUpdate reports the new tab.
             SearchAnalytics.startQuery(newProps.query, this._analyticsTab(newProps));
+            // Fuzzy-search POC (sc-47189): a genuinely new query re-enables
+            // auto-correction; "disable" only ever applies to the query it was set for.
+            state.correctedQuery = null;
+            state.disableAutoCorrect = false;
             this.setState(state, () => {
                 this._executeAllQueries(newProps);
                 if (!this.props.searchInBook) {
@@ -324,7 +335,11 @@ class ElasticSearchQuerier extends Component {
                   hits: data.hits.hits,
                   totals: currTotal,
                   pagesLoaded: 1,
-                  moreToLoad: currTotal.getValue() > this.querySize[this.props.searchState.type]
+                  moreToLoad: currTotal.getValue() > this.querySize[this.props.searchState.type],
+                  // Fuzzy-search POC (sc-47189): present only when the server substituted
+                  // a string-warehouse match for the query it was actually sent (see
+                  // search_wrapper_api / library.autocorrect_query).
+                  correctedQuery: data.corrected_query || null,
                 };
                 this.setState(state);
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
@@ -376,7 +391,26 @@ class ElasticSearchQuerier extends Component {
         field,
         sort_type: sortType,
         exact: fieldExact === field,
+        // Fuzzy-search POC (sc-47189)
+        disable_autocorrect: this.state.disableAutoCorrect,
       };
+    }
+    /**
+     * Fuzzy-search POC (sc-47189). Called when the user clicks "Search instead for
+     * <original query>" in the auto-correction banner: re-runs the current query with
+     * auto-correction turned off, so the original, uncorrected text is searched as typed.
+     */
+    disableAutoCorrect() {
+      if (this.state.disableAutoCorrect) { return; }
+      this.setState({
+        disableAutoCorrect: true,
+        correctedQuery: null,
+        hits: [],
+        pagesLoaded: 0,
+        moreToLoad: true
+      }, () => {
+        this._executeQuery(this.props);
+      });
     }
     _loadNextPage() {
       console.log("load next page")
@@ -438,6 +472,9 @@ class ElasticSearchQuerier extends Component {
                     isQueryRunning={this.state.isQueryRunning}
                     searchTopMsg={isVoices && "search_page.results_for"}
                     query={this.props.query}
+                    correctedQuery={this.state.correctedQuery}
+                    disableAutoCorrect={this.state.disableAutoCorrect}
+                    onDisableAutoCorrect={this.disableAutoCorrect}
                     tab={this.props.tab}
                     setTab={this.props.setTab}
                     sortTypeArray={SearchState.metadataByType[this.props.searchState.type].sortTypeArray}

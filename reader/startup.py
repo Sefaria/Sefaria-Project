@@ -43,6 +43,10 @@ def init_library_cache():
         logger.info("Initializing Shared Cache")
         library.init_shared_cache()
 
+        if not settings.DISABLE_STRING_WAREHOUSE:
+            logger.info("Loading String Warehouse")
+            library.build_string_warehouse()
+
         if not settings.DISABLE_AUTOCOMPLETER:
             logger.info("Initializing Full Auto Completer")
             library.build_full_auto_completer()
