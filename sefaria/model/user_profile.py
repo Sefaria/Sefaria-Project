@@ -45,7 +45,7 @@ from django.utils.translation import gettext as _, ngettext_lazy
 from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError
-from sefaria.constants.model import VOICES_MODULE, LIBRARY_ASSISTANT_SETTING_KEY
+from sefaria.constants.model import VOICES_MODULE, LIBRARY_ASSISTANT_SETTING_KEY, READING_HISTORY_PAUSED_SETTING_KEY
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User, Group, AnonymousUser
@@ -654,6 +654,9 @@ class UserProfile(object):
 
     def process_history_item(self, hist, time_stamp):
         action = hist.pop("action", None)
+        if self.settings.get(READING_HISTORY_PAUSED_SETTING_KEY, False) and action is None and self.settings.get("reading_history", True):
+            # history paused: keep what is stored, record no new reads (saving/unsaving still works)
+            return None
         if self.settings.get("reading_history", True) or action == "add_saved":  # regular case where history enabled, save/unsave saved item etc. or save history in either case
             return UserHistory.save_history_item(self.id, hist, action, time_stamp)
         elif action == "delete_saved":  # user has disabled history and is "unsaving", therefore deleting this item.
