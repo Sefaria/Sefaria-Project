@@ -38,22 +38,53 @@ import SearchAnalytics, { tabLabel } from './sefaria/searchAnalytics';
  * every tab with auto-correction disabled, searching `originalQuery` exactly as typed.
  */
 const SearchAutocorrectBanner = ({correctedQuery, originalQuery, onSearchOriginal}) => {
-  if (!correctedQuery) { return null; }
-  const searchOriginal = () => onSearchOriginal && onSearchOriginal();
+  // The status region is always rendered (empty when there's no correction) so screen readers
+  // announce the banner when it appears -- a live region mounted together with its content isn't
+  // reliably announced (WCAG 4.1.3).
+  return (
+    <div role="status">
+      {correctedQuery ?
+        <SearchAutocorrectBannerContent
+            correctedQuery={correctedQuery}
+            originalQuery={originalQuery}
+            onSearchOriginal={onSearchOriginal}/> : null}
+    </div>
+  );
+};
+SearchAutocorrectBanner.propTypes = {
+  correctedQuery:   PropTypes.string,
+  originalQuery:    PropTypes.string,
+  onSearchOriginal: PropTypes.func,
+};
+
+const SearchAutocorrectBannerContent = ({correctedQuery, originalQuery, onSearchOriginal}) => {
+  const searchOriginal = e => {
+    // This button unmounts once the original query runs; for keyboard users, hand focus to the
+    // search box (which now holds that query) instead of letting it drop to <body>. Not done for
+    // clicks/taps, where focusing the input would pop up the mobile keyboard.
+    const searchInput = e.type === "keydown" && e.currentTarget.closest(".searchContent")?.querySelector(".searchPageSearchBar input");
+    onSearchOriginal && onSearchOriginal();
+    searchInput && searchInput.focus();
+  };
+  // The query's script is independent of the interface language (a Hebrew query on the English
+  // interface, or vice versa), so mark each term's own direction and language: `dir` isolates it
+  // so the label and query don't reorder each other, and `lang` lets screen readers switch voice.
+  const queryLangProps = query => Sefaria.hebrew.isHebrew(query) ? {dir: "rtl", lang: "he"} : {dir: "ltr", lang: "en"};
   return (
     <div className="searchAutocorrectBanner">
       <div className="searchAutocorrectBanner-line">
-        <InterfaceText text={{en: "These are results for ", he: "אלו התוצאות עבור "}}/>
-        <span className="searchAutocorrectBanner-corrected">{correctedQuery}</span>
+        <InterfaceText text={{en: "These are results for ", he: "מוצגות תוצאות עבור "}}/>
+        <span className="searchAutocorrectBanner-corrected" {...queryLangProps(correctedQuery)}>{correctedQuery}</span>
       </div>
       <div className="searchAutocorrectBanner-line searchAutocorrectBanner-secondary">
-        <InterfaceText text={{en: "Search instead for ", he: "חפש במקום זאת עבור "}}/>
+        <InterfaceText text={{en: "Search instead for ", he: "חיפוש של "}}/>
         <span
             className="searchAutocorrectBanner-original"
+            {...queryLangProps(originalQuery)}
             role="button"
             tabIndex="0"
             onClick={searchOriginal}
-            onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); searchOriginal(); } }}
+            onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); searchOriginal(e); } }}
         >
           {originalQuery}
         </span>
@@ -61,7 +92,7 @@ const SearchAutocorrectBanner = ({correctedQuery, originalQuery, onSearchOrigina
     </div>
   );
 };
-SearchAutocorrectBanner.propTypes = {
+SearchAutocorrectBannerContent.propTypes = {
   correctedQuery:   PropTypes.string,
   originalQuery:    PropTypes.string,
   onSearchOriginal: PropTypes.func,
