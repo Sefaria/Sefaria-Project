@@ -63,7 +63,7 @@ http {
   }
 
   # https://nginx.org/en/docs/varindex.html
-  log_format structured escape=json '{ "requestDuration": $request_time, "envName": "${ENV_NAME}", "stackComponent": "nginx", "host": "$hostname", "severity": "info", "httpRequest": { "requestMethod": "$request_method", "requestUrl": "$request_uri", "requestSize": $request_length, "status":  $status, "responseSize": $body_bytes_sent, "userAgent":  "$http_user_agent", "remoteIp": "$http_x_original_forwarded_for", "referer": "$http_referer", "protocol": "$server_protocol", "forwardedHTTP": "$http_x_forwarded_proto" }, "apiClassification": { "secFetch": "$sec_fetch", "origin": "$http_origin", "credentialTransport": "$credential_transport", "varnishCache": "$varnish_cache", "sessionCookie": $session_cookie }, "timeLocal": "$time_local" }';
+  log_format structured escape=json '{ "requestDuration": $request_time, "envName": "${ENV_NAME}", "stackComponent": "nginx", "host": "$hostname", "severity": "info", "httpRequest": { "requestMethod": "$request_method", "requestUrl": "$request_uri", "requestSize": $request_length, "status":  $status, "responseSize": $body_bytes_sent, "userAgent":  "$http_user_agent", "remoteIp": "$http_x_original_forwarded_for", "referer": "$http_referer", "latency": ${request_time}, "protocol": "$server_protocol", "forwardedHTTP": "$http_x_forwarded_proto" }, "remoteUser": "$remote_user", "apiClassification": { "secFetch": "$sec_fetch", "origin": "$http_origin", "credentialTransport": "$credential_transport", "varnishCache": "$varnish_cache", "sessionCookie": $session_cookie }, "timeLocal": "$time_local" }';
   access_log /dev/stdout structured;
   client_max_body_size 32M;
 
