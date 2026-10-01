@@ -133,3 +133,25 @@ export function getStoredNusach() {
 export const setStoredNusach = n => isNusach(n) && storageSet(STORED_NUSACH_KEY, n);
 export const hasSeenNusachPicker = () => storageGet(PICKER_SEEN_KEY) === "1";
 export const markNusachPickerSeen = () => storageSet(PICKER_SEEN_KEY, "1");
+
+// Reader mode on the three siddurim. "siddur": a segment or header-title tap opens the siddur TOC overlay
+// (with the nusach switcher) and there is no resource panel. "learning": stock reader behavior.
+export const READER_MODES = ["siddur", "learning"];
+const STORED_READER_MODE_KEY = "siddur.mode";
+
+export const isReaderMode = m => READER_MODES.includes(m);
+
+export function readerModeFor({isSiddur, storedMode}) {
+  // Siddurim default to Siddur Mode unless the reader chose Learning Mode; every other book is always Learning Mode.
+  if (!isSiddur) { return "learning"; }
+  return isReaderMode(storedMode) ? storedMode : "siddur";
+}
+
+export const isSiddurModeActive = ({book, storedMode, books = NUSACH_BOOKS}) =>
+    readerModeFor({isSiddur: isSiddurBook(book, books), storedMode}) === "siddur";
+
+export function getStoredReaderMode() {
+  const m = storageGet(STORED_READER_MODE_KEY);
+  return isReaderMode(m) ? m : null;
+}
+export const setStoredReaderMode = m => isReaderMode(m) && storageSet(STORED_READER_MODE_KEY, m);

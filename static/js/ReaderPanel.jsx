@@ -51,19 +51,24 @@ import SiddurTocOverlay from './SiddurTocOverlay';
 import {SiddurNusachPicker, saveNusachChoice, siddurUrl, viewerDefaultNusach} from './SiddurNusachPicker';
 import {
   getStoredNusach,
+  getStoredReaderMode,
   hasSeenNusachPicker,
   isSiddurBook,
+  isSiddurModeActive,
   mapRefToNusach,
   markNusachPickerSeen,
   nusachDebugParams,
   nusachForBook,
+  readerModeFor,
+  setStoredReaderMode,
   shouldShowLandingPicker,
   siddurVersions,
 } from './sefaria/siddurNusach';
 
-// ?nusachPicker=1 on the landing URL forces the picker once per page load and enables the siddur TOC overlay on desktop.
+// ?nusachPicker=1 on the landing URL forces the landing picker once per page load (desktop too).
 let siddurDebugMode = null;
 let nusachPickerForced = false;
+const READER_MODE_EVENT = "sefaria:siddurModeChange";
 
 class ReaderPanel extends Component {
   constructor(props) {
@@ -79,6 +84,7 @@ class ReaderPanel extends Component {
       showNusachPicker: false,
       nusachPickerDefault: null,
       siddurTocOpen: false,
+      storedReaderMode: null, // Siddur Mode / Learning Mode choice from localStorage, read after mount
     };
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
@@ -96,6 +102,8 @@ class ReaderPanel extends Component {
     if (siddurDebugMode === null) {
       siddurDebugMode = nusachDebugParams(window.location.search).forcePicker;
     }
+    this.setState({storedReaderMode: getStoredReaderMode()});
+    window.addEventListener(READER_MODE_EVENT, this.onReaderModeChange);
     this.maybeShowNusachPicker();
     this.conditionalSetTextData();
     window.addEventListener("resize", this.setWidth);
@@ -107,6 +115,7 @@ class ReaderPanel extends Component {
   }
   componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
+    window.removeEventListener(READER_MODE_EVENT, this.onReaderModeChange);
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.searchQuery && this.state.menuOpen !== "search") {
@@ -223,7 +232,23 @@ class ReaderPanel extends Component {
     }
   }
   siddurTocEnabled() {
-    return this.state.mode === "Text" && (!this.props.multiPanel || siddurDebugMode) && isSiddurBook(this.currentBook());
+    // Siddur Mode: segment and header-title taps open the TOC overlay instead of the resource panel.
+    return this.state.mode === "Text" && isSiddurModeActive({book: this.currentBook(), storedMode: this.state.storedReaderMode});
+  }
+  siddurReaderMode() {
+    // "siddur" | "learning" for the mode toggle in the display options menu, or null when it doesn't apply.
+    if (!["Text", "TextAndConnections"].includes(this.state.mode) || !isSiddurBook(this.currentBook())) { return null; }
+    return readerModeFor({isSiddur: true, storedMode: this.state.storedReaderMode});
+  }
+  setSiddurReaderMode(mode) {
+    if (mode === this.siddurReaderMode()) { return; }
+    setStoredReaderMode(mode);
+    Sefaria.track.event("Reader", "Siddur Mode Toggle", mode);
+    // Tell the other open panels too; each listens and updates its own state.
+    window.dispatchEvent(new CustomEvent(READER_MODE_EVENT, {detail: mode}));
+  }
+  onReaderModeChange(e) {
+    this.setState({storedReaderMode: e.detail, siddurTocOpen: false});
   }
   handleSiddurTocNavigate(ref) {
     this.setState({siddurTocOpen: false});
@@ -848,6 +873,8 @@ class ReaderPanel extends Component {
       punctuationState: this.state.settings.punctuationTalmud,
       width: this.state.width,
       panelPosition: this.props.panelPosition,
+      siddurMode: this.siddurReaderMode(),
+      setSiddurMode: this.setSiddurReaderMode,
     };
     const contextContentLang = {"language": this.getContentLanguageOverrideStateful()};
 

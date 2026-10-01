@@ -4,7 +4,9 @@ import {
   NUSACH_BOOKS,
   defaultNusach,
   getStoredNusach,
+  getStoredReaderMode,
   hasSeenNusachPicker,
+  isSiddurModeActive,
   isSiddurBook,
   mapRefToNusach,
   markNusachPickerSeen,
@@ -12,9 +14,11 @@ import {
   nusachDebugParams,
   nusachForBook,
   parseSiddurRef,
+  readerModeFor,
   serviceForHour,
   serviceStartRef,
   setStoredNusach,
+  setStoredReaderMode,
   shouldShowLandingPicker,
   siddurContentLang,
   siddurVersions,
@@ -240,6 +244,41 @@ describe('storage helpers', () => {
     const spy = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error("blocked"); });
     expect(getStoredNusach()).toBe(null);
     expect(hasSeenNusachPicker()).toBe(false);
+    spy.mockRestore();
+  });
+});
+
+describe('Siddur Mode / Learning Mode', () => {
+  beforeEach(() => localStorage.clear());
+  test('siddurim default to Siddur Mode', () => {
+    expect(readerModeFor({isSiddur: true, storedMode: null})).toBe("siddur");
+    expect(readerModeFor({isSiddur: true, storedMode: "bogus"})).toBe("siddur");
+    NUSACHIM.forEach(n => expect(isSiddurModeActive({book: NUSACH_BOOKS[n].title, storedMode: null})).toBe(true));
+  });
+  test('a stored choice overrides the default both ways', () => {
+    expect(readerModeFor({isSiddur: true, storedMode: "learning"})).toBe("learning");
+    expect(readerModeFor({isSiddur: true, storedMode: "siddur"})).toBe("siddur");
+    expect(isSiddurModeActive({book: "Siddur Sefard", storedMode: "learning"})).toBe(false);
+    expect(isSiddurModeActive({book: "Siddur Sefard", storedMode: "siddur"})).toBe(true);
+  });
+  test('non-siddur books are always Learning Mode', () => {
+    ["Genesis", "Siddur Ashkenaz", null, undefined].forEach(book => {
+      expect(isSiddurModeActive({book, storedMode: null})).toBe(false);
+      expect(isSiddurModeActive({book, storedMode: "siddur"})).toBe(false);
+    });
+    expect(readerModeFor({isSiddur: false, storedMode: "siddur"})).toBe("learning");
+  });
+  test('stores only valid modes and survives a storage that throws', () => {
+    expect(getStoredReaderMode()).toBe(null);
+    setStoredReaderMode("bogus");
+    expect(getStoredReaderMode()).toBe(null);
+    setStoredReaderMode("learning");
+    expect(getStoredReaderMode()).toBe("learning");
+    expect(localStorage.getItem("siddur.mode")).toBe("learning");
+    setStoredReaderMode("siddur");
+    expect(getStoredReaderMode()).toBe("siddur");
+    const spy = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error("blocked"); });
+    expect(getStoredReaderMode()).toBe(null);
     spy.mockRestore();
   });
 });

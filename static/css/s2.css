@@ -6645,6 +6645,10 @@ big {
 .readerOptions img {
   height: 16px;
 }
+.readerOptions img.gearIcon {
+  height: 20px;
+  margin-inline-end: 4px;
+}
 .readerOptions .textIcon {
   font-size: 22px;
   line-height: 60px;
@@ -15703,6 +15707,10 @@ span.ref-link-color-3 {color: blue}
 
 .show-source-translation-buttons > div:not(:first-of-type):not(:last-of-type) {
     border-radius: 0;
+}
+
+.show-source-translation-buttons.siddur-mode-buttons {
+  height: 105px; /* two rows, same padding as the three-row Source / Translation toggle */
 }
 
 .show-source-translation-buttons input[type=radio]:checked::before {
