@@ -400,6 +400,24 @@ class TestLanguageModuleSwitching:
         assert 'voices.sefaria.org' in response.url, "Should redirect to English domain"
         assert 'set-language-cookie' in response.url, "Should include cookie parameter"
 
+    # First-party programmatic clients keep the pinned language instead of being bounced
+    @production_settings
+    @pytest.mark.parametrize("user_agent, redirects", [
+        ("Sefaria/api-tests", False),
+        ("Mozilla/5.0", True),
+    ])
+    def test_sefaria_user_agent_not_redirected_prod(self, factory, language_middleware, user_agent, redirects):
+        request = factory.get('/Genesis.1', HTTP_HOST='www.sefaria.org.il', HTTP_USER_AGENT=user_agent)
+        request.COOKIES = {'interfaceLang': 'english'}
+        request.user = AnonymousUser()
+        request.active_module = LIBRARY_MODULE
+
+        response = language_middleware.process_request(request)
+
+        assert (response is not None) == redirects
+        if not redirects:
+            assert request.interfaceLang == 'hebrew', "Should keep the domain's pinned language"
+
 
 # ============================================================================
 # HOP 2: LanguageCookieMiddleware's stripped-param redirect must still be marked
