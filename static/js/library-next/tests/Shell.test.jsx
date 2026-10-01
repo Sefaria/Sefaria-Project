@@ -93,7 +93,8 @@ test('toasts, modal and the assistant dock', () => {
   expect(panel.classList.contains('is-open')).toBe(false);
   act(() => { toggleAssistant(); });
   expect(panel.classList.contains('is-open')).toBe(true);
-  expect(panel.textContent).toContain('The assistant is being connected');
+  expect(panel.querySelectorAll('.ln-assistant-starter')).toHaveLength(3);
+  expect(panel.querySelector('.ln-assistant-notice strong').textContent).toBe('Sign in to chat');
   expect(panel.querySelector('.ln-assistant-body').dataset.persona).toBe('newcomer');
   act(() => { closeAssistant(); });
   expect(panel.classList.contains('is-open')).toBe(false);

@@ -11,7 +11,7 @@ import { Link, navigate, useRoute } from './router';
 import { usePersona, PERSONA_IDS, PERSONAS, PersonaIcon } from './persona';
 import { useContentLang, CONTENT_LANGS, CONTENT_LANG_LABELS } from './contentLang';
 import { toast, openModal, closeModal, dismissToast, useOverlays } from './overlays';
-import AssistantDock from './AssistantDock';
+import AssistantDock, { AssistantHeaderButton } from './AssistantDock';
 import Onboarding, { openOnboarding } from './Onboarding';
 import './styles/tokens.css';
 import './styles/base.css';
@@ -171,6 +171,7 @@ export default function Shell({ children, user }) {
           <ContentLangControl t={t} compact className="ln-header-lang" />
           <div className="ln-header-tools">
             <PersonaChip t={t} lang={lang} />
+            <AssistantHeaderButton />
             <InterfaceLangToggle t={t} lang={lang} />
             <Link to="/my" className="ln-my-link">{t('nav.my')}</Link>
           </div>

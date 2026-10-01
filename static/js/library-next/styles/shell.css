@@ -239,7 +239,6 @@
 }
 .ln-assistant-title { font-size: var(--ln-text-m); }
 .ln-assistant-body { flex: 1; overflow: auto; padding: var(--ln-space-4); }
-.ln-assistant-coming { color: var(--ln-color-muted); max-inline-size: 36ch; }
 @media (max-width: 479px) { .ln-dock-button.is-open { display: none; } }
 
 /* ---- modal + toasts ---------------------------------------------------------------------- */

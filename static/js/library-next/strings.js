@@ -28,7 +28,6 @@ addStrings({
   'assistant.open': { en: 'Open the assistant', he: 'פתיחת העוזר' },
   'assistant.close': { en: 'Close the assistant', he: 'סגירת העוזר' },
   'assistant.title': { en: 'Library assistant', he: 'עוזר הספרייה' },
-  'assistant.comingSoon': { en: 'The assistant is being connected. Soon you will be able to ask about what you are reading.', he: 'העוזר בחיבור. בקרוב אפשר יהיה לשאול על מה שקוראים.' },
   'modal.close': { en: 'Close', he: 'סגירה' },
   'footer.about': { en: 'About Sefaria', he: 'אודות ספריא' },
   'footer.classic': { en: 'Back to the classic site', he: 'חזרה לאתר הקלאסי' },
