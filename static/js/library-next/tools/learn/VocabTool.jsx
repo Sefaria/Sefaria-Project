@@ -1,6 +1,6 @@
 /**
  * Vocabulary (learner): the Hebrew words of the selection as chips; tapping one looks it up in
- * the dictionaries (lexiconApi.js → /api/words) and shows the definitions, each addable as a
+ * the dictionaries (tools/lexiconApi.js → /api/words) and shows the definitions, each addable as a
  * flashcard (`addFlashcard(headword, definition)`).
  */
 import React, { useEffect, useMemo, useState } from 'react';
@@ -9,7 +9,7 @@ import { toast } from '../../overlays';
 import { useKv } from '../../store';
 import { addFlashcard } from '../../my/collections';
 import { stripHebrewMarks } from '../../reader/textData';
-import { hebrewWords, lookupWord } from './lexiconApi';
+import { hebrewWords, lookupWord } from '../lexiconApi';
 
 export default function VocabTool({ selection }) {
   const { t } = useT();

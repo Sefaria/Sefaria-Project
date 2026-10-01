@@ -1,7 +1,7 @@
 import { tokenize, normalizeToken, diffTokens, diffSummary, splitSides } from '../diff';
 import { formatCitation, bibKey, selectionRows, rowsToCSV, rowsToJSON, fileStem } from '../cite';
 import { graphModel, labelPosition } from '../linkGraph';
-import { cleanWord, consonants, wordsOf, normalizeEntries } from '../lexiconApi';
+import { cleanWord, consonants, wordsOf, normalizeEntries } from '../../lexiconApi';
 import { allVersions, versionsFor, englishTranslations, defaultPair, textLines } from '../versionText';
 import { dedupePages } from '../manuscriptsApi';
 import links from '../../../reader/tests/fixtures/links.json';

@@ -6,7 +6,7 @@ import { clozeCards, tokenize, BLANK } from '../cloze';
 import { pickVoice, chunkText, speechSupport } from '../speech';
 import { highlightMap, highlightsFor, applyHighlights, useHighlights } from '../highlights';
 import { planFor, newestPlan, sectionUnit } from '../plans';
-import { flattenSenses, shapeEntries, hebrewWords, lookupWord } from '../lexiconApi';
+import { flattenSenses, shapeEntries, hebrewWords, lookupWord } from '../../lexiconApi';
 import { addHighlight, createPlan, markPlanUnitDone } from '../../../my/collections';
 import { _resetStore } from '../../../store';
 import Sefaria from '../../../../sefaria/sefaria';

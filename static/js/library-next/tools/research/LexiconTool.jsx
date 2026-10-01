@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { useT } from '../../i18n';
 import { Link } from '../../router';
 import { refToPath } from '../../reader/refKind';
-import { wordsOf, lookupWord } from './lexiconApi';
+import { wordsOf, lookupEntries } from '../lexiconApi';
 
 export default function LexiconTool({ selection }) {
   const { t, lang } = useT();
@@ -13,7 +13,7 @@ export default function LexiconTool({ selection }) {
   const lookup = (word, ref) => {
     if (!word) { return; }
     setState({ word, entries: null, loading: true });
-    lookupWord(word, ref).then(entries => setState(s => (s.word === word ? { word, entries, loading: false } : s)));
+    lookupEntries(word, ref).then(entries => setState(s => (s.word === word ? { word, entries, loading: false } : s)));
   };
   return (
     <div className="ln-tool-body ln-stack ln-lexicon">
