@@ -26,7 +26,7 @@ const { items } = useCollection('notes', collectionOptions('notes'));     // rea
 | `highlights` | `ref`, `color` (`yellow`\|`green`\|`blue`\|`pink`), `text`, `book` | learner tools (`addHighlight`) |
 | `flashcards` | `front`, `back`, `ref`, `due` (ms), `interval` (days), `ease`, `reps` | learner tools (`addFlashcard`); review updates the SM-2 fields |
 | `plans` | `title`, `heTitle`, `book`, `units[{ref,label,heLabel}]`, `unitsPerDay`, `startDate`, `done[]`, `reminders` | my-library, browse ("add to plan": `addToPlan`) |
-| `lessons` | `title`, `sources[{id,ref,title,heTitle,he,en,note}]`, `questions[{id,en,he}]`, `handoutNotes` | my-library, educator tools (`addSourceToLesson`, `addQuestion`) |
+| `lessons` | `title`, `sources[{id,ref,title,heTitle,he,en,note,category}]`, `questions[{id,en,he}]`, `handoutNotes` | my-library, educator tools (`addSourceToLesson`, `addQuestion`) |
 | `notebook` | `ref`, `text`, `versions[]`, `citation`, `title`, `heTitle` | my-library, scholar tools (`addNotebookEntry`) |
 
 `kv` keys the hub also uses: `historyPaused` (boolean), `lastSync` (ISO string of the simulated sync).

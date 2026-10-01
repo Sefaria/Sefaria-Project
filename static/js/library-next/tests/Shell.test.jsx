@@ -72,7 +72,7 @@ test('routes: ref catch-all, not found, search query, my hub', () => {
   act(() => { navigate('/search?q=light'); });
   expect(container.querySelector('#ln-search-input').value).toBe('light');
   act(() => { navigate('/my/notes'); });
-  expect(container.querySelector('main h1').textContent).toBe('My Library');
+  expect(container.querySelector('main h1').textContent).toBe('Notes and highlights');
   act(() => { window.history.replaceState({}, '', '/texts/Tanakh/Torah'); window.dispatchEvent(new PopStateEvent('popstate')); });
   expect(container.querySelector('main h1').textContent).toBe('Browse texts');
   act(() => { window.history.replaceState({}, '', '/login'); window.dispatchEvent(new PopStateEvent('popstate')); });

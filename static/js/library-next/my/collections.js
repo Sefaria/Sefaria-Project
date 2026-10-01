@@ -306,6 +306,7 @@ function source(value) {
   return {
     id: value.id || newSubId(), ref, title: optStr(value.title, 'source.title') || ref, heTitle: optStr(value.heTitle, 'source.heTitle'),
     he: optStr(value.he, 'source.he'), en: optStr(value.en, 'source.en'), note: optStr(value.note, 'source.note'),
+    category: optStr(value.category, 'source.category'),
   };
 }
 
