@@ -1023,13 +1023,14 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     if len(panels) > 0 and panels[0].get("refs") == [] and panels[0].get("mode") == "Text":
         logger.debug("Mangled panel state: {}".format(panels), stack_info=True)
-    return render_template(request, 'base.html', props, {
+    # ?library=classic on a text page stays sticky, as library_next_route makes it for the other library pages
+    return apply_library_next_cookie(request, render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
         "canonical_url":  canonical_url(request),
         "ldBreadcrumbs":  breadcrumb,
         "noindex":        noindex,
-    })
+    }))
 
 
 def _reduce_ranged_ref_text_to_first_section(text_list):
