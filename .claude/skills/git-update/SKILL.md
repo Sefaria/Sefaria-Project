@@ -1,12 +1,12 @@
 ---
 name: git-update
 description: |
-  Brings the branch checked out in the user's Sefaria-Project folder up to date: downloads from GitHub, merges in the branch's own GitHub copy (like git pull), merges GitHub's master into it, and pushes the branch back to GitHub. On master it only updates master and never pushes. Stops without changing anything if there are uncommitted changes, and undoes a merge that conflicts. Works on Mac/Linux, and on Windows when Claude runs inside WSL (after cauldron-setup). Run at the start of create-cauldron, move-text-to-cauldron, and move-lexicon-to-cauldron. Also use when the user asks to "run git-update" or to "update my branch with master and push it".
+  Makes sure that the branch checked out in the user's Sefaria-Project folder is up to date: downloads from GitHub, merges in the branch's own GitHub copy (like git pull), merges GitHub's master into it, and pushes the branch back to GitHub. On master it only updates master and never pushes. Stops without changing anything if there are uncommitted changes, and undoes a merge that conflicts. Works on Mac/Linux, and on Windows when Claude runs inside WSL. (The WSL case assumes that `cauldron-setup` has already been run.) Run this skill at the start of create-cauldron, move-text-to-cauldron, and move-lexicon-to-cauldron. Also use when the user asks to "run git-update" or to "update my branch with master and push it".
 ---
 
 # Update the current Sefaria-Project branch
 
-This brings the checked-out branch up to date with its copy on GitHub, merges GitHub's `master` into it, and pushes the result. On `master` itself it only updates `master`; it never pushes `master`. It never force-pushes, stashes, resets, or discards anything.
+This makes the checked-out branch up to date with its copy on GitHub, merges GitHub's `master` into it, and pushes the result. On `master` itself it only updates `master`; it never pushes `master`. It never force-pushes, stashes, resets, or discards anything.
 
 ## How to talk to the user
 
@@ -16,9 +16,9 @@ Say nothing while it runs. The only things you say are:
 
 ## Step 1 — Find the repo (silent)
 
-Run `cat ~/.sefaria/cauldron-setup.md 2>/dev/null`. The `cauldron-setup` skill writes this file on Windows computers, where Claude runs inside WSL. There is no such file on a Mac.
+Run `cat ~/.sefaria/cauldron-setup.md 2>/dev/null`. The `cauldron-setup` skill writes the file cauldron-setup.md on Windows computers, where Claude runs inside WSL. There is no such file on a Mac.
 
-- **The file exists** → `<Sefaria-Project>` is its `sefaria_project:` value. If `test -d <Sefaria-Project>/.git` fails, say `~/.sefaria/cauldron-setup.md is out of date. Run the cauldron-setup skill again.` and stop.
+- **The file exists** → `<Sefaria-Project>` is cauldron-setup.md's `sefaria_project:` value. If `test -d <Sefaria-Project>/.git` fails, say `~/.sefaria/cauldron-setup.md is out of date. Run the cauldron-setup skill again.` and stop.
 - **No file** → run `uname -s`.
   - `Darwin` or `Linux` → `<Sefaria-Project>` is `git rev-parse --show-toplevel`.
   - Anything else (`MINGW…`, `MSYS…`, `CYGWIN…`) means Claude is running on plain Windows, not inside WSL. Say this and stop:
