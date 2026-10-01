@@ -37,6 +37,7 @@
     "watch-library-next": "webpack --config ./node/webpack.library-next.js --progress -w --watch-options-stdin",
     "library-next-dev": "node static/js/library-next/dev/serve.js",
     "library-next-smoke": "node static/js/library-next/dev/smoke.js",
+    "library-next-journeys": "node static/js/library-next/dev/journeys.js",
     "jest-library-next": "jest static/js/library-next",
     "setup": "npm install -g nodemon babel-cli forever",
     "b": "npm run build",

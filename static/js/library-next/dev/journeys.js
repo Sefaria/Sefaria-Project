@@ -44,8 +44,9 @@ const NOT_A_KEY = /sefaria|www\.|\.org|\.com|\.il|\.js|\.css|^e\.g|^i\.e|^etc\./
 const KEY_RE = /^[a-z][a-zA-Z0-9]*(\.[a-zA-Z][a-zA-Z0-9]*)+$/;
 
 const T = {   // the few UI strings the journeys click by text (EN / HE), from the feature strings.js files
-  start: /^(Start reading|התחלת קריאה)/, follow: /^(Follow this schedule|מעקב אחרי לוח הזמנים|עקבו אחרי לוח הזמנים|Follow)/, addToLesson: /^(Add to lesson|הוספה לשיעור)/,
+  start: /^(Start reading|התחלת קריאה)/, follow: /^(Follow this schedule|מעקב אחרי הלוח)/, addToLesson: /^(Add to lesson|הוספה לשיעור)/,
   saveSearch: /^(Save this search|שמירת החיפוש)/, addTopicPlan: /^(Add topic to my plan|הוספת הנושא לתוכנית)/, addTopicNotebook: /^(Add topic to notebook|הוספת הנושא למחברת)/,
+  addTopicLesson: /^(Add topic to lesson|הוספת הנושא לשיעור)/,
 };
 
 function findChromium() {
@@ -156,6 +157,8 @@ async function runJourney({ browser, base, persona, lang, results, env }) {
       if (keys.length) { problems.push(`raw keys: ${keys.slice(0, 6).join(', ')}`); }
       const htmlDir = await page.getAttribute('html', 'dir');
       if (htmlDir !== dir) { problems.push(`<html dir>=${htmlDir}, expected ${dir}`); }
+      const blank = await page.evaluate(() => { const f = document.querySelector('.ln-footer'); if (!f || getComputedStyle(f).display === 'none') { return 0; } return Math.round(document.documentElement.scrollHeight - (f.getBoundingClientRect().bottom + window.scrollY)); });
+      if (blank > 120) { problems.push(`${blank}px of blank document below the footer`); }
     } catch (e) {
       problems.push(`error: ${e.message.split('\n')[0].slice(0, 300)}`);
     }
@@ -258,9 +261,9 @@ async function runJourney({ browser, base, persona, lang, results, env }) {
         case 'translations': await page.waitForFunction((p) => document.querySelectorAll(`${p} .ln-input, ${p} button`).length > 0, panel, { timeout: 15000 }); break;
         default: await page.waitForFunction((p) => document.querySelector(p).textContent.trim().length > 10, panel);
       }
-      await closePanel();
       return notes;
     });
+    await closePanel().catch(() => {});   // after the audit, so the screenshot shows the panel
   }
 
   // 4. /my/* reflects the writes
@@ -307,11 +310,15 @@ async function runJourney({ browser, base, persona, lang, results, env }) {
   await step('topic', async () => {
     await page.click('a[href^="/topics/"]:not([href*="/category/"]):not([href="/topics/all"]) >> nth=0');
     await page.waitForSelector('.ln-topic-page h1');
-    await page.waitForSelector('.ln-source', { timeout: 20000 });
     const notes = [await page.textContent('.ln-topic-page h1')];
+    const hasSources = await page.waitForSelector('.ln-source', { timeout: 12000 }).then(() => true).catch(() => false);
+    if (!hasSources) {   // a topic without sources (e.g. a Torah-reading topic): the source journey continues on a topic that has them
+      notes.push('no sources; → /topics/shabbat');
+      await goto('/topics/shabbat'); await page.waitForSelector('.ln-topic-page h1'); await page.waitForSelector('.ln-source', { timeout: 20000 });
+    }
     if (persona === 'learner') { await clickText(page, 'button', T.addTopicPlan); notes.push(`plan inbox ${((await kvGet(page, 'planInbox')) || { value: [] }).value.length}`); }
     if (persona === 'scholar') { await clickText(page, 'button', T.addTopicNotebook); notes.push(`notebook inbox ${((await kvGet(page, 'notebookInbox')) || { value: [] }).value.length}`); }
-    if (persona === 'educator') { await clickText(page, '.ln-topic-header button', T.addToLesson); notes.push(`lesson inbox ${((await kvGet(page, 'lessonInbox')) || { value: [] }).value.length}`); }
+    if (persona === 'educator') { await clickText(page, '.ln-topic-header button', T.addTopicLesson); notes.push(`lesson inbox ${((await kvGet(page, 'lessonInbox')) || { value: [] }).value.length}`); }
     return notes;
   }, { fullPage: true });
   await step('topic-source', async () => { await page.click('.ln-source-ref a >> nth=0'); await page.waitForSelector('.ln-seg[data-ref]'); return [page.url().replace(base, '')]; });
@@ -354,7 +361,12 @@ async function runJourney({ browser, base, persona, lang, results, env }) {
     await step('inbox-lesson', async () => {
       await goto('/my/lessons'); await page.waitForSelector('.ln-my-inbox');
       const n = await count('.ln-my-inbox-item');
-      await page.click('.ln-my-inbox .ln-btn-primary'); await page.waitForTimeout(1500);
+      // drain the ref item (a topic item with no sources is kept, by design)
+      const items = await page.$$('.ln-my-inbox-item');
+      let target = null;
+      for (const item of items) { if (!(await item.$('a[href^="/topics/"]'))) { target = item; break; } }
+      if (!target) { throw new Error('no ref item in the lesson inbox'); }
+      await (await target.$('.ln-btn-primary')).click(); await page.waitForTimeout(1500);
       const left = await count('.ln-my-inbox-item');
       if (left !== n - 1) { throw new Error(`inbox ${n} → ${left}`); }
       return [`inbox ${n} → ${left}`, `${((await storage(page, 'lessons')).find(l => l.id === lessonId) || { sources: [] }).sources.length} sources in the tool's lesson`];
@@ -389,7 +401,35 @@ async function runJourney({ browser, base, persona, lang, results, env }) {
     await page.goForward(); await page.waitForFunction(() => location.pathname === '/calendars'); await page.waitForSelector('.ln-calendars');
   }, { screenshot: false });
 
-  // 10. 390px: reader + toolbelt + sheet, dock button, home, lesson editor's "Add" vs the dock button
+  // 10. the header at common widths: no two visible controls overlap, no horizontal overflow
+  await step('header-widths', async () => {
+    await goto('/Genesis.1');
+    const notes = [];
+    for (const width of [1440, 1280, 1024, 820, 390]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.waitForTimeout(150);
+      const problem = await page.evaluate(() => {
+        const boxes = Array.from(document.querySelectorAll('.ln-header-row > *, .ln-header-tools > *'))
+          .filter(el => getComputedStyle(el).display !== 'none' && el.getBoundingClientRect().width > 0)
+          .map(el => ({ el: el.className.split(' ')[0] || el.tagName, r: el.getBoundingClientRect() }));
+        for (let i = 0; i < boxes.length; i++) {
+          for (let j = i + 1; j < boxes.length; j++) {
+            const a = boxes[i].r, b = boxes[j].r;
+            if (boxes[i].el === 'ln-header-tools' || boxes[j].el === 'ln-header-tools') { continue; }   // the container holds the others
+            if (a.left < b.right - 1 && a.right > b.left + 1 && a.top < b.bottom - 1 && a.bottom > b.top + 1) { return `${boxes[i].el} overlaps ${boxes[j].el}`; }
+          }
+        }
+        if (document.documentElement.scrollWidth > window.innerWidth + 1) { return 'horizontal overflow'; }
+        return null;
+      });
+      if (problem) { throw new Error(`${width}px: ${problem}`); }
+      notes.push(`${width}✓`);
+    }
+    await page.setViewportSize({ width: 1280, height: 900 });
+    return notes;
+  }, { screenshot: false });
+
+  // 11. 390px: reader + toolbelt + sheet, dock button, home, lesson editor's "Add" vs the dock button
   await page.setViewportSize({ width: 390, height: 844 });
   await step('mobile-home', async () => { await goto('/'); await page.waitForSelector('main h1'); const wide = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 1); if (wide) { throw new Error('horizontal overflow'); } }, { fullPage: true });
   await step('mobile-reader', async () => {
