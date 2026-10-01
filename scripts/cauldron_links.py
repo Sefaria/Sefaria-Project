@@ -33,6 +33,7 @@ def http_request(url, params=None, body=None, json_payload=None, method="GET"):
     if json_payload:
         body['json'] = json.dumps(json_payload)  # Adds the json as a url parameter - otherwise json gets lost
 
+    # Inlined so the script runs without the repo on sys.path; keep in sync with sefaria/constants/http.py.
     if method == "GET":
         response = requests.get(url, headers={"User-Agent": "Sefaria/scripts"})
     elif method == "POST":

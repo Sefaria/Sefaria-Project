@@ -400,24 +400,44 @@ class TestLanguageModuleSwitching:
         assert 'voices.sefaria.org' in response.url, "Should redirect to English domain"
         assert 'set-language-cookie' in response.url, "Should include cookie parameter"
 
-    # First-party programmatic clients keep the pinned language instead of being bounced
+    # SCENARIO 5: First-party programmatic client on Hebrew-Library (Redirect Exemption)
     @production_settings
-    @pytest.mark.parametrize("user_agent, redirects", [
-        ("Sefaria/api-tests", False),
-        ("Mozilla/5.0", True),
-    ])
-    def test_sefaria_user_agent_not_redirected_prod(self, factory, language_middleware, user_agent, redirects):
-        request = factory.get('/Genesis.1', HTTP_HOST='www.sefaria.org.il', HTTP_USER_AGENT=user_agent)
+    def test_sefaria_user_agent_not_redirected_prod(self, factory, language_middleware):
+        """
+        Given: A first-party client (User-Agent Sefaria/api-tests) is on Hebrew Library (www.sefaria.org.il)
+        When: Its interfaceLang cookie says English
+        Then: It should not be redirected, and should keep the domain's pinned Hebrew language
+        """
+        request = factory.get('/Genesis.1', HTTP_HOST='www.sefaria.org.il', HTTP_USER_AGENT='Sefaria/api-tests')
         request.COOKIES = {'interfaceLang': 'english'}
         request.user = AnonymousUser()
         request.active_module = LIBRARY_MODULE
 
         response = language_middleware.process_request(request)
 
-        assert (response is not None) == redirects
-        if not redirects:
-            assert request.interfaceLang == 'hebrew', "Should keep the domain's pinned language"
+        assert response is None, "Middleware should not redirect a Sefaria/* User-Agent"
+        assert request.interfaceLang == 'hebrew', "Should keep the domain's pinned language"
 
+    # SCENARIO 6: Browser on the same request is still redirected (Control for Scenario 5)
+    @production_settings
+    def test_browser_user_agent_still_redirected_prod(self, factory, language_middleware):
+        """
+        Given: A browser (User-Agent Mozilla/5.0) is on Hebrew Library (www.sefaria.org.il)
+        When: Its interfaceLang cookie says English
+        Then: It should be redirected to English Library (www.sefaria.org)
+              with ?set-language-cookie parameter
+        """
+        request = factory.get('/Genesis.1', HTTP_HOST='www.sefaria.org.il', HTTP_USER_AGENT='Mozilla/5.0')
+        request.COOKIES = {'interfaceLang': 'english'}
+        request.user = AnonymousUser()
+        request.active_module = LIBRARY_MODULE
+
+        response = language_middleware.process_request(request)
+
+        assert response is not None, "Middleware should return a redirect"
+        assert response.status_code == 302, "Should be a redirect (302)"
+        assert 'www.sefaria.org' in response.url, "Should redirect to English domain"
+        assert 'set-language-cookie' in response.url, "Should include cookie parameter"
 
 # ============================================================================
 # HOP 2: LanguageCookieMiddleware's stripped-param redirect must still be marked

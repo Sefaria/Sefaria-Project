@@ -254,6 +254,7 @@ def main() -> None:
     session.headers.update({
         "Authorization": f"Bearer {args.auth_token}",
         "Content-Type": "application/json",
+        # Inlined so the script runs without the repo on sys.path; keep in sync with sefaria/constants/http.py.
         "User-Agent": "Sefaria/scripts",
     })
     text_cache: dict[str, tuple[str, str]] = {}
