@@ -1,7 +1,7 @@
 ---
 name: create-cauldron
 description: |
-  Creates a new Sefaria cauldron (a temporary test copy of the Sefaria site) with default settings, running the branch currently checked out in the user's Sefaria-Project folder, under a name the user chooses. Wraps create-cauldron.sh from the Sefaria/cauldrons repo and adds safety checks first (branch pushed, CI images built, name not already taken). Use when the user asks to "create a cauldron", "spin up a cauldron for my branch", "make a new cauldron called X", or mentions create-cauldron.sh.
+  Creates a new Sefaria cauldron (a temporary test copy of the Sefaria site) with default settings, running the branch currently checked out in the user's Sefaria-Project folder, under a name the user chooses. Wraps create-cauldron.sh from the Sefaria/cauldrons repo and adds safety checks first (branch pushed, CI images built, name not already taken), opening a draft PR for the branch if it has none. Use when the user asks to "create a cauldron", "spin up a cauldron for my branch", "make a new cauldron called X", or mentions create-cauldron.sh.
 ---
 
 # Create a cauldron for the current Sefaria-Project branch
@@ -70,7 +70,11 @@ Run these checks in Sefaria-Project and report each result in plain words:
    gh pr list --repo Sefaria/Sefaria-Project --head "<branch>" --state open --json number,url,isDraft
    gh run list --repo Sefaria/Sefaria-Project --branch "<branch>" --workflow continuous.yaml --limit 1 --json status,conclusion,headSha,createdAt
    ```
-   - No open PR → warn clearly: the cauldron will be created but won't start, because no images exist. Offer to open a **draft** PR for the branch (ask first; this is visible to the team). Opening one starts the image build, which usually takes several minutes.
+   - No open PR (the list above includes drafts, so "none" means neither kind) → open a **draft** PR without asking, so CI builds the images:
+     ```bash
+     gh pr create --repo Sefaria/Sefaria-Project --draft --base master --head "<branch>" --title "<branch>" --body "Draft PR opened so CI builds cauldron images."
+     ```
+     Tell the user in one line: `Opened draft PR: <link>`. Opening it starts the image build, which usually takes several minutes; the cauldron picks up the images when the build finishes, so it's fine to go ahead. If `gh pr create` fails, show its last error line and warn clearly: the cauldron will be created but won't start, because no images exist.
    - PR exists but the latest `Continuous` run is still in progress → the cauldron will pick up the images when the build finishes; fine to go ahead.
    - Latest run failed → warn that there may be no usable images; let the user decide.
    - Optional, only if `gcloud` is installed and logged in: list the newest web image directly (`timeout 120` because it can be slow):
@@ -108,7 +112,7 @@ Tell the user, in plain words:
 - Cauldron name and address: `https://www.<name>.cauldron.sefaria.org`
 - Branch it will follow: `<branch>` (images: `sefaria-*-<imagename>`)
 - Database: a fresh copy of today's production backup
-- Results of the Step 3 checks, especially any warnings
+- Results of the Step 3 checks, especially any warnings, and the draft PR's link if Step 3 opened one
 - That this pushes a commit to `main` of the shared `Sefaria/cauldrons` repo, under their GitHub account, and the cauldron then deploys automatically
 - If the setup file said `can_push_cauldrons: no` (or `unknown`): a warning that their GitHub account may not be allowed to push to `Sefaria/cauldrons`, so the push will probably fail until the engineering team grants write access
 - The exact command: `./create-cauldron.sh -n <name> -b <branch>`
