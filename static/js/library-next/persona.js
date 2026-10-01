@@ -60,7 +60,7 @@ export const PERSONAS = {
     tagline: { en: 'Build lessons and handouts from any text.', he: 'לבנות שיעורים ודפי מקורות מכל טקסט.' },
     contentLang: 'bi',
     homeModules: ['lessons', 'sourceCollections', 'buildLesson', 'parashaForClass', 'calendarToday'],
-    readerTools: ['lessonBuilder', 'discussionPrompts', 'handout', 'connections'],
+    readerTools: ['lessonBuilder', 'discussionPrompts', 'handout', 'translations', 'connections'],
   },
   scholar: {
     id: 'scholar',

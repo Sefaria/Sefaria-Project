@@ -1,0 +1,31 @@
+/* Educator reader tools. Logical properties only; the panel sets the writing direction. */
+
+.ln-stack { display: grid; gap: var(--ln-space-3); }
+.ln-lesson-new .ln-input { flex: 1 1 10rem; }
+.ln-input-compact { inline-size: auto; padding-block: var(--ln-space-1); }
+
+/* discussion questions */
+.ln-q-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ln-space-2); counter-reset: q; }
+.ln-q-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--ln-space-2); align-items: start; counter-increment: q; }
+.ln-q-item::before { content: counter(q); grid-column: 1 / -1; font-size: var(--ln-text-xs); color: var(--ln-color-muted); }
+.ln-q-text { resize: vertical; min-block-size: 3.4em; font-size: var(--ln-text-s); line-height: 1.45; }
+.ln-q-add { align-self: center; }
+.ln-ask-assistant { justify-self: start; }
+
+/* handout */
+.ln-handout-tool .ln-segmented.compact .ln-segment { padding-inline: var(--ln-space-2); }
+.ln-handout-preview { border: 1px solid var(--ln-color-rule); border-radius: var(--ln-radius-s); background: #fff; color: #111; padding: var(--ln-space-2); max-block-size: 44vh; overflow: auto; }
+.ln-handout-preview .ln-handout { padding: var(--ln-space-2); font-size: 0.8rem; }
+.ln-handout-preview .ln-handout.bi .text { grid-template-columns: 1fr; }
+
+/* translations / version comparison columns (shared with the research tools) */
+.ln-chip-list { display: flex; flex-wrap: wrap; gap: var(--ln-space-1); }
+.ln-chip { display: inline-flex; align-items: center; gap: var(--ln-space-1); border: 1px solid var(--ln-color-rule); border-radius: 999px; padding: 2px var(--ln-space-2); font-size: var(--ln-text-xs); cursor: pointer; background: var(--ln-color-surface); }
+.ln-chip.is-on { border-color: var(--ln-color-ink); background: var(--ln-color-page); }
+.ln-chip input { margin: 0; }
+.ln-compare-grid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: var(--ln-space-3); }
+@media (max-width: 480px) { .ln-compare-grid { grid-template-columns: 1fr; } }
+.ln-compare-col { min-inline-size: 0; }
+.ln-compare-title { font-size: var(--ln-text-xs); font-weight: 600; color: var(--ln-color-ink-2); margin: 0 0 var(--ln-space-2); }
+.ln-compare-line { margin: 0 0 var(--ln-space-2); font-size: var(--ln-text-s); line-height: 1.5; }
+.ln-compare-n { font-size: 0.7em; vertical-align: super; color: var(--ln-color-muted); margin-inline-end: 0.3em; }
