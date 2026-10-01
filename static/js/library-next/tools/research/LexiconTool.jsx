@@ -1,5 +1,5 @@
 /** Scholar: tap a Hebrew word of the selection (or type one) for dictionary entries. */
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useT } from '../../i18n';
 import { Link } from '../../router';
 import { refToPath } from '../../reader/refKind';
@@ -10,10 +10,12 @@ export default function LexiconTool({ selection }) {
   const segments = useMemo(() => (selection.segments || []).map(s => ({ ref: s.ref, label: lang === 'he' ? s.heLabel : s.label, words: wordsOf(s.he) })).filter(s => s.words.length), [selection, lang]);
   const [query, setQuery] = useState('');
   const [state, setState] = useState({ word: '', entries: null, loading: false });
+  const alive = useRef(true);
+  useEffect(() => () => { alive.current = false; }, []);   // a lookup may resolve after the panel closed
   const lookup = (word, ref) => {
     if (!word) { return; }
     setState({ word, entries: null, loading: true });
-    lookupEntries(word, ref).then(entries => setState(s => (s.word === word ? { word, entries, loading: false } : s)));
+    lookupEntries(word, ref).then(entries => { if (alive.current) { setState(s => (s.word === word ? { word, entries, loading: false } : s)); } });
   };
   return (
     <div className="ln-tool-body ln-stack ln-lexicon">
