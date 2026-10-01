@@ -1,0 +1,40 @@
+.lexiconEditBox {
+  font-size: 15px;
+  padding: 10px 0;
+}
+
+.lexiconEditLexiconName {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.lexiconEditCurrentHeadword {
+  margin-bottom: 10px;
+}
+
+.lexiconEditHeadwordValue {
+  font-weight: bold;
+}
+
+.lexiconEditNewHeadwordLabel {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.lexiconEditHeadwordInput {
+  font-size: 1em;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  border: 1px solid var(--light-grey);
+  border-radius: 4px;
+}
+
+.lexiconEditSavedMessage {
+  margin-top: 10px;
+  color: var(--dark-grey);
+}
+
+/*# sourceMappingURL=lexicon-edit.css.map */

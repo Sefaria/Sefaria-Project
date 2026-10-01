@@ -95,6 +95,7 @@
     "jquery.cookie": "^1.4.1",
     "jquery.scrollto": "^2.1.2",
     "js-cookie": "^2.2.1",
+    "json-edit-react": "^1.30.2",
     "p-retry": "^7.0.0",
     "papaparse": "^5.5.3",
     "patch-package": "^6.2.2",
