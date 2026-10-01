@@ -36,7 +36,8 @@
   grid-template-columns: 1fr auto;
   grid-template-areas:
     "logo tools"
-    "search lang";
+    "search lang"
+    "nav nav";
   align-items: center;
   column-gap: var(--ln-space-3);
   row-gap: var(--ln-space-2);
@@ -45,11 +46,16 @@
 .ln-header-lang { grid-area: lang; justify-self: end; }
 .ln-logo { grid-area: logo; display: inline-flex; align-items: center; }
 .ln-logo img { block-size: 22px; inline-size: auto; }
+/* Phones: the nav is its own scrollable row under the search, so Texts / Topics / Schedules stay one tap away. */
 .ln-nav {
   grid-area: nav;
-  display: none;
+  display: flex;
   gap: var(--ln-space-4);
+  min-inline-size: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.ln-nav::-webkit-scrollbar { display: none; }
 .ln-nav a {
   color: var(--ln-color-ink-2);
   font-weight: 500;
@@ -90,7 +96,6 @@
   color: var(--ln-color-ink-2);
   font-weight: 500;
   white-space: nowrap;
-  display: none;
 }
 .ln-lang-toggle {
   min-block-size: 32px;
@@ -101,16 +106,31 @@
 }
 .ln-lang-toggle:hover { background: var(--ln-color-surface-2); }
 
+/* Tablets and small laptops keep two rows (nav joins the first, search + content language the second); the
+   single row needs ~1180px, otherwise the tools spilled over the content-language control. */
 @media (min-width: 768px) {
   .ln-header-row {
-    grid-template-columns: auto auto minmax(200px, 1fr) auto auto;
-    grid-template-areas: "logo nav search lang tools";
-    padding-block: 0;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "logo nav tools"
+      "search search lang";
     column-gap: var(--ln-space-4);
   }
-  .ln-nav { display: flex; }
-  .ln-search { max-inline-size: 480px; justify-self: center; inline-size: 100%; }
-  .ln-my-link { display: inline; }
+  .ln-nav { overflow: visible; }
+  .ln-search { max-inline-size: 480px; inline-size: 100%; }
+  .ln-header-lang, .ln-header-tools { min-inline-size: max-content; }   /* grid tracks size to them; nothing overlaps */
+}
+@media (min-width: 768px) and (max-width: 1279px) {
+  .ln-shell .ln-dock-header-button span { display: none; }   /* icon only while the row is tight */
+  .ln-shell .ln-dock-header-button { padding-inline: var(--ln-space-2); }
+}
+@media (min-width: 1200px) {
+  .ln-header-row {
+    grid-template-columns: auto auto minmax(160px, 1fr) auto auto;
+    grid-template-areas: "logo nav search lang tools";
+    padding-block: 0;
+  }
+  .ln-search { justify-self: center; }
 }
 
 /* ---- persona chip + menu ----------------------------------------------------------------- */
@@ -130,7 +150,7 @@
 }
 .ln-chip:hover, .ln-chip[aria-expanded="true"] { background: var(--ln-color-surface-2); }
 .ln-chip-label { font-weight: 500; }
-@media (max-width: 479px) { .ln-chip-label { display: none; } .ln-chip { padding-inline: var(--ln-space-2); } }
+@media (max-width: 1023px) { .ln-chip-label { display: none; } .ln-chip { padding-inline: var(--ln-space-2); } }   /* the persona icon alone on phones and tablets */
 
 .ln-menu {
   position: absolute;
@@ -240,6 +260,12 @@
 .ln-assistant-title { font-size: var(--ln-text-m); }
 .ln-assistant-body { flex: 1; overflow: auto; padding: var(--ln-space-4); }
 @media (max-width: 479px) { .ln-dock-button.is-open { display: none; } }
+/* Below 768px the floating button is the only way to the dock. Reserve its corner under the page content and
+   keep controls that scroll into view (focus, scrollIntoView) above it, so it never sits on a form's last row. */
+@media (max-width: 767px) {
+  .ln-main { padding-block-end: calc(var(--ln-space-8) + 56px + var(--ln-space-5)); }
+  .ln-main * { scroll-margin-block-end: calc(56px + var(--ln-space-5)); }   /* only affects scrollIntoView / focus scrolling */
+}
 
 /* ---- modal + toasts ---------------------------------------------------------------------- */
 
