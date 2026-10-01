@@ -7,9 +7,10 @@ import {ReaderPanelContext} from "./context";
 import LayoutButtons from "./LayoutButtons";
 import FontSizeButtons from "./FontSizeButton";
 import ToggleSwitchLine from "./common/ToggleSwitchLine";
+import SiddurModeButtons from "./SiddurModeButtons";
 
 const ReaderDisplayOptionsMenu = () => {
-    const {language, setOption, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width, panelPosition} = useContext(ReaderPanelContext);
+    const {language, setOption, panelMode, aliyotShowStatus, textsData, vowelsAndCantillationState, punctuationState, width, panelPosition, siddurMode, setSiddurMode} = useContext(ReaderPanelContext);
     const menuRef = useRef(null);
 
     const onClose = () => {
@@ -129,6 +130,10 @@ const ReaderDisplayOptionsMenu = () => {
             tabIndex="-1"
             data-prevent-close="true"
         >
+            {siddurMode && setSiddurMode && <>
+                <SiddurModeButtons siddurMode={siddurMode} setSiddurMode={setSiddurMode}/>
+                {borderLine}
+            </>}
             {showLangaugeToggle() && <>
                 <SourceTranslationsButtons
                     showPrimary={showPrimary}
