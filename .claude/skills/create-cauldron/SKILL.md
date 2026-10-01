@@ -53,10 +53,12 @@ The cauldron's address will be `https://www.<name>.cauldron.sefaria.org`.
 **Image name:** work out which set of Docker images the cauldron will use — the script's own rule:
 
 ```bash
-echo "<branch>" | awk '{print tolower($0)}' | sed -e 's|.*/\([^/]*\)/.*|\1|' -e 'tx' -e 's/\(.*\)/\1/' -e ':x' | sed 's/[^a-z0-9\.\-]//g'
+echo "<branch>" | tr 'A-Z' 'a-z' | sed -e 's|.*/\([^/]*\)/.*|\1|' -e 'tx' -e 's/\(.*\)/\1/' -e ':x' | sed 's/[^a-z0-9\.\-]//g'
 ```
 
 For a Shortcut-style branch like `feature/sc-12345/some-name` this gives `sc-12345`.
+
+(The script lowercases with `awk`; this uses `tr`, which gives the same result, because Claude Code replaces `$` followed by a digit in a SKILL.md with the words typed after the skill's name, and the `awk` version needs one.)
 
 ## Step 3 — Is the branch ready to run in a cauldron?
 

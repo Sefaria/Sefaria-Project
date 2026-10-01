@@ -26,33 +26,13 @@ Run `cat ~/.sefaria/cauldron-setup.md 2>/dev/null`. The `cauldron-setup` skill w
 
 ## Step 2 — Run the update (silent)
 
-Write this to `<scratchpad>/git-update.sh` with the Write tool:
+The script is `git-update.sh` in this skill's folder (`<Sefaria-Project>/.claude/skills/git-update/`). Copy it to the scratchpad and run the copy, because merging master can change the original while it runs:
 
 ```bash
-cd "<Sefaria-Project>" || { echo "GIT_STOP: no-repo"; exit 0; }
-branch=$(git branch --show-current)
-[ -z "$branch" ] && { echo "GIT_STOP: no-branch"; exit 0; }
-# Only edits to files git tracks count; untracked files are left alone (git refuses a merge that would overwrite one).
-dirty=$(git status --porcelain --untracked-files=no)
-[ -n "$dirty" ] && { echo "GIT_STOP: uncommitted"; echo "$dirty"; exit 0; }
-git fetch origin || { echo "GIT_STOP: fetch-failed"; exit 0; }
-merge() {
-  if ! git merge --no-edit "$1"; then
-    echo "GIT_STOP: merge-failed $1"
-    git diff --name-only --diff-filter=U
-    git merge --abort 2>/dev/null
-    exit 0
-  fi
-}
-# Same as "git pull": bring in commits pushed to this branch on GitHub (skipped if it was never pushed).
-git rev-parse --verify --quiet "origin/$branch" >/dev/null && merge "origin/$branch"
-[ "$branch" = master ] && { echo "GIT_OK: master updated, not pushed"; exit 0; }
-merge origin/master
-git push -u origin "$branch" || { echo "GIT_STOP: push-failed"; exit 0; }
-echo "GIT_OK: $branch updated and pushed"
+cp "<Sefaria-Project>/.claude/skills/git-update/git-update.sh" "<scratchpad>/git-update.sh" && bash "<scratchpad>/git-update.sh" "<Sefaria-Project>"
 ```
 
-Run it with `bash "<scratchpad>/git-update.sh"`.
+Don't copy the script's commands into this file: Claude Code replaces `$` followed by a digit in a SKILL.md with the words typed after the skill's name, which would break them.
 
 ## Step 3 — Read the result
 
