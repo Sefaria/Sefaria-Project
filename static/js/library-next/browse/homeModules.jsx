@@ -29,7 +29,7 @@ function RefCard({ item, lang, contentLang, meta, action }) {
   return (
     <li className="ln-ref-card ln-cat-rule" style={{ '--cat': refColor(item.ref) }}>
       <Link to={refPath(item.ref)} className="ln-ref-card-link">
-        <BiTitle en={item.ref} he={item.heRef || item.ref} contentLang={contentLang} lang={lang} className="ln-ref-card-title" />
+        <BiTitle en={item.ref} he={item.heRef || item.heTitle || item.ref} contentLang={contentLang} lang={lang} className="ln-ref-card-title" />   {/* history rows carry heTitle */}
         {meta && <span className="ln-small ln-muted">{meta}</span>}
       </Link>
       {action}
