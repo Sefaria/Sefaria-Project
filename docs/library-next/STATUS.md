@@ -5,7 +5,7 @@ Kept in sync with what shipped on `mf3`. One row per agent; details in each agen
 | Wave | Agent | State | Notes |
 |---|---|---|---|
 | 1 | foundation | shipped | Seam, template, bundle, router, i18n, store, persona, shell, onboarding, dock slot, harness, smoke, jest, FOUNDATION.md, DEV.md |
-| 1–2 | assistant | shipped | ai-chatbot `mf3`: `persona`, starter prompts, prompt guidance, `mode="panel"`, `initial-prompt` (no PR → no preview; cauldron uses chat-dev). Dock: greeting, starter prompts, embedded widget, sign-in fallback, `library-next:assistant` event, header action. See ASSISTANT.md |
+| 1–2 | assistant | shipped | ai-chatbot `mf3`: `persona`, starter prompts, prompt guidance, `mode="panel"`, `initial-prompt` (PR ai-chatbot#235 → Coolify preview; Library Next defaults to `chatbot_version=235`). Dock: greeting, starter prompts, embedded widget, sign-in fallback, `library-next:assistant` event, header action. See ASSISTANT.md |
 | 2 | browse | shipped | `/`, `/texts`, `/texts/*`, book page (`book` route, book-level refs only), `/calendars`; `browse/refKind.js` for the reader |
 | 2 | reader | shipped | `ref` route (section/segment/range refs only), text stream, bilingual layouts, versions, connections, selection → toolbelt, tool registry + 3 built-in tools; `READER_TOOLS.md` |
 | 2 | my-library | shipped | `/my/*` hub (9 sections + lesson editor/handout/shared), collection schemas + factories (`my/collections.js`, `COLLECTIONS.md`), export/import, simulated sync |

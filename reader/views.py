@@ -300,6 +300,29 @@ LIBRARY_NEXT_PAGE_META = {
 }
 
 
+def library_next_chatbot_version(request):
+    """
+    The ai-chatbot preview the Library Next dock talks to: ?chatbot_version=<n> wins, then the session
+    (set by the chatbot_user_token context processor on earlier requests), then
+    settings.LIBRARY_NEXT_CHATBOT_VERSION. The chosen value is written to the session so the context
+    processor emits the matching widget script on this very render. "clear" (or a non-integer) means
+    the default backend.
+    """
+    requested = request.GET.get("chatbot_version", "").strip()
+    if requested == "clear":
+        version = None
+    elif is_int(requested):
+        version = requested
+    elif is_int(request.session.get("chatbot_version")):
+        version = str(request.session.get("chatbot_version"))
+    else:
+        version = getattr(settings, "LIBRARY_NEXT_CHATBOT_VERSION", None)
+        version = str(version) if is_int(version) else None
+    if version and request.session.get("chatbot_version") != version and not requested:
+        request.session["chatbot_version"] = version
+    return version
+
+
 def library_next_props(request, route_name, extra_props=None):
     """
     The minimal props the Library Next shell reads (see reader.library_next.LIBRARY_NEXT_PROP_KEYS):
@@ -307,9 +330,12 @@ def library_next_props(request, route_name, extra_props=None):
     logged-in users; no calendars, notifications or saved-history queries (the SPA fetches those).
     """
     user = None
+    chatbot_version = library_next_chatbot_version(request)
     chatbot = {
         "chatbot_user_token": None,
-        "chatbot_api_base_url": CHATBOT_API_BASE_URL,
+        "chatbot_api_base_url": (f"https://{chatbot_version}.ai-server.coolifydev.sefaria.org/api"
+                                 if chatbot_version else CHATBOT_API_BASE_URL),
+        "chatbot_version": chatbot_version,
         "chatbot_origin": "library-next",
     }
     if request.user.is_authenticated:

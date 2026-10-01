@@ -364,6 +364,11 @@ SEARCH_INDEX_NAME_CATEGORY = 'category'
 # default. `?library=classic` (sticky cookie) returns the classic site. Defaulted here so a
 # local_settings.py that predates it still boots; local_settings.py may override it below.
 LIBRARY_NEXT_DEFAULT = True
+# The ai-chatbot pull request whose Coolify preview the Library Next assistant dock uses by default
+# (https://<n>.ai-server.coolifydev.sefaria.org, Sefaria/ai-chatbot#235 carries the `persona`
+# attribute and panel mode). ?chatbot_version=<n> still overrides it, and ?chatbot_version=clear
+# returns to this default. None = the default chat backend.
+LIBRARY_NEXT_CHATBOT_VERSION = "235"
 
 # Grab environment specific settings from a file which
 # is left out of the repo.

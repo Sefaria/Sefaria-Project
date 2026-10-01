@@ -117,7 +117,7 @@ def library_next_route(route_name, render=None, default=None):
 LIBRARY_NEXT_PROP_KEYS = (
     "_uid", "_email", "full_name", "slug", "is_moderator", "profile_pic_url",
     "interfaceLang", "activeModule", "last_cached", "appVersion", "path", "route", "libraryNext",
-    "chatbot_user_token", "chatbot_api_base_url", "chatbot_origin",
+    "chatbot_user_token", "chatbot_api_base_url", "chatbot_version", "chatbot_origin",
 )
 
 

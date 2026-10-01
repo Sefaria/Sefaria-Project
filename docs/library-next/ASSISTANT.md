@@ -59,3 +59,14 @@ gets the second row; `?chatbot_version=<PR#>` would switch it once a PR exists (
 `static/js/library-next/tests/AssistantDock.test.jsx`: open/close, header action, Hebrew render,
 sign-in fallback with queued prompt, `library-next:assistant`, widget attributes + persona change
 + programmatic send (registry stub), bridge helpers.
+
+## Which backend the cauldron talks to (2026-10-01)
+
+`settings.LIBRARY_NEXT_CHATBOT_VERSION = "235"` makes every Library Next page default to the Coolify
+preview of [Sefaria/ai-chatbot#235](https://github.com/Sefaria/ai-chatbot/pull/235)
+(`https://235.ai-server.coolifydev.sefaria.org`), which carries `persona`, `mode="panel"` and
+`initial-prompt`. `reader.views.library_next_chatbot_version` resolves `?chatbot_version=<n>` →
+session → that setting, seeds the session so the `chatbot_user_token` context processor emits the
+matching widget script on the same render, and sets `chatbot_api_base_url` to the preview's `/api`.
+`?chatbot_version=clear` returns to the default chat backend for that request. The widget script is
+still emitted only for logged-in users with the assistant enabled.
