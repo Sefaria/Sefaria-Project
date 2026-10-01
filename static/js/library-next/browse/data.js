@@ -14,7 +14,10 @@ import { WHERE_TO_START } from './curated';
 // ---- urls ------------------------------------------------------------------------------------
 
 export const bookPath = (title) => `/${encodeURI(String(title).replace(/ /g, '_'))}`;
-export const refPath = (ref) => `/${Sefaria.normRef(ref)}`;
+export const refPath = (ref) => {
+  // normRef needs the library data from /data.js; before it loads (or in tests) fall back to the URL form.
+  try { return `/${Sefaria.normRef(ref)}`; } catch (e) { return `/${String(ref).replace(/ /g, '_')}`; }
+};
 export const categoryPath = (cats) => `/texts/${cats.map(encodeURIComponent).join('/')}`;
 export const splitCategoryPath = (rest) => (rest || '').split('/').filter(Boolean).map(decodeURIComponent);
 
