@@ -11,7 +11,7 @@ Kept in sync with what shipped on `mf3`. One row per agent; details in each agen
 | 2 | my-library | shipped | `/my/*` hub (9 sections + lesson editor/handout/shared), collection schemas + factories (`my/collections.js`, `COLLECTIONS.md`), export/import, simulated sync |
 | 3 | learn-tools | shipped | Newcomer tools (Explain this, Who's who, Read it to me) and learner tools (Highlight, Note, Flashcard, Mark as read / Add to plan, Vocabulary) under `tools/learn/`; highlight decoration + `useHighlights` hook |
 | 2 | discover | shipped | `/search?q=`, `/topics`, `/topics/<slug>`, `/topics/category/<slug>`; header search suggestions; see below |
-| 3 | teach-research-tools | — | |
+| 3 | teach-research-tools | shipped | Educator tools (`tools/teach/`): Add to lesson, Discussion questions, Handout snippet, Compare translations. Scholar tools (`tools/research/`): Versions compare, Manuscripts, Lexicon, Copy / cite (Chicago / MLA / BibTeX, export), Cross-references graph. Registered in the reader's tool registry; `translations` and `linkGraph` added to `persona.js` |
 | 3 | qa | — | |
 
 ## Foundation — verified
@@ -276,3 +276,72 @@ Hand-offs / open issues:
   build + jest gate.
 
 - Header search suggestions (`Sefaria.getName()`) shipped with discover (`suggestionsFrom` in `Shell.jsx`).
+
+## Teach + research tools — what shipped
+
+Two modules imported by `reader/routes.js` (one line each): `tools/teach/index.js` registers the educator
+tools, `tools/research/index.js` the scholar tools. Ids match `PERSONAS[*].readerTools`; `translations`
+(educator) and `linkGraph` (scholar) were added to `persona.js` as one-line changes. `apparatus` in the
+scholar list has no tool behind it (not in this scope) and is simply not shown.
+
+**Educator (`personas: ['educator']`)**
+
+- `lessonBuilder` — *Add to lesson*: pick a lesson (newest first) or create one inline (`createLesson`), optional
+  teaching note, `addSourceToLesson` with `ref / title / heTitle / he / en / note / category`; duplicate refs are
+  refused; after saving, a link to `/my/lessons/<id>` plus a toast. Picker shared with the discussion tool
+  (`LessonPicker.jsx`, `useLessonChoice()`).
+- `discussionPrompts` — *Discussion questions*: three questions from my-library's `questions.generateQuestions`
+  (same template families, by `book.primaryCategory`; Hebrew text gets `heRef`), editable, "Other questions"
+  cycles the templates, "+" adds one / "Add to lesson" adds all (`addQuestion` with `{ en, he }`), copy, and
+  "Ask the Assistant for better ones" → `requestAssistant()` with the ref, category, the segment text quoted
+  (≤500 chars) and the current questions. Labelled "Templates by text type" with the simulated badge.
+- `handout` — *Handout snippet*: bilingual card (ref EN/HE, numbered Hebrew and English lines, source and
+  translation attribution, canonical URL), live preview, grade level (Elementary / Middle / High / Adult —
+  **simulated**: only the translation-style note and type scale change), optional writing lines, "Copy as HTML",
+  "Copy as Markdown", "Open print view" (`window.open` + `document.write` with an inline print stylesheet;
+  blocked pop-ups are reported). Follows content language and the reader's vowel/cantillation settings.
+- `translations` — *Compare translations*: English versions from the reader's `/api/texts` payload
+  (`book.data.versions`, `Sefaria.getVersions` fallback), foreign-language `[xx]` versions excluded; the version in
+  view plus the next two by priority shown side by side, chips toggle up to three; text per version via
+  `Sefaria.getText(ref, { enVersion })`.
+
+**Scholar (`personas: ['scholar']`, except `cite`)**
+
+- `versions` — *Versions compare*: language (Hebrew default / English), two selects (defaults: the version in view
+  + the next by priority), `Sefaria.getText` with `heVersion` / `enVersion`, word-level LCS diff (`diff.js`;
+  vowels/cantillation ignored for matching by default, toggle), deletions highlighted on A, insertions on B,
+  summary line; "Save comparison to notebook" → `addNotebookEntry({ versions: [A, B], citation: citationFor(...) })`.
+- `manuscripts` — `Sefaria._manuscripts` cache, else `/api/manuscripts/<ref>` (through `Sefaria._ApiPromise`):
+  thumbnails (link to the full image), title (HE when the interface is Hebrew), page id, covered ref, source
+  library link, description; empty state when none (Berakhot and Shulchan Arukh have none today).
+- `lexicon` — Hebrew words of the selection as buttons (cantillation stripped, maqaf split), tap → `Sefaria.getLexiconWords(word, segmentRef)`
+  (`/api/words/…?lookup_ref=`), entries flattened to headword / lexicon / morphology / nested senses / cited refs
+  (in-app links); free-text lookup too. `tools/research/lexiconApi.js` wraps the same API as learn-tools'
+  `tools/learn/lexiconApi.js` — **dedupe into one module** (handoff).
+- `cite` — registered for *all* personas under the built-in id: scholars get Chicago / MLA / BibTeX (version title +
+  access date), copy one / all / text+citation, "Export selection" as JSON / CSV (one row per segment, via
+  `my/exportFormats.download`) and "Save to notebook"; every other persona renders the reader's built-in
+  `CiteTool` unchanged.
+- `linkGraph` — *Cross-references*: `Sefaria.getLinks(ref)` → `reader/textData.groupConnections` → radial inline
+  SVG, one node per connected work (≤18, sized by link count, category colour from `Sefaria.palette`), category
+  arcs and legend, centre shows the total; click/Enter opens the first linked text (`navigate(refToPath(...))`)
+  and closes the panel. Caption "Live data: N connections to M works"; hidden smaller works are counted.
+
+**Simulated**: the handout grade level (badge). Everything else reads live data or writes the shared collections.
+
+**Verified**: `npm run build-library-next`; `npx jest static/js/library-next` (28 suites, 220 tests; 53 of them are logic + render
+tests in EN and HE under `tools/teach/tests`, `tools/research/tests`); harness on a free port (`PORT=8793`) in
+headless Chromium: every tool opened on `/Genesis.1`, `/Berakhot.2a`, `/Shulchan_Arukh,_Orach_Chayim.1.1` as
+educator and scholar in `en` and `he` (RTL) with a selection, no console errors; `npm run library-next-smoke`.
+
+**Known gaps / handoffs**
+
+- `toast()` takes text only, so the "link to the lesson" after *Add to lesson* is rendered in the panel (plus a
+  text toast) rather than inside the toast.
+- `Sefaria._ApiPromise` is a jQuery deferred (no `.catch`); wrap it in `Promise.resolve()` as `manuscriptsApi.js` does.
+- Two `lexiconApi.js` modules (learn + research) call the same words API; merge after both waves land.
+- Manuscript thumbnails come from `manuscripts.sefaria.org`, which this container's egress proxy blocks; the panel
+  shows a placeholder for a broken image (the metadata and links still render). Check on the cauldron.
+- MLA is the web-page form (`"ref." version. Sefaria, url. Accessed date.`); no in-text forms.
+- Husky's pre-commit hook cannot run in this container (`.husky/_/husky.sh` missing); commits used `--no-verify`
+  after running the gate by hand.

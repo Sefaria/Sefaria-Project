@@ -9,6 +9,8 @@ import { matchReaderRef } from './refKind';
 import './strings';
 import './tools/builtin';
 import '../tools/learn/index';
+import '../tools/teach/index.js';
+import '../tools/research/index.js';
 
 registerRoute({
   name: 'ref',
