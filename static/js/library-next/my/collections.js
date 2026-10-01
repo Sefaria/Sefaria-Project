@@ -321,12 +321,15 @@ function question(value) {
   return { id: value.id || newSubId(), en: en || he, he: he || en };
 }
 
+/** Lesson source text is plain: tags dropped, entities decoded (the handout prints it as text). */
+const plain = (html) => String(html || '').replace(/<[^>]+>/g, '').replace(/&(amp|lt|gt|quot|nbsp|#39);/g, (m, e) => ({ amp: '&', lt: '<', gt: '>', quot: '"', nbsp: ' ', '#39': "'" }[e])).replace(/\s+/g, ' ').trim();
+
 function source(value) {
   if (!value || typeof value !== 'object') { throw new TypeError('a source is { ref, title, heTitle, he, en, note }'); }
   const ref = str(value.ref, 'source.ref');
   return {
     id: value.id || newSubId(), ref, title: optStr(value.title, 'source.title') || ref, heTitle: optStr(value.heTitle, 'source.heTitle'),
-    he: optStr(value.he, 'source.he'), en: optStr(value.en, 'source.en'), note: optStr(value.note, 'source.note'),
+    he: plain(optStr(value.he, 'source.he')), en: plain(optStr(value.en, 'source.en')), note: optStr(value.note, 'source.note'),
     category: optStr(value.category, 'source.category'),
   };
 }

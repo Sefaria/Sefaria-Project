@@ -108,6 +108,11 @@ test('flashcards start due now with SM-2 fields', () => {
   expect(() => addFlashcard('', 'x')).toThrow(TypeError);
 });
 
+test('lesson sources store plain text', () => {
+  const lesson = createLesson({ title: 'x', sources: [{ ref: 'Genesis 1:2', he: '<b>וְהָאָ֗רֶץ</b>', en: 'a wind from<sup class="footnote-marker">b</sup><i class="footnote">note</i> God &amp; light' }] });
+  expect(lesson.sources[0]).toMatchObject({ he: 'וְהָאָ֗רֶץ', en: 'a wind frombnote God & light' });
+});
+
 test('plans v1 rows from browse (items / titleHe / reminder) migrate to units / heTitle / reminders with a start date', () => {
   localStorage.setItem(PREFIX + 'plans', JSON.stringify({ v: 1, items: {
     a: { id: 'a', title: 'Daf Yomi', titleHe: 'דף יומי', calendar: 'Daf Yomi', reminder: true, items: [{ ref: 'Berakhot 2', title: 'Berakhot 2' }], ts: 1 },

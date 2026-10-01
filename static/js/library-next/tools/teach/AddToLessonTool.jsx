@@ -4,6 +4,7 @@ import { useT } from '../../i18n';
 import { Link } from '../../router';
 import { toast } from '../../overlays';
 import { addSourceToLesson } from '../../my/collections';
+import { plainText } from '../../reader/textData';
 import LessonPicker, { useLessonChoice } from './LessonPicker';
 
 export default function AddToLessonTool({ selection, book }) {
@@ -15,7 +16,8 @@ export default function AddToLessonTool({ selection, book }) {
   const add = (e) => {
     e.preventDefault();
     if (!lesson || already) { return; }
-    addSourceToLesson(lesson.id, { ref: selection.ref, title: selection.ref, heTitle: selection.heRef, he: selection.he, en: selection.en, note, category: book.primaryCategory });
+    // lesson sources are plain text (the handout prints them; footnote bodies and markers go)
+    addSourceToLesson(lesson.id, { ref: selection.ref, title: selection.ref, heTitle: selection.heRef, he: plainText(selection.he), en: plainText(selection.en), note, category: book.primaryCategory });
     toast(t('teach.add.added', { title: lesson.title }));
     setDone(lesson);
     setNote('');

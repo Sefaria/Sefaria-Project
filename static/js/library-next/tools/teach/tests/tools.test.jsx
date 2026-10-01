@@ -48,6 +48,7 @@ describe('Add to lesson', () => {
     expect(lessons[0].sources).toHaveLength(1);
     expect(lessons[0].sources[0]).toMatchObject({ ref: 'Genesis 1:1', heTitle: 'בראשית א׳:א׳', category: 'Tanakh' });
     expect(lessons[0].sources[0].en).toContain('When God began');
+    expect(lessons[0].sources[0].en + lessons[0].sources[0].he).not.toMatch(/<|footnote/);   // plain text, no markup
     expect(panel.querySelector('[data-state="added"]')).not.toBeNull();
     expect(panel.querySelector('a.ln-btn-primary').getAttribute('href')).toBe(`/my/lessons/${lessons[0].id}`);
     expect(document.body.textContent).toContain('Added to “Creation unit”');
