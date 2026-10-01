@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+{% load sefaria_tags humanize %}
+
+{% block meta_title %}{% meta_title %}Translation Feedback | Sefaria{% endmeta_title %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block css %}
+    /* The site header (#s2.headerOnly) is position:fixed and takes no space in the flow, so start the
+       page below it using the header's own --header-height token (header.css), as the auth pages do.
+       A site banner already pads <body> (s2.css), so only the header needs clearing here. */
+    html { scroll-padding-top: calc(var(--header-height, 60px) + 16px); }
+    html:has(> body.hasBannerMessage #bannerMessage:not(.hidden)) { scroll-padding-top: calc(var(--header-height, 60px) + 136px); }
+    #translationFeedbackPage { max-width: 1400px; margin: 0 auto; padding: calc(var(--header-height, 60px) + 40px) 30px 80px; font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif; color: #333; }
+    #translationFeedbackPage h1 { font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif; font-size: 36px; font-weight: normal; margin: 0 0 6px; color: #000; }
+    #translationFeedbackPage .subtitle { color: #666; font-size: 15px; margin-bottom: 16px; }
+    #translationFeedbackPage .legend { margin-bottom: 16px; font-size: 14px; }
+    #translationFeedbackPage .legend summary { cursor: pointer; color: #18345D; display: inline-block; }
+    #translationFeedbackPage .legend dl { display: flex; flex-wrap: wrap; gap: 8px 24px; background: #F7F7F7; border-radius: 6px; padding: 12px 16px; margin: 8px 0 0; }
+    #translationFeedbackPage .legend dl div { display: flex; }
+    #translationFeedbackPage .legend dt { min-width: 22px; font-weight: bold; }
+    #translationFeedbackPage .legend dd { margin: 0 0 0 4px; }
+    #translationFeedbackPage .filterBar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 24px; background: #F7F7F7; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; }
+    #translationFeedbackPage .filterGroup { display: flex; flex-direction: column; gap: 4px; }
+    #translationFeedbackPage .filterLabel { font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: .04em; }
+    #translationFeedbackPage .filterBar input[type=search], #translationFeedbackPage .filterBar input[type=text] { font-size: 14px; padding: 5px 8px; border: 1px solid #CCC; border-radius: 6px; background: #fff; }
+    #translationFeedbackPage #tfQuery { width: 260px; }
+    #translationFeedbackPage #tfUser { width: 200px; }
+    #translationFeedbackPage .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+    #translationFeedbackPage .chip { position: relative; cursor: pointer; }
+    #translationFeedbackPage .chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+    #translationFeedbackPage .chip span { display: inline-block; min-width: 18px; text-align: center; padding: 3px 9px; border: 1px solid #CCC; border-radius: 12px; background: #fff; font-weight: bold; font-style: normal; font-size: 13px; }
+    #translationFeedbackPage .chip input:checked + span { background: #18345D; border-color: #18345D; color: #fff; }
+    #translationFeedbackPage .chip input:focus-visible + span { outline: 2px solid #4B71B7; outline-offset: 1px; }
+    #translationFeedbackPage .filterMeta { display: flex; align-items: center; gap: 12px; margin-left: auto; color: #666; }
+    #translationFeedbackPage .capNotice { font-size: 13px; color: #B26A00; }
+    #translationFeedbackPage .clearFilters { font-size: 13px; padding: 4px 10px; border-radius: 6px; border: 1px solid #CCC; background: #fff; color: #333; cursor: pointer; }
+    #translationFeedbackPage .tableWrap { overflow-x: auto; }
+    #translationFeedbackPage table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 1.4; }
+    #translationFeedbackPage th { text-align: left; font-weight: 500; color: #666; text-transform: uppercase; font-size: 12px; letter-spacing: .04em; border-bottom: 2px solid #CCC; padding: 8px 10px; white-space: nowrap; }
+    #translationFeedbackPage th .sortHeader { font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+    #translationFeedbackPage th .sortArrow { display: inline-block; width: 1em; color: #CCC; }
+    #translationFeedbackPage th[aria-sort] .sortArrow { color: #18345D; }
+    #translationFeedbackPage td { vertical-align: top; border-bottom: 1px solid #E6E6E6; padding: 10px; }
+    #translationFeedbackPage tr[data-status=accepted] td { background: #F2F8F3; }
+    #translationFeedbackPage tr[data-status=rejected] td { background: #FAFAFA; color: #888; }
+    #translationFeedbackPage tr.noMatch td { padding: 40px; text-align: center; color: #888; background: none; }
+    #translationFeedbackPage td.date { white-space: nowrap; color: #666; }
+    #translationFeedbackPage td.ref a { color: #18345D; font-weight: 500; }
+    #translationFeedbackPage .small { display: block; font-size: 12px; color: #888; margin-top: 3px; }
+    #translationFeedbackPage .small a { color: #888; }
+    #translationFeedbackPage .word { background: #FFF6D6; padding: 0 3px; border-radius: 3px; }
+    #translationFeedbackPage td.suggestion { min-width: 260px; max-width: 460px; }
+    #translationFeedbackPage .diff { line-height: 1.5; }
+    #translationFeedbackPage .diff del { color: #B71C1C; background: #FDECEC; text-decoration: line-through; }
+    #translationFeedbackPage .diff ins { color: #1B5E20; background: #E8F5E9; text-decoration: none; }
+    #translationFeedbackPage .markupWarning { display: block; margin-top: 6px; font-size: 12px; color: #B26A00; }
+    #translationFeedbackPage tr:not([data-status=undecided]) .markupWarning { display: none; }
+    #translationFeedbackPage td.comment { max-width: 340px; white-space: pre-wrap; }
+    #translationFeedbackPage td.note { max-width: 380px; color: #444; }
+    #translationFeedbackPage .noteText:not(.expanded) { display: -webkit-box; -webkit-line-clamp: 6; line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+    #translationFeedbackPage .noteToggle { display: block; margin-top: 4px; padding: 0; border: 0; background: none; color: #18345D; font-size: 12px; cursor: pointer; }
+    #translationFeedbackPage .noteToggle[hidden] { display: none; }
+    #translationFeedbackPage td.assessment { text-align: center; font-weight: bold; font-size: 18px; }
+    #translationFeedbackPage .a1 { color: #2E7D32; } #translationFeedbackPage .a2 { color: #558B2F; }
+    #translationFeedbackPage .a3 { color: #B26A00; } #translationFeedbackPage .a4 { color: #B71C1C; }
+    #translationFeedbackPage .aC { color: #18345D; } #translationFeedbackPage .aQ { color: #999; }
+    #translationFeedbackPage .pending { font-style: italic; color: #999; font-weight: normal; font-size: 13px; }
+    #translationFeedbackPage td.status { min-width: 150px; }
+    #translationFeedbackPage .statusLabel { font-size: 13px; font-weight: 500; }
+    #translationFeedbackPage tr[data-status=accepted] .statusLabel { color: #2E7D32; }
+    #translationFeedbackPage tr[data-status=rejected] .statusLabel { color: #B71C1C; }
+    #translationFeedbackPage tr[data-status=undecided] .statusLabel { color: #666; }
+    #translationFeedbackPage .actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    #translationFeedbackPage tr:not([data-status=undecided]) .undecidedActions { display: none; }
+    #translationFeedbackPage tr:not([data-status=rejected]) .rejectedActions { display: none; }
+    #translationFeedbackPage .actionButton { font-size: 13px; padding: 4px 10px; border-radius: 6px; border: 1px solid #18345D; background: #18345D; color: #fff; cursor: pointer; }
+    #translationFeedbackPage .actionButton.reject { background: #fff; color: #B71C1C; border-color: #B71C1C; }
+    #translationFeedbackPage .actionButton.reopen { background: #fff; color: #18345D; font-size: 12px; padding: 2px 8px; }
+    #translationFeedbackPage .actionButton[disabled] { opacity: .5; cursor: default; }
+    #translationFeedbackPage .actionError { display: block; margin-top: 6px; font-size: 12px; color: #B71C1C; }
+    #translationFeedbackPage .loginHint { display: block; margin-top: 8px; font-size: 12px; }
+    #translationFeedbackPage .empty { padding: 40px; text-align: center; color: #888; }
+{% endblock %}
+
+{% block content %}
+<div id="translationFeedbackPage" data-me="{{ me_label|default:'you' }}">
+    <h1>Translation Feedback</h1>
+    <div class="subtitle">Reader feedback on AI translations. Proof of concept &mdash; not linked from the site.</div>
+
+    <details class="legend">
+        <summary>What do the grades mean?</summary>
+        <dl>
+            {% for code, label in legend %}
+                <div><dt class="a{{ code }}">{{ code }}</dt><dd>{{ label }}</dd></div>
+            {% endfor %}
+            <div><dt class="aQ">?</dt><dd>LLM unavailable or unparseable (see note)</dd></div>
+            <div><dt class="pending">pending</dt><dd>not graded yet</dd></div>
+        </dl>
+    </details>
+
+    {% if rows %}
+    <form class="filterBar" id="tfFilters" role="search" onsubmit="return false;">
+        <div class="filterGroup">
+            <label class="filterLabel" for="tfQuery">Search</label>
+            <input type="search" id="tfQuery" name="q" placeholder="Ref, suggestion or comment" autocomplete="off">
+        </div>
+        <div class="filterGroup" role="group" aria-labelledby="tfGradeLabel">
+            <span class="filterLabel" id="tfGradeLabel">LLM grade</span>
+            <div class="chips">
+                {% for grade, cls in grade_options %}<label class="chip"><input type="checkbox" name="grade" value="{{ grade }}"><span class="{{ cls }}">{{ grade }}</span></label>{% endfor %}
+            </div>
+        </div>
+        <div class="filterGroup">
+            <label class="filterLabel" for="tfUser">User</label>
+            <input type="text" id="tfUser" name="user" list="tfUsers" placeholder="Any user" autocomplete="off">
+            <datalist id="tfUsers">{% for label in user_options %}<option value="{{ label }}"></option>{% endfor %}</datalist>
+        </div>
+        <div class="filterGroup" role="group" aria-labelledby="tfStatusLabel">
+            <span class="filterLabel" id="tfStatusLabel">Status</span>
+            <div class="chips">
+                {% for status in status_options %}<label class="chip"><input type="checkbox" name="status" value="{{ status }}"><span>{{ status|capfirst }}</span></label>{% endfor %}
+            </div>
+        </div>
+        <div class="filterMeta">
+            <span id="tfCount" aria-live="polite">Showing {{ rows|length }} of {{ rows|length }}</span>
+            {% if capped %}<span class="capNotice" title="Search, filters and sorting cover only these loaded records.">Showing the newest {{ rows|length|intcomma }} of {{ total_count|intcomma }} records</span>{% endif %}
+            <button type="button" class="clearFilters" id="tfClear">Clear filters</button>
+        </div>
+    </form>
+
+    <div class="tableWrap">
+    <table id="tfTable">
+        <thead>
+            <tr>
+                <th data-sort-key="date" aria-sort="descending"><button type="button" class="sortHeader" data-sort="date">Date <span class="sortArrow" aria-hidden="true">&darr;</span></button></th>
+                <th>Ref</th>
+                <th>User</th>
+                <th>Suggestion</th>
+                <th>Comment</th>
+                <th data-sort-key="grade"><button type="button" class="sortHeader" data-sort="grade">LLM Assessment <span class="sortArrow" aria-hidden="true">&#8597;</span></button></th>
+                <th>LLM Note</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in rows %}
+            <tr data-id="{{ row.id }}" data-created="{{ row.created }}" data-grade="{{ row.grade }}" data-grade-rank="{{ row.grade_rank }}" data-user="{{ row.user_label }}" data-status="{{ row.status }}" data-search="{{ row.search_text }}">
+                <td class="date">{{ row.date }}</td>
+                <td class="ref">
+                    {% if row.reader_url %}<a href="{{ row.reader_url }}" target="_blank">{{ row.ref }}</a>{% else %}{{ row.ref }}{% endif %}
+                    <span class="small">{{ row.version_title }}</span>
+                    {% if row.history_url %}<span class="small"><a href="{{ row.history_url }}" target="_blank">history</a></span>{% endif %}
+                </td>
+                <td class="user">{{ row.user_label }}</td>
+                <td class="suggestion">
+                    {% if row.diff %}
+                        <div class="diff">{% for chunk in row.diff %}{% if chunk.op == "del" %}<del>{{ chunk.text }}</del>{% elif chunk.op == "ins" %}<ins>{{ chunk.text }}</ins>{% else %}{{ chunk.text }}{% endif %} {% endfor %}</div>
+                        {% if row.drops_markup %}<span class="markupWarning">Accepting replaces the segment with plain text; its formatting/footnotes will be removed.</span>{% endif %}
+                    {% elif row.suggestion %}{{ row.suggestion }}{% else %}&mdash;{% endif %}
+                    {% if row.word %}<span class="small">word: <span class="word">{{ row.word }}</span>{% if row.occurrence > 1 %} (#{{ row.occurrence }}){% endif %}</span>{% endif %}
+                </td>
+                <td class="comment">{% if row.comment %}{{ row.comment }}{% else %}&mdash;{% endif %}</td>
+                <td class="assessment">
+                    {% if row.assessment %}
+                        <span class="{{ row.grade_class }}">{{ row.assessment }}</span>
+                    {% else %}
+                        <span class="pending">pending</span>
+                    {% endif %}
+                </td>
+                <td class="note">{% if row.note %}<div class="noteText">{{ row.note }}</div><button type="button" class="noteToggle" aria-expanded="false" hidden>Show all</button>{% elif not row.assessment %}<span class="pending">pending</span>{% endif %}</td>
+                <td class="status">
+                    <span class="statusLabel">{% if row.status == "accepted" %}&#10003; Accepted{% elif row.status == "rejected" %}&#10007; Rejected{% else %}Undecided{% endif %}</span>
+                    <span class="small decidedBy">{% if row.status != "undecided" and row.decided_by_label %}by {{ row.decided_by_label }}{% if row.decided_at %}, {{ row.decided_at }}{% endif %}{% endif %}</span>
+                    {% if row.status != "accepted" %}
+                        {% if logged_in %}
+                            <div class="actions undecidedActions">
+                                {% if row.suggestion %}<button type="button" class="actionButton accept" data-action="accept" data-confirm="{% if row.word %}Replace the word in this version of the text with the suggestion?{% else %}Replace this segment of the translation with the suggested text?{% if row.drops_markup %} Its formatting/footnotes will be removed.{% endif %}{% endif %} This edit will appear in the text's history.">Accept</button>{% endif %}
+                                <button type="button" class="actionButton reject" data-action="reject" title="Mark as rejected. The text is not changed.">Reject</button>
+                            </div>
+                            <div class="actions rejectedActions">
+                                <button type="button" class="actionButton reopen" data-action="reopen" title="Return to undecided">Reopen</button>
+                            </div>
+                        {% else %}
+                            <a class="loginHint undecidedActions" href="{{ login_url }}">Log in to accept or reject</a>
+                        {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+            <tr class="noMatch" hidden><td colspan="8">No feedback matches these filters.</td></tr>
+        </tbody>
+    </table>
+    </div>
+    {% else %}
+        <div class="empty">No feedback yet. Double-click a segment of a translation in the reader to leave some.</div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block js %}
+<script>
+(function() {
+    var page = document.getElementById("translationFeedbackPage");
+    var table = document.getElementById("tfTable");
+    if (!table) { return; }
+    var tbody = table.tBodies[0];
+    var noMatch = tbody.querySelector("tr.noMatch");
+    var csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || "";
+    var queryInput = document.getElementById("tfQuery");
+    var userInput = document.getElementById("tfUser");
+    var gradeBoxes = Array.prototype.slice.call(document.querySelectorAll('#tfFilters input[name="grade"]'));
+    var statusBoxes = Array.prototype.slice.call(document.querySelectorAll('#tfFilters input[name="status"]'));
+    var userOptions = Array.prototype.map.call(document.querySelectorAll("#tfUsers option"), function(o) { return o.value.toLowerCase(); });
+    var DEFAULT_DIR = {date: "desc", grade: "asc"};  // newest first; best grade (1) first
+    var sort = {key: "date", dir: "desc"};
+
+    var rows = Array.prototype.filter.call(tbody.rows, function(tr) { return tr !== noMatch; }).map(function(tr) {
+        return {
+            el: tr,
+            created: Number(tr.dataset.created) || 0,
+            rank: Number(tr.dataset.gradeRank) || 0,
+            grade: tr.dataset.grade,
+            user: (tr.dataset.user || "").toLowerCase(),
+            text: (tr.dataset.search || "").toLowerCase()
+        };
+    });
+
+    function checked(boxes) {
+        return boxes.filter(function(b) { return b.checked; }).map(function(b) { return b.value; });
+    }
+
+    function userMatches(row, wanted) {
+        if (!wanted) { return true; }
+        // a value picked from the list matches exactly; anything typed matches as a substring
+        return userOptions.indexOf(wanted) !== -1 ? row.user === wanted : row.user.indexOf(wanted) !== -1;
+    }
+
+    function applyFilters() {
+        var q = queryInput.value.trim().toLowerCase();
+        var user = userInput.value.trim().toLowerCase();
+        var grades = checked(gradeBoxes);
+        var statuses = checked(statusBoxes);
+        var shown = 0;
+        rows.forEach(function(row) {
+            var visible = (!q || row.text.indexOf(q) !== -1)
+                && (!grades.length || grades.indexOf(row.grade) !== -1)
+                && (!statuses.length || statuses.indexOf(row.el.dataset.status) !== -1)
+                && userMatches(row, user);
+            row.el.hidden = !visible;
+            if (visible) { shown++; }
+        });
+        noMatch.hidden = shown !== 0;
+        document.getElementById("tfCount").textContent = "Showing " + shown + " of " + rows.length;
+        writeUrl(q, user, grades, statuses);
+        updateClamps();
+    }
+
+    function applySort() {
+        var dir = sort.dir === "asc" ? 1 : -1;
+        rows.sort(function(a, b) {
+            if (sort.key === "grade") {
+                return (a.rank - b.rank) * dir || (b.created - a.created);  // ties: newest first
+            }
+            return (a.created - b.created) * dir;
+        });
+        rows.forEach(function(row) { tbody.appendChild(row.el); });
+        tbody.appendChild(noMatch);
+        table.querySelectorAll("th[data-sort-key]").forEach(function(th) {
+            var active = th.dataset.sortKey === sort.key;
+            if (active) { th.setAttribute("aria-sort", sort.dir === "asc" ? "ascending" : "descending"); }
+            else { th.removeAttribute("aria-sort"); }
+            th.querySelector(".sortArrow").textContent = active ? (sort.dir === "asc" ? "↑" : "↓") : "↕";
+        });
+    }
+
+    // Filter/sort state lives in the query string so a filtered view can be shared.
+    function writeUrl(q, user, grades, statuses) {
+        var params = new URLSearchParams();
+        if (q) { params.set("q", queryInput.value.trim()); }
+        if (grades.length) { params.set("grade", grades.join(",")); }
+        if (user) { params.set("user", userInput.value.trim()); }
+        if (statuses.length) { params.set("status", statuses.join(",")); }
+        if (sort.key !== "date" || sort.dir !== "desc") { params.set("sort", sort.key + "-" + sort.dir); }
+        var qs = params.toString();
+        var path = location.pathname + (qs ? "?" + qs : "");
+        try { history.replaceState(null, "", path); } catch (e) {}
+        document.querySelectorAll("#translationFeedbackPage .loginHint").forEach(function(a) {
+            a.href = "/login?next=" + encodeURIComponent(path);
+        });
+    }
+
+    function readUrl() {
+        var params = new URLSearchParams(location.search);
+        queryInput.value = params.get("q") || "";
+        userInput.value = params.get("user") || "";
+        var grades = (params.get("grade") || "").split(",");
+        var statuses = (params.get("status") || "").split(",");
+        gradeBoxes.forEach(function(b) { b.checked = grades.indexOf(b.value) !== -1; });
+        statusBoxes.forEach(function(b) { b.checked = statuses.indexOf(b.value) !== -1; });
+        var s = (params.get("sort") || "").split("-");
+        if (DEFAULT_DIR[s[0]] && (s[1] === "asc" || s[1] === "desc")) { sort = {key: s[0], dir: s[1]}; }
+    }
+
+    table.querySelectorAll(".sortHeader").forEach(function(button) {
+        button.addEventListener("click", function() {
+            var key = button.dataset.sort;
+            sort = sort.key === key ? {key: key, dir: sort.dir === "asc" ? "desc" : "asc"} : {key: key, dir: DEFAULT_DIR[key]};
+            applySort();
+            applyFilters();
+        });
+    });
+    queryInput.addEventListener("input", applyFilters);
+    userInput.addEventListener("input", applyFilters);
+    gradeBoxes.concat(statusBoxes).forEach(function(b) { b.addEventListener("change", applyFilters); });
+    document.getElementById("tfClear").addEventListener("click", function() {
+        queryInput.value = "";
+        userInput.value = "";
+        gradeBoxes.concat(statusBoxes).forEach(function(b) { b.checked = false; });
+        applyFilters();
+    });
+
+    // Accept / Reject / Reopen. The row's data-status drives the styling and which buttons show.
+    var LABELS = {undecided: "Undecided", accepted: "✓ Accepted", rejected: "✗ Rejected"};
+    var NEXT_STATUS = {accept: "accepted", reject: "rejected", reopen: "undecided"};
+
+    function setStatus(tr, status, decidedAt) {
+        tr.dataset.status = status;
+        tr.querySelector(".statusLabel").textContent = LABELS[status];
+        tr.querySelector(".decidedBy").textContent = status === "undecided" ? "" :
+            "by " + page.dataset.me + (decidedAt ? ", " + decidedAt : "");
+        if (status === "accepted") {
+            tr.querySelectorAll(".actions").forEach(function(el) { el.remove(); });
+        }
+    }
+
+    tbody.querySelectorAll(".actionButton").forEach(function(button) {
+        button.addEventListener("click", function() {
+            var tr = button.closest("tr");
+            var cell = button.closest("td");
+            var action = button.dataset.action;
+            var old = cell.querySelector(".actionError");
+            if (old) { old.remove(); }
+            if (button.dataset.confirm && !window.confirm(button.dataset.confirm)) { return; }
+            var buttons = cell.querySelectorAll(".actionButton");
+            buttons.forEach(function(b) { b.disabled = true; });
+            fetch("/api/translation-feedback/" + tr.dataset.id + "/" + action, {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {"X-CSRFToken": csrf, "Content-Type": "application/json"},
+                body: "{}"
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data.error) { throw new Error(data.error); }
+                buttons.forEach(function(b) { b.disabled = false; });
+                setStatus(tr, NEXT_STATUS[action], data.decided_at);
+                applyFilters();
+            }).catch(function(e) {
+                buttons.forEach(function(b) { b.disabled = false; });
+                var err = document.createElement("span");
+                err.className = "actionError";
+                err.textContent = e.message || "Something went wrong.";
+                cell.appendChild(err);
+            });
+        });
+    });
+
+    // LLM notes are clamped to 6 lines; show the toggle only where the text actually overflows.
+    // Hidden (filtered-out) rows can't be measured, so they're rechecked whenever they become visible.
+    var notes = Array.prototype.map.call(tbody.querySelectorAll(".noteText"), function(el) {
+        var toggle = el.nextElementSibling;
+        toggle.addEventListener("click", function() {
+            var expanded = el.classList.toggle("expanded");
+            toggle.textContent = expanded ? "Show less" : "Show all";
+            toggle.setAttribute("aria-expanded", expanded ? "true" : "false");
+            if (!expanded) { updateClamps(); }
+        });
+        return {el: el, toggle: toggle, row: el.closest("tr")};
+    });
+
+    function updateClamps() {
+        notes.forEach(function(n) {
+            if (n.row.hidden || n.el.classList.contains("expanded")) { return; }
+            n.toggle.hidden = n.el.scrollHeight <= n.el.clientHeight + 1;
+        });
+    }
+
+    var resizeFrame = null;
+    window.addEventListener("resize", function() {
+        if (resizeFrame) { return; }
+        resizeFrame = requestAnimationFrame(function() { resizeFrame = null; updateClamps(); });
+    });
+    if (document.fonts && document.fonts.ready) { document.fonts.ready.then(updateClamps); }
+
+    readUrl();
+    applySort();
+    applyFilters();
+})();
+</script>
+{% endblock %}
