@@ -555,10 +555,10 @@ class LexiconEntrySet(abst.AbstractMongoSet):
             return not (entry.headword, entry.parent_lexicon) in self._primary_tuples
 
         if self.records is None:
-            self.records = []
-            for rec in self.raw_records:
-                self.records.append(LexiconEntrySubClassMapping.instance_from_record_factory(rec))
-            self.max = len(self.records)
+            # The entry class depends on the document's lexicon, so this set cannot use
+            # `recordClass`. Instantiating through _build_records() rather than looping here
+            # is what keeps with_skip_guard() working — see AbstractMongoSet._build_records.
+            self._build_records(LexiconEntrySubClassMapping.instance_from_record_factory)
             if self._primary_tuples:
                 self.records.sort(key=is_primary)
 
