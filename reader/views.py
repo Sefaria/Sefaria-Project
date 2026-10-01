@@ -100,6 +100,8 @@ from sefaria.settings import NODE_TIMEOUT, DEBUG
 from sefaria.model.abstract import SluggedAbstractMongoRecord
 from sefaria.utils.calendars import parashat_hashavua_and_haftara
 from sefaria.utils.chatbot import build_chatbot_user_token
+from reader.library_next import library_next_route, apply_library_next_cookie, should_render_library_next, \
+    library_next_props as _library_next_props
 from PIL import Image
 from sefaria.utils.user import delete_user_account
 from django.core.mail import EmailMultiAlternatives
@@ -283,6 +285,72 @@ def render_react_component(component, props, request):
             # If anything else goes wrong with Node, just fall back to client-side rendering
             logger.warning("Node error: Fell back to client-side rendering.")
             return render_to_string("elements/loading.html", request=request)
+
+
+LIBRARY_NEXT_PAGE_META = {
+    # route name -> (title, description); the SPA refines document.title per page.
+    "home":      ("Sefaria Library", "The largest free library of Jewish texts available to read online in Hebrew and English."),
+    "texts":     ("Browse Texts | Sefaria Library", "Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more."),
+    "calendars": ("Learning Schedules | Sefaria Library", "Weekly Torah portions, Daf Yomi, and other schedules for Torah learning."),
+    "topics":    ("Topics | Sefaria Library", "Explore Jewish texts by topic."),
+    "topic":     ("Topics | Sefaria Library", "Explore Jewish texts by topic."),
+    "search":    ("Search | Sefaria Library", "Search 3,000 years of Jewish texts in Hebrew and English translation."),
+    "my":        ("My Library | Sefaria Library", "Your reading, notes and plans."),
+    "ref":       ("Sefaria Library", "Read Jewish texts in Hebrew and English."),
+}
+
+
+def library_next_props(request, route_name, extra_props=None):
+    """
+    The minimal props the Library Next shell reads (see reader.library_next.LIBRARY_NEXT_PROP_KEYS):
+    identity, interface language, the data.js cache key, the path and route. One profile lookup for
+    logged-in users; no calendars, notifications or saved-history queries (the SPA fetches those).
+    """
+    user = None
+    chatbot = {
+        "chatbot_user_token": None,
+        "chatbot_api_base_url": CHATBOT_API_BASE_URL,
+        "chatbot_origin": "library-next",
+    }
+    if request.user.is_authenticated:
+        profile = UserProfile(user_obj=request.user)
+        user = {
+            "id": request.user.id,
+            "email": request.user.email,
+            "full_name": profile.full_name,
+            "slug": profile.slug,
+            "is_moderator": request.user.is_staff,
+            "profile_pic_url": profile.profile_pic_url,
+        }
+        if library_assistant.is_enabled(profile):
+            chatbot["chatbot_user_token"] = build_chatbot_user_token(request.user.id, CHATBOT_USER_ID_SECRET)
+    return _library_next_props(user, request, route_name, library.get_last_cached_time(), APP_VERSION,
+                               chatbot=chatbot, extra=extra_props)
+
+
+def render_library_next(request, route_name, extra_props=None):
+    """
+    Render the Library Next shell (templates/library_next/app.html) for `route_name`; the SPA in
+    static/js/library-next/ takes over from `request.path`. The counterpart of render_template()
+    for ReaderApp. Applies the sticky ?library= cookie.
+    """
+    title, desc = LIBRARY_NEXT_PAGE_META.get(route_name, LIBRARY_NEXT_PAGE_META["home"])
+    context = {
+        "library_next_props": library_next_props(request, route_name, extra_props),
+        "title": title,
+        "desc": _(desc),
+        "route": route_name,
+        "noindex": True,  # POC: keep the rebuilt pages out of the index
+    }
+    response = render(request, template_name="library_next/app.html", context=context)
+    return apply_library_next_cookie(request, response)
+
+
+def my_library(request, rest=None):
+    """/my/* : the Library Next "My Library" hub. Classic has no such page, so it sends you to /texts."""
+    if should_render_library_next(request, getattr(settings, "LIBRARY_NEXT_DEFAULT", False)):
+        return render_library_next(request, "my")
+    return apply_library_next_cookie(request, redirect("/texts"))
 
 
 def base_props(request):
@@ -813,6 +881,9 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         except InputError:
             raise Http404
     
+    if sheet is None and should_render_library_next(request, getattr(settings, "LIBRARY_NEXT_DEFAULT", False)):
+        return render_library_next(request, "ref")
+
 
     panels = []
     multi_panel = not request.user_agent.is_mobile and not "mobile" in request.GET
@@ -975,6 +1046,7 @@ def _reduce_ranged_ref_text_to_first_section(text_list):
 
 
 @sanitize_get_params
+@library_next_route("texts")
 def texts_category_list(request, cats=None):
     """
     List of texts in a category.
@@ -1011,6 +1083,7 @@ def texts_category_list(request, cats=None):
 
 
 @sanitize_get_params
+@library_next_route("topics")
 def topics_category_page(request, topicCategory=None):
     """
     List of topics in a category.
@@ -1037,6 +1110,7 @@ def topics_category_page(request, topicCategory=None):
     })
 
 
+@library_next_route("topics")
 def all_topics_page(request, letter):
     """
     Page listing all topics alphabetically.
@@ -1111,6 +1185,7 @@ def override_version_with_preference(oref, request, versionEn, versionHe):
 
 @ensure_csrf_cookie
 @sanitize_get_params
+@library_next_route("search")
 def search(request):
     """
     Search or Search Results page.
@@ -1317,12 +1392,14 @@ def _get_user_calendar_params(request):
 
 
 @ensure_csrf_cookie
+@library_next_route("texts")
 def texts_list(request):
     title = get_page_title("", module=request.active_module, page_type=PageTypes.HOME)
     desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
     props = get_user_history_props(request)
     return menu_page(request, page="navigation", title=title, desc=desc, props=props)
 
+@library_next_route("calendars")
 def calendars(request):
     title = get_page_title("Learning Schedules", module=request.active_module)
     desc  = _("Weekly Torah portions, Daf Yomi, and other schedules for Torah learning.")
@@ -3521,6 +3598,7 @@ def texts_history_api(request, tref, lang=None, version=None):
 
 @ensure_csrf_cookie
 @sanitize_get_params
+@library_next_route("topics")
 def topics_page(request):
     """
     Page of all Topics
@@ -3541,6 +3619,7 @@ def topic_page_b(request, slug):
 
 @ensure_csrf_cookie
 @sanitize_get_params
+@library_next_route("topic")
 def topic_page(request, slug, test_version=None):
     """
     Page of an individual Topic
@@ -4579,6 +4658,7 @@ def account_settings(request):
 
 
 @ensure_csrf_cookie
+@library_next_route("home")
 def home(request):
     """
     Homepage (which is the texts page)

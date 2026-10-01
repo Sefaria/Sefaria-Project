@@ -21,6 +21,7 @@ urlpatterns = [
     re_path(r'^texts/recent/?$', reader_views.old_recent_redirect),
     re_path(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     re_path(r'^calendars/?$', reader_views.calendars),
+    re_path(r'^my(?!/notes)(?P<rest>/.*)?$', reader_views.my_library),  # Library Next hub; /my/notes stays a classic redirect
     re_path(r'^translations/(?P<slug>[^.]+)$', reader_views.translations_page),
     re_path(r'^modtools/?$', reader_views.modtools),
     re_path(r'^linker-editor/?$', reader_views.linker_editor),
