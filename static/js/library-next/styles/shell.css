@@ -337,3 +337,14 @@
 .ln-placeholder { padding-block: var(--ln-space-6); max-inline-size: var(--ln-read-max); }
 .ln-placeholder .ln-page-title { margin-block-start: var(--ln-space-4); }
 .ln-placeholder-body { color: var(--ln-color-muted); margin-block-end: var(--ln-space-5); font-size: var(--ln-text-m); }
+
+/* ---- header search suggestions (Sefaria.getName completions) ------------------------------ */
+.ln-suggest {
+  position: absolute; inset-inline: 0; inset-block-start: calc(100% + 4px); z-index: var(--ln-z-menu);
+  background: var(--ln-color-page); border: 1px solid var(--ln-color-rule-strong); border-radius: var(--ln-radius-m);
+  box-shadow: var(--ln-shadow-menu); padding-block: var(--ln-space-1); margin: 0; list-style: none; text-align: start;
+}
+.ln-suggest-item { display: flex; justify-content: space-between; gap: var(--ln-space-3); padding: var(--ln-space-2) var(--ln-space-3); cursor: pointer; font-size: var(--ln-text-s); }
+.ln-suggest-item.active { background: var(--ln-color-surface-2); }
+.ln-suggest-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ln-suggest-type { color: var(--ln-color-muted); font-size: var(--ln-text-xs); flex: none; }
