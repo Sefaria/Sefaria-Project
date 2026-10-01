@@ -170,6 +170,8 @@ describe('search page', () => {
     const clicks = [];
     const realCreate = document.createElement.bind(document);
     jest.spyOn(document, 'createElement').mockImplementation((tag) => { const el = realCreate(tag); if (tag === 'a') { el.click = () => clicks.push(el.download); } return el; });
+    // jsdom's `URL` is the whatwg-url class shared by every test file in this worker: restore it afterwards.
+    const objectUrls = { create: URL.createObjectURL, revoke: URL.revokeObjectURL };
     URL.createObjectURL = jest.fn(() => 'blob:x'); URL.revokeObjectURL = jest.fn();
     render();
     await go('/search?q=light&era=rishonim&exact=1');
@@ -184,6 +186,9 @@ describe('search page', () => {
     const versionSelect = [...container.querySelectorAll('select')].find(s => s.querySelector('option').textContent === 'Any version');
     expect(versionSelect.querySelectorAll('option').length).toBeGreaterThan(2);
     document.createElement.mockRestore();
+    await new Promise(r => setTimeout(r, 0));   // downloadText revokes the object URL on the next tick
+    if (objectUrls.create) { URL.createObjectURL = objectUrls.create; } else { delete URL.createObjectURL; }
+    if (objectUrls.revoke) { URL.revokeObjectURL = objectUrls.revoke; } else { delete URL.revokeObjectURL; }
   });
 
   test('empty query, no results and errors', async () => {

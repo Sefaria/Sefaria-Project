@@ -77,6 +77,10 @@ test('notebook exports: BibTeX, CSV, JSON', () => {
 });
 
 test('download is a safe no-op without object URLs and clicks an anchor with them', () => {
+  // jsdom's `URL` is the whatwg-url class shared by every test file in this worker, so another
+  // suite may have left createObjectURL behind: start from a known state and restore it after.
+  const before = { create: URL.createObjectURL, revoke: URL.revokeObjectURL };
+  delete URL.createObjectURL; delete URL.revokeObjectURL;
   expect(download('a.txt', 'x')).toBe(false);          // jsdom has no URL.createObjectURL
   URL.createObjectURL = jest.fn(() => 'blob:x');
   URL.revokeObjectURL = jest.fn();
@@ -84,7 +88,8 @@ test('download is a safe no-op without object URLs and clicks an anchor with the
   expect(download('notes.md', '# hi', 'text/markdown')).toBe(true);
   expect(click).toHaveBeenCalledTimes(1);
   click.mockRestore();
-  delete URL.createObjectURL; delete URL.revokeObjectURL;
+  if (before.create) { URL.createObjectURL = before.create; } else { delete URL.createObjectURL; }
+  if (before.revoke) { URL.revokeObjectURL = before.revoke; } else { delete URL.revokeObjectURL; }
 });
 
 test('persona nav order keeps every section reachable', () => {
