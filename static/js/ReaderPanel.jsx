@@ -63,6 +63,7 @@ import {
   setStoredReaderMode,
   shouldShowLandingPicker,
   siddurVersions,
+  trackSiddurEvent,
 } from './sefaria/siddurNusach';
 
 // ?nusachPicker=1 on the landing URL forces the landing picker once per page load (desktop too).
@@ -258,7 +259,7 @@ class ReaderPanel extends Component {
     const current = nusachForBook(this.currentBook());
     if (!current || choice === current) { return; }
     saveNusachChoice(choice);
-    gtag("event", "nusach_picker", {origin: "toc", default: current, choice, switched: true});
+    trackSiddurEvent("nusach_picker", {origin: "toc", default: current, choice, switched: true});
     this.setState({siddurTocOpen: false});
     // Push history (unlike the landing picker) so Back returns to the previous nusach.
     this.showBaseText(mapRefToNusach(this.nusachPickerSourceRef(), choice), false, siddurVersions(choice), [], false);
@@ -296,7 +297,7 @@ class ReaderPanel extends Component {
   handleNusachPickerConfirm(choice) {
     const current = nusachForBook(this.currentBook());
     saveNusachChoice(choice);
-    gtag("event", "nusach_picker", {origin: "landing", default: this.state.nusachPickerDefault, choice, switched: choice !== current});
+    trackSiddurEvent("nusach_picker", {origin: "landing", default: this.state.nusachPickerDefault, choice, switched: choice !== current});
     this.setState({showNusachPicker: false});
     if (current && choice !== current) {
       // Version titles don't carry across books; replace history so Back skips the rejected nusach.

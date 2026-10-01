@@ -10,7 +10,7 @@ import {SignUpModalKind} from "./sefaria/signupModalContent";
 import Util from "./sefaria/util";
 import Button from "./common/Button";
 import {bookTitle, openSiddurAtTimeOfDay} from "./SiddurNusachPicker";
-import {NUSACH_BOOKS, getStoredNusach, isNusach} from "./sefaria/siddurNusach";
+import {NUSACH_BOOKS, getStoredNusach, isNusach, trackSiddurEvent} from "./sefaria/siddurNusach";
 
 
 const NavSidebar = ({sidebarModules, includeFooter = true}) => {
@@ -180,7 +180,7 @@ const MySiddur = ({openURL}) => {
    if (!isNusach(nusach)) { return null; }
    const handleClick = e => {
      e.preventDefault();
-     gtag('event', 'my_siddur', {nusach, hour: new Date().getHours()});
+     trackSiddurEvent('my_siddur', {nusach, hour: new Date().getHours()});
      openSiddurAtTimeOfDay(nusach, openURL);
    };
    return <SidebarModule>

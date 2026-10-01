@@ -155,3 +155,9 @@ export function getStoredReaderMode() {
   return isReaderMode(m) ? m : null;
 }
 export const setStoredReaderMode = m => isReaderMode(m) && storageSet(STORED_READER_MODE_KEY, m);
+
+export function trackSiddurEvent(name, params) {
+  // GA4 event, guarded like signupAnalytics: base.html defines gtag only when GOOGLE_GTAG is set.
+  if (typeof window === "undefined" || typeof window.gtag !== "function") { return; }
+  window.gtag("event", name, params);
+}

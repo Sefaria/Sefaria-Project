@@ -21,7 +21,7 @@ import {
   saveNusachChoice,
   timeOfDayUrl,
 } from "./SiddurNusachPicker";
-import {NUSACH_BOOKS, defaultNusach, hasSeenNusachPicker, markNusachPickerSeen} from "./sefaria/siddurNusach";
+import {NUSACH_BOOKS, defaultNusach, hasSeenNusachPicker, markNusachPickerSeen, trackSiddurEvent} from "./sefaria/siddurNusach";
 
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
@@ -291,12 +291,12 @@ const SiddurQuickLink = ({openURL}) => {
       setPickerDefault(preferredNusach());
       return;
     }
-    gtag("event", "siddur_quick_link", {nusach: preferredNusach()});
+    trackSiddurEvent("siddur_quick_link", {nusach: preferredNusach()});
     openSiddurAtTimeOfDay(preferredNusach(), openURL);
   };
   const onConfirm = choice => {
     saveNusachChoice(choice);
-    gtag("event", "nusach_picker", {origin: "liturgy_link", default: pickerDefault, choice, switched: choice !== pickerDefault});
+    trackSiddurEvent("nusach_picker", {origin: "liturgy_link", default: pickerDefault, choice, switched: choice !== pickerDefault});
     setPickerDefault(null);
     openSiddurAtTimeOfDay(choice, openURL);
   };

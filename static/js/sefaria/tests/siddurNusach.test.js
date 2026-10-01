@@ -23,6 +23,7 @@ import {
   siddurContentLang,
   siddurVersions,
   timeOfDayRef,
+  trackSiddurEvent,
 } from '../siddurNusach';
 
 const K = "The Koren Shalem Siddur; Ashkenaz, ";
@@ -280,5 +281,18 @@ describe('Siddur Mode / Learning Mode', () => {
     const spy = jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error("blocked"); });
     expect(getStoredReaderMode()).toBe(null);
     spy.mockRestore();
+  });
+});
+
+describe('trackSiddurEvent', () => {
+  afterEach(() => { delete window.gtag; });
+  test('is a no-op when gtag is not defined (GOOGLE_GTAG unset)', () => {
+    delete window.gtag;
+    expect(() => trackSiddurEvent("nusach_picker", {origin: "landing"})).not.toThrow();
+  });
+  test('sends a GA4 event when gtag is defined', () => {
+    window.gtag = jest.fn();
+    trackSiddurEvent("nusach_picker", {origin: "toc", choice: "sfard"});
+    expect(window.gtag).toHaveBeenCalledWith("event", "nusach_picker", {origin: "toc", choice: "sfard"});
   });
 });
