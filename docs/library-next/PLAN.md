@@ -30,9 +30,10 @@ removes the Node heap risk on cauldrons and lets every vertical be pure JS/CSS. 
 route in one bundle. CSS is imported from components (style-loader). No `ReaderApp.jsx`,
 `Misc.jsx` or `s2.css` imports — enforced by a jest import-boundary test.
 
-Dev harness (`npm run library-next-dev`): serves the shell at `http://localhost:8787` and proxies
-`/api/*`, `/data*.js`, `/static/*` to `https://www.sefaria.org`, so the SPA runs end to end
-here and in Playwright without Django or Mongo.
+Dev harness (`npm run library-next-dev`, see `DEV.md`): serves the shell at `http://localhost:8787`
+and proxies `/api/*`, `/_api/*`, `/data*.js` and missing `/static/*` to `https://www.sefaria.org`
+(React/jQuery from `node_modules`), so the SPA runs end to end here and in Playwright
+(`npm run library-next-smoke`) without Django or Mongo.
 
 ## Names
 
@@ -49,21 +50,36 @@ here and in Playwright without Django or Mongo.
 
 ## Shared contracts (foundation owns; everyone consumes)
 
-- **Router** `router.js`: `registerRoute({ name, match(pathname, search) → params|null, component, title(params,t) })`,
-  `<Link to>`, `navigate(to, {replace})`, `useRoute()`. History via `pushState`; back/forward supported.
-  Unknown library URLs fall through to the server (full navigation).
-- **i18n** `i18n.js`: `useT()` → `t(key, vars)`, `lang` (`en|he`), `dir`; strings in per-feature
-  `strings.js` files `{ key: { en, he } }` merged via `addStrings()`. Interface language follows the
-  Django interface language (`DJANGO_VARS.props.interfaceLang`) and the header toggle; toggle sets the
-  classic `interfaceLang` cookie and navigates. `<html dir>` follows.
-- **Content language** `contentLang.js`: `he | en | bi`, persisted; `useContentLang()`.
-- **Store** `store.js`: `createCollection(name, {version, migrate})` → `{ list(), get(id), put(item), remove(id), subscribe }`,
-  `useCollection(name)`; `kv.get/set`; `exportAll()`/`importAll(json)`. Namespaced
-  `sefaria.libnext.<collection>`. Fires a `storage` style event so tabs stay in sync.
-- **Persona** `persona.js`: `newcomer | learner | educator | scholar`; `usePersona()` → `{ persona, setPersona, def }`.
-  Defs carry label, tagline, icon, default content language, home modules order, reader tool set.
-- **Shell slots**: `<Shell>` renders header, `<main>`, footer, `<AssistantDock>`, toasts (`toast(msg)`),
-  modal (`openModal(node)`), onboarding (first visit: pick a persona; skippable → newcomer).
+Details, examples and the file map: `FOUNDATION.md`. Everything below ships and is jest-covered.
+
+- **Router** `router.js`: `registerRoute({ name, path | match(pathname, search) → params|null, component, title(params, t) })`;
+  `path` patterns take static segments, `:param` and a trailing `*` (→ `params.rest`). The component receives
+  `{ params, pathname, search, query }`. `<Link to>`, `navigate(to, {replace})`, `useRoute()` →
+  `{ route, params, pathname, search, query }`, `useRouteParams()`. History via `pushState`; back/forward
+  supported; registration order decides, re-registering a name replaces. Unknown library URLs fall through
+  to the server (full navigation). Canonical names: `home, texts, texts-category, calendars, topics, topic,
+  search, my, ref`; `routes.js` imports `home/ browse/ reader/ discover/ my/routes.js` then registers
+  placeholders for the names still free.
+- **i18n** `i18n.js`: `useT()` → `{ t(key, vars), lang, dir }`; `t`, `pick({en,he})` and the live bindings
+  `lang` (`en|he`) / `dir` (`ltr|rtl`) for non-React code; strings in per-feature `strings.js` files
+  `{ key: { en, he } }` merged via `addStrings()`. Interface language follows Django
+  (`DJANGO_VARS.props.interfaceLang`); the header toggle calls `switchInterfaceLang()`, which sets the classic
+  `interfaceLang` cookie and reloads through `/interface/<language>?next=`. `<html lang dir>` follows.
+- **Content language** `contentLang.js`: `he | en | bi`, persisted in `kv.contentLang`; unset = the persona's
+  default; `useContentLang()` → `[value, set]`.
+- **Store** `store.js`: `createCollection(name, {version, migrate(items, fromVersion)})` →
+  `{ list(), get(id), put(item), remove(id), clear(), subscribe }` (`put` fills `id` and `ts`);
+  `useCollection(name)` → `{ items, get, put, remove, clear }`; `kv.get/set/remove`, `useKv`;
+  `exportAll()` / `importAll(json, {merge})`; `flush()`. Namespaced `sefaria.libnext.<collection>`, writes
+  debounced 150 ms and flushed on `pagehide`. Fires `libnext:store` on `window`; other tabs sync through the
+  native `storage` event.
+- **Persona** `persona.js`: `newcomer | learner | educator | scholar`; `usePersona()` →
+  `{ persona, setPersona, def, chosen }`. Defs carry `label`, `tagline` (`{en,he}`), `contentLang`,
+  `homeModules` (ordered ids), `readerTools` (ids); `<PersonaIcon persona/>`.
+- **Shell slots**: `<Shell>` renders header, `<main>`, footer, `<AssistantDock>`, toasts (`toast(msg | {en,he}, {duration})`),
+  modal (`openModal(node, {label, dismissible, onClose})` / `closeModal()`), onboarding (first visit: pick a
+  persona; skippable → newcomer; `openOnboarding()` re-opens). `openAssistant/closeAssistant/toggleAssistant`
+  from `AssistantDock.jsx`; `AssistantBody` is the slot the assistant agent fills.
 - **Reader tool contract** (reader owns, wave 3 consumes): `registerReaderTool({ id, personas, icon, label,
   component })`; the component receives `{ selection: { ref, he, en, segments }, book, close }`.
 - **Collections other agents write to** (my-library owns the schemas):
@@ -72,7 +88,11 @@ here and in Playwright without Django or Mongo.
   `lessons` (educator lesson plans: title, sources[], questions[], handoutNotes), `notebook`
   (scholar entries: ref, versions compared, citation, text), `streak` (dates read).
 - **Assistant** `<lc-chatbot>` is embedded by the dock with `persona="<persona>"`, `interface-lang`,
-  `mode="panel"`, `origin="library-next"`. ai-chatbot `mf3` understands `persona`.
+  `mode="panel"`, `origin="library-next"`; `user-id` = `props.chatbot_user_token`, `api-base-url` =
+  `props.chatbot_api_base_url` (both in `DJANGO_VARS.props`, token only for logged-in users with the
+  assistant enabled). ai-chatbot `mf3` understands `persona`.
+- **CSS**: `--ln-*` tokens in `styles/tokens.css`, primitives in `styles/base.css`, classes prefixed `ln-`,
+  logical properties only, CSS imported from components (jest stubs `.css`).
 
 ## Personas — what each one gets
 
