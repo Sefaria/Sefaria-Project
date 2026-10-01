@@ -128,7 +128,7 @@ class Collection {
   }
 
   notify() {
-    this.listeners.forEach(fn => fn(this));
+    [...this.listeners].forEach(fn => fn(this));   // a copy: listeners may re-subscribe while being notified
     emit(this.name);
   }
 
