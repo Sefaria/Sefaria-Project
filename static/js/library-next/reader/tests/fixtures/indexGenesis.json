@@ -1,0 +1,31 @@
+{
+ "title": "Genesis",
+ "heTitle": "בראשית",
+ "categories": [
+  "Tanakh",
+  "Torah"
+ ],
+ "heCategories": [
+  "תנ\"ך",
+  "תורה"
+ ],
+ "enDesc": "Genesis (“Bereshit”) is the first book of the Torah, Judaism’s foundational text, and the only one consisting almost entirely of stories, with just three explicit laws. It tells of the origins of mankind and the Israelites, with stories on creation, Adam and Eve, Noah’s ark, the patriarchs and matriarchs - Abraham and Sarah, Isaac and Rebecca, Jacob, Leah and Rachel - and Joseph and his brothers. Its narratives depict figures as they encounter God, face wandering and exile, and grapple with conflict in family relationships",
+ "heDesc": "ספר בראשית הוא הספר הראשון בחמשת חומשי התורה והיחיד הכולל כמעט אך ורק סיפורים - ורק שלושה חוקים מפורשים. הוא מספר על תולדות האדם ועם ישראל בסיפורי הבריאה, אדם חוה, תיבת נח, האבות והאימהות - אברהם ושרה, יצחק ורבקה, יעקב, רחל ולאה ויוסף ואחיו. עלילותיו מתארות דמויות המתעמתות עם אלוהים ומתמודדות עם אתגרי גלות ונדודים ועם מאבקים פנים-משפחתיים.",
+ "enShortDesc": "Creation, the beginning of mankind, and stories of the patriarchs and matriarchs.",
+ "heShortDesc": "בריאת העולם, תחילתה של האנושות וסיפורי האבות והאמהות.",
+ "compDateString": {
+  "en": " (c.1400  – c.400 BCE)",
+  "he": " (1400 – 400 לפנה\"ס בקירוב)"
+ },
+ "compPlaceString": {
+  "en": "Sinai/Canaan",
+  "he": "סיני / כנען"
+ },
+ "sectionNames": [
+  "Chapter",
+  "Verse"
+ ],
+ "depth": 2,
+ "firstSectionRef": "Genesis 1",
+ "authors": []
+}
