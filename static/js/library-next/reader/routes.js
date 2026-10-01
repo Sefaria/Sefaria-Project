@@ -1,5 +1,17 @@
 /**
  * Route registry for the `reader` feature (owned by the `reader` agent). Imported by ../routes.js.
- * Register routes here with registerRoute(); the foundation placeholders only register names
- * that are still free, so use the canonical names in docs/library-next/FOUNDATION.md.
+ * `ref` claims section- and segment-level refs only (see ./refKind.js); book-level refs are the
+ * browse agent's `book` route and unknown paths fall through to the server.
  */
+import { registerRoute } from '../router';
+import ReaderPage from './ReaderPage';
+import { matchReaderRef } from './refKind';
+import './strings';
+import './tools/builtin';
+
+registerRoute({
+  name: 'ref',
+  match: matchReaderRef,
+  component: ReaderPage,
+  title: (params) => params.tref,
+});
