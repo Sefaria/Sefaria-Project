@@ -12,7 +12,7 @@ Kept in sync with what shipped on `mf3`. One row per agent; details in each agen
 | 3 | learn-tools | shipped | Newcomer tools (Explain this, Who's who, Read it to me) and learner tools (Highlight, Note, Flashcard, Mark as read / Add to plan, Vocabulary) under `tools/learn/`; highlight decoration + `useHighlights` hook |
 | 2 | discover | shipped | `/search?q=`, `/topics`, `/topics/<slug>`, `/topics/category/<slug>`; header search suggestions; see below |
 | 3 | teach-research-tools | shipped | Educator tools (`tools/teach/`): Add to lesson, Discussion questions, Handout snippet, Compare translations. Scholar tools (`tools/research/`): Versions compare, Manuscripts, Lexicon, Copy / cite (Chicago / MLA / BibTeX, export), Cross-references graph. Registered in the reader's tool registry; `translations` and `linkGraph` added to `persona.js` |
-| 3 | qa | — | |
+| 3 | qa | shipped | Gates green, Django seam reviewed and template-rendered, persona journeys (`npm run library-next-journeys`, 260 steps EN+HE, 0 failures), 9 defects fixed, discover inbox drained into My Library. See "QA" below |
 
 ## Foundation — verified
 
@@ -255,8 +255,8 @@ figures, text kind, markdown-lite, cloze, speech helpers, highlights, plans, lex
 | Highlight | Four colours; one `highlights` row per selected segment (`addHighlight(ref, color, { text, book })`); remove; rendering via `data-ln-highlight` set by `mountHighlightDecorator()` (store event + MutationObserver) and `useHighlights(sectionRef)` for hosts that render themselves | — |
 | Note | Textarea with Markdown-lite preview (`**`, `*`, `#`, lists, code); `addNote`; existing notes for the ref / its segments listed | — |
 | Flashcard | Front Hebrew or ref, back English or your own; `addFlashcard`; "Quiz me" adds three deterministic cloze cards (longest content words, text order) | — |
-| Mark as read / Add to plan | Finds the plan holding `book.sectionRef`, toggles `markPlanUnitDone`, shows progress; else `addToPlan` to the newest plan or `createPlan` for the book with this section as its first unit | Plans created by browse's "Follow this schedule" use `items`, not `units`, so they are not matched |
-| Vocabulary | Hebrew words of the selection as chips (vowels kept for display, consonantal dedupe); `Sefaria.getLexiconWords(word, ref)` → `/api/words` (same call as the classic LexiconBox) shaped by `tools/learn/lexiconApi.js`; definitions with morphology / transliteration / source; "Add as flashcard" | — |
+| Mark as read / Add to plan | Finds the plan holding `book.sectionRef`, toggles `markPlanUnitDone`, shows progress; else `addToPlan` to the newest plan or `createPlan` for the book with this section as its first unit | — (browse's "Follow this schedule" now writes `units`; QA) |
+| Vocabulary | Hebrew words of the selection as chips (vowels kept for display, consonantal dedupe); `Sefaria.getLexiconWords(word, ref)` → `/api/words` (same call as the classic LexiconBox) shaped by `tools/lexiconApi.js` (shared with the scholar Lexicon since QA); definitions with morphology / transliteration / source; "Add as flashcard" | — |
 
 "What am I reading?" is the reader's own card (`reader/WhatAmIReading.jsx`), already shipped; nothing added.
 
@@ -267,8 +267,7 @@ for the new ids (three lines). Nothing else outside `tools/learn/` and the docs.
 
 Hand-offs / open issues:
 
-- `tools/learn/lexiconApi.js` (`lookupWord`, `shapeEntries`, `flattenSenses`, `hebrewWords`) is a candidate for a shared
-  `tools/lexiconApi.js` once the research tools' lexicon helper lands; dedupe then.
+- ~~`tools/learn/lexiconApi.js` is a candidate for a shared `tools/lexiconApi.js`~~ — done in QA: one `tools/lexiconApi.js`.
 - The reader can call `useHighlights(sectionRef)` from `tools/learn/index` and add the class itself; until then the
   decorator sets the attribute from outside (`.ln-seg[data-ref]` / `.ln-seg-inline[data-ref]`).
 - `/topics/<slug>` links from Who's who assume the discover agent's `topic` route.
@@ -316,8 +315,7 @@ scholar list has no tool behind it (not in this scope) and is simply not shown.
   library link, description; empty state when none (Berakhot and Shulchan Arukh have none today).
 - `lexicon` — Hebrew words of the selection as buttons (cantillation stripped, maqaf split), tap → `Sefaria.getLexiconWords(word, segmentRef)`
   (`/api/words/…?lookup_ref=`), entries flattened to headword / lexicon / morphology / nested senses / cited refs
-  (in-app links); free-text lookup too. `tools/research/lexiconApi.js` wraps the same API as learn-tools'
-  `tools/learn/lexiconApi.js` — **dedupe into one module** (handoff).
+  (in-app links); free-text lookup too. Lookups go through the shared `tools/lexiconApi.js` (`wordsOf`, `lookupEntries`; deduped in QA).
 - `cite` — registered for *all* personas under the built-in id: scholars get Chicago / MLA / BibTeX (version title +
   access date), copy one / all / text+citation, "Export selection" as JSON / CSV (one row per segment, via
   `my/exportFormats.download`) and "Save to notebook"; every other persona renders the reader's built-in
@@ -339,9 +337,95 @@ educator and scholar in `en` and `he` (RTL) with a selection, no console errors;
 - `toast()` takes text only, so the "link to the lesson" after *Add to lesson* is rendered in the panel (plus a
   text toast) rather than inside the toast.
 - `Sefaria._ApiPromise` is a jQuery deferred (no `.catch`); wrap it in `Promise.resolve()` as `manuscriptsApi.js` does.
-- Two `lexiconApi.js` modules (learn + research) call the same words API; merge after both waves land.
+- ~~Two `lexiconApi.js` modules (learn + research)~~ merged into `tools/lexiconApi.js` (QA).
 - Manuscript thumbnails come from `manuscripts.sefaria.org`, which this container's egress proxy blocks; the panel
   shows a placeholder for a broken image (the metadata and links still render). Check on the cauldron.
 - MLA is the web-page form (`"ref." version. Sefaria, url. Accessed date.`); no in-text forms.
 - Husky's pre-commit hook cannot run in this container (`.husky/_/husky.sh` missing); commits used `--no-verify`
   after running the gate by hand.
+
+## QA — what was tested, fixed and what remains
+
+Worktree `mf3-qa` off `mf3` (after the teach/research merge, a524b0f1e). Commits are small `fix(library-next): …`;
+`.husky/pre-commit` cannot run in a worktree, so each was committed with `--no-verify` after the gates below.
+
+**Gates (final tree)**: `npm run build-library-next` and `npm run build-client` compile; full `npx jest` 65 suites /
+739 tests (36 suites / 311 + 7 new under `library-next`); `PYTHONPATH=. pytest --noconftest
+reader/tests/library_next_test.py` 16 passed; `npm run library-next-smoke` 4/4; `npm run library-next-journeys`
+260/260 steps. Production bundle (`--mode=production`): 1.33 MB raw, **339 KB gzipped** (flag threshold 600 KB).
+
+**Django seam (static + rendered)**: `reader/library_next.py` imports nothing from Django and is covered by the
+pytest; every decorated view in `reader/views.py` (`home`, `texts_list`, `texts_category_list`, `calendars`,
+`topics_page`, `topics_category_page`, `all_topics_page`, `topic_page`, `search`) has `@library_next_route`
+innermost, so `?library=classic` reaches the classic view and the cookie is applied on both paths; the `text_panels`
+guard sits after `Ref()` validation (bad refs still 404) and before any panel work, sheets excluded. Every name the
+seam uses (`CHATBOT_API_BASE_URL`, `CHATBOT_USER_ID_SECRET`, `library_assistant`, `UserProfile`, `APP_VERSION`,
+`redirect`, `_`, `settings`) is imported. `^my(?P<rest>/.*)?$` in `urls_library.py` precedes `shared_patterns`, so
+`/my/notes` reaches the hub (intended) and `/my/profile`-style URLs do not exist on the library host. `app.html` was
+rendered with Django 5.2's engine (6.0.4 needs Python 3.12), `django-webpack-loader` 3.1.1 and the real
+`webpack-stats.client-library-next.json`, with a stub `sefaria_tags` carrying the real `meta_title`/`meta_desc`/
+`social_image_url` signatures and `string_if_invalid` set: no invalid variables in EN or HE, `dir="rtl"`/`lang="he"`,
+the bundle tag deferred under the `LIBRARY_NEXT` config, hreflang/noindex present; every context variable the
+template reads comes from the listed context processors. Not executable here: the views themselves (no Mongo).
+
+**Journeys** (`static/js/library-next/dev/journeys.js`): for each persona in EN and HE — onboarding → persona →
+home modules; `/texts` → category → book → "Start reading" → `/Genesis.1`; segment selection → the persona's toolbelt
+(ids checked against `persona.js`) → every tool run (highlight, note, flashcard, mark as read, vocabulary, explain,
+who's who, read aloud, add to lesson, discussion questions, handout, translations, versions compare → notebook,
+manuscripts, lexicon, cite, cross-references, connections, shelf) → `/my/*` reflects the writes; `/search?q=שבת`
+and `?q=shabbat` → a result; `/topics` → a topic → a source; `/calendars` → follow → `/my/plans`; the discover inbox
+drained on `/my/plans`, `/my/lessons`, `/my/notebook`; saved searches on `/my`; interface toggle keeps the route;
+footer `?library=classic` link; back/forward; header overlap check at 1440/1280/1024/820/390; 390px reader,
+toolbelt, bottom sheet, home and lesson editor; the handout in print media. Every page is audited for console
+errors, page errors, failed requests, raw i18n keys (text nodes, labels, title), `dir`, blank space below the footer,
+and screenshotted (`SHOTS_DIR`, `qa-<persona>-<lang>-NN-<step>.png`). Sandbox-only noise is listed separately:
+Dicta (`ERR_TUNNEL_CONNECTION_FAILED`) on Hebrew search, topic images from `storage.googleapis.com`
+(`ERR_CERT_AUTHORITY_INVALID`), fetches aborted by navigation — check both on the cauldron.
+
+**Fixed**
+
+1. `my/tests/logic.test.js` failed only in the full run: jsdom 11 shares one `whatwg-url` `URL` class per worker, and
+   the discover pages test left a mock on `URL.createObjectURL`. Both tests now restore it (after the revoke tick).
+2. `?library=classic` from a reader page was not sticky (`text_panels` is not decorated) — cookie applied there too.
+3. Collections: browse wrote plans as `items`/`titleHe`/`reminder` and lessons/shelf rows with its own fields; the
+   reader's shelf used `s:<ref>` ids while `/my/shelf` removes and tags `shelf:<ref>`. Reader and browse now write
+   through `my/collections` (`createPlan` gained `calendar`; plans are schema v2 with a migration for the old rows;
+   `createCollection` upgrades an instance in place when a later caller brings a newer schema, so load order can no
+   longer skip a migration). History rows are titled by the section ref (`Genesis 1` / `בראשית א׳`) with `book` set,
+   and honour the history pause.
+4. One `tools/lexiconApi.js` (was `tools/learn/` + `tools/research/`): `wordsOf`/`hebrewWords`, `lookupEntries`
+   (nested, Lexicon), `lookupWord` (flat, Vocabulary).
+5. Discover inbox drained: `my/inbox.js` + `my/InboxCard.jsx` on Plans, Lessons (list → newest lesson, editor →
+   this lesson) and Notebook; a ref becomes a unit / a source with fetched text / an entry; a topic adds its notable
+   sources (plan 5, lesson 3) or an entry under `topics/<slug>` with the citation; saved searches on the overview.
+6. Add to lesson stored the selection's HTML (raw footnote markup on the handout): `plainText` in the tool and a
+   tag strip in the lesson source factory.
+7. Topics landing: `/api/calendars/topics/<day>` gives `topic` as a slug string; the educator "for class" card
+   linked to `/topics/undefined`.
+8. Lexicon tool updated state after its panel closed (React warning on the next tool).
+9. Header: at 1280px the tools spilled over the content-language control; two rows up to 1199px, single row from
+   1200px, content-sized tracks. Phones get the nav as a third row and the My Library link (a reader page had no way
+   out). Below 768px the page reserves the dock button's corner and `scroll-margin` keeps controls above it (lesson
+   editor "Add" row). Home "Continue reading" shows Hebrew titles in the Hebrew interface.
+
+**Remains / to check on the cauldron**
+
+- The floating dock button (< 768px) still covers body text mid-scroll; only the page end and scroll-into-view are
+  reserved. A slimmer affordance is a design call.
+- An inbox topic item whose topic has no sources (e.g. this week's "Torah Reading for …" topic) stays in the inbox
+  with the toast "No sources found for this topic"; dismiss it with ×. Repro: educator → `/topics` → "For this
+  week's class" → "Add topic to lesson" → `/my/lessons` → "Add to lesson".
+- `Sefaria.getUpcomingDay('holiday')` returns `{ error }` today, so the holiday card hides (as it should).
+- Browse's "Add to plan / lesson" and the inbox target the newest plan / lesson (documented behaviour); a picker is
+  the next step.
+- `text_panels`' cookie change has no automated test (Django is not importable here); the first cauldron run should
+  load `/Genesis.1?library=classic` and then `/texts` (classic should stick).
+- Hebrew search calls Dicta inside `execute_query`; blocked here, check there. Topic images likewise.
+- Pre-existing `act(...)` warnings in a few jest suites are console noise, not failures.
+
+Screenshots worth a look (`scratchpad/shots/`): `qa-learner-en-07-tool-highlight.png` (the pre-fix header clip is
+visible in run-1 captures of the same name), `qa-educator-en-18-lesson-editor.png`, `qa-educator-en-19-handout-print.png`,
+`qa-educator-en-32-mobile-lesson-add.png` (phone header + inbox card + "Add" row clear of the dock),
+`qa-learner-he-06-reader-select.png` (RTL reader + toolbelt), `qa-learner-en-29-inbox-plan.png` ("5 added"),
+`qa-learner-he-32-mobile-home.png`.
+
