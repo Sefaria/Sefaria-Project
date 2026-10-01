@@ -38,6 +38,7 @@ import { TextTableOfContents } from "./BookPage";
 import { CollectionsModal } from './CollectionsWidget';
 import { event } from 'jquery';
 import Util from './sefaria/util';
+import { openLibraryAssistant } from './LibraryAssistantModal';
 import TopicSearch from "./TopicSearch";
 import WebPage from './WebPage'
 import { SignUpModalKind } from './sefaria/signupModalContent';
@@ -290,6 +291,7 @@ class ConnectionsPanel extends Component {
         <div>
           {this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null}
           <div className="topToolsButtons">
+              <LibraryAssistantToolsButton />
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
               <ToolsButton en="Search in this Text" he="חיפוש בטקסט" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
@@ -1092,7 +1094,7 @@ AdvancedToolsList.propTypes = {
 };
 
 
-const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
+const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image, glyph,
                        count, control = "interface", typeface = "system", alwaysShow = false,
                        greyColor=false, highlighted=false, experiment=false,
                        children }) => {
@@ -1109,6 +1111,8 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
     iconElem = (<i className={classNames(classes)} />)
   } else if (image) {
     iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt={en} />);
+  } else if (glyph) {
+    iconElem = (<span className="toolsButtonIcon toolsButtonGlyph" aria-hidden="true">{glyph}</span>);
   }
   //We only want to generate reloadable urls for states where we actually respond to said url. See ReaderApp.makeHistoryState()- sidebarModes.
   const url = urlConnectionsMode ? Sefaria.util.replaceUrlParam("with", urlConnectionsMode) : null;
@@ -1140,6 +1144,14 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
   );
 }
 
+// Resources-panel twin of the header's "✦ Assistant": same gating (logged out, library),
+// and it opens ReaderApp's Library Assistant modal via its document event.
+const LibraryAssistantToolsButton = () => (
+  !Sefaria._uid && Sefaria.activeModule === Sefaria.LIBRARY_MODULE ?
+    <ToolsButton en="Try Assistant" he="נסו את העוזר" glyph="✦" onClick={openLibraryAssistant} />
+    : null
+);
+
 ToolsButton.SecondaryIcon = ({ icon, alt }) => (
   <img src={`/static/icons/${icon}`} className="toolsButtonSecondaryIcon" alt={alt} />
 );
@@ -1154,6 +1166,7 @@ ToolsButton.propTypes = {
   he: PropTypes.string.isRequired,
   icon: PropTypes.string,
   image: PropTypes.string,
+  glyph: PropTypes.string,
   count: PropTypes.number,
   onClick: PropTypes.func,
   greyColor: PropTypes.bool,
@@ -1657,5 +1670,6 @@ export {
   ConnectionsPanel,
   ConnectionsPanelHeader,
   ToolsButton,
+  LibraryAssistantToolsButton,
   ShareBox
 };

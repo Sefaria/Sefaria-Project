@@ -613,6 +613,17 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   filter: invert(1);
   opacity: 1;
 }
+/* "✦ Try Assistant": the ✦ sits in the icon slot, and both take the promo purple
+   (see the note above .siteWideBanner). */
+.mobileNavMenu a.assistant {
+  color: #653259;
+}
+.mobileNavMenu a.assistant .assistantStar {
+  display: inline-block;
+  width: 16px;
+  margin-inline-end: 15px;
+  text-align: center;
+}
 .mobileNavMenu .mobileAccountLinks {
   background-color: #FBFBFA;
   border-top: 1px solid #CCC;
@@ -817,6 +828,76 @@ a.interfaceLinks-option.active, a.interfaceLinks-option.inactive {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   max-width: 500px;
   width: 100%;
+}
+/* Library Assistant promo, opened from "✦ Assistant" in the header. Same copy and
+   #653259 accent as the old .siteWideBanner promo (see the note there). */
+.dialogModal .modal-content > .libraryAssistantModal {
+  position: relative;
+  box-sizing: border-box;
+  width: 440px;
+  max-width: 100%;
+  padding: 40px 40px 32px;
+  text-align: center;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: var(--dark-grey);
+}
+.interface-hebrew .libraryAssistantModal {
+  direction: rtl;
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+.libraryAssistantModal .libraryAssistantModalClose {
+  position: absolute;
+  top: 12px;
+  inset-inline-end: 16px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  font-size: 26px;
+  line-height: 1;
+  color: var(--medium-grey);
+  cursor: pointer;
+}
+.libraryAssistantModal .libraryAssistantModalIcon {
+  width: 41px;
+  height: 43px;
+  /* The icon is drawn white-on-transparent for the purple banner. */
+  background: #653259;
+  border-radius: 14px;
+  padding: 8px;
+}
+.libraryAssistantModal .libraryAssistantModalTitle {
+  margin: 16px 0 8px;
+  font-size: 22px;
+  font-weight: 600;
+  color: #000;
+}
+.libraryAssistantModal .libraryAssistantModalText {
+  margin: 0 0 24px;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.libraryAssistantModal .libraryAssistantModalButtons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.libraryAssistantModal .button {
+  margin: 0;
+  min-width: 200px;
+  font-size: 16px;
+  font-weight: 600;
+}
+.libraryAssistantModal .libraryAssistantModalPrimary,
+.libraryAssistantModal .libraryAssistantModalPrimary:hover {
+  background-color: #653259;
+  color: #fff;
+}
+.libraryAssistantModal .libraryAssistantModalMaybeLater,
+.libraryAssistantModal .libraryAssistantModalMaybeLater:hover {
+  background-color: transparent;
+  box-shadow: none;
+  color: #653259;
 }
 .sefariaModalBox {
   transition: none;
@@ -2754,6 +2835,31 @@ a.cardTitle:hover {
 }
 .sidebarPromo.blue.button a:hover {
   color: var(--sefaria-blue);
+}
+/* Library Assistant promo: a standard sidebar promo on a faint tint of the promo's
+   hardcoded #653259 (see the note above .siteWideBanner), full-bleed like .blue. */
+.sidebarPromo.libraryAssistantPromo {
+  padding-top: 30px;
+  padding-bottom: 30px;
+  background-color: #F5EFF4;
+}
+/* The ✦ takes the promo purple, as it does on the header's "✦ Assistant". */
+.sidebarPromo.libraryAssistantPromo .libraryAssistantPromoStar {
+  color: #653259;
+}
+.sidebarPromo.libraryAssistantPromo a.button,
+.sidebarPromo.libraryAssistantPromo a.button:hover {
+  background-color: #653259;
+  color: white;
+}
+.sidebarPromo.libraryAssistantPromo a.button[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.7;
+}
+.sidebarPromo.libraryAssistantPromo a.maybeLater {
+  margin-inline-start: 20px;
+  color: inherit;
+  text-decoration: underline;
 }
 .sidebarPromo img {
     height: 18px;
@@ -5374,6 +5480,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: var(--white);
   opacity: 0.9;
   text-decoration: none;
+}
+
+.noSearchResults-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* Same hardcoded promo purple as the Library Assistant modal (see the note above
+   .siteWideBanner). */
+.noSearchResults-cta--assistant {
+  cursor: pointer;
+  background: #653259;
+  border-color: #653259;
 }
 
 .noSearchResults-caption {
@@ -8942,6 +9063,18 @@ But not to use a display block directive that might break continuous mode for ot
   width: 18px;
   height: 18px;
   vertical-align: middle;
+}
+/* A text glyph in the icon slot, the same width as the 18px image icons. */
+.toolsButton .toolsButtonGlyph {
+  width: 18px;
+  margin-top: 2px; /* text glyphs ride high; line it up with the labels like the images */
+  text-align: center;
+  line-height: 1;
+}
+/* "✦ Try Assistant" in the resources panel: promo purple, as on the header item. */
+.toolsButton.tryAssistant,
+.toolsButton.tryAssistant .toolsButtonIcon {
+  color: #653259;
 }
 .toolsButton .toolsButtonText{
   margin-inline-start: 15px;
