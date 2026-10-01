@@ -68,7 +68,7 @@ export const PERSONAS = {
     tagline: { en: 'Hebrew first, versions side by side, citations ready.', he: 'עברית תחילה, נוסחים זה לצד זה, ציטוטים מוכנים.' },
     contentLang: 'he',
     homeModules: ['notebook', 'recentRefs', 'comparisons', 'advancedSearch', 'calendarToday'],
-    readerTools: ['versions', 'manuscripts', 'apparatus', 'lexicon', 'cite', 'connections'],
+    readerTools: ['versions', 'manuscripts', 'apparatus', 'lexicon', 'cite', 'linkGraph', 'connections'],
   },
 };
 
