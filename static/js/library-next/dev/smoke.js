@@ -15,7 +15,7 @@ const CASES = (process.env.SMOKE_URLS
   ? process.env.SMOKE_URLS.split(',').map(u => ({ url: u.trim(), dir: 'ltr' }))
   : [
     { url: '/', dir: 'ltr', heading: 'Welcome to the Library' },
-    { url: '/Genesis.1', dir: 'ltr', heading: 'Genesis.1' },
+    { url: '/Genesis.1', dir: 'ltr', heading: 'Genesis 1' },
     { url: '/texts', dir: 'ltr', heading: 'Browse texts' },
     { url: '/texts?lang=he', dir: 'rtl', heading: 'עיון בטקסטים' },
   ]);

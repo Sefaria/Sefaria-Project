@@ -10,9 +10,10 @@ import { toast, openModal, closeModal, _resetOverlays } from '../overlays';
 import { toggleAssistant, closeAssistant } from '../AssistantDock';
 import { navigate } from '../router';
 import { _resetStore } from '../store';
+import Sefaria from '../../sefaria/sefaria';
 
 let container;
-beforeAll(() => { window.scrollTo = jest.fn(); });
+beforeAll(() => { window.scrollTo = jest.fn(); Sefaria.getText = () => new Promise(() => {}); });   // the reader page fetches text; keep it pending here
 beforeEach(() => {
   _resetStore(); _resetOverlays(); localStorage.clear(); closeAssistant();
   window.history.replaceState({}, '', '/texts');
@@ -67,8 +68,8 @@ test('routes: ref catch-all, not found, search query, my hub', () => {
   setLang('en'); setPersona('newcomer');
   render({});
   act(() => { navigate('/Genesis.1'); });
-  expect(container.querySelector('main h1').textContent).toBe('Genesis.1');
-  expect(document.title).toBe('Genesis.1 | Sefaria Library');
+  expect(container.querySelector('main h1').textContent).toBe('Genesis 1');
+  expect(document.title).toBe('Genesis 1 | Sefaria Library');
   act(() => { navigate('/search?q=light'); });
   expect(container.querySelector('#ln-search-input').value).toBe('light');
   act(() => { navigate('/my/notes'); });
