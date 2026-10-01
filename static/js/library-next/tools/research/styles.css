@@ -13,6 +13,9 @@
 .ln-ms-card { display: grid; gap: var(--ln-space-1); }
 .ln-ms-thumb { display: block; aspect-ratio: 3 / 4; overflow: hidden; border: 1px solid var(--ln-color-rule); border-radius: var(--ln-radius-s); background: var(--ln-color-surface); }
 .ln-ms-thumb img { inline-size: 100%; block-size: 100%; object-fit: cover; display: block; }
+.ln-ms-thumb.is-broken img { display: none; }
+.ln-ms-thumb.is-broken { display: grid; place-items: center; }
+.ln-ms-thumb.is-broken::after { content: "⧉"; font-size: 2rem; color: var(--ln-color-muted); }
 .ln-ms-meta { display: grid; gap: 2px; font-size: var(--ln-text-xs); }
 .ln-ms-title { font-size: var(--ln-text-s); }
 .ln-ms-desc { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }

@@ -48,9 +48,9 @@ export default function TranslationsTool({ selection, book }) {
   return (
     <div className="ln-tool-body ln-stack ln-translations">
       <p className="ln-small ln-muted">{t('teach.translations.count', { n: versions.length })} · {t('teach.translations.max')}</p>
-      <div className="ln-chip-list" role="group" aria-label={t('teach.translations.pick')}>
+      <div className="ln-vchip-list" role="group" aria-label={t('teach.translations.pick')}>
         {versions.map(v => (
-          <label key={v.versionTitle} className={`ln-chip ${picked.includes(v.versionTitle) ? 'is-on' : ''}`}>
+          <label key={v.versionTitle} className={`ln-vchip ${picked.includes(v.versionTitle) ? 'is-on' : ''}`}>
             <input type="checkbox" checked={picked.includes(v.versionTitle)} onChange={() => toggle(v.versionTitle)} />
             <span>{versionName(v, lang)}</span>
             {v.versionTitle === book.versionTitle && <span className="ln-small ln-muted"> · {t('teach.translations.current')}</span>}

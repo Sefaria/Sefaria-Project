@@ -246,6 +246,8 @@ educator and scholar in `en` and `he` (RTL) with a selection, no console errors;
   text toast) rather than inside the toast.
 - `Sefaria._ApiPromise` is a jQuery deferred (no `.catch`); wrap it in `Promise.resolve()` as `manuscriptsApi.js` does.
 - Two `lexiconApi.js` modules (learn + research) call the same words API; merge after both waves land.
+- Manuscript thumbnails come from `manuscripts.sefaria.org`, which this container's egress proxy blocks; the panel
+  shows a placeholder for a broken image (the metadata and links still render). Check on the cauldron.
 - MLA is the web-page form (`"ref." version. Sefaria, url. Accessed date.`); no in-text forms.
 - Husky's pre-commit hook cannot run in this container (`.husky/_/husky.sh` missing); commits used `--no-verify`
   after running the gate by hand.

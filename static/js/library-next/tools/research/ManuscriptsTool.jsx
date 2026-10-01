@@ -27,7 +27,7 @@ export default function ManuscriptsTool({ selection }) {
           return (
             <li key={page.image_url || page.page_id} className="ln-ms-card">
               <a href={page.image_url} target="_blank" rel="noopener noreferrer" className="ln-ms-thumb" aria-label={`${t('research.manuscripts.open')}: ${title}, ${page.page_id}`}>
-                <img src={page.thumbnail_url || page.image_url} alt="" loading="lazy" />
+                <img src={page.thumbnail_url || page.image_url} alt="" loading="lazy" onError={e => { e.currentTarget.parentNode.classList.add('is-broken'); }} />
               </a>
               <div className="ln-ms-meta">
                 <strong className="ln-ms-title">{title}</strong>

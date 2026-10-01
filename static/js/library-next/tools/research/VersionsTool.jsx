@@ -62,7 +62,7 @@ export default function VersionsTool({ selection, book }) {
   const select = (value, which) => setPair(which === 0 ? [value, b] : [a, value]);
   const name = title => versionName(versions.find(v => v.versionTitle === title), uiLang) || title;
   return (
-    <div className="ln-tool-body ln-stack ln-versions">
+    <div className="ln-tool-body ln-stack ln-vcompare">
       <div className="ln-row">
         <div className="ln-segmented compact" role="radiogroup" aria-label={t('research.versions.lang')}>
           {['he', 'en'].map(l => (

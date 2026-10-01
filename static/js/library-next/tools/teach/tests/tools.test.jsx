@@ -147,7 +147,7 @@ describe('Compare translations', () => {
     const panel = await h.openTool('/Genesis.1', 'translations');
     const english = bookVersions.filter(v => (v.actualLanguage || v.language) === 'en');
     expect(panel.textContent).toContain(`${english.length} English translations available`);
-    const chips = panel.querySelectorAll('.ln-chip');
+    const chips = panel.querySelectorAll('.ln-vchip');
     expect(chips).toHaveLength(english.length);
     const cols = panel.querySelectorAll('.ln-compare-col');
     expect(cols.length).toBeGreaterThanOrEqual(2);
