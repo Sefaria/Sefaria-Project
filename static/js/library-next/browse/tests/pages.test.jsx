@@ -103,7 +103,7 @@ describe('/texts and categories', () => {
     expect(all('.ln-book-row-title').map(e => e.textContent)).toEqual(['Genesis · בראשית', 'Exodus · שמות', 'Job · איוב']);
     expect(container.querySelector('.ln-book-row-link').getAttribute('href')).toBe('/Genesis');
     click(all('.ln-book-row-actions button')[1]);
-    expect(collections.plans().list()[0].items).toEqual([{ ref: 'Exodus', title: 'Exodus' }]);
+    expect(collections.plans().list()[0].units).toEqual([{ ref: 'Exodus', label: 'Exodus', heLabel: 'שמות' }]);
     await render('/texts/Tanakh', { lang: 'he', persona: 'educator' });
     expect(all('.ln-cat-grid .ln-cat-card-title').map(e => e.textContent)).toEqual(['תורה · Torah', 'פרשנות · Commentary']);
     expect(container.querySelector('.ln-print')).not.toBeNull();
@@ -163,11 +163,11 @@ describe('/calendars', () => {
     expect(all('.ln-cal-card')[3].querySelector('a.ln-btn').getAttribute('href')).toBe('/collections/x?tag=Bereshit');
     const follow = all('.ln-cal-card')[2].querySelector('button');
     click(follow);
-    expect(collections.plans().list()[0]).toMatchObject({ calendar: 'Daf Yomi', reminder: true });
+    expect(collections.plans().list()[0]).toMatchObject({ calendar: 'Daf Yomi', reminders: true });
     expect(text('.ln-following')).toBe('Following');
     expect(text('.ln-reminder .ln-badge-simulated')).toBe('Simulated');
     click(container.querySelector('.ln-reminder input'));
-    expect(collections.plans().list()[0].reminder).toBe(false);
+    expect(collections.plans().list()[0].reminders).toBe(false);
   });
 
   test('Hebrew newcomer and educator', async () => {

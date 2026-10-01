@@ -25,7 +25,7 @@ const { items } = useCollection('notes', collectionOptions('notes'));     // rea
 | `notes` | `ref`, `text`, `title`, `heTitle`, `book` | learner tools (`addNote`) |
 | `highlights` | `ref`, `color` (`yellow`\|`green`\|`blue`\|`pink`), `text`, `book` | learner tools (`addHighlight`) |
 | `flashcards` | `front`, `back`, `ref`, `due` (ms), `interval` (days), `ease`, `reps` | learner tools (`addFlashcard`); review updates the SM-2 fields |
-| `plans` | `title`, `heTitle`, `book`, `units[{ref,label,heLabel}]`, `unitsPerDay`, `startDate`, `done[]`, `reminders` | my-library, browse ("add to plan": `addToPlan`) |
+| `plans` | `title`, `heTitle`, `book`, `calendar`, `units[{ref,label,heLabel}]`, `unitsPerDay`, `startDate`, `done[]`, `reminders` (v2: v1 rows with `items`/`titleHe`/`reminder` are migrated) | my-library, browse ("add to plan": `addToPlan`; "follow this schedule": `createPlan` with `calendar`), learn-tools (`markRead`) |
 | `lessons` | `title`, `sources[{id,ref,title,heTitle,he,en,note,category}]`, `questions[{id,en,he}]`, `handoutNotes` | my-library, educator tools (`addSourceToLesson`, `addQuestion`) |
 | `notebook` | `ref`, `text`, `versions[]`, `citation`, `title`, `heTitle` | my-library, scholar tools (`addNotebookEntry`) |
 
@@ -47,7 +47,7 @@ addHighlight(ref, color = 'yellow', { text, book })
 
 addFlashcard(front, back, { ref, due }); updateFlashcard(cardId, patch)
 
-createPlan({ title, heTitle, book, units, unitsPerDay = 1, startDate = today, reminders = false })
+createPlan({ title, heTitle, book, calendar, units, unitsPerDay = 1, startDate = today, reminders = false })
 addToPlan(planId, { ref, label, heLabel }); updatePlan(planId, patch); markPlanUnitDone(planId, ref, done = true)
 
 createLesson({ title, sources = [], questions = [], handoutNotes = '' })

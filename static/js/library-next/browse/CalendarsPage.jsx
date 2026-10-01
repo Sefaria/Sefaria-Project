@@ -34,8 +34,8 @@ export function CalendarCard({ item, persona, plan, lang, contentLang, t }) {
       </div>
       {plan && (
         <label className="ln-check ln-reminder">
-          <input type="checkbox" checked={!!plan.reminder} onChange={e => setCalendarReminder(plan, e.target.checked)} />
-          <span>{plan.reminder ? t('cal.reminder.on') : t('cal.reminder.off')}</span>
+          <input type="checkbox" checked={plan.reminders === true} onChange={e => setCalendarReminder(plan, e.target.checked)} />
+          <span>{plan.reminders ? t('cal.reminder.on') : t('cal.reminder.off')}</span>
           <Simulated />
         </label>
       )}

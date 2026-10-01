@@ -10,6 +10,23 @@ beforeEach(() => {
 });
 afterEach(() => { jest.useRealTimers(); });
 
+test('a later caller with a newer schema upgrades the collection in place (load order does not pick the version)', () => {
+  localStorage.setItem(PREFIX + 'plans', JSON.stringify({ v: 1, items: { a: { id: 'a', items: [{ ref: 'Genesis 1' }], ts: 1 } } }));
+  const v1 = createCollection('plans');          // a feature that only reads
+  v1.put({ id: 'b', items: [], ts: 2 });          // pending (debounced) write
+  expect(v1.version).toBe(1);
+  const seen = [];
+  v1.subscribe(c => seen.push(c.version));
+  const v2 = createCollection('plans', { version: 2, migrate: items => Object.fromEntries(Object.entries(items).map(([id, p]) => [id, { ...p, units: p.items || [] }])) });
+  expect(v2).toBe(v1);
+  expect(v2.version).toBe(2);
+  expect(v2.get('a').units).toEqual([{ ref: 'Genesis 1' }]);
+  expect(v2.get('b').units).toEqual([]);
+  expect(seen).toEqual([2]);
+  expect(createCollection('plans', { version: 1 })).toBe(v2);   // never downgraded
+  expect(JSON.parse(localStorage.getItem(PREFIX + 'plans')).v).toBe(2);
+});
+
 test('put/get/list/remove with ids and timestamps, debounced write', () => {
   const notes = createCollection('notes', { version: 1 });
   const a = notes.put({ ref: 'Genesis 1:1', text: 'light', ts: 1 });

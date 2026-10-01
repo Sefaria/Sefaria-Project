@@ -172,8 +172,8 @@ export function Plans() {
           <ul className="ln-plan-list">
             {plans.slice(0, 3).map(p => (
               <li key={p.id} className="ln-plan ln-card">
-                <Link to="/my/plans" className="ln-plan-title">{pick({ en: p.title, he: p.titleHe || p.title })}</Link>
-                <span className="ln-small ln-muted">{t('home.plans.items', { n: (p.items || []).length })}{p.calendar ? ` · ${p.calendar}` : ''}</span>
+                <Link to="/my/plans" className="ln-plan-title">{pick({ en: p.title, he: p.heTitle || p.title })}</Link>
+                <span className="ln-small ln-muted">{t('home.plans.items', { n: (p.units || []).length })}{p.calendar ? ` · ${p.calendar}` : ''}</span>
               </li>
             ))}
           </ul>

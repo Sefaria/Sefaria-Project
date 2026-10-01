@@ -85,7 +85,7 @@ test('newcomer, English: English-only text, numbers, explainer card, history and
   expect(text('.ln-explainer-orient')).toBe('You are reading Genesis, Chapter 1 of 50.');
   expect(text('.ln-explainer-desc')).toContain('Creation');
   expect(text('.ln-explainer-meta')).toContain('Composed c.1400  – c.400 BCE in Sinai/Canaan');
-  expect(history().get('h:Genesis 1')).toMatchObject({ ref: 'Genesis 1', heRef: 'בראשית א׳', title: 'Genesis', heTitle: 'בראשית', persona: 'newcomer' });
+  expect(history().list().find(h => h.ref === 'Genesis 1')).toMatchObject({ ref: 'Genesis 1', title: 'Genesis 1', heTitle: 'בראשית א׳', book: 'Genesis', persona: 'newcomer' });
   expect(streak().get(todayISO())).toBeTruthy();
   expect($('.ln-toolbelt')).toBeNull();
   await click(byText('.ln-explainer-hide', /Hide/));
@@ -152,7 +152,7 @@ test('selection → toolbelt → shelf, cite and connections tools; Esc closes',
     input.dispatchEvent(new Event('input', { bubbles: true }));
   });
   await act(async () => { panel.querySelector('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true })); await flush(); });
-  expect(shelf().get('s:Genesis 1:2-4')).toMatchObject({ ref: 'Genesis 1:2-4', heRef: 'בראשית א׳:ב׳-ד׳', title: 'Genesis', tags: ['creation', 'light'], persona: 'newcomer', type: 'ref' });
+  expect(shelf().get('shelf:Genesis 1:2-4')).toMatchObject({ ref: 'Genesis 1:2-4', title: 'Genesis 1:2-4', heTitle: 'בראשית א׳:ב׳-ד׳', tags: ['creation', 'light'], kind: 'ref' });
   expect(text('.ln-toast')).toBe('Saved to your shelf');
   expect($('.ln-reader-panel')).toBeNull();
   await click($('[data-tool="shelf"]'));
@@ -227,7 +227,7 @@ test('previous section prepends; a failing next load leaves the page intact', as
   await click(byText('.ln-reader-more', /^Previous: Genesis 1$/));
   expect($$('.ln-section-head').map(e => e.textContent)).toEqual(['Genesis 1', 'Genesis 2']);
   expect($$('.ln-seg')).toHaveLength(10);
-  expect(history().get('h:Genesis 1')).toBeTruthy();
+  expect(history().list().some(h => h.ref === 'Genesis 1')).toBe(true);
   expect(text('.ln-reader-edge')).toBe('Beginning of the text');
   await click(byText('.ln-reader-more', /^Continue: Genesis 3$/));
   expect($$('.ln-section-head')).toHaveLength(2);

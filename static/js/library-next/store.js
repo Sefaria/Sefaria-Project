@@ -151,14 +151,25 @@ class Collection {
 }
 
 /**
- * Get or create a named collection. The first call fixes `version` and `migrate`; later calls
- * with the same name return the same instance.
+ * Get or create a named collection. Later calls with the same name return the same instance; a
+ * call with a higher `version` migrates it in place (see below).
  */
 export function createCollection(name, options = {}) {
-  if (!collections.has(name)) {
+  const existing = collections.get(name);
+  if (!existing) {
     collections.set(name, new Collection(name, options));
+    return collections.get(name);
   }
-  return collections.get(name);
+  // A later caller that knows a newer schema (and its migration) upgrades the instance in place,
+  // so the order in which features happen to load never decides a collection's version.
+  if (typeof options.version === 'number' && options.version > existing.version) {
+    if (existing.timer) { existing.write(); }
+    existing.version = options.version;
+    existing.migrate = options.migrate || existing.migrate;
+    existing.load();
+    existing.notify();
+  }
+  return existing;
 }
 
 export function getCollection(name) {

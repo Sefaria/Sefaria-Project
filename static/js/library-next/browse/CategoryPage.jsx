@@ -31,7 +31,7 @@ export function Breadcrumbs({ cats, t, lang }) {
 }
 
 export function BookRow({ book, persona, lang, contentLang, t }) {
-  const source = { ref: book.title, title: book.title };
+  const source = { ref: book.title, title: book.title, heTitle: book.heTitle };
   return (
     <li className="ln-book-row ln-cat-rule" style={{ '--cat': bookColor(book) }}>
       <Link to={bookPath(book.title)} className="ln-book-row-link">

@@ -27,6 +27,21 @@ const withDefaults = (defaults) => (items) => {
   return out;
 };
 
+/** plans v1 → v2: `items[{ref,title}]` → `units`, `titleHe` → `heTitle`, `reminder` → `reminders`, a `startDate`. */
+function migratePlans(items) {
+  const out = withDefaults(SCHEMAS.plans.defaults)(items);
+  for (const plan of Object.values(out)) {
+    if (!plan.units.length && Array.isArray(plan.items)) {
+      plan.units = plan.items.filter(i => i && typeof i.ref === 'string' && i.ref).map(i => ({ ref: i.ref, label: i.title || i.ref, heLabel: i.heTitle || '' }));
+    }
+    if (!plan.heTitle && typeof plan.titleHe === 'string') { plan.heTitle = plan.titleHe; }
+    if (plan.reminder !== undefined) { plan.reminders = plan.reminder === true; }
+    if (!isValidDayKey(plan.startDate)) { plan.startDate = dayKey(new Date(plan.ts || Date.now())); }
+    delete plan.items; delete plan.titleHe; delete plan.reminder;
+  }
+  return out;
+}
+
 /**
  * One entry per collection: `version`, `defaults` (also the field list), `migrate`. Field notes:
  *   history    ref, title, heTitle, book, ts, persona           one row per visit; same ref twice in a row updates ts
@@ -34,7 +49,8 @@ const withDefaults = (defaults) => (items) => {
  *   notes      ref, text, title, heTitle, book, ts
  *   highlights ref, color, text, book, ts
  *   flashcards front, back, ref, due, interval, ease, reps, ts  SM-2 lite fields live on the card
- *   plans      title, heTitle, book, units[{ref,label,heLabel}], unitsPerDay, startDate, done[], reminders, ts
+ *   plans      title, heTitle, book, calendar, units[{ref,label,heLabel}], unitsPerDay, startDate, done[], reminders, ts
+ *              (v2; v1 rows from browse's first "follow this schedule" used items/titleHe/reminder and are migrated)
  *   lessons    title, sources[{id,ref,title,heTitle,he,en,note}], questions[{id,en,he}], handoutNotes, ts
  *   notebook   ref, text, versions[], citation, title, heTitle, ts
  *   streak     id = date (YYYY-MM-DD), date, count, ts
@@ -45,12 +61,12 @@ export const SCHEMAS = {
   notes: { version: 1, defaults: { ref: '', text: '', title: '', heTitle: '', book: '' } },
   highlights: { version: 1, defaults: { ref: '', color: 'yellow', text: '', book: '' } },
   flashcards: { version: 1, defaults: { front: '', back: '', ref: '', due: 0, interval: 0, ease: 2.5, reps: 0 } },
-  plans: { version: 1, defaults: { title: '', heTitle: '', book: '', units: [], unitsPerDay: 1, startDate: '', done: [], reminders: false } },
+  plans: { version: 2, defaults: { title: '', heTitle: '', book: '', calendar: '', units: [], unitsPerDay: 1, startDate: '', done: [], reminders: false }, migrate: migratePlans },
   lessons: { version: 1, defaults: { title: '', sources: [], questions: [], handoutNotes: '' } },
   notebook: { version: 1, defaults: { ref: '', text: '', versions: [], citation: '', title: '', heTitle: '' } },
   streak: { version: 1, defaults: { date: '', count: 1 } },
 };
-Object.values(SCHEMAS).forEach(s => { s.migrate = withDefaults(s.defaults); });
+Object.values(SCHEMAS).forEach(s => { if (!s.migrate) { s.migrate = withDefaults(s.defaults); } });
 
 export const COLLECTION_NAMES = Object.keys(SCHEMAS);
 
@@ -128,7 +144,9 @@ export function addHistory(ref, title, { heTitle, book, persona, ts } = {}) {
   const latest = col.list()[0];
   const row = { ref, title, heTitle: optStr(heTitle, 'heTitle'), book: optStr(book, 'book') || bookOf(ref), persona: who, ts: ts || Date.now() };
   markStreakToday(new Date(row.ts));
-  if (latest && latest.ref === ref) { return col.put({ ...latest, ...row, id: latest.id }); }
+  if (latest && latest.ref === ref) {   // a re-read: refresh, keeping what the caller did not repeat
+    return col.put({ ...latest, ...row, heTitle: row.heTitle || latest.heTitle, book: row.book || latest.book, id: latest.id });
+  }
   return col.put(row);
 }
 
@@ -248,13 +266,16 @@ function unit(value) {
   return { ref, label: optStr(value.label, 'unit.label') || ref, heLabel: optStr(value.heLabel, 'unit.heLabel') };
 }
 
-/** A study plan over ordered `units` (refs), `unitsPerDay` per day from `startDate` (YYYY-MM-DD, default today). */
-export function createPlan({ title, heTitle, book, units = [], unitsPerDay = 1, startDate, reminders = false } = {}) {
+/**
+ * A study plan over ordered `units` (refs), `unitsPerDay` per day from `startDate` (YYYY-MM-DD, default
+ * today). `calendar` names the learning schedule a plan follows (browse's "Follow this schedule").
+ */
+export function createPlan({ title, heTitle, book, calendar, units = [], unitsPerDay = 1, startDate, reminders = false } = {}) {
   if (!Array.isArray(units)) { throw new TypeError('units must be a list'); }
   const start = startDate === undefined ? dayKey() : startDate;
   if (!isValidDayKey(start)) { throw new TypeError('startDate must be YYYY-MM-DD'); }
   return collection('plans').put({
-    title: str(title, 'title'), heTitle: optStr(heTitle, 'heTitle'), book: optStr(book, 'book'),
+    title: str(title, 'title'), heTitle: optStr(heTitle, 'heTitle'), book: optStr(book, 'book'), calendar: optStr(calendar, 'calendar'),
     units: units.map(unit), unitsPerDay: posInt(unitsPerDay, 'unitsPerDay', 1), startDate: start, done: [], reminders: reminders === true,
   });
 }

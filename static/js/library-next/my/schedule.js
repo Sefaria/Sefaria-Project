@@ -71,7 +71,7 @@ export function planFromIndex(index, { unitsPerDay = 1, startSection, startDate 
 export function unitsForDay(plan, dayIndex) {
   const per = plan.unitsPerDay || 1;
   if (dayIndex < 0) { return []; }
-  return plan.units.slice(dayIndex * per, dayIndex * per + per);
+  return (plan.units || []).slice(dayIndex * per, dayIndex * per + per);
 }
 
 /**
@@ -82,14 +82,15 @@ export function unitsForDay(plan, dayIndex) {
  */
 export function scheduleFor(plan, today = new Date()) {
   const per = plan.unitsPerDay || 1;
-  const total = plan.units.length;
+  const units = plan.units || [];
+  const total = units.length;
   const totalDays = Math.max(1, Math.ceil(total / per));
   const done = new Set(plan.done || []);
-  const doneCount = plan.units.filter(u => done.has(u.ref)).length;
+  const doneCount = units.filter(u => done.has(u.ref)).length;
   const dayIndex = daysBetween(plan.startDate, dayKey(today));
   const todayUnits = dayIndex >= totalDays ? [] : unitsForDay(plan, dayIndex);
   const scheduledBefore = Math.max(0, Math.min(total, dayIndex * per));
-  const behind = plan.units.slice(0, scheduledBefore).filter(u => !done.has(u.ref)).length;
+  const behind = units.slice(0, scheduledBefore).filter(u => !done.has(u.ref)).length;
   const endDate = addDays(plan.startDate, totalDays - 1);
   const status = doneCount >= total && total > 0 ? 'complete' : dayIndex < 0 ? 'upcoming' : 'active';
   return { totalDays, dayIndex, todayUnits, endDate, doneCount, pct: total ? Math.round((doneCount / total) * 100) : 0, behind, status };
@@ -99,5 +100,5 @@ export function scheduleFor(plan, today = new Date()) {
 export function nextUnit(plan, today = new Date()) {
   const done = new Set(plan.done || []);
   const { todayUnits } = scheduleFor(plan, today);
-  return todayUnits.find(u => !done.has(u.ref)) || plan.units.find(u => !done.has(u.ref)) || null;
+  return todayUnits.find(u => !done.has(u.ref)) || (plan.units || []).find(u => !done.has(u.ref)) || null;
 }

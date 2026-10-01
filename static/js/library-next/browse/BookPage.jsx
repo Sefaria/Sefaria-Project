@@ -170,7 +170,7 @@ export default function BookPage({ params, pathname }) {
   const color = categoryColor(cats[0] || 'Other');
   const last = lastReadIn(details.title);
   const onShelf = isOnShelf(details.title) || shelf.some(i => i.ref === details.title);
-  const source = { ref: details.title, title: details.title };
+  const source = { ref: details.title, title: details.title, heTitle: details.heTitle };
   const heCats = details.heCategories || [];
   return (
     <article className="ln-container ln-book" data-persona={persona} style={{ '--cat': color }}>

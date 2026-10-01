@@ -123,7 +123,7 @@ function PlanCard({ plan, remove, t, lang, contentLang }) {
       <div className="ln-my-progress" role="progressbar" aria-valuenow={s.pct} aria-valuemin={0} aria-valuemax={100} aria-label={t('my.plans.progress')}>
         <span style={{ inlineSize: `${s.pct}%` }} />
       </div>
-      <p className="ln-small ln-muted">{t('my.plans.doneOf', { done: s.doneCount, total: plan.units.length, pct: s.pct })}{s.behind > 0 && ` · ${t('my.plans.behind', { n: s.behind })}`}</p>
+      <p className="ln-small ln-muted">{t('my.plans.doneOf', { done: s.doneCount, total: (plan.units || []).length, pct: s.pct })}{s.behind > 0 && ` · ${t('my.plans.behind', { n: s.behind })}`}</p>
       {s.todayUnits.length > 0 && (
         <div className="ln-my-today">
           <span className="ln-small ln-muted">{t('my.plans.today')}</span>

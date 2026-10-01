@@ -108,6 +108,20 @@ test('flashcards start due now with SM-2 fields', () => {
   expect(() => addFlashcard('', 'x')).toThrow(TypeError);
 });
 
+test('plans v1 rows from browse (items / titleHe / reminder) migrate to units / heTitle / reminders with a start date', () => {
+  localStorage.setItem(PREFIX + 'plans', JSON.stringify({ v: 1, items: {
+    a: { id: 'a', title: 'Daf Yomi', titleHe: 'דף יומי', calendar: 'Daf Yomi', reminder: true, items: [{ ref: 'Berakhot 2', title: 'Berakhot 2' }], ts: 1 },
+    b: { id: 'b', title: 'x', units: [{ ref: 'Genesis 1', label: 'Chapter 1', heLabel: '' }], startDate: '2026-10-01', done: [], reminders: false, ts: 2 },
+  } }));
+  const plans = collection('plans');
+  expect(plans.get('a')).toMatchObject({ heTitle: 'דף יומי', calendar: 'Daf Yomi', reminders: true, units: [{ ref: 'Berakhot 2', label: 'Berakhot 2', heLabel: '' }], done: [], unitsPerDay: 1 });
+  expect(plans.get('a').startDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  expect(plans.get('a').items).toBeUndefined();
+  expect(plans.get('b')).toMatchObject({ units: [{ ref: 'Genesis 1' }], startDate: '2026-10-01', calendar: '' });
+  expect(JSON.parse(localStorage.getItem(PREFIX + 'plans')).v).toBe(2);
+  expect(createPlan({ title: 'c', calendar: 'Parashat Hashavua' }).calendar).toBe('Parashat Hashavua');
+});
+
 test('plans validate units and track completion', () => {
   const plan = createPlan({ title: 'Genesis, a chapter a day', book: 'Genesis', startDate: '2026-10-01', units: [{ ref: 'Genesis 1', label: 'Chapter 1' }, { ref: 'Genesis 2' }] });
   expect(plan.units[1]).toEqual({ ref: 'Genesis 2', label: 'Genesis 2', heLabel: '' });

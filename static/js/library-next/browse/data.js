@@ -5,7 +5,10 @@
  */
 import { useEffect, useState } from 'react';
 import Sefaria from '../../sefaria/sefaria';
-import { createCollection } from '../store';
+import {
+  collection, addHistory, createPlan, addToPlan as addPlanUnit, updatePlan, createLesson, addSourceToLesson,
+  saveToShelf as saveRef, isOnShelf as refOnShelf, shelfId, bookOf,
+} from '../my/collections';
 import { toast } from '../overlays';
 import { t, lang } from '../i18n';
 import { getPersona } from '../persona';
@@ -137,57 +140,55 @@ export function groupByTag(items) {
 
 // ---- collections -----------------------------------------------------------------------------
 
+// The schemas, ids and factories are my-library's (my/collections.js, COLLECTIONS.md); browse only
+// adapts its `{ ref, title, heTitle }` sources to them, so /my/* sees exactly what browse wrote.
 export const collections = {
-  history: () => createCollection('history', { version: 1 }),
-  shelf: () => createCollection('shelf', { version: 1 }),
-  plans: () => createCollection('plans', { version: 1 }),
-  lessons: () => createCollection('lessons', { version: 1 }),
-  notebook: () => createCollection('notebook', { version: 1 }),
-  streak: () => createCollection('streak', { version: 1 }),
+  history: () => collection('history'),
+  shelf: () => collection('shelf'),
+  plans: () => collection('plans'),
+  lessons: () => collection('lessons'),
+  notebook: () => collection('notebook'),
+  streak: () => collection('streak'),
 };
 
-/** Add a `{ ref, title }` to the newest study plan (creating one when there is none). */
+const unitOf = (source) => ({ ref: source.ref, label: source.title || source.ref, heLabel: source.heTitle || '' });
+
+/** Add a `{ ref, title, heTitle }` as a unit of the newest study plan (creating one when there is none). */
 export function addToPlan(source) {
-  const plans = collections.plans();
-  const latest = plans.list()[0];
-  const plan = latest || { title: t('plan.untitled'), items: [] };
-  const items = (plan.items || []).filter(i => i.ref !== source.ref).concat([{ ref: source.ref, title: source.title || source.ref }]);
-  const stored = plans.put({ ...plan, items, ts: Date.now() });
+  const latest = collections.plans().list()[0];
+  const stored = latest ? addPlanUnit(latest.id, unitOf(source)) : createPlan({ title: t('plan.untitled'), units: [unitOf(source)] });
   toast(t('act.addedToPlan'));
   return stored;
 }
 
-/** Add a `{ ref, title }` source to the newest lesson (creating one when there is none). */
+/** Add a `{ ref, title, heTitle }` source to the newest lesson (creating one when there is none); refs are not repeated. */
 export function addToLesson(source) {
-  const lessons = collections.lessons();
-  const latest = lessons.list()[0];
-  const lesson = latest || { title: t('lesson.untitled'), sources: [], questions: [], handoutNotes: '' };
-  const sources = (lesson.sources || []).filter(s => s.ref !== source.ref).concat([{ ref: source.ref, title: source.title || source.ref }]);
-  const stored = lessons.put({ ...lesson, sources, ts: Date.now() });
+  const latest = collections.lessons().list()[0] || createLesson({ title: t('lesson.untitled') });
+  const stored = latest.sources.some(s => s.ref === source.ref)
+    ? latest
+    : addSourceToLesson(latest.id, { ref: source.ref, title: source.title || source.ref, heTitle: source.heTitle });
   toast(t('act.addedToLesson', { title: stored.title }));
   return stored;
 }
 
-/** Save a `{ ref, title, tags }` to the shelf once; returns the stored item (existing or new). */
+/** Save a `{ ref, title, heTitle, tags, kind }` (a book unless told otherwise) to the shelf once. */
 export function saveToShelf(source) {
-  const shelf = collections.shelf();
-  const existing = shelf.list().find(i => i.ref === source.ref);
+  const existing = collections.shelf().get(shelfId(source.ref));
   if (existing) { toast(t('act.onShelf')); return existing; }
-  const stored = shelf.put({ ref: source.ref, title: source.title || source.ref, tags: source.tags || [] });
+  const stored = saveRef({ ref: source.ref, title: source.title || source.ref, heTitle: source.heTitle, kind: source.kind || 'book', tags: source.tags || [] });
   toast(t('act.savedToShelf'));
   return stored;
 }
 
-export const isOnShelf = (ref) => collections.shelf().list().some(i => i.ref === ref);
+export const isOnShelf = (ref) => refOnShelf(ref);
 
-/** Follow a learning schedule: one plan per calendar title, with a (simulated) reminder flag. */
+/** Follow a learning schedule: one plan per calendar title (`calendar`), today's reading as its first unit, reminders on (simulated). */
 export function followCalendar(item) {
-  const plans = collections.plans();
-  const existing = plans.list().find(p => p.calendar === item.title.en);
+  const existing = followedCalendar(item.title.en);
   if (existing) { return existing; }
-  const stored = plans.put({
-    title: item.title.en, titleHe: item.title.he, calendar: item.title.en, reminder: true,
-    items: item.ref ? [{ ref: item.ref, title: item.displayValue.en }] : [],
+  const stored = createPlan({
+    title: item.title.en, heTitle: item.title.he, book: item.ref ? bookOf(item.ref) : '', calendar: item.title.en, reminders: true,
+    units: item.ref ? [{ ref: item.ref, label: item.displayValue.en, heLabel: item.displayValue.he }] : [],
   });
   toast(t('cal.followed', { title: item.title[lang] || item.title.en }));
   return stored;
@@ -196,13 +197,13 @@ export function followCalendar(item) {
 export const followedCalendar = (titleEn) => collections.plans().list().find(p => p.calendar === titleEn) || null;
 
 export function setCalendarReminder(plan, on) {
-  return collections.plans().put({ ...plan, reminder: !!on, ts: plan.ts });
+  return updatePlan(plan.id, { reminders: !!on });
 }
 
 /** The most recent history item for a book, or null. */
 export const lastReadIn = (title) => (collections.history().list().find(h => indexTitleOf(h.ref) === title) || null);
 
-export const recordHistory = (ref, title) => collections.history().put({ ref, title: title || indexTitleOf(ref) || ref, persona: getPersona() });
+export const recordHistory = (ref, title) => addHistory(ref, ref, { book: title || indexTitleOf(ref) || '', persona: getPersona() });
 
 // ---- hooks over the data layer ---------------------------------------------------------------
 

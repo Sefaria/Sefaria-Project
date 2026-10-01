@@ -58,17 +58,21 @@ test('addToPlan / addToLesson create one entry and append unique sources', () =>
   const plans = collections.plans().list();
   expect(plans).toHaveLength(1);
   expect(plans[0].title).toBe('My study plan');
-  expect(plans[0].items.map(i => i.ref)).toEqual(['Exodus', 'Genesis']);
+  expect(plans[0].units.map(i => i.ref)).toEqual(['Genesis', 'Exodus']);     // my-library plan units, no repeats
+  expect(plans[0].startDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  addToLesson({ ref: 'Genesis 1:1-5', title: 'Creation' });
   addToLesson({ ref: 'Genesis 1:1-5', title: 'Creation' });
   const lessons = collections.lessons().list();
   expect(lessons).toHaveLength(1);
   expect(lessons[0]).toMatchObject({ title: 'New lesson', sources: [{ ref: 'Genesis 1:1-5', title: 'Creation' }], questions: [], handoutNotes: '' });
+  expect(lessons[0].sources[0].id).toBeTruthy();
 });
 
 test('saveToShelf is idempotent per ref', () => {
   saveToShelf({ ref: 'Genesis', title: 'Genesis', tags: ['t'] });
   saveToShelf({ ref: 'Genesis' });
   expect(collections.shelf().list()).toHaveLength(1);
+  expect(collections.shelf().get('shelf:Genesis')).toMatchObject({ kind: 'book', tags: ['t'] });   // the my-library id, so /my/shelf can edit it
 });
 
 test('followCalendar creates one plan per schedule with a reminder flag', () => {
@@ -76,12 +80,12 @@ test('followCalendar creates one plan per schedule with a reminder flag', () => 
   const plan = followCalendar(daf);
   followCalendar(daf);
   expect(collections.plans().list()).toHaveLength(1);
-  expect(plan).toMatchObject({ calendar: 'Daf Yomi', title: 'Daf Yomi', titleHe: 'דף יומי', reminder: true, items: [{ ref: 'Berakhot 2', title: 'Berakhot 2' }] });
+  expect(plan).toMatchObject({ calendar: 'Daf Yomi', title: 'Daf Yomi', heTitle: 'דף יומי', book: 'Berakhot', reminders: true, units: [{ ref: 'Berakhot 2', label: 'Berakhot 2' }], done: [] });
   expect(followedCalendar('Daf Yomi').id).toBe(plan.id);
   setCalendarReminder(plan, false);
-  expect(followedCalendar('Daf Yomi').reminder).toBe(false);
+  expect(followedCalendar('Daf Yomi').reminders).toBe(false);
   flush();
-  expect(JSON.parse(localStorage.getItem('sefaria.libnext.plans')).items[plan.id].reminder).toBe(false);
+  expect(JSON.parse(localStorage.getItem('sefaria.libnext.plans')).items[plan.id].reminders).toBe(false);
 });
 
 test('lastReadIn finds the newest history item of a book', () => {
