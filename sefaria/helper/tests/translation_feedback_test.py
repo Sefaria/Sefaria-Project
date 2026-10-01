@@ -12,7 +12,7 @@ from sefaria.model.translation_feedback import (
 )
 from sefaria.helper.llm.translation_feedback import parse_response, assess, build_prompt
 from sefaria.helper.translation_feedback import (
-    create_feedback, accept_feedback, reject_feedback, reopen_feedback, get_segment_texts,
+    create_feedback, accept_feedback, reject_feedback, reopen_feedback, get_segment_texts, segment_marks,
 )
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
@@ -240,3 +240,25 @@ def test_assess_without_api_key(synthetic_text):
         assessment, note = assess(fb)
     assert assessment == "?"
     assert note.startswith("LLM unavailable")
+
+
+def test_segment_marks(synthetic_text):
+    seg = f"{TITLE} 1:1"
+    assert segment_marks(f"{TITLE} 1") == {"ref": f"{TITLE} 1", "segments": {}}
+    comment_only = create_feedback(_payload(suggestion=None), run_assessment=False)
+    pending = create_feedback(_payload(), user_id=5, run_assessment=False)
+    marks = segment_marks(f"{TITLE} 1")["segments"]
+    assert list(marks) == [seg]  # comment-only feedback adds no mark
+    assert marks[seg]["changed"] == []
+    assert marks[seg]["pending"] == [{"id": str(pending._id), "versionTitle": EN_VTITLE,
+                                      "suggestion": SUGGESTION, "created": pending.created}]
+    assert "user_id" not in str(marks)  # never exposes who suggested
+    reject_feedback(str(comment_only._id), 7)
+    with patch("sefaria.tracker.USE_VARNISH", False):
+        accept_feedback(str(pending._id), 7)
+    marks = segment_marks(seg)["segments"]  # a segment ref works too
+    assert marks[seg]["pending"] == []
+    assert marks[seg]["changed"] == [{"versionTitle": EN_VTITLE, "at": TranslationFeedback().load_by_id(pending._id).decided_at}]
+    with pytest.raises(InputError):
+        segment_marks("Not A Real Book 1")
+

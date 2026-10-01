@@ -235,3 +235,34 @@ def list_feedback(limit=DASHBOARD_LIMIT):
 def count_feedback():
     """Total number of feedback records (a count_documents call; nothing is loaded)."""
     return TranslationFeedbackSet({}).count()
+
+
+MAX_MARK_SEGMENTS = 2000  # a section (or a short range) of the reader
+
+
+def segment_marks(tref):
+    """
+    Per-segment feedback state for the reader, for every segment in `tref` (usually the section the
+    reader loaded): undecided suggestions ("pending") and accepted ones ("changed", i.e. the segment's
+    translation was replaced from a reader's suggestion). Both are keyed by version title, since the
+    reader shows one translation per segment. User ids are never included.
+    Returns {"ref": normal ref, "segments": {segment ref: {"pending": [...], "changed": [...]}}}.
+    """
+    try:
+        oref = Ref(tref or "")
+    except Exception:
+        raise InputError("Invalid ref.")
+    seg_refs = [r.normal() for r in oref.all_segment_refs()[:MAX_MARK_SEGMENTS]]
+    segments = {}
+    if not seg_refs:
+        return {"ref": oref.normal(), "segments": segments}
+    query = {"ref": {"$in": seg_refs}, "status": {"$in": [STATUS_NEW, STATUS_ACCEPTED]}}
+    for fb in TranslationFeedbackSet(query, sort=[("created", -1)]):
+        entry = segments.setdefault(fb.ref, {"pending": [], "changed": []})
+        if fb.status == STATUS_ACCEPTED:
+            entry["changed"].append({"versionTitle": fb.version_title, "at": fb.decider()[1] or fb.created})
+        elif fb.has_suggestion() and not fb.is_word_level():
+            entry["pending"].append({"id": str(fb._id), "versionTitle": fb.version_title,
+                                     "suggestion": fb.suggestion, "created": fb.created})
+    # comment-only feedback creates no marks; drop segments left empty
+    return {"ref": oref.normal(), "segments": {r: e for r, e in segments.items() if e["pending"] or e["changed"]}}

@@ -3,7 +3,10 @@
  */
 jest.mock('../sefaria/sefaria', () => ({ __esModule: true, default: {} }));
 
-import { getTranslationFeedbackTarget, normalizeSpace, segmentTextsUrl } from '../TranslationFeedback.jsx';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { act } from 'react-dom/test-utils';
+import { getTranslationFeedbackTarget, normalizeSpace, segmentTextsUrl, marksForSegment, segmentMarksUrl, SegmentFeedbackMarks } from '../TranslationFeedback.jsx';
 
 const segmentHtml = `
   <div class="segment" data-ref="Genesis 1:1" data-translation-vtitle="Test Version" data-translation-lang="en">
@@ -49,5 +52,56 @@ describe('helpers', () => {
     expect(segmentTextsUrl({ref: 'Genesis 1:1', versionTitle: 'A & B', actualLanguage: 'en'}))
       .toBe('/api/translation-feedback/segment?ref=Genesis+1%3A1&versionTitle=A+%26+B&actualLanguage=en');
     expect(segmentTextsUrl({ref: 'Genesis 1:1', versionTitle: 'V'})).toBe('/api/translation-feedback/segment?ref=Genesis+1%3A1&versionTitle=V');
+  });
+});
+
+describe('reader marks', () => {
+  const marks = {
+    'Genesis 1:1': {
+      pending: [
+        {id: 'b', versionTitle: 'Test Version', suggestion: 'Newest suggestion', created: 1790000000},
+        {id: 'a', versionTitle: 'Test Version', suggestion: 'Older suggestion', created: 1789000000},
+        {id: 'x', versionTitle: 'Other Version', suggestion: 'Other translation', created: 1789000000},
+      ],
+      changed: [{versionTitle: 'Test Version', at: 1789500000}],
+    },
+    'Genesis 1:2': {pending: [], changed: [{versionTitle: 'Other Version', at: 1789500000}]},
+  };
+
+  test('marksForSegment keeps only the translation shown', () => {
+    const m = marksForSegment(marks, 'Genesis 1:1', 'Test Version');
+    expect(m.pending.map(p => p.id)).toEqual(['b', 'a']);
+    expect(m.changed.at).toBe(1789500000);
+    expect(marksForSegment(marks, 'Genesis 1:2', 'Test Version')).toBeNull();
+    expect(marksForSegment(marks, 'Genesis 1:3', 'Test Version')).toBeNull();
+    expect(marksForSegment(null, 'Genesis 1:1', 'Test Version')).toBeNull();
+  });
+
+  test('segmentMarksUrl encodes the ref', () => {
+    expect(segmentMarksUrl('Rashi on Genesis 1')).toBe('/api/translation-feedback/marks?ref=Rashi+on+Genesis+1');
+  });
+
+  const renderInto = (element) => {
+    const container = document.createElement('div');
+    document.body.appendChild(container);
+    act(() => { ReactDOM.render(element, container); });
+    return container;
+  };
+
+  test('SegmentFeedbackMarks shows the newest suggestion, the badge, and expands', () => {
+    const m = marksForSegment(marks, 'Genesis 1:1', 'Test Version');
+    const container = renderInto(<SegmentFeedbackMarks pending={m.pending} changed={m.changed}/>);
+    expect(container.textContent).toContain("Updated from a reader's suggestion");
+    expect(container.textContent).toContain('Newest suggestion');
+    expect(container.textContent).not.toContain('Older suggestion');
+    const more = container.querySelector('.segmentFeedbackMore');
+    expect(more.textContent).toBe('+1 more suggestion');
+    act(() => { more.dispatchEvent(new MouseEvent('click', {bubbles: true})); });
+    expect(container.textContent).toContain('Older suggestion');
+  });
+
+  test('SegmentFeedbackMarks renders nothing without marks', () => {
+    const container = renderInto(<SegmentFeedbackMarks pending={[]} changed={null}/>);
+    expect(container.innerHTML).toBe('');
   });
 });

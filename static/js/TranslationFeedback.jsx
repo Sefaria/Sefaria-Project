@@ -193,3 +193,78 @@ export const TranslationFeedbackToast = ({onDone}) => {
 TranslationFeedbackToast.propTypes = {
   onDone: PropTypes.func.isRequired,
 };
+
+
+/*
+ * Reader marks: for each segment of a loaded section, the undecided suggestions for the
+ * translation shown (displayed under the segment) and whether that translation was replaced from
+ * an accepted suggestion (a small badge). One request per section, cached; saving new feedback
+ * fires FEEDBACK_CHANGED_EVENT so mounted sections refetch.
+ */
+export const FEEDBACK_CHANGED_EVENT = 'translationFeedbackChanged';
+const marksCache = {};
+
+export const segmentMarksUrl = (ref) => `/api/translation-feedback/marks?${new URLSearchParams({ref}).toString()}`;
+
+export function fetchSegmentMarks(ref, {fresh = false} = {}) {
+  if (fresh || !marksCache[ref]) {
+    marksCache[ref] = Promise.resolve(Sefaria._ApiPromise(segmentMarksUrl(ref)))
+      .then(data => (data && data.segments) || {}, () => { delete marksCache[ref]; return {}; });
+  }
+  return marksCache[ref];
+}
+
+export function notifyFeedbackChanged(ref) {
+  Object.keys(marksCache).forEach(key => delete marksCache[key]);
+  if (typeof window !== 'undefined') { window.dispatchEvent(new CustomEvent(FEEDBACK_CHANGED_EVENT, {detail: {ref}})); }
+}
+
+export function marksForSegment(marks, ref, versionTitle) {
+  // {pending: [...newest first], changed: {...} | null} for one segment's shown translation, or null
+  const entry = marks && ref && versionTitle ? marks[ref] : null;
+  if (!entry) { return null; }
+  const pending = (entry.pending || []).filter(p => p.versionTitle === versionTitle);
+  const changed = (entry.changed || []).filter(c => c.versionTitle === versionTitle)[0] || null;
+  return pending.length || changed ? {pending, changed} : null;
+}
+
+const fmtDate = (epoch) => epoch ? new Date(epoch * 1000).toLocaleDateString(undefined, {year: 'numeric', month: 'short', day: 'numeric'}) : '';
+const stopClick = (e) => e.stopPropagation();
+
+export const SegmentFeedbackMarks = ({pending, changed}) => {
+  const [expanded, setExpanded] = useState(false);
+  if (!pending.length && !changed) { return null; }
+  const shown = expanded ? pending : pending.slice(0, 1);
+  return (
+    // Clicks here shouldn't open the connections panel or start a translation-feedback double-click.
+    <div className="segmentFeedbackMarks" onClick={stopClick} onDoubleClick={stopClick} onMouseUp={stopClick} dir="ltr">
+      {changed ?
+        <div className="segmentFeedbackChanged" title={`This translation was updated from a reader's suggestion${changed.at ? ' on ' + fmtDate(changed.at) : ''}.`}>
+          <span className="segmentFeedbackIcon" aria-hidden="true">✎</span>
+          Updated from a reader's suggestion{changed.at ? ` · ${fmtDate(changed.at)}` : ''}
+        </div> : null}
+      {shown.map(p => (
+        <div className="segmentFeedbackPending" key={p.id}>
+          <div className="segmentFeedbackPendingLabel">
+            Suggested translation <span className="segmentFeedbackStatus">pending review</span>
+            {p.created ? <span className="segmentFeedbackDate"> · {fmtDate(p.created)}</span> : null}
+          </div>
+          <div className="segmentFeedbackPendingText">{p.suggestion}</div>
+        </div>
+      ))}
+      {pending.length > 1 ?
+        <button type="button" className="segmentFeedbackMore" onClick={() => setExpanded(!expanded)}>
+          {expanded ? 'Show fewer suggestions' : `+${pending.length - 1} more ${pending.length - 1 === 1 ? 'suggestion' : 'suggestions'}`}
+        </button> : null}
+    </div>
+  );
+};
+SegmentFeedbackMarks.propTypes = {
+  pending: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    suggestion: PropTypes.string.isRequired,
+    created: PropTypes.number,
+  })).isRequired,
+  changed: PropTypes.shape({at: PropTypes.number}),
+};
+

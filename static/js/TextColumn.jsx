@@ -10,7 +10,7 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
 import {ContentText} from "./ContentText";
-import {TranslationFeedbackModal, TranslationFeedbackToast, getTranslationFeedbackTarget} from "./TranslationFeedback";
+import {TranslationFeedbackModal, TranslationFeedbackToast, getTranslationFeedbackTarget, notifyFeedbackChanged} from "./TranslationFeedback";
 
 
 class TextColumn extends Component {
@@ -156,6 +156,7 @@ class TextColumn extends Component {
     this.setState({translationFeedbackTarget: null});
   }
   onTranslationFeedbackSaved() {
+    notifyFeedbackChanged(this.state.translationFeedbackTarget?.ref);  // so the new suggestion shows under its segment
     this.setState({translationFeedbackTarget: null, showTranslationFeedbackToast: true});
   }
   handleTextSelection() {

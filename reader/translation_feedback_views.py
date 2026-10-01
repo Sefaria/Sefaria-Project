@@ -2,6 +2,7 @@
 Views for the translation-feedback POC.
 
   GET  /api/translation-feedback/segment       source + translation text of a segment, for the dialog
+  GET  /api/translation-feedback/marks         pending / accepted suggestions per segment, for the reader
   POST /api/translation-feedback               save feedback from the reader (anonymous allowed)
   POST /api/translation-feedback/<id>/accept   apply a suggestion to the text (login required)
   POST /api/translation-feedback/<id>/reject   mark feedback rejected, text untouched (login required)
@@ -21,7 +22,7 @@ from sefaria.model import Ref
 from sefaria.model.translation_feedback import ASSESSMENT_LEGEND, STATUSES, STATUS_LABELS, visible_text, has_markup
 from sefaria.helper.translation_feedback import (
     create_feedback, accept_feedback, reject_feedback, reopen_feedback, list_feedback, count_feedback,
-    get_segment_texts,
+    get_segment_texts, segment_marks,
 )
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.system.exceptions import InputError
@@ -43,6 +44,12 @@ def _json_body(request):
 def translation_feedback_segment_api(request):
     return jsonResponse(get_segment_texts(request.GET.get("ref"), request.GET.get("versionTitle"),
                                           request.GET.get("actualLanguage")))
+
+
+@catch_error_as_json
+@require_GET
+def translation_feedback_marks_api(request):
+    return jsonResponse(segment_marks(request.GET.get("ref")))
 
 
 @catch_error_as_json

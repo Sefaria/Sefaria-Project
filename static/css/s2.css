@@ -17192,3 +17192,66 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   font-family: var(--english-sans-serif-font-family);
   font-size: 16px;
 }
+
+/* Translation feedback POC: reader marks under a segment (SegmentFeedbackMarks) */
+.segmentFeedbackMarks {
+  clear: both;
+  margin: 4px 0 10px;
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: left;
+  cursor: default;
+}
+.segmentFeedbackChanged {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #5c5c5c;
+  font-size: 12px;
+  background: #eef3f4;
+  border-radius: 999px;
+  padding: 2px 10px;
+  margin-bottom: 6px;
+}
+.segmentFeedbackIcon { color: #196373; }
+.segmentFeedbackPending {
+  border-inline-start: 3px solid #CCB479;
+  background: #FBF8EF;
+  border-radius: 0 6px 6px 0;
+  padding: 6px 12px;
+  margin-bottom: 6px;
+}
+.segmentFeedbackPendingLabel {
+  font-size: 12px;
+  color: #5c5c5c;
+  margin-bottom: 2px;
+}
+.segmentFeedbackStatus {
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8a6d1a;
+  background: #F3EAC9;
+  border-radius: 3px;
+  padding: 1px 5px;
+  margin-inline-start: 4px;
+}
+.segmentFeedbackDate { color: #8a8a8a; }
+.segmentFeedbackPendingText {
+  font-family: var(--english-serif-font-family);
+  font-size: 16px;
+  color: #333;
+  white-space: pre-wrap;
+}
+.segmentFeedbackMore {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: #196373;
+  font-size: 12px;
+  cursor: pointer;
+}
+.segmentFeedbackMore:hover { text-decoration: underline; }
+

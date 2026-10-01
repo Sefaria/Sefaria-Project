@@ -93,6 +93,7 @@ urlpatterns = [
 urlpatterns += [
     re_path(r'^translation-feedback/?$', translation_feedback_views.translation_feedback_dashboard),
     re_path(r'^api/translation-feedback/segment/?$', translation_feedback_views.translation_feedback_segment_api),
+    re_path(r'^api/translation-feedback/marks/?$', translation_feedback_views.translation_feedback_marks_api),
     re_path(r'^api/translation-feedback/?$', translation_feedback_views.translation_feedback_api),
     re_path(r'^api/translation-feedback/(?P<feedback_id>[0-9a-f]{24})/accept/?$', translation_feedback_views.translation_feedback_accept_api),
     re_path(r'^api/translation-feedback/(?P<feedback_id>[0-9a-f]{24})/reject/?$', translation_feedback_views.translation_feedback_reject_api),
