@@ -81,7 +81,7 @@ Run these checks in Sefaria-Project and report each result in plain words:
      ```bash
      timeout 120 gcloud artifacts docker images list "us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-<imagename>" --include-tags --sort-by=~UPDATE_TIME --limit 1 --format="value(tags,updateTime)"
      ```
-     Tags look like `sha-<short commit>-<timestamp>`; compare the short commit with the branch's latest pushed commit.
+     Tags look like `sha-<short commit>-<YYYYMMDDHHMM>`. Don't compare the short commit with the branch's commits: for a PR branch, CI builds GitHub's temporary "PR merged into master" commit, which isn't on the branch, so it never matches. Compare times instead (both are UTC): if the latest `Continuous` run's `headSha` (from `gh run list` above) is the branch's latest pushed commit, and the tag's timestamp is no earlier than that run's `createdAt` (to the minute), the image was built from the latest pushed commit. Otherwise the newest image is from an older commit; say so (warning only).
 
 ## Step 4 — Get the cauldrons repo ready, and check the name is free
 
@@ -97,6 +97,20 @@ git branch --show-current         # which branch is checked out
 - If another branch is checked out: `git fetch origin main:main` (updates `main` without switching branches)
 
 If either command fails, stop and show the error — don't force anything.
+
+`create-cauldron.sh` reads the file `.git/refs/heads/main` directly instead of asking git. Git's automatic cleanup sometimes moves that file's contents into `.git/packed-refs` and deletes it; the script then always says "Not running on tip of main", and the commands above don't bring the file back when `main` is already up to date. So check it:
+
+```bash
+test -f .git/refs/heads/main && echo "ok" || echo "missing"
+```
+
+If it says `missing`, recreate it from what git already knows (this writes the same commit `main` already points to, so nothing about the branch changes):
+
+```bash
+sha=$(git rev-parse --verify refs/heads/main) && [ -n "$sha" ] && echo "$sha" > .git/refs/heads/main.tmp && mv .git/refs/heads/main.tmp .git/refs/heads/main && [ "$(cat .git/refs/heads/main)" = "$(git rev-parse origin/main)" ] && echo "ok"
+```
+
+Look up the commit first and write the file only after that succeeds. Never write it as `git rev-parse ... > .git/refs/heads/main`: the shell empties the file before git runs, git then sees an empty `main` and fails, and the empty file is left behind, hiding `main`'s real commit. If the command doesn't print `ok`, stop and show the error.
 
 Then check that no cauldron already uses the name:
 
@@ -128,7 +142,7 @@ From the cauldrons folder:
 ```
 
 The script clones a fresh copy of the cauldrons repo into a temporary folder, downloads a small helper tool (`yq`), writes the files, commits, and pushes. Read the output:
-- `Not running on tip of main, please pull before running script` → Step 4 didn't take; redo it.
+- `Not running on tip of main, please pull before running script` → Step 4 didn't take; redo it, including the `.git/refs/heads/main` check.
 - A `git push` error such as `403` / `Permission denied` → the user's GitHub account can't push to `Sefaria/cauldrons`; they need write access from the engineering team.
 
 The script doesn't stop on every error, so confirm the push really happened:

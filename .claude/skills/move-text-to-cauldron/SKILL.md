@@ -146,8 +146,11 @@ Verify on the cauldron (URL-encode the title):
 ```bash
 curl -s "$DEST/api/v2/raw/index/<title>" | head -c 400      # index exists
 curl -s "$DEST/api/texts/versions/<title>"                    # versions present
-curl -s "$DEST/api/texts/<title>.1?context=0&pad=0&ven=<Version_Title_with_underscores>"   # a version has text
+curl -s "$DEST/api/texts/<title>.1?context=0&pad=0&ven=<Version_Title_with_underscores>"   # an en version has text
+curl -s "$DEST/api/texts/<title>.1?context=0&pad=0&vhe=<Version_Title_with_underscores>"   # a he version has text
 ```
+
+Use `ven=` for an `en` version and `vhe=` for a `he` version. `ven=` only picks English versions: given a Hebrew version's title, it is ignored and the default Hebrew version comes back, so the check would pass even if the version wasn't copied. Confirm the response names the version you sent: for `en`, `versionTitle` matches and `text` isn't empty; for `he`, `heVersionTitle` matches and `he` isn't empty. A missing version comes back as `null` with empty text.
 
 Use the v1 `/api/texts/` endpoint for the text check — `/api/v3/texts` with a `version=` parameter returned nothing even for long-standing versions.
 

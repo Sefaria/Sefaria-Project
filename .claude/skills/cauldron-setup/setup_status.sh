@@ -174,7 +174,7 @@ if [ -z "$CAUL" ]; then
 else
   git -C "$CAUL" remote get-url origin 2>/dev/null | grep -q 'Sefaria/cauldrons' || problem "$CAUL doesn't point at github.com/Sefaria/cauldrons."
   grep -q $'\r' "$CAUL/create-cauldron.sh" && problem "$CAUL/create-cauldron.sh has Windows line endings. Delete $CAUL and clone it again inside WSL."
-  [ -f "$CAUL/.git/refs/heads/main" ] || problem "$CAUL/.git/refs/heads/main is missing (run: git -C $CAUL fetch origin main:main)."
+  [ -f "$CAUL/.git/refs/heads/main" ] || problem "$CAUL/.git/refs/heads/main is missing (create-cauldron.sh reads that file directly)."
 fi
 
 # --- Tools -----------------------------------------------------------------

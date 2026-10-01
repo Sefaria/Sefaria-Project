@@ -108,7 +108,13 @@ Then check push access: `gh api repos/Sefaria/cauldrons --jq .permissions.push`.
 - `cauldrons_repo: not found`:
   - If `~/cauldrons` already exists but has no `create-cauldron.sh`, don't touch it. Tell the user a folder named `cauldrons` is already in their home folder but isn't the cauldrons project, and ask what it is. Stop this step.
   - Otherwise run `git clone https://github.com/Sefaria/cauldrons.git ~/cauldrons`. If it fails with an authentication error, redo Step 3.
-- Problems say `.git/refs/heads/main is missing`: run `git -C <cauldrons_repo> pull --ff-only` if its current branch is `main`, otherwise `git -C <cauldrons_repo> fetch origin main:main`.
+- Problems say `.git/refs/heads/main is missing` (`create-cauldron.sh` reads that file directly, and git's automatic cleanup sometimes deletes it after copying it into `.git/packed-refs`):
+  1. Update `main`: `git -C <cauldrons_repo> pull --ff-only` if its current branch is `main`, otherwise `git -C <cauldrons_repo> fetch origin main:main`. If the file now exists, you're done.
+  2. If it's still missing (this happens when `main` was already up to date), recreate it with the commit `main` already points to. Look the commit up first and write the file only after that succeeds; writing straight into the file (`git rev-parse ... > .git/refs/heads/main`) empties it before git runs and breaks `main`:
+     ```bash
+     cd <cauldrons_repo> && sha=$(git rev-parse --verify refs/heads/main) && [ -n "$sha" ] && echo "$sha" > .git/refs/heads/main.tmp && mv .git/refs/heads/main.tmp .git/refs/heads/main && [ "$(cat .git/refs/heads/main)" = "$(git rev-parse origin/main)" ] && echo ok
+     ```
+     If it doesn't print `ok`, show the error and continue the setup; it only affects creating cauldrons.
 - Problems say `create-cauldron.sh has Windows line endings`: ask `Your cauldrons folder was downloaded in a way that breaks its scripts. OK to rename it to cauldrons-old and download a fresh copy? (y/n)`. On yes, run `mv <cauldrons_repo> <cauldrons_repo>-old-$(date +%Y%m%d)` and then clone as above.
 
 ## Step 6 — Which file has the API key
