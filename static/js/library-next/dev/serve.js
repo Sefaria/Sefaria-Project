@@ -90,7 +90,7 @@ function shellHtml(req, url, bundle) {
     _uid: null, _email: '', full_name: '', slug: '', is_moderator: false, profile_pic_url: '',
     interfaceLang: lang, activeModule: 'library', last_cached: null, appVersion: 'dev',
     path: url.pathname + url.search, route: 'dev', libraryNext: true,
-    chatbot_user_token: null, chatbot_api_base_url: process.env.CHATBOT_API_BASE_URL || 'https://chat-dev.sefaria.org/api', chatbot_origin: 'library-next',
+    chatbot_user_token: process.env.CHATBOT_USER_TOKEN || null, chatbot_api_base_url: process.env.CHATBOT_API_BASE_URL || 'https://chat-dev.sefaria.org/api', chatbot_origin: 'library-next',
   };
   const bundleTag = bundle
     ? `<script defer src="/static/bundles/client-library-next/${bundle}"></script>`
