@@ -65,8 +65,10 @@ export function indexTitleOf(ref) {
   return index ? index.title : parsed.index;
 }
 
-/** The categories of a ref's book, or `[]`. */
-export const refCategories = (ref) => Sefaria.refCategories(ref) || [];
+/** The categories of a ref's book, or `[]` (never throws: a ref that fails to parse has none). */
+export const refCategories = (ref) => {
+  try { return Sefaria.refCategories(ref) || []; } catch (e) { return []; }
+};
 
 export const refColor = (ref) => {
   const cats = refCategories(ref);
