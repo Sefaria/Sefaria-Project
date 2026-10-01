@@ -10,7 +10,8 @@ jest.mock("../Misc", () => ({ InterfaceText: ({ children }) => children }));
 import React from "react";
 import ReactDOM from "react-dom";
 import { act } from "react-dom/test-utils";
-import NoSearchResults, { OPEN_LIBRARY_ASSISTANT_EVENT } from "../NoSearchResults";
+import NoSearchResults from "../NoSearchResults";
+import { OPEN_LIBRARY_ASSISTANT_EVENT } from "../LibraryAssistantModal";
 
 describe("NoSearchResults", function () {
   let container;

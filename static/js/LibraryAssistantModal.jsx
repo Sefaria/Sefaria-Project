@@ -15,6 +15,11 @@ const CAMPAIGN_ID = "LA Stand Alone Promo";
 const PROJECT = "Library Assistant";
 const GTAG_PARAMS = { campaignID: CAMPAIGN_ID, project: PROJECT };
 
+// ReaderApp owns the modal; entry points deep in the tree (the Sources null page, the
+// resources panel) ask for it with a document event rather than threading a callback.
+const OPEN_LIBRARY_ASSISTANT_EVENT = 'sefaria:open-library-assistant';
+const openLibraryAssistant = () => document.dispatchEvent(new CustomEvent(OPEN_LIBRARY_ASSISTANT_EVENT));
+
 const getLibraryAssistantPromoCookieName = (isLoggedIn) => (
   isLoggedIn ? "chatbot_experiment_banner_dismissed" : "signup_promo_banner_dismissed"
 );
@@ -136,4 +141,6 @@ export {
   getLibraryAssistantLoginHref,
   getLibraryAssistantPromoCookieName,
   useLibraryAssistantJoin,
+  OPEN_LIBRARY_ASSISTANT_EVENT,
+  openLibraryAssistant,
 };

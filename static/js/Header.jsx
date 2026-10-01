@@ -377,6 +377,7 @@ const Header = (props) => {
           close={props.onMobileMenuButtonClick}
           module={props.module}
           hasUnreadNotifications={hasUnreadNotifications}
+          onAssistantClick={props.onAssistantClick}
           />
       }
       <GlobalWarningMessage />
@@ -432,11 +433,18 @@ const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
   );
 }
 
-const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications }) => {
+const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications, onAssistantClick }) => {
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
   });
+  // Mobile twin of the desktop "✦ Assistant" nav item: same gating, same modal.
+  const showAssistant = !Sefaria._uid && module === Sefaria.LIBRARY_MODULE && onAssistantClick;
+  const handleAssistantClick = (e) => {
+    e.preventDefault(); // also tells ReaderApp.handleInAppLinkClick to leave it alone
+    close();
+    onAssistantClick();
+  };
       
   return (
     <nav className={classes} aria-label="Mobile navigation menu">
@@ -450,6 +458,12 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           hideHebrewKeyboard={true}
         />
       </div>
+      {showAssistant &&
+        <a href="#" role="button" onClick={handleAssistantClick} className="assistant">
+          <span className="assistantStar" aria-hidden="true">✦</span>
+          <InterfaceText>header.try_assistant</InterfaceText>
+        </a>
+      }
       {module === Sefaria.LIBRARY_MODULE &&
         <>
           <a href="/texts" onClick={close} className="textsPageLink">

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
+import { openLibraryAssistant } from './LibraryAssistantModal';
 
 const CTA_HREFS = {
   sources: '/texts',
@@ -9,11 +10,6 @@ const CTA_HREFS = {
   authors: '/people',
   topics:  '/topics',
 };
-
-// ReaderApp owns the Library Assistant modal; the null page sits several layers below
-// it, so it asks for the modal with a document event rather than threading a callback.
-export const OPEN_LIBRARY_ASSISTANT_EVENT = 'sefaria:open-library-assistant';
-const openLibraryAssistant = () => document.dispatchEvent(new CustomEvent(OPEN_LIBRARY_ASSISTANT_EVENT));
 
 function renderCaption() {
   const reportBugText = Sefaria._('search.null.caption.report_bug');

@@ -613,6 +613,17 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   filter: invert(1);
   opacity: 1;
 }
+/* "✦ Try Assistant": the ✦ sits in the icon slot, and both take the promo purple
+   (see the note above .siteWideBanner). */
+.mobileNavMenu a.assistant {
+  color: #653259;
+}
+.mobileNavMenu a.assistant .assistantStar {
+  display: inline-block;
+  width: 16px;
+  margin-inline-end: 15px;
+  text-align: center;
+}
 .mobileNavMenu .mobileAccountLinks {
   background-color: #FBFBFA;
   border-top: 1px solid #CCC;
@@ -9052,6 +9063,18 @@ But not to use a display block directive that might break continuous mode for ot
   width: 18px;
   height: 18px;
   vertical-align: middle;
+}
+/* A text glyph in the icon slot, the same width as the 18px image icons. */
+.toolsButton .toolsButtonGlyph {
+  width: 18px;
+  margin-top: 2px; /* text glyphs ride high; line it up with the labels like the images */
+  text-align: center;
+  line-height: 1;
+}
+/* "✦ Try Assistant" in the resources panel: promo purple, as on the header item. */
+.toolsButton.tryAssistant,
+.toolsButton.tryAssistant .toolsButtonIcon {
+  color: #653259;
 }
 .toolsButton .toolsButtonText{
   margin-inline-start: 15px;
