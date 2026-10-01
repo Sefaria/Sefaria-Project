@@ -20,5 +20,5 @@ export function fetchManuscripts(ref) {
   try { cached = Sefaria.manuscriptsByRef(ref) || []; } catch (e) { cached = []; }
   if (cached.length) { return Promise.resolve(dedupePages(cached)); }
   const url = `${Sefaria.apiHost}/api/manuscripts/${Sefaria.normRef(ref)}`;
-  return Sefaria._ApiPromise(url).then(dedupePages);
+  return Promise.resolve(Sefaria._ApiPromise(url)).then(dedupePages);   // _ApiPromise is a jQuery deferred: no .catch
 }

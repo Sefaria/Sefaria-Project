@@ -83,6 +83,8 @@ describe('Discussion questions', () => {
     expect(saved).toHaveLength(3);
     expect(saved[1]).toMatchObject({ en: 'My own question about light', he: 'My own question about light' });
     expect(saved[0].he).toMatch(/[֐-׿]/);
+    expect(saved[0].he).toContain('בראשית א׳:א׳');   // Hebrew questions carry the Hebrew ref
+    expect(saved[0].he).not.toContain('Genesis 1:1');
     await h.click(panel.querySelector('.ln-q-add'));
     expect(collection('lessons').get(lesson.id).questions).toHaveLength(4);
     const first = areas[0].value;

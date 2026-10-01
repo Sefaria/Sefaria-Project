@@ -19,7 +19,9 @@ export default function DiscussionTool({ selection, book }) {
   const { items, id, setId, lesson } = useLessonChoice();
   const [offset, setOffset] = useState(0);
   const [edits, setEdits] = useState({});
-  const generated = useMemo(() => generateQuestions(book.primaryCategory, selection.ref, { count: 3, offset }), [book.primaryCategory, selection.ref, offset]);
+  // my-library's templates fill `{ref}` with one ref; the Hebrew text gets the Hebrew ref.
+  const generated = useMemo(() => generateQuestions(book.primaryCategory, selection.ref, { count: 3, offset })
+    .map(q => ({ en: q.en, he: selection.heRef ? q.he.split(selection.ref).join(selection.heRef) : q.he })), [book.primaryCategory, selection.ref, selection.heRef, offset]);
   const other = lang === 'he' ? 'en' : 'he';
   const questions = generated.map((q, i) => {
     const key = `${offset}:${i}`;

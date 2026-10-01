@@ -64,5 +64,5 @@ export function normalizeEntries(raw) {
 export function lookupWord(word, ref) {
   const clean = cleanWord(word);
   if (!clean) { return Promise.resolve([]); }
-  return Sefaria.getLexiconWords(clean, ref || undefined).then(normalizeEntries).catch(() => []);
+  return Promise.resolve(Sefaria.getLexiconWords(clean, ref || undefined)).then(normalizeEntries).catch(() => []);
 }

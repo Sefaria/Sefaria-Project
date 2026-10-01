@@ -20,9 +20,10 @@
 
 /* translations / version comparison columns (shared with the research tools) */
 .ln-chip-list { display: flex; flex-wrap: wrap; gap: var(--ln-space-1); }
-.ln-chip { display: inline-flex; align-items: center; gap: var(--ln-space-1); border: 1px solid var(--ln-color-rule); border-radius: 999px; padding: 2px var(--ln-space-2); font-size: var(--ln-text-xs); cursor: pointer; background: var(--ln-color-surface); }
+.ln-chip { display: inline-flex; align-items: center; gap: var(--ln-space-1); max-inline-size: 100%; min-inline-size: 0; border: 1px solid var(--ln-color-rule); border-radius: 999px; padding: 2px var(--ln-space-2); font-size: var(--ln-text-xs); cursor: pointer; background: var(--ln-color-surface); }
 .ln-chip.is-on { border-color: var(--ln-color-ink); background: var(--ln-color-page); }
-.ln-chip input { margin: 0; }
+.ln-chip input { margin: 0; flex: none; }
+.ln-chip > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ln-compare-grid { display: grid; grid-template-columns: repeat(var(--cols, 2), minmax(0, 1fr)); gap: var(--ln-space-3); }
 @media (max-width: 480px) { .ln-compare-grid { grid-template-columns: 1fr; } }
 .ln-compare-col { min-inline-size: 0; }
