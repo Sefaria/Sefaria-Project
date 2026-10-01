@@ -135,7 +135,7 @@ test('selection → toolbelt → shelf, cite and connections tools; Esc closes',
   const segs = $$('.ln-seg');
   await click(segs[1]);
   expect(text('.ln-toolbelt-ref')).toContain('Genesis 1:2');
-  expect($$('.ln-tool').map(b => b.dataset.tool)).toEqual(['connections', 'shelf', 'cite']);
+  expect($$('.ln-tool').map(b => b.dataset.tool)).toEqual(['explain', 'whosWho', 'readAloud', 'connections', 'shelf', 'cite']);
   await click(segs[3], { shiftKey: true });
   expect($$('.ln-seg.is-selected')).toHaveLength(3);
   expect(text('.ln-toolbelt-ref')).toContain('Genesis 1:2-4');

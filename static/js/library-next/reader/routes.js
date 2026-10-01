@@ -8,6 +8,7 @@ import ReaderPage from './ReaderPage';
 import { matchReaderRef } from './refKind';
 import './strings';
 import './tools/builtin';
+import '../tools/learn/index';
 
 registerRoute({
   name: 'ref',

@@ -19,10 +19,10 @@ test('persona filtering and ordering: persona list first, then registration orde
   registerReaderTool({ id: 'connections', component: C, label: 'c' });
   registerReaderTool({ id: 'shelf', component: C, label: 's' });
   registerReaderTool({ id: 'cite', component: C, label: 'ci', personas: ['scholar', 'educator'] });
-  registerReaderTool({ id: 'notes', component: C, label: 'n', personas: ['learner'] });
+  registerReaderTool({ id: 'note', component: C, label: 'n', personas: ['learner'] });
   registerReaderTool({ id: 'versions', component: C, label: 'v', personas: ['scholar'] });
   expect(getReaderTools('newcomer').map(t => t.id)).toEqual(['connections', 'shelf']);
-  expect(getReaderTools('learner').map(t => t.id)).toEqual(['notes', 'connections', 'shelf']);
+  expect(getReaderTools('learner').map(t => t.id)).toEqual(['note', 'connections', 'shelf']);
   expect(getReaderTools('scholar').map(t => t.id)).toEqual(['versions', 'cite', 'connections', 'shelf']);
   expect(getReaderTools('educator').map(t => t.id)).toEqual(['connections', 'shelf', 'cite']);
 });

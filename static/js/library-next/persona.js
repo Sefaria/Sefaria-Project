@@ -44,7 +44,7 @@ export const PERSONAS = {
     tagline: { en: 'Start with plain explanations and English first.', he: 'התחלה עם הסברים פשוטים ואנגלית תחילה.' },
     contentLang: 'en',
     homeModules: ['startHere', 'parashaExplained', 'glossary', 'fiveMinuteReads', 'calendarToday'],
-    readerTools: ['explainer', 'glossary', 'about'],
+    readerTools: ['explain', 'whosWho', 'readAloud'],
   },
   learner: {
     id: 'learner',
@@ -52,7 +52,7 @@ export const PERSONAS = {
     tagline: { en: 'Keep a rhythm: plans, streaks, notes and review.', he: 'לשמור על קצב: תוכניות, רצף, הערות וחזרה.' },
     contentLang: 'bi',
     homeModules: ['continueReading', 'plans', 'calendarToday', 'recommendations', 'topics'],
-    readerTools: ['notes', 'highlights', 'flashcards', 'markRead', 'connections'],
+    readerTools: ['highlight', 'note', 'flashcard', 'markRead', 'vocab', 'connections'],
   },
   educator: {
     id: 'educator',
