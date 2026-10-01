@@ -8,9 +8,9 @@ Kept in sync with what shipped on `mf3`. One row per agent; details in each agen
 | 1–2 | assistant | shipped | ai-chatbot `mf3`: `persona`, starter prompts, prompt guidance, `mode="panel"`, `initial-prompt` (no PR → no preview; cauldron uses chat-dev). Dock: greeting, starter prompts, embedded widget, sign-in fallback, `library-next:assistant` event, header action. See ASSISTANT.md |
 | 2 | browse | shipped | `/`, `/texts`, `/texts/*`, book page (`book` route, book-level refs only), `/calendars`; `browse/refKind.js` for the reader |
 | 2 | reader | shipped | `ref` route (section/segment/range refs only), text stream, bilingual layouts, versions, connections, selection → toolbelt, tool registry + 3 built-in tools; `READER_TOOLS.md` |
-| 2 | discover | — | `/search`, `/topics`, `/topics/*` (placeholders today) |
 | 2 | my-library | shipped | `/my/*` hub (9 sections + lesson editor/handout/shared), collection schemas + factories (`my/collections.js`, `COLLECTIONS.md`), export/import, simulated sync |
 | 3 | learn-tools | shipped | Newcomer tools (Explain this, Who's who, Read it to me) and learner tools (Highlight, Note, Flashcard, Mark as read / Add to plan, Vocabulary) under `tools/learn/`; highlight decoration + `useHighlights` hook |
+| 2 | discover | shipped | `/search?q=`, `/topics`, `/topics/<slug>`, `/topics/category/<slug>`; header search suggestions; see below |
 | 3 | teach-research-tools | — | |
 | 3 | qa | — | |
 
@@ -82,6 +82,60 @@ personas with no console errors.
 - `/my/plans`, `/my/lessons/new`, `/my/shelf?tag=` and `/topics/<slug>` links assume the my-library and discover routes.
 - The reader should import `refKind`/`matchBook` so `/Genesis` never reaches its catch-all once both are merged
   (today registration order already makes `book` win).
+
+## Discover — `/search`, `/topics`, `/topics/*`
+
+Files: `static/js/library-next/discover/` (`SearchPage.jsx`, `TopicsPage.jsx`, `TopicPage.jsx`,
+`TopicCategoryPage.jsx`, `searchModel.js`, `topicsModel.js`, `personaActions.js`, `refs.js`, `strings.js`,
+`styles.css`, `tests/`). Routes: `search` (`/search`), `topics` (`/topics`), `topic` (`/topics/*`: a topic,
+`/topics/category/<slug>`, `/topics/all*` → landing).
+
+**Real**
+- Search runs through the classic path: `Sefaria.search.execute_query` → `POST /api/search-wrapper/es8`
+  (`naive_lemmatizer` / `exact` field, `path` aggregation, relevance / chronological sort, `start` paging).
+  State lives in the URL: `q`, `exact=1`, `sort`, `path=A|B` (facet keys), `tl=he|en` (text language; `lang`
+  is the interface-language param), `era`, `version`. In-page edits `navigate(..., { replace: true })`; the
+  header box follows. Results collapse versions per ref ("N more versions"), highlight `<b>` snippets, link to
+  `/<ref>?qh=<q>`. Facet tree from `aggregations.path.buckets` (TOC order via `Sefaria.compareSearchCatPaths`,
+  Hebrew titles via `Sefaria.hebrewTerm` / index), counts rolled up; "Show more" pages by 20.
+- Topics landing: featured (`/_api/topics/featured-topic`), trending (`/api/topics/trending?pool=general_<lang>`),
+  random (`/api/topics/pools/general_<lang>?order=random`), categories from `Sefaria.topic_toc`, parasha /
+  holiday (`/api/calendars/topics/<day>`), A–Z index (`Sefaria.topicList()`, 2.9 MB, loaded on demand), topic
+  finder via `/api/name`.
+- Topic page: `Sefaria.getTopic(slug)` (v2 topics API with refs + links → `tabs`), notable / all sources / top
+  citations tabs, relevance (curated primacy per language) or chronological order, text previews via
+  `Sefaria.getBulkText` in the content language (he / en / both), curated notes, related topics grouped by
+  link type, subtopics for topics that are also categories, image, time period, Wikipedia (scholar).
+- Header search box: `Sefaria.getName()` completions (texts, topics, categories) with keyboard navigation.
+- Persona: newcomer → top-level category chips only, no sort/exact, topic explainer strip when the query
+  names a topic (via `/api/name` + `getTopic`), notable sources first with an explainer card, English-first;
+  learner → full filters, "Save this search" (`kv.savedSearches`), "Add topic to my plan" (`kv.planInbox`),
+  recent topics on the landing (`kv.recentTopics`); educator → "Add to lesson" on every result and source
+  (`kv.lessonInbox`), parasha/holiday "for class"; scholar → era + version filters, "Export results (CSV)"
+  (client-side Blob), all sources first, dates on sources, "Add topic to notebook" (`kv.notebookInbox`),
+  categories with counts and the A–Z index.
+
+**Simulated (labelled `.ln-badge-simulated`)**
+- Educator "grade fit" tag and filter: a stable hash of the ref into three bands.
+- Educator discussion prompt under each source: a template with the topic name.
+- Language, era and version filters apply client-side to the results loaded so far (the search API has no
+  such filters); the panel says so.
+
+**Handoffs / known gaps**
+- The my-library collections had no draft model when this shipped, so persona actions write kv inbox
+  lists: `savedSearches [{url,q,exact,sort,paths,ts}]`, `lessonInbox [{kind:'ref'|'topic', ref, heRef,
+  snippet|title, topic?, from, ts}]`, `planInbox`, `notebookInbox [{kind:'topic', topic, title, citation,
+  text, ts}]`, `recentTopics [{slug,title,ts}]` (helpers in `discover/personaActions.js`). My Library should
+  drain these into `plans` / `lessons` / `notebook`.
+- Hebrew non-exact queries also hit Dicta (inside `execute_query`); unreachable from the sandbox, fine on
+  the cauldron.
+- `aggregationsToUpdate` is requested only on a fresh query; with facets already applied from the URL the
+  tree is the filtered one ("Clear filters" widens it).
+- Sandbox only: the egress proxy allows no POST to sefaria.org, so the harness serves a recorded
+  `search-wrapper` fixture (`x-dev-fixture` header; also `SEARCH_FIXTURE=1`); it also rejects any path with
+  `;` (e.g. the ref "Moses; A Human Life"), so those previews fall back to per-ref requests and show no text.
+- Foundation fix made here: `store.js` `notify()` iterates a copy of the listener set (a subscriber that
+  re-subscribes while being notified otherwise loops forever); `useKv` callers should pass a stable fallback.
 
 ## Open issues for the next wave
 
@@ -220,3 +274,5 @@ Hand-offs / open issues:
 - `/topics/<slug>` links from Who's who assume the discover agent's `topic` route.
 - The `.husky/pre-commit` hook cannot run in a worktree (`_/husky.sh` missing); commits used `--no-verify` after the
   build + jest gate.
+
+- Header search suggestions (`Sefaria.getName()`) shipped with discover (`suggestionsFrom` in `Shell.jsx`).

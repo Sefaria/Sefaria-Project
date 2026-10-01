@@ -13,6 +13,7 @@ import { useContentLang, CONTENT_LANGS, CONTENT_LANG_LABELS } from './contentLan
 import { toast, openModal, closeModal, dismissToast, useOverlays } from './overlays';
 import AssistantDock, { AssistantHeaderButton } from './AssistantDock';
 import Onboarding, { openOnboarding } from './Onboarding';
+import Sefaria from '../sefaria/sefaria';
 import './styles/tokens.css';
 import './styles/base.css';
 import './styles/shell.css';
@@ -25,26 +26,75 @@ const Logo = ({ lang }) => (
   </Link>
 );
 
+const SUGGEST_TYPES = { ref: 1, Topic: 1, PersonTopic: 1, AuthorTopic: 1, TocCategory: 1 };
+
+/** `/api/name` completions (books, refs, topics, categories) → `{ key, title, type, href }`. */
+export function suggestionsFrom(data) {
+  const out = [];
+  for (const o of (data && data.completion_objects) || []) {
+    if (!SUGGEST_TYPES[o.type]) { continue; }
+    const href = o.type === 'ref' ? `/${String(o.key).replace(/ /g, '_')}`
+      : o.type === 'TocCategory' ? `/texts/${[].concat(o.key).join('/')}`
+        : `/topics/${o.key}`;
+    out.push({ key: `${o.type}:${o.key}`, title: o.title, type: o.type === 'ref' ? 'ref' : (o.type === 'TocCategory' ? 'category' : 'topic'), href });
+  }
+  return out.slice(0, 8);
+}
+
 function SearchBox({ t }) {
   const route = useRoute();
   const initial = route && route.route.name === 'search' ? (route.query.q || '') : '';
   const [q, setQ] = useState(initial);
+  const [items, setItems] = useState([]);
+  const [active, setActive] = useState(-1);
+  const [open, setOpen] = useState(false);
   useEffect(() => { setQ(initial); }, [initial]);
+  useEffect(() => {
+    const query = q.trim();
+    if (query.length < 2 || !Sefaria.getName) { setItems([]); return undefined; }
+    let live = true;
+    const timer = setTimeout(() => {
+      Promise.resolve(Sefaria.getName(query, 8)).then(d => { if (live) { setItems(suggestionsFrom(d)); setActive(-1); } }).catch(() => { if (live) { setItems([]); } });
+    }, 180);
+    return () => { live = false; clearTimeout(timer); };
+  }, [q]);
+  const go = (href) => { setOpen(false); setItems([]); navigate(href); };
   const submit = (e) => {
     e.preventDefault();
+    if (open && active >= 0 && items[active]) { go(items[active].href); return; }
     const query = q.trim();
-    if (query) { navigate(`/search?q=${encodeURIComponent(query)}`); }
+    if (query) { setOpen(false); navigate(`/search?q=${encodeURIComponent(query)}`); }
   };
+  const onKey = (e) => {
+    if (!items.length) { return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); setOpen(true); setActive(a => (a + 1) % items.length); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setOpen(true); setActive(a => (a <= 0 ? items.length - 1 : a - 1)); }
+    else if (e.key === 'Escape') { setOpen(false); setActive(-1); }
+  };
+  const listOpen = open && items.length > 0;
   return (
     <form className="ln-search" role="search" onSubmit={submit} action="/search" method="get">
       <label className="ln-sr-only" htmlFor="ln-search-input">{t('search.label')}</label>
-      <input id="ln-search-input" name="q" type="search" value={q} onChange={e => setQ(e.target.value)}
-             placeholder={t('search.placeholder')} autoComplete="off" />
+      <input id="ln-search-input" name="q" type="search" value={q} onChange={e => { setQ(e.target.value); setOpen(true); }}
+             onFocus={() => setOpen(true)} onBlur={() => setTimeout(() => setOpen(false), 120)} onKeyDown={onKey}
+             placeholder={t('search.placeholder')} autoComplete="off" role="combobox" aria-autocomplete="list"
+             aria-expanded={listOpen} aria-controls="ln-search-suggest" aria-activedescendant={listOpen && active >= 0 ? `ln-suggest-${active}` : undefined} />
       <button type="submit" className="ln-search-submit" aria-label={t('search.submit')}>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
           <circle cx="10.5" cy="10.5" r="6" /><path d="M15 15l5 5" />
         </svg>
       </button>
+      {listOpen && (
+        <ul className="ln-suggest" id="ln-search-suggest" role="listbox">
+          {items.map((item, i) => (
+            <li key={item.key} id={`ln-suggest-${i}`} role="option" aria-selected={i === active} className={`ln-suggest-item ${i === active ? 'active' : ''}`}
+                onMouseDown={e => { e.preventDefault(); go(item.href); }} onMouseEnter={() => setActive(i)}>
+              <span className="ln-suggest-title">{item.title}</span>
+              <span className="ln-suggest-type">{t(`search.type.${item.type}`)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
     </form>
   );
 }

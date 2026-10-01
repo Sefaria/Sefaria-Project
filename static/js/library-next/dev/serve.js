@@ -16,6 +16,8 @@
  *   /static/*         local static/ first, then upstream
  *   /vendor/*         React, ReactDOM and jQuery from node_modules (what the CDNs serve in production)
  *   /api/*, /_api/*, /data*.js, /searchapi/*, /site.webmanifest   proxied to UPSTREAM (data.js cached in memory)
+ *   POST /api/search-wrapper/*   proxied; a recorded fixture is served when the egress policy blocks
+ *                                POST (403 + x-proxy-error) or SEARCH_FIXTURE=1 (header x-dev-fixture)
  *
  * Egress honours HTTPS_PROXY (CONNECT tunnel, core modules only) and NODE_EXTRA_CA_CERTS
  * (default /root/.ccr/ca-bundle.crt when present).
@@ -33,6 +35,15 @@ const UPSTREAM = new URL(process.env.UPSTREAM || 'https://www.sefaria.org');
 const STATS = path.join(ROOT, 'node/webpack-stats.client-library-next.json');
 const BUNDLE_DIR = path.join(ROOT, 'static/bundles/client-library-next');
 const PROXIED_PREFIXES = ['/api/', '/_api/', '/searchapi/', '/data', '/site.webmanifest', '/apple-app-site-association'];
+// POST /api/search-wrapper/* needs an upstream that accepts POST. When the egress policy refuses it
+// (the agent proxy answers 403 with x-proxy-error) or SEARCH_FIXTURE=1 is set, a recorded response
+// is served instead so the search page can still be exercised; the response says so in x-dev-fixture.
+const SEARCH_FIXTURE = path.join(ROOT, 'static/js/library-next/discover/tests/fixtures/search-wrapper.json');
+const isSearchWrapper = (url) => url.pathname.startsWith('/api/search-wrapper');
+function serveSearchFixture(res, reason) {
+  res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store', 'x-dev-fixture': reason });
+  fs.createReadStream(SEARCH_FIXTURE).pipe(res);
+}
 const CA_BUNDLE = process.env.NODE_EXTRA_CA_CERTS || (fs.existsSync('/root/.ccr/ca-bundle.crt') ? '/root/.ccr/ca-bundle.crt' : null);
 const CA = CA_BUNDLE && fs.existsSync(CA_BUNDLE) ? [...tls.rootCertificates, fs.readFileSync(CA_BUNDLE, 'utf8')] : undefined;
 const PROXY = process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy || null;
@@ -181,6 +192,10 @@ function connectUpstream(host) {
 const dataCache = new Map();  // /data*.js bodies for the life of the process
 
 async function proxyUpstream(req, res, url) {
+  if (req.method === 'POST' && isSearchWrapper(url) && process.env.SEARCH_FIXTURE === '1') {
+    req.resume();
+    return serveSearchFixture(res, 'search-wrapper (SEARCH_FIXTURE=1)');
+  }
   const cacheable = req.method === 'GET' && url.pathname.startsWith('/data');
   if (cacheable && dataCache.has(url.pathname)) {
     const hit = dataCache.get(url.pathname);
@@ -203,6 +218,10 @@ async function proxyUpstream(req, res, url) {
     host: UPSTREAM.hostname, port: 443, method: req.method, path: url.pathname + url.search, headers,
     createConnection: () => socket,
   }, (upstreamRes) => {
+    if (req.method === 'POST' && isSearchWrapper(url) && upstreamRes.statusCode === 403 && upstreamRes.headers['x-proxy-error']) {
+      upstreamRes.resume();
+      return serveSearchFixture(res, 'search-wrapper (upstream POST blocked by egress policy)');
+    }
     const outHeaders = { ...upstreamRes.headers };
     delete outHeaders['set-cookie'];
     delete outHeaders['content-security-policy'];
