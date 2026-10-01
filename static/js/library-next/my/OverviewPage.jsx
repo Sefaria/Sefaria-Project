@@ -8,6 +8,7 @@ import { collectionOptions, getStreak, counts, bookOf } from './collections';
 import { sectionsFor, FEATURED } from './nav';
 import Heatmap from './Heatmap';
 import { RefLink, Empty, timeAgo, pick, useStoreTick } from './bits';
+import { INBOX, useInbox, removeFromInbox } from './inbox';
 
 const QUICK = {
   plans: { to: '/my/plans?new=1', key: 'my.quick.newPlan' },
@@ -47,6 +48,7 @@ export default function OverviewPage() {
   const tiles = sectionsFor(persona).filter(s => s.id !== 'overview' && s.id !== 'data');
   const quick = (FEATURED[persona] || []).map(id => ({ id, ...QUICK[id] }));
   const start = persona === 'newcomer' ? startHereProgress(history) : null;
+  const searches = useInbox(INBOX.searches);
 
   return (
     <div className="ln-my-overview">
@@ -92,6 +94,23 @@ export default function OverviewPage() {
               </li>
             ))}
           </ol>
+        </section>
+      )}
+
+      {searches.length > 0 && (
+        <section className="ln-my-section" aria-labelledby="my-searches">
+          <h2 id="my-searches" className="ln-section-title">{t('my.searches.title')}</h2>
+          <ul className="ln-my-list">
+            {searches.map(s => (
+              <li key={s.url} className="ln-card ln-my-row">
+                <Link to={s.url} className="ln-my-ref ln-my-row-title">{s.q}{s.exact ? ` · ${t('my.searches.exact')}` : ''}</Link>
+                <span className="ln-row">
+                  <span className="ln-small ln-muted ln-my-row-meta">{timeAgo(s.ts, lang)}</span>
+                  <button type="button" className="ln-icon-button" aria-label={t('my.searches.forget')} onClick={() => removeFromInbox(INBOX.searches, s)}>×</button>
+                </span>
+              </li>
+            ))}
+          </ul>
         </section>
       )}
 

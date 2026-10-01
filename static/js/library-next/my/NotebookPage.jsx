@@ -7,6 +7,8 @@ import { collectionOptions, addNotebookEntry, citationFor } from './collections'
 import { notebookToBibTeX, notebookToCSV, notebookToJSON, download } from './exportFormats';
 import { fetchPreview } from './data';
 import { RefLink, BiText, Empty, ConfirmButton, formatDate, copyText, hasHebrew } from './bits';
+import InboxCard from './InboxCard';
+import { INBOX, inboxTitle } from './inbox';
 
 function EntryForm({ onDone, t }) {
   const [ref, setRef] = useState('');
@@ -77,6 +79,17 @@ function EntryForm({ onDone, t }) {
   );
 }
 
+/** Fold a notebook inbox item into an entry: a ref as itself; a topic under `topics/<slug>` (links to the topic) with its citation and description. */
+export function drainNotebookItem(item, { lang }) {
+  if (item.ref) {
+    addNotebookEntry({ ref: item.ref, heTitle: item.heRef, text: item.snippet || '' });
+    return 1;
+  }
+  const title = inboxTitle(item, lang);
+  addNotebookEntry({ ref: `topics/${item.topic}`, title, heTitle: typeof item.title === 'object' ? (item.title.he || '') : '', text: item.text || '', citation: item.citation || '' });
+  return 1;
+}
+
 export default function NotebookPage({ query = {} }) {
   const { t, lang } = useT();
   const { items, remove } = useCollection('notebook', collectionOptions('notebook'));
@@ -93,6 +106,7 @@ export default function NotebookPage({ query = {} }) {
         <span className="ln-small ln-muted">{t('my.notebook.export')}</span>
         {['bibtex', 'csv', 'json'].map(k => <button key={k} type="button" className="ln-btn" disabled={!items.length} onClick={() => exportAs(k)}>{t(`my.notebook.export.${k}`)}</button>)}
       </div>
+      <InboxCard inboxKey={INBOX.notebook} hintKey="my.inbox.hint.notebook" addLabelKey="my.inbox.addToNotebook" onAdd={item => drainNotebookItem(item, { lang })} />
       {showForm && <EntryForm onDone={() => setCreating(false)} t={t} />}
       {items.length === 0 ? (
         <Empty>{t('my.notebook.empty')}</Empty>

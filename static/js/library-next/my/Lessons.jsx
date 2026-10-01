@@ -8,12 +8,14 @@ import { useT } from '../i18n';
 import { Link, navigate } from '../router';
 import { useCollection } from '../store';
 import { toast } from '../overlays';
-import { collectionOptions, createLesson, updateLesson, addSourceToLesson, classCode } from './collections';
+import { collection, collectionOptions, createLesson, updateLesson, addSourceToLesson, classCode } from './collections';
 import { generateQuestions, assistantPrompt } from './questions';
 import { lessonShareUrl, decodeShare, shareToLesson } from './share';
 import { askAssistant } from './assistant';
 import { fetchPreview } from './data';
 import { RefLink, BiText, Empty, ConfirmButton, Simulated, formatDate, copyText, hasHebrew } from './bits';
+import InboxCard from './InboxCard';
+import { INBOX, topicSourceRefs, lessonSourceFor } from './inbox';
 
 const questionText = (q, lang) => (lang === 'he' ? q.he || q.en : q.en || q.he);
 
@@ -21,6 +23,25 @@ async function share(lesson, t) {
   const url = lessonShareUrl(lesson);
   if (await copyText(url)) { toast(t('my.lessons.linkCopied')); return null; }
   return url;
+}
+
+/**
+ * Fold a lesson inbox item into `lesson` (or the newest / a new one): a ref becomes one source with
+ * its text, a topic its notable sources. Resolves to the number of sources added.
+ */
+export async function drainLessonItem(item, { t, lang, lessonId }) {
+  const refs = item.ref ? [item.ref] : await topicSourceRefs(item.topic, { lang, limit: 3 });
+  if (!refs.length) { return 0; }
+  const lessons = collection('lessons');   // read now: "add all" drains several in a row
+  let target = (lessonId && lessons.get(lessonId)) || lessons.list()[0] || createLesson({ title: t('my.inbox.lessonTitle') });
+  let added = 0;
+  for (const ref of refs) {
+    if (target.sources.some(s => s.ref === ref)) { continue; }
+    const source = await lessonSourceFor(ref, { heRef: item.ref ? item.heRef : '' });   // eslint-disable-line no-await-in-loop
+    target = addSourceToLesson(target.id, source) || target;
+    added += 1;
+  }
+  return added || refs.length;   // already in the lesson: still drained
 }
 
 // ---- list ---------------------------------------------------------------------------------------
@@ -34,6 +55,7 @@ export function LessonsPage() {
       <div className="ln-row">
         <Link className="ln-btn ln-btn-primary" to="/my/lessons/new">{t('my.lessons.new')}</Link>
       </div>
+      <InboxCard inboxKey={INBOX.lesson} hintKey="my.inbox.hint.lesson" addLabelKey="my.inbox.addToLesson" onAdd={item => drainLessonItem(item, { t, lang })} />
       {items.length === 0 ? (
         <Empty>{t('my.lessons.empty')}</Empty>
       ) : (
@@ -174,6 +196,7 @@ export function LessonEditor({ lessonId, isNew = false }) {
         {lesson.sources.length ? (
           <ul className="ln-my-list">{lesson.sources.map((s, i) => <SourceRow key={s.id} lesson={lesson} source={s} index={i} t={t} />)}</ul>
         ) : <Empty>{t('my.lessons.noSources')}</Empty>}
+        <InboxCard inboxKey={INBOX.lesson} hintKey="my.inbox.hint.lessonHere" addLabelKey="my.inbox.addToThisLesson" onAdd={item => drainLessonItem(item, { t, lang, lessonId: lesson.id })} />
         <form className="ln-my-inline-form" onSubmit={addSource}>
           <input className="ln-input" value={ref} onChange={e => { setRef(e.target.value); setError(''); }} placeholder={t('my.lessons.addSourceHint')} aria-label={t('my.lessons.addSource')} required />
           <button type="submit" className="ln-btn" disabled={busy || !ref.trim()}>{busy ? t('my.working') : t('my.lessons.addSource')}</button>

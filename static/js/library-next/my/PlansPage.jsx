@@ -5,7 +5,9 @@ import { Link } from '../router';
 import { useCollection } from '../store';
 import { useContentLang } from '../contentLang';
 import { toast } from '../overlays';
-import { collectionOptions, createPlan, updatePlan, markPlanUnitDone, bookOf } from './collections';
+import { collection, collectionOptions, createPlan, updatePlan, markPlanUnitDone, addToPlan, bookOf } from './collections';
+import InboxCard from './InboxCard';
+import { INBOX, topicSourceRefs } from './inbox';
 import { planFromIndex, scheduleFor, nextUnit } from './schedule';
 import { dayKey } from './dates';
 import { fetchIndex, fetchCalendars, suggestBooks, refUrl } from './data';
@@ -146,6 +148,22 @@ function PlanCard({ plan, remove, t, lang, contentLang }) {
   );
 }
 
+/** Fold a plan inbox item into the newest plan (or a new one): a ref is one unit, a topic its notable sources. */
+export async function drainPlanItem(item, { t, lang }) {
+  const units = item.ref
+    ? [{ ref: item.ref, label: item.ref, heLabel: item.heRef || '' }]
+    : (await topicSourceRefs(item.topic, { lang })).map(ref => ({ ref, label: ref }));
+  if (!units.length) { return 0; }
+  const target = collection('plans').list()[0] || createPlan({ title: t('my.inbox.planTitle'), units: [] });   // read now: "add all" drains several in a row
+  let added = 0;
+  for (const unit of units) {
+    const before = (target.units || []).length;
+    const after = addToPlan(target.id, unit);
+    if (after && after.units.length > before) { target.units = after.units; added += 1; }
+  }
+  return added || units.length;   // every unit was already there: still drained
+}
+
 export default function PlansPage({ query = {} }) {
   const { t, lang } = useT();
   const [contentLang] = useContentLang();
@@ -154,6 +172,7 @@ export default function PlansPage({ query = {} }) {
   const showForm = creating || plans.length === 0;
   return (
     <div className="ln-my-plans">
+      <InboxCard inboxKey={INBOX.plan} hintKey="my.inbox.hint.plan" addLabelKey="my.inbox.addToPlan" onAdd={item => drainPlanItem(item, { t, lang })} />
       {!showForm && <div className="ln-row"><button type="button" className="ln-btn ln-btn-primary" onClick={() => setCreating(true)}>{t('my.plans.new')}</button></div>}
       {showForm && <NewPlanForm onDone={() => setCreating(false)} t={t} lang={lang} />}
       {plans.length === 0 ? (
