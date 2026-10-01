@@ -105,10 +105,10 @@ function InterfaceLangToggle({ t, lang }) {
   );
 }
 
-export function ContentLangControl({ t, compact = false }) {
+export function ContentLangControl({ t, compact = false, className = '' }) {
   const [contentLang, setContentLang] = useContentLang();
   return (
-    <div className={`ln-segmented ${compact ? 'compact' : ''}`} role="radiogroup" aria-label={t('contentLang.label')}>
+    <div className={`ln-segmented ${compact ? 'compact' : ''} ${className}`} role="radiogroup" aria-label={t('contentLang.label')}>
       {CONTENT_LANGS.map(code => (
         <button key={code} type="button" role="radio" aria-checked={contentLang === code}
                 className={`ln-segment ${contentLang === code ? 'active' : ''}`} onClick={() => setContentLang(code)}>
@@ -168,8 +168,8 @@ export default function Shell({ children, user }) {
             <Link to="/calendars">{t('nav.calendars')}</Link>
           </nav>
           <SearchBox t={t} />
+          <ContentLangControl t={t} compact className="ln-header-lang" />
           <div className="ln-header-tools">
-            <ContentLangControl t={t} compact />
             <PersonaChip t={t} lang={lang} />
             <InterfaceLangToggle t={t} lang={lang} />
             <Link to="/my" className="ln-my-link">{t('nav.my')}</Link>
