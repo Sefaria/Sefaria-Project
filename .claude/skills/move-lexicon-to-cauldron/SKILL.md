@@ -1,7 +1,7 @@
 ---
 name: move-lexicon-to-cauldron
 description: |
-  Copies a Sefaria lexicon (its lexicon record, lexicon entries, word forms, and — if the lexicon has an index_title — its Index, version, and optionally links) from the user's LOCAL Sefaria database to an existing cauldron, by interviewing the user and then running Sefaria-Project's scripts/move_draft_lexicon.py with the right arguments. Works on Mac/Linux, and on Windows when Sefaria runs inside WSL. Use when the user asks to "move a lexicon/dictionary to a cauldron", "push my local lexicon to <cauldron>", "copy lexicon entries / word forms to a cauldron", or mentions move_draft_lexicon.py. Only targets https://www.<name>.cauldron.sefaria.org — never production.
+  Copies a Sefaria lexicon (its lexicon record, lexicon entries, word forms, and — if the lexicon has an index_title — its Index, version, and optionally links) from the user's LOCAL Sefaria database to an existing cauldron, by interviewing the user and then running Sefaria-Project's scripts/move_draft_lexicon.py with the right arguments. Works on Mac/Linux, and on Windows when Claude runs inside WSL (after cauldron-setup). Use when the user asks to "move a lexicon/dictionary to a cauldron", "push my local lexicon to <cauldron>", "copy lexicon entries / word forms to a cauldron", or mentions move_draft_lexicon.py. Only targets https://www.<name>.cauldron.sefaria.org — never production.
 ---
 
 # Move a lexicon from local Sefaria to a cauldron
@@ -15,10 +15,14 @@ Wraps `scripts/move_draft_lexicon.py`, which reads a lexicon from the local Mong
 
 Nothing is ever deleted on the cauldron. Entries and word forms are matched by their Mongo `_id` (they keep their local `_id` on the cauldron), not by headword/form, since neither is unique. So a re-run updates instead of duplicating, and a headword renamed locally is renamed on the cauldron. On an existing word form, only this lexicon's lookups are replaced; other lexicons' lookups are kept. The lexicon goes before the Index because a dictionary Index looks its lexicon up by name.
 
+## Before anything else — run git-update
+
+Run the `git-update` skill first, before any other step. If it stops, stop this skill too. If it succeeds, go on to Step 0 without saying anything.
+
 ## How to talk to the user
 
 The user is a longtime Sefaria employee. Keep the conversation bare-bones. The only things you say to the user are:
-1. **Setup problems**, one line each (API key, WSL repo path, cauldron not responding / missing the lexicon endpoints).
+1. **Setup problems**, one line each (the `git-update` skill's own messages, out-of-date setup file, API key, cauldron not responding / missing the lexicon endpoints).
 2. **One message with the questions** (Step 2).
 3. **A one-line confirmation** before running (Step 4).
 4. **Errors**, one short line each, saying which part failed (lexicon / entries / word forms / term / category / Index / version / links).
@@ -34,13 +38,13 @@ Do not explain Sefaria basics (lexicons, entries, word forms, versions, links, c
 - **Get an explicit "yes" to the one-line confirmation before running** (Step 4). It writes to a shared environment.
 - Do not edit `move_draft_lexicon.py`, `move_draft_text.py`, or any other Sefaria code.
 
-## Step 0 — Which kind of machine (silent)
+## Step 0 — Setup file (silent)
 
-Follow **Step 0** of `.claude/skills/move-text-to-cauldron/SKILL.md` exactly (the `~/.sefaria/cauldron-setup.md` setup file, direct mode vs. WSL mode, finding `<WSL-repo>` and `<WSL-scratchpad>`, and how to run a command "in Sefaria's shell"). When it says to confirm the repo path, check for `scripts/move_draft_lexicon.py` instead of `scripts/move_draft_text.py`. If Step 0 used the setup file, its `<prefix>` (Python setup and API-key loading) goes in front of this skill's `cd <Sefaria-Project>` commands and its API key check too.
+Follow **Step 0** of `.claude/skills/move-text-to-cauldron/SKILL.md` exactly (the `~/.sefaria/cauldron-setup.md` setup file and finding `<Sefaria-Project>`). When it checks the repo path, check for `scripts/move_draft_lexicon.py` instead of `scripts/move_draft_text.py`. If Step 0 used the setup file, its `<prefix>` (Python setup and API-key loading) goes in front of this skill's `cd <Sefaria-Project>` commands and its API key check too.
 
 ## Step 1 — Look up the lexicon (silent)
 
-`<Sefaria-Project>` is the repo root: the setup file's `sefaria_project:` if Step 0 used it, otherwise `git rev-parse --show-toplevel` in direct mode and `<WSL-repo>` in WSL mode. If no lexicon name was given, ask for one. Then run in Sefaria's shell:
+`<Sefaria-Project>` is the repo root from Step 0. If no lexicon name was given, ask for one. Then run:
 
 ```bash
 cd <Sefaria-Project> && PYTHONPATH=. DJANGO_SETTINGS_MODULE=sefaria.settings \
@@ -54,7 +58,7 @@ It prints one JSON object: `found`, `name`, `entry_count`, `word_form_count`, `i
 - `index_title` set but `versions_found` empty → note it; the Index will be sent with no version. Mention this in the confirmation line (Step 4).
 - Python can't import Sefaria/Django → ask how they run Sefaria locally (virtualenv / pyenv version) and retry.
 
-Also check the API key silently, exactly as in **Step 1** of `.claude/skills/move-text-to-cauldron/SKILL.md` (direct-mode and WSL-mode checks and the one-line messages). It uses the same `SEFARIA_CAULDRON_API_KEY`.
+Also check the API key silently, exactly as in **Step 1** of `.claude/skills/move-text-to-cauldron/SKILL.md` (the check and its one-line messages). It uses the same `SEFARIA_CAULDRON_API_KEY`.
 
 ## Step 2 — Ask the questions (one message)
 
@@ -101,8 +105,6 @@ Leave out the Index/version/links parts when there's no `index_title`; say "no l
 
 ## Step 5 — Run it (silent)
 
-Run in Sefaria's shell. In WSL mode, `<scratchpad>` below is `<WSL-scratchpad>`.
-
 ```bash
 cd <Sefaria-Project> && env -u SLACK_URL ./run move_draft_lexicon.py '<name>' \
   -d "$DEST" -k "$SEFARIA_CAULDRON_API_KEY" \
@@ -112,7 +114,7 @@ cd <Sefaria-Project> && env -u SLACK_URL ./run move_draft_lexicon.py '<name>' \
 ```
 
 - Wrap the name in single quotes; write each `'` inside it as `'\''`.
-- Write `$DEST` out as the actual URL (in WSL mode, `step.sh` can't see Git Bash's variables). Leave `$SEFARIA_CAULDRON_API_KEY` as a variable — never write the key's value.
+- Leave `$SEFARIA_CAULDRON_API_KEY` as a variable — never write the key's value.
 - Big lexicons (100k+ word forms) take a long time: run it in the background and wait for it to finish.
 
 ## Step 6 — Check the output, verify, report
@@ -130,7 +132,7 @@ followed by `move_draft_text.py`'s own output for the Index, version, and links.
 
 Real errors:
 - `lexicon: {"error": ...}` → nothing else was sent. `Only Sefaria Moderators ...` / `Unrecognized API key` = key problem; `Unknown Lexicon fields: ...` = the cauldron's code doesn't know those fields yet.
-- `entries error:` / `word-forms error:` lines (one per rejected record, with its `_id`), and batch lines like `entries 0-500: {"error": ...}` (the whole batch failed). Group them by message with a short Python script over the log rather than reading them by eye (in WSL mode, run it in Sefaria's shell). Known messages:
+- `entries error:` / `word-forms error:` lines (one per rejected record, with its `_id`), and batch lines like `entries 0-500: {"error": ...}` (the whole batch failed). Group them by message with a short Python script over the log rather than reading them by eye. Known messages:
   - `Unknown <Class> fields: [...]` = the cauldron's code doesn't know those fields.
   - `Entry of <lexicon> with headword <hw> already exists` = the cauldron has that headword under a different `_id`, usually because the lexicon was regenerated on production after the local database was copied. Say how many, in one line; the upload can't match those entries.
   - `would not resolve as a ref`, or schema errors like `{'alt_headwords': ...}` = the local entry itself fails Sefaria's validation. Report as is.

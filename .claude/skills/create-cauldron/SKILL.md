@@ -15,6 +15,10 @@ This skill runs `create-cauldron.sh` from the `Sefaria/cauldrons` repo as `./cre
 
 If the user wants any non-default option (pin to a commit, a different database backup, `--dryrun`, `--linker`, `--tasks`, `--secret`, …), tell them this skill only makes default cauldrons, and show them the `create-cauldron.sh --help` usage so they can run it themselves.
 
+## Before anything else — run git-update
+
+Run the `git-update` skill first, before any other step. If it stops, stop this skill too. If it succeeds, go on to the rest of this skill without saying anything.
+
 ## What the script actually does (explain this to the user before running it)
 
 It doesn't talk to the cluster directly. It writes a small config file named `<name>.yaml`, **commits it, and pushes it straight to the `main` branch of the shared `Sefaria/cauldrons` GitHub repo**, under the user's GitHub identity. A deployment tool running in the cluster (Flux) watches that repo and builds the cauldron from the file within a few minutes. So:

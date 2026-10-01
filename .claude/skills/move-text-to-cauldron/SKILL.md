@@ -1,17 +1,21 @@
 ---
 name: move-text-to-cauldron
 description: |
-  Copies a Sefaria book (its index/schema, chosen text versions, and optionally its links) from the user's LOCAL Sefaria database to an existing cauldron, by interviewing the user and then running Sefaria-Project's scripts/move_draft_text.py with the right arguments. Works on Mac/Linux, and on Windows when Sefaria runs inside WSL. Use when the user asks to "move a text to a cauldron", "push my local text/book/version to <cauldron>", "copy a draft text to a cauldron", "deploy content to a cauldron", or mentions move_draft_text.py. Only targets https://www.<name>.cauldron.sefaria.org — never production.
+  Copies a Sefaria book (its index/schema, chosen text versions, and optionally its links) from the user's LOCAL Sefaria database to an existing cauldron, by interviewing the user and then running Sefaria-Project's scripts/move_draft_text.py with the right arguments. Works on Mac/Linux, and on Windows when Claude runs inside WSL (after cauldron-setup). Use when the user asks to "move a text to a cauldron", "push my local text/book/version to <cauldron>", "copy a draft text to a cauldron", "deploy content to a cauldron", or mentions move_draft_text.py. Only targets https://www.<name>.cauldron.sefaria.org — never production.
 ---
 
 # Move a text from local Sefaria to a cauldron
 
 Wraps `scripts/move_draft_text.py`, which reads a book from the local Mongo database and posts it to a cauldron over its web API, using an API key. It sends, in order: terms/categories the book needs, the index (unless `--noindex`), the versions requested with `-v`, and links (if `-l 1` or `-l 2`).
 
+## Before anything else — run git-update
+
+Run the `git-update` skill first, before any other step. If it stops, stop this skill too. If it succeeds, go on to Step 0 without saying anything.
+
 ## How to talk to the user
 
 The user is a longtime Sefaria employee. Keep the conversation bare-bones. The only things you say to the user are:
-1. **Setup problems**, one line each: the API-key message (Step 1), and in WSL mode the one-time repo-path question (Step 0) if it's needed.
+1. **Setup problems**, one line each: the setup-file message (Step 0), the API-key message (Step 1), and the `git-update` skill's own one-line messages if it stops.
 2. **One message with the three questions**: versions, links, cauldron (Step 2).
 3. **A one-line confirmation** before running (Step 4).
 4. **Errors**, one short line each, saying which part failed (term / category / index / which version / links).
@@ -27,58 +31,23 @@ Do not explain Sefaria basics (versions, the `he`/`en` language field, `[xx]` ta
 - **Get an explicit "yes" to the one-line confirmation before running** (Step 4). It writes to a shared environment.
 - Do not edit `move_draft_text.py` or any other Sefaria code.
 
-## Step 0 — Which kind of machine (silent)
+## Step 0 — Setup file (silent)
 
-First run `cat ~/.sefaria/cauldron-setup.md 2>/dev/null`. The `cauldron-setup` skill writes this file on Windows+WSL machines. It never contains the key. If the file exists and says `wsl: yes`:
-- Claude is running inside WSL: use **direct mode**.
+`git-update` has already stopped the skill if Claude is running on plain Windows, so this is either a Mac/Linux computer or a Claude session inside WSL. Every command in this skill runs directly.
+
+Run `cat ~/.sefaria/cauldron-setup.md 2>/dev/null`. The `cauldron-setup` skill writes this file on Windows computers, where Claude runs inside WSL. It never contains the key. There is no such file on a Mac.
+
+**No file** → `<Sefaria-Project>` is `git rev-parse --show-toplevel`. Run every command in this skill as written.
+
+**The file exists:**
 - `<Sefaria-Project>` is its `sefaria_project:` value. If `test -f <Sefaria-Project>/scripts/move_draft_text.py` fails, say `~/.sefaria/cauldron-setup.md is out of date. Run the cauldron-setup skill again.` and stop.
 - Build `<prefix>` and put it in front of every command in this skill that starts with `cd <Sefaria-Project>`, and in front of the Step 1 key check:
   - the `python_setup:` line followed by ` && `, unless it says `(none needed)`;
   - if there's an `api_key_file:` line, `eval "$(grep -E '^[[:space:]]*(export[[:space:]]+)?SEFARIA_CAULDRON_API_KEY=' <api_key_file> | tail -1)" && export SEFARIA_CAULDRON_API_KEY && `. This loads just that one line from the file, wherever it is in the file, and prints nothing.
-- Skip the rest of Step 0.
-
-Otherwise, run `uname -s`.
-
-- `Darwin` or `Linux` → **direct mode**. Run every command in this skill as written.
-- Starts with `MINGW`, `MSYS`, or `CYGWIN` → **WSL mode**. Claude is running on Windows (through Git Bash), but Sefaria, its Python, its Mongo, and the API key all live inside WSL. Every command that touches Sefaria must be sent into WSL.
-
-### WSL mode setup (once per session)
-
-Git Bash rewrites any argument that starts with `/` into a Windows path, which mangles Linux paths passed to `wsl.exe`. Put `MSYS_NO_PATHCONV=1` in front of every `wsl.exe` call.
-
-1. Find the repo's path inside WSL:
-
-   ```bash
-   MSYS_NO_PATHCONV=1 wsl.exe wslpath -a -u "$(cygpath -w "$(git rev-parse --show-toplevel)")"
-   ```
-
-   Confirm it with `MSYS_NO_PATHCONV=1 wsl.exe test -f "<path>/scripts/move_draft_text.py" && echo ok`. If either command fails, ask once, in one line: `What's the path to Sefaria-Project inside WSL? (e.g. /home/you/Sefaria-Project)`. Call the result `<WSL-repo>`.
-
-2. Find the scratchpad's path inside WSL:
-
-   ```bash
-   MSYS_NO_PATHCONV=1 wsl.exe wslpath -a -u "$(cygpath -w "<scratchpad>")"
-   ```
-
-   Call it `<WSL-scratchpad>`.
-
-Shell state doesn't carry between tool calls, so remember both paths yourself.
-
-**Running a command "in Sefaria's shell".** In direct mode, just run it. In WSL mode, write it to `<scratchpad>/step.sh` with the Write tool — using `<WSL-repo>` and `<WSL-scratchpad>` for any paths inside it — then run:
-
-```bash
-MSYS_NO_PATHCONV=1 wsl.exe bash -l "<WSL-scratchpad>/step.sh"
-```
-
-Notes for WSL mode:
-- `bash -l` is a login shell. It reads the first of `~/.bash_profile`, `~/.bash_login`, `~/.profile` that exists in WSL. That file is where the API key must be. It is re-read on every call, so a newly added key works without restarting the session.
-- Ubuntu's `~/.bashrc` stops early for non-interactive shells, so anything set up there (pyenv, a virtualenv, the API key) is skipped. If Python can't import Sefaria/Django, ask how they run Sefaria locally and add the activation line (e.g. `source ~/venvs/sefaria/bin/activate`) at the top of `step.sh`.
-- If the output contains `$'\r': command not found`, `step.sh` got Windows line endings. Fix with `MSYS_NO_PATHCONV=1 wsl.exe sed -i 's/\r$//' "<WSL-scratchpad>/step.sh"` and rerun.
-- `curl` (Steps 3 and 6) works in Git Bash as is; don't send it into WSL.
 
 ## Step 1 — Look up the book (silent)
 
-`<Sefaria-Project>` is the repo root: the setup file's `sefaria_project:` if Step 0 used it, otherwise `git rev-parse --show-toplevel` in direct mode and `<WSL-repo>` in WSL mode. If no title was given, ask for one. Then run in Sefaria's shell:
+`<Sefaria-Project>` is the repo root from Step 0. If no title was given, ask for one. Then run:
 
 ```bash
 cd <Sefaria-Project> && PYTHONPATH=. DJANGO_SETTINGS_MODULE=sefaria.settings \
@@ -92,8 +61,6 @@ It prints one JSON object: `found`, canonical `title`, `categories`, local `vers
 
 Also check the API key silently. The check prints only file names, never the key.
 
-**Direct mode:**
-
 ```bash
 if [ -n "$SEFARIA_CAULDRON_API_KEY" ]; then echo "key is set"; else
   echo "key is NOT set"; echo "shell: $(basename "$SHELL")"
@@ -106,18 +73,6 @@ If Step 0 used the setup file (run the check with `<prefix>` in front) and the k
 Claude reads one startup file when a session starts: `~/.zshrc` if the shell is `zsh`, `~/.bashrc` if it's `bash`. Call that `<rc>` (for any other shell, say "your shell's startup file"). If the key isn't set:
 - Not found in `<rc>`: say `SEFARIA_CAULDRON_API_KEY isn't set. Add it to <rc> and restart the session.` If `grep` found it in another file, add ` (It's in <that file>, which Claude doesn't read.)` Then stop.
 - Found in `<rc>`: say `SEFARIA_CAULDRON_API_KEY is in <rc> but not loaded. Restart the session; if that doesn't help, check that line.` and stop.
-
-**WSL mode** (run in Sefaria's shell):
-
-```bash
-if [ -n "$SEFARIA_CAULDRON_API_KEY" ]; then echo "key is set"; else
-  echo "key is NOT set"
-  for f in ~/.bash_profile ~/.bash_login ~/.profile; do [ -f "$f" ] && { echo "login file: $f"; break; }; done
-  grep -l SEFARIA_CAULDRON_API_KEY ~/.bash_profile ~/.bash_login ~/.profile ~/.bashrc ~/.zshrc 2>/dev/null
-fi
-```
-
-`<login>` is the login file it printed, or `~/.profile` if none exists. If the key isn't set, say `SEFARIA_CAULDRON_API_KEY isn't set in WSL. Add it to <login> inside WSL, then say go.` If `grep` found it in a different file, add ` (It's in <that file>, which Claude's commands skip.)` Then wait; on "go", run the check again.
 
 ## Step 2 — Ask the three questions (one message)
 
@@ -163,8 +118,6 @@ Use "index + N versions" / "index only" and "no links" / "N manual links" / "all
 
 ## Step 5 — Run it (silent)
 
-Run in Sefaria's shell. In WSL mode, `<scratchpad>` below is `<WSL-scratchpad>`, so the log still lands in the scratchpad, and the key is hidden before any output leaves WSL.
-
 ```bash
 cd <Sefaria-Project> && env -u SLACK_URL ./run move_draft_text.py '<title>' \
   -d "$DEST" -k "$SEFARIA_CAULDRON_API_KEY" \
@@ -175,18 +128,18 @@ cd <Sefaria-Project> && env -u SLACK_URL ./run move_draft_text.py '<title>' \
 
 - `<versionlist>` is `all` or `lang:Version Title|lang:Other Title`.
 - Wrap the title and version list in single quotes; write each `'` inside them as `'\''`.
-- Write `$DEST` out as the actual URL (in WSL mode, `step.sh` can't see Git Bash's variables). Leave `$SEFARIA_CAULDRON_API_KEY` as a variable — never write the key's value.
+- Leave `$SEFARIA_CAULDRON_API_KEY` as a variable — never write the key's value.
 - `env -u SLACK_URL` stops a Slack "Upload Complete" post.
 - Save the output to a file in the scratchpad — link responses can be megabytes long. Use a long timeout or run it in the background.
 
 ## Step 6 — Check the output, verify, report
 
-The script keeps going after errors and exits successfully anyway, so read the log (`<scratchpad>/move.log` in both modes). Things that look like errors but are **not**:
+The script keeps going after errors and exits successfully anyway, so read the log (`<scratchpad>/move.log`). Things that look like errors but are **not**:
 - The first line shows `noindex=True` — this means the index **was** sent. The flag is `store_false`, so `noindex` really holds "send the index".
 - Link responses `Error: Link already exists ...` and `Updated existing link ...` — the link was already on the cauldron.
 - Fewer links sent than `all_link_count`/`manual_link_count` — the script skips links with a `source_text_oid`.
 
-Real errors: lines starting `Error code:` (e.g. `403` = bad or under-privileged API key), and any other `"error"` JSON. Group link errors by message with a short Python script over the log rather than reading them by eye. In WSL mode, run that script in Sefaria's shell against `<WSL-scratchpad>/move.log`, since Windows may not have Python.
+Real errors: lines starting `Error code:` (e.g. `403` = bad or under-privileged API key), and any other `"error"` JSON. Group link errors by message with a short Python script over the log rather than reading them by eye.
 
 Verify on the cauldron (URL-encode the title):
 
