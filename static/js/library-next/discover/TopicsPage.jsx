@@ -173,23 +173,27 @@ function ForClass({ t, lang }) {
   const { value, state } = useAsync(() => Promise.all(['parasha', 'holiday'].map(d => Promise.resolve(Sefaria.getUpcomingDay ? Sefaria.getUpcomingDay(d) : null).catch(() => null))), []);
   if (state === 'loading') { return <Section title={t('topics.forClass')}><Skeleton /></Section>; }
   const [parasha, holiday] = value || [];
-  const holidayTopic = holiday && (holiday.topic || holiday);
-  if (!parasha && !holidayTopic) { return null; }
+  // `/api/calendars/topics/<day>` carries `topic` as a slug string (or, in older payloads, an object with `slug`).
+  const slugOf = (x) => (typeof x === 'string' ? x : (x && typeof x.slug === 'string' && x.slug) || '');
+  const parashaSlug = parasha ? slugOf(parasha.topic) : '';
+  const holidayTopic = holiday && !holiday.error ? (typeof holiday.topic === 'object' && holiday.topic ? holiday.topic : holiday) : null;
+  const holidaySlug = holidayTopic ? (slugOf(holiday.topic) || slugOf(holidayTopic)) : '';
+  if (!(parasha && parasha.displayValue) && !holidaySlug) { return null; }
   return (
     <Section title={t('topics.forClass')}>
       <div className="ln-topics-grid">
         {parasha && parasha.displayValue && (
           <article className="ln-card ln-topic-card">
             <span className="ln-note">{t('topics.parasha')}</span>
-            <h3>{parasha.topic ? <Link to={topicUrl(parasha.topic.slug)}>{pick(parasha.displayValue)}</Link> : <Link to={refUrl(parasha.ref)}>{pick(parasha.displayValue)}</Link>}</h3>
+            <h3>{parashaSlug ? <Link to={topicUrl(parashaSlug)}>{pick(parasha.displayValue)}</Link> : <Link to={refUrl(parasha.ref)}>{pick(parasha.displayValue)}</Link>}</h3>
             {parasha.description && <p>{firstSentence(parasha.description[lang] || parasha.description.en, 200)}</p>}
             {parasha.ref && <Link className="ln-note" to={refUrl(parasha.ref)}>{lang === 'he' ? parasha.heRef : parasha.ref}</Link>}
           </article>
         )}
-        {holidayTopic && holidayTopic.slug && (
+        {holidaySlug && (
           <article className="ln-card ln-topic-card">
             <span className="ln-note">{t('topics.holiday')}</span>
-            <h3><Link to={topicUrl(holidayTopic.slug)}>{pick(holidayTopic.primaryTitle)}</Link></h3>
+            <h3><Link to={topicUrl(holidaySlug)}>{pick(holidayTopic.primaryTitle || holidayTopic.displayValue || holidayTopic.title)}</Link></h3>
             <p>{firstSentence(descOf(holidayTopic, lang), 200)}</p>
           </article>
         )}

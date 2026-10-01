@@ -48,7 +48,7 @@ beforeAll(() => {
   Sefaria.getTopicsByPool = jest.fn(() => Promise.resolve([{ slug: 'purim', primaryTitle: { en: 'Purim', he: 'פורים' }, numSources: 740 }]));
   Sefaria.getLangSpecificTopicPoolName = (p) => `${p}_en`;
   Sefaria.getUpcomingDay = jest.fn((d) => Promise.resolve(d === 'parasha'
-    ? { title: { en: 'Parashat Hashavua', he: 'פרשת השבוע' }, displayValue: { en: 'Bereshit', he: 'בראשית' }, url: 'Genesis.1.1-6.8', ref: 'Genesis 1:1-6:8', heRef: 'בראשית א-ו', description: { en: 'In the beginning.', he: 'בראשית.' } }
+    ? { title: { en: 'Parashat Hashavua', he: 'פרשת השבוע' }, displayValue: { en: 'Bereshit', he: 'בראשית' }, url: 'Genesis.1.1-6.8', ref: 'Genesis 1:1-6:8', heRef: 'בראשית א-ו', description: { en: 'In the beginning.', he: 'בראשית.' }, topic: 'bereshit' }   // the live API: `topic` is a slug string
     : { topic: { slug: 'hoshana-rabbah', primaryTitle: { en: 'Hoshana Rabbah', he: 'הושענא רבה' }, description: { en: 'Seventh day of Sukkot.', he: 'היום השביעי.' } } }));
   Sefaria.topicList = jest.fn(() => Promise.resolve([
     { slug: 'moses', primaryTitle: { en: 'Moses', he: 'משה' }, titles: [{ text: 'Moses' }], shouldDisplay: true, pools: ['library'], numSources: 6410 },
@@ -276,6 +276,17 @@ describe('topics landing', () => {
     const items = container.querySelectorAll('.ln-topics-finder-list a');
     expect(items).toHaveLength(1);
     expect(items[0].getAttribute('href')).toBe('/topics/moses');
+  });
+
+  test('educator: the "for class" parasha card links to the parasha topic (the API gives `topic` as a slug string)', async () => {
+    setLang('en'); setPersona('educator');
+    render();
+    await go('/topics');
+    await flushPromises();
+    const forClass = [...container.querySelectorAll('.ln-topics-section')].find(s => s.textContent.includes('For this week’s class'));
+    expect(forClass).toBeTruthy();
+    expect(forClass.querySelector('.ln-topic-card h3 a').getAttribute('href')).toBe('/topics/bereshit');
+    expect([...container.querySelectorAll('a')].map(a => a.getAttribute('href'))).not.toContain('/topics/undefined');
   });
 });
 
