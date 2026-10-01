@@ -189,5 +189,5 @@ test('navigation between browse routes stays in the SPA', async () => {
   await act(async () => { await settle(); });
   expect(text('main h1')).toBe('Learning schedules');
   act(() => { navigate('/Genesis.1'); });
-  expect(text('main h1')).toBe('Genesis.1');   // the ref placeholder (reader agent) still owns section refs
+  expect(text('main h1')).toBe('Genesis 1');   // the reader's ref route owns section refs
 });
