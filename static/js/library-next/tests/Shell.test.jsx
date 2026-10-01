@@ -33,7 +33,7 @@ test('renders the shell in English with ltr and a placeholder page', () => {
   expect(document.documentElement.getAttribute('dir')).toBe('ltr');
   expect(container.querySelector('header .ln-nav').textContent).toBe('TextsTopicsLearning schedules');
   expect(container.querySelector('main h1').textContent).toBe('Browse texts');
-  expect(container.querySelector('main .ln-placeholder-body').textContent).toBe('This part of Library Next is being built.');
+  expect(container.querySelector('main .ln-texts')).not.toBeNull();   // the browse feature's /texts page
   expect(container.querySelector('.ln-chip-label').textContent).toBe('Learner');
   expect(container.querySelector('.ln-segment.active').textContent).toBe('Both');
   expect(container.querySelector('.ln-my-link').getAttribute('href')).toBe('/my');
@@ -74,7 +74,7 @@ test('routes: ref catch-all, not found, search query, my hub', () => {
   act(() => { navigate('/my/notes'); });
   expect(container.querySelector('main h1').textContent).toBe('My Library');
   act(() => { window.history.replaceState({}, '', '/texts/Tanakh/Torah'); window.dispatchEvent(new PopStateEvent('popstate')); });
-  expect(container.querySelector('main h1').textContent).toBe('Browse texts');
+  expect(container.querySelector('main h1').textContent).toBe('Torah');
   act(() => { window.history.replaceState({}, '', '/login'); window.dispatchEvent(new PopStateEvent('popstate')); });
   expect(container.querySelector('main h1').textContent).toBe('Page not found');
 });
