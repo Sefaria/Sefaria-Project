@@ -138,10 +138,8 @@ Non-React: `getPersona()`, `getPersonaDef()`, `setPersona(id)`.
 
 - `toast('Saved')` or `toast({ en, he })`, `toast(msg, { duration })`.
 - `openModal(<Node/>, { label, dismissible, onClose })`, `closeModal()`.
-- `openAssistant()` / `closeAssistant()` / `toggleAssistant()` from `AssistantDock.jsx`; the assistant
-  agent replaces `AssistantBody` with `<lc-chatbot persona=… interface-lang=… mode="panel" origin="library-next">`.
-  The chatbot script tag and `chatbot_user_token` / `chatbot_api_base_url` props are already emitted
-  by `app.html` / `library_next_props` (token only for logged-in users with the assistant enabled).
+- `openAssistant()` / `closeAssistant()` / `toggleAssistant()` from `AssistantDock.jsx`; to ask the
+  assistant from a feature, dispatch `library-next:assistant` with `detail.prompt` (see ASSISTANT.md).
 - `openOnboarding()` re-opens the persona picker.
 - `<ContentLangControl>` is exported from `Shell.jsx` for reuse inside pages.
 

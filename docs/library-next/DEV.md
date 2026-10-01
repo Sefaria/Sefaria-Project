@@ -21,6 +21,7 @@ Django does) or the header toggle (`/interface/hebrew?next=…` is emulated).
 | `NODE_EXTRA_CA_CERTS` | CA bundle for the proxy; `/root/.ccr/ca-bundle.crt` is picked up automatically when present |
 | `CDN=1` or `?cdn=1` | add the Google Fonts / Typekit links (off by default so the page is self-contained offline) |
 | `CHATBOT_API_BASE_URL` | passed through in `DJANGO_VARS.props.chatbot_api_base_url` |
+| `CHATBOT_USER_TOKEN` | optional encrypted user token → `chatbot_user_token`; the dock then loads the widget script from the API host and chats (see ASSISTANT.md) |
 
 What the harness serves:
 

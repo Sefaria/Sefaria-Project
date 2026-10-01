@@ -5,7 +5,7 @@ Kept in sync with what shipped on `mf3`. One row per agent; details in each agen
 | Wave | Agent | State | Notes |
 |---|---|---|---|
 | 1 | foundation | shipped | Seam, template, bundle, router, i18n, store, persona, shell, onboarding, dock slot, harness, smoke, jest, FOUNDATION.md, DEV.md |
-| 1 | assistant | — | ai-chatbot `persona` attribute; then `AssistantBody` in `AssistantDock.jsx` |
+| 1–2 | assistant | shipped | ai-chatbot `mf3`: `persona`, starter prompts, prompt guidance, `mode="panel"`, `initial-prompt` (no PR → no preview; cauldron uses chat-dev). Dock: greeting, starter prompts, embedded widget, sign-in fallback, `library-next:assistant` event, header action. See ASSISTANT.md |
 | 2 | browse | — | `/`, `/texts`, `/texts/*`, book page, `/calendars` (placeholders today) |
 | 2 | reader | — | `ref` route + tool contract (placeholder today; `placeholders.matchRef` is the stand-in) |
 | 2 | discover | — | `/search`, `/topics`, `/topics/*` (placeholders today) |
@@ -24,7 +24,18 @@ Kept in sync with what shipped on `mf3`. One row per agent; details in each agen
 - `npm run library-next-smoke` — `/`, `/Genesis.1`, `/texts`, `/texts?lang=he` render in headless
   Chromium with no console errors; onboarding opens; persona chip updates.
 
+## Assistant dock — verified
+
+- `npx jest static/js/library-next` — 8 suites, 44 tests (6 new in `AssistantDock.test.jsx`).
+- `npm run build-library-next` compiles; `npm run library-next-smoke` — 4 pages ok.
+- Not exercised here: a real chat round-trip (needs a user token for chat-dev); the harness takes
+  `CHATBOT_USER_TOKEN` for that.
+
 ## Open issues for the next wave
+
+- The cauldron serves the chat-dev widget, which has no `mode="panel"`: the dock shows prompts and a
+  "simulated" badge while the chat floats in the page corner. An ai-chatbot PR from `mf3` plus
+  `?chatbot_version=<PR#>` gives the inline, persona-aware chat.
 
 - The real `ref` matcher belongs to the reader agent; the placeholder (`placeholders.matchRef`) claims
   any single-segment path not in `NOT_A_REF`, so an unlisted classic page under `/<something>` shows
