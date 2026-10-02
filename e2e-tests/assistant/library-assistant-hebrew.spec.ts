@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, Page } from '@playwright/test';
 import { goToPageWithLang, goToPageWithUser } from '../utils';
 import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
@@ -153,10 +153,16 @@ test.describe('Library Assistant — Hebrew', () => {
     await pm.onLibraryAssistant().expectTextareaEnabled();
   });
 
-  // Responsive — UX-085
-  test('UX-085 (HE): Library Assistant is hidden on a 375 px mobile viewport', { tag: '@sanity' }, async () => {
+  // Responsive — UX-085. Mobile web is no longer restricted for a logged-in,
+  // enabled user: closed state is the same corner trigger as desktop; opening it
+  // fills the viewport as a mostly-full-screen sheet. See the English UX-085 for
+  // the full rationale.
+  test('UX-085 (HE): Library Assistant opens as a mostly-full-screen sheet on a 375 px mobile viewport', { tag: '@sanity' }, async () => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await expect(page.locator('lc-chatbot')).toBeHidden({ timeout: t(5000) });
+    await pm.onLibraryAssistant().ensureClosed();
+    await pm.onLibraryAssistant().expectTriggerVisible();
+    await pm.onLibraryAssistant().clickTriggerAndExpectOpen();
+    await pm.onLibraryAssistant().expectPanelFillsViewport();
   });
 });
 

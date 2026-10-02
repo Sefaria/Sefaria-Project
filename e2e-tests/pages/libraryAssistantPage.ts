@@ -377,4 +377,25 @@ export class LibraryAssistantPage extends HelperBase {
   async expectNoUserMessages(): Promise<void> {
     await expect(this.userMessages).toHaveCount(0, { timeout: t(5000) });
   }
+
+  // UX-085: mobile viewport -- the open panel is a mostly-full-screen sheet,
+  // not the desktop floating/docked panel.
+  /**
+   * Assert the open panel fills (at least mostly) the current viewport. Width must
+   * match exactly (the sheet is full-bleed left/right); height only needs to cover
+   * most of it, since the sheet sits below Sefaria's fixed site header.
+   */
+  async expectPanelFillsViewport(): Promise<void> {
+    await expect(this.panel).toBeVisible({ timeout: t(5000) });
+    const viewport = this.page.viewportSize();
+    if (!viewport) {
+      throw new Error('Viewport size is not set');
+    }
+    await expect(async () => {
+      const panelBox = await this.panel.boundingBox();
+      expect(panelBox).not.toBeNull();
+      expect(panelBox!.width).toBeGreaterThanOrEqual(viewport.width - 2);
+      expect(panelBox!.height).toBeGreaterThanOrEqual(viewport.height * 0.7);
+    }).toPass({ timeout: t(5000) });
+  }
 }
