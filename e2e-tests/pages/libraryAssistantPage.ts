@@ -176,6 +176,28 @@ export class LibraryAssistantPage extends HelperBase {
     await expect(this.host).toHaveCount(0);
   }
 
+  /**
+   * Assert the widget is in its compact (phone) layout: the host stays mounted and
+   * the container carries `.is-compact`, which the widget sets from its own
+   * `(max-width: 767px), (max-height: 520px)` media query. Whether the sheet is
+   * open or closed is whatever it was before the resize.
+   */
+  async expectCompactLayout(): Promise<void> {
+    await expect(this.host).toHaveCount(1, { timeout: t(5000) });
+    await expect(this.container).toHaveClass(/\bis-compact\b/, { timeout: t(5000) });
+  }
+
+  /** Assert the compact sheet is open and covers the whole viewport (phones only). */
+  async expectSheetCoversViewport(): Promise<void> {
+    await expect(this.panel).toBeVisible({ timeout: t(5000) });
+    const viewport = this.page.viewportSize();
+    if (!viewport) throw new Error('expectSheetCoversViewport needs a fixed viewport (mobile device emulation)');
+    await expect.poll(async () => {
+      const box = await this.panel.boundingBox();
+      return box ? [Math.round(box.x), Math.round(box.y), Math.round(box.width), Math.round(box.height)] : null;
+    }, { timeout: t(5000) }).toEqual([0, 0, viewport.width, viewport.height]);
+  }
+
   /** Assert the component mounted in the expected interface language (`en` / `he`). */
   async expectInterfaceLang(): Promise<void> {
     const expected = this.language === LANGUAGES.HE ? 'he' : 'en';

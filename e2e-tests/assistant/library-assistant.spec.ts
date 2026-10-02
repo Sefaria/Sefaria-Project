@@ -173,12 +173,12 @@ test.describe('Library Assistant — header menu', () => {
 
 /**
  * Responsive viewport — UX-085.
- * The Library Assistant must not render at mobile widths (375 px).
- * This test uses the LA user so we can confirm the suppression happens even
- * for a whitelisted user, not just for logged-out / non-whitelisted users.
+ * The Library Assistant stays available at mobile widths (375 px); the widget
+ * switches to its compact, full-screen-sheet layout rather than unmounting.
+ * Uses the LA user because only an enabled, logged-in user gets the widget.
  */
 test.describe('Library Assistant — responsive', () => {
-  test('UX-085: Library Assistant is hidden on a 375 px mobile viewport', async ({ context }) => {
+  test('UX-085: Library Assistant switches to the compact layout on a 375 px mobile viewport', async ({ context }) => {
     // Navigate and wait for the component to mount at desktop size first
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -187,8 +187,7 @@ test.describe('Library Assistant — responsive', () => {
     // Resize to a typical mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
 
-    // The entire <lc-chatbot> host (and its trigger / panel) should be hidden
-    await expect(page.locator('lc-chatbot')).toBeHidden({ timeout: t(5000) });
+    await pm.onLibraryAssistant().expectCompactLayout();
   });
 });
 

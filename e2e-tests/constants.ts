@@ -296,6 +296,7 @@ export const MOBILE_HAMBURGER = {
     MORE_FROM_SEFARIA: 'More from Sefaria',
     SIGN_UP: 'Sign up',
     LOG_IN: 'Log in',
+    LIBRARY_ASSISTANT: 'Library Assistant',
     LANG_TOGGLE_CONTAINER: '.mobileInterfaceLanguageToggle',
   },
 
