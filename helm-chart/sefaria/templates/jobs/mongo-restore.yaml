@@ -48,6 +48,17 @@ spec:
           resources:
             requests:
               cpu: 500m
+              # mongorestore reads the extracted dump back from the node's slow
+              # pd-standard disk; it is only fast when the files are still in the
+              # page cache, which is charged to this container. Request room for
+              # the dump (~31GB, ~16GB without sheets) plus mongorestore itself so
+              # the pod lands on a node that can hold it. No memory limit: a limit
+              # would evict the cached files and defeat the purpose.
+              {{- if has "sheets" .Values.restore.excludeCollections }}
+              memory: 18Gi
+              {{- else }}
+              memory: 32Gi
+              {{- end }}
             limits:
               cpu: 750m
           volumeMounts:
