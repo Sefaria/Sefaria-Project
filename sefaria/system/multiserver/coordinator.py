@@ -107,6 +107,7 @@ class ServerCoordinator(MessagingNode):
         import sefaria.system.cache as scache
         import sefaria.model.text as text
         from sefaria.system.cache import in_memory_cache
+        from sefaria.model import user_profile
 
         import socket
         import os
