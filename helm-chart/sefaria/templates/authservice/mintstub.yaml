@@ -1,0 +1,43 @@
+{{- if and .Values.authService.enabled .Values.authService.mintStub.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.deployEnv }}-mint
+  labels:
+    app: mint-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: mint-stub
+spec:
+  replicas: 1
+  strategy: { type: Recreate }
+  selector:
+    matchLabels:
+      app: mint-{{ .Values.deployEnv }}
+  template:
+    metadata:
+      labels:
+        app: mint-{{ .Values.deployEnv }}
+        deployEnv: "{{ .Values.deployEnv }}"
+    spec:
+      containers:
+        - name: mintstub
+          image: "{{ .Values.authService.containerImage.imageRegistry }}:{{ .Values.authService.containerImage.tag }}"
+          command: ["/mintstub"]
+          env:
+            - { name: JWT_ISSUER, value: {{ include "sefaria.authService.issuer" . | quote }} }
+            - { name: JWT_AUDIENCE, value: {{ .Values.authService.jwt.audience | quote }} }
+          ports: [{ name: http, containerPort: 8081 }]
+          readinessProbe: { httpGet: { path: /healthz, port: http } }
+          resources: { requests: { cpu: 50m, memory: 32Mi }, limits: { memory: 128Mi } }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mint-{{ .Values.deployEnv }}
+  labels:
+    deployEnv: "{{ .Values.deployEnv }}"
+spec:
+  selector:
+    app: mint-{{ .Values.deployEnv }}
+  ports: [{ name: http, port: 8081, targetPort: http }]
+{{- end }}

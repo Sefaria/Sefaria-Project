@@ -181,6 +181,93 @@ nameService:
         memory: "4Gi"
         cpu: "1000m"
 
+authService:
+  # Envoy ext_authz server for the API Key Program. Classifies every request on the environment's
+  # HTTPRoute (anonymous / embed / developer key / first-party JWT) from an in-memory key map and
+  # stamps x-sefaria-tier, x-sefaria-project, x-sefaria-auth-result for rate limiting and for the
+  # nginx log. Enabling this attaches a SecurityPolicy to the HTTPRoute: every request goes through
+  # the auth service (failOpen: true, so an outage degrades to the anonymous tier). Plan and
+  # decisions: sefaria-wiki docs/plans/2026-09-16-api-auth-poc.md. Off by default everywhere.
+  enabled: false
+  # enforce: unknown/revoked keys get the product-spec 401/403. observe: never denies; records what
+  # would have been rejected in x-sefaria-auth-result (Phase 1 dark launch).
+  mode: enforce
+  # Comma-separated path prefixes that require a key (401 api_key_required without one).
+  gatedPaths: "/api/knn-search"
+  helpURL: https://developers.sefaria.org/help/
+  # One is enough for a cauldron (failOpen covers the restart gap); production sets more. A PDB is
+  # rendered only when this is > 1.
+  replicaCount: 1
+  containerImage:
+    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-auth-service
+    tag: latest
+  resources:
+    requests: {cpu: 100m, memory: 64Mi}
+    limits: {cpu: "1", memory: 256Mi}
+  # grpc (default): full header/query mutation, strips ?api_key=. http: allow-listed headers only.
+  transport: grpc
+  extAuth:
+    failOpen: true  # Envoy Gateway's default is 10s
+    timeout: 200ms
+  reloadInterval: 60s       # full reload from Postgres; also the revocation SLA when push is down
+  push:
+    # Key changes reach every auth service in the cluster through Postgres LISTEN/NOTIFY on the key registry:
+    # triggers in the registry schema NOTIFY on this channel whatever the writer. The name is fixed in the schema.
+    pgChannel: sefaria_apikeys
+    # Legacy POC path: Redis pub/sub on this environment's own redis-<env> (one cauldron only, and it ties the auth
+    # service to the app's Redis). Off unless a writer still publishes there.
+    redis: false
+    channel: sefaria.apikeys
+  postgres:
+    # The cluster's one key registry: a database in the cluster's shared Postgres (postgres-18),
+    # read by every auth service in the cluster at startup. The chart never runs a Postgres of its
+    # own. The Secret is a cluster-level object from the infrastructure repo, not per release.
+    secrets:
+      dsn:
+        ref: auth-service-registry
+        key: AUTH_PG_DSN
+  jwt:
+    enabled: true
+    # envoy: Envoy's jwt_authn verifies against the JWKS below and claimToHeaders stamps the tier
+    #        (ext_authz has already stamped anonymous; an invalid token is 401 on EG 1.8, or passes
+    #        as anonymous on EG >= 1.9 when failOpen is true).
+    # authsvc: the auth service verifies the bearer token itself and no jwt section is emitted;
+    #          works on any EG version; cookie transport is not supported in this mode.
+    mode: envoy
+    failOpen: false         # emits SecurityPolicy.jwt.failOpen — Envoy Gateway >= 1.9 only
+    audience: sefaria-api
+    cacheDuration: 300s
+    cookieName: sefaria_jwt
+    # JWKS publisher. POC: the mint stub below. Phase 1: Django's JWKS endpoint (Service + port + path).
+    jwks:
+      service: ""           # "" → mint-<env>
+      port: 8081
+      path: /.well-known/jwks.json
+    issuer: ""              # "" → https://mint-<env>.<namespace>.svc.cluster.local
+  mintStub:
+    enabled: false          # POC token issuer; never in a real environment
+  rateLimit:
+    enabled: false          # needs the controller's rateLimit.backend (infrastructure repo)
+    testLimitsMultiplier: 1  # POC: raise to 10000 for latency runs
+    retryAfterSeconds: 60
+    # Per-rule x-ratelimit-* response headers (DraftVersion03). Needs Envoy Gateway >= 1.9 (dev has 1.9.1, prod 1.8.0,
+    # which rejects the field), and overrides the listener-level setting in ClientTrafficPolicy for these rules only.
+    headers: false
+    # test-sized limits per minute; production numbers come from Phase 0, not from here
+    developerPerProject: 10
+    partnerPerProject: 30
+    firstpartyPerSub: 60
+    embedPerOrigin: 15
+    anonymousPerIP: 20
+    anonymousShared: 40
+  nginxLogFields: true
+  monitoring:
+    enabled: true
+  legacyBodyArm:
+    enabled: false          # Task 12/26: rule-scoped bodyToExtAuth for the legacy body-borne apikey
+    pathPrefix: /api/texts/modify-bulk/
+    maxRequestBytes: 65536
+
 redis:
   containerImage:
     # Full path of the image registry inclusive of the image name

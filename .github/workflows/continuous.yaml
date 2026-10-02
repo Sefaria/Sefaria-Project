@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        app: [ web, node ]
+        app: [ web, node, auth-service ]
     steps:
       - uses: actions/checkout@v4
       - name: Set up QEMU
