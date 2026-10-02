@@ -138,6 +138,7 @@ shared_patterns = [
     re_path(r'^api/notifications/read', reader_views.notifications_read_api),
     re_path(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
     re_path(r'^api/user_stats/(?P<uid>.+)/?$', reader_views.user_stats_api),
+    re_path(r'^api/torah_tracker/(?P<uid>[^/]+)/?$', reader_views.torah_tracker_api),
     re_path(r'^api/site_stats/?$', reader_views.site_stats_api),
     re_path(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source),
     re_path(r'^api/background-data', reader_views.background_data_api),

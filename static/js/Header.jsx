@@ -263,6 +263,8 @@ const Header = (props) => {
 
   const links = props.module === Sefaria.LIBRARY_MODULE ? ['Texts', 'Topics'] : ['Topics', 'Collections']
   const linkIds = {'Topics': 'common.topics', 'Collections': 'common.collections'};  // 'Texts' translates via the terms dictionary
+  // Same destination as the home page's Learning Schedules > Weekly Torah Portion link
+  const parashah = props.module === Sefaria.LIBRARY_MODULE && Sefaria.calendars?.find(c => c.title.en === "Parashat Hashavua");
   const textLinks = <div className="textLinks">
     {links.map((link) => (
       <a
@@ -276,6 +278,9 @@ const Header = (props) => {
       </a>
     ))}
     <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>header.donate</InterfaceText></DonateLink>
+    {parashah && <a href={"/" + parashah.url} className="textLink" onKeyDown={Util.handleKeyboardClick}>
+      <InterfaceText text={{en: "Parsha", he: "פרשה"}} />
+    </a>}
   </div>
 
   
