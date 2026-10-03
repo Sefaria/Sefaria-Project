@@ -298,6 +298,13 @@ tasks:
   queues:
     llm: default-llm
   nodeAffinity: {}
+  # Dedicated workers for the interactive find-refs API (the linker), on their own queue so that
+  # bulk linking jobs on the shared tasks queue can't starve it. When disabled, find-refs tasks
+  # go to the shared tasks queue. Resources default to tasks.resources.
+  findRefs:
+    enabled: false
+    replicaCount: 1
+    resources: {}
 
 # Takes the url of an NER server instance
 # Will automatically enable internal settings to communicate with the NER server

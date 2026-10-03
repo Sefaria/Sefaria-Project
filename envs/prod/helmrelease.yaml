@@ -149,6 +149,9 @@ spec:
           ref: sentinel-password
       queues:
         llm: llm-llm
+      findRefs:
+        enabled: true
+        replicaCount: 2
     domains:
       root:
         - url: "sefaria.org"
