@@ -37,13 +37,14 @@ const usePocToolboxConfig = () => {
   return config;
 };
 
-const LibraryAssistantHeaderLink = ({ label }) => {
+const LibraryAssistantHeaderLink = ({ label, pill }) => {
   const open = (e) => {
     e.preventDefault(); // tells ReaderApp's in-app link handler to leave this click alone
     document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {source: 'header'}}));
   };
   return (
-    <a href="#" role="button" className="textLink libraryAssistantLink" onClick={open} onKeyDown={Util.handleKeyboardClick}>
+    <a href="#" role="button" className={classNames('textLink', 'libraryAssistantLink', {libraryAssistantPill: pill})}
+       onClick={open} onKeyDown={Util.handleKeyboardClick}>
       <span className="libraryAssistantStar" aria-hidden="true">✦</span>
       <span className="libraryAssistantLabel">
         {label ? <span className={Sefaria.interfaceLang === 'hebrew' ? 'int-he' : 'int-en'}>{label}</span>
@@ -293,8 +294,10 @@ const Header = (props) => {
 
   const pocConfig = usePocToolboxConfig();
   const showAssistantLink = props.libraryAssistant && props.module === Sefaria.LIBRARY_MODULE;
-  const assistantSlot = pocConfig.headerSlot || 'afterDonate';
-  const assistantLink = showAssistantLink && <LibraryAssistantHeaderLink label={pocConfig.headerText?.trim()} />;
+  // The pill sits at an end of a group (after Donate or before search), never between two links
+  const assistantPill = pocConfig.headerStyle === 'pill';
+  const assistantSlot = assistantPill && pocConfig.headerSlot === 'beforeDonate' ? 'afterDonate' : (pocConfig.headerSlot || 'afterDonate');
+  const assistantLink = showAssistantLink && <LibraryAssistantHeaderLink label={pocConfig.headerText?.trim()} pill={assistantPill} />;
 
   const links = props.module === Sefaria.LIBRARY_MODULE ? ['Texts', 'Topics'] : ['Topics', 'Collections']
   const linkIds = {'Topics': 'common.topics', 'Collections': 'common.collections'};  // 'Texts' translates via the terms dictionary

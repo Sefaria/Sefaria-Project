@@ -150,6 +150,32 @@ $interfaces: english hebrew;
 .interface-hebrew .libraryAssistantLink .libraryAssistantStar {
   transform: translateY(0.1em);
 }
+/* The pill version: white on purple, as tall as the search box, text centred by the box
+   (so without the nudge above) and no underline (it darkens instead) */
+.textLink.libraryAssistantLink.libraryAssistantPill,
+.textLink.libraryAssistantLink.libraryAssistantPill:is(:hover, :focus, :active) {
+  align-items: center;
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 250px;
+  background: var(--mussar-purple);
+  color: white;
+  font-size: 14px;
+}
+.textLink.libraryAssistantLink.libraryAssistantPill:is(:hover, :active) {
+  background: #653259; /* purple-800 */
+}
+.libraryAssistantPill:is(:hover, :focus-visible, :active) .libraryAssistantLabel {
+  text-decoration: none;
+}
+.libraryAssistantPill:focus-visible {
+  outline: 2px solid var(--mussar-purple);
+  outline-offset: 2px;
+}
+.libraryAssistantPill :is(.int-en, .int-he, .libraryAssistantStar),
+.interface-hebrew .libraryAssistantPill .libraryAssistantStar {
+  transform: none;
+}
 
 .headerLinksSection {
 	justify-content: flex-end;

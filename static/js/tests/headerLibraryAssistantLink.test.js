@@ -81,6 +81,13 @@ describe('Header Library Assistant item (POC)', () => {
     expect(item().textContent).toBe('✦Try Assistant');
   });
 
+  it('shows the pill version, never between Topics and Donate', () => {
+    localStorage.setItem('lc_chatbot:poc_toolbox', JSON.stringify({ headerStyle: 'pill', headerSlot: 'beforeDonate' }));
+    render();
+    expect(item().classList.contains('libraryAssistantPill')).toBe(true);
+    expect(order()).toEqual(['link', 'link', 'donate', 'assistant', 'search']);
+  });
+
   it('previews live toolbox changes', () => {
     render();
     act(() => {
