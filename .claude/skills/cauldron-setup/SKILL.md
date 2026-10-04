@@ -32,7 +32,7 @@ bash "$(git rev-parse --show-toplevel)/.claude/skills/cauldron-setup/setup_statu
 
 (If `git rev-parse` fails, treat it like the "not inside WSL" case below.) It prints `name: value` lines, then `Problems:`. It never prints the key.
 
-- Output says `STOP: this is not a Claude session running inside WSL`, or the problems say Sefaria-Project is "on the Windows drive" or the session "isn't inside a Sefaria-Project folder". Send this and stop:
+- If output says `STOP: this is not a Claude session running inside WSL`, or the problems say Sefaria-Project is "on the Windows drive" or the session "isn't inside a Sefaria-Project folder". Send this and stop:
 
   > This setup has to run in a WSL session. In the Claude app's Code tab:
   > 1. Start a new session.
@@ -40,7 +40,7 @@ bash "$(git rev-parse --show-toplevel)/.claude/skills/cauldron-setup/setup_statu
   > 3. Choose the folder `/home/<your Linux user name>/Sefaria-Project`.
   > 4. Ask me to "run cauldron setup" again there.
 
-- Problems say `No sefaria/local_settings.py`: say this copy of Sefaria-Project can't run Sefaria, and ask which folder they run local Sefaria from. Stop.
+- If problems say `No sefaria/local_settings.py`: say this copy of Sefaria-Project can't run Sefaria, and ask which folder they run local Sefaria from. Stop.
 
 Keep the output. It tells you which of Steps 2–7 are needed.
 
