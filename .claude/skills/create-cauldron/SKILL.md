@@ -46,7 +46,7 @@ If `gh` is missing or not logged in (Step 3 needs it) and a setup file exists, t
 
 **Branch:** `git -C <Sefaria-Project> branch --show-current`. If empty (the checkout isn't on a branch), stop and tell the user to check out the branch they want.
 
-**Name:** ask the user for the cauldron name (unless given). Clean it up the way the script does: lowercase it, then keep only `a-z`, `0-9` and `-` (the script would also keep `.`, but a dot would add an extra level to the web address, so remove dots too). It must be 1–63 characters (the script cuts off longer names from the front, which is confusing). If cleaning changed the name, show the user the result and confirm.
+**Name:** ask the user for the cauldron name (unless given). Clean it up the way the script does: lowercase it, then keep only `a-z`, `0-9` and `-` (the script would also keep `.`, but a dot would add an extra level to the web address, so remove dots too). It must be 1–63 characters. If cleaning changed the name, show the user the result and confirm.
 
 The cauldron's address will be `https://www.<name>.cauldron.sefaria.org`.
 
