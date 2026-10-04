@@ -120,6 +120,20 @@
   color: var(--dark-grey);
 }
 
+/* POC (lam-opus-penina): Library Assistant header item, in the promo purple */
+.textLink.libraryAssistantLink,
+.textLink.libraryAssistantLink:hover {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--mussar-purple);
+  white-space: nowrap;
+}
+
+.libraryAssistantStar {
+  font-size: 0.875em;
+}
+
 .headerLinksSection {
   justify-content: flex-end;
   gap: 20px;

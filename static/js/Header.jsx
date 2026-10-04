@@ -23,6 +23,33 @@ import {
 import Util from './sefaria/util';
 import Button from './common/Button';
 
+// POC only (lam-opus-penina): the Library Assistant widget's POC toolbox saves its choices in
+// localStorage and broadcasts live previews, so the header item can be tried in different spots.
+const POC_TOOLBOX_KEY = 'lc_chatbot:poc_toolbox';
+const usePocToolboxConfig = () => {
+  const [config, setConfig] = useState({});
+  useEffect(() => {
+    try { setConfig(JSON.parse(localStorage.getItem(POC_TOOLBOX_KEY)) || {}); } catch (e) {}
+    const onConfig = (e) => setConfig(e.detail || {});
+    document.addEventListener('chatbot:poc-config', onConfig);
+    return () => document.removeEventListener('chatbot:poc-config', onConfig);
+  }, []);
+  return config;
+};
+
+const LibraryAssistantHeaderLink = ({ label }) => {
+  const open = (e) => {
+    e.preventDefault(); // tells ReaderApp's in-app link handler to leave this click alone
+    document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {source: 'header'}}));
+  };
+  return (
+    <a href="#" role="button" className="textLink libraryAssistantLink" onClick={open} onKeyDown={Util.handleKeyboardClick}>
+      <span className="libraryAssistantStar" aria-hidden="true">✦</span>
+      {label ? <span>{label}</span> : <InterfaceText>header.library_assistant</InterfaceText>}
+    </a>
+  );
+};
+
 const AuthNavLink = ({flow, openURL, close, children}) => {
   const href = `/${flow}`;
   return (
@@ -261,6 +288,11 @@ const Header = (props) => {
   }, "sa.header_viewed");
 
 
+  const pocConfig = usePocToolboxConfig();
+  const showAssistantLink = props.libraryAssistant && props.module === Sefaria.LIBRARY_MODULE;
+  const assistantSlot = pocConfig.headerSlot || 'afterDonate';
+  const assistantLink = showAssistantLink && <LibraryAssistantHeaderLink label={pocConfig.headerText?.trim()} />;
+
   const links = props.module === Sefaria.LIBRARY_MODULE ? ['Texts', 'Topics'] : ['Topics', 'Collections']
   const linkIds = {'Topics': 'common.topics', 'Collections': 'common.collections'};  // 'Texts' translates via the terms dictionary
   const textLinks = <div className="textLinks">
@@ -275,7 +307,9 @@ const Header = (props) => {
         <InterfaceText>{linkIds[link] || link}</InterfaceText>
       </a>
     ))}
+    {assistantSlot === 'beforeDonate' && assistantLink}
     <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>header.donate</InterfaceText></DonateLink>
+    {assistantSlot === 'afterDonate' && assistantLink}
   </div>
 
   
@@ -289,11 +323,13 @@ const Header = (props) => {
       </nav>
 
       <div className="headerLinksSection">
+        {assistantSlot === 'beforeSearch' && assistantLink}
         <HeaderAutocomplete
           onRefClick={props.onRefClick}
           showSearch={props.showSearch}
           openTopic={props.openTopic}
           openURL={props.openURL}
+          libraryAssistant={showAssistantLink}
         />
         
         {!Sefaria._uid && props.module === Sefaria.LIBRARY_MODULE && <SignUpButton />}
