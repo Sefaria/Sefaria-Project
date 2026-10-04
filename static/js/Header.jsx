@@ -12,6 +12,7 @@ import {
 } from './Misc';
 import { ProfilePic } from "./ProfilePic";
 import { HeaderAutocomplete } from './HeaderAutocomplete'
+import { usePocToolboxConfig } from './LibraryAssistantPoc';
 import {
   DropdownMenu,
   DropdownMenuSeparator,
@@ -22,20 +23,6 @@ import {
 } from './common/DropdownMenu';
 import Util from './sefaria/util';
 import Button from './common/Button';
-
-// POC only (la-sandbox): the Library Assistant widget's POC toolbox saves its choices in
-// localStorage and broadcasts live previews, so the header item can be tried in different spots.
-const POC_TOOLBOX_KEY = 'lc_chatbot:poc_toolbox';
-const usePocToolboxConfig = () => {
-  const [config, setConfig] = useState({});
-  useEffect(() => {
-    try { setConfig(JSON.parse(localStorage.getItem(POC_TOOLBOX_KEY)) || {}); } catch (e) {}
-    const onConfig = (e) => setConfig(e.detail || {});
-    document.addEventListener('chatbot:poc-config', onConfig);
-    return () => document.removeEventListener('chatbot:poc-config', onConfig);
-  }, []);
-  return config;
-};
 
 const LibraryAssistantHeaderLink = ({ label, pill }) => {
   const open = (e) => {
@@ -293,7 +280,8 @@ const Header = (props) => {
 
 
   const pocConfig = usePocToolboxConfig();
-  const showAssistantLink = props.libraryAssistant && props.module === Sefaria.LIBRARY_MODULE;
+  // POC: the toolbox can move the assistant out of the header, to a banner on the texts page
+  const showAssistantLink = props.libraryAssistant && props.module === Sefaria.LIBRARY_MODULE && pocConfig.placement !== 'banner';
   // The pill sits at an end of a group (after Donate or before search), never between two links
   const assistantPill = pocConfig.headerStyle === 'pill';
   const assistantSlot = assistantPill && pocConfig.headerSlot === 'beforeDonate' ? 'afterDonate' : (pocConfig.headerSlot || 'afterDonate');

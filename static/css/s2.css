@@ -5390,6 +5390,41 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
 }
 
+/* POC (la-sandbox): the Library Assistant banner above "Browse the Library" */
+.libraryAssistantBanner,
+.libraryAssistantBanner:hover {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 30px;
+  padding: 14px 20px;
+  border-radius: 6px;
+  background: var(--mussar-purple);
+  color: white;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 16px;
+  text-decoration: none;
+}
+.libraryAssistantBanner:hover {
+  background: #653259; /* purple-800 */
+}
+.libraryAssistantBanner:focus-visible {
+  outline: 2px solid var(--mussar-purple);
+  outline-offset: 2px;
+}
+.libraryAssistantBannerStar {
+  font-size: 18px;
+  line-height: 1;
+}
+.libraryAssistantBannerArrow {
+  margin-inline-start: auto;
+  font-size: 24px;
+  line-height: 1;
+}
+.interface-hebrew .libraryAssistantBannerArrow {
+  transform: scaleX(-1);
+}
+
 .noSearchResults-ctas {
   display: flex;
   flex-wrap: wrap;
