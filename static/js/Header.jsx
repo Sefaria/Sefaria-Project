@@ -496,16 +496,16 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
             <img src="/static/icons/topic.svg" alt={Sefaria._("common.topics")} />
             <InterfaceText>common.topics</InterfaceText>
           </a>
+          {libraryAssistant &&
+            <a href="#" role="button" className="libraryAssistantMenuItem" onClick={openLibraryAssistant}>
+              <span className="libraryAssistantMenuStar" aria-hidden="true">✦</span>
+              <InterfaceText>header.library_assistant</InterfaceText>
+            </a>
+          }
           <a href="/calendars" onClick={close}>
             <img src="/static/icons/calendar.svg" alt={Sefaria._("header.learning_schedules")} />
             <InterfaceText>header.learning_schedules</InterfaceText>
           </a>
-          {libraryAssistant &&
-            <a href="#" role="button" onClick={openLibraryAssistant}>
-              <img src="/static/icons/ai-star-outline-18.svg" alt="" />
-              <InterfaceText>header.library_assistant</InterfaceText>
-            </a>
-          }
         </>
       }
       {module === Sefaria.VOICES_MODULE &&

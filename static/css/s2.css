@@ -608,6 +608,16 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .mobileNavMenu a > img.blackIcon {
   opacity: 0.4;
 }
+/* POC (la-sandbox): the Library Assistant item is purple, with the ✦ as its icon */
+.mobileNavMenu a.libraryAssistantMenuItem {
+  color: var(--mussar-purple);
+}
+.mobileNavMenu .libraryAssistantMenuStar {
+  display: inline-block;
+  width: 16px;
+  margin-inline-end: 15px;
+  text-align: center;
+}
 .mobileNavMenu a.blue {
   background-color: var(--sefaria-blue);
   color: white;

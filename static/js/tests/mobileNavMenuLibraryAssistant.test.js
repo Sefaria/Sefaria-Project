@@ -34,11 +34,17 @@ describe('MobileNavMenu Library Assistant item', () => {
   const render = (props) => act(() => {
     ReactDOM.render(<MobileNavMenu visible={true} module="library" openURL={() => {}} close={() => {}} {...props} />, container);
   });
-  const item = () => [...container.querySelectorAll('a')].find(a => a.textContent === 'header.library_assistant');
+  const item = () => container.querySelector('a.libraryAssistantMenuItem');
 
   it('is absent unless the assistant is on the page', () => {
     render({ libraryAssistant: false });
-    expect(item()).toBeUndefined();
+    expect(item()).toBeNull();
+  });
+
+  it('sits above Learning Schedules, with the ✦ as its icon', () => {
+    render({ libraryAssistant: true });
+    const labels = [...container.querySelectorAll('a')].map(a => a.textContent);
+    expect(labels.indexOf('✦header.library_assistant')).toBe(labels.indexOf('header.learning_schedules') - 1);
   });
 
   it('closes the menu and asks the widget to open', () => {
