@@ -122,15 +122,33 @@ $interfaces: english hebrew;
 
 /* POC (la-sandbox): Library Assistant header item, in the promo purple */
 .textLink.libraryAssistantLink,
-.textLink.libraryAssistantLink:hover {
+.textLink.libraryAssistantLink:is(:hover, :focus, :active) {
   display: inline-flex;
   align-items: baseline;
   gap: 6px;
   color: var(--mussar-purple);
   white-space: nowrap;
+  text-decoration: none; /* only the words underline, not the star */
+}
+.libraryAssistantLink:is(:hover, :focus-visible, :active) .libraryAssistantLabel {
+  text-decoration: underline;
 }
 .libraryAssistantStar {
   font-size: 0.875em;
+}
+/* Styled like the .textLinks items wherever it sits (it can also sit before the search box,
+   outside .textLinks): same size and weight, and the same nudge down, which the star shares */
+.textLink.libraryAssistantLink {
+  font-size: 16px;
+  font-weight: 500;
+}
+.libraryAssistantLink .int-en,
+.libraryAssistantLink .libraryAssistantStar {
+  transform: translateY(0.15em);
+}
+.libraryAssistantLink .int-he,
+.interface-hebrew .libraryAssistantLink .libraryAssistantStar {
+  transform: translateY(0.1em);
 }
 
 .headerLinksSection {

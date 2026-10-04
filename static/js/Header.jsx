@@ -45,7 +45,10 @@ const LibraryAssistantHeaderLink = ({ label }) => {
   return (
     <a href="#" role="button" className="textLink libraryAssistantLink" onClick={open} onKeyDown={Util.handleKeyboardClick}>
       <span className="libraryAssistantStar" aria-hidden="true">✦</span>
-      {label ? <span>{label}</span> : <InterfaceText>header.library_assistant</InterfaceText>}
+      <span className="libraryAssistantLabel">
+        {label ? <span className={Sefaria.interfaceLang === 'hebrew' ? 'int-he' : 'int-en'}>{label}</span>
+               : <InterfaceText>header.library_assistant</InterfaceText>}
+      </span>
     </a>
   );
 };
