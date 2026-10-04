@@ -161,6 +161,11 @@ const TextualSearchSuggestion = ({label, onClick, ...props}) => {
     );
 };
 
+// POC (la-sandbox): what the Library Assistant is asked for a query from the search box
+const assistantSearchPrompt = (query) => Sefaria.interfaceLang === 'hebrew'
+    ? `חיפשתי את "${query}". הביאו לי את המקורות, הספרים, המחברים והנושאים הרלוונטיים ביותר.`
+    : `I am searching for "${query}". Give me the most relevant sources, books, authors and topics.`;
+
 // POC (la-sandbox): sends the query to the Library Assistant instead of searching
 const AssistantSearchSuggestion = ({label, onClick, ...props}) => {
     const displayedLabel = (
@@ -557,7 +562,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
         });
         clearSearchBox(onChange);
         document.activeElement?.blur?.();
-        document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {source: 'search_autocomplete', question: query.trim()}}));
+        document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {source: 'search_autocomplete', question: assistantSearchPrompt(query.trim())}}));
         onNavigate && onNavigate();
     };
 
