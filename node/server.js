@@ -7,7 +7,6 @@ require('css-modules-require-hook')({  // so that node can handle require statem
    generateScopedName: '[name]',
 });
 const redis         = require('redis');
-const dns           = require('dns');
 const { promisify } = require("util");
 const http          = require('http'),
     express         = require('express'),
@@ -42,32 +41,20 @@ let sharedCacheData = {
   "virtualBooks": null,
 };
 
-const resolve4Async = promisify(dns.resolve4);
-
 /*
-Resolves the Redis endpoint this SSR cache reader should connect to, mirroring
-sefaria.system.redis_sentinel.get_redis_client(): when SENTINEL_HEADLESS_URL is configured
-(prod/staging), resolve the Sentinel headless Service's current pod IPs over DNS, ask one of
-them who the master is (SENTINEL get-master-addr-by-name), and connect there. Otherwise
-(local dev, which has no Sentinel) connect directly to REDIS_URL/REDIS_PORT.
-
-Unlike the Python client, this resolves the master once at startup rather than on every
-connection checkout -- the `redis` npm package here (v2.8, pre-Sentinel-aware versions)
-has no client-side Sentinel support to re-ask on a failover. That matches this process's
-existing reliability characteristics against the single-instance Redis it replaces (no
-failover either), but -- unlike the Python side -- it will not notice a Sentinel failover
-without a restart. Flagged as unverified: no live Sentinel/Node environment was available
-to test this against; validate in staging before trusting it in prod.
+Resolves the Redis endpoint this SSR cache reader connects to: with SENTINEL_HEADLESS_URL
+set, asks Sentinel for the current master (SENTINEL get-master-addr-by-name); otherwise
+connects to REDIS_URL/REDIS_PORT. The Sentinel hostname is resolved by the connection itself,
+not cached. The `redis` npm package here (v2.8) has no Sentinel support, so unlike the Python
+clients this won't follow a failover without a restart.
 */
 const resolveSharedCacheRedisUrl = async function(){
   if (!settings.SENTINEL_HEADLESS_URL) {
     return `redis://${settings.REDIS_URL.replace('redis://', '')}:${settings.REDIS_PORT}`;
   }
-  const sentinelIps = await resolve4Async(settings.SENTINEL_HEADLESS_URL);
-  // createClient(port, host, ...): port must come first, or a numeric-looking string here
-  // would be misread as a unix socket path rather than a host to dial -- see
-  // node_modules/redis/lib/createClient.js's argument-sniffing.
-  const sentinelClient = redis.createClient(settings.REDIS_PORT, sentinelIps[0]);
+  // createClient(port, host, ...): port first, so the host isn't misread as a unix socket path
+  const sentinelClient = redis.createClient(settings.REDIS_PORT, settings.SENTINEL_HEADLESS_URL,
+    settings.SENTINEL_PASSWORD ? {auth_pass: settings.SENTINEL_PASSWORD} : {});
   const sentinelCommandAsync = promisify(sentinelClient.send_command).bind(sentinelClient);
   try {
     const [host, port] = await sentinelCommandAsync(

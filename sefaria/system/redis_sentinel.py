@@ -9,7 +9,6 @@ import re
 from dataclasses import dataclass
 from typing import Optional
 
-import dns.resolver
 import redis
 import redis.sentinel
 
@@ -55,10 +54,12 @@ def add_password_to_url(url, password):
 
 def get_sentinel_host_ports(url, port) -> list:
     """
-    Resolves the Sentinel headless Service to its current pod IPs, as (host, port) tuples.
+    The Sentinel endpoint as a single (hostname, port), deliberately not resolved here.
+    redis-py resolves the hostname on every new connection and tries each address the
+    headless Service returns, so Sentinel pods that restart with new IPs are picked up
+    without a refresh loop or a process restart.
     """
-    redisdns = dns.resolver.resolve(url, 'A')
-    return [(item.to_text(), int(port)) for res in redisdns.response.answer for item in res.items]
+    return [(url, int(port))]
 
 
 def get_sentinel_joined_address(url, port, password):
@@ -72,7 +73,8 @@ def get_sentinel_joined_address(url, port, password):
 
 
 def _sentinel_kwargs(sentinel_config: SentinelConfig) -> dict:
-    return {"password": sentinel_config.password}
+    # short connect timeout so a dead pod's address is skipped quickly
+    return {"password": sentinel_config.password, "socket_connect_timeout": 1}
 
 
 def get_redis_client(redis_config: RedisConfig, sentinel_config: Optional[SentinelConfig], db_num, **client_kwargs) -> redis.Redis:

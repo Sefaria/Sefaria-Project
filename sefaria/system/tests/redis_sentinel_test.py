@@ -1,5 +1,5 @@
 """
-Tests for sefaria.system.redis_sentinel. The unit tests stub DNS and never open a socket.
+Tests for sefaria.system.redis_sentinel. The unit tests never open a socket.
 The failover test needs a real Sentinel cluster and only runs when SENTINEL_TEST_HEADLESS_URL
 is set.
 """
@@ -14,14 +14,6 @@ import sefaria.system.redis_sentinel as rs
 from sefaria.system.redis_sentinel import RedisConfig, SentinelConfig
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-SENTINEL_HOSTS = [("10.0.0.1", 26379), ("10.0.0.2", 26379)]
-
-
-@pytest.fixture
-def stub_dns(monkeypatch):
-    monkeypatch.setattr(rs, "get_sentinel_host_ports", lambda url, port: SENTINEL_HOSTS)
-
-
 @pytest.fixture
 def sentinel_config():
     # transport_opts mirrors prod's Celery-only options, which redis-py rejects as kwargs
@@ -33,20 +25,20 @@ def redis_config():
     return RedisConfig("redis://127.0.0.1", "redis-pw", "6379")
 
 
-def test_get_sentinel_joined_address(stub_dns):
-    assert rs.get_sentinel_joined_address("redis-headless", 26379, "pw") == \
-        "sentinel://:pw@10.0.0.1:26379;sentinel://:pw@10.0.0.2:26379"
+def test_get_sentinel_joined_address_keeps_the_hostname():
+    assert rs.get_sentinel_joined_address("redis-headless", "26379", "pw") == "sentinel://:pw@redis-headless:26379"
 
 
-def test_get_redis_client_with_sentinel_ignores_celery_transport_opts(stub_dns, redis_config, sentinel_config):
+def test_get_redis_client_with_sentinel_ignores_celery_transport_opts(redis_config, sentinel_config):
     client = rs.get_redis_client(redis_config, sentinel_config, 6, decode_responses=True)
     pool = client.connection_pool
     assert pool.service_name == "mymaster"
     assert pool.connection_kwargs["db"] == 6
     assert pool.connection_kwargs["password"] == "redis-pw"
     sentinel = pool.sentinel_manager
-    assert [s.connection_pool.connection_kwargs["host"] for s in sentinel.sentinels] == ["10.0.0.1", "10.0.0.2"]
-    assert sentinel.sentinels[0].connection_pool.connection_kwargs["password"] == "sentinel-pw"
+    sentinel_kwargs = sentinel.sentinels[0].connection_pool.connection_kwargs
+    assert (sentinel_kwargs["host"], sentinel_kwargs["port"]) == ("redis-headless", 26379)  # resolved per connection
+    assert sentinel_kwargs["password"] == "sentinel-pw"
 
 
 def test_get_redis_client_without_sentinel(redis_config):
@@ -55,13 +47,14 @@ def test_get_redis_client_without_sentinel(redis_config):
     assert (kwargs["host"], kwargs["port"], kwargs["db"]) == ("127.0.0.1", 6379, 6)
 
 
-def test_django_cache_options_with_sentinel_build_a_sentinel_pool(stub_dns, redis_config, sentinel_config):
+def test_django_cache_options_with_sentinel_build_a_sentinel_pool(redis_config, sentinel_config):
     from django_redis.pool import get_connection_factory
     from redis.sentinel import SentinelConnectionPool
 
     location, options = rs.get_django_redis_cache_options(redis_config, sentinel_config, 5)
     assert location == "redis://mymaster/5"
-    assert options["SENTINEL_KWARGS"] == {"password": "sentinel-pw"}
+    assert options["SENTINELS"] == [("redis-headless", 26379)]
+    assert options["SENTINEL_KWARGS"]["password"] == "sentinel-pw"
     factory = get_connection_factory(options=options)
     pool = factory.get_connection_pool(factory.make_connection_params(location))
     assert isinstance(pool, SentinelConnectionPool)

@@ -14,7 +14,7 @@ const local_settings = {
   }(),
 
   // Redis / Redis Sentinel: mirrors sefaria.system.redis_sentinel's naming. Either
-  // SENTINEL_HEADLESS_URL (prod/staging, resolved via DNS + SENTINEL get-master-addr-by-name)
+  // SENTINEL_HEADLESS_URL (prod/staging, via SENTINEL get-master-addr-by-name)
   // or REDIS_URL (a single plain instance, e.g. local dev) is used -- see server.js's
   // resolveSharedCacheRedisUrl(). This reads the same shared-cache keyspace Django's
   // CACHES["shared"] writes to.
