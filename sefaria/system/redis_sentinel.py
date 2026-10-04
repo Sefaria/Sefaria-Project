@@ -97,15 +97,21 @@ def get_redis_client(redis_config: RedisConfig, sentinel_config: Optional[Sentin
     )
 
 
-def get_django_redis_cache_options(redis_config: RedisConfig, sentinel_config: Optional[SentinelConfig], db_num) -> tuple:
+def get_django_redis_cache_options(redis_config: RedisConfig, sentinel_config: Optional[SentinelConfig], db_num,
+                                   read_from_replicas=True) -> tuple:
     """
     Returns (LOCATION, OPTIONS) for a django-redis CACHES entry, pointed at Sentinel when
     configured, otherwise at the plain Redis instance.
+
+    read_from_replicas=False sends reads to the master too. Use it for a cache whose reads must
+    see the latest write: replication lag can otherwise return a value older than a counter
+    already read from the master (e.g. CACHES["shared"] behind GenCache).
     """
     if sentinel_config is not None and sentinel_config.is_configured():
         location = f"redis://{sentinel_config.master_set}/{db_num}"  # django-redis reads the host as the Sentinel service name
         options = {
-            "CLIENT_CLASS": "django_redis.client.sentinel.SentinelClient",
+            # SentinelClient splits reads off to the replicas; DefaultClient uses the master only
+            "CLIENT_CLASS": "django_redis.client.sentinel.SentinelClient" if read_from_replicas else "django_redis.client.DefaultClient",
             "CONNECTION_FACTORY": "django_redis.pool.SentinelConnectionFactory",
             "SENTINELS": get_sentinel_host_ports(sentinel_config.url, sentinel_config.port),
             "SENTINEL_KWARGS": _sentinel_kwargs(sentinel_config),

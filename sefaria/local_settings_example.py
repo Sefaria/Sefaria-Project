@@ -139,7 +139,7 @@ from sefaria.system.redis_sentinel import RedisConfig, SentinelConfig, get_djang
 
 _redis_config = RedisConfig(REDIS_URL, REDIS_PASSWORD, REDIS_PORT)
 _sentinel_config = SentinelConfig(SENTINEL_HEADLESS_URL, SENTINEL_PASSWORD, REDIS_PORT, SENTINEL_TRANSPORT_OPTS, SENTINEL_MASTER_SET)
-_shared_location, _shared_options = get_django_redis_cache_options(_redis_config, _sentinel_config, SHARED_CACHE_DB_NUM)
+_shared_location, _shared_options = get_django_redis_cache_options(_redis_config, _sentinel_config, SHARED_CACHE_DB_NUM, read_from_replicas=False)
 _shared_options["SERIALIZER"] = "sefaria.system.serializers.JSONSerializer"
 _default_location, _default_options = get_django_redis_cache_options(_redis_config, _sentinel_config, DEFAULT_CACHE_DB_NUM)
 

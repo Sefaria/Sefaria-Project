@@ -61,6 +61,19 @@ def test_django_cache_options_with_sentinel_build_a_sentinel_pool(redis_config, 
     assert pool.connection_kwargs["db"] == 5
 
 
+@pytest.mark.parametrize("read_from_replicas,expected_is_master", [(True, [True, False]), (False, [True])])
+def test_django_cache_replica_reads_are_opt_out(redis_config, sentinel_config, read_from_replicas, expected_is_master):
+    from django_redis.client import DefaultClient
+    from django.utils.module_loading import import_string
+
+    location, options = rs.get_django_redis_cache_options(redis_config, sentinel_config, 5, read_from_replicas=read_from_replicas)
+    client = import_string(options["CLIENT_CLASS"])(location, {"OPTIONS": options}, backend=None)
+    pools = [client.connection_factory.get_connection_pool(client.connection_factory.make_connection_params(url))
+             for url in client._server]
+    assert [pool.is_master for pool in pools] == expected_is_master
+    assert isinstance(client, DefaultClient)
+
+
 def test_django_cache_options_without_sentinel(redis_config):
     location, options = rs.get_django_redis_cache_options(redis_config, None, 5)
     assert location == "redis://127.0.0.1:6379/5"
