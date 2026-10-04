@@ -1,19 +1,10 @@
 """
-Celery-specific wiring on top of sefaria.system.redis_sentinel's generic Sentinel/Redis
-connection helpers: turns a (RedisConfig, SentinelConfig) pair into a Celery broker_url /
-result_backend, which is a Celery-only concept (connection-string format, transport options)
-that doesn't belong in the shared module.
+Builds Celery's broker_url / result_backend from the shared Sentinel/Redis config in
+sefaria.system.redis_sentinel.
 """
 from sefaria.system.redis_sentinel import (
-    SentinelConfig, RedisConfig, add_db_num_to_url, add_password_to_url,
-    get_sentinel_joined_address, dns_refresher, start_background_dns_refresher,
+    SentinelConfig, RedisConfig, add_db_num_to_url, add_password_to_url, get_sentinel_joined_address,
 )
-
-__all__ = [
-    "SentinelConfig", "RedisConfig", "add_db_num_to_url", "add_password_to_url",
-    "get_sentinel_joined_address", "dns_refresher", "start_background_dns_refresher",
-    "generate_config",
-]
 
 
 def generate_config(redis_config: RedisConfig, sentinel_config: SentinelConfig = None) -> dict:

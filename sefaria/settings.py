@@ -359,14 +359,11 @@ SEARCH_INDEX_NAME_TOPIC = 'topic'
 SEARCH_INDEX_NAME_BOOK = 'book'
 SEARCH_INDEX_NAME_CATEGORY = 'category'
 
-# Same reasoning as the search index names above: defaulted here, before local_settings is
-# imported, so a local_settings.py that predates the GenCache/Redis-Sentinel migration still
-# boots. sefaria.system.cache imports these unconditionally at module import time (GenCache's
-# own redis client), so a NameError here would crash every process, not just one page render.
+# Defaulted before local_settings is imported so an older local_settings.py still boots:
+# sefaria.system.cache reads these at import time. Keep the DB numbers distinct from Celery's
+# broker/result-backend DBs on the same Redis.
 SENTINEL_MASTER_SET = "mymaster"  # the Bitnami redis chart's default sentinel.masterSet
-GENCACHE_REDIS_DB_NUM = 4  # a separate keyspace from Celery's broker(0)/result-backend(1) and
-                           # Django's CACHES db nums on the same Sentinel master in prod --
-                           # confirm against the actual prod DB-number allocation before deploying
+GENCACHE_REDIS_DB_NUM = 6
 
 # Grab environment specific settings from a file which
 # is left out of the repo.

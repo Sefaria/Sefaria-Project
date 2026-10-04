@@ -132,10 +132,8 @@ CACHES = {
 }
 """
 
-"""THIS CACHE DEFINITION POINTS AT REDIS SENTINEL INSTEAD OF A SINGLE PLAIN REDIS INSTANCE --
-see the GenCache migration decision record, §08a. Only relevant if SENTINEL_HEADLESS_URL
-below is actually set to something resolvable (e.g. testing against a real cluster); plain
-local dev has no Sentinel, so the example above is what most developers want."""
+"""THIS CACHE DEFINITION POINTS AT REDIS SENTINEL. Only useful if SENTINEL_HEADLESS_URL below is set;
+local dev has no Sentinel, so most developers want the example above."""
 """
 from sefaria.system.redis_sentinel import RedisConfig, SentinelConfig, get_django_redis_cache_options
 
@@ -316,9 +314,7 @@ CELERY_QUEUES = {}
 CELERY_ENABLED = False
 # END Celery
 
-# Django's CACHES (if pointed at Sentinel -- see the commented CACHES example above) and
-# GenCache's own counters (sefaria.system.cache) share this same Redis/Sentinel cluster with
-# Celery above, each in its own DB number -- keep these distinct from CELERY_REDIS_*_DB_NUM.
+# CACHES and GenCache share Celery's Redis; keep these DB numbers distinct from CELERY_REDIS_*_DB_NUM.
 SENTINEL_MASTER_SET = "mymaster"  # the Bitnami redis chart's default sentinel.masterSet
 DEFAULT_CACHE_DB_NUM = 4
 SHARED_CACHE_DB_NUM = 5

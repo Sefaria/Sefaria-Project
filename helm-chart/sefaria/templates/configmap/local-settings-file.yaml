@@ -32,11 +32,8 @@ data:
     nodejsHost = os.getenv("NODEJS_HOST")
     varnishHost = os.getenv("VARNISH_HOST")
 
-    # Redis / Redis Sentinel. Either SENTINEL_HEADLESS_URL (prod/staging, see
-    # sefaria/infrastructure's redis HelmRelease) or REDIS_URL (a single plain instance) must
-    # be set; sefaria.system.redis_sentinel picks whichever is configured. Celery, Django's
-    # CACHES below, and GenCache's own counters (sefaria.system.cache) all share this same
-    # cluster, each in its own DB number -- keep these distinct from one another.
+    # Redis: set SENTINEL_HEADLESS_URL (Sentinel) or REDIS_URL (a plain instance). Celery,
+    # CACHES and GenCache share this Redis, each in its own DB number.
     REDIS_URL = os.getenv("REDIS_URL")
     REDIS_PORT = os.getenv("REDIS_PORT")
     REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
@@ -44,9 +41,9 @@ data:
     SENTINEL_TRANSPORT_OPTS = json.loads(os.getenv("SENTINEL_TRANSPORT_OPTS", "{}"))
     SENTINEL_PASSWORD = os.getenv("SENTINEL_PASSWORD")
     SENTINEL_MASTER_SET = os.getenv("SENTINEL_MASTER_SET", "mymaster")
-    DEFAULT_CACHE_DB_NUM = os.getenv("DEFAULT_CACHE_DB_NUM", "2")
-    SHARED_CACHE_DB_NUM = os.getenv("SHARED_CACHE_DB_NUM", "3")
-    GENCACHE_REDIS_DB_NUM = os.getenv("GENCACHE_REDIS_DB_NUM", "4")
+    DEFAULT_CACHE_DB_NUM = os.getenv("DEFAULT_CACHE_DB_NUM", "4")
+    SHARED_CACHE_DB_NUM = os.getenv("SHARED_CACHE_DB_NUM", "5")
+    GENCACHE_REDIS_DB_NUM = os.getenv("GENCACHE_REDIS_DB_NUM", "6")
 
     ALLOWED_HOSTS = ["*"]
     CSRF_TRUSTED_ORIGINS = [
