@@ -79,11 +79,6 @@ Run these checks in Sefaria-Project and report each result in plain words:
      Tell the user in one line: `Opened draft PR: <link>`. Opening it starts the image build, which usually takes several minutes; the cauldron picks up the images when the build finishes, so it's fine to go ahead. If `gh pr create` fails, show its last error line and warn clearly: the cauldron will be created but won't start, because no images exist.
    - PR exists but the latest `Continuous` run is still in progress → the cauldron will pick up the images when the build finishes; fine to go ahead.
    - Latest run failed → warn that there may be no usable images; let the user decide.
-   - Optional, only if `gcloud` is installed and logged in: list the newest web image directly (`timeout 120` because it can be slow):
-     ```bash
-     timeout 120 gcloud artifacts docker images list "us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-<imagename>" --include-tags --sort-by=~UPDATE_TIME --limit 1 --format="value(tags,updateTime)"
-     ```
-     Tags look like `sha-<short commit>-<YYYYMMDDHHMM>`. Don't compare the short commit with the branch's commits: for a PR branch, CI builds GitHub's temporary "PR merged into master" commit, which isn't on the branch, so it never matches. Compare times instead (both are UTC): if the latest `Continuous` run's `headSha` (from `gh run list` above) is the branch's latest pushed commit, and the tag's timestamp is no earlier than that run's `createdAt` (to the minute), the image was built from the latest pushed commit. Otherwise the newest image is from an older commit; say so (warning only).
 
 ## Step 4 — Get the cauldrons repo ready, and check the name is free
 
