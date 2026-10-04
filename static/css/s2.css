@@ -8981,6 +8981,15 @@ But not to use a display block directive that might break continuous mode for ot
 .interface-hebrew .toolsButton .toolsButtonIcon {
   margin-top: 1px;
 }
+/* POC (la-sandbox): a text glyph in the icon slot, and the purple "✦ Ask Library Assistant" */
+.toolsButton .toolsButtonGlyph {
+  text-align: center;
+  line-height: 1;
+}
+.toolsButton.askLibraryAssistant,
+.toolsButton.askLibraryAssistant .toolsButtonIcon {
+  color: var(--mussar-purple);
+}
 .toolsButton img.toolsButtonIcon {
   width: 18px;
   height: 18px;
