@@ -1054,13 +1054,12 @@ def rebuild_linker_resolvers_task(self, langs: List[str]) -> dict:
     Rebuild only RefResolver and CategoryResolver for the given linker languages, after
     linker-editor metadata edits (match_templates / addressTypes / NonUniqueTerms). Runs
     off the request path since rebuilding a resolver walks the whole library and can take
-    several seconds. Bumps GenCache's per-language counter so every other process picks up
-    the rebuilt resolver on its own next check.
+    several seconds. Bumps GenCache's per-language counter so other processes rebuild theirs.
     """
     logger.info("rebuild_linker_resolvers:start", langs=langs, task_id=self.request.id)
     library.rebuild_linker_resolvers(langs)
     for lang in langs:
-        gen_cache.publish(f"linker_resolver:{lang}", None)
+        gen_cache.mark_fresh(f"linker_resolver:{lang}")
     logger.info("rebuild_linker_resolvers:complete", langs=langs, task_id=self.request.id)
     return {"langs": langs}
 

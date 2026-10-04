@@ -46,7 +46,7 @@ def _invalidate_non_unique_term_cache(slug: str) -> None:
     `NonUniqueTerm.init()`, not a fresh query. Mirrors _save_linker_metadata's index-cache
     refresh above.
     """
-    library.refresh_non_unique_term_in_cache(slug)  # itself bumps GenCache's per-slug counter
+    library.refresh_non_unique_term_in_cache(slug)
 
 
 # ---------------------------------------------------------------------------

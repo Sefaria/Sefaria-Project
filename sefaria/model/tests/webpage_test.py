@@ -2,7 +2,7 @@ import pytest
 from sefaria.model import *
 from sefaria.model.webpage import WebPage, WebSite, get_webpages_for_ref
 from sefaria.helper.webpages import normalize_url
-from sefaria.system.cache import in_memory_cache, gen_cache
+from sefaria.system.cache import gen_cache
 from sefaria.system.exceptions import InputError
 
 title_good_url = "Dvar Torah"

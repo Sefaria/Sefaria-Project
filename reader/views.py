@@ -3642,13 +3642,12 @@ def rebuild_full_auto_completer_across_servers():
     """
     Rebuilds the full auto completer locally and, when this server cannot serve
     completion traffic itself (DISABLE_AUTOCOMPLETER), bumps GenCache's counter so the name
-    service (and anyone else tracking it) picks it up on its next check. When this server
-    holds its own completers the bump is skipped, preserving the historical local-only
-    rebuild semantics rather than triggering a fleet-wide build.
+    service picks it up. When this server holds its own completers the bump is skipped,
+    preserving the historical local-only rebuild rather than triggering a fleet-wide build.
     """
     library.build_full_auto_completer()
     if DISABLE_AUTOCOMPLETER:
-        gen_cache.publish("full_auto_completer", None)
+        gen_cache.mark_fresh("full_auto_completer")
 
 
 @staff_member_required
@@ -5521,7 +5520,7 @@ def application_health_api(request):
     """
     def isRedisReachable():
         try:
-            return gen_cache.redis.ping() == True
+            return gen_cache.redis.ping()
         except Exception as e:
             logger.warn(f"Failed redis healthcheck. Error: {e}")
             return False

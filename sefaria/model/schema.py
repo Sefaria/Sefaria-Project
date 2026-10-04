@@ -343,18 +343,19 @@ class NonUniqueTerm(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
 
+    @staticmethod
+    def gen_cache_key(slug: str) -> str:
+        return f"non_unique_term:{slug}"
+
     @classmethod
     def init(cls, slug: str, slug_field_idx: int = None) -> 'AbstractMongoRecord':
         """
-        A per-slug, lazy generation check ahead of the inherited cacheable `.init()`: a peer
-        process's edit (e.g. via the linker editor) only becomes visible here once this
-        process notices the slug's counter changed -- on the next time *this* slug is looked
-        up, not via a bulk sweep of every cached slug. See the GenCache migration decision
-        record, §04 (why this object uses the fine-grained/lazy form, unlike most others) and
-        §03 (NonUniqueTerm as the one per-slug entry in the object inventory).
+        Checks this slug's GenCache counter before the cached `.init()`, so a peer's edit
+        drops the stale cached term the next time this slug is looked up.
         """
-        key = f"non_unique_term:{slug}"
-        gen_cache.register(key, f"gen:{key}", lambda: cls._init_cache.pop(slug, None))
+        key = cls.gen_cache_key(slug)
+        if not gen_cache.is_registered(key):
+            gen_cache.register(key, f"gen:{key}", lambda: cls._init_cache.pop(slug, None))
         gen_cache.get(key)
         return super().init(slug, slug_field_idx)
 

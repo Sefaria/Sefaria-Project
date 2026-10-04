@@ -25,6 +25,7 @@ def init_library_cache():
     logger = structlog.get_logger(__name__)
 
     from sefaria.model.text import library
+    from sefaria.system.cache import gen_cache
     from django.conf import settings
 
     # The individual builders below wrap themselves; this outer block groups them, so a boot
@@ -42,22 +43,21 @@ def init_library_cache():
         logger.info("Initializing Shared Cache")
         library.init_shared_cache()
 
+        # Built through gen_cache, so the first request doesn't count as a cold start and rebuild them.
         if not settings.DISABLE_AUTOCOMPLETER:
             logger.info("Initializing Full Auto Completer")
-            library.build_full_auto_completer()
-
+            gen_cache.get("full_auto_completer")
 
             logger.info("Initializing Lexicon Auto Completers")
-            library.build_lexicon_auto_completers()
+            gen_cache.get("lexicon_auto_completer")
 
             logger.info("Initializing Cross Lexicon Auto Completer")
-            library.build_cross_lexicon_auto_completer()
-
+            gen_cache.get("cross_lexicon_auto_completer")
 
         if settings.ENABLE_LINKER:
             logger.info("Initializing Linker")
-            library.build_linker('he')
-            library.build_linker('en')
+            gen_cache.get("linker_resolver:he")
+            gen_cache.get("linker_resolver:en")
 
 
     logger.info("Initialization Complete")

@@ -43,7 +43,7 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
-from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern, gen_cache
+from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern, gen_cache
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, CELERY_ENABLED, SEARCH_INDEX_ON_SAVE
@@ -804,7 +804,6 @@ def rebuild_linker_resolvers(request):
 @staff_member_required
 def reset_websites_data(request):
     website_set = [w.contents() for w in WebSiteSet()]
-    in_memory_cache.set("websites_data", website_set)
     gen_cache.publish("websites_data", website_set)
     return HttpResponseRedirect("/?m=Website-Data-Reset")
 
@@ -878,7 +877,7 @@ def reset_counts(request, title=None):
 
         return HttpResponseRedirect("/%s?m=Counts-Rebuilt" % model.Ref(i.title).url())
     else:
-        model.refresh_all_states()  # itself calls library.rebuild_toc(), which self-publishes
+        model.refresh_all_states()
 
         return HttpResponseRedirect("/?m=Counts-Rebuilt")
 
@@ -886,9 +885,7 @@ def reset_counts(request, title=None):
 @staff_member_required
 def delete_orphaned_counts(request):
     remove_old_counts()
-    # 'default' cache is already Sentinel-backed and shared across every process (see the
-    # GenCache migration decision record, §08a) -- deleting it here is already visible to
-    # every peer without a separate propagation step.
+    # the template cache is shared by every process, so no propagation step is needed
     scache.delete_template_cache("texts_dashboard")
 
     return HttpResponseRedirect("/dashboard?m=Orphaned-counts-deleted")
@@ -905,11 +902,11 @@ def rebuild_auto_completer(request):
     # Three builders, each of which wraps itself: group them so one click reports once.
     with build_pathway("rebuild_auto_completer"):
         library.build_full_auto_completer()
-        gen_cache.publish("full_auto_completer", None)
+        gen_cache.mark_fresh("full_auto_completer")
         library.build_lexicon_auto_completers()
-        gen_cache.publish("lexicon_auto_completer", None)
+        gen_cache.mark_fresh("lexicon_auto_completer")
         library.build_cross_lexicon_auto_completer()
-        gen_cache.publish("cross_lexicon_auto_completer", None)
+        gen_cache.mark_fresh("cross_lexicon_auto_completer")
 
     return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 

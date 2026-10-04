@@ -2,7 +2,7 @@
 from urllib.parse import urlparse
 import regex as re
 
-from sefaria.system.cache import in_memory_cache, gen_cache
+from sefaria.system.cache import gen_cache
 from sefaria.system.database import db
 
 
@@ -15,7 +15,6 @@ def _refresh_website_cache():
     for site in db.websites.find({}):
         site.pop("_id", None)
         sites.append(site)
-    in_memory_cache.set("websites_data", sites)
     return sites
 
 

@@ -245,10 +245,8 @@ def count_and_index(oref, lang, vtitle, to_count=1):
 
 
 def count_segments(index, skip_toc_refresh=False):
-    # recount_index_in_toc() bumps GenCache's own counters itself (toc_tree always, the rest
-    # of the TOC family via rebuild_toc() when skip_toc_refresh is False) -- nothing else to
-    # trigger here. When deferring, the caller is responsible for one global
-    # `library.rebuild_toc()` at the end of the batch.
+    # When deferring, the caller is responsible for one global `library.rebuild_toc()`
+    # at the end of the batch.
     model.library.recount_index_in_toc(index, skip_toc_refresh=skip_toc_refresh)
 
 
