@@ -34,15 +34,16 @@ describe("LibraryAssistantBrowseBanner", function () {
   it("shows when placed there, and opens the assistant", function () {
     localStorage.setItem("lc_chatbot:poc_toolbox", JSON.stringify({ placement: "banner" }));
     render();
-    expect(banner().textContent).toBe("✦texts_page.library_assistant_banner›");
+    expect(banner().textContent).toBe("✦texts_page.library_assistant_bannertexts_page.library_assistant_banner_button");
 
     const listener = jest.fn();
     document.addEventListener("chatbot:open", listener);
-    const click = new MouseEvent("click", { bubbles: true, cancelable: true });
-    act(() => { banner().dispatchEvent(click); });
+    act(() => { banner().querySelector(".libraryAssistantBannerButton").click(); });
+    act(() => { banner().click(); });
     document.removeEventListener("chatbot:open", listener);
+    // The button and the rest of the banner each open it once
+    expect(listener).toHaveBeenCalledTimes(2);
     expect(listener.mock.calls[0][0].detail).toEqual({ source: "browse_banner" });
-    expect(click.defaultPrevented).toBe(true);
   });
 
   it("follows live toolbox changes, copy included", function () {
@@ -50,7 +51,7 @@ describe("LibraryAssistantBrowseBanner", function () {
     act(() => {
       document.dispatchEvent(new CustomEvent("chatbot:poc-config", { detail: { placement: "banner", bannerText: "Start here" } }));
     });
-    expect(banner().textContent).toBe("✦Start here›");
+    expect(banner().textContent).toBe("✦Start heretexts_page.library_assistant_banner_button");
   });
 
   it("is absent when the assistant isn't on the page", function () {

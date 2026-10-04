@@ -34,14 +34,17 @@ export const LibraryAssistantBrowseBanner = () => {
     e.preventDefault(); // tells ReaderApp's in-app link handler to leave this click alone
     document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {source: 'browse_banner'}}));
   };
+  // The whole banner opens the assistant on click; its button is what keyboards and screen readers reach
   return (
-    <a href="#" role="button" className="libraryAssistantBanner" onClick={open}>
+    <div className="libraryAssistantBanner" onClick={open}>
       <span className="libraryAssistantBannerStar" aria-hidden="true">✦</span>
       <span className="libraryAssistantBannerText">
         {text ? <span className={Sefaria.interfaceLang === 'hebrew' ? 'int-he' : 'int-en'}>{text}</span>
               : <InterfaceText>texts_page.library_assistant_banner</InterfaceText>}
       </span>
-      <span className="libraryAssistantBannerArrow" aria-hidden="true">›</span>
-    </a>
+      <button type="button" className="libraryAssistantBannerButton" onClick={(e) => { e.stopPropagation(); open(e); }}>
+        <InterfaceText>texts_page.library_assistant_banner_button</InterfaceText>
+      </button>
+    </div>
   );
 };
