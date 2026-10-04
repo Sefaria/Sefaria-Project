@@ -475,6 +475,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           openURL={openURL}
           onNavigate={close}
           hideHebrewKeyboard={true}
+          libraryAssistant={libraryAssistant && module === Sefaria.LIBRARY_MODULE}
         />
       </div>
       {module === Sefaria.LIBRARY_MODULE &&

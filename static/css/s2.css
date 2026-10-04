@@ -5595,6 +5595,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .search-group-suggestions:has(.search-override-wrapper:not(.assistant-override-wrapper)):has(+ .search-group-suggestions .assistant-override-wrapper) {
   border-bottom: 0;
 }
+/* Phones: the "Search for" row is a bordered block; with the assistant row under it,
+   the two share one block */
+@media (max-width: 842px) {
+  .search-group-suggestions:has(+ .search-group-suggestions .assistant-override-wrapper) .search-override-wrapper {
+    margin-bottom: 0;
+    border-bottom: 0;
+  }
+}
 .autocomplete-dropdown .type-title{
   font-family: 'Roboto';
   font-style: normal;
