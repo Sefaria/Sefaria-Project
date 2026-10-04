@@ -7,6 +7,7 @@ require('css-modules-require-hook')({  // so that node can handle require statem
    generateScopedName: '[name]',
 });
 const redis         = require('redis');
+const dns           = require('dns');
 const { promisify } = require("util");
 const http          = require('http'),
     express         = require('express'),
@@ -41,8 +42,44 @@ let sharedCacheData = {
   "virtualBooks": null,
 };
 
-const cache = redis.createClient(`redis://${settings.REDIS_HOST}:${settings.REDIS_PORT}`, {prefix: ':1:'});
-const getAsync = promisify(cache.get).bind(cache);
+const resolve4Async = promisify(dns.resolve4);
+
+/*
+Resolves the Redis endpoint this SSR cache reader should connect to, mirroring
+sefaria.system.redis_sentinel.get_redis_client(): when SENTINEL_HEADLESS_URL is configured
+(prod/staging), resolve the Sentinel headless Service's current pod IPs over DNS, ask one of
+them who the master is (SENTINEL get-master-addr-by-name), and connect there. Otherwise
+(local dev, which has no Sentinel) connect directly to REDIS_URL/REDIS_PORT.
+
+Unlike the Python client, this resolves the master once at startup rather than on every
+connection checkout -- the `redis` npm package here (v2.8, pre-Sentinel-aware versions)
+has no client-side Sentinel support to re-ask on a failover. That matches this process's
+existing reliability characteristics against the single-instance Redis it replaces (no
+failover either), but -- unlike the Python side -- it will not notice a Sentinel failover
+without a restart. Flagged as unverified: no live Sentinel/Node environment was available
+to test this against; validate in staging before trusting it in prod.
+*/
+const resolveSharedCacheRedisUrl = async function(){
+  if (!settings.SENTINEL_HEADLESS_URL) {
+    return `redis://${settings.REDIS_URL.replace('redis://', '')}:${settings.REDIS_PORT}`;
+  }
+  const sentinelIps = await resolve4Async(settings.SENTINEL_HEADLESS_URL);
+  // createClient(port, host, ...): port must come first, or a numeric-looking string here
+  // would be misread as a unix socket path rather than a host to dial -- see
+  // node_modules/redis/lib/createClient.js's argument-sniffing.
+  const sentinelClient = redis.createClient(settings.REDIS_PORT, sentinelIps[0]);
+  const sentinelCommandAsync = promisify(sentinelClient.send_command).bind(sentinelClient);
+  try {
+    const [host, port] = await sentinelCommandAsync(
+      'sentinel', ['get-master-addr-by-name', settings.SENTINEL_MASTER_SET]
+    );
+    return `redis://${host}:${port}`;
+  } finally {
+    sentinelClient.quit();
+  }
+};
+
+let cache, getAsync;
 
 
 const loadSharedData = async function({ last_cached_to_compare = null, startup = false } = {}){
@@ -161,20 +198,29 @@ const main = async function(){
     logger.info("Redis data not ready yet");
   }
   server.listen(settings.NODEJS_PORT, function() {
-    logger.info('Redis Host: ' + settings.REDIS_HOST);
-    logger.info('Redis Port: ' + settings.REDIS_PORT);
     logger.info('Debug: ' + settings.DEBUG);
     logger.info('Listening on ' + settings.NODEJS_PORT);
   });
 };
 
-cache.on('error', function (err) {
-  logger.error('Redis Connection Error ' + err);
-});
-cache.on('connect', function() {
-  logger.info('Connected to Redis');
-  cache.select(1, function (){
-    logger.info("REDIS DB: " + cache.selected_db);
-    main();
-  })
+resolveSharedCacheRedisUrl().then(function(redisUrl){
+  const clientOpts = {prefix: ':1:'};
+  if (settings.SENTINEL_HEADLESS_URL) {
+    clientOpts.auth_pass = settings.REDIS_PASSWORD;
+  }
+  cache = redis.createClient(redisUrl, clientOpts);
+  getAsync = promisify(cache.get).bind(cache);
+
+  cache.on('error', function (err) {
+    logger.error('Redis Connection Error ' + err);
+  });
+  cache.on('connect', function() {
+    logger.info('Connected to Redis: ' + redisUrl);
+    cache.select(settings.SHARED_CACHE_DB_NUM, function (){
+      logger.info("REDIS DB: " + cache.selected_db);
+      main();
+    })
+  });
+}).catch(function(err){
+  logger.error('Failed to resolve shared-cache Redis endpoint: ' + err);
 });

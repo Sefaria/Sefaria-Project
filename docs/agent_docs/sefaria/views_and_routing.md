@@ -142,7 +142,7 @@ The bulk of the URL patterns live here. Included by both `urls_library` and `url
 - `bulk_download_versions_api(request)` -- staff-only, creates ZIP of multiple versions matching query patterns.
 
 ### Admin & Cache Management (all `@staff_member_required`)
-- `reset_cache` -- rebuilds library, publishes multiserver event, invalidates Varnish.
+- `reset_cache` -- rebuilds library (self-publishes to GenCache), invalidates Varnish.
 - `reset_ref(tref)` -- refreshes index cache, version state, TOC, and Varnish for a specific ref.
 - `reset_counts(title)` -- refreshes `VersionState` for a title or all titles.
 - `rebuild_toc`, `rebuild_auto_completer` -- rebuild table of contents or autocomplete data.
@@ -174,8 +174,8 @@ All auth class-based views use `StaticViewMixin`, which adds `renderStatic: True
 ### CSRF Handling
 Several API endpoints are `@csrf_exempt`: `linker_tracking_api`, `generic_subscribe_to_newsletter_api`, `subscribe_sefaria_newsletter_view`, `index_sheets_by_timestamp`, `strapi_graphql_cache`, `rebuild_shared_cache`. This is because they are called by external services or the linker widget.
 
-### Multiserver Coordination
-Admin cache-reset views check `MULTISERVER_ENABLED` and publish events via `server_coordinator.publish_event()`. This ensures cache invalidation propagates across all app servers. Pattern: reset locally, then publish event.
+### GenCache Coordination
+Admin cache-reset views call the relevant `library.*` rebuild method, which bumps GenCache's own counter(s) as part of applying the change locally (`gen_cache.publish()`/`gen_cache.bump()` inside the Library method itself, not at the view). This ensures cache invalidation propagates to other app servers on their own next check -- there is no separate "publish" step for the view to call.
 
 ### Varnish Integration
 When `USE_VARNISH` is True, cache resets also call `invalidate_*` functions from `sefaria.system.varnish.wrapper`. The import is conditional at module level.
@@ -220,7 +220,7 @@ When `settings.DOWN_FOR_MAINTENANCE` is truthy, both `urls_library` and `urls_sh
 - `sefaria.helper.text` -- `make_versions_csv`, `get_library_stats`, `get_core_link_stats`, `WorkflowyParser`
 - `sefaria.helper.link` -- `add_links_from_csv`, `delete_links_from_text`, `get_csv_links_by_refs`
 - `sefaria.google_storage_manager.GoogleStorageManager` -- file uploads to GCS
-- `sefaria.system.multiserver.coordinator.server_coordinator` -- cross-server cache coordination
+- `sefaria.system.cache.gen_cache` -- cross-process cache freshness (GenCache)
 - `sefaria.export` -- text export functions
 - `sefaria.decorators.webhook_auth_or_staff_required` -- custom auth decorator
 
@@ -245,10 +245,9 @@ When `settings.DOWN_FOR_MAINTENANCE` is truthy, both `urls_library` and `urls_sh
 
 ### Adding an Admin Cache Reset
 1. Add a `@staff_member_required` view in `sefaria/views.py`.
-2. Perform the local reset.
-3. If `MULTISERVER_ENABLED`: publish via `server_coordinator.publish_event(...)`.
-4. If `USE_VARNISH`: call appropriate `invalidate_*` function.
-5. Add URL to `urls_shared.py` under the `/admin/` prefix.
+2. Perform the local reset by calling the relevant `library.*` method -- if that method is GenCache-tracked, it bumps its own counter(s) as part of the reset, so no separate propagation call is needed here.
+3. If `USE_VARNISH`: call appropriate `invalidate_*` function.
+4. Add URL to `urls_shared.py` under the `/admin/` prefix.
 
 ### Adding a New Page (SSR)
 1. Use `render_template(request, 'template.html', None, context)` (imported from `reader.views`).

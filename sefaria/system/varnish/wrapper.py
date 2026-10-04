@@ -1,5 +1,4 @@
 # Varnish wrapper used by web server.
-# There is also a parallel file thin_wrapper.py, which does not rely on core code - used for the multiserver monitor.
 
 import re
 import urllib.request, urllib.parse, urllib.error

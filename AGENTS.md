@@ -19,7 +19,7 @@ agent_docs/
 ├── model/           # MongoDB ORM + domain models (29 docs)
 ├── sefaria/         # Backend package: views, business logic, helpers, infra
 │   ├── helper/      # Business logic layer
-│   └── system/      # DB, cache, middleware, multiserver, Varnish
+│   └── system/      # DB, cache (incl. GenCache), middleware, Varnish
 ├── reader/          # Reader Django app (main web views)
 ├── frontend/        # React components + Sefaria JS singleton
 ├── apps/            # Smaller Django apps (api, sourcesheets, chatbot, etc.)
@@ -62,14 +62,12 @@ Never call `Version.save()` directly to change text. Use `sefaria.tracker.modify
 
 ### 4. Multi-Server Cache Invalidation
 ```
-Model.save() → notify() → in-process cache update
-            → ServerCoordinator.publish_event() (Redis pub/sub)
-            → other servers update their in-process caches
-            → MultiServerMonitor waits for confirmations
-            → Varnish purge/ban
+Model.save() → notify() → in-process cache update + gen_cache.publish()/bump() (Redis/Sentinel INCR)
+            → other servers' next gen_cache.get() notices the counter changed and refreshes
+            → Varnish purge/ban (called directly, no confirmation wait)
             → (optional) Cloudflare purge
 ```
-Details in [`agent_docs/sefaria/system/multiserver_and_varnish.md`](./agent_docs/sefaria/system/multiserver_and_varnish.md). Redis pub/sub means **missed messages are lost** — a server restarted mid-event may have stale caches.
+Details in [`agent_docs/sefaria/system/gencache_and_varnish.md`](./agent_docs/sefaria/system/gencache_and_varnish.md). A peer can lag by up to `GenCache.CHECK_INTERVAL_SECONDS` (2s) before noticing a change -- by design, not a message-loss risk the way the old Redis-pub/sub-based `sefaria/system/multiserver/` (retired) was.
 
 ### 5. Ref Is Cached Aggressively
 The `RefCacheType` metaclass intercepts `Ref(...)` construction and returns a cached instance when the input string or its normal form matches a previous call. The cache is an `OrderedDict` with LRU-style eviction; the limit defaults to 60,000 and is tunable at runtime via `remoteConfigCache` (`REF_CACHE_LIMIT_KEY`). Constructing the same ref string returns the same object. Don't mutate a `Ref`; derive a new one.

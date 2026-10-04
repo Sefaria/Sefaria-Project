@@ -29,7 +29,21 @@ SHARD_ENV_KEYS = (
     "SEARCH_PORT",
     "SEARCH_PATH",
     "SEARCH_SSL_ENABLE",
-    "REDIS_HOST",
+    # Redis / Redis Sentinel -- shards boot Django too (CACHES, GenCache's own redis client),
+    # so they need the same connection settings the orchestrator pod itself gets via its
+    # envFrom (local-settings-<env> configmap plus the redis/sentinel password secrets,
+    # which land here as plain env vars indistinguishable from any other). Passed through by
+    # value rather than by secretRef, matching this function's existing forwarding pattern.
+    "REDIS_URL",
+    "REDIS_PORT",
+    "REDIS_PASSWORD",
+    "SENTINEL_HEADLESS_URL",
+    "SENTINEL_PASSWORD",
+    "SENTINEL_TRANSPORT_OPTS",
+    "SENTINEL_MASTER_SET",
+    "DEFAULT_CACHE_DB_NUM",
+    "SHARED_CACHE_DB_NUM",
+    "GENCACHE_REDIS_DB_NUM",
     "NODEJS_HOST",
     "VARNISH_HOST",
 )

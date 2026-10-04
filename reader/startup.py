@@ -25,7 +25,6 @@ def init_library_cache():
     logger = structlog.get_logger(__name__)
 
     from sefaria.model.text import library
-    from sefaria.system.multiserver.coordinator import server_coordinator
     from django.conf import settings
 
     # The individual builders below wrap themselves; this outer block groups them, so a boot
@@ -61,6 +60,4 @@ def init_library_cache():
             library.build_linker('en')
 
 
-    if server_coordinator:
-        server_coordinator.connect()
     logger.info("Initialization Complete")

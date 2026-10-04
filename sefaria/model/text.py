@@ -28,7 +28,7 @@ from .schema import deserialize_tree, AltStructNode, VirtualNode, DictionaryNode
 from sefaria.system.database import db
 
 import sefaria.system.cache as scache
-from sefaria.system.cache import in_memory_cache
+from sefaria.system.cache import in_memory_cache, gen_cache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
     NoVersionFoundError, DictionaryEntryNotFoundError, MissingKeyError, ComplexBookLevelRefError
 from sefaria.helper.skip_tracking import log_skip, bad_record_guard, build_pathway
@@ -36,8 +36,7 @@ skip_bad_record = bad_record_guard(logger)
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string, flatten_jagged_array
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER
-from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, DISABLE_AUTOCOMPLETER
 from sefaria.constants import model as constants
 from sefaria.helper.normalization import NormalizerFactory
 from remote_config import remoteConfigCache
@@ -4572,7 +4571,39 @@ class Library(object):
         self._cross_lexicon_auto_completer_is_ready = False
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
+            self._register_gen_cache()  # must run before any getter below, since they read through it
             self.get_simple_term_mapping() # this will implicitly call self.build_term_mappings() but also make sure its cached.
+
+    def _register_gen_cache(self):
+        """
+        One registration per object GenCache tracks for this singleton (see the GenCache
+        migration decision record, §01/§03). For "redis"-tier objects, refresh_fn is a
+        dedicated `_refresh_*` method that reproduces that getter's own check-shared-cache-
+        else-rebuild-from-Mongo body (the three-tier pattern on Library Singleton) -- a
+        generation mismatch must degrade to a shared-cache read, then Mongo, not jump
+        straight to Mongo every time (§03's review correction). For "mongo"-tier objects
+        with no shared-cache tier, refresh_fn is just the existing rebuild method itself.
+        Registering here, not lazily on first access, means every tracked key already has a
+        counter to compare against before the first request lands.
+        """
+        gen_cache.register("toc", "gen:toc", self._refresh_toc)
+        gen_cache.register("toc_with_authors", "gen:toc_with_authors", self._refresh_toc_with_authors)
+        gen_cache.register("toc_json", "gen:toc_json", self._refresh_toc_json)
+        gen_cache.register("toc_tree", "gen:toc_tree", self._refresh_toc_tree)
+        gen_cache.register("topic_toc", "gen:topic_toc", self._refresh_topic_toc)
+        gen_cache.register("topic_toc_json", "gen:topic_toc_json", self._refresh_topic_toc_json)
+        gen_cache.register("topic_toc_category_mapping", "gen:topic_toc_category_mapping", self._refresh_topic_toc_category_mapping)
+        gen_cache.register("term_mapping", "gen:term_mapping", self._refresh_term_mapping)
+        gen_cache.register("term_mapping_json", "gen:term_mapping_json", self._refresh_term_mapping_json)
+        gen_cache.register("virtual_books", "gen:virtual_books", self._refresh_virtual_books)
+        gen_cache.register("topic_mapping", "gen:topic_mapping", self._build_topic_mapping)
+        gen_cache.register("index_map", "gen:index_map", self._build_index_maps)
+        gen_cache.register("full_auto_completer", "gen:full_auto_completer", self.build_full_auto_completer)
+        gen_cache.register("lexicon_auto_completer", "gen:lexicon_auto_completer", self.build_lexicon_auto_completers)
+        gen_cache.register("cross_lexicon_auto_completer", "gen:cross_lexicon_auto_completer", self.build_cross_lexicon_auto_completer)
+        for lang in self.langs:
+            gen_cache.register(f"books_{lang}", f"gen:books_{lang}", lambda lang=lang: self._refresh_text_titles_json(lang))
+            gen_cache.register(f"linker_resolver:{lang}", f"gen:linker_resolver:{lang}", lambda lang=lang: self.build_linker(lang))
 
     def _build_index_maps(self):
         """
@@ -4619,8 +4650,9 @@ class Library(object):
     def rebuild(self, include_toc = False, include_auto_complete=False):
         with build_pathway("rebuild"):
             self.get_simple_term_mapping_json(rebuild=True)
-            self._build_topic_mapping()
+            self.get_topic_mapping(rebuild=True)
             self._build_index_maps()
+            gen_cache.publish("index_map", None)
             self._full_title_lists = {}
             self._full_title_list_jsons = {}
             self.reset_text_titles_cache()
@@ -4698,6 +4730,16 @@ class Library(object):
         self.last_cached = time.time() # just use the unix timestamp, we dont need any fancy timezone faffing, just objective point in time.
         scache.set_shared_cache_elem("last_cached", self.last_cached)
 
+    def _refresh_toc(self):
+        """refresh_fn for GenCache's "toc" key: the shared-cache-else-Mongo tiers that used
+        to live inline in get_toc()'s non-rebuild branch."""
+        self._toc = scache.get_shared_cache_elem('toc')
+        if not self._toc:
+            self._toc = self.get_toc_tree().get_serialized_toc()
+            scache.set_shared_cache_elem('toc', self._toc)
+            self.set_last_cached_time()
+        return self._toc
+
     def get_toc(self, rebuild=False, serialization_options=None):
         """
         Returns the ToC Tree from the cache, DB or by generating it, as needed.
@@ -4713,38 +4755,55 @@ class Library(object):
             if rebuild:
                 self.get_toc_tree(rebuild=True)
             return self.get_toc_tree().get_serialized_toc(serialization_options=serialization_options)
-        if rebuild or not self._toc:
-            if not rebuild:
-                self._toc = scache.get_shared_cache_elem('toc')
-            if rebuild or not self._toc:
-                self._toc = self.get_toc_tree().get_serialized_toc()  # update_table_of_contents()
-                scache.set_shared_cache_elem('toc', self._toc)
-                self.set_last_cached_time()
-        return self._toc
+        if rebuild:
+            self._toc = self.get_toc_tree().get_serialized_toc()  # update_table_of_contents()
+            scache.set_shared_cache_elem('toc', self._toc)
+            self.set_last_cached_time()
+            return gen_cache.publish("toc", self._toc)
+        return gen_cache.get("toc")
+
+    def _refresh_toc_with_authors(self):
+        self._toc_with_authors = scache.get_shared_cache_elem('toc_with_authors')
+        if not self._toc_with_authors:
+            self._toc_with_authors = self.get_toc_tree().get_serialized_toc_with_authors()
+            scache.set_shared_cache_elem('toc_with_authors', self._toc_with_authors)
+            self.set_last_cached_time()
+        return self._toc_with_authors
 
     def get_toc_with_authors(self, rebuild=False):
-        if rebuild or not self._toc_with_authors:
-            if not rebuild:
-                self._toc_with_authors = scache.get_shared_cache_elem('toc_with_authors')
-            if rebuild or not self._toc_with_authors:
-                self._toc_with_authors = self.get_toc_tree().get_serialized_toc_with_authors()
-                scache.set_shared_cache_elem('toc_with_authors', self._toc_with_authors)
-                self.set_last_cached_time()
-        return self._toc_with_authors
+        if rebuild:
+            self._toc_with_authors = self.get_toc_tree().get_serialized_toc_with_authors()
+            scache.set_shared_cache_elem('toc_with_authors', self._toc_with_authors)
+            self.set_last_cached_time()
+            return gen_cache.publish("toc_with_authors", self._toc_with_authors)
+        return gen_cache.get("toc_with_authors")
+
+    def _refresh_toc_json(self):
+        self._toc_json = scache.get_shared_cache_elem('toc_json')
+        if not self._toc_json:
+            self._toc_json = json.dumps(self.get_toc(), ensure_ascii=False)
+            scache.set_shared_cache_elem('toc_json', self._toc_json)
+            self.set_last_cached_time()
+        return self._toc_json
 
     def get_toc_json(self, rebuild=False):
         """
         Returns as JSON representation of the ToC. This is generated on Library start up as an
         optimization for the API, to allow retrieval of the data with a single call.
         """
-        if rebuild or not self._toc_json:
-            if not rebuild:
-                self._toc_json = scache.get_shared_cache_elem('toc_json')
-            if rebuild or not self._toc_json:
-                self._toc_json = json.dumps(self.get_toc(), ensure_ascii=False)
-                scache.set_shared_cache_elem('toc_json', self._toc_json)
-                self.set_last_cached_time()
-        return self._toc_json
+        if rebuild:
+            self._toc_json = json.dumps(self.get_toc(), ensure_ascii=False)
+            scache.set_shared_cache_elem('toc_json', self._toc_json)
+            self.set_last_cached_time()
+            return gen_cache.publish("toc_json", self._toc_json)
+        return gen_cache.get("toc_json")
+
+    def _refresh_toc_tree(self, mobile=False):
+        from sefaria.model.category import TocTree
+        with build_pathway("get_toc_tree"):
+            self._toc_tree = TocTree(self, mobile=mobile)
+        self._toc_tree_is_ready = True
+        return self._toc_tree
 
     def get_toc_tree(self, rebuild=False, mobile=False):
         """
@@ -4752,42 +4811,54 @@ class Library(object):
         'firstSection' to toc for mobile export. This field is no longer required on prod but is still required
         on mobile until the navigation redesign happens there.
         """
-        if rebuild or not self._toc_tree:
-            from sefaria.model.category import TocTree
-            # The building branch only — the cache-hit path is a hot read.
-            with build_pathway("get_toc_tree"):
-                self._toc_tree = TocTree(self, mobile=mobile)
+        if rebuild:
+            self._refresh_toc_tree(mobile=mobile)
+            return gen_cache.publish("toc_tree", self._toc_tree)
+        self._toc_tree = gen_cache.get("toc_tree")
         self._toc_tree_is_ready = True
         return self._toc_tree
+
+    def _refresh_topic_toc(self):
+        self._topic_toc = scache.get_shared_cache_elem('topic_toc')
+        if not self._topic_toc:
+            with build_pathway("get_topic_toc"):
+                self._topic_toc = self.get_topic_toc_json_recursive()
+            scache.set_shared_cache_elem('topic_toc', self._topic_toc)
+            self.set_last_cached_time()
+        return self._topic_toc
 
     def get_topic_toc(self, rebuild=False):
         """
         Returns dictionary representation of Topics ToC.
          """
-        if rebuild or not self._topic_toc:
-            if not rebuild:
-                self._topic_toc = scache.get_shared_cache_elem('topic_toc')
-            if rebuild or not self._topic_toc:
-                # The building branch only — the cache-hit path is a hot read.
-                with build_pathway("get_topic_toc"):
-                    self._topic_toc = self.get_topic_toc_json_recursive()
-                scache.set_shared_cache_elem('topic_toc', self._topic_toc)
-                self.set_last_cached_time()
-        return self._topic_toc
+        if rebuild:
+            # The building branch only — the cache-hit path is a hot read.
+            with build_pathway("get_topic_toc"):
+                self._topic_toc = self.get_topic_toc_json_recursive()
+            scache.set_shared_cache_elem('topic_toc', self._topic_toc)
+            self.set_last_cached_time()
+            return gen_cache.publish("topic_toc", self._topic_toc)
+        return gen_cache.get("topic_toc")
+
+    def _refresh_topic_toc_json(self):
+        self._topic_toc_json = scache.get_shared_cache_elem('topic_toc_json')
+        if not self._topic_toc_json:
+            self._topic_toc_json = json.dumps(self.get_topic_toc(), ensure_ascii=False)
+            scache.set_shared_cache_elem('topic_toc_json', self._topic_toc_json)
+            self.set_last_cached_time()
+        return self._topic_toc_json
 
     def get_topic_toc_json(self, rebuild=False):
         """
         Returns JSON representation of Topics ToC.
         :param rebuild: Boolean
         """
-        if rebuild or not self._topic_toc_json:
-            if not rebuild:
-                self._topic_toc_json = scache.get_shared_cache_elem('topic_toc_json')
-            if rebuild or not self._topic_toc_json:
-                self._topic_toc_json = json.dumps(self.get_topic_toc(), ensure_ascii=False)
-                scache.set_shared_cache_elem('topic_toc_json', self._topic_toc_json)
-                self.set_last_cached_time()
-        return self._topic_toc_json
+        if rebuild:
+            self._topic_toc_json = json.dumps(self.get_topic_toc(), ensure_ascii=False)
+            scache.set_shared_cache_elem('topic_toc_json', self._topic_toc_json)
+            self.set_last_cached_time()
+            return gen_cache.publish("topic_toc_json", self._topic_toc_json)
+        return gen_cache.get("topic_toc_json")
 
     def get_topic_toc_json_recursive(self, topic=None, explored=None, with_descriptions=False):
         """
@@ -4862,21 +4933,28 @@ class Library(object):
                 topic_toc_category_mapping[child_slug] = curr_slug
         return topic_toc_category_mapping
 
+    def _refresh_topic_toc_category_mapping(self):
+        self._topic_toc_category_mapping = scache.get_shared_cache_elem('topic_toc_category_mapping')
+        if not self._topic_toc_category_mapping:
+            with build_pathway("get_topic_toc_category_mapping"):
+                self._topic_toc_category_mapping = self.build_topic_toc_category_mapping()
+            scache.set_shared_cache_elem('topic_toc_category_mapping', self._topic_toc_category_mapping)
+            self.set_last_cached_time()
+        return self._topic_toc_category_mapping
+
     def get_topic_toc_category_mapping(self, rebuild=False) -> dict:
         """
         Returns the category mapping as a dictionary for the topics ToC. Loads on Library startup.
         :param rebuild: Boolean
         """
-        if rebuild or not self._topic_toc_category_mapping:
-            if not rebuild:
-                self._topic_toc_category_mapping = scache.get_shared_cache_elem('topic_toc_category_mapping')
-            if rebuild or not self._topic_toc_category_mapping:
-                # The building branch only — the cache-hit path is a hot read.
-                with build_pathway("get_topic_toc_category_mapping"):
-                    self._topic_toc_category_mapping = self.build_topic_toc_category_mapping()
-                scache.set_shared_cache_elem('topic_toc_category_mapping', self._topic_toc_category_mapping)
-                self.set_last_cached_time()
-        return self._topic_toc_category_mapping
+        if rebuild:
+            # The building branch only — the cache-hit path is a hot read.
+            with build_pathway("get_topic_toc_category_mapping"):
+                self._topic_toc_category_mapping = self.build_topic_toc_category_mapping()
+            scache.set_shared_cache_elem('topic_toc_category_mapping', self._topic_toc_category_mapping)
+            self.set_last_cached_time()
+            return gen_cache.publish("topic_toc_category_mapping", self._topic_toc_category_mapping)
+        return gen_cache.get("topic_toc_category_mapping")
 
     def get_search_filter_toc(self):
         """
@@ -5010,6 +5088,7 @@ class Library(object):
         Returns the cross lexicon auto completer. If the auto completer was not initially loaded,
         it rebuilds before returning, emitting warnings to the logger.
         """
+        gen_cache.get("cross_lexicon_auto_completer")  # throttled staleness check; see GenCache
         if self._cross_lexicon_auto_completer is None:
             if DISABLE_AUTOCOMPLETER:
                 raise RuntimeError("The autocompleter is disabled on this server (DISABLE_AUTOCOMPLETER). Completion endpoints are served by the name service when deployed (helm nameService.enabled / create-cauldron.sh -N).")
@@ -5026,6 +5105,7 @@ class Library(object):
 
         :param lexicon: String
         """
+        gen_cache.get("lexicon_auto_completer")  # throttled staleness check; see GenCache
         try:
             return self._lexicon_auto_completer[lexicon]
         except KeyError:
@@ -5042,6 +5122,7 @@ class Library(object):
             return self._lexicon_auto_completer[lexicon]
 
     def full_auto_completer(self, lang):
+        gen_cache.get("full_auto_completer")  # throttled staleness check; see GenCache
         try:
             return self._full_auto_completer[lang]
         except KeyError:
@@ -5053,11 +5134,11 @@ class Library(object):
             return self._full_auto_completer[lang]
 
     def recount_index_in_toc(self, indx, skip_toc_refresh=False):
-        # This is used in the case of a remotely triggered multiserver update
         if isinstance(indx, str):
             indx = Index().load({"title": indx})
 
         self.get_toc_tree().update_title(indx, recount=True)
+        gen_cache.publish("toc_tree", self._toc_tree)
 
         if not skip_toc_refresh:
             # `rebuild_toc(skip_toc_tree=True)` re-serializes the full ToC and rebuilds
@@ -5067,15 +5148,15 @@ class Library(object):
             self.rebuild_toc(skip_toc_tree=True)
 
     def delete_category_from_toc(self, category):
-        # This is used in the case of a remotely triggered multiserver update
         toc_node = self.get_toc_tree().lookup(category.path)
         if toc_node:
             self.get_toc_tree().remove_category(toc_node)
+            gen_cache.publish("toc_tree", self._toc_tree)
 
     def delete_index_from_toc(self, indx, categories = None):
         """
-        :param indx: The Index object.  When called remotely, in multiserver mode, the string title of the index
-        :param categories: Only explicitly passed when called remotely, in multiserver mode
+        :param indx: The Index object, or its string title.
+        :param categories: The Index's categories -- pass explicitly when `indx` is a string.
         :return:
         """
         cats = categories or indx.categories
@@ -5084,21 +5165,21 @@ class Library(object):
         toc_node = self.get_toc_tree().lookup(cats, title)
         if toc_node:
             self.get_toc_tree().remove_index(toc_node)
+            gen_cache.publish("toc_tree", self._toc_tree)
 
         self.rebuild_toc(skip_toc_tree=True)
 
     def update_index_in_toc(self, indx, old_ref=None):
         """
-        :param indx: The Index object.  When called remotely, in multiserver mode, the string title of the index
+        :param indx: The Index object, or its string title.
         :param old_ref:
         :return:
         """
-
-        # This is used in the case of a remotely triggered multiserver update
         if isinstance(indx, str):
             indx = Index().load({"title": indx})
 
         self.get_toc_tree().update_title(indx, old_ref=old_ref, recount=False)
+        gen_cache.publish("toc_tree", self._toc_tree)
 
         self.rebuild_toc(skip_toc_tree=True)
 
@@ -5113,6 +5194,7 @@ class Library(object):
         if not bookname:
             raise BookNameError("No book provided.")
 
+        gen_cache.get("index_map")  # throttled staleness check; see GenCache
         indx = self._index_map.get(bookname)
         if not indx:
             bookname = (bookname[0].upper() + bookname[1:]).replace("_", " ")  # todo: factor out method
@@ -5140,7 +5222,6 @@ class Library(object):
         """
         assert index_object, "Library.add_index_record_to_cache called without index"
 
-        # This is used in the case of a remotely triggered multiserver update
         if isinstance(index_object, str):
             index_object = Index().load({"title": index_object})
 
@@ -5153,6 +5234,7 @@ class Library(object):
         except IndexSchemaError as e:
             logger.error("Error in generating title node dictionary: {}".format(e))
 
+        gen_cache.publish("index_map", None)
         if rebuild:
             self._reset_index_derivative_objects()
 
@@ -5185,6 +5267,7 @@ class Library(object):
                 logger.warning("Failed to remove '{}' from {} index-title and title-node cache: nothing to remove".format(index_object_title, lang))
                 return
 
+        gen_cache.publish("index_map", None)
         if rebuild:
             self._reset_index_derivative_objects()
 
@@ -5209,6 +5292,7 @@ class Library(object):
         """
         from sefaria.model.schema import NonUniqueTerm
         NonUniqueTerm._init_cache.pop(slug, None)
+        gen_cache.bump(f"gen:non_unique_term:{slug}")
 
     # todo: the for_js path here does not appear to be in use.
     # todo: Rename, as method not gauraunteed to return all titles
@@ -5321,28 +5405,40 @@ class Library(object):
                             for title in term.get_titles(lang):
                                 self._term_ref_maps[lang][title] = term.ref
 
-    def get_simple_term_mapping(self, rebuild=False):
-        if rebuild or not self._simple_term_mapping:
-            if not rebuild:
-                self._simple_term_mapping = scache.get_shared_cache_elem('term_mapping')
-            if rebuild or not self._simple_term_mapping:
-                self.build_term_mappings()
-                scache.set_shared_cache_elem('term_mapping', self._simple_term_mapping)
-                self.set_last_cached_time()
+    def _refresh_term_mapping(self):
+        self._simple_term_mapping = scache.get_shared_cache_elem('term_mapping')
+        if not self._simple_term_mapping:
+            self.build_term_mappings()
+            scache.set_shared_cache_elem('term_mapping', self._simple_term_mapping)
+            self.set_last_cached_time()
         return self._simple_term_mapping
+
+    def get_simple_term_mapping(self, rebuild=False):
+        if rebuild:
+            self.build_term_mappings()
+            scache.set_shared_cache_elem('term_mapping', self._simple_term_mapping)
+            self.set_last_cached_time()
+            return gen_cache.publish("term_mapping", self._simple_term_mapping)
+        return gen_cache.get("term_mapping")
+
+    def _refresh_term_mapping_json(self):
+        self._simple_term_mapping_json = scache.get_shared_cache_elem('term_mapping_json')
+        if not self._simple_term_mapping_json:
+            self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping(), ensure_ascii=False)
+            scache.set_shared_cache_elem('term_mapping_json', self._simple_term_mapping_json)
+            self.set_last_cached_time()
+        return self._simple_term_mapping_json
 
     def get_simple_term_mapping_json(self, rebuild=False):
         """
         Returns JSON representation of terms.
         """
-        if rebuild or not self._simple_term_mapping_json:
-            if not rebuild:
-                self._simple_term_mapping_json = scache.get_shared_cache_elem('term_mapping_json')
-            if rebuild or not self._simple_term_mapping_json:
-                self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping(rebuild=rebuild), ensure_ascii=False)
-                scache.set_shared_cache_elem('term_mapping_json', self._simple_term_mapping_json)
-                self.set_last_cached_time()
-        return self._simple_term_mapping_json
+        if rebuild:
+            self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping(rebuild=True), ensure_ascii=False)
+            scache.set_shared_cache_elem('term_mapping_json', self._simple_term_mapping_json)
+            self.set_last_cached_time()
+            return gen_cache.publish("term_mapping_json", self._simple_term_mapping_json)
+        return gen_cache.get("term_mapping_json")
 
     def get_term(self, term_name):
         """
@@ -5371,10 +5467,10 @@ class Library(object):
         Returns the topic mapping if it exists, if not rebuilds it and returns
         :param rebuild: Boolean (optional, default set to False)
         """
-        tm = self._topic_mapping
-        if not tm or rebuild:
-            tm = self._build_topic_mapping()
-        return tm
+        if rebuild:
+            self._build_topic_mapping()
+            return gen_cache.publish("topic_mapping", self._topic_mapping)
+        return gen_cache.get("topic_mapping")
 
     def _build_topic_mapping(self):
         """
@@ -5397,6 +5493,8 @@ class Library(object):
         return self._topic_mapping
 
     def get_linker(self, lang: str, rebuild=False):
+        if not rebuild:
+            gen_cache.get(f"linker_resolver:{lang}")  # throttled staleness check; see GenCache
         linker = self._linker_by_lang.get(lang)
         if not linker or rebuild:
             linker = self.build_linker(lang)
@@ -5499,6 +5597,7 @@ class Library(object):
 
         Does not include bare commentator names, like *Rashi*.
         """
+        gen_cache.get("index_map")  # throttled staleness check; see GenCache
         return self._title_node_maps[lang]
 
     # todo: handle terms
@@ -5555,23 +5654,32 @@ class Library(object):
             title_list = toc_titles + secondary_list
         return title_list
 
+    def _refresh_text_titles_json(self, lang):
+        self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_' + lang + '_json')
+        if not self._full_title_list_jsons.get(lang):
+            title_list = self.build_text_titles_json(lang=lang)
+            title_list_json = json.dumps(title_list, ensure_ascii=False)
+            self._full_title_list_jsons[lang] = title_list_json
+            scache.set_shared_cache_elem('books_' + lang, title_list)
+            scache.set_shared_cache_elem('books_' + lang + '_json', title_list_json)
+            self.set_last_cached_time()
+        return self._full_title_list_jsons[lang]
+
     def get_text_titles_json(self, lang="en", rebuild=False):
         """
         Returns the json text title list
         :param lang: String (optional, default set to 'en')
         :param rebuild: Boolean (optional, default set to False)
         """
-        if rebuild or not self._full_title_list_jsons.get(lang):
-            if not rebuild:
-                self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_'+lang+'_json')
-            if rebuild or not self._full_title_list_jsons.get(lang):
-                title_list = self.build_text_titles_json(lang=lang)
-                title_list_json = json.dumps(title_list, ensure_ascii=False)
-                self._full_title_list_jsons[lang] = title_list_json
-                scache.set_shared_cache_elem('books_' + lang, title_list)
-                scache.set_shared_cache_elem('books_'+lang+'_json', title_list_json)
-                self.set_last_cached_time()
-        return self._full_title_list_jsons[lang]
+        if rebuild:
+            title_list = self.build_text_titles_json(lang=lang)
+            title_list_json = json.dumps(title_list, ensure_ascii=False)
+            self._full_title_list_jsons[lang] = title_list_json
+            scache.set_shared_cache_elem('books_' + lang, title_list)
+            scache.set_shared_cache_elem('books_' + lang + '_json', title_list_json)
+            self.set_last_cached_time()
+            return gen_cache.publish(f"books_{lang}", self._full_title_list_jsons[lang])
+        return gen_cache.get(f"books_{lang}")
 
     def reset_text_titles_cache(self):
         """
@@ -5580,6 +5688,7 @@ class Library(object):
         for lang in self.langs:
             scache.delete_shared_cache_elem('books_' + lang)
             scache.delete_shared_cache_elem('books_' + lang + '_json')
+            gen_cache.bump(f"gen:books_{lang}")
 
     def get_text_categories(self):
         """
@@ -5647,15 +5756,21 @@ class Library(object):
             q['base_text_mapping'] = {'$in': get_all_subclass_attribute(AbstractStructureAutoLinker, "class_key")}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-    def get_virtual_books(self, rebuild=False):
-        if rebuild or not self._virtual_books:
-            if not rebuild:
-                self._virtual_books = scache.get_shared_cache_elem('virtualBooks')
-            if rebuild or not self._virtual_books:
-                self.build_virtual_books()
-                scache.set_shared_cache_elem('virtualBooks', self._virtual_books)
-                self.set_last_cached_time()
+    def _refresh_virtual_books(self):
+        self._virtual_books = scache.get_shared_cache_elem('virtualBooks')
+        if not self._virtual_books:
+            self.build_virtual_books()
+            scache.set_shared_cache_elem('virtualBooks', self._virtual_books)
+            self.set_last_cached_time()
         return self._virtual_books
+
+    def get_virtual_books(self, rebuild=False):
+        if rebuild:
+            self.build_virtual_books()
+            scache.set_shared_cache_elem('virtualBooks', self._virtual_books)
+            self.set_last_cached_time()
+            return gen_cache.publish("virtual_books", self._virtual_books)
+        return gen_cache.get("virtual_books")
 
     def build_virtual_books(self):
         # On the method, not its callers: get_virtual_books() is reached from the context
@@ -6163,9 +6278,7 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
     library.refresh_index_record_in_cache(indx, old_title=old_title)
     library.reset_text_titles_cache()
 
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title, old_title])
-    elif USE_VARNISH:
+    if USE_VARNISH:
         from sefaria.system.varnish.wrapper import invalidate_title
         invalidate_title(old_title)
 
@@ -6175,16 +6288,11 @@ def process_index_change_in_core_cache(indx, **kwargs):
         library.add_index_record_to_cache(indx)
         library.reset_text_titles_cache()
 
-        if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("library", "add_index_record_to_cache", [indx.title])
-
     else:
         library.refresh_index_record_in_cache(indx)
         library.reset_text_titles_cache()
 
-        if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title])
-        elif USE_VARNISH:
+        if USE_VARNISH:
             from sefaria.system.varnish.wrapper import invalidate_title
             invalidate_title(indx.title)
 
@@ -6193,24 +6301,16 @@ def process_index_change_in_toc(indx, **kwargs):
     old_ref = kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None
     library.update_index_in_toc(indx, old_ref=old_ref)
 
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "update_index_in_toc", [indx.title, old_ref])
-
 
 def process_index_delete_in_toc(indx, **kwargs):
     library.delete_index_from_toc(indx)
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "delete_index_from_toc", [indx.title, indx.categories])
 
 
 def process_index_delete_in_core_cache(indx, **kwargs):
     library.remove_index_record_from_cache(indx)
     library.reset_text_titles_cache()
 
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "remove_index_record_from_cache", [indx.title])
-    elif USE_VARNISH:
+    if USE_VARNISH:
         from sefaria.system.varnish.wrapper import invalidate_title
         invalidate_title(indx.title)
 
@@ -6218,12 +6318,6 @@ def process_index_delete_in_core_cache(indx, **kwargs):
 def reset_simple_term_mapping(o, **kwargs):
     library.get_simple_term_mapping(rebuild=True)
 
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "build_term_mappings")
-
 
 def rebuild_library_after_category_change(*args, **kwargs):
     library.rebuild(include_toc=True)
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("library", "rebuild", [True])

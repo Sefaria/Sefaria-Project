@@ -132,6 +132,35 @@ CACHES = {
 }
 """
 
+"""THIS CACHE DEFINITION POINTS AT REDIS SENTINEL INSTEAD OF A SINGLE PLAIN REDIS INSTANCE --
+see the GenCache migration decision record, §08a. Only relevant if SENTINEL_HEADLESS_URL
+below is actually set to something resolvable (e.g. testing against a real cluster); plain
+local dev has no Sentinel, so the example above is what most developers want."""
+"""
+from sefaria.system.redis_sentinel import RedisConfig, SentinelConfig, get_django_redis_cache_options
+
+_redis_config = RedisConfig(REDIS_URL, REDIS_PASSWORD, REDIS_PORT)
+_sentinel_config = SentinelConfig(SENTINEL_HEADLESS_URL, SENTINEL_PASSWORD, REDIS_PORT, SENTINEL_TRANSPORT_OPTS, SENTINEL_MASTER_SET)
+_shared_location, _shared_options = get_django_redis_cache_options(_redis_config, _sentinel_config, SHARED_CACHE_DB_NUM)
+_shared_options["SERIALIZER"] = "sefaria.system.serializers.JSONSerializer"
+_default_location, _default_options = get_django_redis_cache_options(_redis_config, _sentinel_config, DEFAULT_CACHE_DB_NUM)
+
+CACHES = {
+    "shared": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": _shared_location,
+        "OPTIONS": _shared_options,
+        "TIMEOUT": None,
+    },
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": _default_location,
+        "OPTIONS": _default_options,
+        "TIMEOUT": 60 * 60 * 24 * 30,
+    },
+}
+"""
+
 SITE_PACKAGE = "sites.sefaria"
 
 
@@ -243,14 +272,6 @@ CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""
 CLOUDFLARE_TOKEN = ""
 
-# Multiserver
-MULTISERVER_ENABLED = False
-MULTISERVER_REDIS_SERVER = "127.0.0.1"
-MULTISERVER_REDIS_PORT = 6379
-MULTISERVER_REDIS_DB = 0
-MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
-MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
-
 # OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
 GOOGLE_OAUTH2_CLIENT_ID = ""
 GOOGLE_OAUTH2_CLIENT_SECRET = ""
@@ -294,6 +315,14 @@ CELERY_REDIS_RESULT_BACKEND_DB_NUM = 3
 CELERY_QUEUES = {}
 CELERY_ENABLED = False
 # END Celery
+
+# Django's CACHES (if pointed at Sentinel -- see the commented CACHES example above) and
+# GenCache's own counters (sefaria.system.cache) share this same Redis/Sentinel cluster with
+# Celery above, each in its own DB number -- keep these distinct from CELERY_REDIS_*_DB_NUM.
+SENTINEL_MASTER_SET = "mymaster"  # the Bitnami redis chart's default sentinel.masterSet
+DEFAULT_CACHE_DB_NUM = 4
+SHARED_CACHE_DB_NUM = 5
+GENCACHE_REDIS_DB_NUM = 6
 
 #Slack
 SLACK_URL = ''

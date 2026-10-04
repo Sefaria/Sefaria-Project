@@ -2,7 +2,7 @@ import pytest
 from sefaria.model import *
 from sefaria.model.webpage import WebPage, WebSite, get_webpages_for_ref
 from sefaria.helper.webpages import normalize_url
-from sefaria.system.cache import in_memory_cache
+from sefaria.system.cache import in_memory_cache, gen_cache
 from sefaria.system.exceptions import InputError
 
 title_good_url = "Dvar Torah"
@@ -42,10 +42,10 @@ def create_web_page_wout_site():
 def whitelisted_site():
 	site = WebSite({"name": "Test Whitelisted Site", "domains": ["whitelisted.test"], "is_whitelisted": True})
 	site.save()
-	in_memory_cache.set("websites_data", None)
+	gen_cache.invalidate_local("websites_data")
 	yield site
 	site.delete()
-	in_memory_cache.set("websites_data", None)
+	gen_cache.invalidate_local("websites_data")
 
 @pytest.fixture()
 def whitelisted_webpage(whitelisted_site):

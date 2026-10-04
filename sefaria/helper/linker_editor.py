@@ -14,7 +14,7 @@ from sefaria.model.linker.match_template import MatchTemplate
 from sefaria.model.linker.linker_entity_recognizer import get_linker_normalizer
 from sefaria.model.linker_editor_history import log_linker_editor_action
 import sefaria.model.linker.nonuniqueterm_index as nut_index
-from sefaria.settings import MULTISERVER_ENABLED, USE_VARNISH
+from sefaria.settings import USE_VARNISH
 from sefaria.system.exceptions import InputError
 
 
@@ -32,10 +32,7 @@ def _save_linker_metadata(index) -> None:
     index.save(override_dependencies=True)
     library.refresh_index_record_in_cache(index)
 
-    if MULTISERVER_ENABLED:
-        from sefaria.system.multiserver.coordinator import server_coordinator
-        server_coordinator.publish_event("library", "refresh_index_record_in_cache", [index.title])
-    elif USE_VARNISH:
+    if USE_VARNISH:
         from sefaria.system.varnish.wrapper import invalidate_title
         invalidate_title(index.title)
 
@@ -49,11 +46,7 @@ def _invalidate_non_unique_term_cache(slug: str) -> None:
     `NonUniqueTerm.init()`, not a fresh query. Mirrors _save_linker_metadata's index-cache
     refresh above.
     """
-    library.refresh_non_unique_term_in_cache(slug)
-
-    if MULTISERVER_ENABLED:
-        from sefaria.system.multiserver.coordinator import server_coordinator
-        server_coordinator.publish_event("library", "refresh_non_unique_term_in_cache", [slug])
+    library.refresh_non_unique_term_in_cache(slug)  # itself bumps GenCache's per-slug counter
 
 
 # ---------------------------------------------------------------------------

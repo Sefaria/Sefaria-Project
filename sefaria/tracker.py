@@ -245,15 +245,11 @@ def count_and_index(oref, lang, vtitle, to_count=1):
 
 
 def count_segments(index, skip_toc_refresh=False):
-    from sefaria.settings import MULTISERVER_ENABLED
-    from sefaria.system.multiserver.coordinator import server_coordinator
-
+    # recount_index_in_toc() bumps GenCache's own counters itself (toc_tree always, the rest
+    # of the TOC family via rebuild_toc() when skip_toc_refresh is False) -- nothing else to
+    # trigger here. When deferring, the caller is responsible for one global
+    # `library.rebuild_toc()` at the end of the batch.
     model.library.recount_index_in_toc(index, skip_toc_refresh=skip_toc_refresh)
-    if MULTISERVER_ENABLED and not skip_toc_refresh:
-        # When deferring, the caller is responsible for triggering one global
-        # `library.rebuild_toc` at the end of the batch (which itself publishes a
-        # multiserver event), so we skip the per-index publish here.
-        server_coordinator.publish_event("library", "recount_index_in_toc", [index.title])
 
 
 def add(user, klass, attrs, **kwargs):

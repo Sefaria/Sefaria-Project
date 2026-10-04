@@ -14,7 +14,6 @@ from collections import OrderedDict
 from enum import Enum
 import pytz
 from html import unescape
-import redis
 import os
 import re
 import uuid
@@ -72,14 +71,13 @@ from sefaria.utils.views_utils import add_query_param, AASA_EXCLUDED_PATHS, NO_A
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain
 from sefaria.utils.hebrew import hebrew_term, has_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
-from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, MULTISERVER_ENABLED, MULTISERVER_REDIS_SERVER, \
-    MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
+from sefaria.settings import STATIC_URL, USE_VARNISH, USE_NODE, NODE_HOST, \
+    ALLOWED_HOSTS, STATICFILES_DIRS, DEFAULT_HOST, CHATBOT_USER_ID_SECRET, CHATBOT_USE_LOCAL_SCRIPT,\
     CHATBOT_API_BASE_URL, CELERY_ENABLED, DISABLE_AUTOCOMPLETER, APP_VERSION
 from sefaria.site.site_settings import SITE_SETTINGS
-from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
-from sefaria.system.cache import django_cache
+from sefaria.system.cache import django_cache, gen_cache
 from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
@@ -3643,14 +3641,14 @@ def generate_topic_prompts_api(request, slug: str):
 def rebuild_full_auto_completer_across_servers():
     """
     Rebuilds the full auto completer locally and, when this server cannot serve
-    completion traffic itself (DISABLE_AUTOCOMPLETER), publishes the rebuild over
-    the multiserver channel so the name service picks it up.  When this server
-    holds its own completers the publish is skipped, preserving the historical
-    local-only rebuild semantics rather than triggering a fleet-wide build.
+    completion traffic itself (DISABLE_AUTOCOMPLETER), bumps GenCache's counter so the name
+    service (and anyone else tracking it) picks it up on its next check. When this server
+    holds its own completers the bump is skipped, preserving the historical local-only
+    rebuild semantics rather than triggering a fleet-wide build.
     """
     library.build_full_auto_completer()
-    if MULTISERVER_ENABLED and DISABLE_AUTOCOMPLETER:
-        server_coordinator.publish_event("library", "build_full_auto_completer")
+    if DISABLE_AUTOCOMPLETER:
+        gen_cache.publish("full_auto_completer", None)
 
 
 @staff_member_required
@@ -5511,27 +5509,22 @@ def application_health_api_nonlibrary(request):
 def application_health_api(request):
     """
     Defines the /healthz API endpoint which responds with
-        200 if the services Django depends on, Redis, Multiserver, and NodeJs
+        200 if the services Django depends on, Redis, and NodeJs
             are available.
         500 if any of the aforementioned services are not available
 
     {
         allReady: (true|false)
-        multiserverReady: (true|false)
         redisReady: (true|false)
         nodejsReady: (true|false)
     }
     """
     def isRedisReachable():
         try:
-            redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
-            return redis_client.ping() == True
+            return gen_cache.redis.ping() == True
         except Exception as e:
             logger.warn(f"Failed redis healthcheck. Error: {e}")
             return False
-
-    def isMultiserverReachable():
-        return True
 
     def isNodeJsReachable():
         url = NODE_HOST + "/healthz"
@@ -5549,12 +5542,11 @@ def application_health_api(request):
         except SystemError as ivne:
             return False
 
-    allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable() and is_database_reachable()
+    allReady = isRedisReachable() and isNodeJsReachable() and is_database_reachable()
 
     resp = {
         'allReady': allReady,
         'dbConnected': f'Database Connection: {is_database_reachable()}',
-        'multiserverReady': isMultiserverReachable(),
         'redisReady': isRedisReachable(),
         'nodejsReady': isNodeJsReachable(),
         'revisionNumber': os.getenv("HELM_REVISION"),

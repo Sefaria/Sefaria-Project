@@ -131,14 +131,6 @@ CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""
 CLOUDFLARE_TOKEN = ""
 
-# Multiserver
-MULTISERVER_ENABLED = False
-MULTISERVER_REDIS_SERVER = "127.0.0.1"
-MULTISERVER_REDIS_PORT = 6379
-MULTISERVER_REDIS_DB = 0
-MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
-MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
-
 # OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
 GOOGLE_OAUTH2_CLIENT_ID = ""
 GOOGLE_OAUTH2_CLIENT_SECRET = ""

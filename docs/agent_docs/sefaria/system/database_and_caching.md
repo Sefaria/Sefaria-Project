@@ -23,7 +23,8 @@ Provides the foundational data layer: MongoDB connectivity, a multi-tier caching
   - Uses MD5 hashing of serialized args/kwargs for cache keys.
 - **`get/set/delete_cache_elem()`**: Low-level cache CRUD. `delete_cache_elem` handles both single keys and lists (falls back to iterative delete if `delete_many` is unavailable).
 - **Shared cache variants**: `get/set/delete_shared_cache_elem()` route to the `SHARED_DATA_CACHE_ALIAS` backend, used for data that must be consistent across processes (e.g., library cache state).
-- **`InMemoryCache`**: A simple dict-based cache with optional TTL. The singleton `in_memory_cache` is used for per-process memoization and is referenced by the multiserver coordinator for cross-server cache invalidation.
+- **`InMemoryCache`**: A simple dict-based cache with optional TTL. The singleton `in_memory_cache` is used for per-process memoization (e.g. `sefaria.helper.webpages`'s websites-data cache).
+- **`GenCache`**: A Redis/Sentinel-backed generation-counter primitive for cross-process cache freshness -- see [gencache_and_varnish.md](./gencache_and_varnish.md). The module-level `gen_cache` singleton replaces the old `sefaria/system/multiserver/` push-based coordination.
 - **`invalidate_cache_by_pattern()`**: Pattern-based cache clearing. Uses `delete_pattern()` on Redis-backed caches (django-redis). Returns a result dict with success/method/count. Falls back gracefully for non-Redis backends.
 - **Cache aliases**: `SHARED_DATA_CACHE_ALIAS` and `LONG_TERM_CACHE_ALIAS` can be configured in settings; both default to the Django default cache.
 
@@ -62,7 +63,7 @@ Provides the foundational data layer: MongoDB connectivity, a multi-tier caching
 ## Relationships
 
 - `caches.py` depends on `database.py` for its MongoDB connection.
-- `cache.py`'s `in_memory_cache` is directly referenced by the multiserver coordinator (`coordinator.py`) during cross-server cache invalidation events.
+- `cache.py`'s `GenCache` is registered against by `sefaria.model.text.Library`, `sefaria.helper.webpages`, and `sefaria.model.schema.NonUniqueTerm` for cross-process cache freshness -- see [gencache_and_varnish.md](./gencache_and_varnish.md).
 - The `django_cache` decorator in `cache.py` is used throughout the model layer (e.g., `library` methods for TOC, text titles, term mappings).
 - `SharedCacheMiddleware` (in `middleware.py`) uses `get/set_shared_cache_elem` from `cache.py` to coordinate library cache regeneration across requests.
 - Cloudflare invalidation is a separate concern from Varnish invalidation -- Cloudflare handles static assets/CDN, while Varnish handles API endpoint caching.

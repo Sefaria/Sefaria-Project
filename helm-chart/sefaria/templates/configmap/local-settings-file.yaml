@@ -20,7 +20,6 @@ data:
     import json
 
     requiredEnvars = [
-        "REDIS_HOST",
         "NODEJS_HOST",
         "VARNISH_HOST",
     ]
@@ -30,9 +29,24 @@ data:
             print(envvar + " is a required environment variable that is not present.")
 
     # Define the external hosts
-    redisHost = os.getenv("REDIS_HOST")
     nodejsHost = os.getenv("NODEJS_HOST")
     varnishHost = os.getenv("VARNISH_HOST")
+
+    # Redis / Redis Sentinel. Either SENTINEL_HEADLESS_URL (prod/staging, see
+    # sefaria/infrastructure's redis HelmRelease) or REDIS_URL (a single plain instance) must
+    # be set; sefaria.system.redis_sentinel picks whichever is configured. Celery, Django's
+    # CACHES below, and GenCache's own counters (sefaria.system.cache) all share this same
+    # cluster, each in its own DB number -- keep these distinct from one another.
+    REDIS_URL = os.getenv("REDIS_URL")
+    REDIS_PORT = os.getenv("REDIS_PORT")
+    REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+    SENTINEL_HEADLESS_URL = os.getenv("SENTINEL_HEADLESS_URL")
+    SENTINEL_TRANSPORT_OPTS = json.loads(os.getenv("SENTINEL_TRANSPORT_OPTS", "{}"))
+    SENTINEL_PASSWORD = os.getenv("SENTINEL_PASSWORD")
+    SENTINEL_MASTER_SET = os.getenv("SENTINEL_MASTER_SET", "mymaster")
+    DEFAULT_CACHE_DB_NUM = os.getenv("DEFAULT_CACHE_DB_NUM", "2")
+    SHARED_CACHE_DB_NUM = os.getenv("SHARED_CACHE_DB_NUM", "3")
+    GENCACHE_REDIS_DB_NUM = os.getenv("GENCACHE_REDIS_DB_NUM", "4")
 
     ALLOWED_HOSTS = ["*"]
     CSRF_TRUSTED_ORIGINS = [
@@ -106,22 +120,25 @@ data:
         },
     }
 
+    from sefaria.system.redis_sentinel import RedisConfig, SentinelConfig, get_django_redis_cache_options
+
+    _redis_config = RedisConfig(REDIS_URL, REDIS_PASSWORD, REDIS_PORT)
+    _sentinel_config = SentinelConfig(SENTINEL_HEADLESS_URL, SENTINEL_PASSWORD, REDIS_PORT, SENTINEL_TRANSPORT_OPTS, SENTINEL_MASTER_SET)
+    _shared_cache_location, _shared_cache_options = get_django_redis_cache_options(_redis_config, _sentinel_config, SHARED_CACHE_DB_NUM)
+    _shared_cache_options["SERIALIZER"] = "sefaria.system.serializers.JSONSerializer"
+    _default_cache_location, _default_cache_options = get_django_redis_cache_options(_redis_config, _sentinel_config, DEFAULT_CACHE_DB_NUM)
+
     CACHES = {
         "shared": {
             "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": "redis://{}:6379/1".format(redisHost),
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-                "SERIALIZER": "sefaria.system.serializers.JSONSerializer",
-            },
+            "LOCATION": _shared_cache_location,
+            "OPTIONS": _shared_cache_options,
             "TIMEOUT": None,
         },
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
-            "LOCATION": "redis://{}:6379/0".format(redisHost),
-            "OPTIONS": {
-                "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            },
+            "LOCATION": _default_cache_location,
+            "OPTIONS": _default_cache_options,
             "TIMEOUT": 60 * 60 * 24 * 30,
         },
         "persistent": {
@@ -142,14 +159,6 @@ data:
 
     GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
     GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
-
-    # Multiserver
-    MULTISERVER_ENABLED = bool(os.getenv("MULTISERVER_ENABLED", default="True").lower() == "true")
-    MULTISERVER_REDIS_SERVER = redisHost
-    MULTISERVER_REDIS_PORT = 6379
-    MULTISERVER_REDIS_DB = 0
-    MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
-    MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
 
     # OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
     GOOGLE_OAUTH2_CLIENT_ID = os.getenv("GOOGLE_OAUTH2_CLIENT_ID")
@@ -269,17 +278,11 @@ data:
         'SIGNING_KEY': os.getenv("SIMPLE_JWT_SIGNING_KEY"),
     }
     
-    # Celery
-    # Either define SENTINEL_HEADLESS_URL if using sentinel or REDIS_URL for a simple redis instance
-    REDIS_URL = os.getenv("REDIS_URL")
-    REDIS_PORT = os.getenv("REDIS_PORT")
-    REDIS_PASSWORD = os.getenv("REDIS_PASSWORD")
+    # Celery (REDIS_URL/PORT/PASSWORD and SENTINEL_* are already defined above, shared with
+    # CACHES and GenCache)
     CELERY_REDIS_BROKER_DB_NUM = os.getenv("CELERY_REDIS_BROKER_DB_NUM")
     CELERY_REDIS_RESULT_BACKEND_DB_NUM = os.getenv("CELERY_REDIS_RESULT_BACKEND_DB_NUM")
     CELERY_QUEUES = json.loads(os.getenv("CELERY_QUEUES", "{}"))
-    SENTINEL_HEADLESS_URL = os.getenv("SENTINEL_HEADLESS_URL") 
-    SENTINEL_TRANSPORT_OPTS = json.loads(os.getenv("SENTINEL_TRANSPORT_OPTS", "{}"))
-    SENTINEL_PASSWORD = os.getenv("SENTINEL_PASSWORD")
     CELERY_ENABLED = os.getenv("CELERY_ENABLED").lower() == "true"
     
     SLACK_URL = os.getenv("SLACK_URL")

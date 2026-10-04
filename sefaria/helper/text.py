@@ -58,7 +58,9 @@ def rename_category(old, new):
         i.categories = [new if cat == old else cat for cat in i.categories]
         i.save()
 
-    # Not multiserver aware
+    # rebuild_toc() bumps GenCache's own counters itself, so every other process picks this
+    # up on its own next check -- unlike the old multiserver push, this script-only call site
+    # doesn't need its own separate propagation step.
     library.rebuild_toc()
 
 

@@ -135,7 +135,6 @@ MIDDLEWARE = [
     'sefaria.system.middleware.ProfileMiddleware',
     'sefaria.system.middleware.CORSDebugMiddleware',
     'sefaria.system.middleware.SharedCacheMiddleware',
-    'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
     'django_structlog.middlewares.RequestMiddleware',
     *(['sefaria.system.middleware.MaxRSSMiddleware'] if os.environ.get('ENABLE_MAXRSS_MIDDLEWARE') else []),
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
@@ -359,6 +358,15 @@ SEARCH_INDEX_NAME_SHEET = 'sheet'
 SEARCH_INDEX_NAME_TOPIC = 'topic'
 SEARCH_INDEX_NAME_BOOK = 'book'
 SEARCH_INDEX_NAME_CATEGORY = 'category'
+
+# Same reasoning as the search index names above: defaulted here, before local_settings is
+# imported, so a local_settings.py that predates the GenCache/Redis-Sentinel migration still
+# boots. sefaria.system.cache imports these unconditionally at module import time (GenCache's
+# own redis client), so a NameError here would crash every process, not just one page render.
+SENTINEL_MASTER_SET = "mymaster"  # the Bitnami redis chart's default sentinel.masterSet
+GENCACHE_REDIS_DB_NUM = 4  # a separate keyspace from Celery's broker(0)/result-backend(1) and
+                           # Django's CACHES db nums on the same Sentinel master in prod --
+                           # confirm against the actual prod DB-number allocation before deploying
 
 # Grab environment specific settings from a file which
 # is left out of the repo.

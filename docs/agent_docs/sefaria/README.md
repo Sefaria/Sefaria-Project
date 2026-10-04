@@ -2,7 +2,7 @@
 > Source: `sefaria/`
 
 ## Purpose
-The core backend Python package. Contains the model layer (ORM over MongoDB), the web views and URL routing, business logic for sheets/search/tracking/export, helper modules, and infrastructure (database, caching, middleware, multiserver coordination, Varnish integration). This is where nearly all Python-side business logic lives.
+The core backend Python package. Contains the model layer (ORM over MongoDB), the web views and URL routing, business logic for sheets/search/tracking/export, helper modules, and infrastructure (database, caching, middleware, GenCache cross-process cache freshness, Varnish integration). This is where nearly all Python-side business logic lives.
 
 ## Navigation
 

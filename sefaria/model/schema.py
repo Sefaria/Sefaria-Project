@@ -13,6 +13,7 @@ logger = structlog.get_logger(__name__)
 import regex
 from . import abstract as abst
 from sefaria.system.database import db
+from sefaria.system.cache import gen_cache
 from sefaria.model.lexicon import LexiconEntrySet
 from sefaria.model.linker.has_match_template import MatchTemplateMixin
 from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
@@ -341,6 +342,21 @@ class NonUniqueTerm(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
+
+    @classmethod
+    def init(cls, slug: str, slug_field_idx: int = None) -> 'AbstractMongoRecord':
+        """
+        A per-slug, lazy generation check ahead of the inherited cacheable `.init()`: a peer
+        process's edit (e.g. via the linker editor) only becomes visible here once this
+        process notices the slug's counter changed -- on the next time *this* slug is looked
+        up, not via a bulk sweep of every cached slug. See the GenCache migration decision
+        record, §04 (why this object uses the fine-grained/lazy form, unlike most others) and
+        §03 (NonUniqueTerm as the one per-slug entry in the object inventory).
+        """
+        key = f"non_unique_term:{slug}"
+        gen_cache.register(key, f"gen:{key}", lambda: cls._init_cache.pop(slug, None))
+        gen_cache.get(key)
+        return super().init(slug, slug_field_idx)
 
     def __repr__(self):
         return f'{self.__class__.__name__}.init("{self.slug}")'

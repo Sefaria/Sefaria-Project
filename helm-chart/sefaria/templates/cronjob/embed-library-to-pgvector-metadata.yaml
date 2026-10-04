@@ -26,8 +26,6 @@ spec:
               "/app/run /app/sefaria/helper/vector/embed_library_to_pgvector.py --mode=metadata-only --threads={{ .Values.cronJobs.embedLibraryToPgvectorMetadata.threads }}"
             ]
             env:
-            - name: REDIS_HOST
-              value: "redis-{{ .Values.deployEnv }}"
             - name: TQDM_DISABLE
               value: "1"
             - name: PYTHONUNBUFFERED
@@ -38,6 +36,9 @@ spec:
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
                 optional: true
+            # Redis Sentinel/password secrets: always needed (CACHES, GenCache),
+            # independent of whether the Celery tasks pod is enabled.
+            {{- include "sefaria.secrets.redisSentinel" . | nindent 12 }}
             - configMapRef:
                 name: local-settings-{{ .Values.deployEnv }}
             - secretRef:
