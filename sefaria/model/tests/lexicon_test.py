@@ -8,6 +8,7 @@ from sefaria.model.schema import DictionaryNode
 from sefaria.model.lexicon import LexiconEntrySet, LexiconEntry, BDBEntry, KrupnikEntry, KovetzYesodotEntry, WordForm, LexiconEntrySubClassMapping
 from sefaria.helper.schema import change_lexicon_headword, get_available_lexicon_headword
 from sefaria.system.exceptions import InputError
+from sefaria.system.database import db
 from sefaria.utils.util import deep_map, deep_prune
 
 
@@ -264,13 +265,51 @@ class Test_LexiconEntry_Normalize(object):
     # to patach-before-dagesh, since patach's combining class sorts before dagesh's).
     NON_NFC = "בַּ"
 
-    def test_normalizes_headword_prev_hw_next_hw_to_nfc_on_save(self, make_lexicon_entry):
+    def test_normalizes_headword_to_nfc_on_save(self, make_lexicon_entry):
         nfc = unicodedata.normalize("NFC", self.NON_NFC)
         assert nfc != self.NON_NFC
-        entry = make_lexicon_entry(self.NON_NFC, self.PARENT_LEXICON, prev_hw=self.NON_NFC, next_hw=self.NON_NFC)
+        entry = make_lexicon_entry(self.NON_NFC, self.PARENT_LEXICON)
         assert entry.headword == nfc
+
+    def test_new_entry_normalizes_prev_hw_next_hw(self, make_lexicon_entry):
+        nfc = unicodedata.normalize("NFC", self.NON_NFC)
+        entry = make_lexicon_entry("new-ptr-test", self.PARENT_LEXICON, prev_hw=self.NON_NFC, next_hw=self.NON_NFC)
         assert entry.prev_hw == nfc
         assert entry.next_hw == nfc
+
+    def test_unrelated_save_does_not_touch_an_unnormalized_existing_prev_hw_next_hw(self):
+        # Simulates data a backfill hasn't reached yet, same as the headword case below.
+        db.lexicon_entry.insert_one({"headword": "existing-ptr-test", "parent_lexicon": self.PARENT_LEXICON,
+                                      "prev_hw": self.NON_NFC, "next_hw": self.NON_NFC})
+        try:
+            entry = LexiconEntry().load({"parent_lexicon": self.PARENT_LEXICON, "headword": "existing-ptr-test"})
+            entry.notes = "edited"
+            entry.save()
+            assert entry.prev_hw == self.NON_NFC
+            assert entry.next_hw == self.NON_NFC
+        finally:
+            db.lexicon_entry.delete_one({"parent_lexicon": self.PARENT_LEXICON, "headword": "existing-ptr-test"})
+
+    def test_unrelated_save_does_not_touch_an_unnormalized_existing_headword(self, make_lexicon_entry):
+        # Simulates data a backfill hasn't reached yet: written directly to the collection,
+        # bypassing the model layer entirely, the same way real pre-existing non-NFC data
+        # got there. A save that doesn't change headword (here, setting an unrelated field)
+        # must not silently rewrite it out from under Index/WordForm/cascaded refs that still
+        # key off the original bytes.
+        db.lexicon_entry.insert_one({"headword": self.NON_NFC, "parent_lexicon": self.PARENT_LEXICON})
+        try:
+            entry = LexiconEntry().load({"parent_lexicon": self.PARENT_LEXICON, "headword": self.NON_NFC})
+            entry.notes = "edited"
+            entry.save()
+            assert entry.headword == self.NON_NFC
+        finally:
+            db.lexicon_entry.delete_one({"parent_lexicon": self.PARENT_LEXICON, "headword": self.NON_NFC})
+
+    def test_renaming_headword_still_normalizes_it(self, make_lexicon_entry):
+        entry = make_lexicon_entry("rename-normalize-test", self.PARENT_LEXICON)
+        entry.headword = self.NON_NFC
+        entry.save()
+        assert entry.headword == unicodedata.normalize("NFC", self.NON_NFC)
 
     def test_already_nfc_headword_round_trips_unchanged(self, make_lexicon_entry):
         nfc = unicodedata.normalize("NFC", self.NON_NFC)

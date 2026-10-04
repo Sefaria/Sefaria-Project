@@ -11,7 +11,7 @@ import Sefaria from './sefaria/sefaria';
 // the data-commentator/data-order/data-label/src attributes appear in none. Keep in sync with
 // LexiconEntry.ALLOWED_TAGS/ALLOWED_ATTRS if that changes.
 const ALLOWED_TAGS = ['i', 'b', 'br', 'strong', 'em', 'big', 'sup', 'sub', 'span', 'a'];
-const ALLOWED_ATTR = ['class', 'dir', 'href', 'data-ref'];
+const ALLOWED_ATTR = ['class', 'dir', 'href', 'data-ref', 'data-scroll-link'];
 
 export const sanitizeLexiconHtml = (html) => DOMPurify.sanitize(typeof html === 'string' ? html : '', {
   ALLOWED_TAGS,
