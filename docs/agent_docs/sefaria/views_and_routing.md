@@ -175,7 +175,7 @@ All auth class-based views use `StaticViewMixin`, which adds `renderStatic: True
 Several API endpoints are `@csrf_exempt`: `linker_tracking_api`, `generic_subscribe_to_newsletter_api`, `subscribe_sefaria_newsletter_view`, `index_sheets_by_timestamp`, `strapi_graphql_cache`, `rebuild_shared_cache`. This is because they are called by external services or the linker widget.
 
 ### GenCache Coordination
-Admin cache-reset views call the relevant `library.*` rebuild method, which bumps GenCache's own counter(s) as part of applying the change locally (`gen_cache.publish()`/`gen_cache.bump()` inside the Library method itself, not at the view). This ensures cache invalidation propagates to other app servers on their own next check -- there is no separate "publish" step for the view to call.
+Admin cache-reset views call the relevant `library.*` rebuild method, which bumps GenCache's own counter(s) as part of applying the change locally (`gen_cache.publish()`/`mark_fresh()` inside the Library method itself, not at the view). This ensures cache invalidation propagates to other app servers on their own next check -- there is no separate "publish" step for the view to call.
 
 ### Varnish Integration
 When `USE_VARNISH` is True, cache resets also call `invalidate_*` functions from `sefaria.system.varnish.wrapper`. The import is conditional at module level.
@@ -212,7 +212,7 @@ When `settings.DOWN_FOR_MAINTENANCE` is truthy, both `urls_library` and `urls_sh
 
 ### Other Key Imports
 - `sefaria.client.util.jsonResponse` -- standard JSON response helper used throughout
-- `sefaria.system.cache` -- `get_shared_cache_elem`, `set_shared_cache_elem`, `in_memory_cache`, `get_cache_elem`, `set_cache_elem`, `invalidate_cache_by_pattern`
+- `sefaria.system.cache` -- `get_shared_cache_elem`, `set_shared_cache_elem`, `gen_cache`, `get_cache_elem`, `set_cache_elem`, `invalidate_cache_by_pattern`
 - `sefaria.system.database.db` -- direct MongoDB access
 - `sefaria.system.decorators` -- `catch_error_as_http`, `cors_allow_all`
 - `sefaria.forms` -- `SefariaNewUserForm`, `SefariaNewUserFormAPI`, `SefariaLoginForm`, `SefariaPasswordResetForm`, `SefariaSetPasswordForm`

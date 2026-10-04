@@ -76,5 +76,5 @@ sefaria/
 - **Singleton `library`**: Imported as `from sefaria.model import library`. Lazy-built title maps, TOC tree, autocompleters.
 - **Text mutations go through `tracker`**: Don't modify `Version` directly — use `tracker.modify_text()` so history + Varnish + search stay in sync.
 - **Dependency cascades are wired in `sefaria/model/dependencies.py`**: A single Index title change fires 14 callbacks.
-- **Multiserver coordination via Redis**: After DB changes, `server_coordinator.publish_event()` fires so all app servers stay in sync.
+- **Cross-process cache freshness via GenCache**: After DB changes, the write path bumps a Redis counter (`gen_cache.publish()`/`mark_fresh()`); other processes refresh on their next check. See `system/gencache_and_varnish.md`.
 - **Varnish invalidation is tied to model changes**: See `sefaria/system/varnish/wrapper.py`.

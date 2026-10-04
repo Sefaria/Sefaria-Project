@@ -48,9 +48,7 @@ Implements a two-step OAuth 2.0 flow for Google API access (currently used only 
 - `generate_config_from_env()` -- builds Celery config from Django settings, supporting both direct Redis and Redis Sentinel
 
 **`celery_setup/generate_config.py`:**
-- `RedisConfig` / `SentinelConfig` dataclasses for connection parameters
-- `generate_config(redis_config, sentinel_config)` -- produces the broker/result-backend URL config. When Sentinel is configured, resolves DNS to get all Sentinel addresses and joins them.
-- `dns_refresher()` / `start_background_dns_refresher()` -- background thread that polls DNS every 60 seconds and updates the broker URL if Sentinel addresses change
+- `generate_config(redis_config, sentinel_config)` -- produces the broker/result-backend URL config. When Sentinel is configured, resolves DNS to get all Sentinel addresses and joins them. The `RedisConfig` / `SentinelConfig` dataclasses live in `sefaria/system/redis_sentinel.py`.
 
 ### `sefaria/constants/model.py` -- Model Constants
 
