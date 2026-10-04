@@ -160,5 +160,5 @@ Then fast-forward the local `main` again (same command as Step 4) so the next ru
   `200` means it's serving. Offer to check again in a few minutes.
 - If the user has `kubectl` connected to the development cluster, `kubectl get helmrelease <name>` shows the install status (`READY True` = done). If it fails, `kubectl describe helmrelease <name>` explains why.
 - New pushes to `<branch>` (with an open PR) are deployed to the cauldron automatically after CI builds them.
-- To copy local content into it, use the `move-text-to-cauldron` skill.
+- To copy local content into it, use the `move-text-to-cauldron` or `move-lexicon-to-cauldron` skill.
 - This skill doesn't delete cauldrons. When it's no longer needed, the user can run `./delete-cauldron.sh -n <name>` in the cauldrons repo themselves.
