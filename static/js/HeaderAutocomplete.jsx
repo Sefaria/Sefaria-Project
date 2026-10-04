@@ -161,7 +161,7 @@ const TextualSearchSuggestion = ({label, onClick, ...props}) => {
     );
 };
 
-// POC (lam-opus-penina): sends the query to the Library Assistant instead of searching
+// POC (la-sandbox): sends the query to the Library Assistant instead of searching
 const AssistantSearchSuggestion = ({label, onClick, ...props}) => {
     const displayedLabel = (
         <>

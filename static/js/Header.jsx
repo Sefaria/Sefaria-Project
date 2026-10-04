@@ -23,7 +23,7 @@ import {
 import Util from './sefaria/util';
 import Button from './common/Button';
 
-// POC only (lam-opus-penina): the Library Assistant widget's POC toolbox saves its choices in
+// POC only (la-sandbox): the Library Assistant widget's POC toolbox saves its choices in
 // localStorage and broadcasts live previews, so the header item can be tried in different spots.
 const POC_TOOLBOX_KEY = 'lc_chatbot:poc_toolbox';
 const usePocToolboxConfig = () => {

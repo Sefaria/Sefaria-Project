@@ -1,5 +1,5 @@
 /**
- * POC (lam-opus-penina): the desktop header's Library Assistant item. The widget's POC toolbox
+ * POC (la-sandbox): the desktop header's Library Assistant item. The widget's POC toolbox
  * picks its text and its slot (saved in localStorage, previewed live through `chatbot:poc-config`).
  */
 jest.mock('../sefaria/sefaria', () => ({ __esModule: true, default: {

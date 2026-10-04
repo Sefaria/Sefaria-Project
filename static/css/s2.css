@@ -5504,7 +5504,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .autocomplete-dropdown .type-icon.search-icon {
   padding-inline-start: 3px;
 }
-/* POC (lam-opus-penina): "Ask Library Assistant" row under "Search for", in the promo purple */
+/* POC (la-sandbox): "Ask Library Assistant" row under "Search for", in the promo purple */
 .autocomplete-dropdown .type-icon.assistant-star {
   opacity: 1;
   color: var(--mussar-purple);
