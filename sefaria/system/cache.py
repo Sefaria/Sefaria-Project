@@ -207,58 +207,44 @@ class InMemoryCache():
 in_memory_cache = InMemoryCache()
 
 
+_UNKNOWN_GEN = object()  # a generation that never matches Redis, forcing a refresh once Redis is back
+
+
 class GenCache:
     """
-    Replaces sefaria/system/multiserver/'s push-based cache sync (broadcast a method call
-    over Redis pub/sub to every peer) with a pull-based one: a Redis INCR counter behind
-    each tracked object, checked cheaply before a process's local copy is trusted.
+    Cross-process cache freshness via one Redis INCR counter per tracked object.
 
-    register() is called once per tracked object, typically at process startup (see
-    sefaria.model.text.Library and sefaria.helper.webpages.get_website_cache). get() is the
-    passive read path: on a process's first access, or whenever its last-seen generation
-    doesn't match Redis's current one, it calls refresh_fn() and remembers the new
-    generation. publish() is the write path: a writer that already has a fresh local value
-    (it just built one, the same way the old code applied a change locally before calling
-    ServerCoordinator.publish_event(obj, method, args)) hands it to publish(), which makes
-    this process's own state reflect it immediately -- no waiting out CHECK_INTERVAL_SECONDS
-    on a self-bump -- and bumps the counter so peers refresh on their next check.
+    register() a refresh_fn per key at startup. get() serves this process's copy, re-checking
+    the key's counter at most every CHECK_INTERVAL_SECONDS and calling refresh_fn when it has
+    changed. Writers call publish() (with the fresh value) or mark_fresh() (when the object
+    lives on its owner, e.g. Library, and was already rebuilt) to update this process and bump
+    the counter for peers.
 
-    refresh_fn matters for objects with an existing shared-cache (Redis) tier in front of
-    Mongo (sefaria.model.text.Library's "redis"-tier objects, per the migration decision
-    record's §03 object inventory): it must reproduce that tier's own check-shared-cache-
-    else-rebuild-from-Mongo logic, not just rebuild from Mongo unconditionally -- otherwise
-    every process's first access (or every post-bump refresh) pays a full Mongo rebuild
-    instead of a cheap shared-cache read, even when a peer already repopulated it. For
-    "mongo"-tier objects with no shared-cache tier, refresh_fn is just the existing rebuild
-    method itself.
-
-    See the GenCache migration decision record for the full design and failure-mode analysis.
+    Fails open: if Redis is unreachable, get() serves the last value and bump() only logs.
     """
     CHECK_INTERVAL_SECONDS = 2  # tune against real Redis QPS before finalizing
-    JITTER_MAX_SECONDS = 3  # spreads a fleet-wide simultaneous-staleness event (e.g. Redis
-                             # losing its keyspace) across a window instead of one instant
+    JITTER_MAX_SECONDS = 3  # spreads the fleet's rebuilds after Redis loses its keyspace
 
     def __init__(self, redis_client):
         self._data = {}            # key -> cached value
-        self._gens = {}            # key -> last-applied generation
+        self._gens = {}            # key -> last-applied generation; absent until first refresh
         self._last_checked = {}    # key -> monotonic time of last check
         self._refreshers = {}      # key -> (refresh_fn, redis_gen_key)
-        self.redis = redis_client  # sentinel-aware master client; see sefaria.system.redis_sentinel
+        self.redis = redis_client
 
     def register(self, key: str, redis_gen_key: str, refresh_fn: Callable[[], Any]):
-        """Called once per tracked object, normally at startup. Safe to call again for the
-        same key (e.g. NonUniqueTerm's per-slug keys, registered lazily on first access)."""
         self._refreshers[key] = (refresh_fn, redis_gen_key)
+
+    def is_registered(self, key: str) -> bool:
+        return key in self._refreshers
 
     def get(self, key: str):
         refresh_fn, gen_key = self._refreshers[key]
-        is_first_access = key not in self._data
+        is_first_access = key not in self._gens
 
-        # Time-based throttle: bounds Redis QPS per key regardless of request volume.
-        # Fires inline -- no external polling needed.
         now = time.monotonic()
         if not is_first_access and now - self._last_checked.get(key, 0) < self.CHECK_INTERVAL_SECONDS:
-            return self._data[key]
+            return self._data.get(key)
         self._last_checked[key] = now
 
         try:
@@ -266,70 +252,46 @@ class GenCache:
         except Exception:
             logger.error("GenCache: Redis unreachable checking %s; serving stale value", key)
             if not is_first_access:
-                return self._data[key]
-            redis_gen = None  # first-ever access with Redis down -> fall through
+                return self._data.get(key)
+            redis_gen = None
 
-        if is_first_access or self._gens.get(key) != redis_gen:
-            if not is_first_access:
-                # A re-check found staleness, not a cold start: likely every process in the
-                # fleet just found the same thing (e.g. Redis lost its keyspace on restart).
-                # Jitter so they don't all hit Mongo/rebuild at the same instant.
+        if is_first_access or self._gens[key] != redis_gen:
+            if not is_first_access and redis_gen is None and self._gens[key] is not None:
+                # The counter vanished: Redis lost its keyspace, so every process in the fleet
+                # is about to rebuild at once. Jitter to spread the load.
                 time.sleep(random.uniform(0, self.JITTER_MAX_SECONDS))
             self._data[key] = refresh_fn()
             self._gens[key] = redis_gen
-        return self._data[key]
+        return self._data.get(key)
 
     def bump(self, redis_gen_key: str):
-        """Low-level primitive: INCR the counter, nothing else. Prefer publish() for a
-        tracked key that already has a fresh local value to go with the bump -- this is for
-        the rare case (e.g. a generic Django-cache key with no GenCache-tracked local value
-        of its own) where only peers need telling, not this process."""
+        """INCR the counter so peers refresh. Prefer publish()/mark_fresh() for a registered key."""
         try:
             return self.redis.incr(redis_gen_key)
         except Exception:
             logger.error("GenCache: failed to bump %s; peers stay stale until the next bump", redis_gen_key)
             return None
 
-    def publish(self, key: str, value):
-        """
-        Writer-side helper: value is already fresh (the caller just built and, if this is a
-        redis-tier object, stored it) -- make this process's own GenCache state reflect it
-        immediately, then bump the counter so peers refresh on their own next check. Returns
-        value, so callers can write `return gen_cache.publish(key, value)`.
-        """
-        gen_key = self._refreshers[key][1]
-        self._data[key] = value
+    def mark_fresh(self, key: str):
+        """This process already rebuilt key's object: record it as current and bump for peers."""
         self._last_checked[key] = time.monotonic()
-        new_gen = self.bump(gen_key)
-        if new_gen is not None:
-            self._gens[key] = str(new_gen)
-        else:
-            # bump() already logged; drop our own last-seen generation so the next get()
-            # treats us the same as any other process racing to notice the (failed) change,
-            # instead of wrongly believing we're already in sync with a gen we never wrote.
-            self._gens.pop(key, None)
+        new_gen = self.bump(self._refreshers[key][1])
+        self._gens[key] = str(new_gen) if new_gen is not None else _UNKNOWN_GEN
+
+    def publish(self, key: str, value):
+        """mark_fresh() for a key whose value GenCache holds. Returns value."""
+        self._data[key] = value
+        self.mark_fresh(key)
         return value
 
     def invalidate_local(self, key: str):
-        """
-        Drops this process's local copy of key, so its next get() treats the access as a
-        cold start: always calls refresh_fn, bypassing both the throttle and the generation
-        compare. For a caller that needs an immediate, synchronous view of a change in THIS
-        process without waiting out CHECK_INTERVAL_SECONDS or touching Redis at all --
-        mainly test fixtures that mutate Mongo directly and then need get() to see it right
-        away, where the normal eventual-consistency window (by design, for everyone else) is
-        exactly what the test is trying not to depend on.
-        """
+        """Forces this process's next get() to refresh, without touching Redis (mainly for tests)."""
         self._data.pop(key, None)
         self._gens.pop(key, None)
         self._last_checked.pop(key, None)
 
+
 def _build_gen_cache() -> GenCache:
-    """
-    sys._doc_build and test/script contexts that never touch Redis shouldn't fail importing
-    this module merely for constructing a client -- redis-py connects lazily, so this never
-    talks to the network itself; it's guarded the same way `cache`/`caches` above are.
-    """
     from sefaria.system.redis_sentinel import RedisConfig, SentinelConfig, get_redis_client
     redis_config = RedisConfig(settings.REDIS_URL, settings.REDIS_PASSWORD, settings.REDIS_PORT)
     sentinel_config = SentinelConfig(
@@ -340,7 +302,7 @@ def _build_gen_cache() -> GenCache:
     return GenCache(client)
 
 
-if not hasattr(sys, '_doc_build'):
+if not hasattr(sys, '_doc_build'):  # redis-py connects lazily, so this opens no connection
     gen_cache = _build_gen_cache()
 else:
     gen_cache = None

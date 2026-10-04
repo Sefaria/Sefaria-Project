@@ -108,20 +108,24 @@ def test_stale_generation_triggers_refresh(fake_redis, no_throttle):
     assert len(calls) == 2
 
 
-def test_jitter_only_applied_on_stale_recheck_not_first_access(fake_redis, monkeypatch):
+def test_jitter_only_applied_when_redis_lost_its_keyspace(fake_redis, monkeypatch):
     monkeypatch.setattr(GenCache, "CHECK_INTERVAL_SECONDS", 0)
     sleep_calls = []
     monkeypatch.setattr("sefaria.system.cache.time.sleep", lambda seconds: sleep_calls.append(seconds))
 
     gc = GenCache(fake_redis)
-    refresh_fn, _ = make_counting_refresh_fn(["first", "second"])
+    refresh_fn, calls = make_counting_refresh_fn([])
     gc.register("toc", "gen:toc", refresh_fn)
 
-    gc.get("toc")  # first access: no jitter (cold start, not a fleet-wide staleness event)
+    gc.get("toc")  # first access
+    fake_redis.incr("gen:toc")
+    gc.get("toc")  # ordinary bump: refreshes in-request without sleeping
+    assert len(calls) == 2
     assert sleep_calls == []
 
-    fake_redis.incr("gen:toc")
-    gc.get("toc")  # re-check found staleness: jitters before refreshing
+    fake_redis.store.clear()  # counter vanished: the whole fleet notices at once
+    gc.get("toc")
+    assert len(calls) == 3
     assert len(sleep_calls) == 1
 
 
@@ -156,6 +160,16 @@ def test_publish_sets_local_value_and_bumps_for_peers(fake_redis, no_throttle):
     assert result == "fresh-value"
     assert writer.get("toc") == "fresh-value"  # own next read: no throttle-window wait
     assert fake_redis.store["gen:toc"] == "1"  # peers see exactly one bump
+
+
+def test_mark_fresh_bumps_without_refreshing_this_process(fake_redis, no_throttle):
+    writer = GenCache(fake_redis)
+    writer.register("index_map", "gen:index_map", lambda: pytest.fail("writer already rebuilt; must not refresh"))
+
+    writer.mark_fresh("index_map")
+
+    writer.get("index_map")
+    assert fake_redis.store["gen:index_map"] == "1"
 
 
 def test_publish_then_peer_get_sees_the_bump(fake_redis, no_throttle):
