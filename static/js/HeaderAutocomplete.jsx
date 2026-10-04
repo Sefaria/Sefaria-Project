@@ -24,6 +24,7 @@ const type_title_map = {
   "Topic": "Topics",
   "ref": "Books",
   "search": "",
+  "assistant": "",
   "Term": "Terms",
   "User": "Users"
 };
@@ -160,7 +161,29 @@ const TextualSearchSuggestion = ({label, onClick, ...props}) => {
     );
 };
 
-const SearchSuggestionInner = ({ value, type, displayedLabel, label, url, pic,
+// POC (lam-opus-penina): sends the query to the Library Assistant instead of searching
+const AssistantSearchSuggestion = ({label, onClick, ...props}) => {
+    const displayedLabel = (
+        <>
+            <span className={"search-override-text assistant-override-text"}>
+                <InterfaceText>header_autocomplete.ask_library_assistant</InterfaceText>:
+                <span>&nbsp;</span>
+            </span>
+            <InterfaceText html={{en: "&ldquo;", he: "&#1524;"}} />
+            {label}
+            <InterfaceText html={{en: "&rdquo;", he: "&#1524;"}} />
+        </>
+    );
+    const icon = <span className="type-icon assistant-star" aria-hidden="true">✦</span>;
+    return (
+        <div className={"TextualSearchSuggestion"}>
+            <SearchSuggestionInner onClick={(e) => { e.preventDefault(); onClick(label); }} displayedLabel={displayedLabel} label={label}
+                                   icon={icon} wrapperClasses={"search-override-wrapper assistant-override-wrapper"} {...props}/>
+        </div>
+    );
+};
+
+const SearchSuggestionInner = ({ value, type, displayedLabel, label, url, pic, icon,
                                 wrapperClasses,
                               universalIndex, highlightedIndex, getItemProps, onClick}) => {
   const isHebrew = Sefaria.hebrew.isHebrew(label);
@@ -173,9 +196,9 @@ const SearchSuggestionInner = ({ value, type, displayedLabel, label, url, pic,
            className={` search-suggestion
            ${highlightedIndex === universalIndex ? 'highlighted' : ''}`}
           >
-             <img alt={type}
+             {icon || <img alt={type}
                    className={`ac-img-${type === "User" && pic === "" ? "UserPlaceholder" : type} type-icon ${!isHebrew ? 'english-result' : ''} `}
-                   src={type_icon(type, pic)}/>
+                   src={type_icon(type, pic)}/>}
 
               <div className={` ${isHebrew ? 'hebrew-result' : ''} ${!isHebrew ? 'english-result' : ''}
                search-suggestion-text`}>
@@ -194,7 +217,7 @@ const EntitySearchSuggestion = ({label, onClick, type, url, ...props}) => {
 
 const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex, hideHebrewKeyboard, setInputValue,
                         setSearchFocused, searchFocused,
-                            submitSearch, redirectToObject}) => {
+                            submitSearch, redirectToObject, askAssistant}) => {
 
     const getInputValue = () =>{
         return otherDownShiftProps.value || getVirtualKeyboardInputValue();
@@ -211,6 +234,10 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
       onKeyDown(event);
       if (event.keyCode !== 13) return;
       const highlightedItem = highlightedIndex > -1 ? highlightedSuggestion : null
+      if (highlightedItem?.type === 'assistant') {
+        askAssistant(highlightedItem.label);
+        return;
+      }
       if (highlightedItem  && highlightedItem.type != 'search'){
         gtag("event", "search_navto", {
           "project": "Global Search",
@@ -306,7 +333,7 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     );
   };
 const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
-                                            submitSearch, redirectToObject, inputValue}) => {
+                                            submitSearch, redirectToObject, askAssistant, inputValue}) => {
 
     let groupedSuggestions = groupByType(suggestions);
     let universalIndex = 0;
@@ -326,6 +353,7 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
                         inputValue={inputValue}
                         submitSearch={submitSearch}
                         redirectToObject={redirectToObject}
+                        askAssistant={askAssistant}
                     />
                 );
             })}
@@ -334,11 +362,15 @@ const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
 }
 
 
-const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, inputValue, ...props }) => {
+const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, askAssistant, inputValue, ...props }) => {
     const _type_component_map = {
         search: {
             onSuggestionClick: (query) => {submitSearch(query, undefined, undefined, true)},
             SuggestionComponent: TextualSearchSuggestion
+        },
+        assistant: {
+            onSuggestionClick: askAssistant,
+            SuggestionComponent: AssistantSearchSuggestion
         },
         other: {
             onSuggestionClick: (item) => {
@@ -361,7 +393,7 @@ const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, inputVa
 }
 
 const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, highlightedIndex,
-                                    submitSearch, redirectToObject, inputValue}) => {
+                                    submitSearch, redirectToObject, askAssistant, inputValue}) => {
 
     const type = suggestions[0].type;
     const title = type_title_map[type];
@@ -369,7 +401,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     return (
         <div className={"search-group-suggestions"}>
 
-         {(type != 'search') &&
+         {(type != 'search' && type != 'assistant') &&
             <div className={'type-title'}><InterfaceText>{type_title_id_map[type] || title}</InterfaceText></div>
          }
 
@@ -390,6 +422,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
                             inputValue={inputValue}
                             submitSearch={submitSearch}
                             redirectToObject={redirectToObject}
+                            askAssistant={askAssistant}
                         />
                 );
             })}
@@ -398,7 +431,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
     );
 };
 
-export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false}) => {
+export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false, libraryAssistant = false}) => {
     const [searchFocused, setSearchFocused] = useState(false);
     const fetchSuggestions = async (inputValue) => {
         if (inputValue.length < 3){
@@ -426,7 +459,9 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
         comps = sortByTypeOrder(comps)
         if (comps.length > 0) {
           const q = inputValue;
-          return([{value: "SEARCH_OVERRIDE", label: q, type: "search"}].concat(comps));
+          const overrides = [{value: "SEARCH_OVERRIDE", label: q, type: "search"}];
+          if (libraryAssistant) overrides.push({value: "ASK_ASSISTANT", label: q, type: "assistant"});
+          return(overrides.concat(comps));
 
         } else {
           return[];
@@ -514,6 +549,18 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
         onNavigate && onNavigate();
     };
 
+    const askAssistant = (onChange, query) => {
+        gtag("event", "search_submit", {
+          "project": "Global Search",
+          "feature_name": "Ask Library Assistant",
+          "text": query
+        });
+        clearSearchBox(onChange);
+        document.activeElement?.blur?.();
+        document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {source: 'search_autocomplete', question: query.trim()}}));
+        onNavigate && onNavigate();
+    };
+
     const redirectToObject = (onChange, item) => {
         Sefaria.track.event("Search", `Search Box Navigation - ${item.type}`, item.key);
         clearSearchBox(onChange);
@@ -538,6 +585,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
             searchFocused={searchFocused}
             submitSearch={submitSearch.bind(null, getInputProps().onChange)}
             redirectToObject={redirectToObject.bind(null, getInputProps().onChange)}
+            askAssistant={askAssistant.bind(null, getInputProps().onChange)}
         />
         )
     };
@@ -553,6 +601,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
                 inputValue={inputValue}
                 submitSearch={submitSearch.bind(null, getInputProps().onChange)}
                 redirectToObject={redirectToObject.bind(null, getInputProps().onChange)}
+                askAssistant={askAssistant.bind(null, getInputProps().onChange)}
               />
         )
     };

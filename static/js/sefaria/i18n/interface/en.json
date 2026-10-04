@@ -211,6 +211,7 @@
     "header_autocomplete.books": "Books",
     "header_autocomplete.categories": "Categories",
     "header_autocomplete.search_for": "Search for",
+    "header_autocomplete.ask_library_assistant": "Ask Library Assistant",
     "header_autocomplete.site_search": "Site search",
     "header_autocomplete.terms": "Terms",
     "header_autocomplete.users": "Users",
