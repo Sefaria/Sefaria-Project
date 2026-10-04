@@ -5390,6 +5390,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
 }
 
+.noSearchResults-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* POC (la-sandbox): the same purple as the header item and the search row */
+.noSearchResults-cta--assistant {
+  cursor: pointer;
+  background: var(--mussar-purple);
+  border-color: var(--mussar-purple);
+}
+
 .noSearchResults-caption {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
