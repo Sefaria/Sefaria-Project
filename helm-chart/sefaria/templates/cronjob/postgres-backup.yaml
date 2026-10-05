@@ -40,8 +40,6 @@ spec:
             envFrom:
             - secretRef:
                 name: {{ .Values.secrets.localSettings.ref }}
-            # Redis Sentinel/password secrets: always needed (CACHES, GenCache),
-            # independent of whether the Celery tasks pod is enabled.
             {{- include "sefaria.secrets.redisSentinel" . | nindent 12 }}
             - configMapRef:
                 name: local-settings-{{ .Values.deployEnv }}

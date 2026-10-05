@@ -118,8 +118,6 @@ spec:
             value: {{ .Values.deployEnv }}-mongo
           {{- end }}
         envFrom:
-          # Redis Sentinel/password secrets: always needed (CACHES, GenCache), independent
-          # of whether this pod is running for Celery (tasks.enabled) or only for gpuServer.
           {{- include "sefaria.secrets.redisSentinel" . | nindent 10 }}
           {{- if .Values.tasks.enabled }}
           - secretRef:

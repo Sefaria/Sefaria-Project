@@ -158,22 +158,16 @@ nameService:
   # NAME_SERVICE=true, serving only /api/name and the other completion
   # endpoints (see sefaria/urls_name.py); varnish routes those paths to it
   # and web and task pods then run with DISABLE_AUTOCOMPLETER=true.
-  # Rebuild freshness is checked inline per-request via GenCache (see the
-  # GenCache migration decision record) -- topic edits and /admin/reset/ac
-  # bump a counter, and whichever worker next serves a completion request
-  # notices and rebuilds. No MULTISERVER_ENABLED dependency any more.
+  # Topic edits and /admin/reset/ac bump a GenCache counter; each worker
+  # notices on its next completion request and rebuilds.
   enabled: false
   # key-pair values to load into name pod environment.  Takes precedence over global localsettings
   localsettings:
   replicaCount: 1
   resources:
-    # Scale with gunicornThreadCount and replicaCount. gunicornWorkerCount is
-    # left at 1 for now, not because GenCache requires it (unlike the old
-    # multiserver design, every worker independently checks and rebuilds via
-    # GenCache -- the old "only one process gets the event" constraint this
-    # comment used to describe no longer applies) but as a deliberate,
-    # unchanged default pending a scaling decision. Threads share the
-    # rebuilt completers and keep health probes answering while a rebuild runs.
+    # Scale with gunicornThreadCount and replicaCount. Each extra worker
+    # holds and rebuilds its own copy of the completers; threads share them
+    # and keep health probes answering while a rebuild runs.
     gunicornWorkerCount: 1
     gunicornThreadCount: 4
     resources:
@@ -278,15 +272,11 @@ tasks:
     resultBackendDBNumber: "1"
     sentinelURL: ""
     transportOptions: {}
-    # The Bitnami redis chart's sentinel.masterSet (sefaria/infrastructure's redis
-    # HelmRelease). Confirmed against build/ci/preprod-values.yaml's existing Celery
-    # transportOptions.master_name: "mymaster" (the Bitnami default, unoverridden).
+    # the Bitnami redis chart's sentinel.masterSet
     masterSet: "mymaster"
-    # DB numbers for Django's CACHES and GenCache's own counters (sefaria.system.cache) on
-    # this same Sentinel master, kept distinct from brokerDBNumber/resultBackendDBNumber
-    # above and from each other. Confirmed against envs/prod/helmrelease.yaml and
-    # build/ci/preprod-values.yaml: both set brokerDBNumber=2/resultBackendDBNumber=3 on
-    # this same cluster -- these three defaults deliberately start at 4 to avoid them.
+    # DB numbers for Django's CACHES and GenCache on the same Redis. Must differ from
+    # each other and from the Celery DB numbers above, including env overrides (prod
+    # uses 2 and 3); redis_sentinel_test.py checks this.
     defaultCacheDbNumber: "4"
     sharedCacheDbNumber: "5"
     gencacheDbNumber: "6"

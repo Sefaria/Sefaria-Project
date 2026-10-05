@@ -84,10 +84,7 @@ spec:
             value: {{ .Values.deployEnv }}-mongo
           {{- end }}
         envFrom:
-          # REDIS_URL/PORT, SENTINEL_* and SHARED_CACHE_DB_NUM: this SSR cache reader reads
-          # the same shared-cache keyspace Django's CACHES["shared"] writes to (see
-          # node/server.js), now on Sentinel instead of the retired legacy Redis -- see the
-          # GenCache migration decision record, §08a.
+          # Redis/Sentinel settings, to read Django's CACHES["shared"] (see node/server.js)
           - configMapRef:
               name: local-settings-{{ .Values.deployEnv }}
           {{- include "sefaria.secrets.redisSentinel" . | nindent 10 }}

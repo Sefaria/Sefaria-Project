@@ -7,11 +7,8 @@ google-client-secret-{{ .Values.deployEnv }}
 {{- end }}
 
 {{- /*
-Redis Sentinel/password secretRef entries. Any process that imports sefaria.model (every
-Django process and management-command-driven cronjob) constructs Django's CACHES and
-GenCache's own redis client (sefaria.system.cache) at import time, so every one of them
-needs these -- not just the Celery tasks pod. Include with `{{ include "sefaria.secrets.redisSentinel" . | nindent N }}`
-inside an existing envFrom: list.
+Redis/Sentinel password secretRefs, for an envFrom: list. Every Django process needs them,
+since CACHES and GenCache connect to Redis, not just the Celery tasks pod.
 */ -}}
 {{- define "sefaria.secrets.redisSentinel" }}
 - secretRef:

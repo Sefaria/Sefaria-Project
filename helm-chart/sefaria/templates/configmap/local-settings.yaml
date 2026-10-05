@@ -69,9 +69,7 @@ data:
   SEARCH_INDEX_NAME_TOPIC: {{ $searchIndexNameTopic | quote }}
   SEARCH_INDEX_NAME_BOOK: {{ $searchIndexNameBook | quote }}
   SEARCH_INDEX_NAME_CATEGORY: {{ $searchIndexNameCategory | quote }}
-  # Redis / Redis Sentinel: always needed, not just when the Celery tasks pod is enabled --
-  # Django's CACHES and GenCache's own counters (sefaria.system.cache) depend on this
-  # cluster in every pod (web, name, monitor, cronjobs), independent of Celery.
+  # Redis/Sentinel: used by CACHES and GenCache in every pod, not only by Celery.
   REDIS_URL: {{ .Values.tasks.redis.url }}
   REDIS_PORT: {{ .Values.tasks.redis.port | quote }}
   SENTINEL_HEADLESS_URL: {{ .Values.tasks.redis.sentinelURL }}
@@ -80,8 +78,7 @@ data:
   DEFAULT_CACHE_DB_NUM: {{ .Values.tasks.redis.defaultCacheDbNumber | quote }}
   SHARED_CACHE_DB_NUM: {{ .Values.tasks.redis.sharedCacheDbNumber | quote }}
   GENCACHE_REDIS_DB_NUM: {{ .Values.tasks.redis.gencacheDbNumber | quote }}
-  # Namespaces CACHES/GenCache keys so deployments sharing one Redis/Sentinel (e.g. cauldrons
-  # on the dev cluster) don't collide. deployEnv is unique per cauldron and per prod/staging/preprod.
+  # Prefixes CACHES/GenCache keys, so deployments sharing one Redis (e.g. cauldrons) don't collide.
   DEPLOY_ENV: {{ .Values.deployEnv | quote }}
   {{- if .Values.tasks.enabled }}
   CELERY_REDIS_BROKER_DB_NUM: {{ .Values.tasks.redis.brokerDBNumber | quote }}

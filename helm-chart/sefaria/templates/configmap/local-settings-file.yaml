@@ -44,8 +44,7 @@ data:
     DEFAULT_CACHE_DB_NUM = os.getenv("DEFAULT_CACHE_DB_NUM", "4")
     SHARED_CACHE_DB_NUM = os.getenv("SHARED_CACHE_DB_NUM", "5")
     GENCACHE_REDIS_DB_NUM = os.getenv("GENCACHE_REDIS_DB_NUM", "6")
-    # Namespaces CACHES/GenCache keys when this deployment shares its Redis/Sentinel with others
-    # (e.g. cauldrons on the dev cluster). Empty for prod/staging/preprod, which each have their own.
+    # Prefixes CACHES/GenCache keys, so deployments sharing one Redis (e.g. cauldrons) don't collide.
     DEPLOY_ENV = os.getenv("DEPLOY_ENV", "")
 
     ALLOWED_HOSTS = ["*"]
@@ -280,8 +279,7 @@ data:
         'SIGNING_KEY': os.getenv("SIMPLE_JWT_SIGNING_KEY"),
     }
     
-    # Celery (REDIS_URL/PORT/PASSWORD and SENTINEL_* are already defined above, shared with
-    # CACHES and GenCache)
+    # Celery (Redis/Sentinel connection settings are defined above)
     CELERY_REDIS_BROKER_DB_NUM = os.getenv("CELERY_REDIS_BROKER_DB_NUM")
     CELERY_REDIS_RESULT_BACKEND_DB_NUM = os.getenv("CELERY_REDIS_RESULT_BACKEND_DB_NUM")
     CELERY_QUEUES = json.loads(os.getenv("CELERY_QUEUES", "{}"))
