@@ -42,11 +42,10 @@ let sharedCacheData = {
 };
 
 /*
-Resolves the Redis endpoint this SSR cache reader connects to: with SENTINEL_HEADLESS_URL
-set, asks Sentinel for the current master (SENTINEL get-master-addr-by-name); otherwise
-connects to REDIS_URL/REDIS_PORT. The Sentinel hostname is resolved by the connection itself,
-not cached. The `redis` npm package here (v2.8) has no Sentinel support, so unlike the Python
-clients this won't follow a failover without a restart.
+Resolves the Redis endpoint holding Django's shared cache: the current Sentinel master when
+SENTINEL_HEADLESS_URL is set, otherwise REDIS_URL/REDIS_PORT. The `redis` npm package (v2.8)
+has no Sentinel support, so unlike the Python clients this won't follow a failover without
+a restart.
 */
 const resolveSharedCacheRedisUrl = async function(){
   if (!settings.SENTINEL_HEADLESS_URL) {
@@ -55,10 +54,8 @@ const resolveSharedCacheRedisUrl = async function(){
   // createClient(port, host, ...): port first, so the host isn't misread as a unix socket path
   const sentinelClient = redis.createClient(settings.REDIS_PORT, settings.SENTINEL_HEADLESS_URL,
     settings.SENTINEL_PASSWORD ? {auth_pass: settings.SENTINEL_PASSWORD} : {});
-  // Sentinel's reduced command set doesn't include QUIT (replies "ERR unknown command 'quit'"),
-  // and with no listener node-redis v2.8 throws that reply as an uncaught exception, crashing
-  // the process. An 'error' listener is required for the same reason -- an unhandled 'error'
-  // event is itself thrown by Node's EventEmitter.
+  // Without an 'error' listener, node-redis throws connection errors as uncaught exceptions.
+  // Sentinel doesn't support QUIT, so the socket is closed with end() below instead.
   sentinelClient.on('error', err => logger.error('Sentinel lookup connection error: ' + err));
   const sentinelCommandAsync = promisify(sentinelClient.send_command).bind(sentinelClient);
   try {
@@ -67,7 +64,7 @@ const resolveSharedCacheRedisUrl = async function(){
     );
     return `redis://${host}:${port}`;
   } finally {
-    sentinelClient.end(true); // drop the socket directly rather than sending QUIT
+    sentinelClient.end(true);
   }
 };
 
