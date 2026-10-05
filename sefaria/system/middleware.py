@@ -133,7 +133,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             # For crawlers, don't redirect -- just return the pinned language
             no_direct = ("Googlebot", "Bingbot", "Slurp", "DuckDuckBot", "Baiduspider",
                             "YandexBot", "Facebot", "facebookexternalhit", "ia_archiver", "Sogou",
-                            "python-request", "curl", "Wget", "sefaria-node")
+                            "python-request", "curl", "Wget", "sefaria-node", "Sefaria/")
             if any([bot in request.headers.get('user-agent', '') for bot in no_direct]):
                 interface = domain_lang
             else:
