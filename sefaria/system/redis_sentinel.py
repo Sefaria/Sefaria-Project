@@ -22,10 +22,6 @@ class SentinelConfig:
     master_set: str = "mymaster"
 
     def is_configured(self) -> bool:
-        """
-        Return True if this config has the data it needs to connect to Sentinel
-        :return:
-        """
         return bool(self.url)
 
 
@@ -63,13 +59,8 @@ def get_sentinel_host_ports(url, port) -> list:
 
 
 def get_sentinel_joined_address(url, port, password):
-    """
-    Same as get_sentinel_host_ports(), as the ";"-joined sentinel:// URL list Celery expects.
-    """
-    return ";".join(
-        add_password_to_url(f"sentinel://{host}:{host_port}", password)
-        for host, host_port in get_sentinel_host_ports(url, port)
-    )
+    """The Sentinel endpoint as the sentinel:// URL Celery expects."""
+    return add_password_to_url(f"sentinel://{url}:{port}", password)
 
 
 def _sentinel_kwargs(sentinel_config: SentinelConfig) -> dict:
