@@ -109,22 +109,32 @@ def can_edit(user, sheet):
     return False
 
 
-def sheet_editor_required(view):
+def is_owner(user, sheet):
+    return sheet["owner"] == user.id
+
+
+def sheet_permission_required(has_permission):
     """
-    Decorator for sheet APIs that modify a sheet: returns a JSON error unless the
-    requester is logged in and can_edit the sheet; otherwise calls the view with the loaded sheet.
+    Decorator factory for sheet APIs that modify a sheet: returns a JSON error unless the
+    requester is logged in and has_permission(user, sheet); otherwise calls the view with the loaded sheet.
     """
-    @wraps(view)
-    def wrapper(request, sheet_id, *args, **kwargs):
-        if not request.user.is_authenticated:
-            return jsonResponse({"error": "You must be logged in to edit this sheet."})
-        sheet = get_sheet(sheet_id)
-        if "error" in sheet:  # no sheet with this id
-            return jsonResponse(sheet)
-        if not can_edit(request.user, sheet):
-            return jsonResponse({"error": "You don't have permission to edit this sheet."})
-        return view(request, sheet, *args, **kwargs)
-    return wrapper
+    def decorator(view):
+        @wraps(view)
+        def wrapper(request, sheet_id, *args, **kwargs):
+            if not request.user.is_authenticated:
+                return jsonResponse({"error": "You must be logged in to edit this sheet."})
+            sheet = get_sheet(sheet_id)
+            if "error" in sheet:  # no sheet with this id
+                return jsonResponse(sheet)
+            if not has_permission(request.user, sheet):
+                return jsonResponse({"error": "You don't have permission to edit this sheet."})
+            return view(request, sheet, *args, **kwargs)
+        return wrapper
+    return decorator
+
+
+sheet_editor_required = sheet_permission_required(can_edit)
+sheet_owner_required = sheet_permission_required(is_owner)
 
 
 def can_add(user, sheet):
@@ -716,9 +726,10 @@ def check_sheet_modified_api(request, sheet_id, timestamp):
     return jsonResponse(sheet, callback)
 
 
-def add_source_to_sheet_api(request, sheet_id):
+@sheet_owner_required
+def add_source_to_sheet_api(request, sheet):
     """
-    API to add a fully formed source (posted as JSON) to sheet_id.
+    API to add a fully formed source (posted as JSON) to sheet.
 
     The contents of the "source" field will be a dictionary.
     The input format is similar to, but differs slightly from, the internal format for sources on source sheets.
@@ -761,12 +772,6 @@ def add_source_to_sheet_api(request, sheet_id):
                 del source_obj[f"version-{lang}"]
             return lang_tc if lang_tc != "" else "..."
 
-    sheet = db.sheets.find_one({"id": int(sheet_id)})
-    if not sheet:
-        return {"error": "No sheet with id %s." % (id)}
-    if sheet["owner"] != request.user.id:
-        return jsonResponse({"error": "User can only edit their own sheet" })
-    
     source = json.loads(request.POST.get("source"))
     if not source:
         return jsonResponse({"error": "No source to copy given."})
@@ -788,12 +793,12 @@ def add_source_to_sheet_api(request, sheet_id):
 
     note = request.POST.get("note", None)
     source.pop("node", None)
-    response = add_source_to_sheet(int(sheet_id), source, note=note)
+    response = add_source_to_sheet(sheet["id"], source, note=note)
 
     return jsonResponse(response)
 
-@login_required
-def copy_source_to_sheet_api(request, sheet_id):
+@sheet_owner_required
+def copy_source_to_sheet_api(request, sheet):
     """
     API to copy a source from one sheet to another.
     """
@@ -802,40 +807,33 @@ def copy_source_to_sheet_api(request, sheet_id):
     copy_source = request.POST.get("nodeID")
     if not copy_sheet and copy_source:
         return jsonResponse({"error": "Need both a sheet and source node ID to copy."})
-    sheet = db.sheets.find_one({"id": int(sheet_id)})
-    if not sheet:
-        return {"error": "No sheet with id %s." % (id)}
-    if sheet["owner"] != request.user.id:
-        return jsonResponse({"error": "User can only edit their own sheet" })
     source = get_sheet_node(int(copy_sheet), int(copy_source))
     del source["node"]
-    response = add_source_to_sheet(int(sheet_id), source)
+    response = add_source_to_sheet(sheet["id"], source)
 
     return jsonResponse(response)
 
 
-@login_required
-def add_ref_to_sheet_api(request, sheet_id):
+@sheet_owner_required
+def add_ref_to_sheet_api(request, sheet):
     """
     API to add a source to a sheet using only a ref.
     """
     ref = request.POST.get("ref")
     if not ref:
         return jsonResponse({"error": "No ref given in post data."})
-    return jsonResponse(add_ref_to_sheet(int(sheet_id), ref, request))
+    return jsonResponse(add_ref_to_sheet(sheet["id"], ref, request))
 
 
-@login_required
-def update_sheet_topics_api(request, sheet_id):
+@sheet_owner_required
+def update_sheet_topics_api(request, sheet):
     """
-    API to update tags for sheet_id.
+    API to update tags for sheet.
     """
     topics = json.loads(request.POST.get("topics"))
-    sheet = db.sheets.find_one({"id": int(sheet_id)}, {"topics":1})
-    if sheet["owner"] != request.user.id:
-        return jsonResponse({"error": "user can only add topics to their own sheet"})
-    old_topics = sheet.get("topics", [])
-    return jsonResponse(update_sheet_topics(int(sheet_id), topics, old_topics))
+    # get_sheet adds language fields to topics, so read the stored list for old_topics
+    old_topics = db.sheets.find_one({"id": sheet["id"]}, {"topics": 1}).get("topics", [])
+    return jsonResponse(update_sheet_topics(sheet["id"], topics, old_topics))
 
 
 @sheet_editor_required
@@ -860,6 +858,8 @@ def like_sheet_api(request, sheet_id):
         return jsonResponse({"error": "You must be logged in to like sheets."})
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
+    if not db.sheets.find_one({"id": int(sheet_id)}, {"_id": 1}):
+        return jsonResponse({"error": "Couldn't find sheet with id: %s" % sheet_id})
 
     add_like_to_sheet(int(sheet_id), request.user.id)
     return jsonResponse({"status": "ok"})
