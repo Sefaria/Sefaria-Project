@@ -4592,16 +4592,16 @@ class Library(object):
             "virtual_books": ("_virtual_books", "virtualBooks", self.build_virtual_books),
         }
         for key in self._shared_cache_objects:
-            gen_cache.register(key, f"gen:{key}", lambda key=key: self._refresh_shared_cache_object(key))
-        gen_cache.register("toc_tree", "gen:toc_tree", self._refresh_toc_tree)
-        gen_cache.register("topic_mapping", "gen:topic_mapping", self._build_topic_mapping)
-        gen_cache.register("index_map", "gen:index_map", self._refresh_index_maps)
-        gen_cache.register("full_auto_completer", "gen:full_auto_completer", self.build_full_auto_completer)
-        gen_cache.register("lexicon_auto_completer", "gen:lexicon_auto_completer", self.build_lexicon_auto_completers)
-        gen_cache.register("cross_lexicon_auto_completer", "gen:cross_lexicon_auto_completer", self.build_cross_lexicon_auto_completer)
+            gen_cache.register(key, lambda key=key: self._refresh_shared_cache_object(key))
+        gen_cache.register("toc_tree", self._refresh_toc_tree)
+        gen_cache.register("topic_mapping", self._build_topic_mapping)
+        gen_cache.register("index_map", self._refresh_index_maps)
+        gen_cache.register("full_auto_completer", self.build_full_auto_completer)
+        gen_cache.register("lexicon_auto_completer", self.build_lexicon_auto_completers)
+        gen_cache.register("cross_lexicon_auto_completer", self.build_cross_lexicon_auto_completer)
         for lang in self.langs:
-            gen_cache.register(f"books_{lang}", f"gen:books_{lang}", lambda lang=lang: self._refresh_text_titles_json(lang))
-            gen_cache.register(f"linker_resolver:{lang}", f"gen:linker_resolver:{lang}", lambda lang=lang: self.rebuild_linker_resolvers((lang,)))
+            gen_cache.register(f"books_{lang}", lambda lang=lang: self._refresh_text_titles_json(lang))
+            gen_cache.register(f"linker_resolver:{lang}", lambda lang=lang: self.rebuild_linker_resolvers((lang,)))
 
     def _refresh_shared_cache_object(self, key):
         """refresh_fn for a shared-cache-backed object: use the shared cache if a peer already filled it."""
@@ -4683,7 +4683,7 @@ class Library(object):
             self._title_regex_strings = {}
             self._title_regexes = {}
             Ref.clear_cache()
-            gen_cache.bump("gen:websites_data")
+            gen_cache.bump("websites_data")
             if include_toc:
                 self.rebuild_toc()
 
@@ -5250,7 +5250,7 @@ class Library(object):
         """
         from sefaria.model.schema import NonUniqueTerm
         NonUniqueTerm._init_cache.pop(slug, None)
-        gen_cache.bump(f"gen:{NonUniqueTerm.gen_cache_key(slug)}")
+        gen_cache.bump(NonUniqueTerm.gen_cache_key(slug))
 
     # todo: the for_js path here does not appear to be in use.
     # todo: Rename, as method not gauraunteed to return all titles
@@ -5629,7 +5629,7 @@ class Library(object):
         for lang in self.langs:
             scache.delete_shared_cache_elem('books_' + lang)
             scache.delete_shared_cache_elem('books_' + lang + '_json')
-            gen_cache.bump(f"gen:books_{lang}")
+            gen_cache.bump(f"books_{lang}")
 
     def get_text_categories(self):
         """

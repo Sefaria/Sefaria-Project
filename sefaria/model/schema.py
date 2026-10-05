@@ -355,7 +355,7 @@ class NonUniqueTerm(abst.SluggedAbstractMongoRecord, AbstractTitledObject):
         """
         key = cls.gen_cache_key(slug)
         if not gen_cache.is_registered(key):
-            gen_cache.register(key, f"gen:{key}", lambda: cls._init_cache.pop(slug, None))
+            gen_cache.register(key, lambda: cls._init_cache.pop(slug, None))
         gen_cache.get(key)
         return super().init(slug, slug_field_idx)
 

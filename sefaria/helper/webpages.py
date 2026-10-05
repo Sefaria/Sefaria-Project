@@ -18,7 +18,7 @@ def _refresh_website_cache():
     return sites
 
 
-gen_cache.register("websites_data", "gen:websites_data", _refresh_website_cache)
+gen_cache.register("websites_data", _refresh_website_cache)
 
 
 def get_website_cache():

@@ -68,7 +68,7 @@ def make_counting_refresh_fn(return_values):
 def test_first_access_calls_refresh_fn_once(fake_redis):
     gc = GenCache(fake_redis)
     refresh_fn, calls = make_counting_refresh_fn(["built"])
-    gc.register("toc", "gen:toc", refresh_fn)
+    gc.register("toc", refresh_fn)
 
     assert gc.get("toc") == "built"
     assert len(calls) == 1
@@ -77,7 +77,7 @@ def test_first_access_calls_refresh_fn_once(fake_redis):
 def test_hit_within_throttle_window_does_not_call_redis_or_refresh(fake_redis):
     gc = GenCache(fake_redis)
     refresh_fn, calls = make_counting_refresh_fn(["built"])
-    gc.register("toc", "gen:toc", refresh_fn)
+    gc.register("toc", refresh_fn)
     gc.get("toc")  # first access: populates _data and _last_checked
 
     fake_redis.broken = True  # if get() touched Redis again, this would raise
@@ -88,7 +88,7 @@ def test_hit_within_throttle_window_does_not_call_redis_or_refresh(fake_redis):
 def test_recheck_past_throttle_with_unchanged_generation_serves_cached_value(fake_redis, no_throttle):
     gc = GenCache(fake_redis)
     refresh_fn, calls = make_counting_refresh_fn(["built"])
-    gc.register("toc", "gen:toc", refresh_fn)
+    gc.register("toc", refresh_fn)
     gc.get("toc")
 
     # Throttle is zeroed, so this re-checks Redis -- but the generation (still None,
@@ -100,7 +100,7 @@ def test_recheck_past_throttle_with_unchanged_generation_serves_cached_value(fak
 def test_stale_generation_triggers_refresh(fake_redis, no_throttle):
     gc = GenCache(fake_redis)
     refresh_fn, calls = make_counting_refresh_fn(["first", "second"])
-    gc.register("toc", "gen:toc", refresh_fn)
+    gc.register("toc", refresh_fn)
     assert gc.get("toc") == "first"
 
     fake_redis.incr("gen:toc")  # simulates a peer's bump()
@@ -115,7 +115,7 @@ def test_jitter_only_applied_when_redis_lost_its_keyspace(fake_redis, monkeypatc
 
     gc = GenCache(fake_redis)
     refresh_fn, calls = make_counting_refresh_fn([])
-    gc.register("toc", "gen:toc", refresh_fn)
+    gc.register("toc", refresh_fn)
 
     gc.get("toc")  # first access
     fake_redis.incr("gen:toc")
@@ -139,13 +139,13 @@ def test_bump_is_visible_to_a_second_gencache_instance_sharing_redis(fake_redis,
     peer = GenCache(fake_redis)
 
     writer_refresh, _ = make_counting_refresh_fn(["irrelevant-writer-local-value"])
-    writer.register("toc", "gen:toc", writer_refresh)
+    writer.register("toc", writer_refresh)
 
     peer_refresh, peer_calls = make_counting_refresh_fn(["peer-v1", "peer-v2"])
-    peer.register("toc", "gen:toc", peer_refresh)
+    peer.register("toc", peer_refresh)
     assert peer.get("toc") == "peer-v1"
 
-    writer.bump("gen:toc")  # no message passing between the two instances
+    writer.bump("toc")  # no message passing between the two instances
 
     assert peer.get("toc") == "peer-v2"
     assert len(peer_calls) == 2
@@ -153,7 +153,7 @@ def test_bump_is_visible_to_a_second_gencache_instance_sharing_redis(fake_redis,
 
 def test_publish_sets_local_value_and_bumps_for_peers(fake_redis, no_throttle):
     writer = GenCache(fake_redis)
-    writer.register("toc", "gen:toc", lambda: pytest.fail("refresh_fn must not run for a value publish() just set"))
+    writer.register("toc", lambda: pytest.fail("refresh_fn must not run for a value publish() just set"))
 
     result = writer.publish("toc", "fresh-value")
 
@@ -164,7 +164,7 @@ def test_publish_sets_local_value_and_bumps_for_peers(fake_redis, no_throttle):
 
 def test_mark_fresh_bumps_without_refreshing_this_process(fake_redis, no_throttle):
     writer = GenCache(fake_redis)
-    writer.register("index_map", "gen:index_map", lambda: pytest.fail("writer already rebuilt; must not refresh"))
+    writer.register("index_map", lambda: pytest.fail("writer already rebuilt; must not refresh"))
 
     writer.mark_fresh("index_map")
 
@@ -174,12 +174,12 @@ def test_mark_fresh_bumps_without_refreshing_this_process(fake_redis, no_throttl
 
 def test_publish_then_peer_get_sees_the_bump(fake_redis, no_throttle):
     writer = GenCache(fake_redis)
-    writer.register("toc", "gen:toc", lambda: None)
+    writer.register("toc", lambda: None)
     writer.publish("toc", "fresh-value")
 
     peer = GenCache(fake_redis)
     peer_refresh, peer_calls = make_counting_refresh_fn(["peer-built"])
-    peer.register("toc", "gen:toc", peer_refresh)
+    peer.register("toc", peer_refresh)
 
     assert peer.get("toc") == "peer-built"
     assert len(peer_calls) == 1
@@ -192,7 +192,7 @@ def test_publish_then_peer_get_sees_the_bump(fake_redis, no_throttle):
 def test_redis_down_on_recheck_serves_last_known_value(fake_redis, no_throttle):
     gc = GenCache(fake_redis)
     refresh_fn, calls = make_counting_refresh_fn(["built"])
-    gc.register("toc", "gen:toc", refresh_fn)
+    gc.register("toc", refresh_fn)
     gc.get("toc")  # first access succeeds, populates _data
 
     fake_redis.broken = True
@@ -204,7 +204,7 @@ def test_redis_down_on_first_access_falls_through_to_refresh_fn(fake_redis):
     fake_redis.broken = True
     gc = GenCache(fake_redis)
     refresh_fn, calls = make_counting_refresh_fn(["built-from-mongo"])
-    gc.register("toc", "gen:toc", refresh_fn)
+    gc.register("toc", refresh_fn)
 
     # No local value yet and Redis is unreachable: must still call refresh_fn rather than
     # returning nothing (§03's "degrade to mongo behavior for one cycle" correction).
@@ -215,12 +215,12 @@ def test_redis_down_on_first_access_falls_through_to_refresh_fn(fake_redis):
 def test_bump_failure_is_logged_and_does_not_raise(fake_redis):
     gc = GenCache(fake_redis)
     fake_redis.broken = True
-    assert gc.bump("gen:toc") is None  # fails closed, caller never sees an exception
+    assert gc.bump("toc") is None  # fails closed, caller never sees an exception
 
 
 def test_publish_failure_to_bump_does_not_raise_and_drops_stale_local_gen(fake_redis, no_throttle):
     gc = GenCache(fake_redis)
-    gc.register("toc", "gen:toc", lambda: "rebuilt")
+    gc.register("toc", lambda: "rebuilt")
 
     fake_redis.broken = True
     result = gc.publish("toc", "value-written-despite-redis-outage")
@@ -242,7 +242,7 @@ def test_redis_keyspace_loss_triggers_rebuild_through_refresh_fn(fake_redis, no_
     cold first access from this process's point of view once it notices (§10)."""
     gc = GenCache(fake_redis)
     refresh_fn, calls = make_counting_refresh_fn(["before-loss", "after-loss"])
-    gc.register("toc", "gen:toc", refresh_fn)
+    gc.register("toc", refresh_fn)
 
     fake_redis.incr("gen:toc")
     assert gc.get("toc") == "before-loss"
@@ -264,7 +264,7 @@ def test_key_prefix_isolates_bump_between_deployments(fake_redis):
     cauldron_a = GenCache(fake_redis, key_prefix="cauldron-a")
     cauldron_b = GenCache(fake_redis, key_prefix="cauldron-b")
 
-    cauldron_a.bump("gen:index_map")
+    cauldron_a.bump("index_map")
 
     assert fake_redis.store == {"cauldron-a:gen:index_map": "1"}
     assert "cauldron-b:gen:index_map" not in fake_redis.store
@@ -276,8 +276,8 @@ def test_key_prefix_isolates_get_between_deployments(fake_redis, no_throttle):
 
     refresh_fn_a, calls_a = make_counting_refresh_fn(["a-build-1", "a-build-2"])
     refresh_fn_b, calls_b = make_counting_refresh_fn(["b-build-1", "b-build-2"])
-    cauldron_a.register("index_map", "gen:index_map", refresh_fn_a)
-    cauldron_b.register("index_map", "gen:index_map", refresh_fn_b)
+    cauldron_a.register("index_map", refresh_fn_a)
+    cauldron_b.register("index_map", refresh_fn_b)
 
     assert cauldron_a.get("index_map") == "a-build-1"
     assert cauldron_b.get("index_map") == "b-build-1"
@@ -292,5 +292,5 @@ def test_no_key_prefix_is_unprefixed_for_backward_compatibility(fake_redis):
     """A single-tenant deployment (local dev, prod, staging, preprod) passes no key_prefix
     and must keep writing the same bare keys as before this change."""
     gc = GenCache(fake_redis)
-    gc.bump("gen:index_map")
+    gc.bump("index_map")
     assert fake_redis.store == {"gen:index_map": "1"}

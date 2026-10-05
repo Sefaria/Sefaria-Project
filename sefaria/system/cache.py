@@ -222,33 +222,29 @@ class GenCache:
 
     Fails open: if Redis is unreachable, get() serves the last value and bump() only logs.
     """
-    CHECK_INTERVAL_SECONDS = 2  # tune against real Redis QPS before finalizing
+    CHECK_INTERVAL_SECONDS = 2
     JITTER_MAX_SECONDS = 3  # spreads the fleet's rebuilds after Redis loses its keyspace
 
     def __init__(self, redis_client, key_prefix: str = ""):
         self._data = {}            # key -> cached value
         self._gens = {}            # key -> last-applied generation; absent until first refresh
         self._last_checked = {}    # key -> monotonic time of last check
-        self._refreshers = {}      # key -> (refresh_fn, redis_gen_key)
+        self._refreshers = {}      # key -> refresh_fn
         self.redis = redis_client
-        # Namespaces every Redis key this instance touches, so multiple deployments sharing one
-        # Redis/Sentinel (e.g. cauldrons on the dev cluster) don't see each other's counters.
-        # Applied here, at the lowest level (get()/bump()), rather than in register(), so it also
-        # covers call sites that bump() a raw "gen:..." key directly without going through
-        # register()'s stored mapping.
+        # namespaces the counters when several deployments share one Redis (e.g. cauldrons)
         self._key_prefix = f"{key_prefix}:" if key_prefix else ""
 
-    def _prefixed(self, redis_gen_key: str) -> str:
-        return f"{self._key_prefix}{redis_gen_key}"
+    def _redis_key(self, key: str) -> str:
+        return f"{self._key_prefix}gen:{key}"
 
-    def register(self, key: str, redis_gen_key: str, refresh_fn: Callable[[], Any]):
-        self._refreshers[key] = (refresh_fn, redis_gen_key)
+    def register(self, key: str, refresh_fn: Callable[[], Any]):
+        self._refreshers[key] = refresh_fn
 
     def is_registered(self, key: str) -> bool:
         return key in self._refreshers
 
     def get(self, key: str):
-        refresh_fn, gen_key = self._refreshers[key]
+        refresh_fn = self._refreshers[key]
         is_first_access = key not in self._gens
 
         now = time.monotonic()
@@ -257,7 +253,7 @@ class GenCache:
         self._last_checked[key] = now
 
         try:
-            redis_gen = self.redis.get(self._prefixed(gen_key))
+            redis_gen = self.redis.get(self._redis_key(key))
         except Exception:
             logger.error("GenCache: Redis unreachable checking %s; serving stale value", key)
             if not is_first_access:
@@ -273,18 +269,18 @@ class GenCache:
             self._gens[key] = redis_gen
         return self._data.get(key)
 
-    def bump(self, redis_gen_key: str):
+    def bump(self, key: str):
         """INCR the counter so peers refresh. Prefer publish()/mark_fresh() for a registered key."""
         try:
-            return self.redis.incr(self._prefixed(redis_gen_key))
+            return self.redis.incr(self._redis_key(key))
         except Exception:
-            logger.error("GenCache: failed to bump %s; peers stay stale until the next bump", redis_gen_key)
+            logger.error("GenCache: failed to bump %s; peers stay stale until the next bump", key)
             return None
 
     def mark_fresh(self, key: str):
         """This process already rebuilt key's object: record it as current and bump for peers."""
         self._last_checked[key] = time.monotonic()
-        new_gen = self.bump(self._refreshers[key][1])
+        new_gen = self.bump(key)
         self._gens[key] = str(new_gen) if new_gen is not None else _UNKNOWN_GEN
 
     def publish(self, key: str, value):
