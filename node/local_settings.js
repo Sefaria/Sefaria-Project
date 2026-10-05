@@ -25,6 +25,9 @@ const local_settings = {
   SENTINEL_PASSWORD: fromEnv('SENTINEL_PASSWORD', null),
   SENTINEL_MASTER_SET: fromEnv('SENTINEL_MASTER_SET', 'mymaster'),
   SHARED_CACHE_DB_NUM: fromEnv('SHARED_CACHE_DB_NUM', 1),
+  // Mirrors Django's DEPLOY_ENV: the KEY_PREFIX of CACHES["shared"], so this reader finds the keys
+  // Django wrote when several deployments share one Redis (e.g. cauldrons). Empty = no prefix.
+  DEPLOY_ENV: fromEnv('DEPLOY_ENV', ''),
 
   DEBUG: function(){
     if ('DEBUG' in process.env) {

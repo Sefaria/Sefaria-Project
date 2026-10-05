@@ -196,7 +196,8 @@ const main = async function(){
 };
 
 resolveSharedCacheRedisUrl().then(function(redisUrl){
-  const clientOpts = {prefix: ':1:'};
+  // Django's cache key is "<KEY_PREFIX>:<version>:<key>"; KEY_PREFIX is DEPLOY_ENV (empty when unset).
+  const clientOpts = {prefix: `${settings.DEPLOY_ENV}:1:`};
   if (settings.SENTINEL_HEADLESS_URL) {
     clientOpts.auth_pass = settings.REDIS_PASSWORD;
   }
