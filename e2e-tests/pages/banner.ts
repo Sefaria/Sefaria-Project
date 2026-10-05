@@ -27,7 +27,7 @@ export class Banner{
             await this.page.getByRole('banner').getByRole('link', { name: 'Texts' }).click();
         }
         else{
-            await this.page.getByRole('banner').getByRole('link', { name: 'מקורות' }).click();
+            await this.page.getByRole('banner').getByRole('link', { name: 'טקסטים' }).click();
         }
         
         expect(getPathAndParams(this.page.url())).toEqual("/texts")

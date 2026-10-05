@@ -8,6 +8,7 @@ import {
   MODULE_URLS
 } from '../constants';
 import { testUser, testAdminUser } from '../globals';
+import { LoginPage } from './loginPage';
 
 /**
  * Page object for testing header functionality across Sefaria's Library and Voices modules.
@@ -151,26 +152,17 @@ export class ModuleHeaderPage extends HelperBase {
 
     await this.page.goto(loginUrl);
     await this.page.waitForLoadState('domcontentloaded');
-    // Ensure any overlays are dismissed on the login page before interacting with the form
     await hideAllModalsAndPopups(this.page);
 
-    await this.page.getByPlaceholder('Email Address').fill(credentials.email);
-    await this.page.getByPlaceholder('Password').fill(credentials.password);
-    await this.page.getByRole('button', { name: 'Login' }).click();
-
-    await this.page.waitForLoadState('domcontentloaded');
+    const loginPage = new LoginPage(this.page, LANGUAGES.EN);
+    await loginPage.loginAs(credentials);
+    await this.page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC).waitFor({ state: 'visible', timeout: t(15000) });
   }
 
   async isLoggedIn(): Promise<boolean> {
-    try {
-      const loggedOutIcon = this.page.locator('img[src="/static/icons/profile_loggedout_mdl.svg"]');
-      const isLoggedOut = await loggedOutIcon.isVisible();
-      // console.log(`Logged out icon visible: ${isLoggedOut}`);
-      return !isLoggedOut;
-    } catch {
-      // console.log('Logged out icon not found, assuming user is logged in');
-      return false;
-    }
+    // The logged-out account icon can remain in the DOM after login. The
+    // profile picture is only rendered for an authenticated header.
+    return this.page.locator(MODULE_SELECTORS.HEADER.PROFILE_PIC).isVisible().catch(() => false);
   }
 
   /**

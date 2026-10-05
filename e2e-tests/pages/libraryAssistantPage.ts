@@ -41,28 +41,28 @@ export const LA_LABELS: Record<string, LALabelSet> = {
     triggerLabel: 'LIBRARY ASSISTANT',
     chatWindow: 'Chat window',
     close: 'Close',
-    dock: 'Dock Assistant',
-    undock: 'Undock Assistant',
+    dock: 'Maximize & move to sidebar',
+    undock: 'Minimize & detach from sidebar',
     moreOptions: 'More options',
     promptInput: 'Prompt input',
     send: 'Send',
     restartMenuItemAria: 'Restart convo',
     settingsMenuText: 'Settings',
-    menuTextsBase: ['Restart chat', 'Give feedback', 'Help', 'Opt out in Settings'],
+    menuTextsBase: ['New chat', 'Maximize & move to sidebar', 'Give feedback', 'Help', 'Disable in settings'],
   },
   [LANGUAGES.HE]: {
     openAssistant: 'פתיחת עוזר הספרייה',
     triggerLabel: 'עוזר הספרייה',
     chatWindow: 'חלון שיחה',
     close: 'סגירה',
-    dock: 'הצמדת עוזר הספרייה',
-    undock: 'חזרה למצב צף',
+    dock: 'הגדלה והצמדה לצד',
+    undock: 'הקטנה וניתוק מהצד',
     moreOptions: 'אפשרויות נוספות',
     promptInput: 'שדה טקסט',
     send: 'שליחה',
     restartMenuItemAria: 'התחלת שיחה מחדש',
     settingsMenuText: 'הגדרות',
-    menuTextsBase: ['התחלת שיחה מחדש', 'שליחת משוב', 'עזרה', 'כיבוי בהגדרת'],
+    menuTextsBase: ['התחלת שיחה מחדש', 'הגדלה והצמדה לצד', 'שליחת משוב', 'עזרה', 'כיבוי בהגדרת'],
   },
 };
 
@@ -130,7 +130,7 @@ export class LibraryAssistantPage extends HelperBase {
   }
 
   private get thinkingIndicator() {
-    return this.page.locator('.thinking-content');
+    return this.page.locator('.lc-thinking-block');
   }
 
   private get moreOptionsBtn() {
@@ -305,12 +305,11 @@ export class LibraryAssistantPage extends HelperBase {
   }
 
   // UX-036: thinking indicator appears while awaiting a response.
-  // NOTE: the deployed component renders the thinking label as "Thinking" in BOTH
-  // English and Hebrew interfaces (the Hebrew string is not yet wired in prod), so
-  // this assertion is intentionally language-invariant.
+  // The deployed component renders `.lc-thinking-block`. The visible label
+  // starts as "Thinking" and then cycles through step strings.
   async expectThinkingVisible(): Promise<void> {
     await expect(this.thinkingIndicator).toBeVisible({ timeout: t(10000) });
-    await expect(this.thinkingIndicator).toContainText('Thinking', { timeout: t(5000) });
+    await expect(this.thinkingIndicator).toContainText(/Thinking|Interpreting|Searching/, { timeout: t(5000) });
   }
 
   async expectThinkingGone(): Promise<void> {
@@ -351,11 +350,11 @@ export class LibraryAssistantPage extends HelperBase {
   }
 
   /**
-   * Close the open menu by clicking outside it (in the messages log area).
-   * Avoids clicking header buttons that would trigger other actions.
+   * Close the open menu by clicking the page, outside the chatbot.
+   * The messages log sits under the open menu, so a click there hits a menuitem.
    */
   async clickOutsideMenu(): Promise<void> {
-    await this.messagesLog.click({ position: { x: 50, y: 50 } });
+    await this.page.mouse.click(40, 220);
     await this.expectMenuHidden();
   }
 

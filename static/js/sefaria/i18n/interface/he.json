@@ -572,6 +572,7 @@
     "ai_info_tooltip.some_of_the_text_on_this_page": "חלק מהטקסט בעמוד זה נוצר על ידי בינה מלאכותית.",
     "ai_info_tooltip.the_questions_and_answers_in_this_learning_guide": "השאלות והתשובות הכלולות במדריך הלמידה נכתבו בעזרת בינה מלאכותית ונבדקו על ידי צוות הלמידה של ספריא. מצאתם שגיאה? שלחו לנו הודעה.",
     "auth.already_have_an_account": "יש לך חשבון?",
+    "auth.already_logged_in": "אתם כבר מחוברים בתור {name}",
     "auth.back": "חזרה",
     "auth.check_your_email": "שלחנו לך הוראות לעדכון הסיסמה לתיבת הדוא״ל שלך.",
     "auth.confirm_new_password": "אימות סיסמה חדשה",

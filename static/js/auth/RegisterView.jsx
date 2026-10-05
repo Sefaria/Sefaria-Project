@@ -169,22 +169,22 @@ const RegisterView = ({
           <div className="sefaria-auth-fields">
             <EmailInput value={fields.email}
                    setField={(k) => onChangeClear(k, setField(k), requiredFieldValidate, fieldErrors, setFieldError)}
-                   onBlur={(e) => setFieldError('email', requiredFieldValidate(fields.email) || emailValidate(e.target))}
+                   onBlur={(e) => setFieldError('email', requiredFieldValidate(e.target.value) || emailValidate(e.target))}
                    error={fieldErrors.email} />
             <PasswordInput autoComplete="new-password"
                    value={fields.password}
                    onChange={onChangeClear('password', setField('password'), requiredFieldValidate, fieldErrors, setFieldError)}
-                   onBlur={onBlurValidate('password', () => requiredFieldValidate(fields.password), setFieldError)}
+                   onBlur={onBlurValidate('password', (e) => requiredFieldValidate(e.target.value), setFieldError)}
                    error={fieldErrors.password} />
             <Input label="common.first_name" placeholder={Sefaria._('common.first_name')} name="first_name"
                    value={fields.first}
                    onChange={onChangeClear('first', setField('first'), requiredFieldValidate, fieldErrors, setFieldError)}
-                   onBlur={onBlurValidate('first', () => requiredFieldValidate(fields.first), setFieldError)}
+                   onBlur={onBlurValidate('first', (e) => requiredFieldValidate(e.target.value), setFieldError)}
                    error={fieldErrors.first} />
             <Input label="common.last_name" placeholder={Sefaria._('common.last_name')} name="last_name"
                    value={fields.last}
                    onChange={onChangeClear('last', setField('last'), requiredFieldValidate, fieldErrors, setFieldError)}
-                   onBlur={onBlurValidate('last', () => requiredFieldValidate(fields.last), setFieldError)}
+                   onBlur={onBlurValidate('last', (e) => requiredFieldValidate(e.target.value), setFieldError)}
                    error={fieldErrors.last} />
           </div>
           {recaptchaSiteKey && (

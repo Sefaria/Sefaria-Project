@@ -488,7 +488,7 @@ export const MODULE_TEXTS = {
       SIGN_UP_BUTTON: 'Sign Up'
     },
     HE: {
-      TEXTS_LINK: 'מקורות',
+      TEXTS_LINK: 'טקסטים',
       TOPICS_LINK: 'נושאים',
       SIGN_UP_BUTTON: 'הרשמה'
     }
