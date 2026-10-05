@@ -215,17 +215,16 @@ class GenCache:
     Cross-process cache freshness via one Redis INCR counter per tracked object.
 
     register() a refresh_fn per key at startup. get() serves this process's copy, re-checking
-    the key's counter at most every CHECK_INTERVAL_SECONDS and calling refresh_fn when it has
+    the key's counter at most every check_interval_seconds and calling refresh_fn when it has
     changed. Writers call publish() (with the fresh value) or mark_fresh() (when the object
     lives on its owner, e.g. Library, and was already rebuilt) to update this process and bump
     the counter for peers, or invalidate() to make every process, this one included, refresh.
 
     Fails open: if Redis is unreachable, get() serves the last value and bumps only log.
     """
-    CHECK_INTERVAL_SECONDS = 2
-    JITTER_MAX_SECONDS = 3  # spreads the fleet's rebuilds after Redis loses its keyspace
-
-    def __init__(self, redis_client, key_prefix: str = ""):
+    def __init__(self, redis_client, check_interval_seconds: float, jitter_max_seconds: float, key_prefix: str = ""):
+        self.check_interval_seconds = check_interval_seconds
+        self.jitter_max_seconds = jitter_max_seconds  # spreads the fleet's rebuilds after Redis loses its keyspace
         self._data = {}            # key -> cached value
         self._gens = {}            # key -> last-applied generation; absent until first refresh
         self._last_checked = {}    # key -> monotonic time of last check
@@ -248,7 +247,7 @@ class GenCache:
         is_first_access = key not in self._gens
 
         now = time.monotonic()
-        if not is_first_access and now - self._last_checked.get(key, 0) < self.CHECK_INTERVAL_SECONDS:
+        if not is_first_access and now - self._last_checked.get(key, 0) < self.check_interval_seconds:
             return self._data.get(key)
         self._last_checked[key] = now
 
@@ -264,7 +263,7 @@ class GenCache:
             if not is_first_access and redis_gen is None and self._gens[key] is not None:
                 # The counter vanished: Redis lost its keyspace, so every process in the fleet
                 # is about to rebuild at once. Jitter to spread the load.
-                time.sleep(random.uniform(0, self.JITTER_MAX_SECONDS))
+                time.sleep(random.uniform(0, self.jitter_max_seconds))
             self._data[key] = refresh_fn()
             self._gens[key] = redis_gen
         return self._data.get(key)
@@ -308,7 +307,10 @@ def _build_gen_cache() -> GenCache:
         settings.SENTINEL_TRANSPORT_OPTS, settings.SENTINEL_MASTER_SET,
     )
     client = get_redis_client(redis_config, sentinel_config, settings.GENCACHE_REDIS_DB_NUM, decode_responses=True)
-    return GenCache(client, key_prefix=settings.DEPLOY_ENV)
+    return GenCache(
+        client, settings.GENCACHE_CHECK_INTERVAL_SECONDS, settings.GENCACHE_JITTER_MAX_SECONDS,
+        key_prefix=settings.DEPLOY_ENV,
+    )
 
 
 if not hasattr(sys, '_doc_build'):  # redis-py connects lazily, so this opens no connection

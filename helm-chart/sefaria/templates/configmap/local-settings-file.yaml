@@ -44,6 +44,8 @@ data:
     DEFAULT_CACHE_DB_NUM = os.getenv("DEFAULT_CACHE_DB_NUM", "4")
     SHARED_CACHE_DB_NUM = os.getenv("SHARED_CACHE_DB_NUM", "5")
     GENCACHE_REDIS_DB_NUM = os.getenv("GENCACHE_REDIS_DB_NUM", "6")
+    GENCACHE_CHECK_INTERVAL_SECONDS = float(os.getenv("GENCACHE_CHECK_INTERVAL_SECONDS", "2"))
+    GENCACHE_JITTER_MAX_SECONDS = float(os.getenv("GENCACHE_JITTER_MAX_SECONDS", "3"))
     # Prefixes CACHES/GenCache keys, so deployments sharing one Redis (e.g. cauldrons) don't collide.
     DEPLOY_ENV = os.getenv("DEPLOY_ENV", "")
 

@@ -67,7 +67,7 @@ Model.save() → notify() → in-process cache update + gen_cache.publish()/mark
             → Varnish purge/ban (called directly, no confirmation wait)
             → (optional) Cloudflare purge
 ```
-Details in [`agent_docs/sefaria/system/gencache_and_varnish.md`](./agent_docs/sefaria/system/gencache_and_varnish.md). A peer can lag by up to `GenCache.CHECK_INTERVAL_SECONDS` (2s) before noticing a change -- by design.
+Details in [`agent_docs/sefaria/system/gencache_and_varnish.md`](./agent_docs/sefaria/system/gencache_and_varnish.md). A peer can lag by up to `GENCACHE_CHECK_INTERVAL_SECONDS` (2s by default) before noticing a change -- by design.
 
 ### 5. Ref Is Cached Aggressively
 The `RefCacheType` metaclass intercepts `Ref(...)` construction and returns a cached instance when the input string or its normal form matches a previous call. The cache is an `OrderedDict` with LRU-style eviction; the limit defaults to 60,000 and is tunable at runtime via `remoteConfigCache` (`REF_CACHE_LIMIT_KEY`). Constructing the same ref string returns the same object. Don't mutate a `Ref`; derive a new one.

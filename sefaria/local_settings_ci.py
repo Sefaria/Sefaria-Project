@@ -164,6 +164,9 @@ SENTINEL_TRANSPORT_OPTS = {}
 SENTINEL_PASSWORD = None
 REDIS_URL = "redis://127.0.0.1"
 
+GENCACHE_CHECK_INTERVAL_SECONDS = 2
+GENCACHE_JITTER_MAX_SECONDS = 3
+
 # Key which identifies the Sefaria app as opposed to a user
 # using our API outside of the app. Mainly for registration
 MOBILE_APP_KEY = "MOBILE_APP_KEY"

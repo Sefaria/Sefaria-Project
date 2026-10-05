@@ -321,6 +321,10 @@ SENTINEL_MASTER_SET = "mymaster"  # the Bitnami redis chart's default sentinel.m
 DEFAULT_CACHE_DB_NUM = 4
 SHARED_CACHE_DB_NUM = 5
 GENCACHE_REDIS_DB_NUM = 6
+# How often each process re-checks a GenCache counter, i.e. how stale a peer's copy can get,
+# and the most a process waits before rebuilding after Redis loses its keyspace.
+GENCACHE_CHECK_INTERVAL_SECONDS = 2
+GENCACHE_JITTER_MAX_SECONDS = 3
 
 # Prefixes CACHES and GenCache keys, so deployments sharing one Redis (e.g. cauldrons) don't
 # collide. Empty means no prefix.
