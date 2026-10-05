@@ -12,6 +12,7 @@ import sys
 import threading
 import bleach
 import pymongo
+from bson import ObjectId
 
 from collections import defaultdict
 import time as pytime
@@ -146,10 +147,21 @@ def delete_version(index, version, lang, old_title=None):
 
 
 def delete_sheet(index_name, id):
+    """Remove sheet `id` from the index. Returns True when the doc is gone (including
+    when it was never indexed), False when the delete failed and should be retried.
+
+    NotFoundError means there is no such document in that index; the desired final
+    state is already true, so the caller does not need to retry.
+    """
     try:
         es_client.delete(index=index_name, id=id)
+        return True
+    except NotFoundError:
+        logger.info(f"Sheet {id} had no document in {index_name}; nothing to delete")
+        return True
     except Exception as e:
-        logger.error(f"deleting sheet {id}")
+        logger.error(f"Failed to delete sheet {id} from {index_name}: {type(e).__name__}: {e}")
+        return False
 
 
 def make_text_doc_id(ref, version, lang):
@@ -207,20 +219,22 @@ def index_sheet(index_name, id):
     dateCreated = sheet.get("dateCreated")
     dateModified = sheet.get("dateModified")
 
-    pud = public_user_data(owner_id)
-    if not pud:
-        pud = {"name": "", "imageUrl": "", "profileUrl": ""}
-
-    owner_name = pud.get("name", "")
-    owner_image = pud.get("imageUrl", "")
-    profile_url = pud.get("profileUrl", "")
-    owner_link = user_link(owner_id) or ""
-    
-    topics = make_sheet_topics(sheet)
-    collections = CollectionSet({"sheets": id, "listed": True})
-    collection_names = [c.name for c in collections]
-    
+    # Everything that can raise lives inside the try, so a profile/topic/collection lookup
+    # failure is reported the same way as an ES rejection instead of escaping to the caller.
     try:
+        pud = public_user_data(owner_id)
+        if not pud:
+            pud = {"name": "", "imageUrl": "", "profileUrl": ""}
+
+        owner_name = pud.get("name", "")
+        owner_image = pud.get("imageUrl", "")
+        profile_url = pud.get("profileUrl", "")
+        owner_link = user_link(owner_id) or ""
+
+        topics = make_sheet_topics(sheet)
+        collections = CollectionSet({"sheets": id, "listed": True})
+        collection_names = [c.name for c in collections]
+
         doc = {
             "title": strip_tags(sheet_title),
             "content": make_sheet_text(sheet, pud),
@@ -240,11 +254,27 @@ def index_sheet(index_name, id):
             "dateModified": dateModified,
             "views": sheet.get("views", 0)
         }
-        es_client.create(index=index_name, id=id, body=doc)
+        # index (upsert), not create: create 409s when the doc already exists, so every
+        # edit to an already-indexed sheet was silently dropped until the next full rebuild.
+        es_client.index(index=index_name, id=id, body=doc)
         return True
     except Exception as e:
-        logger.warning(f"Failed to index sheet {id}: {type(e).__name__}: {e}")
+        logger.error(f"Failed to index sheet {id} into {index_name}: {type(e).__name__}: {e}")
         return False
+
+
+def sync_sheet_in_index(index_name, sheet_id):
+    """
+    Make the search index match the sheet's *current* state in Mongo: index it if it is
+    public and indexable, otherwise remove it. Deciding at processing time (not when the
+    change was queued) means a publish followed by an unpublish converges on the last
+    state, so one deduplicated queue record per sheet is enough.
+    Returns True on success, False when the write failed and should be retried.
+    """
+    sheet = db.sheets.find_one({"id": sheet_id}, {"status": 1, "owner": 1})
+    if sheet and sheet.get("status") == "public" and sheet.get("owner"):
+        return index_sheet(index_name, sheet_id)
+    return delete_sheet(index_name, sheet_id)
 
 def make_sheet_text(sheet, pud):
     """
@@ -2354,19 +2384,89 @@ def add_ref_to_index_queue(ref, version, lang):
     return True
 
 
+SHEET_QUEUE_TYPE = "sheet"
+
+
+def queue_sheets_sync(sheet_ids):
+    """
+    Queue sheets to be synced to search by the index-from-queue CronJob.
+
+    Web pods must not write to Elasticsearch themselves: they authenticate as a read-only
+    search user, so every direct index/delete from the save path was rejected (403) and
+    swallowed, leaving new and edited sheets unsearchable until the weekly full rebuild.
+    The CronJob runs with the ES admin credentials, the same path text edits already use.
+
+    One upsert per sheet, sent as a single bulk write: re-queuing a sheet that is already
+    waiting (every autosave of a public sheet) updates its record rather than adding one,
+    and purging an account's sheets costs one round trip. ref/version/lang are placeholders
+    matching the queue's unique (lang, version, ref) index.
+
+    Every enqueue stamps a fresh `generation`. The consumer deletes a record only if the
+    generation is still the one it processed, so a save that lands while its sheet is being
+    synced keeps the record alive for the next run instead of being absorbed by it.
+    """
+    ops = []
+    for sheet_id in {int(sid) for sid in sheet_ids}:
+        key = {"lang": SHEET_QUEUE_TYPE, "version": SHEET_QUEUE_TYPE, "ref": f"Sheet {sheet_id}"}
+        ops.append(pymongo.UpdateOne(
+            key,
+            {"$setOnInsert": dict(key, type=SHEET_QUEUE_TYPE, sheet_id=sheet_id),
+             "$set": {"generation": ObjectId()}},
+            upsert=True,
+        ))
+    if ops:
+        db.index_queue.bulk_write(ops, ordered=False)
+    return len(ops)
+
+
+def queue_sheet_sync(sheet_id):
+    """Queue one sheet; see queue_sheets_sync."""
+    return queue_sheets_sync([sheet_id])
+
+
+INDEX_QUEUE_BATCH_SIZE = 100
+
+
 def index_from_queue():
     """
-    Index every ref/version/lang found in the index queue.
-    Delete queue records on success.
+    Process every record in the index queue: text refs are (re)indexed, sheets are synced
+    to their current state. Records are deleted only after their write succeeds.
+
+    Records are fetched in bounded batches, fresh query per batch, walking _id upward.
+    Holding one cursor open across slow Elasticsearch writes lets the server reap it after
+    its 10-minute idle timeout, and the resulting CursorNotFound would abort the whole run
+    (the backlog can be tens of thousands of records). Walking _id also means a record
+    that fails is left for the next run instead of being refetched forever in this one.
     """
-    index_name = get_new_and_current_index_names('text').get('current')
-    queue = db.index_queue.find()
-    for item in queue:
-        try:
+    last_id = None
+    while True:
+        query = {} if last_id is None else {"_id": {"$gt": last_id}}
+        batch = list(db.index_queue.find(query).sort("_id", pymongo.ASCENDING).limit(INDEX_QUEUE_BATCH_SIZE))
+        if not batch:
+            return
+        last_id = batch[-1]["_id"]
+        for item in batch:
+            _process_index_queue_item(item)
+
+
+def _process_index_queue_item(item):
+    try:
+        # Resolved per item, not once up front: a run can outlive a weekly alias swap,
+        # and a name captured before the swap points at an index finalize has deleted.
+        if item.get("type") == SHEET_QUEUE_TYPE:
+            index_name = get_new_and_current_index_names('sheet').get('current')
+            if not sync_sheet_in_index(index_name, item["sheet_id"]):
+                return  # failure already logged; keep the record for the next run
+        else:
+            index_name = get_new_and_current_index_names('text').get('current')
             TextIndexer.index_ref(index_name, Ref(item.get("ref")), item.get("version"), item.get("lang"), item.get('languageFamilyName'), item.get('isPrimary'))
-            db.index_queue.remove(item)
-        except Exception as e:
-            logger.error(f"Error indexing from queue ({item.get('ref')} / {item.get('version')} / {item.get('lang')}) : {e}")
+        # delete_one, not remove: Collection.remove was dropped in pymongo 4, so the old
+        # call raised after every successful write and no record ever left the queue.
+        # Conditional on generation: a re-enqueue during processing bumps it, and that
+        # record must survive. Records without the field (text refs) match None.
+        db.index_queue.delete_one({"_id": item["_id"], "generation": item.get("generation")})
+    except Exception as e:
+        logger.error(f"Error indexing from queue ({item.get('ref')} / {item.get('version')} / {item.get('lang')}) : {type(e).__name__}: {e}")
 
 
 def add_recent_to_queue(ndays):
@@ -2470,9 +2570,14 @@ def index_all(skip=0, debug=False):
 
 
 def clear_index_queue():
-    """Remove all entries from the index queue after a full reindex."""
+    """Remove text entries from the index queue after a full reindex.
+
+    Sheet entries are kept. They sync a sheet to its current state, so replaying one is
+    harmless, while dropping one queued after the sheet catch-up query ran would lose that
+    save until the next rebuild.
+    """
     logger.debug("Clearing stale index queue")
-    deleted = db.index_queue.delete_many({})
+    deleted = db.index_queue.delete_many({"type": {"$ne": SHEET_QUEUE_TYPE}})
     logger.debug(f"Cleared index queue - deleted_count: {deleted.deleted_count}")
     return deleted.deleted_count
 
@@ -2522,25 +2627,18 @@ def _assert_not_shared_index(alias, type):
 def reindex_init(type, debug=False):
     """
     Phase 1: Create the new index with bulk-load settings.
-    Safe to call multiple times: reuses a partially-filled new index instead of wiping it.
+    Any existing in-progress index is deleted and recreated, never reused.
     Returns the names dict from get_new_and_current_index_names.
     """
     names = get_new_and_current_index_names(type=type, debug=debug)
     _assert_not_shared_index(names['alias'], type)
     new_index = names['new']
     if index_client.exists(index=new_index):
-        doc_count = _index_doc_count(new_index)
-        if doc_count is None:
-            raise ValueError(
-                f"reindex_init failed for {type}: could not read doc count for in-progress index {new_index}"
-            )
-        if doc_count > 0:
-            logger.info(
-                f"reindex_init reusing in-progress index - type: {type}, new_index: {new_index}, doc_count: {doc_count}"
-            )
-            set_index_bulk_load_settings(new_index)
-            return names
-        logger.info(f"reindex_init recreating empty index - type: {type}, new_index: {new_index}")
+        # Shards re-index their whole slice, so reusing a partial index doubles it on disk (prod 2026-09-24: 24 GB, disk full).
+        logger.warning(
+            f"reindex_init recreating existing in-progress index - type: {type}, new_index: {new_index}, "
+            f"doc_count: {_index_doc_count(new_index)}"
+        )
         create_index(new_index, type, force=True)
     else:
         create_index(new_index, type, force=False)
