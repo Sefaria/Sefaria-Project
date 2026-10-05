@@ -4683,7 +4683,7 @@ class Library(object):
             self._title_regex_strings = {}
             self._title_regexes = {}
             Ref.clear_cache()
-            gen_cache.bump("websites_data")
+            gen_cache.invalidate("websites_data")
             if include_toc:
                 self.rebuild_toc()
 
@@ -5250,7 +5250,7 @@ class Library(object):
         """
         from sefaria.model.schema import NonUniqueTerm
         NonUniqueTerm._init_cache.pop(slug, None)
-        gen_cache.bump(NonUniqueTerm.gen_cache_key(slug))
+        gen_cache.invalidate(NonUniqueTerm.gen_cache_key(slug))
 
     # todo: the for_js path here does not appear to be in use.
     # todo: Rename, as method not gauraunteed to return all titles
@@ -5629,7 +5629,7 @@ class Library(object):
         for lang in self.langs:
             scache.delete_shared_cache_elem('books_' + lang)
             scache.delete_shared_cache_elem('books_' + lang + '_json')
-            gen_cache.bump(f"books_{lang}")
+            gen_cache.invalidate(f"books_{lang}")
 
     def get_text_categories(self):
         """

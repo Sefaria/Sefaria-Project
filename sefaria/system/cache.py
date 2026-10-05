@@ -218,9 +218,9 @@ class GenCache:
     the key's counter at most every CHECK_INTERVAL_SECONDS and calling refresh_fn when it has
     changed. Writers call publish() (with the fresh value) or mark_fresh() (when the object
     lives on its owner, e.g. Library, and was already rebuilt) to update this process and bump
-    the counter for peers.
+    the counter for peers, or invalidate() to make every process, this one included, refresh.
 
-    Fails open: if Redis is unreachable, get() serves the last value and bump() only logs.
+    Fails open: if Redis is unreachable, get() serves the last value and bumps only log.
     """
     CHECK_INTERVAL_SECONDS = 2
     JITTER_MAX_SECONDS = 3  # spreads the fleet's rebuilds after Redis loses its keyspace
@@ -269,8 +269,7 @@ class GenCache:
             self._gens[key] = redis_gen
         return self._data.get(key)
 
-    def bump(self, key: str):
-        """INCR the counter so peers refresh. Prefer publish()/mark_fresh() for a registered key."""
+    def _bump(self, key: str):
         try:
             return self.redis.incr(self._redis_key(key))
         except Exception:
@@ -280,7 +279,7 @@ class GenCache:
     def mark_fresh(self, key: str):
         """This process already rebuilt key's object: record it as current and bump for peers."""
         self._last_checked[key] = time.monotonic()
-        new_gen = self.bump(key)
+        new_gen = self._bump(key)
         self._gens[key] = str(new_gen) if new_gen is not None else _UNKNOWN_GEN
 
     def publish(self, key: str, value):
@@ -289,8 +288,13 @@ class GenCache:
         self.mark_fresh(key)
         return value
 
+    def invalidate(self, key: str):
+        """Makes the next get() of key refresh in every process, this one included."""
+        self.invalidate_local(key)
+        self._bump(key)
+
     def invalidate_local(self, key: str):
-        """Forces this process's next get() to refresh, without touching Redis (mainly for tests)."""
+        """Makes this process's next get() of key refresh, without touching Redis."""
         self._data.pop(key, None)
         self._gens.pop(key, None)
         self._last_checked.pop(key, None)

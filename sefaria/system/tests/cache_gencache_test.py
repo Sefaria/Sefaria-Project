@@ -103,7 +103,7 @@ def test_stale_generation_triggers_refresh(fake_redis, no_throttle):
     gc.register("toc", refresh_fn)
     assert gc.get("toc") == "first"
 
-    fake_redis.incr("gen:toc")  # simulates a peer's bump()
+    fake_redis.incr("gen:toc")  # simulates a peer's invalidate()
     assert gc.get("toc") == "second"
     assert len(calls) == 2
 
@@ -130,10 +130,10 @@ def test_jitter_only_applied_when_redis_lost_its_keyspace(fake_redis, monkeypatc
 
 
 # ---------------------------------------------------------------------------
-# bump() / publish(): the write path
+# invalidate() / publish() / mark_fresh(): the write path
 # ---------------------------------------------------------------------------
 
-def test_bump_is_visible_to_a_second_gencache_instance_sharing_redis(fake_redis, no_throttle):
+def test_invalidate_is_visible_to_a_second_gencache_instance_sharing_redis(fake_redis, no_throttle):
     """Mirrors two processes: a writer's GenCache and a peer's, sharing one Redis."""
     writer = GenCache(fake_redis)
     peer = GenCache(fake_redis)
@@ -145,10 +145,22 @@ def test_bump_is_visible_to_a_second_gencache_instance_sharing_redis(fake_redis,
     peer.register("toc", peer_refresh)
     assert peer.get("toc") == "peer-v1"
 
-    writer.bump("toc")  # no message passing between the two instances
+    writer.invalidate("toc")  # no message passing between the two instances
 
     assert peer.get("toc") == "peer-v2"
     assert len(peer_calls) == 2
+
+
+def test_invalidate_refreshes_the_writer_within_the_throttle_window(fake_redis):
+    gc = GenCache(fake_redis)
+    refresh_fn, calls = make_counting_refresh_fn(["first", "second"])
+    gc.register("toc", refresh_fn)
+    assert gc.get("toc") == "first"
+
+    gc.invalidate("toc")
+
+    assert gc.get("toc") == "second"
+    assert len(calls) == 2
 
 
 def test_publish_sets_local_value_and_bumps_for_peers(fake_redis, no_throttle):
@@ -212,10 +224,10 @@ def test_redis_down_on_first_access_falls_through_to_refresh_fn(fake_redis):
     assert len(calls) == 1
 
 
-def test_bump_failure_is_logged_and_does_not_raise(fake_redis):
+def test_invalidate_failure_does_not_raise(fake_redis):
     gc = GenCache(fake_redis)
     fake_redis.broken = True
-    assert gc.bump("toc") is None  # fails closed, caller never sees an exception
+    gc.invalidate("toc")
 
 
 def test_publish_failure_to_bump_does_not_raise_and_drops_stale_local_gen(fake_redis, no_throttle):
@@ -264,7 +276,7 @@ def test_key_prefix_isolates_bump_between_deployments(fake_redis):
     cauldron_a = GenCache(fake_redis, key_prefix="cauldron-a")
     cauldron_b = GenCache(fake_redis, key_prefix="cauldron-b")
 
-    cauldron_a.bump("index_map")
+    cauldron_a.invalidate("index_map")
 
     assert fake_redis.store == {"cauldron-a:gen:index_map": "1"}
     assert "cauldron-b:gen:index_map" not in fake_redis.store
@@ -292,5 +304,5 @@ def test_no_key_prefix_is_unprefixed_for_backward_compatibility(fake_redis):
     """A single-tenant deployment (local dev, prod, staging, preprod) passes no key_prefix
     and must keep writing the same bare keys as before this change."""
     gc = GenCache(fake_redis)
-    gc.bump("index_map")
+    gc.invalidate("index_map")
     assert fake_redis.store == {"gen:index_map": "1"}
