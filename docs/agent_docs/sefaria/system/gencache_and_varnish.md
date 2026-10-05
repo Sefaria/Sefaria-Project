@@ -3,21 +3,19 @@
 
 ## Purpose
 
-Coordinates cache invalidation across multiple application server instances and the Varnish HTTP cache. When a model changes on one server, the change must propagate to all other servers' in-memory caches and to Varnish. This replaces the older `sefaria/system/multiserver/` push-based design (broadcast a method call over Redis pub/sub, retired alongside this change) with a pull-based one: a Redis `INCR` counter behind each tracked object, checked cheaply before a process's local copy is trusted. Pipeline: DB change -> write path calls `gen_cache.publish()`/`mark_fresh()` -> a peer's next `gen_cache.get()` notices the counter changed -> peer refreshes itself -> (for index records) Varnish invalidation fires directly from the write path.
-
-See the GenCache migration decision record for the full design rationale and failure-mode analysis.
+Coordinates cache invalidation across multiple application server instances and the Varnish HTTP cache. When a model changes on one server, the change must propagate to all other servers' in-memory caches and to Varnish. Propagation is pull-based: a Redis `INCR` counter behind each tracked object, checked cheaply before a process's local copy is trusted. Pipeline: DB change -> write path calls `gen_cache.publish()`/`mark_fresh()`/`invalidate()` -> a peer's next `gen_cache.get()` notices the counter changed -> peer refreshes itself -> (for index records) Varnish invalidation fires directly from the write path.
 
 ## Key Components
 
 ### cache.py -- `GenCache`
 
-- **`register(key, redis_gen_key, refresh_fn)`**: Called once per tracked object, normally at process startup (`sefaria.model.text.Library._register_gen_cache()`, `sefaria.helper.webpages`, `NonUniqueTerm.init()` for per-slug keys). Associates a local key with its Redis counter key and the function that rebuilds it.
+- **`register(key, refresh_fn)`**: Called once per tracked object, normally at process startup (`sefaria.model.text.Library._register_gen_cache()`, `sefaria.helper.webpages`, `NonUniqueTerm.init()` for per-slug keys). Associates a key with the function that rebuilds it. The Redis counter is `gen:<key>` (prefixed by `key_prefix`).
 - **`get(key)`**: The passive read path. Throttled (`CHECK_INTERVAL_SECONDS`, default 2s) per key per process -- within the window, returns the local value without touching Redis. Past the window: compares this process's last-seen generation against Redis's current one; on first access or a mismatch, calls `refresh_fn()` and remembers the new generation. If the counter has vanished (Redis lost its keyspace, so the whole fleet is refreshing at once), it first sleeps a random jitter up to `JITTER_MAX_SECONDS`; ordinary bumps refresh without sleeping. Fails open: a Redis error logs and serves the last-known local value (or, on a true first access with Redis down, falls through to `refresh_fn()` rather than returning nothing).
-- **`bump(redis_gen_key)`**: Low-level write primitive -- one `INCR`, nothing else. Fails open (logs, returns `None`).
 - **`mark_fresh(key)`**: Write-path helper for objects whose state lives on their owner (e.g. `Library`'s index maps, autocompleters, linkers): the writer has already rebuilt it, so this records this process as current and bumps the counter for peers.
 - **`publish(key, value)`**: `mark_fresh()` for objects whose value GenCache itself holds (TOC family, term mappings, websites data): stores the fresh value locally, then bumps.
-- **`invalidate_local(key)`**: Drops a key's local state so the next `get()` is treated as a cold start. Mainly for tests that mutate Mongo directly and need an immediate, synchronous view of the change, bypassing the normal (by-design, eventual-consistency) throttle window.
-- **`key_prefix`** (constructor arg, from `settings.DEPLOY_ENV`): namespaces every Redis key this instance touches (`get()`'s lookup and `bump()`'s `INCR`, including direct `bump("gen:...")` calls that don't go through `register()`), so multiple deployments sharing one Redis/Sentinel -- cauldrons on the dev cluster all point at the same cluster -- don't see each other's counters. Empty (the default) for single-tenant deployments: local dev, prod, staging, preprod each have their own Redis.
+- **`invalidate(key)`**: For a writer that dropped state without rebuilding it (e.g. `reset_text_titles_cache()`): clears this process's copy and bumps, so every process, the writer included, refreshes on its next `get()`. All bumps fail open (log only).
+- **`invalidate_local(key)`**: Drops a key's local state so the next `get()` is treated as a cold start, without touching Redis. Used by tests that mutate Mongo directly.
+- **`key_prefix`** (constructor arg, from `settings.DEPLOY_ENV`): namespaces every counter, so multiple deployments sharing one Redis/Sentinel (cauldrons on the dev cluster) don't see each other's counters. Helm sets `DEPLOY_ENV` to the deployment's `deployEnv`; empty means no prefix (local dev).
 - Module-level `gen_cache` singleton: built by `_build_gen_cache()` against whichever store `sefaria.system.redis_sentinel.get_redis_client()` resolves to (Sentinel in prod/staging, a single plain Redis in local dev), in its own DB number (`GENCACHE_REDIS_DB_NUM`) separate from Django's `CACHES` and Celery's broker/result-backend, and namespaced by `key_prefix=settings.DEPLOY_ENV`.
 
 ### redis_sentinel.py -- Shared Redis / Sentinel Connection Helpers
@@ -43,29 +41,29 @@ See the GenCache migration decision record for the full design rationale and fai
 - **`invalidate_linked(oref)`**: Finds all refs linked to `oref` and invalidates each one. Handles UnicodeDecodeError gracefully.
 - **`invalidate_counts(indx)`**: Purges preview, counts, and v2 index endpoints for a given index.
 - **`invalidate_index(indx)`**: Purges index API endpoints (v1, v2, v2/raw).
-- **`invalidate_title(title)`**: Combines `invalidate_index` + `invalidate_counts` + bans for texts and links APIs. The main entry point for title-level invalidation. Called directly from the write path now (`sefaria.model.text.process_index_change_in_core_cache` and neighbors), not gated on any cross-server confirmation.
+- **`invalidate_title(title)`**: Combines `invalidate_index` + `invalidate_counts` + bans for texts and links APIs. The main entry point for title-level invalidation. Called directly from the write path (`sefaria.model.text.process_index_change_in_core_cache` and neighbors).
 - **`invalidate_all()`**: Bans `.*` -- nuclear option.
 - **`url_regex(ref)`**: Generates Varnish-compatible regex patterns for a Ref that match the ref itself and any more specific refs beneath it. Handles ranges, spanning refs, titled continuations, and numeric continuations.
 
 ## Non-Obvious Patterns
 
 - **`refresh_fn` must reproduce a shared-cache tier, not skip it**: for objects with an existing Redis-backed shared-cache tier in front of Mongo (most of `Library`'s tracked objects), `refresh_fn` is a dedicated method that checks that shared cache before rebuilding from Mongo -- never a direct rebuild-from-Mongo shortcut. Otherwise a generation mismatch (including a cold start on a brand-new process) always pays a full Mongo rebuild even when a peer already repopulated the shared cache.
-- **`refresh_fn` must never call `bump()`/`publish()`**: several `refresh_fn`s are also the public rebuild method a writer calls directly (e.g. `Library._build_index_maps`, `build_full_auto_completer`). If the shared method bumped its own counter, a peer refreshing via `GenCache.get()` would re-trigger the same bump, cascading across the fleet. Bumping happens only at the actual write-path call site, after the local mutation.
-- **Varnish invalidation is unconditional now, not confirmation-gated**: the old monitor waited for every server to confirm before purging Varnish, so a request repopulating Varnish never raced a not-yet-updated backend. GenCache gets the same guarantee for free from ordering: bump the counter *before* the Varnish purge, so a request that repopulates Varnish will, on its own next `GenCache.get()`, already see the bumped counter.
+- **`refresh_fn` must never call `publish()`/`mark_fresh()`/`invalidate()`**: several `refresh_fn`s are also the public rebuild method a writer calls directly (e.g. `Library._build_index_maps`, `build_full_auto_completer`). If the shared method bumped its own counter, a peer refreshing via `GenCache.get()` would re-trigger the same bump, cascading across the fleet. Bumping happens only at the actual write-path call site, after the local mutation.
+- **Bump before purging Varnish**: Varnish invalidation isn't gated on peers confirming they've refreshed. Instead, the counter is bumped *before* the Varnish purge, so a request that repopulates Varnish will, on its own next `GenCache.get()`, already see the bumped counter.
 - **Granularity is coarse by default**: most objects use one counter per object type, matching the granularity their existing rebuild methods already operate at (e.g. `gen:index_map` bumps on any index change, re-walking the whole `IndexSet`). `NonUniqueTerm`'s per-slug counters are the one deliberately fine-grained, lazy exception -- checked only when that slug is actually looked up via `.init()`, not via a bulk sweep.
 - **The per-key throttle bounds Redis QPS** as `(tracked keys) × (1 / CHECK_INTERVAL_SECONDS)` per process, independent of request volume.
 
 ## Relationships
 
 - **The invalidation pipeline for an index change**: Model `save()` -> dependency callback (e.g. `process_index_change_in_core_cache` in `sefaria/model/text.py`) -> `library.refresh_index_record_in_cache()` (mutates locally, calls `gen_cache.mark_fresh("index_map")` itself) -> `invalidate_title(title)` called directly, no confirmation wait -> a peer's next `gen_cache.get("index_map")` (gated inline in `Library.get_index()`) notices the bump and runs `_refresh_index_maps()` (index maps, derived title lists/regexes, and the Ref cache).
-- `sefaria.model.text.Library` is the main consumer: registers ~20 keys in `_register_gen_cache()` (shared-cache-backed ones via `_shared_cache_objects`), covering the TOC family, term mappings, title lists, the index maps, autocompleters, linker resolvers, and the topic mapping.
+- `sefaria.model.text.Library` is the main consumer: registers its keys in `_register_gen_cache()` (shared-cache-backed ones via `_shared_cache_objects`), covering the TOC family, term mappings, title lists, the index maps, autocompleters, linker resolvers, and the topic mapping.
 - `sefaria.helper.webpages.get_website_cache()` and `sefaria.model.schema.NonUniqueTerm.init()` register directly against the shared `gen_cache` singleton rather than through `Library`.
 - `wrapper.py` imports the full `sefaria.model` and uses `Ref`, `Index`, and linkset operations.
 - `common.py` depends on settings: `VARNISH_ADM_ADDR`, `VARNISH_HOST`, `VARNISH_FRNT_PORT`, `VARNISH_SECRET`, `FRONT_END_URL`.
 
 ## Common Tasks
 
-- **Track a new object for cross-process freshness**: call `gen_cache.register(key, f"gen:{key}", refresh_fn)` at startup (or lazily, as `NonUniqueTerm.init()` does per-slug), gate reads with `gen_cache.get(key)`, and call `gen_cache.publish(key, value)` (or `gen_cache.mark_fresh(key)` if the object lives on its owner) at the actual write-path site -- never inside `refresh_fn` itself.
+- **Track a new object for cross-process freshness**: call `gen_cache.register(key, refresh_fn)` at startup (or lazily, as `NonUniqueTerm.init()` does per-slug), gate reads with `gen_cache.get(key)`, and call `gen_cache.publish(key, value)` (or `gen_cache.mark_fresh(key)` if the object lives on its owner, or `gen_cache.invalidate(key)` if it was dropped rather than rebuilt) at the actual write-path site -- never inside `refresh_fn` itself.
 - **Invalidate a specific ref in Varnish**: call `invalidate_ref(oref, purge=True)` from `wrapper.py`.
 - **Invalidate an entire title**: call `invalidate_title(title)` from `wrapper.py`.
 - **Debug staleness**: check Redis/Sentinel connectivity, confirm the relevant `gen:*` key is actually being bumped at the write path, and check `GenCache.CHECK_INTERVAL_SECONDS` -- a peer can lag by up to that interval before noticing a change (by design).
