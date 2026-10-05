@@ -47,6 +47,29 @@ import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import GuideOverlay from './GuideOverlay';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import {DropdownMenu} from "./common/DropdownMenu";
+import SiddurTocOverlay from './SiddurTocOverlay';
+import {SiddurNusachPicker, saveNusachChoice, siddurUrl, viewerDefaultNusach} from './SiddurNusachPicker';
+import {
+  getStoredNusach,
+  getStoredReaderMode,
+  hasSeenNusachPicker,
+  isSiddurBook,
+  isSiddurModeActive,
+  mapRefToNusach,
+  markNusachPickerSeen,
+  nusachDebugParams,
+  nusachForBook,
+  readerModeFor,
+  setStoredReaderMode,
+  shouldShowLandingPicker,
+  siddurVersions,
+  trackSiddurEvent,
+} from './sefaria/siddurNusach';
+
+// ?nusachPicker=1 on the landing URL forces the landing picker once per page load (desktop too).
+let siddurDebugMode = null;
+let nusachPickerForced = false;
+const READER_MODE_EVENT = "sefaria:siddurModeChange";
 
 class ReaderPanel extends Component {
   constructor(props) {
@@ -59,6 +82,10 @@ class ReaderPanel extends Component {
       backButtonSettings: null,
       data: null,
       forceGuideOverlay: false,
+      showNusachPicker: false,
+      nusachPickerDefault: null,
+      siddurTocOpen: false,
+      storedReaderMode: null, // Siddur Mode / Learning Mode choice from localStorage, read after mount
     };
     this.sheetRef = React.createRef();
     this.readerContentRef = React.createRef();
@@ -73,6 +100,12 @@ class ReaderPanel extends Component {
     }
   }
   componentDidMount() {
+    if (siddurDebugMode === null) {
+      siddurDebugMode = nusachDebugParams(window.location.search).forcePicker;
+    }
+    this.setState({storedReaderMode: getStoredReaderMode()});
+    window.addEventListener(READER_MODE_EVENT, this.onReaderModeChange);
+    this.maybeShowNusachPicker();
     this.conditionalSetTextData();
     window.addEventListener("resize", this.setWidth);
     this.setWidth();
@@ -83,6 +116,7 @@ class ReaderPanel extends Component {
   }
   componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
+    window.removeEventListener(READER_MODE_EVENT, this.onReaderModeChange);
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.searchQuery && this.state.menuOpen !== "search") {
@@ -110,6 +144,7 @@ class ReaderPanel extends Component {
         this.state.connectionsMode !== prevState.connectionsMode) {
       this.conditionalSetTextData();
     }
+    this.maybeShowNusachPicker();
     if (this.shouldLayoutUpdate(prevState)) {
       const newLayout = (this.state.data.primaryDirection === 'rtl') ? 'heRight' : 'heLeft';
       this.setOption('biLayout', newLayout);
@@ -168,6 +203,23 @@ class ReaderPanel extends Component {
     return Sefaria.util.clone(panel);
   }
   handleBaseSegmentClick(ref, showHighlight = true) {
+    if (this.siddurTocEnabled()) {
+      Sefaria.track.event("Reader", "Open Siddur TOC", ref);
+      this.setState({siddurTocOpen: true});
+      return;
+    }
+    this.toggleConnectionsForRef(ref, showHighlight);
+  }
+  handleTextTitleClick(ref, showHighlight = true) {
+    // On siddurim the header title opens the TOC overlay, like a segment tap, instead of connections.
+    if (this.siddurTocEnabled()) {
+      Sefaria.track.event("Reader", "Open Siddur TOC from Header", ref);
+      this.setState({siddurTocOpen: true});
+      return;
+    }
+    this.toggleConnectionsForRef(ref, showHighlight);
+  }
+  toggleConnectionsForRef(ref, showHighlight = true) {
     if (this.state.mode === "TextAndConnections") {
       this.closeConnectionsInPanel();
     } else if (this.state.mode === "Text") {
@@ -179,6 +231,82 @@ class ReaderPanel extends Component {
         this.openConnectionsInPanel(ref);
       }
     }
+  }
+  siddurTocEnabled() {
+    // Siddur Mode: segment and header-title taps open the TOC overlay instead of the resource panel.
+    return this.state.mode === "Text" && isSiddurModeActive({book: this.currentBook(), storedMode: this.state.storedReaderMode});
+  }
+  siddurReaderMode() {
+    // "siddur" | "learning" for the mode toggle in the display options menu, or null when it doesn't apply.
+    if (!["Text", "TextAndConnections"].includes(this.state.mode) || !isSiddurBook(this.currentBook())) { return null; }
+    return readerModeFor({isSiddur: true, storedMode: this.state.storedReaderMode});
+  }
+  setSiddurReaderMode(mode) {
+    if (mode === this.siddurReaderMode()) { return; }
+    setStoredReaderMode(mode);
+    Sefaria.track.event("Reader", "Siddur Mode Toggle", mode);
+    // Tell the other open panels too; each listens and updates its own state.
+    window.dispatchEvent(new CustomEvent(READER_MODE_EVENT, {detail: mode}));
+  }
+  onReaderModeChange(e) {
+    this.setState({storedReaderMode: e.detail, siddurTocOpen: false});
+  }
+  handleSiddurTocNavigate(ref) {
+    this.setState({siddurTocOpen: false});
+    this.showBaseText(ref, false, this.state.currVersions, [], false);
+  }
+  handleSiddurTocSwitchNusach(choice) {
+    const current = nusachForBook(this.currentBook());
+    if (!current || choice === current) { return; }
+    saveNusachChoice(choice);
+    trackSiddurEvent("nusach_picker", {origin: "toc", default: current, choice, switched: true});
+    this.setState({siddurTocOpen: false});
+    // Push history (unlike the landing picker) so Back returns to the previous nusach.
+    this.showBaseText(mapRefToNusach(this.nusachPickerSourceRef(), choice), false, siddurVersions(choice), [], false);
+  }
+  closeSiddurToc() {
+    this.setState({siddurTocOpen: false});
+  }
+  maybeShowNusachPicker() {
+    // Checked after mount only (localStorage/URL), once per book the panel shows in Text mode.
+    if (this.state.mode !== "Text") { return; }
+    const book = this.currentBook();
+    if (!book || book === this._nusachPickerCheckedBook) { return; }
+    this._nusachPickerCheckedBook = book;
+    const forcePicker = siddurDebugMode && !nusachPickerForced;
+    const show = shouldShowLandingPicker({
+      isSiddur: isSiddurBook(book),
+      mode: this.state.mode,
+      multiPanel: this.props.multiPanel,
+      savedNusach: Sefaria.nusach || getStoredNusach(),
+      seenPicker: hasSeenNusachPicker(),
+      forcePicker,
+    });
+    if (show) {
+      if (forcePicker) { nusachPickerForced = true; }
+      this.setState({showNusachPicker: true, nusachPickerDefault: viewerDefaultNusach()});
+    }
+  }
+  nusachPickerSourceRef() {
+    return this.state.highlightedRefs?.[0] || this.state.currentlyVisibleRef || this.currentRef();
+  }
+  nusachPickerNextPath(choice) {
+    return choice === nusachForBook(this.currentBook()) ? Sefaria.util.currentPath()
+        : siddurUrl(mapRefToNusach(this.nusachPickerSourceRef(), choice), choice);
+  }
+  handleNusachPickerConfirm(choice) {
+    const current = nusachForBook(this.currentBook());
+    saveNusachChoice(choice);
+    trackSiddurEvent("nusach_picker", {origin: "landing", default: this.state.nusachPickerDefault, choice, switched: choice !== current});
+    this.setState({showNusachPicker: false});
+    if (current && choice !== current) {
+      // Version titles don't carry across books; replace history so Back skips the rejected nusach.
+      this.showBaseText(mapRefToNusach(this.nusachPickerSourceRef(), choice), true, siddurVersions(choice), [], false);
+    }
+  }
+  closeNusachPicker() {
+    markNusachPickerSeen();
+    this.setState({showNusachPicker: false});
   }
   handleSheetSegmentClick(source) {
     const highlightedRefs = source.ref ? Sefaria.splitRangingRef(source.ref) : [`Sheet ${this.state.sheetID}:${source.node}`];
@@ -746,6 +874,8 @@ class ReaderPanel extends Component {
       punctuationState: this.state.settings.punctuationTalmud,
       width: this.state.width,
       panelPosition: this.props.panelPosition,
+      siddurMode: this.siddurReaderMode(),
+      setSiddurMode: this.setSiddurReaderMode,
     };
     const contextContentLang = {"language": this.getContentLanguageOverrideStateful()};
 
@@ -904,7 +1034,8 @@ class ReaderPanel extends Component {
                     onCompareBack={this.props.closePanel}
                     openSearch={this.openSearch}
                     initialWidth={this.state.width}
-                    toggleSignUpModal={this.props.toggleSignUpModal} />);
+                    toggleSignUpModal={this.props.toggleSignUpModal}
+                    openURL={this.props.openURL} />);
     } else if (this.state.menuOpen === "sheetsWithRef") {
       menu = (<SheetsWithRefPage srefs={this.state.sheetsWithRef}
                                  searchState={this.state['searchState']}
@@ -1199,7 +1330,7 @@ class ReaderPanel extends Component {
               setConnectionsCategory={this.setConnectionsCategory}
               openMenu={this.openMenu}
               closeMenus={this.closeMenus}
-              onTextTitleClick={this.handleBaseSegmentClick}
+              onTextTitleClick={this.handleTextTitleClick}
               onSheetTitleClick={this.handleSheetSegmentClick}
               openMobileNavMenu={this.props.openMobileNavMenu}
               onError={this.onError}
@@ -1225,6 +1356,20 @@ class ReaderPanel extends Component {
           </div> : null}
 
           {menu}
+          {this.state.mode === "Text" && !this.state.menuOpen && this.state.showNusachPicker ?
+            <SiddurNusachPicker
+              initialNusach={this.state.nusachPickerDefault}
+              onConfirm={this.handleNusachPickerConfirm}
+              onClose={this.closeNusachPicker}
+              nextPathFor={this.nusachPickerNextPath} /> : null}
+          {this.state.mode === "Text" && !this.state.menuOpen && this.state.siddurTocOpen ?
+            <SiddurTocOverlay
+              title={this.currentBook()}
+              currentRef={this.state.currentlyVisibleRef}
+              nusach={nusachForBook(this.currentBook())}
+              onSwitchNusach={this.handleSiddurTocSwitchNusach}
+              onNavigate={this.handleSiddurTocNavigate}
+              onClose={this.closeSiddurToc} /> : null}
           {/* Guide overlay - currently only shows on the sheets editor but can be extended for other guide types */}
           {(() => {
             const guideType = this.getGuideType();

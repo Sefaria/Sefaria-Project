@@ -27,7 +27,7 @@ from remote_config.keys import CHATBOT_MAX_INPUT_CHARS, CHATBOT_MAX_PROMPTS, CHA
 from sefaria.helper import library_assistant
 from sefaria.utils.util import get_redirect_to_help_center
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE, MIN_SOURCES_FOR_TOPIC_DISPLAY, \
-    get_direction_from_legacy_lang, get_legacy_lang_from_direction
+    get_direction_from_legacy_lang, get_legacy_lang_from_direction, NUSACH_SETTING_KEY, NUSACH_OPTIONS
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.template.loader import render_to_string
@@ -309,6 +309,7 @@ def base_props(request):
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
+            "nusach": profile.settings.get(NUSACH_SETTING_KEY),
             "translationLanguagePreference": request.translation_language_preference,
             "versionPrefsByCorpus": request.version_preferences_by_corpus,
             "following": profile.followees.uids,
@@ -331,6 +332,7 @@ def base_props(request):
             "full_name": "",
             "profile_pic_url": "",
             "is_history_enabled": True,
+            "nusach": None,
             "translationLanguagePreference": request.translation_language_preference,
             "versionPrefsByCorpus": request.version_preferences_by_corpus,
             "following": [],
@@ -4167,6 +4169,9 @@ def profile_api(request, slug=None):
         if la_key in profileUpdate.get("settings", {}):
             # Public endpoint — coerce so a posted "false" can't read as truthy.
             profileUpdate["settings"][la_key] = library_assistant.normalize(profileUpdate["settings"][la_key])
+        if profileUpdate.get("settings", {}).get(NUSACH_SETTING_KEY, NUSACH_OPTIONS[0]) not in NUSACH_OPTIONS:
+            # Siddur Nusach POC: drop anything but a known nusach.
+            profileUpdate["settings"].pop(NUSACH_SETTING_KEY)
 
         profile = UserProfile(id=request.user.id)
         profile.update(profileUpdate)
