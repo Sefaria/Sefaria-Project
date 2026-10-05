@@ -4,6 +4,7 @@ import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component      from 'react-class';
 import {ContentText} from "./ContentText";
+import {InterfaceText} from "./Misc";
 
 
 
@@ -207,16 +208,20 @@ class RecentFilterSet extends Component {
         // topLinks.move(i, 0);
       }
     }
+    // When `counts` is supplied, show how many connections each recent filter has on the
+    // current refs, so filters with nothing to say here are visibly dimmed.
+    const counts = this.props.counts;
     recentFilters = recentFilters.map(function(book) {
+     const filterKey = book.filterKey || book.book;
      return (<TextFilter
                 srefs={this.props.srefs}
-                key={book.filterKey}
+                key={filterKey}
                 book={book.book}
                 heBook={book.heBook}
                 category={book.category}
-                hideCounts={true}
+                hideCounts={!counts}
                 hideColors={true}
-                count={book.count}
+                count={counts ? (counts[filterKey] || 0) : book.count}
                 filterSuffix={book.filterSuffix}
                 updateRecent={false}
                 inRecentFilters={true}
@@ -236,12 +241,65 @@ RecentFilterSet.propTypes = {
   srefs:              PropTypes.array.isRequired,
   filter:             PropTypes.array.isRequired,
   recentFilters:      PropTypes.array.isRequired,
+  counts:             PropTypes.object,  // Optional map of filter key -> number of connections on `srefs`
   inHeader:           PropTypes.bool,
   setFilter:          PropTypes.func.isRequired,
 };
 
+const OtherCommentariesNotice = ({srefs, commentaries, setFilter, setConnectionsCategory}) => {
+  // Lets the reader know that commentaries they haven't opened yet also comment on `srefs`.
+  // `commentaries` is a list of {book, heBook, count}.
+  if (!commentaries || !commentaries.length) { return null; }
+  const maxNamed = 3;
+  const named = commentaries.slice(0, maxNamed);
+  const remaining = commentaries.length - named.length;
+  const n = commentaries.length;
+  const ref = srefs && srefs.length ? Sefaria.normRef(srefs[0]) : null;
+  const openCommentaryList = (e) => {
+    e.preventDefault();
+    setConnectionsCategory("Commentary");
+    if (Sefaria.site) { Sefaria.track.event("Reader", "Other Commentaries Notice Click", "Commentary"); }
+  };
+  const openCommentary = (book) => (e) => {
+    e.preventDefault();
+    setFilter(book, true);
+    if (Sefaria.site) { Sefaria.track.event("Reader", "Other Commentaries Notice Click", book); }
+  };
+  return (
+    <div className="otherCommentariesNotice">
+      <InterfaceText text={{
+        en: `${n} other ${n === 1 ? "commentary" : "commentaries"} here: `,
+        he: `${n === 1 ? "פרשן נוסף" : `${n} פרשנים נוספים`} כאן: `,
+      }} />
+      {named.map((c, i) => (
+        <React.Fragment key={c.book}>
+          {i > 0 ? ", " : null}
+          <a href={ref ? `/${ref}?with=${c.book}` : null} onClick={openCommentary(c.book)} className="otherCommentary">
+            <ContentText text={{en: c.book, he: c.heBook}} />
+            <span className="connectionsCount">&nbsp;({c.count})</span>
+          </a>
+        </React.Fragment>
+      ))}
+      {remaining > 0 && setConnectionsCategory ?
+        <>
+          {" "}
+          <a href={ref ? `/${ref}?with=Commentary ConnectionsList` : null} onClick={openCommentaryList} className="otherCommentariesMore">
+            <InterfaceText text={{en: `+${remaining} more`, he: `ועוד ${remaining}`}} />
+          </a>
+        </> : null}
+    </div>
+  );
+};
+OtherCommentariesNotice.propTypes = {
+  srefs:                  PropTypes.array.isRequired,
+  commentaries:           PropTypes.array,
+  setFilter:              PropTypes.func.isRequired,
+  setConnectionsCategory: PropTypes.func,
+};
+
 export {
   CategoryFilter,
+  OtherCommentariesNotice,
   RecentFilterSet,
   TextFilter
 };
