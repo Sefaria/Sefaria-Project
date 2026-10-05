@@ -5091,9 +5091,6 @@ class Library(object):
             return self._full_auto_completer[lang]
 
     def recount_index_in_toc(self, indx, skip_toc_refresh=False):
-        if isinstance(indx, str):
-            indx = Index().load({"title": indx})
-
         self.get_toc_tree().update_title(indx, recount=True)
 
         if not skip_toc_refresh:
@@ -5111,16 +5108,11 @@ class Library(object):
             self.get_toc_tree().remove_category(toc_node)
             gen_cache.mark_fresh("toc_tree")
 
-    def delete_index_from_toc(self, indx, categories = None):
+    def delete_index_from_toc(self, indx):
         """
-        :param indx: The Index object, or its string title.
-        :param categories: The Index's categories -- pass explicitly when `indx` is a string.
-        :return:
+        :param indx: The Index object.
         """
-        cats = categories or indx.categories
-        title = indx.title if isinstance(indx, Index) else indx
-
-        toc_node = self.get_toc_tree().lookup(cats, title)
+        toc_node = self.get_toc_tree().lookup(indx.categories, indx.title)
         if toc_node:
             self.get_toc_tree().remove_index(toc_node)
             gen_cache.mark_fresh("toc_tree")
@@ -5129,13 +5121,10 @@ class Library(object):
 
     def update_index_in_toc(self, indx, old_ref=None):
         """
-        :param indx: The Index object, or its string title.
+        :param indx: The Index object.
         :param old_ref:
         :return:
         """
-        if isinstance(indx, str):
-            indx = Index().load({"title": indx})
-
         self.get_toc_tree().update_title(indx, old_ref=old_ref, recount=False)
         gen_cache.mark_fresh("toc_tree")
 
@@ -5173,15 +5162,11 @@ class Library(object):
     def add_index_record_to_cache(self, index_object = None, rebuild = True):
         """
         Update library title dictionaries and caches with information from provided index.
-        Index can be passed with primary title in `index_title` or as an object in `index_object`
         :param index_object: Index record
         :param rebuild: Perform a rebuild of derivative objects afterwards?  False only in cases of batch update.
         :return:
         """
         assert index_object, "Library.add_index_record_to_cache called without index"
-
-        if isinstance(index_object, str):
-            index_object = Index().load({"title": index_object})
 
         self._index_map[index_object.title] = index_object
         try:
@@ -5199,7 +5184,7 @@ class Library(object):
     def remove_index_record_from_cache(self, index_object=None, old_title=None, rebuild = True):
         """
         Update provided index from library title dictionaries and caches
-        :param index_object: In the local case - the index object to remove.  In the remote case, the name of the index object to remove.
+        :param index_object: The Index object to remove, or its title.
         :param old_title: In the case of a title change - the old title of the Index record
         :param rebuild: Perform a rebuild of derivative objects afterwards?
         :return:
@@ -5232,7 +5217,7 @@ class Library(object):
     def refresh_index_record_in_cache(self, index_object, old_title = None):
         """
         Update library title dictionaries and caches for provided index
-        :param index_object: In the local case - the index object to remove.  In the remote case, the name of the index object to remove.
+        :param index_object: The Index object to refresh, or its title.
         :param old_title: In the case of a title change - the old title of the Index record
         :return:
         """
