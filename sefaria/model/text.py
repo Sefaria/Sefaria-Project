@@ -4603,25 +4603,27 @@ class Library(object):
             gen_cache.register(f"books_{lang}", lambda lang=lang: self._refresh_text_titles_json(lang))
             gen_cache.register(f"linker_resolver:{lang}", lambda lang=lang: self.rebuild_linker_resolvers((lang,)))
 
-    def _refresh_shared_cache_object(self, key):
-        """refresh_fn for a shared-cache-backed object: use the shared cache if a peer already filled it."""
-        attr, scache_key, build_fn = self._shared_cache_objects[key]
-        value = scache.get_shared_cache_elem(scache_key)
-        if not value:
-            value = build_fn()
-            scache.set_shared_cache_elem(scache_key, value)
-            self.set_last_cached_time()
-        setattr(self, attr, value)
-        return value
-
-    def _rebuild_shared_cache_object(self, key):
-        """rebuild=True path: rebuild from Mongo, store in the shared cache, and publish to peers."""
+    def _build_shared_cache_object(self, key):
+        """Builds a shared-cache-backed object from Mongo and stores it locally and in the shared cache."""
         attr, scache_key, build_fn = self._shared_cache_objects[key]
         value = build_fn()
         scache.set_shared_cache_elem(scache_key, value)
         self.set_last_cached_time()
         setattr(self, attr, value)
-        return gen_cache.publish(key, value)
+        return value
+
+    def _refresh_shared_cache_object(self, key):
+        """refresh_fn for a shared-cache-backed object: use the shared cache if a peer already filled it."""
+        attr, scache_key, _ = self._shared_cache_objects[key]
+        value = scache.get_shared_cache_elem(scache_key)
+        if not value:
+            return self._build_shared_cache_object(key)
+        setattr(self, attr, value)
+        return value
+
+    def _rebuild_shared_cache_object(self, key):
+        """rebuild=True path: rebuild from Mongo and publish to peers."""
+        return gen_cache.publish(key, self._build_shared_cache_object(key))
 
     def _refresh_index_maps(self):
         """refresh_fn for "index_map": rebuild the maps and everything derived from them."""
@@ -4801,11 +4803,8 @@ class Library(object):
         on mobile until the navigation redesign happens there.
         """
         if rebuild:
-            self._refresh_toc_tree(mobile=mobile)
-            return gen_cache.publish("toc_tree", self._toc_tree)
-        self._toc_tree = gen_cache.get("toc_tree")
-        self._toc_tree_is_ready = True
-        return self._toc_tree
+            return gen_cache.publish("toc_tree", self._refresh_toc_tree(mobile=mobile))
+        return gen_cache.get("toc_tree")
 
     def _build_topic_toc(self):
         with build_pathway("get_topic_toc"):
@@ -5409,8 +5408,7 @@ class Library(object):
         :param rebuild: Boolean (optional, default set to False)
         """
         if rebuild:
-            self._build_topic_mapping()
-            return gen_cache.publish("topic_mapping", self._topic_mapping)
+            return gen_cache.publish("topic_mapping", self._build_topic_mapping())
         return gen_cache.get("topic_mapping")
 
     def _build_topic_mapping(self):
@@ -5595,15 +5593,19 @@ class Library(object):
             title_list = toc_titles + secondary_list
         return title_list
 
+    def _build_text_titles_json(self, lang):
+        title_list = self.build_text_titles_json(lang=lang)
+        title_list_json = json.dumps(title_list, ensure_ascii=False)
+        self._full_title_list_jsons[lang] = title_list_json
+        scache.set_shared_cache_elem('books_' + lang, title_list)
+        scache.set_shared_cache_elem('books_' + lang + '_json', title_list_json)
+        self.set_last_cached_time()
+        return title_list_json
+
     def _refresh_text_titles_json(self, lang):
         self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_' + lang + '_json')
         if not self._full_title_list_jsons.get(lang):
-            title_list = self.build_text_titles_json(lang=lang)
-            title_list_json = json.dumps(title_list, ensure_ascii=False)
-            self._full_title_list_jsons[lang] = title_list_json
-            scache.set_shared_cache_elem('books_' + lang, title_list)
-            scache.set_shared_cache_elem('books_' + lang + '_json', title_list_json)
-            self.set_last_cached_time()
+            return self._build_text_titles_json(lang)
         return self._full_title_list_jsons[lang]
 
     def get_text_titles_json(self, lang="en", rebuild=False):
@@ -5613,13 +5615,7 @@ class Library(object):
         :param rebuild: Boolean (optional, default set to False)
         """
         if rebuild:
-            title_list = self.build_text_titles_json(lang=lang)
-            title_list_json = json.dumps(title_list, ensure_ascii=False)
-            self._full_title_list_jsons[lang] = title_list_json
-            scache.set_shared_cache_elem('books_' + lang, title_list)
-            scache.set_shared_cache_elem('books_' + lang + '_json', title_list_json)
-            self.set_last_cached_time()
-            return gen_cache.publish(f"books_{lang}", self._full_title_list_jsons[lang])
+            return gen_cache.publish(f"books_{lang}", self._build_text_titles_json(lang))
         return gen_cache.get(f"books_{lang}")
 
     def reset_text_titles_cache(self):
