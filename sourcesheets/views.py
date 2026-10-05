@@ -5,6 +5,7 @@ from urllib3.exceptions import NewConnectionError
 from urllib.parse import unquote
 from elasticsearch.exceptions import AuthorizationException
 from datetime import datetime
+from functools import wraps
 from io import StringIO, BytesIO
 from django.contrib.admin.views.decorators import staff_member_required
 
@@ -106,6 +107,24 @@ def can_edit(user, sheet):
         return True
 
     return False
+
+
+def sheet_editor_required(view):
+    """
+    Decorator for sheet APIs that modify a sheet: returns a JSON error unless the
+    requester is logged in and can_edit the sheet; otherwise calls the view with the loaded sheet.
+    """
+    @wraps(view)
+    def wrapper(request, sheet_id, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return jsonResponse({"error": "You must be logged in to edit this sheet."})
+        sheet = get_sheet(sheet_id)
+        if "error" in sheet:  # no sheet with this id
+            return jsonResponse(sheet)
+        if not can_edit(request.user, sheet):
+            return jsonResponse({"error": "You don't have permission to edit this sheet."})
+        return view(request, sheet, *args, **kwargs)
+    return wrapper
 
 
 def can_add(user, sheet):
@@ -819,23 +838,17 @@ def update_sheet_topics_api(request, sheet_id):
     return jsonResponse(update_sheet_topics(int(sheet_id), topics, old_topics))
 
 
-def visual_sheet_api(request, sheet_id):
+@sheet_editor_required
+def visual_sheet_api(request, sheet):
     """
     API for visual source sheet layout
     """
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": "You must be logged in to save a sheet layout."})
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
-    sheet = get_sheet(int(sheet_id))
-    if "error" in sheet:
-        return jsonResponse(sheet)
-    if not can_edit(request.user, sheet):
-        return jsonResponse({"error": "You don't have permission to edit this sheet's layout."})
 
     visualNodes = json.loads(request.POST.get("visualNodes"))
     zoomLevel =  json.loads(request.POST.get("zoom"))
-    add_visual_data(int(sheet_id), visualNodes, zoomLevel)
+    add_visual_data(sheet["id"], visualNodes, zoomLevel)
     return jsonResponse({"status": "ok"})
 
 
