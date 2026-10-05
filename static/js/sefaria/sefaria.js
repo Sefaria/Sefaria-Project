@@ -4046,6 +4046,8 @@ Sefaria.unpackBaseProps = function(props){
       "chatbot_api_base_url",
       "chatbot_version",
       "chatbot_use_local_script",
+      "chatbot_promo_maybe_later_json",
+      "chatbot_promo_session_length_seconds",
       "googleClientId",
       "appleClientId",
       "recaptchaSiteKey",

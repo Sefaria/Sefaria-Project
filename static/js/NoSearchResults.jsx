@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
+import { openLibraryAssistant } from './LibraryAssistantModal';
 
 const CTA_HREFS = {
   sources: '/texts',
@@ -46,9 +47,16 @@ function NoSearchResults({ mode, query }) {
             <InterfaceText>{key('body')}</InterfaceText>
           </p>
         </div>
-        <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
-          <InterfaceText>{key('button')}</InterfaceText>
-        </a>
+        <div className="noSearchResults-ctas">
+          <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
+            <InterfaceText>{key('button')}</InterfaceText>
+          </a>
+          {mode === 'sources' && (
+            <button type="button" className="noSearchResults-cta noSearchResults-cta--assistant" onClick={openLibraryAssistant}>
+              ✦ <InterfaceText>{key('assistant_button')}</InterfaceText>
+            </button>
+          )}
+        </div>
         {renderCaption()}
       </div>
     </div>
