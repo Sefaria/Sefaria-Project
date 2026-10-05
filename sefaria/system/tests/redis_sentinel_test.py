@@ -14,6 +14,8 @@ import sefaria.system.redis_sentinel as rs
 from sefaria.system.redis_sentinel import RedisConfig, SentinelConfig
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
+
+
 @pytest.fixture
 def sentinel_config():
     # transport_opts mirrors prod's Celery-only options, which redis-py rejects as kwargs

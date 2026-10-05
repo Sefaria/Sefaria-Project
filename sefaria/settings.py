@@ -359,16 +359,10 @@ SEARCH_INDEX_NAME_TOPIC = 'topic'
 SEARCH_INDEX_NAME_BOOK = 'book'
 SEARCH_INDEX_NAME_CATEGORY = 'category'
 
-# Defaulted before local_settings is imported so an older local_settings.py still boots:
-# sefaria.system.cache reads these at import time. Keep the DB numbers distinct from Celery's
-# broker/result-backend DBs on the same Redis.
-SENTINEL_MASTER_SET = "mymaster"  # the Bitnami redis chart's default sentinel.masterSet
+# Defaults for settings sefaria.system.cache reads at import time, so a local_settings.py
+# that predates them still boots. See local_settings_example.py.
+SENTINEL_MASTER_SET = "mymaster"
 GENCACHE_REDIS_DB_NUM = 6
-
-# Identifies this deployment on a Redis/Sentinel cluster shared by multiple deployments (e.g.
-# cauldrons on the dev cluster all point at the same Sentinel). Used to key-prefix Django's
-# CACHES and GenCache's own counters so they don't collide. Empty string is a no-op prefix,
-# correct for single-tenant setups (local dev, prod/staging/preprod each have their own Redis).
 DEPLOY_ENV = ""
 
 # Grab environment specific settings from a file which

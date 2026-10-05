@@ -3642,8 +3642,8 @@ def rebuild_full_auto_completer_across_servers():
     """
     Rebuilds the full auto completer locally and, when this server cannot serve
     completion traffic itself (DISABLE_AUTOCOMPLETER), bumps GenCache's counter so the name
-    service picks it up. When this server holds its own completers the bump is skipped,
-    preserving the historical local-only rebuild rather than triggering a fleet-wide build.
+    service picks it up. When this server holds its own completers the rebuild stays local
+    rather than triggering a fleet-wide build.
     """
     library.build_full_auto_completer()
     if DISABLE_AUTOCOMPLETER:

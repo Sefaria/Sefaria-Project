@@ -51,10 +51,7 @@ spec:
             - configMapRef:
                 name: local-settings-production
                 optional: true
-            # Redis Sentinel/password secrets: this script boots Django (CACHES, GenCache's
-            # own redis client), same as every other process -- see the GenCache migration
-            # decision record, §08a. local-settings-production above carries REDIS_URL/
-            # SENTINEL_HEADLESS_URL etc.; these two carry the passwords.
+            # Redis/Sentinel passwords; the connection settings come from local-settings-production
             - secretRef:
                 name: sentinel-password
             - secretRef:

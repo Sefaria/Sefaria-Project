@@ -134,14 +134,6 @@ def test_replace_match_template_does_not_update_usage_when_save_fails(monkeypatc
 
 
 def test_save_linker_metadata_invalidates_varnish_directly(monkeypatch):
-    """
-    Cross-process propagation for refresh_index_record_in_cache is GenCache's job now
-    (bumped inside library.add_index_record_to_cache/remove_index_record_from_cache -- see
-    the GenCache migration decision record, §06) -- nothing left for this call site to
-    publish itself. It still owns invalidating this process's own Varnish cache directly,
-    unconditionally on USE_VARNISH (§07), since that was never part of the old multiserver
-    propagation -- the monitor used to do that only after every peer confirmed.
-    """
     class FakeIndex:
         title = "Fake"
         save_calls = []

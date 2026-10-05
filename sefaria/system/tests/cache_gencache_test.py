@@ -1,9 +1,5 @@
 """
-Unit tests for GenCache (sefaria/system/cache.py) -- see the GenCache migration decision
-record §12. Runs against a fake in-memory Redis stand-in, not a real connection: GenCache's
-job is the compare-and-refresh bookkeeping around whatever `redis_client` it's given, and
-that logic is identical whether the client is a real Sentinel-backed `redis.Redis` or this
-fake one.
+Unit tests for GenCache (sefaria/system/cache.py), run against an in-memory Redis stand-in.
 """
 import pytest
 
@@ -11,12 +7,10 @@ from sefaria.system.cache import GenCache
 
 
 class FakeRedis:
-    """Minimal in-memory stand-in for the subset of redis-py's API GenCache uses, matching
-    real redis-py's types under decode_responses=True (which the real gen_cache client is
-    built with -- see sefaria.system.cache._build_gen_cache): .get(key) -> str|None, values
-    stored as strings regardless of how they were written, same as real Redis; .incr(key) ->
-    int, per RESP's integer reply type, independent of decode_responses. `broken` simulates
-    Redis being unreachable: every call raises, matching a dropped connection."""
+    """
+    The subset of redis-py GenCache uses, with decode_responses=True types: get() returns
+    str or None, incr() returns int. Setting `broken` makes every call raise.
+    """
 
     def __init__(self):
         self.store = {}
@@ -218,8 +212,7 @@ def test_redis_down_on_first_access_falls_through_to_refresh_fn(fake_redis):
     refresh_fn, calls = make_counting_refresh_fn(["built-from-mongo"])
     gc.register("toc", refresh_fn)
 
-    # No local value yet and Redis is unreachable: must still call refresh_fn rather than
-    # returning nothing (§03's "degrade to mongo behavior for one cycle" correction).
+    # no local value yet, so it must still build one rather than return nothing
     assert gc.get("toc") == "built-from-mongo"
     assert len(calls) == 1
 
@@ -250,8 +243,7 @@ def test_publish_failure_to_bump_does_not_raise_and_drops_stale_local_gen(fake_r
 # ---------------------------------------------------------------------------
 
 def test_redis_keyspace_loss_triggers_rebuild_through_refresh_fn(fake_redis, no_throttle):
-    """A Redis restart with no persistence means every gen key reads back None -- same as a
-    cold first access from this process's point of view once it notices (§10)."""
+    """A Redis restart without persistence makes every counter read back None."""
     gc = GenCache(fake_redis)
     refresh_fn, calls = make_counting_refresh_fn(["before-loss", "after-loss"])
     gc.register("toc", refresh_fn)
@@ -270,9 +262,7 @@ def test_redis_keyspace_loss_triggers_rebuild_through_refresh_fn(fake_redis, no_
 # ---------------------------------------------------------------------------
 
 def test_key_prefix_isolates_bump_between_deployments(fake_redis):
-    """Two deployments sharing one Redis, distinguished only by key_prefix, must not see
-    each other's counters -- this is what stops one cauldron's writes from forcing an
-    unrelated cauldron to rebuild."""
+    """Deployments sharing one Redis must not see each other's counters."""
     cauldron_a = GenCache(fake_redis, key_prefix="cauldron-a")
     cauldron_b = GenCache(fake_redis, key_prefix="cauldron-b")
 
@@ -300,9 +290,7 @@ def test_key_prefix_isolates_get_between_deployments(fake_redis, no_throttle):
     assert len(calls_b) == 1
 
 
-def test_no_key_prefix_is_unprefixed_for_backward_compatibility(fake_redis):
-    """A single-tenant deployment (local dev, prod, staging, preprod) passes no key_prefix
-    and must keep writing the same bare keys as before this change."""
+def test_no_key_prefix_writes_bare_keys(fake_redis):
     gc = GenCache(fake_redis)
     gc.invalidate("index_map")
     assert fake_redis.store == {"gen:index_map": "1"}

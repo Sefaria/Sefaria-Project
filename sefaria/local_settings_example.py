@@ -149,7 +149,7 @@ CACHES = {
         "LOCATION": _shared_location,
         "OPTIONS": _shared_options,
         "TIMEOUT": None,
-        "KEY_PREFIX": DEPLOY_ENV,  # namespaces keys when multiple deployments share one Redis/Sentinel
+        "KEY_PREFIX": DEPLOY_ENV,
     },
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -322,9 +322,8 @@ DEFAULT_CACHE_DB_NUM = 4
 SHARED_CACHE_DB_NUM = 5
 GENCACHE_REDIS_DB_NUM = 6
 
-# Set to a unique value (e.g. a cauldron's name) when this deployment shares its Redis/Sentinel
-# with other deployments, so CACHES and GenCache's counters don't collide with theirs. Leave
-# empty for a single-tenant Redis (local dev, prod, staging, preprod).
+# Prefixes CACHES and GenCache keys, so deployments sharing one Redis (e.g. cauldrons) don't
+# collide. Empty means no prefix.
 DEPLOY_ENV = ""
 
 #Slack
