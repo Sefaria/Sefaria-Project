@@ -1,7 +1,7 @@
 ---
 name: create-cauldron
 description: |
-  Creates a new Sefaria cauldron (a temporary test copy of the Sefaria site) with default settings, running the branch currently checked out in the user's Sefaria-Project folder, under a name the user chooses. Wraps create-cauldron.sh from the Sefaria/cauldrons repo and adds safety checks first (branch pushed, CI images built, name not already taken). Use when the user asks to "create a cauldron", "spin up a cauldron for my branch", "make a new cauldron called X", or mentions create-cauldron.sh.
+  Creates a new Sefaria cauldron (a temporary test copy of the Sefaria site) with default settings, running the branch currently checked out in the user's Sefaria-Project folder, under a name the user chooses. Wraps create-cauldron.sh from the Sefaria/cauldrons repo and adds safety checks first (branch pushed, CI images built, name not already taken), opening a draft PR for the branch if it has none. Use when the user asks to "create a cauldron", "spin up a cauldron for my branch", "make a new cauldron called X", or mentions create-cauldron.sh.
 ---
 
 # Create a cauldron for the current Sefaria-Project branch
@@ -14,6 +14,10 @@ This skill runs `create-cauldron.sh` from the `Sefaria/cauldrons` repo as `./cre
 - no custom secrets, no linker/GPU server, no background task workers.
 
 If the user wants any non-default option (pin to a commit, a different database backup, `--dryrun`, `--linker`, `--tasks`, `--secret`, …), tell them this skill only makes default cauldrons, and show them the `create-cauldron.sh --help` usage so they can run it themselves.
+
+## Before anything else — run git-update
+
+Run the `git-update` skill first, before any other step. If it stops, stop this skill too. If it succeeds, go on to the rest of this skill without saying anything.
 
 ## What the script actually does (explain this to the user before running it)
 
@@ -42,17 +46,19 @@ If `gh` is missing or not logged in (Step 3 needs it) and a setup file exists, t
 
 **Branch:** `git -C <Sefaria-Project> branch --show-current`. If empty (the checkout isn't on a branch), stop and tell the user to check out the branch they want.
 
-**Name:** ask the user for the cauldron name (unless given). Clean it up the way the script does: lowercase it, then keep only `a-z`, `0-9` and `-` (the script would also keep `.`, but a dot would add an extra level to the web address, so remove dots too). It must be 1–63 characters (the script cuts off longer names from the front, which is confusing). If cleaning changed the name, show the user the result and confirm.
+**Name:** ask the user for the cauldron name (unless given). Clean it up the way the script does: lowercase it, then keep only `a-z`, `0-9` and `-` (the script would also keep `.`, but a dot would add an extra level to the web address, so remove dots too). It must be 1–63 characters. If cleaning changed the name, show the user the result and confirm.
 
 The cauldron's address will be `https://www.<name>.cauldron.sefaria.org`.
 
 **Image name:** work out which set of Docker images the cauldron will use — the script's own rule:
 
 ```bash
-echo "<branch>" | awk '{print tolower($0)}' | sed -e 's|.*/\([^/]*\)/.*|\1|' -e 'tx' -e 's/\(.*\)/\1/' -e ':x' | sed 's/[^a-z0-9\.\-]//g'
+echo "<branch>" | tr 'A-Z' 'a-z' | sed -e 's|.*/\([^/]*\)/.*|\1|' -e 'tx' -e 's/\(.*\)/\1/' -e ':x' | sed 's/[^a-z0-9\.\-]//g'
 ```
 
 For a Shortcut-style branch like `feature/sc-12345/some-name` this gives `sc-12345`.
+
+(The script lowercases with `awk`; this uses `tr`, which gives the same result, because Claude Code replaces `$` followed by a digit in a SKILL.md with the words typed after the skill's name, and the `awk` version needs one.)
 
 ## Step 3 — Is the branch ready to run in a cauldron?
 
@@ -66,14 +72,13 @@ Run these checks in Sefaria-Project and report each result in plain words:
    gh pr list --repo Sefaria/Sefaria-Project --head "<branch>" --state open --json number,url,isDraft
    gh run list --repo Sefaria/Sefaria-Project --branch "<branch>" --workflow continuous.yaml --limit 1 --json status,conclusion,headSha,createdAt
    ```
-   - No open PR → warn clearly: the cauldron will be created but won't start, because no images exist. Offer to open a **draft** PR for the branch (ask first; this is visible to the team). Opening one starts the image build, which usually takes several minutes.
+   - No open PR (the list above includes drafts, so "none" means neither kind) → open a **draft** PR without asking, so CI builds the images:
+     ```bash
+     gh pr create --repo Sefaria/Sefaria-Project --draft --base master --head "<branch>" --title "<branch>" --body "Draft PR opened so CI builds cauldron images."
+     ```
+     Tell the user in one line: `Opened draft PR: <link>`. Opening it starts the image build, which usually takes several minutes; the cauldron picks up the images when the build finishes, so it's fine to go ahead. If `gh pr create` fails, show its last error line and warn clearly: the cauldron will be created but won't start, because no images exist.
    - PR exists but the latest `Continuous` run is still in progress → the cauldron will pick up the images when the build finishes; fine to go ahead.
    - Latest run failed → warn that there may be no usable images; let the user decide.
-   - Optional, only if `gcloud` is installed and logged in: list the newest web image directly (`timeout 120` because it can be slow):
-     ```bash
-     timeout 120 gcloud artifacts docker images list "us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-<imagename>" --include-tags --sort-by=~UPDATE_TIME --limit 1 --format="value(tags,updateTime)"
-     ```
-     Tags look like `sha-<short commit>-<timestamp>`; compare the short commit with the branch's latest pushed commit.
 
 ## Step 4 — Get the cauldrons repo ready, and check the name is free
 
@@ -90,6 +95,20 @@ git branch --show-current         # which branch is checked out
 
 If either command fails, stop and show the error — don't force anything.
 
+`create-cauldron.sh` reads the file `.git/refs/heads/main` directly instead of asking git. Git's automatic cleanup sometimes moves that file's contents into `.git/packed-refs` and deletes it; the script then always says "Not running on tip of main", and the commands above don't bring the file back when `main` is already up to date. So check it:
+
+```bash
+test -f .git/refs/heads/main && echo "ok" || echo "missing"
+```
+
+If it says `missing`, recreate it from what git already knows (this writes the same commit `main` already points to, so nothing about the branch changes):
+
+```bash
+sha=$(git rev-parse --verify refs/heads/main) && [ -n "$sha" ] && echo "$sha" > .git/refs/heads/main.tmp && mv .git/refs/heads/main.tmp .git/refs/heads/main && [ "$(cat .git/refs/heads/main)" = "$(git rev-parse origin/main)" ] && echo "ok"
+```
+
+Look up the commit first and write the file only after that succeeds. Never write it as `git rev-parse ... > .git/refs/heads/main`: the shell empties the file before git runs, git then sees an empty `main` and fails, and the empty file is left behind, hiding `main`'s real commit. If the command doesn't print `ok`, stop and show the error.
+
 Then check that no cauldron already uses the name:
 
 ```bash
@@ -104,7 +123,7 @@ Tell the user, in plain words:
 - Cauldron name and address: `https://www.<name>.cauldron.sefaria.org`
 - Branch it will follow: `<branch>` (images: `sefaria-*-<imagename>`)
 - Database: a fresh copy of today's production backup
-- Results of the Step 3 checks, especially any warnings
+- Results of the Step 3 checks, especially any warnings, and the draft PR's link if Step 3 opened one
 - That this pushes a commit to `main` of the shared `Sefaria/cauldrons` repo, under their GitHub account, and the cauldron then deploys automatically
 - If the setup file said `can_push_cauldrons: no` (or `unknown`): a warning that their GitHub account may not be allowed to push to `Sefaria/cauldrons`, so the push will probably fail until the engineering team grants write access
 - The exact command: `./create-cauldron.sh -n <name> -b <branch>`
@@ -120,7 +139,7 @@ From the cauldrons folder:
 ```
 
 The script clones a fresh copy of the cauldrons repo into a temporary folder, downloads a small helper tool (`yq`), writes the files, commits, and pushes. Read the output:
-- `Not running on tip of main, please pull before running script` → Step 4 didn't take; redo it.
+- `Not running on tip of main, please pull before running script` → Step 4 didn't take; redo it, including the `.git/refs/heads/main` check.
 - A `git push` error such as `403` / `Permission denied` → the user's GitHub account can't push to `Sefaria/cauldrons`; they need write access from the engineering team.
 
 The script doesn't stop on every error, so confirm the push really happened:
@@ -141,5 +160,5 @@ Then fast-forward the local `main` again (same command as Step 4) so the next ru
   `200` means it's serving. Offer to check again in a few minutes.
 - If the user has `kubectl` connected to the development cluster, `kubectl get helmrelease <name>` shows the install status (`READY True` = done). If it fails, `kubectl describe helmrelease <name>` explains why.
 - New pushes to `<branch>` (with an open PR) are deployed to the cauldron automatically after CI builds them.
-- To copy local content into it, use the `move-text-to-cauldron` skill.
+- To copy local content into it, use the `move-text-to-cauldron` or `move-lexicon-to-cauldron` skill.
 - This skill doesn't delete cauldrons. When it's no longer needed, the user can run `./delete-cauldron.sh -n <name>` in the cauldrons repo themselves.

@@ -32,7 +32,7 @@ bash "$(git rev-parse --show-toplevel)/.claude/skills/cauldron-setup/setup_statu
 
 (If `git rev-parse` fails, treat it like the "not inside WSL" case below.) It prints `name: value` lines, then `Problems:`. It never prints the key.
 
-- Output says `STOP: this is not a Claude session running inside WSL`, or the problems say Sefaria-Project is "on the Windows drive" or the session "isn't inside a Sefaria-Project folder". Send this and stop:
+- If output says `STOP: this is not a Claude session running inside WSL`, or the problems say Sefaria-Project is "on the Windows drive" or the session "isn't inside a Sefaria-Project folder". Send this and stop:
 
   > This setup has to run in a WSL session. In the Claude app's Code tab:
   > 1. Start a new session.
@@ -40,7 +40,7 @@ bash "$(git rev-parse --show-toplevel)/.claude/skills/cauldron-setup/setup_statu
   > 3. Choose the folder `/home/<your Linux user name>/Sefaria-Project`.
   > 4. Ask me to "run cauldron setup" again there.
 
-- Problems say `No sefaria/local_settings.py`: say this copy of Sefaria-Project can't run Sefaria, and ask which folder they run local Sefaria from. Stop.
+- If problems say `No sefaria/local_settings.py`: say this copy of Sefaria-Project can't run Sefaria, and ask which folder they run local Sefaria from. Stop.
 
 Keep the output. It tells you which of Steps 2–7 are needed.
 
@@ -108,7 +108,13 @@ Then check push access: `gh api repos/Sefaria/cauldrons --jq .permissions.push`.
 - `cauldrons_repo: not found`:
   - If `~/cauldrons` already exists but has no `create-cauldron.sh`, don't touch it. Tell the user a folder named `cauldrons` is already in their home folder but isn't the cauldrons project, and ask what it is. Stop this step.
   - Otherwise run `git clone https://github.com/Sefaria/cauldrons.git ~/cauldrons`. If it fails with an authentication error, redo Step 3.
-- Problems say `.git/refs/heads/main is missing`: run `git -C <cauldrons_repo> pull --ff-only` if its current branch is `main`, otherwise `git -C <cauldrons_repo> fetch origin main:main`.
+- Problems say `.git/refs/heads/main is missing` (`create-cauldron.sh` reads that file directly, and git's automatic cleanup sometimes deletes it after copying it into `.git/packed-refs`):
+  1. Update `main`: `git -C <cauldrons_repo> pull --ff-only` if its current branch is `main`, otherwise `git -C <cauldrons_repo> fetch origin main:main`. If the file now exists, you're done.
+  2. If it's still missing (this happens when `main` was already up to date), recreate it with the commit `main` already points to. Look the commit up first and write the file only after that succeeds; writing straight into the file (`git rev-parse ... > .git/refs/heads/main`) empties it before git runs and breaks `main`:
+     ```bash
+     cd <cauldrons_repo> && sha=$(git rev-parse --verify refs/heads/main) && [ -n "$sha" ] && echo "$sha" > .git/refs/heads/main.tmp && mv .git/refs/heads/main.tmp .git/refs/heads/main && [ "$(cat .git/refs/heads/main)" = "$(git rev-parse origin/main)" ] && echo ok
+     ```
+     If it doesn't print `ok`, show the error and continue the setup; it only affects creating cauldrons.
 - Problems say `create-cauldron.sh has Windows line endings`: ask `Your cauldrons folder was downloaded in a way that breaks its scripts. OK to rename it to cauldrons-old and download a fresh copy? (y/n)`. On yes, run `mv <cauldrons_repo> <cauldrons_repo>-old-$(date +%Y%m%d)` and then clone as above.
 
 ## Step 6 — Which file has the API key
