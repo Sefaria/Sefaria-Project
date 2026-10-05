@@ -149,12 +149,14 @@ CACHES = {
         "LOCATION": _shared_location,
         "OPTIONS": _shared_options,
         "TIMEOUT": None,
+        "KEY_PREFIX": DEPLOY_ENV,  # namespaces keys when multiple deployments share one Redis/Sentinel
     },
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": _default_location,
         "OPTIONS": _default_options,
         "TIMEOUT": 60 * 60 * 24 * 30,
+        "KEY_PREFIX": DEPLOY_ENV,
     },
 }
 """
@@ -319,6 +321,11 @@ SENTINEL_MASTER_SET = "mymaster"  # the Bitnami redis chart's default sentinel.m
 DEFAULT_CACHE_DB_NUM = 4
 SHARED_CACHE_DB_NUM = 5
 GENCACHE_REDIS_DB_NUM = 6
+
+# Set to a unique value (e.g. a cauldron's name) when this deployment shares its Redis/Sentinel
+# with other deployments, so CACHES and GenCache's counters don't collide with theirs. Leave
+# empty for a single-tenant Redis (local dev, prod, staging, preprod).
+DEPLOY_ENV = ""
 
 #Slack
 SLACK_URL = ''

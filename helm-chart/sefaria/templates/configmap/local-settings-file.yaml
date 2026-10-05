@@ -44,6 +44,9 @@ data:
     DEFAULT_CACHE_DB_NUM = os.getenv("DEFAULT_CACHE_DB_NUM", "4")
     SHARED_CACHE_DB_NUM = os.getenv("SHARED_CACHE_DB_NUM", "5")
     GENCACHE_REDIS_DB_NUM = os.getenv("GENCACHE_REDIS_DB_NUM", "6")
+    # Namespaces CACHES/GenCache keys when this deployment shares its Redis/Sentinel with others
+    # (e.g. cauldrons on the dev cluster). Empty for prod/staging/preprod, which each have their own.
+    DEPLOY_ENV = os.getenv("DEPLOY_ENV", "")
 
     ALLOWED_HOSTS = ["*"]
     CSRF_TRUSTED_ORIGINS = [
@@ -131,12 +134,14 @@ data:
             "LOCATION": _shared_cache_location,
             "OPTIONS": _shared_cache_options,
             "TIMEOUT": None,
+            "KEY_PREFIX": DEPLOY_ENV,
         },
         "default": {
             "BACKEND": "django_redis.cache.RedisCache",
             "LOCATION": _default_cache_location,
             "OPTIONS": _default_cache_options,
             "TIMEOUT": 60 * 60 * 24 * 30,
+            "KEY_PREFIX": DEPLOY_ENV,
         },
         "persistent": {
             'BACKEND': 'sefaria.system.caches.SimpleMongoDBCache',

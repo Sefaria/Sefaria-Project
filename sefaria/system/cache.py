@@ -225,12 +225,21 @@ class GenCache:
     CHECK_INTERVAL_SECONDS = 2  # tune against real Redis QPS before finalizing
     JITTER_MAX_SECONDS = 3  # spreads the fleet's rebuilds after Redis loses its keyspace
 
-    def __init__(self, redis_client):
+    def __init__(self, redis_client, key_prefix: str = ""):
         self._data = {}            # key -> cached value
         self._gens = {}            # key -> last-applied generation; absent until first refresh
         self._last_checked = {}    # key -> monotonic time of last check
         self._refreshers = {}      # key -> (refresh_fn, redis_gen_key)
         self.redis = redis_client
+        # Namespaces every Redis key this instance touches, so multiple deployments sharing one
+        # Redis/Sentinel (e.g. cauldrons on the dev cluster) don't see each other's counters.
+        # Applied here, at the lowest level (get()/bump()), rather than in register(), so it also
+        # covers call sites that bump() a raw "gen:..." key directly without going through
+        # register()'s stored mapping.
+        self._key_prefix = f"{key_prefix}:" if key_prefix else ""
+
+    def _prefixed(self, redis_gen_key: str) -> str:
+        return f"{self._key_prefix}{redis_gen_key}"
 
     def register(self, key: str, redis_gen_key: str, refresh_fn: Callable[[], Any]):
         self._refreshers[key] = (refresh_fn, redis_gen_key)
@@ -248,7 +257,7 @@ class GenCache:
         self._last_checked[key] = now
 
         try:
-            redis_gen = self.redis.get(gen_key)
+            redis_gen = self.redis.get(self._prefixed(gen_key))
         except Exception:
             logger.error("GenCache: Redis unreachable checking %s; serving stale value", key)
             if not is_first_access:
@@ -267,7 +276,7 @@ class GenCache:
     def bump(self, redis_gen_key: str):
         """INCR the counter so peers refresh. Prefer publish()/mark_fresh() for a registered key."""
         try:
-            return self.redis.incr(redis_gen_key)
+            return self.redis.incr(self._prefixed(redis_gen_key))
         except Exception:
             logger.error("GenCache: failed to bump %s; peers stay stale until the next bump", redis_gen_key)
             return None
@@ -299,7 +308,7 @@ def _build_gen_cache() -> GenCache:
         settings.SENTINEL_TRANSPORT_OPTS, settings.SENTINEL_MASTER_SET,
     )
     client = get_redis_client(redis_config, sentinel_config, settings.GENCACHE_REDIS_DB_NUM, decode_responses=True)
-    return GenCache(client)
+    return GenCache(client, key_prefix=settings.DEPLOY_ENV)
 
 
 if not hasattr(sys, '_doc_build'):  # redis-py connects lazily, so this opens no connection

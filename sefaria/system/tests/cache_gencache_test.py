@@ -251,3 +251,46 @@ def test_redis_keyspace_loss_triggers_rebuild_through_refresh_fn(fake_redis, no_
     fake_redis.store.clear()  # simulates Redis losing its keyspace
     assert gc.get("toc") == "after-loss"
     assert len(calls) == 2
+
+
+# ---------------------------------------------------------------------------
+# key_prefix: multiple deployments sharing one Redis/Sentinel (e.g. cauldrons)
+# ---------------------------------------------------------------------------
+
+def test_key_prefix_isolates_bump_between_deployments(fake_redis):
+    """Two deployments sharing one Redis, distinguished only by key_prefix, must not see
+    each other's counters -- this is what stops one cauldron's writes from forcing an
+    unrelated cauldron to rebuild."""
+    cauldron_a = GenCache(fake_redis, key_prefix="cauldron-a")
+    cauldron_b = GenCache(fake_redis, key_prefix="cauldron-b")
+
+    cauldron_a.bump("gen:index_map")
+
+    assert fake_redis.store == {"cauldron-a:gen:index_map": "1"}
+    assert "cauldron-b:gen:index_map" not in fake_redis.store
+
+
+def test_key_prefix_isolates_get_between_deployments(fake_redis, no_throttle):
+    cauldron_a = GenCache(fake_redis, key_prefix="cauldron-a")
+    cauldron_b = GenCache(fake_redis, key_prefix="cauldron-b")
+
+    refresh_fn_a, calls_a = make_counting_refresh_fn(["a-build-1", "a-build-2"])
+    refresh_fn_b, calls_b = make_counting_refresh_fn(["b-build-1", "b-build-2"])
+    cauldron_a.register("index_map", "gen:index_map", refresh_fn_a)
+    cauldron_b.register("index_map", "gen:index_map", refresh_fn_b)
+
+    assert cauldron_a.get("index_map") == "a-build-1"
+    assert cauldron_b.get("index_map") == "b-build-1"
+
+    # Cauldron A's write bumps only its own namespaced counter, so B shouldn't see staleness.
+    cauldron_a.mark_fresh("index_map")
+    assert cauldron_b.get("index_map") == "b-build-1"
+    assert len(calls_b) == 1
+
+
+def test_no_key_prefix_is_unprefixed_for_backward_compatibility(fake_redis):
+    """A single-tenant deployment (local dev, prod, staging, preprod) passes no key_prefix
+    and must keep writing the same bare keys as before this change."""
+    gc = GenCache(fake_redis)
+    gc.bump("gen:index_map")
+    assert fake_redis.store == {"gen:index_map": "1"}

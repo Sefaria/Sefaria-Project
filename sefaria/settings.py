@@ -365,6 +365,12 @@ SEARCH_INDEX_NAME_CATEGORY = 'category'
 SENTINEL_MASTER_SET = "mymaster"  # the Bitnami redis chart's default sentinel.masterSet
 GENCACHE_REDIS_DB_NUM = 6
 
+# Identifies this deployment on a Redis/Sentinel cluster shared by multiple deployments (e.g.
+# cauldrons on the dev cluster all point at the same Sentinel). Used to key-prefix Django's
+# CACHES and GenCache's own counters so they don't collide. Empty string is a no-op prefix,
+# correct for single-tenant setups (local dev, prod/staging/preprod each have their own Redis).
+DEPLOY_ENV = ""
+
 # Grab environment specific settings from a file which
 # is left out of the repo.
 if os.getenv("CI_RUN"):

@@ -80,6 +80,9 @@ data:
   DEFAULT_CACHE_DB_NUM: {{ .Values.tasks.redis.defaultCacheDbNumber | quote }}
   SHARED_CACHE_DB_NUM: {{ .Values.tasks.redis.sharedCacheDbNumber | quote }}
   GENCACHE_REDIS_DB_NUM: {{ .Values.tasks.redis.gencacheDbNumber | quote }}
+  # Namespaces CACHES/GenCache keys so deployments sharing one Redis/Sentinel (e.g. cauldrons
+  # on the dev cluster) don't collide. deployEnv is unique per cauldron and per prod/staging/preprod.
+  DEPLOY_ENV: {{ .Values.deployEnv | quote }}
   {{- if .Values.tasks.enabled }}
   CELERY_REDIS_BROKER_DB_NUM: {{ .Values.tasks.redis.brokerDBNumber | quote }}
   CELERY_REDIS_RESULT_BACKEND_DB_NUM: {{ .Values.tasks.redis.resultBackendDBNumber | quote }}
