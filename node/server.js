@@ -55,6 +55,11 @@ const resolveSharedCacheRedisUrl = async function(){
   // createClient(port, host, ...): port first, so the host isn't misread as a unix socket path
   const sentinelClient = redis.createClient(settings.REDIS_PORT, settings.SENTINEL_HEADLESS_URL,
     settings.SENTINEL_PASSWORD ? {auth_pass: settings.SENTINEL_PASSWORD} : {});
+  // Sentinel's reduced command set doesn't include QUIT (replies "ERR unknown command 'quit'"),
+  // and with no listener node-redis v2.8 throws that reply as an uncaught exception, crashing
+  // the process. An 'error' listener is required for the same reason -- an unhandled 'error'
+  // event is itself thrown by Node's EventEmitter.
+  sentinelClient.on('error', err => logger.error('Sentinel lookup connection error: ' + err));
   const sentinelCommandAsync = promisify(sentinelClient.send_command).bind(sentinelClient);
   try {
     const [host, port] = await sentinelCommandAsync(
@@ -62,7 +67,7 @@ const resolveSharedCacheRedisUrl = async function(){
     );
     return `redis://${host}:${port}`;
   } finally {
-    sentinelClient.quit();
+    sentinelClient.end(true); // drop the socket directly rather than sending QUIT
   }
 };
 
