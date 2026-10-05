@@ -42,6 +42,7 @@ import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
+import { LandyWelcome, shouldShowLandyWelcome, markLandyWelcomeSeen } from './LandyWelcome';
 import AuthPage from './auth/AuthPage';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
 import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
@@ -128,6 +129,8 @@ class ReaderApp extends Component {
       panelCap: props.initialPanelCap,
       initialAnalyticsTracked: false,
       showSignUpModal: false,
+      showLandyWelcome: false,   // POC first-visit welcome; set after mount so SSR never renders it
+      landyAskedChatbot: false,  // the welcome handed the assistant a prompt (renders it on mobile too)
       translationLanguagePreference: props.translationLanguagePreference,
       editorSaveState: 'saved',
       notificationCount: props.notificationCount || 0,
@@ -243,6 +246,10 @@ class ReaderApp extends Component {
     }
 
     resumePendingSignUpAttempt();
+    if (this.canUseChatbot() && shouldShowLandyWelcome()) {
+      markLandyWelcomeSeen();
+      this.setState({ showLandyWelcome: true });
+    }
     if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
       sessionStorage.setItem("sa.reader_app_mounted", "true");
       sa_event("reader_app_mounted");
@@ -1045,6 +1052,26 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     });
   }
 }
+
+  canUseChatbot() {
+    // Logged-out visitors get the assistant without a token (it limits them to a few free responses)
+    const hasChatbotIdentity = !!this.props.chatbot_user_token || !Sefaria._uid;
+    return !!this.props.chatbot_enabled && hasChatbotIdentity &&
+      Sefaria.activeModule === Sefaria.LIBRARY_MODULE && !(this.props.remoteConfig?.chatbot?.hide === 1);
+  }
+
+  closeLandyWelcome() {
+    this.setState({ showLandyWelcome: false });
+  }
+
+  askLibraryAssistant(text, intent) {
+    // The widget takes a queued ask on mount or on this event, whichever comes first, so it
+    // works whether or not <lc-chatbot> is on the page yet (on mobile it is rendered now).
+    window.lcChatbotPendingAsk = { text, intent };
+    this.setState({ landyAskedChatbot: true }, () => {
+      document.dispatchEvent(new Event('chatbot:ask'));
+    });
+  }
 
   handleNavigationClick(ref, currVersions, options) {
     this.openPanel(ref, currVersions, options);
@@ -2570,8 +2597,9 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var classes = classNames(classDict);
     const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
     const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
-    const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
-    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment;
+    // On mobile the assistant appears only once the landy welcome hands it a prompt
+    const displayChatbot = this.canUseChatbot() && (!mobile || this.state.landyAskedChatbot);
+    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment && !displayChatbot;
     const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
     return (
@@ -2621,6 +2649,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
               )}
               </main>
               {signUpModal}
+              {this.state.showLandyWelcome && (
+                <LandyWelcome
+                  mobile={mobile}
+                  onAsk={this.askLibraryAssistant}
+                  onClose={this.closeLandyWelcome}
+                />
+              )}
               <CookiesNotification />
             </div>
             <BannerImpressionProbe />
