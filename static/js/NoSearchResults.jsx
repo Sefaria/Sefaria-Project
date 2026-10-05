@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
+import { useExtraEntryPoints } from './LibraryAssistantPoc';
 
 const CTA_HREFS = {
   sources: '/texts',
@@ -39,6 +40,7 @@ function NoSearchResults({ mode, query }) {
   // Only offer the assistant when its widget is on the page (checked after mount: SSR has no document)
   const [hasAssistant, setHasAssistant] = useState(false);
   useEffect(() => setHasAssistant(!!document.querySelector('lc-chatbot')), []);
+  const extraEntryPoints = useExtraEntryPoints();
   const heading = Sefaria._(key('h1')).replace(/\[query\]|\{userquery\}/g, query);
 
   return (
@@ -62,7 +64,7 @@ function NoSearchResults({ mode, query }) {
           <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
             <InterfaceText>{key('button')}</InterfaceText>
           </a>
-          {mode === 'sources' && hasAssistant && (
+          {mode === 'sources' && hasAssistant && extraEntryPoints && (
             <button type="button" className="noSearchResults-cta noSearchResults-cta--assistant" onClick={() => askLibraryAssistant(query)}>
               ✦ <InterfaceText>{key('assistant_button')}</InterfaceText>
             </button>

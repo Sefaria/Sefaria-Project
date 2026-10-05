@@ -16,6 +16,10 @@ export const usePocToolboxConfig = () => {
   return config;
 };
 
+// "Entry points: Circle only" in the toolbox hides every entry point on the page, leaving only
+// the widget's own circle, so the assistant can be demoed as production shows it
+export const useExtraEntryPoints = () => usePocToolboxConfig().entryPoints !== 'none';
+
 // Whether the assistant widget is on the page (checked after mount: SSR has no document)
 export const useHasLibraryAssistant = () => {
   const [hasAssistant, setHasAssistant] = useState(false);
@@ -28,7 +32,7 @@ export const useHasLibraryAssistant = () => {
 export const LibraryAssistantBrowseBanner = () => {
   const config = usePocToolboxConfig();
   const hasAssistant = useHasLibraryAssistant();
-  if (!hasAssistant || config.placement !== 'banner') return null;
+  if (!hasAssistant || config.placement !== 'banner' || config.entryPoints === 'none') return null;
   const text = config.bannerText?.trim();
   const open = (e) => {
     e.preventDefault(); // tells ReaderApp's in-app link handler to leave this click alone

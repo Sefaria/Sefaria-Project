@@ -50,6 +50,14 @@ describe("Resources panel Library Assistant item", function () {
     expect(item()).toBeNull();
   });
 
+  it("is absent while the sandbox controls say Circle only", function () {
+    document.body.appendChild(document.createElement("lc-chatbot"));
+    localStorage.setItem("lc_chatbot:poc_toolbox", JSON.stringify({ entryPoints: "none" }));
+    render();
+    localStorage.clear();
+    expect(item()).toBeNull();
+  });
+
   it("shows ✦ Ask Library Assistant and opens the widget", function () {
     document.body.appendChild(document.createElement("lc-chatbot"));
     render();

@@ -3,6 +3,7 @@ import React, {useEffect, useState} from "react";
 import classNames from "classnames";
 import {InterfaceText, SearchButton} from "./Misc";
 import {GeneralAutocomplete} from "./GeneralAutocomplete";
+import {useExtraEntryPoints} from "./LibraryAssistantPoc";
 
 const type_icon_map = {
   "Collection": "collection.svg",
@@ -437,6 +438,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
 };
 
 export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, onNavigate, hideHebrewKeyboard = false, libraryAssistant = false}) => {
+    const showAssistantRow = useExtraEntryPoints() && libraryAssistant;
     const [searchFocused, setSearchFocused] = useState(false);
     const fetchSuggestions = async (inputValue) => {
         if (inputValue.length < 3){
@@ -465,7 +467,7 @@ export const HeaderAutocomplete = ({onRefClick, showSearch, openTopic, openURL, 
         if (comps.length > 0) {
           const q = inputValue;
           const overrides = [{value: "SEARCH_OVERRIDE", label: q, type: "search"}];
-          if (libraryAssistant) overrides.push({value: "ASK_ASSISTANT", label: q, type: "assistant"});
+          if (showAssistantRow) overrides.push({value: "ASK_ASSISTANT", label: q, type: "assistant"});
           return(overrides.concat(comps));
 
         } else {

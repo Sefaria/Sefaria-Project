@@ -12,7 +12,7 @@ import {
 } from './Misc';
 import { ProfilePic } from "./ProfilePic";
 import { HeaderAutocomplete } from './HeaderAutocomplete'
-import { usePocToolboxConfig } from './LibraryAssistantPoc';
+import { usePocToolboxConfig, useExtraEntryPoints } from './LibraryAssistantPoc';
 import {
   DropdownMenu,
   DropdownMenuSeparator,
@@ -281,7 +281,7 @@ const Header = (props) => {
 
   const pocConfig = usePocToolboxConfig();
   // POC: the toolbox can move the assistant out of the header, to a banner on the texts page
-  const showAssistantLink = props.libraryAssistant && props.module === Sefaria.LIBRARY_MODULE && pocConfig.placement !== 'banner';
+  const showAssistantLink = props.libraryAssistant && props.module === Sefaria.LIBRARY_MODULE && pocConfig.placement !== 'banner' && pocConfig.entryPoints !== 'none';
   // The pill sits at an end of a group (after Donate or before search), never between two links
   const assistantPill = pocConfig.headerStyle === 'pill';
   const assistantSlot = assistantPill && pocConfig.headerSlot === 'beforeDonate' ? 'afterDonate' : (pocConfig.headerSlot || 'afterDonate');
@@ -455,6 +455,7 @@ const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
 }
 
 const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications, libraryAssistant }) => {
+  const showAssistantItem = useExtraEntryPoints() && libraryAssistant;
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
@@ -488,7 +489,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
             <img src="/static/icons/topic.svg" alt={Sefaria._("common.topics")} />
             <InterfaceText>common.topics</InterfaceText>
           </a>
-          {libraryAssistant &&
+          {showAssistantItem &&
             <a href="#" role="button" className="libraryAssistantMenuItem" onClick={openLibraryAssistant}>
               <span className="libraryAssistantMenuStar" aria-hidden="true">✦</span>
               <InterfaceText>header.library_assistant</InterfaceText>

@@ -47,6 +47,14 @@ describe('MobileNavMenu Library Assistant item', () => {
     expect(labels.indexOf('✦header.library_assistant')).toBe(labels.indexOf('header.learning_schedules') - 1);
   });
 
+  it('is absent while the sandbox controls say Circle only, and follows live changes', () => {
+    render({ libraryAssistant: true });
+    act(() => { document.dispatchEvent(new CustomEvent('chatbot:poc-config', { detail: { entryPoints: 'none' } })); });
+    expect(item()).toBeNull();
+    act(() => { document.dispatchEvent(new CustomEvent('chatbot:poc-config', { detail: { entryPoints: 'all' } })); });
+    expect(item()).not.toBeNull();
+  });
+
   it('closes the menu and asks the widget to open', () => {
     const close = jest.fn();
     const onOpen = jest.fn();

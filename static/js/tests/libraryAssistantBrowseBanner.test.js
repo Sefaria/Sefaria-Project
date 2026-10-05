@@ -54,6 +54,12 @@ describe("LibraryAssistantBrowseBanner", function () {
     expect(banner().textContent).toBe("✦Start heretexts_page.library_assistant_banner_button");
   });
 
+  it("is absent while the sandbox controls say Circle only", function () {
+    localStorage.setItem("lc_chatbot:poc_toolbox", JSON.stringify({ placement: "banner", entryPoints: "none" }));
+    render();
+    expect(banner()).toBeNull();
+  });
+
   it("is absent when the assistant isn't on the page", function () {
     document.querySelector("lc-chatbot").remove();
     localStorage.setItem("lc_chatbot:poc_toolbox", JSON.stringify({ placement: "banner" }));

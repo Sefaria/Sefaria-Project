@@ -41,6 +41,7 @@ import Util from './sefaria/util';
 import TopicSearch from "./TopicSearch";
 import WebPage from './WebPage'
 import { SignUpModalKind } from './sefaria/signupModalContent';
+import { useExtraEntryPoints } from './LibraryAssistantPoc';
 
 
 class ConnectionsPanel extends Component {
@@ -1148,8 +1149,9 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image, 
 const LibraryAssistantToolsButton = () => {
   const [hasAssistant, setHasAssistant] = useState(false);
   useEffect(() => setHasAssistant(!!document.querySelector('lc-chatbot')), []);
+  const showItem = useExtraEntryPoints() && hasAssistant;
   const open = () => document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {source: 'resources_panel'}}));
-  return hasAssistant ? <ToolsButton en="Ask Library Assistant" he="שאלו את עוזר הספרייה" glyph="✦" onClick={open} /> : null;
+  return showItem ? <ToolsButton en="Ask Library Assistant" he="שאלו את עוזר הספרייה" glyph="✦" onClick={open} /> : null;
 };
 
 ToolsButton.SecondaryIcon = ({ icon, alt }) => (
