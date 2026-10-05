@@ -176,6 +176,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 # If ElasticSearch server has a password use the following format: http(s)://{username}:{password}@{base_url}
 SEARCH_URL = "http://localhost:9200"
 
+SHOW_ADMIN_ONLY_BOOKS = False  # Only the staff site / staff-mode scripts set True. When False, Indexes marked admin_only are invisible.
 SEARCH_INDEX_ON_SAVE = False  # Whether to send texts and source sheet to Search Host for indexing after save
 SEARCH_INDEX_NAME_TEXT = 'text'  # name of the ElasticSearch index to use
 SEARCH_INDEX_NAME_SHEET = 'sheet'

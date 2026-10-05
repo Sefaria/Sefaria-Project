@@ -23,7 +23,7 @@ from elasticsearch.helpers import bulk
 from elasticsearch.exceptions import NotFoundError, ApiError
 from django_topics.models import Topic as DjangoTopic, PoolType
 from sefaria.model import *
-from sefaria.model.text import AbstractIndex, AbstractTextRecord
+from sefaria.model.text import AbstractIndex, AbstractTextRecord, public_query
 from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
@@ -1237,7 +1237,7 @@ class TextIndexer(object):
             # same budget/pattern as get_all_versions and _index_size_map above.
             for attempt in range(MAX_RETRY_ATTEMPTS + 1):
                 try:
-                    for v in db.texts.find({}, {"title": 1, "versionTitle": 1, "language": 1}):
+                    for v in db.texts.find(public_query(title_fields=("title",)), {"title": 1, "versionTitle": 1, "language": 1}):
                         if (v.get("title"), v.get("versionTitle"), v.get("language")) in cls.version_priority_map:
                             keys.add((v.get("title"), v.get("language")))
                     break
@@ -2479,7 +2479,7 @@ def add_recent_to_queue(ndays):
         "date": {"$gt": cutoff},
         "rev_type": {"$in": ["add text", "edit text"]}
     }
-    activity = db.history.find(query)
+    activity = db.history.find(public_query(query, title_fields=("title",), ref_fields=("ref",)))
     refs = set()
     for a in activity:
         refs.add((a.get("ref"), a.get("version"), a.get("language")))

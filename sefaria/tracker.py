@@ -235,7 +235,7 @@ def count_and_index(oref, lang, vtitle, to_count=1):
     if to_count:
         count_segments(oref.index)
     
-    if SEARCH_INDEX_ON_SAVE:
+    if SEARCH_INDEX_ON_SAVE and not oref.index.is_admin_only():  # hidden books must never reach shared search
         model.IndexQueue({
             "ref": oref.normal(),
             "lang": lang,

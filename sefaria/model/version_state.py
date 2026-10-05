@@ -59,6 +59,10 @@ class VersionState(abst.AbstractMongoRecord, AbstractSchemaContent):
     """
     collection = 'vstate'
 
+    @classmethod
+    def visibility_filter(cls):
+        return text.hidden_titles_filter("title")
+
     required_attrs = [
         "title",  # Index title
         "content"  # tree of data about nodes.  See above.

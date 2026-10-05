@@ -51,6 +51,7 @@ from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sso.adapters import import_gravatar
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
+from sefaria.model.text import public_query
 from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
@@ -1834,7 +1835,7 @@ def version_indices_api(request):
     query = {"versionTitle": version_title}
     if language:
         query["language"] = language
-    indices = db.texts.distinct("title", query)
+    indices = db.texts.distinct("title", public_query(query, title_fields=("title",)))
     sorted_indices = sorted(indices)
 
     # Build metadata with categories for each index

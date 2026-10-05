@@ -52,7 +52,7 @@ from remote_config.keys import CLIENT_REMOTE_CONFIG_JSON, ENABLE_WEBPAGES
 from remote_config import remoteConfigCache
 
 from sefaria.model import *
-from sefaria.model.text import TocSerializationOptions
+from sefaria.model.text import TocSerializationOptions, public_query, admin_only_titles
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.text_request_adapter import TextRequestAdapter
 from sefaria.model.user_profile import UserProfile, user_link, public_user_data, UserWrapper
@@ -3477,7 +3477,7 @@ def texts_history_api(request, tref, lang=None, version=None):
         query = {"ref": {"$regex": refRe }, "language": lang, "version": version.replace("_", " ")}
     else:
         query = {"ref": {"$regex": refRe }}
-    history = db.history.find(query)
+    history = db.history.find(public_query(query, title_fields=("title",), ref_fields=("ref",)))
 
     summary = {"copiers": set(), "translators": set(), "editors": set(), "reviewers": set() }
     updated = history[0]["date"].isoformat() if len(history) else "Unknown"
@@ -4758,11 +4758,11 @@ def translations_api(request, lang=None):
     """
     bundle_commentaries_langs = ["en", "he"]
     if not lang:
-        res = db.texts.distinct("actualLanguage")
+        res = db.texts.distinct("actualLanguage", public_query(title_fields=("title",)))
         return jsonResponse(res)
     # import time
     # t0 = time.time()
-    aggregation_query = [{"$match": {"actualLanguage": lang}}, {"$lookup": {
+    aggregation_query = [{"$match": public_query({"actualLanguage": lang}, title_fields=("title",))}, {"$lookup": {
         "from": "index",
         "localField": "title",
         "foreignField": "title",

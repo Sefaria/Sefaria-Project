@@ -18,7 +18,7 @@ from copy import deepcopy
 import django
 django.setup()
 from sefaria.model import *
-from sefaria.model.text import AbstractIndex
+from sefaria.model.text import AbstractIndex, public_query
 from sefaria.utils.talmud import section_to_daf
 from sefaria.utils.util import flatten_jagged_array
 from sefaria.system.exceptions import InputError
@@ -365,7 +365,7 @@ def export_texts():
     """
     clear_exports()
 
-    texts = db.texts.find()
+    texts = db.texts.find(public_query(title_fields=("title",)))
 
     for text in texts:
         if text_is_copyright(text):
@@ -391,7 +391,7 @@ def prepare_merged_text_for_export(title, lang=None):
         "versionTitle": "merged",
         "versionSource": "https://www.sefaria.org/%s" % title.replace(" ", "_"),
     }
-    text_docs = db.texts.find({"title": title, "language": lang}).sort([["priority", -1], ["_id", 1]])
+    text_docs = db.texts.find(public_query({"title": title, "language": lang}, title_fields=("title",))).sort([["priority", -1], ["_id", 1]])
 
     # Exclude copyrighted docs from merging
     text_docs = [text for text in text_docs if not text_is_copyright(text)]
@@ -433,7 +433,7 @@ def export_all_merged():
     """
     Iterate through all index records and exports a merged text for each.
     """
-    texts = db.texts.find().distinct("title")
+    texts = db.texts.find(public_query(title_fields=("title",))).distinct("title")
 
     for title in texts:
         try:
@@ -486,13 +486,13 @@ def export_links():
     links_by_book = Counter()
     links_by_book_without_commentary = Counter()
 
-    links = db.links.find().sort([["refs.0", 1]])
+    links = db.links.find(public_query(ref_fields=("refs",))).sort([["refs.0", 1]])
     path = SEFARIA_EXPORT_PATH + "/links/"
     if not os.path.exists(os.path.dirname(path)):
         os.makedirs(os.path.dirname(path))
 
     link_file_number = 0
-    links = db.links.find().sort([["refs.0", 1]])
+    links = db.links.find(public_query(ref_fields=("refs",))).sort([["refs.0", 1]])
     new_links_file_size = 300000
     for i, link in enumerate(links):
         if i % new_links_file_size == 0:
