@@ -359,12 +359,6 @@ SEARCH_INDEX_NAME_TOPIC = 'topic'
 SEARCH_INDEX_NAME_BOOK = 'book'
 SEARCH_INDEX_NAME_CATEGORY = 'category'
 
-# Defaults for settings sefaria.system.cache reads at import time, so a local_settings.py
-# that predates them still boots. See local_settings_example.py.
-SENTINEL_MASTER_SET = "mymaster"
-GENCACHE_REDIS_DB_NUM = 6
-DEPLOY_ENV = ""
-
 # Grab environment specific settings from a file which
 # is left out of the repo.
 if os.getenv("CI_RUN"):
