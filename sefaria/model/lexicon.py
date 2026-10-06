@@ -133,7 +133,14 @@ class LexiconEntry(abst.AbstractMongoRecord):
         'span':['class', 'dir'],
         'i': ['data-commentator', 'data-order', 'class', 'data-label', 'dir'],
         'img': lambda name, value: name == 'src' and value.startswith("data:image/"),
-        'a': ['dir', 'class', 'href', 'data-ref'],
+        # data-scroll-link matches the general text-sanitization allowlist for `a`
+        # (sefaria/constants/model.py) -- TextRange.jsx:464 reads it to scroll within the
+        # same panel instead of opening a new one.
+        'a': ['dir', 'class', 'href', 'data-ref', 'data-scroll-link'],
+        # The standard footnote-marker convention (sefaria/helper/normalization.py,
+        # sefaria/search.py) -- s2.css styles it and ReaderApp.jsx's clipboard-copy cleanup
+        # keys off this exact class.
+        'sup': ['class'],
     }
 
     # is_key_changed('headword') tells _validate() whether headword itself is being set to
@@ -144,9 +151,19 @@ class LexiconEntry(abst.AbstractMongoRecord):
 
     # Attrs the content-replace API (replace_content_attrs) is not allowed to overwrite:
     # headword/parent_lexicon are identity; prev_hw/next_hw are sibling pointers only
-    # change_lexicon_headword maintains; rid is an external xref id; quotes isn't read by
-    # any rendering method.
-    content_patch_excluded_attrs = ["headword", "parent_lexicon", "prev_hw", "next_hw", "rid", "quotes"]
+    # change_lexicon_headword maintains; rid/orig_word/orig_ref/catane_number are external
+    # xref ids (the latter three used only by Rashi-lexicon import scripts to match
+    # WordForms, never rendered); the rest are never read as an entry-level attribute by
+    # any subclass's as_strings()/headword_string()/get_sense() -- a few (number,
+    # plural_form, binyan_form, alternative, morphology) share a name with a key read from
+    # inside `content`/`content['senses']`, which is a different field and stays reachable
+    # through `content` regardless.
+    content_patch_excluded_attrs = [
+        "headword", "parent_lexicon", "prev_hw", "next_hw", "rid", "quotes",
+        "transliteration", "pronunciation", "morphology", "refs", "related_words", "number",
+        "citations", "plural_form", "binyan_form", "alternative",
+        "orig_word", "orig_ref", "catane_number", "strong_number", "strong_numbers", "GK", "TWOT",
+    ]
 
     def load(self, query, proj=None):
         # Resolve the correct dictionary subclass before super().load(), since its
@@ -161,15 +178,14 @@ class LexiconEntry(abst.AbstractMongoRecord):
         return super(LexiconEntry, self).load(query, proj)
 
     def _normalize(self):
-        # Relies on headword/prev_hw/next_hw always being NFC on every write path (this
-        # one, and change_lexicon_headword): re-normalizing an already-NFC value is a
-        # no-op, so nothing that depends on the byte value (Index, WordForm, cascaded refs)
-        # is ever desynced here. Existing non-NFC data needs a backfill first -- see
-        # scripts/lexicon/normalize_lexicon_headwords.py.
-        self.headword = unicodedata.normalize('NFC', self.headword)
-        for attr in ('prev_hw', 'next_hw'):
-            if hasattr(self, attr):
-                setattr(self, attr, unicodedata.normalize('NFC', getattr(self, attr)))
+        # An existing entry only gets headword normalized if it's actually changing this
+        # save -- an unrelated save must leave an untouched, not-yet-backfilled value as is.
+        if self.is_new() or self.is_key_changed('headword'):
+            self.headword = unicodedata.normalize('NFC', self.headword)
+        if self.is_new():
+            for attr in ('prev_hw', 'next_hw'):
+                if hasattr(self, attr):
+                    setattr(self, attr, unicodedata.normalize('NFC', getattr(self, attr)))
         self._prune_empty_attrs()
 
     def _prune_empty_attrs(self):
