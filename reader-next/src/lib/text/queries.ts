@@ -9,7 +9,8 @@
  */
 import { queryOptions, type QueryClient } from "@tanstack/react-query";
 import { text } from "@vendor/sefaria-toolkit/client/index";
-import { getSefariaClient, SEFARIA_API_ORIGIN, unwrap } from "~/lib/api/client";
+import { getSefariaClient, unwrap } from "~/lib/api/client";
+import { PUBLIC_CONFIG } from "~/lib/config";
 import { withPolicy } from "~/lib/cache/query-options";
 import { RefIndex } from "~/lib/cache/ref-index";
 import { parseHumanRef } from "~/lib/ref/url";
@@ -48,7 +49,8 @@ const passageQuery = (sel: VersionSelection) => ({
 export function passageUrl(ref: string, sel: VersionSelection = {}): string {
   // Encoded as the generated client does (encodeURIComponent: spaces as %20, not URLSearchParams' "+").
   const q = Object.entries(passageQuery(sel)).flatMap(([k, v]) => [v].flat().map((x) => `${k}=${encodeURIComponent(x)}`));
-  return `${SEFARIA_API_ORIGIN}/api/v3/texts/${encodeURIComponent(ref)}?${q.join("&")}`;
+  // the browser fetches it, so the public origin — not the server's internal one (Varnish in the cluster)
+  return `${PUBLIC_CONFIG.apiOrigin}/api/v3/texts/${encodeURIComponent(ref)}?${q.join("&")}`;
 }
 
 export async function fetchPassage(ref: string, sel: VersionSelection, signal?: AbortSignal): Promise<TextPassage> {
