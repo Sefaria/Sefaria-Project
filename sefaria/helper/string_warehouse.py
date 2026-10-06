@@ -26,7 +26,15 @@ collection at startup with no artifact-shipping step of its own (see `save_wareh
 once, from `init_library_cache()` (reader/startup.py), onto `Library._string_warehouse`. This
 module holds the tokenizer the builder and the search-time lookup share, plus the
 edit-distance-1 candidate generation and the Mongo load/save helpers.
+
+`autocorrect_query` also optionally takes `entity_alt_index`: the runtime-only (never
+persisted to Mongo) index of Book/Author/Topic alternate titles built by
+`sefaria/helper/entity_alt_index.py` and held on `Library._entity_alt_index`. A candidate
+from either source is ranked by the same damped popularity tie-break (`_tie_break_score`),
+so the two can be compared on one scale even though their raw weights (corpus doc counts vs.
+a topic's `numSources`) are nothing alike.
 """
+import math
 import re
 import time
 from collections import Counter
@@ -236,27 +244,58 @@ def _one_edit_candidates(phrase: str) -> set:
     return set(deletes + transposes + replaces + inserts)
 
 
-def _best_match(phrase: str, warehouse: Dict[str, int]) -> Optional[str]:
-    """One-edit-distance correction for a phrase (one or more words). Ties broken by higher doc count."""
-    candidates = [c for c in _one_edit_candidates(phrase) if c in warehouse]
-    if not candidates:
-        return None
-    return max(candidates, key=lambda c: warehouse[c])
+def _tie_break_score(count: int) -> float:
+    """
+    Damps a raw doc count onto a log scale: large counts stop mattering in direct proportion
+    to their size, so a phrase with 50,000 hits isn't treated as 500x "more correct" than one
+    with 100. This is also the scale `sefaria.helper.entity_alt_index` precomputes its own
+    candidates' scores on (see that module's `_entity_tie_break_score`), so a corpus-warehouse
+    candidate and an entity-alt candidate can be ranked against each other by this one number
+    even though their raw weights (corpus doc counts vs. a topic's `numSources`) are on
+    completely different scales. Mirrors the shape (not the exact constants) of the
+    popularity tie-break `get_entity_query_obj` already uses for entity-search relevance
+    (`1 + log10(1 + numSources) * 0.2`) -- popularity/frequency breaks ties, it never is the
+    primary signal.
+    """
+    return math.log10(1 + max(count, 0))
+
+
+def _best_match(phrase: str, warehouse: Dict[str, int],
+                 entity_alt_index: Optional[Dict[str, float]] = None) -> Optional[str]:
+    """
+    One-edit-distance correction for a phrase (one or more words), chosen from both the
+    corpus warehouse and the optional runtime entity-alt index. A candidate found in both is
+    scored by whichever source ranks it higher. Ties (including a tie between the two
+    sources) are broken by `_tie_break_score`/`entity_alt_index`'s own precomputed score --
+    never by raw magnitude, since the two sources' raw weights aren't comparable.
+    """
+    best, best_score = None, None
+    for c in _one_edit_candidates(phrase):
+        if c in warehouse:
+            score = _tie_break_score(warehouse[c])
+            if best_score is None or score > best_score:
+                best, best_score = c, score
+        if entity_alt_index and c in entity_alt_index:
+            score = entity_alt_index[c]  # already precomputed on the same comparable scale
+            if best_score is None or score > best_score:
+                best, best_score = c, score
+    return best
 
 
 def _try_window(words: List[str], normalized: List[str], start: int, end: int,
-                 warehouse: Dict[str, int]) -> Optional[str]:
+                 warehouse: Dict[str, int],
+                 entity_alt_index: Optional[Dict[str, float]] = None) -> Optional[str]:
     """
     Try to correct `normalized[start:end]` (a contiguous run of query words) as a single
     phrase. Returns the full corrected query (all of `words`, with just this window fixed
-    up) if the window's phrase is exactly one edit from some *other* warehouse phrase; None
-    if the window is already a known phrase (nothing to fix) or isn't a 1-edit match for
-    anything.
+    up) if the window's phrase is exactly one edit from some *other* phrase in either source;
+    None if the window is already a known phrase in either source (nothing to fix) or isn't a
+    1-edit match for anything.
     """
     phrase = " ".join(normalized[start:end])
-    if phrase in warehouse:
-        return None  # already an attested phrase -- nothing to correct here
-    candidate = _best_match(phrase, warehouse)
+    if phrase in warehouse or (entity_alt_index and phrase in entity_alt_index):
+        return None  # already an attested phrase/title -- nothing to correct here
+    candidate = _best_match(phrase, warehouse, entity_alt_index)
     if candidate is None:
         return None
 
@@ -277,28 +316,37 @@ def _try_window(words: List[str], normalized: List[str], start: int, end: int,
     return " ".join(corrected_words)
 
 
-def autocorrect_query(query: str, warehouse: Dict[str, int]) -> Optional[Tuple[str, str]]:
+def autocorrect_query(query: str, warehouse: Dict[str, int],
+                       entity_alt_index: Optional[Dict[str, float]] = None) -> Optional[Tuple[str, str]]:
     """
     Product spec sc-47189. Corrects a *phrase*, never a lone word in isolation, so a fix is
-    only ever offered when the resulting phrase is itself something the corpus contains (see
-    the module docstring).
+    only ever offered when the resulting phrase is itself something the corpus contains, or a
+    known Book/Author/Topic alternate title/name (see the module docstring and
+    sefaria/helper/entity_alt_index.py).
 
     - A query of up to MAX_PHRASE_WORDS words is treated as a single phrase: if it already
-      matches a warehouse entry, it's search normally, uncorrected (returns None). Otherwise,
-      if the whole phrase is exactly one edit away from some warehouse phrase, that's the
-      correction.
-    - A longer query is corrected at most once, in its longest fixable contiguous run of
-      words: window sizes MAX_PHRASE_WORDS down to 1 are tried, left to right within each
-      size, and the first window that is both not already a known phrase and one edit from
-      one is corrected; every other word in the query is left exactly as typed. A query with
-      no such window anywhere (every window already attested, or too far off to fix within a
-      1-edit budget) also returns None.
+      matches a warehouse or entity-alt entry, it's searched normally, uncorrected (returns
+      None). Otherwise, if the whole phrase is exactly one edit away from some phrase in
+      either source, that's the correction.
+    - A longer query first gets one extra, entity-alt-only chance to be corrected *in its
+      entirety*: an entity title/name is a single curated unit, not generated as a sliding
+      window over corpus text, so unlike the warehouse it is never capped at
+      MAX_PHRASE_WORDS -- explaining the WHOLE query this way beats any partial fix below.
+      Failing that, the query is corrected at most once, in its longest fixable contiguous
+      run of words: window sizes MAX_PHRASE_WORDS down to 1 are tried (against both sources),
+      left to right within each size, and the first window that is both not already a known
+      phrase and one edit from one is corrected; every other word in the query is left
+      exactly as typed. A query with no such window anywhere (every window already attested,
+      or too far off to fix within a 1-edit budget) also returns None.
 
     :param query: the raw query text as typed/submitted.
     :param warehouse: {normalized_phrase: doc_count}, e.g. `library._string_warehouse`.
+    :param entity_alt_index: {normalized_phrase: tie_break_score}, e.g.
+        `library._entity_alt_index` -- see sefaria/helper/entity_alt_index.py. Optional: a
+        query corrects against the warehouse alone when omitted.
     :return: (corrected_query, original_query) if a correction applies, else None.
     """
-    if not warehouse or not query:
+    if not query or (not warehouse and not entity_alt_index):
         return None
     words = query.split()
     if not words:
@@ -307,12 +355,17 @@ def autocorrect_query(query: str, warehouse: Dict[str, int]) -> Optional[Tuple[s
     n = len(normalized)
 
     if n <= MAX_PHRASE_WORDS:
-        corrected = _try_window(words, normalized, 0, n, warehouse)
+        corrected = _try_window(words, normalized, 0, n, warehouse, entity_alt_index)
         return (corrected, query) if corrected else None
+
+    if entity_alt_index:
+        whole = _try_window(words, normalized, 0, n, {}, entity_alt_index)
+        if whole:
+            return whole, query
 
     for size in range(MAX_PHRASE_WORDS, 0, -1):
         for start in range(0, n - size + 1):
-            corrected = _try_window(words, normalized, start, start + size, warehouse)
+            corrected = _try_window(words, normalized, start, start + size, warehouse, entity_alt_index)
             if corrected:
                 return corrected, query
     return None

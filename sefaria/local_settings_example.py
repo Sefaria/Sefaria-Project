@@ -240,6 +240,13 @@ NAME_SERVICE = False
 # never serve search_wrapper_api and so have no use for it in memory.
 DISABLE_STRING_WAREHOUSE = False
 
+# When True this process skips building the runtime Book/Author/Topic alt-title index (same
+# feature, sc-47189, sefaria/helper/entity_alt_index.py) at startup -- same rationale as
+# DISABLE_STRING_WAREHOUSE above. Unlike the string warehouse this index is never persisted
+# to Mongo, so there is no artifact to load either way -- disabling it just means auto-correct
+# only ever consults the string warehouse.
+DISABLE_ENTITY_ALT_INDEX = False
+
 # Turns on loading of machine learning models to run linker
 ENABLE_LINKER = False
 

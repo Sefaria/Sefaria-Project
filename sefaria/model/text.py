@@ -36,7 +36,7 @@ skip_bad_record = bad_record_guard(logger)
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string, flatten_jagged_array
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER, DISABLE_STRING_WAREHOUSE
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER, DISABLE_STRING_WAREHOUSE, DISABLE_ENTITY_ALT_INDEX
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
 from sefaria.helper.normalization import NormalizerFactory
@@ -4517,6 +4517,12 @@ class Library(object):
         # than doing Mongo I/O unconditionally inside __init__.
         self._string_warehouse = {}
 
+        # Runtime-only Book/Author/Topic alt-title index for the same auto-correction (sc-47189,
+        # sefaria/helper/entity_alt_index.py) -- NEVER persisted to Mongo, unlike _string_warehouse
+        # above. Empty until build_entity_alt_index() populates it, likewise during
+        # init_library_cache().
+        self._entity_alt_index = {}
+
         # Maps, keyed by language, from index key to array of titles
         self._index_title_maps = {lang:{} for lang in self.langs}
 
@@ -4616,10 +4622,11 @@ class Library(object):
         """
         Fuzzy-search POC (sc-47189). See sefaria.helper.string_warehouse.autocorrect_query
         for the algorithm. Returns (corrected_query, original_query) if `query` should be
-        auto-corrected against the string warehouse, else None (search `query` as typed).
+        auto-corrected against the corpus string warehouse or the runtime Book/Author/Topic
+        alt-title index (sefaria/helper/entity_alt_index.py), else None (search `query` as typed).
         """
         from sefaria.helper.string_warehouse import autocorrect_query
-        return autocorrect_query(query, self._string_warehouse)
+        return autocorrect_query(query, self._string_warehouse, self._entity_alt_index)
 
     def _reset_index_derivative_objects(self, include_auto_complete=False):
         """
@@ -5034,6 +5041,23 @@ class Library(object):
         from sefaria.helper.string_warehouse import load_warehouse
         with build_pathway("build_string_warehouse"):
             self._string_warehouse = load_warehouse()
+
+    def build_entity_alt_index(self):
+        """
+        Builds the runtime Book/Author/Topic alt-title index (search-query auto-correction,
+        sc-47189) from live Mongo data (Index/Topic/AuthorTopic) -- an in-process
+        construction from already-loaded collections, like the autocompleters above, not a
+        read of a precomputed artifact (contrast build_string_warehouse() above: this index
+        is never persisted to Mongo, so there is nothing to load). No-op when
+        DISABLE_ENTITY_ALT_INDEX is set; an empty index just leaves auto-correction without
+        entity-alt matches, it does not fail startup.
+        """
+        if DISABLE_ENTITY_ALT_INDEX:
+            logger.warning("DISABLE_ENTITY_ALT_INDEX is set; skipping entity alt index build.")
+            return
+        from sefaria.helper.entity_alt_index import build_entity_alt_index
+        with build_pathway("build_entity_alt_index"):
+            self._entity_alt_index = build_entity_alt_index()
 
     def cross_lexicon_auto_completer(self):
         """

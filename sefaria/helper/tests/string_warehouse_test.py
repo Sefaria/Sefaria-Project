@@ -20,6 +20,7 @@ from sefaria.helper.string_warehouse import (
     _segment_phrases,
     _one_edit_candidates,
     _best_match,
+    _tie_break_score,
     _try_window,
     autocorrect_query,
     save_warehouse,
@@ -99,6 +100,30 @@ def test_best_match_returns_none_when_nothing_in_warehouse_is_one_edit_away():
     assert _best_match("cat", {"elephant": 10}) is None
 
 
+def test_tie_break_score_is_damped_and_monotonic():
+    # Large counts stop mattering in direct proportion to their size.
+    assert _tie_break_score(0) == 0
+    assert _tie_break_score(9) < _tie_break_score(99) < _tie_break_score(999)
+    # A 100x bigger count is nowhere near a 100x bigger score.
+    assert _tie_break_score(10000) < _tie_break_score(100) * 10
+
+
+def test_best_match_considers_entity_alt_index_and_picks_the_higher_score():
+    # "cap" (warehouse, raw count 5 -> a small tie-break score) vs "cot" (entity-alt index,
+    # already pre-scored high) -- the entity-alt candidate must win despite the warehouse
+    # having a candidate too, because its score is higher, not because of source priority.
+    warehouse = {"cap": 5}
+    entity_alt_index = {"cot": 100.0}
+    assert _best_match("cat", warehouse, entity_alt_index) == "cot"
+
+
+def test_best_match_prefers_the_higher_scoring_source_when_a_candidate_is_in_both():
+    warehouse = {"cot": 100000}             # huge raw count, but still log-damped
+    entity_alt_index = {"cot": 1000.0}      # deliberately-inflated score, wins anyway
+    assert _best_match("cat", warehouse, entity_alt_index) == "cot"
+    assert entity_alt_index["cot"] > _tie_break_score(warehouse["cot"])
+
+
 # --------------------------------------------------------------------------- #
 #  _try_window                                                                #
 # --------------------------------------------------------------------------- #
@@ -131,6 +156,18 @@ def test_try_window_only_touches_the_requested_slice():
     words = ["The", "Bereshit", "Rabbah", "edition"]
     normalized = [normalize_word(w) for w in words]
     assert _try_window(words, normalized, 1, 3, warehouse) == "The bereishit Rabbah edition"
+
+
+def test_try_window_corrects_from_entity_alt_index_alone():
+    words = ["Rasih"]
+    normalized = [normalize_word(w) for w in words]
+    assert _try_window(words, normalized, 0, 1, {}, {"rashi": 4.0}) == "rashi"
+
+
+def test_try_window_already_attested_in_entity_alt_index_is_noop():
+    words = ["Rashi"]
+    normalized = [normalize_word(w) for w in words]
+    assert _try_window(words, normalized, 0, 1, {}, {"rashi": 4.0}) is None
 
 
 # --------------------------------------------------------------------------- #
@@ -200,6 +237,49 @@ def test_max_phrase_words_is_three():
     # The spec this module implements: phrases of up to 3 words. If this ever changes, the
     # window-size tests above need to change with it.
     assert MAX_PHRASE_WORDS == 3
+
+
+# --------------------------------------------------------------------------- #
+#  autocorrect_query + entity_alt_index                                       #
+# --------------------------------------------------------------------------- #
+
+def test_autocorrect_query_short_query_corrects_from_entity_alt_index():
+    assert autocorrect_query("rasih", {}, {"rashi": 4.0}) == ("rashi", "rasih")
+
+
+def test_autocorrect_query_short_query_already_attested_in_entity_alt_index_is_noop():
+    assert autocorrect_query("rashi", {}, {"rashi": 4.0}) is None
+
+
+def test_autocorrect_query_short_query_picks_higher_scoring_source():
+    # Both sources offer a fix; the entity-alt index's precomputed score wins here.
+    warehouse = {"cap": 1}
+    entity_alt_index = {"cot": 100.0}
+    assert autocorrect_query("cat", warehouse, entity_alt_index) == ("cot", "cat")
+
+
+def test_autocorrect_query_long_query_whole_phrase_entity_match_beats_windowed_warehouse():
+    # "mishneh torah" is only 2 words -- well under MAX_PHRASE_WORDS -- but the full query is
+    # 5 words, long enough that the capped warehouse scan alone could only ever propose a
+    # partial (<=3-word) fix. The entity index holds the complete, uncapped title, so the
+    # whole-query entity pass must fire and win outright.
+    entity_alt_index = {"the mishneh torah book": 0.0}
+    result = autocorrect_query("the mishne torah book", {}, entity_alt_index)
+    assert result == ("the mishneh torah book", "the mishne torah book")
+
+
+def test_autocorrect_query_long_query_falls_through_to_windowed_scan_when_no_whole_match():
+    warehouse = {"quick brown fox": 10}
+    entity_alt_index = {"some unrelated title": 5.0}
+    result = autocorrect_query("a quick brown fax jumps", warehouse, entity_alt_index)
+    assert result == ("a quick brown fox jumps", "a quick brown fax jumps")
+
+
+def test_autocorrect_query_entity_alt_index_is_optional():
+    # Omitting entity_alt_index entirely (e.g. DISABLE_ENTITY_ALT_INDEX) must behave exactly
+    # like the warehouse-only signature this replaced.
+    warehouse = {"bereishit rabbah": 10}
+    assert autocorrect_query("bereshit rabbah", warehouse) == ("bereishit rabbah", "bereshit rabbah")
 
 
 # --------------------------------------------------------------------------- #
