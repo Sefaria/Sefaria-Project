@@ -188,3 +188,4 @@ Early tests and components were tagged with IDs written from memory; most pointe
 
 ## 2026-10-06 — served in the cluster (owner decision)
 - **PLT-003**: the client replaces the legacy Node server in the node pods; nginx sends page requests to it first, it reads the API through Varnish and passes Django's pages, writes and its own 404s on (Sefaria-Project branch `reader-next`, `nodejs.mode`, `docs/DEPLOYMENT.md`). **PLT-002**: `/healthz-reader` with rollout probes. Verified with the rendered nginx config and containers locally; cauldron pending a push.
+- **SRC-070**: the topic TOC now has a public endpoint (`/api/topics-toc`, Sefaria-Project branch `reader-next`); Author and Topic search cards show their parent category crumb from it.

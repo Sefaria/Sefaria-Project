@@ -1398,8 +1398,9 @@
   "note": "OpenSearch / sitelinks / legacy s1 handoff need server or deploy decisions: ask the owner."
  },
  "SRC-070": {
-  "status": "partial",
-  "note": "Card built; the parent-topic crumb needs the topic TOC (topics pages, Phase 7)."
+  "status": "done",
+  "note": "Parent-category crumb from /api/topics-toc (cauldron reader-next; absent where the endpoint is not deployed)",
+  "by": "src/lib/topics/topic-toc.ts"
  },
  "SRC-060": {
   "status": "done",

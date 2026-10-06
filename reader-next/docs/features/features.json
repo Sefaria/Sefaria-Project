@@ -11436,7 +11436,8 @@
    "Name title_en||title_he (he: title_he||title_en); description en/he; href /topics/<slug>.",
    "Crumb = parent topic TOC category (displayTopicTocCategory) -> /topics/category/<slug>; icon topic.svg; black accent bar.",
    "Cards navigate via openURL(href) else window.location.href; breadcrumb/author sub-links stop propagation.",
-   "VERIFIED: topic card = round # icon, black accent bar, parent-category crumb above the name (e.g. 'Nature' above 'Light'; none for 'Lighting'), name, description. Rebuild: crumb NOT built (needs the topic TOC, with the topics pages — Phase 7)."
+   "VERIFIED: topic card = round # icon, black accent bar, parent-category crumb above the name (e.g. 'Nature' above 'Light'; none for 'Lighting'), name, description. Rebuild: crumb NOT built (needs the topic TOC, with the topics pages — Phase 7).",
+   "OWNER DECISION 2026-10-06: add a public endpoint. BUILT: Sefaria-Project GET /api/topics-toc (reader/views.py topics_toc_api → library.get_topic_toc_json(); branch reader-next) and src/lib/topics/topic-toc.ts (topicParents = the old displayTopicTocCategory: the category directly above a topic, none for top-level ones); Author and Topic cards show it as a crumb linking to /topics/category/<slug>. Until the endpoint reaches sefaria.org the request 404s and the crumb is simply absent."
   ],
   "audience": "all",
   "platform": "all",
