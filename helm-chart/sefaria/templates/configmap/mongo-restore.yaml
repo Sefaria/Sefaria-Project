@@ -46,7 +46,7 @@ data:
       URI="${URI}&authSource=admin"
     fi
 
-    if [[ ! -z "MONGO_REPLICASET_NAME" ]]; then
+    if [[ ! -z "${MONGO_REPLICASET_NAME}" ]]; then
     URI="${URI}&replicaSet=${MONGO_REPLICASET_NAME}"
     fi
 
