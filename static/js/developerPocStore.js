@@ -51,6 +51,8 @@ export const emptyState = () => ({
   version: DEVELOPER_POC_VERSION,
   developerEnabled: false,
   ssoOverride: null,   // null: use the account's real providers. true/false: pretend.
+  emailVerified: false,       // confirmed through the emailed link
+  confirmationSentAt: null,   // when a confirmation link was last "sent"
   failNextKey: false,
   profile: null,
   projects: [],
@@ -179,6 +181,12 @@ export const writeState = (state) => {
 
 export const ssoConnected = (state, realProviders) => (
   state.ssoOverride === null ? (realProviders || []).length > 0 : !!state.ssoOverride
+);
+
+/* Developer settings need a verified email: Google or Apple sign-in verifies it, and so does
+   the emailed confirmation link. */
+export const accountVerified = (state, realProviders) => (
+  ssoConnected(state, realProviders) || !!state.emailVerified
 );
 
 export const websiteHost = (url) => {

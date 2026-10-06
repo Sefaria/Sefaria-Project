@@ -177,3 +177,33 @@ describe('Hebrew interface', () => {
     expect(developerPanel().textContent).not.toContain('No projects yet');
   });
 });
+
+describe('confirming the email', () => {
+  const unverified = { developerEnabled: false, ssoOverride: false };
+
+  it('offers an emailed link first, with Google or Apple as the alternative', () => {
+    mount('developer', unverified);
+    act(() => { buttonNamed(developerPanel(), 'Get started').click(); });
+    const actions = Array.from(developerPanel().querySelectorAll('button')).map(b => b.textContent.trim());
+    expect(actions.indexOf('Email me a confirmation link')).toBeLessThan(actions.indexOf('Continue with Google'));
+    expect(developerPanel().textContent).toContain('you keep signing in the way you do now');
+  });
+
+  it('shows the check-your-email step once the link is sent', () => {
+    mount('developer', unverified);
+    act(() => { buttonNamed(developerPanel(), 'Get started').click(); });
+    act(() => { buttonNamed(developerPanel(), 'Email me a confirmation link').click(); });
+    expect(developerPanel().textContent).toContain('Check your email');
+    expect(developerPanel().textContent).toContain('tova@example.org');
+    expect(buttonNamed(developerPanel(), 'Resend the link')).toBeTruthy();
+  });
+
+  it('lets an account with a confirmed email straight in', () => {
+    jest.useFakeTimers();
+    mount('developer', { ...unverified, emailVerified: true });
+    act(() => { buttonNamed(developerPanel(), 'Get started').click(); });
+    act(() => { jest.runAllTimers(); });
+    expect(developerPanel().textContent).toContain('About you');
+    jest.useRealTimers();
+  });
+});

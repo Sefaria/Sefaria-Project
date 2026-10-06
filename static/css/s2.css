@@ -18040,3 +18040,8 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 }
 .devPocMockSsoCancel { background: transparent; border: none; color: #18345d; }
 .devPocMockSsoContinue { background: #18345d; border: 1px solid #18345d; color: #fff; }
+.devPocSsoAlternative { margin-top: var(--devPoc-s3); padding-top: var(--devPoc-s3); border-top: 1px solid var(--devPoc-line); }
+.devPocPage p.devPocOr { margin: 0 0 var(--devPoc-s2); font-size: 14px; font-weight: 500; }
+.devPocMockEmail h2 { font-size: 20px; margin: 8px 0 12px; }
+.devPocMockEmailMeta { font-size: 12px; color: #626971; margin: 0; }
+.devPocMockEmailFoot { font-size: 12px; color: #626971; margin-top: 16px; }

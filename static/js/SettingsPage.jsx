@@ -10,6 +10,7 @@ import {
   makeProject,
   sampleState,
   ssoConnected,
+  accountVerified,
   usageSeries,
   websiteHost,
   writeState,
@@ -152,7 +153,7 @@ const writePanelOpen = (open) => {
 /* The POC test controls. Deliberately unlike the product: a floating panel pinned to the
    corner of the viewport, in colours the site never uses, and English only. Nothing in it
    is product UI. */
-const PocTestPanel = ({state, realProviders, update, reset, showSimulate}) => {
+const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpenMockEmail}) => {
   const [open, setOpen] = useState(false);
 
   useEffect(() => { setOpen(readPanelOpen()); }, []);
@@ -206,6 +207,30 @@ const PocTestPanel = ({state, realProviders, update, reset, showSimulate}) => {
                 Use real status
               </button>
             </div> : null}
+          <label className="devPocPanelChoice">
+            <input
+              type="checkbox"
+              className="devPocSwitch"
+              checked={!!state.emailVerified}
+              onChange={e => update(s => ({...s, emailVerified: e.target.checked, confirmationSentAt: null}))}
+              aria-label="Simulate email confirmed"
+            />
+            <span>Simulate: email {state.emailVerified ? "confirmed" : "not confirmed"}</span>
+          </label>
+          <div className="devPocPanelRow">
+            <button
+              type="button"
+              className="devPocPanelButton"
+              disabled={!state.confirmationSentAt}
+              data-agent-action="mock-open-email"
+              onClick={onOpenMockEmail}
+            >Open the confirmation email</button>
+          </div>
+          <p className="devPocPanelNote">
+            {state.confirmationSentAt
+              ? "A confirmation link was \"sent\". Open the email to click it."
+              : "Available after \"Email me a confirmation link\"."}
+          </p>
           <p className="devPocPanelNote">
             Connecting Google or Apple in this POC is auto-approved: no sign-in happens and no account changes.
           </p>
@@ -287,8 +312,12 @@ const AgentInstructions = () => (
       </li>
       <li>
         If developer settings are not set up yet, press "Get started" (get-started). An
-        account without a Google or Apple sign-in is asked to connect one first. That changes
-        how the user signs in to Sefaria, so confirm it with the user before continuing.
+        account whose email is not yet confirmed is asked to confirm it first. Prefer "Email
+        me a confirmation link" (send-confirmation): it does not change how the user signs
+        in. The user then opens the link from their inbox (or you do, if you have access to
+        it), and setup continues on this page. The alternative, "Continue with Google" or
+        "Continue with Apple", changes how the user signs in to Sefaria, so confirm it with
+        the user before choosing it.
       </li>
       <li>
         Fill in the "About you" form. Name and account email come from the Sefaria account
@@ -329,13 +358,18 @@ const AgentInstructions = () => (
 );
 
 
-/* The one way in to developer settings. An account with Google or Apple goes straight in;
-   any other account connects one first, then goes in. Developer settings stay on once
-   they are on. */
-const GetStarted = ({connected, settingUp, highlight, onStart, onConnectSso}) => {
-  const [askSso, setAskSso] = useState(false);
-  const start = () => { if (connected) { onStart(); } else { setAskSso(true); } };
+/* The one way in to developer settings. An account whose email is verified (by Google or
+   Apple sign-in, or by an emailed confirmation link) goes straight in. Any other account
+   confirms its email first: a link by email, which doesn't change how it signs in, or
+   Google or Apple, which does. Developer settings stay on once they are on. */
+const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, onSendConfirmation,
+                     onCancelConfirmation, onConnectSso}) => {
+  const [asking, setAsking] = useState(false);
+  const [resent, setResent] = useState(false);
+  const start = () => { if (verified) { onStart(); } else { setAsking(true); } };
   const cardClass = "devPocCard" + (highlight ? " settingsHighlight" : "");
+  const email = accountEmail();
+  const emailText = email ? <bdi dir="ltr"><strong>{email}</strong></bdi> : null;
 
   if (settingUp) {
     return (
@@ -346,50 +380,76 @@ const GetStarted = ({connected, settingUp, highlight, onStart, onConnectSso}) =>
     );
   }
 
-  if (askSso && !connected) {
-    const email = accountEmail();
+  const ssoChoice = (
+    <div className="devPocSsoAlternative">
+      <p className="devPocOr"><InterfaceText text={{en: "Or use Google or Apple", he: "או באמצעות גוגל או אפל"}} /></p>
+      <div className="devPocActions">
+        <button className="button small white" type="button" data-agent-action="connect-google" onClick={() => onConnectSso("Google")}>
+          <InterfaceText text={{en: "Continue with Google", he: "המשך עם גוגל"}} />
+        </button>
+        <button className="button small white" type="button" data-agent-action="connect-apple" onClick={() => onConnectSso("Apple")}>
+          <InterfaceText text={{en: "Continue with Apple", he: "המשך עם אפל"}} />
+        </button>
+      </div>
+      <p className="devPocHelp">
+        <InterfaceText text={{
+          en: "This changes how you sign in: from then on, you sign in to this same account with Google or Apple.",
+          he: "זה משנה את דרך ההתחברות: מאז והלאה תתחברו לאותו חשבון עם גוגל או אפל.",
+        }} />
+      </p>
+    </div>
+  );
+
+  if (!verified && confirmationSent) {
     return (
-      <div className={"devPocSsoPrompt " + cardClass} role="region" aria-label={Sefaria._v({en: "Sign in with Google or Apple", he: "התחברות עם גוגל או אפל"})}>
-        <h2><InterfaceText text={{en: "Sign in once with Google or Apple", he: "התחברות חד־פעמית עם גוגל או אפל"}} /></h2>
+      <div className={"devPocSsoPrompt " + cardClass} role="region" aria-label={Sefaria._v({en: "Check your email", he: "בדקו את תיבת הדוא״ל"})}>
+        <h2><InterfaceText text={{en: "Check your email", he: "בדקו את תיבת הדוא״ל"}} /></h2>
         <p>
           <InterfaceText text={{
-            en: "Developer settings need a Google or Apple sign-in, so we know the email we use to reach you about your keys is really yours.",
-            he: "הגדרות המפתחים דורשות התחברות עם גוגל או אפל, כדי שנדע שכתובת הדוא״ל שבה ניצור איתך קשר בנוגע למפתחות אכן שלך.",
+            en: <React.Fragment>We sent a confirmation link to {emailText}. Open it on any device, and developer settings continue here. The link works for 3 days.</React.Fragment>,
+            he: <React.Fragment>שלחנו קישור לאישור אל {emailText}. פתחו אותו בכל מכשיר, והגדרות המפתחים ימשיכו כאן. הקישור בתוקף 3 ימים.</React.Fragment>,
           }} />
         </p>
-        <ul className="devPocList">
-          <li>
-            <InterfaceText text={{
-              en: <React.Fragment>
-                You're verifying the Sefaria account you're signed in to now
-                {email ? <React.Fragment> (<strong dir="ltr">{email}</strong>)</React.Fragment> : null}.
-                It doesn't add a second account.
-              </React.Fragment>,
-              he: <React.Fragment>
-                האימות הוא לחשבון ספריא שבו את/ה מחובר/ת עכשיו
-                {email ? <React.Fragment> (<bdi dir="ltr"><strong>{email}</strong></bdi>)</React.Fragment> : null}.
-                לא נוצר חשבון נוסף.
-              </React.Fragment>,
-            }} />
-          </li>
-          <li>
-            <InterfaceText text={{
-              en: "This changes how you sign in: from now on you'll use Google or Apple to sign in to this same account.",
-              he: "זה משנה את דרך ההתחברות: מעכשיו תתחברו לאותו חשבון עם גוגל או אפל.",
-            }} />
-          </li>
-        </ul>
         <div className="devPocActions">
-          <button className="button small blue" type="button" data-agent-action="connect-google" onClick={() => onConnectSso("Google")}>
-            <InterfaceText text={{en: "Continue with Google", he: "המשך עם גוגל"}} />
+          <button className="button small white" type="button" data-agent-action="resend-confirmation" onClick={() => { onSendConfirmation(); setResent(true); }}>
+            <InterfaceText text={{en: "Resend the link", he: "שליחה חוזרת של הקישור"}} />
           </button>
-          <button className="button small blue" type="button" data-agent-action="connect-apple" onClick={() => onConnectSso("Apple")}>
-            <InterfaceText text={{en: "Continue with Apple", he: "המשך עם אפל"}} />
-          </button>
-          <button className="button small transparent" type="button" onClick={() => setAskSso(false)}>
+          <button className="button small transparent" type="button" onClick={() => { onCancelConfirmation(); setAsking(false); setResent(false); }}>
             <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
           </button>
         </div>
+        {resent ?
+          <p className="devPocHelp" role="status"><InterfaceText text={{en: "Sent again.", he: "נשלח שוב."}} /></p> : null}
+        <p className="devPocHelp">
+          <InterfaceText text={{
+            en: "Not there? Check your spam folder. Wrong address? Change it in Account settings first.",
+            he: "לא הגיע? בדקו בתיקיית הספאם. הכתובת שגויה? שנו אותה קודם בהגדרות החשבון.",
+          }} />
+        </p>
+        {ssoChoice}
+      </div>
+    );
+  }
+
+  if (asking && !verified) {
+    return (
+      <div className={"devPocSsoPrompt " + cardClass} role="region" aria-label={Sefaria._v({en: "Confirm your email", he: "אישור כתובת הדוא״ל"})}>
+        <h2><InterfaceText text={{en: "Confirm your email address", he: "אישור כתובת הדוא״ל"}} /></h2>
+        <p>
+          <InterfaceText text={{
+            en: <React.Fragment>We email you about your API keys, so first we check that {email ? emailText : "your account email"} is really yours. It's a one-time step, and you keep signing in the way you do now.</React.Fragment>,
+            he: <React.Fragment>אנחנו שולחים לך הודעות על מפתחות ה־API, ולכן קודם נוודא ש־{email ? emailText : "כתובת הדוא״ל של החשבון"} באמת שלך. זה צעד חד־פעמי, ודרך ההתחברות שלך לא משתנה.</React.Fragment>,
+          }} />
+        </p>
+        <div className="devPocActions">
+          <button className="button small blue" type="button" data-agent-action="send-confirmation" onClick={onSendConfirmation}>
+            <InterfaceText text={{en: "Email me a confirmation link", he: "שלחו לי קישור לאישור"}} />
+          </button>
+          <button className="button small transparent" type="button" onClick={() => setAsking(false)}>
+            <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
+          </button>
+        </div>
+        {ssoChoice}
       </div>
     );
   }
@@ -1670,10 +1730,13 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
 
       {!developerOn ?
         <GetStarted
-          connected={ssoConnected(state, socialProviders)}
+          verified={accountVerified(state, socialProviders)}
+          confirmationSent={!!state.confirmationSentAt}
           settingUp={settingUp}
           highlight={highlight}
           onStart={onStart}
+          onSendConfirmation={() => update(s => ({...s, confirmationSentAt: new Date().toISOString()}))}
+          onCancelConfirmation={() => update(s => ({...s, confirmationSentAt: null}))}
           onConnectSso={onConnectSso}
         /> :
         !state.profile ?
@@ -1787,6 +1850,45 @@ const MockSsoDialog = ({provider, onCancel, onContinue}) => {
             <button type="button" className="devPocMockSsoCancel" onClick={onCancel}>Cancel</button>
             <button type="button" className="devPocMockSsoContinue" ref={continueRef} data-agent-action="mock-sso-continue" onClick={onContinue}>Continue</button>
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+/* The confirmation email as the user would get it, in the interface language, for copy
+   review. Its button stands in for the emailed link. */
+const MockEmailDialog = ({onCancel, onConfirm}) => {
+  const confirmRef = useRef(null);
+  const email = accountEmail() || "you@example.org";
+  useDialogKeys(confirmRef, onCancel);
+  return (
+    <div className="devPocMockSso" role="dialog" aria-modal="true" aria-label="Confirmation email">
+      <div className="devPocMockSsoBackdrop" onClick={onCancel} />
+      <div className="devPocMockSsoDialog devPocMockEmail">
+        <p className="devPocMockSsoBanner" lang="en" dir="ltr">MOCK &mdash; the email the user receives; no email is sent</p>
+        <div className="devPocMockSsoBody">
+          <p className="devPocMockEmailMeta" dir="ltr">Sefaria &lt;hello@sefaria.org&gt; → {email}</p>
+          <h2><InterfaceText text={{en: "Confirm your email for Sefaria developer settings", he: "אישור כתובת הדוא״ל להגדרות המפתחים בספריא"}} /></h2>
+          <p>
+            <InterfaceText text={{
+              en: "Someone, hopefully you, asked to set up developer settings on the Sefaria account that uses this address. Confirm it to continue. The link works for 3 days.",
+              he: "מישהו, כנראה את/ה, ביקש להגדיר הגדרות מפתחים בחשבון ספריא שמשתמש בכתובת הזו. אשרו אותה כדי להמשיך. הקישור בתוקף 3 ימים.",
+            }} />
+          </p>
+          <div className="devPocMockSsoActions">
+            <button type="button" className="devPocMockSsoCancel" onClick={onCancel}>Close</button>
+            <button type="button" className="devPocMockSsoContinue" ref={confirmRef} data-agent-action="mock-confirm-email" onClick={onConfirm}>
+              <InterfaceText text={{en: "Confirm my email", he: "אישור כתובת הדוא״ל"}} />
+            </button>
+          </div>
+          <p className="devPocMockEmailFoot">
+            <InterfaceText text={{
+              en: "Didn't ask for this? Ignore this email and nothing changes.",
+              he: "לא ביקשת? אפשר להתעלם מההודעה, ושום דבר לא ישתנה.",
+            }} />
+          </p>
         </div>
       </div>
     </div>
@@ -2204,6 +2306,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
   const [confirm, setConfirm] = useState(null);
   const [notice, setNotice] = useState("");
   const [mockSso, setMockSso] = useState(null);
+  const [mockEmailOpen, setMockEmailOpen] = useState(false);
   const [connectedMessage, setConnectedMessage] = useState("");
   const [settingUp, setSettingUp] = useState(false);
   const [arrivalHighlight, setArrivalHighlight] = useState(false);
@@ -2243,7 +2346,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     setNotice("");
   };
 
-  const developerOn = ssoConnected(pocState, socialProviders) && !!pocState.developerEnabled;
+  const developerOn = accountVerified(pocState, socialProviders) && !!pocState.developerEnabled;
 
   const createProject = (fields) => {
     const project = makeProject(fields);
@@ -2279,6 +2382,18 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
         en: provider + " is connected. From now on, you sign in to this account with " + provider + ".",
         he: providerHe + " מחובר. מעכשיו ההתחברות לחשבון הזה היא דרך " + providerHe + ".",
       }));
+      clearTimeout(connectedTimer.current);
+      connectedTimer.current = setTimeout(() => setConnectedMessage(""), CONNECTED_MS);
+    });
+  };
+
+  /* Stands in for opening the emailed link: the real link confirms the address and lands
+     on the Developer tab, which carries on with setup. */
+  const finishEmailConfirmation = () => {
+    setMockEmailOpen(false);
+    update(s => ({...s, emailVerified: true, confirmationSentAt: null}));
+    startDeveloper(() => {
+      setConnectedMessage(Sefaria._v({en: "Your email is confirmed.", he: "כתובת הדוא״ל שלך אושרה."}));
       clearTimeout(connectedTimer.current);
       connectedTimer.current = setTimeout(() => setConnectedMessage(""), CONNECTED_MS);
     });
@@ -2329,7 +2444,16 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
         {confirm ? <ConfirmDialog confirm={confirm} onClose={closeConfirm} /> : null}
         {mockSso ?
           <MockSsoDialog provider={mockSso} onCancel={() => setMockSso(null)} onContinue={finishMockSso} /> : null}
-        <PocTestPanel state={pocState} realProviders={socialProviders} update={update} reset={reset} showSimulate={true} />
+        {mockEmailOpen ?
+          <MockEmailDialog onCancel={() => setMockEmailOpen(false)} onConfirm={finishEmailConfirmation} /> : null}
+        <PocTestPanel
+          state={pocState}
+          realProviders={socialProviders}
+          update={update}
+          reset={reset}
+          showSimulate={true}
+          onOpenMockEmail={() => setMockEmailOpen(true)}
+        />
       </div>
     </div>
   );
