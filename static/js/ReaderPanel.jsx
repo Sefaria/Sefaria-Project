@@ -169,7 +169,7 @@ class ReaderPanel extends Component {
   }
   handleBaseSegmentClick(ref, showHighlight = true) {
     if (this.state.mode === "TextAndConnections") {
-      this.closeConnectionsInPanel();
+      this.openConnectionsInPanel(ref);  // refocus; the panel's own X and drag handle close it
     } else if (this.state.mode === "Text") {
       Sefaria.track.event("Reader", "Open Connections Panel", ref);
       if (this.props.multiPanel) {
