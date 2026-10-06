@@ -1,7 +1,7 @@
 ---
 name: create-cauldron
 description: |
-  Creates a new Sefaria cauldron (a temporary test copy of the Sefaria site) with default settings, running the branch currently checked out in the user's Sefaria-Project folder, under a name the user chooses. Wraps create-cauldron.sh from the Sefaria/cauldrons repo and adds safety checks first (branch pushed, CI images built, name not already taken), opening a draft PR for the branch if it has none. Use when the user asks to "create a cauldron", "spin up a cauldron for my branch", "make a new cauldron called X", or mentions create-cauldron.sh.
+  Creates a new Sefaria cauldron (a temporary test copy of the Sefaria site) with default settings, running the branch currently checked out in the user's Sefaria-Project folder, under a name the user chooses. Wraps create-cauldron.sh from the Sefaria/cauldrons repo and adds safety checks first (branch pushed, CI images built, name not already taken), opening a draft PR for the branch if it has none. Requires the cauldron-setup skill to have been run first (on a Mac, on Linux, or on Windows inside WSL); stops if ~/.sefaria/cauldron-setup.md is missing. Use when the user asks to "create a cauldron", "spin up a cauldron for my branch", "make a new cauldron called X", or mentions create-cauldron.sh.
 ---
 
 # Create a cauldron for the current Sefaria-Project branch
@@ -32,15 +32,17 @@ It doesn't talk to the cluster directly. It writes a small config file named `<n
 - Never use `--force`, never edit or delete other cauldrons' files, and never run `delete-cauldron.sh` or `repoint-cauldron.sh`.
 - If the local `cauldrons` checkout has uncommitted changes, stop and ask — don't stash, reset, or discard anything.
 
-## Step 1 — Find the two repos
+## Step 1 — Read the setup file
 
-**Windows check.** If `uname -s` starts with `MINGW`, `MSYS`, or `CYGWIN`, Claude is running on Windows itself (Git Bash), where `create-cauldron.sh` can't run. Tell the user this skill has to run in a WSL session: in the Code tab, start a new session, choose their Ubuntu distribution under **WSL** in the environment picker, and open their Sefaria-Project folder there. If they haven't yet, they should run the `cauldron-setup` skill in that session first. Then stop.
+Run `cat ~/.sefaria/cauldron-setup.md 2>/dev/null`. The `cauldron-setup` skill writes this file (on a Mac, on Linux, and on Windows inside WSL). It is the only place this skill takes locations from; there is no fallback. (`git-update` has already stopped if the file is missing, so this is a safety net.)
 
-**Setup file.** Run `cat ~/.sefaria/cauldron-setup.md 2>/dev/null`. The `cauldron-setup` skill writes this file on Windows+WSL machines. If it exists, use its `cauldrons_repo:` as the cauldrons folder (if it says `not found`, or the folder has no `create-cauldron.sh`, tell the user to run the `cauldron-setup` skill again and stop). Also note its `can_push_cauldrons:` value for Step 5. If there's no file, continue as below.
+- **No file** → say `The cauldron skills aren't set up on this computer yet. Run the cauldron-setup skill first.` and stop.
+- **The file exists** → take from it:
+  - `<Sefaria-Project>` = `sefaria_project:`. If `test -d <Sefaria-Project>/.git` fails, say `~/.sefaria/cauldron-setup.md is out of date. Run the cauldron-setup skill again.` and stop.
+  - the cauldrons folder = `cauldrons_repo:`. If it says `not found`, or `test -f <cauldrons_repo>/create-cauldron.sh` fails, say the same "out of date" line and stop.
+  - `can_push_cauldrons:` and `github_user:`, for Step 5.
 
-This skill lives inside the Sefaria-Project repo, so `<Sefaria-Project>` below means the root of that repo (`git rev-parse --show-toplevel` from the project). Without a setup file, the cauldrons repo is expected in the folder next to it: `<Sefaria-Project>/../cauldrons`, containing `create-cauldron.sh`. If it isn't there, ask the user where their cauldrons checkout is; if they don't have one, offer to clone it next to Sefaria-Project with `git clone https://github.com/Sefaria/cauldrons.git` — ask first.
-
-If `gh` is missing or not logged in (Step 3 needs it) and a setup file exists, tell the user to run the `cauldron-setup` skill again.
+Then check that `gh` still works, since the file may be stale: `gh auth status`. If `gh` is missing or not logged in (Step 3 needs it), say `The GitHub tool isn't logged in. Run the cauldron-setup skill again.` and stop.
 
 ## Step 2 — Name and branch
 

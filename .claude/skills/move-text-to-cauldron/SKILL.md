@@ -1,7 +1,7 @@
 ---
 name: move-text-to-cauldron
 description: |
-  Copies a Sefaria book (its index/schema, chosen text versions, and optionally its links) from the user's LOCAL Sefaria database to an existing cauldron, by interviewing the user and then running Sefaria-Project's scripts/move_draft_text.py with the right arguments. Works on Mac/Linux, and on Windows when Claude runs inside WSL (after cauldron-setup). Use when the user asks to "move a text to a cauldron", "push my local text/book/version to <cauldron>", "copy a draft text to a cauldron", "deploy content to a cauldron", or mentions move_draft_text.py. Only targets https://www.<name>.cauldron.sefaria.org — never production.
+  Copies a Sefaria book (its index/schema, chosen text versions, and optionally its links) from the user's LOCAL Sefaria database to an existing cauldron, by interviewing the user and then running Sefaria-Project's scripts/move_draft_text.py with the right arguments. Requires the cauldron-setup skill to have been run first (on a Mac, on Linux, or on Windows inside WSL); stops if ~/.sefaria/cauldron-setup.md is missing. Use when the user asks to "move a text to a cauldron", "push my local text/book/version to <cauldron>", "copy a draft text to a cauldron", "deploy content to a cauldron", or mentions move_draft_text.py. Only targets https://www.<name>.cauldron.sefaria.org — never production.
 ---
 
 # Move a text from local Sefaria to a cauldron
@@ -15,7 +15,7 @@ Run the `git-update` skill first, before any other step. If it stops, stop this 
 ## How to talk to the user
 
 The user is a longtime Sefaria employee. Keep the conversation bare-bones. The only things you say to the user are:
-1. **Setup problems**, one line each: the setup-file message (Step 0), the API-key message (Step 1), and the `git-update` skill's own one-line messages if it stops.
+1. **Setup problems**, one line each: the `git-update` skill's own one-line messages if it stops, the setup-file messages (Step 0), and the API-key message (Step 1).
 2. **One message with the three questions**: versions, links, cauldron (Step 2).
 3. **A one-line confirmation** before running (Step 4).
 4. **Errors**, one short line each, saying which part failed (term / category / index / which version / links).
@@ -33,17 +33,15 @@ Do not explain Sefaria basics (versions, the `he`/`en` language field, `[xx]` ta
 
 ## Step 0 — Setup file (silent)
 
-`git-update` has already stopped the skill if Claude is running on plain Windows, so this is either a Mac/Linux computer or a Claude session inside WSL. Every command in this skill runs directly.
+Run `cat ~/.sefaria/cauldron-setup.md 2>/dev/null`. The `cauldron-setup` skill writes this file (on a Mac, on Linux, and on Windows inside WSL). It never contains the key. It is the only place this skill takes locations from; there is no fallback. (`git-update` has already stopped if the file is missing, so this is a safety net.) Every command in this skill runs directly.
 
-Run `cat ~/.sefaria/cauldron-setup.md 2>/dev/null`. The `cauldron-setup` skill writes this file on Windows computers, where Claude runs inside WSL. It never contains the key. There is no such file on a Mac.
-
-**No file** → `<Sefaria-Project>` is `git rev-parse --show-toplevel`. Run every command in this skill as written.
+**No file** → say `The cauldron skills aren't set up on this computer yet. Run the cauldron-setup skill first.` and stop.
 
 **The file exists:**
-- `<Sefaria-Project>` is its `sefaria_project:` value. If `test -f <Sefaria-Project>/scripts/move_draft_text.py` fails, say `~/.sefaria/cauldron-setup.md is out of date. Run the cauldron-setup skill again.` and stop.
+- `<Sefaria-Project>` is its `sefaria_project:` value. If `test -f <Sefaria-Project>/scripts/move_draft_text.py` fails, or the file has no `api_key_file:` line, say `~/.sefaria/cauldron-setup.md is out of date. Run the cauldron-setup skill again.` and stop.
 - Build `<prefix>` and put it in front of every command in this skill that starts with `cd <Sefaria-Project>`, and in front of the Step 1 key check:
   - the `python_setup:` line followed by ` && `, unless it says `(none needed)`;
-  - if there's an `api_key_file:` line, `eval "$(grep -E '^[[:space:]]*(export[[:space:]]+)?SEFARIA_CAULDRON_API_KEY=' <api_key_file> | tail -1)" && export SEFARIA_CAULDRON_API_KEY && `. This loads just that one line from the file, wherever it is in the file, and prints nothing.
+  - then `eval "$(grep -E '^[[:space:]]*(export[[:space:]]+)?SEFARIA_CAULDRON_API_KEY=' <api_key_file> | tail -1)" && export SEFARIA_CAULDRON_API_KEY && `. This loads just that one line from the file, wherever it is in the file, and prints nothing. The key is always loaded this way, on every operating system, so it doesn't matter whether Claude's own shell already has it.
 
 ## Step 1 — Look up the book (silent)
 
@@ -57,22 +55,15 @@ cd <Sefaria-Project> && PYTHONPATH=. DJANGO_SETTINGS_MODULE=sefaria.settings \
 It prints one JSON object: `found`, canonical `title`, `categories`, local `versions` (`language` + `versionTitle`), `manual_link_count`, `all_link_count`. It can take a minute. Use the canonical `title` from here on.
 
 - `found` false → say `"<title>" not found locally.` and stop.
-- Python can't import Sefaria/Django → ask how they run Sefaria locally (virtualenv / pyenv version) and retry.
+- Python can't import Sefaria/Django (even with `<prefix>`) → say `Python can't start Sefaria from <Sefaria-Project>. Run the cauldron-setup skill again.` and stop.
 
-Also check the API key silently. The check prints only file names, never the key.
+Also check the API key silently, with `<prefix>` in front (it prints one word, never the key):
 
 ```bash
-if [ -n "$SEFARIA_CAULDRON_API_KEY" ]; then echo "key is set"; else
-  echo "key is NOT set"; echo "shell: $(basename "$SHELL")"
-  grep -l SEFARIA_CAULDRON_API_KEY ~/.zshrc ~/.zprofile ~/.zshenv ~/.bashrc ~/.bash_profile ~/.profile 2>/dev/null
-fi
+[ -n "$SEFARIA_CAULDRON_API_KEY" ] && echo "set" || echo "missing"
 ```
 
-If Step 0 used the setup file (run the check with `<prefix>` in front) and the key isn't set, say `SEFARIA_CAULDRON_API_KEY isn't set in <api_key_file>. Run the cauldron-setup skill again.` and stop. Otherwise:
-
-Claude reads one startup file when a session starts: `~/.zshrc` if the shell is `zsh`, `~/.bashrc` if it's `bash`. Call that `<rc>` (for any other shell, say "your shell's startup file"). If the key isn't set:
-- Not found in `<rc>`: say `SEFARIA_CAULDRON_API_KEY isn't set. Add it to <rc> and restart the session.` If `grep` found it in another file, add ` (It's in <that file>, which Claude doesn't read.)` Then stop.
-- Found in `<rc>`: say `SEFARIA_CAULDRON_API_KEY is in <rc> but not loaded. Restart the session; if that doesn't help, check that line.` and stop.
+If it prints `missing`, say `SEFARIA_CAULDRON_API_KEY isn't set in <api_key_file>. Run the cauldron-setup skill again.` and stop.
 
 ## Step 2 — Ask the three questions (one message)
 
@@ -88,7 +79,7 @@ en
 
 Links: none / manual (<manual_link_count>) / all (<all_link_count>)
 
-Cauldron name?
+What is the cauldron name?
 ```
 
 Internal notes (don't tell the user unless it blocks them):

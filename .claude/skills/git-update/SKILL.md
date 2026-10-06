@@ -1,7 +1,7 @@
 ---
 name: git-update
 description: |
-  Makes sure that the branch checked out in the user's Sefaria-Project folder is up to date: downloads from GitHub, merges in the branch's own GitHub copy (like git pull), merges GitHub's master into it, and pushes the branch back to GitHub. On master it only updates master and never pushes. Also puts the user's cauldrons folder on its main branch and pulls GitHub's main into it (never pushes). Stops without changing anything if there are uncommitted changes, and undoes a merge that conflicts. Works on Mac/Linux, and on Windows when Claude runs inside WSL. (The WSL case assumes that `cauldron-setup` has already been run.) Run this skill at the start of create-cauldron, move-text-to-cauldron, and move-lexicon-to-cauldron. Also use when the user asks to "run git-update" or to "update my branch with master and push it".
+  Makes sure that the branch checked out in the user's Sefaria-Project folder is up to date: downloads from GitHub, merges in the branch's own GitHub copy (like git pull), merges GitHub's master into it, and pushes the branch back to GitHub. On master it only updates master and never pushes. Also puts the user's cauldrons folder on its main branch and pulls GitHub's main into it (never pushes). Stops without changing anything if there are uncommitted changes, and undoes a merge that conflicts. Works on Mac/Linux, and on Windows when Claude runs inside WSL, but only after the cauldron-setup skill has written ~/.sefaria/cauldron-setup.md; it stops at once if that file is missing. Run this skill at the start of create-cauldron, move-text-to-cauldron, and move-lexicon-to-cauldron. Also use when the user asks to "run git-update" or to "update my branch with master and push it".
 ---
 
 # Update the current Sefaria-Project branch and the cauldrons folder
@@ -20,15 +20,12 @@ Say nothing while it runs. The only things you say are:
 - **Switched branch**: if the cauldrons result says `switched from <x>`, say `Switched your cauldrons folder from <x> to main.`
 - **Success**: if another skill ran this one, say nothing more and go back to that skill. If the user asked for this skill directly, reply in one line: `<branch> is up to date with master and pushed, and cauldrons is up to date.` (or `master is up to date, and cauldrons is up to date.`).
 
-## Step 1 — Find the repo (silent)
+## Step 1 — Read the setup file (silent)
 
-Run `cat ~/.sefaria/cauldron-setup.md 2>/dev/null`. The `cauldron-setup` skill writes the file cauldron-setup.md on Windows computers, where Claude runs inside WSL. There is no such file on a Mac.
+Run `cat ~/.sefaria/cauldron-setup.md 2>/dev/null`. The `cauldron-setup` skill writes this file (on a Mac, on Linux, and on Windows inside WSL). It is the only place this skill takes locations from; there is no fallback.
 
-- **The file exists** → `<Sefaria-Project>` is cauldron-setup.md's `sefaria_project:` value. If `test -d <Sefaria-Project>/.git` fails, say `~/.sefaria/cauldron-setup.md is out of date. Run the cauldron-setup skill again.` and stop.
-- **No file** → run `uname -s`.
-  - `Darwin` or `Linux` → `<Sefaria-Project>` is `git rev-parse --show-toplevel`.
-  - Anything else (`MINGW…`, `MSYS…`, `CYGWIN…`) means Claude is running on plain Windows, not inside WSL. Say this and stop:
-    > This has to run in a WSL session. In the Code tab, start a new session, choose your Ubuntu distribution under **WSL** in the environment picker, and open your Sefaria-Project folder there. If you haven't yet, run the `cauldron-setup` skill in that session first.
+- **No file** → say `The cauldron skills aren't set up on this computer yet. Run the cauldron-setup skill first.` and stop. (If Claude is on plain Windows rather than inside WSL, that skill explains how to open a WSL session.)
+- **The file exists** → `<Sefaria-Project>` is its `sefaria_project:` value. If `test -d <Sefaria-Project>/.git` fails, say `~/.sefaria/cauldron-setup.md is out of date. Run the cauldron-setup skill again.` and stop.
 
 ## Step 2 — Run the update (silent)
 
@@ -54,9 +51,7 @@ Don't copy the script's commands into this file: Claude Code replaces `$` follow
 
 ## Step 4 — Update the cauldrons folder (silent)
 
-Find `<cauldrons>`:
-- If `~/.sefaria/cauldron-setup.md` exists (Step 1), it's that file's `cauldrons_repo:` value.
-- Otherwise it's the folder next to Sefaria-Project: `<Sefaria-Project>/../cauldrons`.
+`<cauldrons>` is the setup file's `cauldrons_repo:` value (Step 1). If that line says `not found`, treat it like the `not-found` result in Step 5 without running anything.
 
 Run the script from the scratchpad copy of this skill's folder, the same way as Step 2:
 
@@ -69,7 +64,7 @@ cp "<Sefaria-Project>/.claude/skills/git-update/cauldrons-update.sh" "<scratchpa
 `CAULDRONS_OK` → success (see "How to talk to the user").
 
 `CAULDRONS_STOP` → tell the user in one line:
-- `not-found` → with a setup file: `Couldn't find your cauldrons folder at <cauldrons>. Run the cauldron-setup skill again.` Without one: `Couldn't find your cauldrons folder at <cauldrons>.`
+- `not-found` → `Couldn't find your cauldrons folder at <cauldrons>. Run the cauldron-setup skill again.`
 - `uncommitted` → `Your cauldrons folder has uncommitted changes in <files>, so I didn't update it. Commit or discard them, then try again.`
 - `fetch-failed` → `Couldn't download cauldrons from GitHub: <git's last error line>.`
 - `checkout-failed <x>` → `Couldn't switch your cauldrons folder from <x> to main: <git's last error line>.`
