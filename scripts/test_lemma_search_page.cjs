@@ -1,45 +1,52 @@
-// Run with node scripts/test_lemma_search_page.cjs (uses existing jsdom dev dependency).
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const path = require('node:path');
-const {JSDOM} = require('jsdom');
-const html = fs.readFileSync(path.join(__dirname, '../templates/lemma_search.html'), 'utf8');
-(async () => {
-  const dom = new JSDOM(html, {runScripts: 'dangerously', url: 'https://example.test/experimental/lemma-search/'});
-  const w = dom.window;
-  // The repository's older jsdom predates this browser API.
-  if (!w.Element.prototype.replaceChildren) w.Element.prototype.replaceChildren = function(...nodes) {
-    while (this.firstChild) this.removeChild(this.firstChild);
-    this.append(...nodes);
-  };
-  let calls = 0;
-  w.fetch = async (url, options) => {
-    calls++;
-    assert.equal(url, 'https://sefaria.loadbalancer.dicta.org.il/search');
-    assert.deepEqual(JSON.parse(options.body), {query:'בראשית',from:0,size:10,limitedToBooks:['Tanakh'],sort:'pagerank',smallUnitsOnly:true});
-    return {ok:true,json:async()=>({total:1,hits:[{xmlId:'Tanakh.Torah.Genesis.1.1',highlight:[{text:'<b>בראשית</b><img src=x onerror="window.injected=true"><script>window.injected=true</script>'}]}]})};
-  };
-  await w.dictaResults('בראשית', 10);
-  const panel = w.document.getElementById('dicta');
-  assert.match(panel.textContent, /Source: Dicta/);
-  assert.equal(panel.querySelector('.passage').textContent, 'בראשית');
-  assert.equal(panel.querySelector('img, script, b'), null);
-  assert.equal(w.injected, undefined);
-  assert.match(panel.querySelector('a').href, /Genesis_1%3A1/);
-  await w.dictaResults('English', 10);
-  assert.equal(calls, 1);
-  assert.match(panel.textContent, /Hebrew queries only/);
-  w.document.getElementById('baseline').textContent = 'Retained ES result';
-  w.fetch = async () => {throw Error('Network failure');};
-  await w.dictaResults('בראשית', 10);
-  assert.match(panel.textContent, /unavailable/);
-  assert.equal(w.document.getElementById('baseline').textContent, 'Retained ES result');
-  w.fetch = async () => {const e = Error();e.name='AbortError';throw e;};
-  await w.dictaResults('בראשית', 10);
-  assert.match(panel.textContent, /timed out/);
-  w.document.getElementById('display').value='dicta';w.display();
-  assert.equal(panel.hidden, false);
-  assert.equal(w.document.getElementById('baseline').hidden, true);
-  dom.window.close();
-  console.log('Dicta page checks passed: payload, safe snippets, links, language, independent failure, timeout, display.');
-})().catch(error=>{console.error(error);process.exitCode=1;});
+// Build the Sefaria bundle first, then: node scripts/test_lemma_search_page.cjs
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const {JSDOM}=require('jsdom');
+const base=path.join(__dirname,'..');
+const read=p=>fs.readFileSync(path.join(base,p),'utf8');
+(async()=>{
+ const html=read('templates/lemma_search.html');
+ const dom=new JSDOM(html,{runScripts:'outside-only',url:'https://example.test/experimental/lemma-search/'}),w=dom.window;
+ if(!w.Element.prototype.replaceChildren)w.Element.prototype.replaceChildren=function(...nodes){while(this.firstChild)this.removeChild(this.firstChild);this.append(...nodes);};
+ for(const file of ['static/js/lib/jquery.js','static/bundles/sefaria/sefaria.js','static/js/lemmaSearchComparison.js'])w.eval(read(file));
+ w.eval(html.match(/<script>\s*([\s\S]*?)<\/script>/)[1]);
+ const Search=w.Sefaria.search.constructor,Total=w.Sefaria.search.dictaQueryQueue.hits.total.constructor;
+ let calls=[];
+ w.$.ajax=opts=>{
+  calls.push(opts);const callbacks=[];
+  Promise.resolve().then(()=>opts.success(opts.url.endsWith('/books')?[]:{total:1,hits:[{xmlId:'Tanakh.Torah.Genesis.1.1',hebrewPath:'תנ"ך/תורה/ספר בראשית/פרק א/פסוק א',pagerank:10,highlight:[{text:'<b>בראשית</b><img src=x onerror="window.injected=true"><script>bad()</script>'}]}]}));
+  return {fail(fn){callbacks.push(fn);},abort(){callbacks.forEach(fn=>fn());}};
+ };
+ const provider=await w.LemmaSearchComparison.providers('בראשית');
+ assert.equal(provider.enabled,true);assert.equal(calls.length,2);
+ const request=JSON.parse(calls.find(c=>c.url.endsWith('/search')).data);
+ assert.deepEqual(request,{from:0,limitedToBooks:[],query:'בראשית',size:100,smallUnitsOnly:true,sort:'pagerank'});
+ const hit=(id,cat,score,names=[])=>({_id:id,_score:score,_source:{ref:id,categories:[cat],version:'test',exact:'טקסט'},matched_queries:names});
+ const es=[hit('Genesis 1:2','Tanakh',100),hit('Rashi on Genesis 1:1:1','Tanakh',90),hit('Mishnah Berakhot 1:1','Mishnah',5)];
+ const data={query:'בראשית',weight:1,depth:20,documents:55589,annotation:{parts:[],tokens:[]},results:{baseline:{hits:es,total:3},enhanced:{hits:[...es,hit('Genesis 2:1','Tanakh',15,['lemma_expanded'])],total:4}}};
+ const actual=w.LemmaSearchComparison.combine(data,provider);
+ // Independent direct invocation of ordinary search is the baseline oracle.
+ const native=new Search();native.queryDictaFlag=true;
+ native.sefariaQueryQueue={hits:{hits:JSON.parse(JSON.stringify(es)).map(h=>({...h,score:-h._score,cameFrom:'Sefaria'})),total:new Total({value:3})}};
+ native.dictaQueryQueue={hits:{hits:JSON.parse(JSON.stringify(provider.hits)),total:new Total({value:1})}};
+ const expected=native.mergeTextResultsVersions(native.mergeQueries(false,'score',[]).hits.hits);
+ const refs=xs=>Array.from(xs,h=>h._source.ref);
+ assert.deepEqual(refs(actual.results.baseline.hits),refs(expected));
+ assert.ok(!refs(actual.results.baseline.hits).includes('Rashi on Genesis 1:1:1'));
+ assert.ok(refs(actual.results.enhanced.hits).includes('Genesis 2:1'));
+ assert.ok(refs(actual.results.enhanced.hits).includes('Genesis 1:1'));
+ assert.equal(provider.hits[0].score,-10,'merges must not mutate shared Dicta scores');
+ const zero=w.LemmaSearchComparison.combine({...data,weight:0,results:{baseline:data.results.baseline,enhanced:data.results.baseline}},provider);
+ assert.equal(JSON.stringify(zero.results.baseline.hits),JSON.stringify(zero.results.enhanced.hits));
+ w.results(actual);
+ assert.match(w.document.getElementById('baseline').textContent,/Source: Dicta/);
+ assert.equal(w.document.querySelector('#baseline img, #baseline script'),null);
+ assert.equal(w.injected,undefined);
+ assert.match(w.document.getElementById('baseline').textContent,/בראשית/);
+ calls=[];const english=await w.LemmaSearchComparison.providers('English');assert.equal(english.enabled,false);assert.equal(calls.length,0);
+ const originalError=w.console.log;w.console.log=()=>{};
+ w.$.ajax=opts=>{let fail;Promise.resolve().then(()=>{fail();opts.error({},'error','failed');});return {fail(fn){fail=fn;},abort(){}};};
+ const failure=await w.LemmaSearchComparison.providers('בראשית');assert.ok(failure.error);
+ assert.throws(()=>w.LemmaSearchComparison.combine(data,failure),/Dicta is unavailable/);
+ w.console.log=originalError;dom.window.close();
+ console.log('Passed: native provider payloads, baseline merge parity, Rashi routing, added lemma hits, zero-weight identity, safe rendering, language routing, failure handling.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

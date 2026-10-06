@@ -8,20 +8,33 @@ lemma highlights are not reconstructed. Links open the corresponding reader ref
 and Hebrew version. Missing sheets/entity indexes mean the normal search page is
 not a supported entry point with these local settings.
 
-## Dicta comparison
+## Ordinary-search baseline
 
-A third, source-labeled list calls the same external Dicta `/search` service as
-ordinary Hebrew search, directly from the browser. It sends the original query,
-limits results to Tanakh, requests small units, and preserves Dicta's pagerank
-order. Non-Hebrew queries skip Dicta. Requests time out after 20 seconds; failure
-does not prevent Elasticsearch results. Upstream snippets render as text only.
+The page loads the existing Sefaria browser bundle and calls its Search object's
+`isDictaQuery`, `dictaQuery`, `dictaBooksQuery`, `mergeQueries`, and
+`mergeTextResultsVersions` methods. Ordinary search code is unchanged. Both lists
+share one Dicta response, including native query parameters, reference adaptation,
+category replacement, and score calibration. As on the ordinary frontend, each
+provider supplies up to 100 candidates before display is limited and versions are
+grouped by reference. A Dicta failure invalidates the comparison instead of silently
+presenting a partial baseline. Results identify their provider.
 
-This is a reference for the standard site's Tanakh search, not a reproduction of
-its complete mixed ranking. Dicta has its own text version and retrieval rules;
-Rashi and Mishnah remain in the two Elasticsearch lists. Experiment controls
-(weight, slop, lemma alternatives) apply only to those two lists. Dicta's live
-results are not part of the frozen offline evaluation or Shoshan annotations.
-No Elasticsearch reindexing or model-worker changes are needed.
+The Elasticsearch source remains our frozen 55,589-passage Hebrew corpus, rather
+than the live library's versions. Dicta provides its own Tanakh text version, just
+as on the site. Thus this reproduces ordinary provider behavior **on the experimental
+corpus**, not the full live site's scores or results. Default slop 10 matches ordinary
+search; changing that control makes the ES part a modified baseline.
+
+Enhanced uses the same merge with one intentional extension: ES hits matching the
+added lemma route survive the Tanakh replacement filter. Without that exception,
+ordinary search would discard the very Tanakh lemma matches under test. Weight zero
+uses the unmodified baseline merge in both lists. The current native replacement
+checks whether `categories` contains `Tanakh`, including Rashi on Tanakh; this
+existing behavior is preserved in baseline, not silently corrected by the POC.
+
+Dicta snippets are rendered as text only and have no Shoshan hover annotations.
+No reindexing is required. Run `node scripts/test_lemma_search_page.cjs` after building
+the Sefaria browser bundle to check the adapter against the actual Search class.
 
 ## Local development
 

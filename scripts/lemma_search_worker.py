@@ -169,7 +169,7 @@ class Engine:
         for mode in ("baseline", "enhanced"):
             # Weight zero means a true baseline, including the candidate set.
             lemmas = annotation["shoshan_lemma"] if mode == "enhanced" and weight > 0 else None
-            body = self.query_body(query, lemmas, weight, depth, slop)
+            body = self.query_body(query, lemmas, weight, 100, slop)
             if mode == "enhanced" and expansion is not None:
                 body["query"]["function_score"]["query"]["bool"]["should"][1] = expansion
             body["_source"].append("shoshan_lemma")
