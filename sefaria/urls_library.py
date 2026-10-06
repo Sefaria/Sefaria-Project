@@ -4,6 +4,7 @@ from django.contrib import admin
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from functools import partial
 import reader.views as reader_views
+import powered_by.poc_views as powered_by_poc_views
 import sefaria.views as sefaria_views
 from sefaria.urls_shared import shared_patterns, maintenance_patterns
 from sefaria.settings import DOWN_FOR_MAINTENANCE
@@ -51,6 +52,8 @@ urlpatterns = [
     path('settings/developer/projects/<str:project_id>/powered-by',
          partial(reader_views.settings_page, tab="developer", project_section="powered-by")),
     path('api/developer-poc/state', reader_views.developer_poc_state_api),
+    re_path(r'^powered-by/form/?$', powered_by_poc_views.powered_by_form_page),
+    path('api/developer-poc/powered-by-submissions', powered_by_poc_views.powered_by_poc_submissions_api),
 
     re_path(r'^community/?$', reader_views.community_to_voices_redirect),
 

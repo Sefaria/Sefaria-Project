@@ -671,6 +671,11 @@ class ReaderApp extends Component {
               hist.url += "&book=" + encodeURIComponent(state.linkerEditorBook);
             }
             break;
+          case "poweredByForm":
+            hist.title = Sefaria.getPageTitle("Powered by Sefaria Submission Form");
+            hist.url = "powered-by/form";
+            hist.mode = "poweredByForm";
+            break;
           case "user_stats":
             hist.title = Sefaria.getPageTitle("user_stats.torah_tracker");
             hist.url = "torahtracker";
