@@ -16957,9 +16957,36 @@ span.ref-link-color-3 {color: blue}
   height: 54vh;
   bottom: 0;
   z-index: 1002;
+  transition: height .2s ease-out;
 }
 .readerApp.singlePanel .textList.fullPanel {
   height: 100vh;
+}
+/* Mobile sheet: the header drags the panel between closed, half and full height (ConnectionsPanelHeader.onPointerUp) */
+.readerApp.singlePanel .textList.expanded {
+  height: calc(100% - 48px);
+}
+.textList.singlePanel .connectionsHeader {
+  touch-action: pan-x; /* vertical drags resize the sheet instead of scrolling the page */
+}
+.textList.singlePanel .connectionsDragHandle {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 36px;
+  height: 5px;
+  margin-left: -18px;
+  border-radius: 3px;
+  background-color: var(--light-grey);
+}
+.textList.singlePanel .connectionsPanelHeader .readerNavMenuCloseButton {
+  flex-shrink: 0;
+  align-self: center;
+  margin-inline-start: auto;
+  height: 48px;
+  line-height: 48px;
+  padding: 0 14px; /* 48px touch target, X itself stays inset with the header padding */
+  margin-inline-end: -14px;
 }
 .readerApp.singlePanel .readerNavMenu,
 .readerApp.singlePanel .homeFeedWrapper {
