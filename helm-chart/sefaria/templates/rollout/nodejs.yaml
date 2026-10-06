@@ -95,12 +95,12 @@ spec:
             value: "1"
           - name: PORT
             value: "3000"
-          # analytics: the IDs Django's base.html uses (each optional; reader-next/src/lib/analytics), the build as site_version
+          # analytics IDs and the sign-in providers' public keys, as Django's pages use them (each optional; reader-next/src/lib/config.ts)
           - name: APP_VERSION
             value: "{{ .Values.nodejs.containerImage.tag }}"
           - name: SIMPLE_ANALYTICS_HOSTNAME
             value: {{ if eq (toString .Values.localSettings.DEBUG) "true" }}"sa-dev.sefaria.org"{{ else }}"sefaria.org"{{ end }}
-          {{- range list "GOOGLE_TAG_MANAGER_CODE" "GOOGLE_GTAG" "CLIENT_SENTRY_DSN" }}
+          {{- range list "GOOGLE_TAG_MANAGER_CODE" "GOOGLE_GTAG" "CLIENT_SENTRY_DSN" "GOOGLE_SSO_CLIENT_ID" "APPLE_SSO_CLIENT_ID" "RECAPTCHA_PUBLIC_KEY" }}
           - name: {{ . }}
             valueFrom:
               secretKeyRef:
