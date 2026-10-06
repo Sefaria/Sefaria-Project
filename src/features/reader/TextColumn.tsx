@@ -1,3 +1,5 @@
+import { readerAnalytics } from "~/lib/analytics/reader";
+import { copyEvents } from "~/lib/analytics/session";
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { makeIndexLookup } from "~/lib/connections/links";
@@ -65,6 +67,12 @@ export interface TextColumnProps {
  */
 export function TextColumn(props: TextColumnProps) {
   const { initial, versions, settings, target, terms, selected, showFocus, connectionsOnScreen, linkFilter = [], onSelectSegment, onRefClick, onEntityClick } = props;
+  // A text opened in a column (the old TextColumn.componentDidMount): select_content with its book and category (ANL-009)
+  useEffect(() => {
+    const p = initial[0];
+    if (p) readerAnalytics.textOpened(p.indexTitle, p.primaryCategory);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const qc = useQueryClient();
   const [sections, setSections] = useState(initial);
   const [loading, setLoading] = useState({ up: false, down: false });
@@ -249,7 +257,14 @@ export function TextColumn(props: TextColumnProps) {
           const range = sel.getRangeAt(0);
           const anchor = range.commonAncestorContainer instanceof Element ? range.commonAncestorContainer : range.commonAncestorContainer.parentElement;
           const surface = anchor?.closest("[data-layout]") ?? anchor?.querySelector("[data-layout]");
-          const { html, text } = cleanCopy(range.cloneContents(), document, { continuous: surface?.getAttribute("data-layout") === "continuous", hebrewPanel: settings.language === "hebrew" });
+          const fragment = range.cloneContents();
+          // the old handleGACopyEvents: copy_text with the panel's book, and whether the selection spans languages or segments (ANL-011)
+          const book = sections[0]?.indexTitle ?? null;
+          copyEvents(
+            { length: sel.toString().length, panelType: connectionsOnScreen ? "TextAndConnections" : "Text", book, category: book ? (sections[0]?.primaryCategory ?? null) : null },
+            { en: fragment.querySelectorAll('[data-side="translation"]').length, he: fragment.querySelectorAll('[data-side="primary"]').length },
+          );
+          const { html, text } = cleanCopy(fragment, document, { continuous: surface?.getAttribute("data-layout") === "continuous", hebrewPanel: settings.language === "hebrew" });
           e.clipboardData.setData("text/html", html);
           e.clipboardData.setData("text/plain", text);
           e.preventDefault();

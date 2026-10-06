@@ -39,6 +39,7 @@ import type { ReaderRouteData } from "./reader-route";
 import { useReaderSettings } from "./settings-context";
 import { SETTLE_MS } from "./use-reading-scroll";
 import { TextColumn } from "./TextColumn";
+import { readerAnalytics } from "~/lib/analytics";
 
 export interface TextPanelProps {
   panel: TextPanelState;
@@ -221,6 +222,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   currentRef.current = current.ref;
   const onSelectSegment = useCallback(
     (ref: string) => {
+      readerAnalytics.segmentClicked(ref, !viewRef.current);
       // Selecting the verse that is already current while the sidebar is open closes the sidebar.
       if (viewRef.current && currentRef.current === ref) {
         apply((ws) => closeAside(updatePanel(ws, id, { ref }), id), { state: { nav: "select", panel: id, ref } });
@@ -253,7 +255,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   );
   // The aleph / ayin button in the sidebar's header: its own language (`lang2`), the text's language untouched (SHL-014)
   const onSidebarLang = useCallback(
-    (l: "en" | "he") => apply((ws) => (aside ? updateAside(ws, id, aside.id, { lang: l }) : ws), { replace: true, state: { nav: "stay", panel: id } }),
+    (l: "en" | "he") => (readerAnalytics.languageToggled(l === "he" ? "hebrew" : "english"), apply((ws) => (aside ? updateAside(ws, id, aside.id, { lang: l }) : ws), { replace: true, state: { nav: "stay", panel: id } })),
     [apply, id, aside],
   );
   const openSearchHit = useCallback(
@@ -285,6 +287,8 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [qc, id, nav],
   );
 
+  const onCitationClick = useCallback((ref: string) => (readerAnalytics.citationClicked(ref), onRefClick(ref)), [onRefClick]);
+
   // Words selected in the text: with the sidebar open, a lookup of up to three Hebrew words in one segment switches it
   // to the dictionaries. A selection never opens a closed sidebar. (VERIFIED on sefaria.org; unlike there, the URL
   // follows every lookup, not just the first.) CON-042, TXD-059
@@ -312,6 +316,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       const seg = (e.target as Element).closest<HTMLElement>("[data-ref]");
       const ref = seg?.dataset.ref;
       if (!ref || !a) return;
+      readerAnalytics.namedEntityClicked(slug);
       apply((ws) => openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: "Lexicon", entity: { slug, text: a.textContent ?? "" } }), { state: { nav: "select", panel: id, ref } });
     },
     [apply, id],
@@ -343,7 +348,13 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
     [id, versions],
   );
   const selectSourceHref = useCallback((v: VersionMeta) => nav.href(withSource(nav.current(), v)), [nav, withSource]);
-  const onSelectSource = useCallback((v: VersionMeta) => apply((ws) => withSource(ws, v), { state: { nav: "stay", panel: id } }), [apply, withSource, id]);
+  const onSelectSource = useCallback(
+    (v: VersionMeta) => {
+      readerAnalytics.versionChosen(section.indexTitle, v.versionTitle, v.language ?? "he", settings.language);
+      apply((ws) => withSource(ws, v), { state: { nav: "stay", panel: id } });
+    },
+    [apply, withSource, id, section.indexTitle, settings.language],
+  );
   const versionOpenHref = useCallback(
     (v: VersionMeta) => nav.href(openAside(updatePanel(nav.current(), id, { ref: sidebarRef }), id, { kind: "connections", view: "Version Open", vside: versionKey(v) })),
     [nav, id, sidebarRef],
@@ -351,11 +362,12 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const translationHref = useCallback((v: TranslationVersion) => nav.href(withTranslation(nav.current(), v)), [nav, withTranslation]);
   const onSelectTranslation = useCallback(
     (v: TranslationVersion) => {
+      readerAnalytics.versionChosen(section.indexTitle, v.versionTitle, v.language ?? "en", settings.language);
       apply((ws) => withTranslation(ws, v), { state: { nav: "stay", panel: id } });
       // Remember it for this corpus (the cookie the loader reads next time). VER-002
       void qc.fetchQuery(indexMetaQueryOptions(section.indexTitle)).then((m) => rememberTranslation(m.corpora?.[0], v.versionTitle), () => undefined);
     },
-    [apply, withTranslation, id, qc, section.indexTitle],
+    [apply, withTranslation, id, qc, section.indexTitle, settings.language],
   );
   // "Open Text": the passage itself, in that translation (old onRangeClick with the version).
   const onOpenTranslation = useCallback(
@@ -468,7 +480,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         onSettled={onSettled}
         onSelectSegment={onSelectSegment}
         onEntityClick={onEntityClick}
-        onRefClick={onRefClick}
+        onRefClick={onCitationClick}
         onSelectWords={onSelectWords}
       />
     </div>

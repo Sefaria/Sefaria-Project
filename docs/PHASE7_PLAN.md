@@ -107,7 +107,10 @@ Plan:
    change (for example GDPR consent mode), it is a product decision, not part of parity.
 
 **Owner decision 7-3 (2026-10-06):** one small analytics module, the same GA4/GTM property and the same event names and
-parameters as the old site.
+parameters as the old site. **BUILT** (src/lib/analytics; see CHANGELOG 2026-10-06 — analytics). The settings come from env
+(GOOGLE_TAG_MANAGER_CODE, GOOGLE_GTAG, CLIENT_SENTRY_DSN, SIMPLE_ANALYTICS_HOSTNAME, APP_VERSION); Helm reads the IDs from the
+local-settings secret. Open: VWO / Hotjar / Unbounce (not ported), sign-in user_id/traffic_type (setAnalyticsUser, wired when
+sign-in lands), the sign-up funnel (ANL-013, with the AuthPage port).
 
 ---
 

@@ -6,6 +6,7 @@ import { refToUrl } from "~/lib/ref/url";
 import { toRouterLocation } from "../shared/RouterLink";
 import type { HeaderSearchProps } from "~/ui/SiteHeader/HeaderSearch";
 import { SITE_ORIGIN } from "~/lib/config";
+import { searchBoxAnalytics, searchFlow } from "~/lib/analytics";
 
 /**
  * The header search box's behaviour in the app: suggestions from the name API (cached), Enter resolving a typed citation,
@@ -24,7 +25,11 @@ export function useHeaderSearch(): Omit<HeaderSearchProps, "mobile"> {
       if (/^https?:/.test(href)) window.location.assign(href);
       else void router.navigate(toRouterLocation(href) as never);
     };
-    const search = (q: string) => go(`/search?q=${encodeURIComponent(q.trim())}&tab=text`);
+    const search = (q: string) => {
+      // the search page's funnel starts with source "nav_bar" (the old showSearch)
+      searchFlow.setNextFlowSource("nav_bar");
+      go(`/search?q=${encodeURIComponent(q.trim())}&tab=text`);
+    };
     return {
       getSuggestions: async (q) => suggestionsFrom(q, await qc.fetchQuery(nameQueryOptions(q))),
       onSearch: search,
@@ -39,10 +44,19 @@ export function useHeaderSearch(): Omit<HeaderSearchProps, "mobile"> {
           d = await qc.fetchQuery(nameQueryOptions(q));
         }
         const out = outcomeOf(q, d);
-        if (out.kind === "ref") go(`/${refToUrl(out.ref)}`);
-        else if (out.kind === "topic") go(`${SITE_ORIGIN}/topics/${out.slug}`);
-        else if (out.kind === "category") go(`/texts/${(Array.isArray(out.key) ? out.key : [out.key]).map(encodeURIComponent).join("/")}`);
-        else search(q);
+        if (out.kind === "ref") {
+          searchBoxAnalytics.autolinkRef(q, out.ref, out.isBook);
+          go(`/${refToUrl(out.ref)}`);
+        } else if (out.kind === "topic") {
+          searchBoxAnalytics.autolinkTopic(q);
+          go(`${SITE_ORIGIN}/topics/${out.slug}`);
+        } else if (out.kind === "category") {
+          searchBoxAnalytics.autolinkObject(q, "TocCategory", out.key);
+          go(`/texts/${(Array.isArray(out.key) ? out.key : [out.key]).map(encodeURIComponent).join("/")}`);
+        } else {
+          searchBoxAnalytics.search(q);
+          search(q);
+        }
       },
     };
   }, [qc, router]);

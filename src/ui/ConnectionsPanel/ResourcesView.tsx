@@ -1,3 +1,4 @@
+import { readerAnalytics } from "~/lib/analytics/reader";
 import { useState, type MouseEvent } from "react";
 import type { Catalog } from "~/lib/catalog/toc";
 import { categoryDescription, categoryLabel } from "~/lib/connections/terms";
@@ -32,6 +33,8 @@ export interface ResourcesViewProps {
   sheetsHref?: string;
   /** Compare Text is offered only when panels can sit side by side (old multiPanel). */
   showCompare?: boolean;
+  /** Whether a reader is signed in (the account tools report their mode only then). */
+  signedIn?: boolean;
 }
 
 interface ToolRow {
@@ -63,7 +66,7 @@ const visible = (r: ToolRow) => r.count === undefined || r.count === null || r.c
  * @feature CON-023 Top-level summary: Quoting Commentary merged, collapse to 4
  * @feature CON-024 Essay links in summary
  */
-export function ResourcesView({ hrefFor, summary, catalog, basePath, search = "", onNavigate, counts, notesCount = 0, sheetsHref, showCompare }: ResourcesViewProps) {
+export function ResourcesView({ hrefFor, summary, catalog, basePath, search = "", onNavigate, counts, notesCount = 0, sheetsHref, showCompare, signedIn = false }: ResourcesViewProps) {
   const href_ = (v: ConnectionsView) => (hrefFor ? hrefFor(v) : withHref(basePath ?? "", v, search));
   const [expanded, setExpanded] = useState(false);
   const rows = expanded ? summary.categories : summary.visible;
@@ -107,6 +110,7 @@ export function ResourcesView({ hrefFor, summary, catalog, basePath, search = ""
         href={r.external ?? href_(r.view!)}
         external={Boolean(r.external)}
         onNavigate={r.external ? undefined : onNavigate}
+        onTrack={() => (r.key === "compare" ? (readerAnalytics.toolClicked(r.label.en, undefined, signedIn), readerAnalytics.compareOpened()) : readerAnalytics.toolClicked(r.label.en, r.view?.view === "mode" ? r.view.mode : undefined, signedIn))}
         trailing={r.external ? <Icon name="external-link" size="1em" label="Opens in a new tab" /> : undefined}
       />
     ));
@@ -144,10 +148,14 @@ export function ResourcesView({ hrefFor, summary, catalog, basePath, search = ""
           color={categoryColor(c.category)}
           href={href_({ view: "category", category: c.category })}
           onNavigate={onNavigate}
+          onTrack={() => readerAnalytics.connectionsCategoryClicked(c.category)}
         />
       ))}
       {summary.hiddenCount > 0 ? (
-        <button type="button" className={styles.more} aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
+        <button type="button" className={styles.more} aria-expanded={expanded} onClick={() => {
+          readerAnalytics.toolClicked(expanded ? "See Less" : "More", undefined, signedIn);
+          setExpanded((v) => !v);
+        }}>
           <span className={styles.moreIcon}><Icon name="dots" size="1.4em" /></span>
           <InterfaceText en={expanded ? "See Less" : "More"} he={expanded ? "פחות" : "עוד"} />
         </button>

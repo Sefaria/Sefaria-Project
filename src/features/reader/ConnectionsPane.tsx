@@ -29,6 +29,7 @@ import { entriesForCategories, lexiconQueryOptions, shouldActivateLookup } from 
 import { useDictionarySearch } from "../shared/useDictionarySearch";
 import { DictionarySearch } from "~/ui/DictionarySearch/DictionarySearch";
 import { LexiconView } from "~/ui/LexiconView/LexiconView";
+import { readerAnalytics } from "~/lib/analytics";
 import { NamedEntityView } from "~/ui/NamedEntityView/NamedEntityView";
 import { entityQueryOptions, entitySourceNote } from "~/lib/connections/entity";
 import { localizedRef, topicsForRefs } from "~/lib/connections/topics";
@@ -206,6 +207,13 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const onAbout = view.view === "mode" && view.mode === "About";
   const onVersionOpen = view.view === "mode" && view.mode === "Version Open";
   const indexTitle = props.section?.indexTitle ?? "";
+  /** What VersionBlock reported for a click on a version: to, from (the version shown in that language), categories, book. */
+  const versionClick = (v: { versionTitle: string; language?: string; isPrimary?: boolean }) => ({
+    to: v.versionTitle,
+    from: (v.isPrimary ?? v.language === "he") ? props.shownVersions?.he : props.shownVersions?.en,
+    categories: props.section?.categories ?? [],
+    book: indexTitle,
+  });
   // Search in this text: the book's search path first, then the query inside it, a page at a time
   const onSidebarSearch = view.view === "mode" && view.mode === "SidebarSearch";
   const searchPathQ = useQuery({ ...searchPathQueryOptions(indexTitle), enabled: onSidebarSearch && !!indexTitle });
@@ -234,6 +242,13 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const entityQ = useQuery({ ...entityQueryOptions(props.entity?.slug ?? ""), enabled: onLexicon && !!props.entity });
   const lexiconQ = useQuery({ ...lexiconQueryOptions(lookingUp ?? "", lookupRef), enabled: onLexicon && !!lookingUp && shouldActivateLookup(lookingUp, !!typedWord) });
   const lexiconEntries = lexiconQ.data ? (typedWord ? lexiconQ.data : entriesForCategories(lexiconQ.data, props.section?.categories)) : undefined;
+  // LexiconBox: each lookup's answer reported as "Open" / "Open No Result" / <categories>/<book>
+  useEffect(() => {
+    if (!lexiconEntries || !lookingUp) return;
+    const where = props.section ? ` / ${props.section.categories.join("/")}/${props.section.indexTitle}` : "";
+    readerAnalytics.lexiconLookup(`${lexiconEntries.length === 0 ? "Open No Result" : "Open"}${where}`, lookingUp);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lexiconQ.data, lookingUp]);
 
   // Web pages: one request per selected verse (the old client did the same), merged, sorted, grouped by site.
   const onWebPages = view.view === "webpages";
@@ -312,8 +327,8 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           entries={active ? lexiconEntries : undefined}
           onSearch={setTypedWord}
           getCompletions={anyDict.getCompletions}
-          onCitation={(ref) => props.onOpenRef(ref)}
-          onEntry={(ref) => props.onOpenRef(ref)}
+          onCitation={(ref) => (readerAnalytics.citationClicked(ref), props.onOpenRef(ref))}
+          onEntry={(ref) => (readerAnalytics.dictionaryEntryClicked(ref), props.onOpenRef(ref))}
         />
       </ConnectionsPanel>
     );
@@ -356,7 +371,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
       <ConnectionsPanel label="Feedback" back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
         <FeedbackView
           onSubmit={(s) =>
-            sendFeedback({ refs: selectedRefs.length ? selectedRefs : [sectionRef], type: s.type, url: window.location.href, currVersions: currVersionsOf(props.versions?.primary, props.versions?.translation), email: s.email, msg: s.msg, uid: null })
+            (readerAnalytics.feedbackSent(window.location.href), sendFeedback({ refs: selectedRefs.length ? selectedRefs : [sectionRef], type: s.type, url: window.location.href, currVersions: currVersionsOf(props.versions?.primary, props.versions?.translation), email: s.email, msg: s.msg, uid: null }))
           }
         />
       </ConnectionsPanel>
@@ -394,9 +409,9 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           order={versionSectionOrder(settings.language)}
           urlRef={refToUrl(selectionRef)}
           selectSourceHref={props.selectSourceHref}
-          onSelectSource={(v) => props.onSelectSource(v)}
+          onSelectSource={(v) => (readerAnalytics.versionSelectClicked(versionClick(v)), props.onSelectSource(v))}
           openHref={(v) => (v.isPrimary ? props.versionOpenHref(v) : props.translationPreviewHref(v as unknown as TranslationVersion))}
-          onOpen={(v) => onNavigate(v.isPrimary ? props.versionOpenHref(v) : props.translationPreviewHref(v as unknown as TranslationVersion))}
+          onOpen={(v) => (readerAnalytics.versionTitleClicked(versionClick(v)), onNavigate(v.isPrimary ? props.versionOpenHref(v) : props.translationPreviewHref(v as unknown as TranslationVersion)))}
           bookVersions={bookVersionsQ.data ?? []}
         />
       </ConnectionsPanel>
@@ -444,11 +459,11 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           loading={translationsQ.isPending}
           currentTitle={currentTranslation}
           selectHref={props.translationHref}
-          onSelect={(v) => props.onSelectTranslation(v)}
+          onSelect={(v) => (readerAnalytics.versionSelectClicked(versionClick(v)), props.onSelectTranslation(v))}
           openHref={props.translationHref}
           onOpen={(v) => props.onOpenTranslation(v)}
           previewHref={props.translationPreviewHref}
-          onPreview={(v) => onNavigate(props.translationPreviewHref(v))}
+          onPreview={(v) => (readerAnalytics.versionTitleClicked(versionClick(v)), onNavigate(props.translationPreviewHref(v)))}
           urlRef={refToUrl(selectionRef)}
         />
       </ConnectionsPanel>
@@ -530,6 +545,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
         emptyMessage={<InterfaceText en={`No connections known for ${title.en} here.`} he={`אין קשרים ידועים ל${title.he}.`} />}
         onOpen={(href) => {
           const item = items.find((i) => i.href === href);
+          if (item) readerAnalytics.textFromListClicked(item.sourceRef);
           if (item) onOpenText(item.sourceRef);
           else nav(href);
         }}

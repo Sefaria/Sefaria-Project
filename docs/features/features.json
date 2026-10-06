@@ -12200,7 +12200,8 @@
    "search_flow_started {flow_id, source nav_bar|back_click|deep_link|unknown}; nav_bar from showSearch; back_click from in-app popstate, performance back_forward, bfcache pageshow.",
    "search_query_executed {flow_id, search_id, search_text, status, result_counts JSON {sources,books,authors,topics}, error, tab}: fires once all four APIs report for current search_id; only first report per API counts; tab snapshot from query start.",
    "search_element_clicked {element_type tab|filter|sort|toggle|result, element_value, tab (live), count, result_position}.",
-   "search_flow_ended {reason clicked_result|abandoned}; ends only once."
+   "search_flow_ended {reason clicked_result|abandoned}; ends only once.",
+   "OWNER DECISION 2026-10-06: build analytics with the old names and parameters. BUILT: src/lib/analytics/search-flow.ts (port of searchAnalytics.js) wired in src/features/search/use-search-analytics.ts; e2e/analytics.spec.ts checks the funnel against the live API (deep_link and nav_bar sources, four-API completion, tab and result clicks, flow end)."
   ],
   "audience": "system",
   "platform": "all",
@@ -12223,7 +12224,8 @@
   "details": [
    "Mount starts flow+query; unmount ends 'abandoned'; pagehide -> abandoned; pageshow persisted -> new flow with back_click.",
    "New query in same visit gets new search_id with same flow_id; sort/filter changes do not.",
-   "In-app navigation away ends flow 'abandoned' only if page actually navigated (ReaderApp link handler)."
+   "In-app navigation away ends flow 'abandoned' only if page actually navigated (ReaderApp link handler).",
+   "OWNER DECISION 2026-10-06: build analytics with the old names and parameters. BUILT: src/lib/analytics/search-flow.ts (port of searchAnalytics.js) wired in src/features/search/use-search-analytics.ts; e2e/analytics.spec.ts checks the funnel against the live API (deep_link and nav_bar sources, four-API completion, tab and result clicks, flow end)."
   ],
   "audience": "system",
   "platform": "all",
@@ -12244,7 +12246,8 @@
   "details": [
    "Card, title, version row, breadcrumb, author link all report 'result'; plain click ends flow clicked_result.",
    "Modified clicks (killed by ReaderApp capture-phase handler) report via data-search-result-value/position and reportModifiedResultLinkClick without ending flow; middle-click via auxclick also reports without ending.",
-   "Tab click reports raw tab count; filter reports docCount; sort reports English label; toggle reports 'All Results'/'Exact Phrase'."
+   "Tab click reports raw tab count; filter reports docCount; sort reports English label; toggle reports 'All Results'/'Exact Phrase'.",
+   "OWNER DECISION 2026-10-06: build analytics with the old names and parameters. BUILT: src/lib/analytics/search-flow.ts (port of searchAnalytics.js) wired in src/features/search/use-search-analytics.ts; e2e/analytics.spec.ts checks the funnel against the live API (deep_link and nav_bar sources, four-API completion, tab and result clicks, flow end)."
   ],
   "audience": "system",
   "platform": "all",
@@ -12265,7 +12268,8 @@
   "name": "Header search gtag events",
   "summary": "Header search interactions send gtag events under 'Global Search'.",
   "details": [
-   "search_focus, search_defocus {text}, search_submit {feature_name 'Search Results'|'Autolink', text, link_type}, search_navto {feature_name 'Nav To by Keyboard'|'Nav To by Mouse', link_type, text, to}; all project 'Global Search'."
+   "search_focus, search_defocus {text}, search_submit {feature_name 'Search Results'|'Autolink', text, link_type}, search_navto {feature_name 'Nav To by Keyboard'|'Nav To by Mouse', link_type, text, to}; all project 'Global Search'.",
+   "OWNER DECISION 2026-10-06: build analytics with the old names and parameters. BUILT: src/lib/analytics/search-flow.ts (port of searchAnalytics.js) wired in src/features/search/use-search-analytics.ts; e2e/analytics.spec.ts checks the funnel against the live API (deep_link and nav_bar sources, four-API completion, tab and result clicks, flow end)."
   ],
   "audience": "system",
   "platform": "all",
@@ -12283,7 +12287,8 @@
   "name": "Legacy search event tracking",
   "summary": "Older Sefaria.track.event 'Search' events are still emitted.",
   "details": [
-   "Events: Search Box Search; Search Box Navigation - Book|Citation|Topic|<type>; [SidebarSearch ]Query: <type>; Search Result Card Click; Search Result Text Click; Sidebar Search Result Click; Search Result Sheet Click; Search Result Sheet Owner Click."
+   "Events: Search Box Search; Search Box Navigation - Book|Citation|Topic|<type>; [SidebarSearch ]Query: <type>; Search Result Card Click; Search Result Text Click; Sidebar Search Result Click; Search Result Sheet Click; Search Result Sheet Owner Click.",
+   "OWNER DECISION 2026-10-06: build analytics with the old names and parameters. BUILT: src/lib/analytics/search-flow.ts (port of searchAnalytics.js) wired in src/features/search/use-search-analytics.ts; e2e/analytics.spec.ts checks the funnel against the live API (deep_link and nav_bar sources, four-API completion, tab and result clicks, flow end)."
   ],
   "audience": "system",
   "platform": "all",
@@ -18974,7 +18979,8 @@
   "summary": "Each navigation reports a page view with rich context, and the last place read is saved for signed-in users.",
   "details": [
    "trackPageview sets page type, #panels ('2' / '3.2'), refs, book names, primary/secondary category, content languages, version titles, sidebars.",
-   "saveLastPlace after 3s intent -> Sefaria.saveUserHistory."
+   "saveLastPlace after 3s intent -> Sefaria.saveUserHistory.",
+   "Rebuild: page views come from the same GTM container and gtag config (GTM history triggers / GA4 enhanced measurement), as on the old site; nothing to call from the client. saveLastPlace is part of signed-in history (Phase 7c)."
   ],
   "audience": "system",
   "platform": "all",
@@ -19014,7 +19020,8 @@
   "summary": "Header visibility is reported once per session.",
   "details": [
    "header_viewed {impression_type:'regular_header'} (sa_event + gtag) once per session when 100% visible (useOnceFullyVisible, sessionStorage sa.header_viewed) (Header.jsx:257-261).",
-   "CategoryColorLine shares same session key with impression_type 'category_color_line' (Misc.jsx:1633-1646)."
+   "CategoryColorLine shares same session key with impression_type 'category_color_line' (Misc.jsx:1633-1646).",
+   "Rebuild: SiteHeader and CategoryColorLine report header_viewed (sa + gtag) once per session via useOnceFullyVisible (shared key sa.header_viewed, checked when the element mounts — as on the old site, both report only when they mount before either fires)."
   ],
   "audience": "system",
   "platform": "all",
@@ -19033,7 +19040,8 @@
   "name": "Banner visibility probe",
   "summary": "An invisible element measures whether banners can be seen (ad-blocking baseline).",
   "details": [
-   "BannerImpressionProbe: invisible 1px fixed element rendered after 2s + random 300-800ms; when fully visible fires banner_probe_viewed once per session."
+   "BannerImpressionProbe: invisible 1px fixed element rendered after 2s + random 300-800ms; when fully visible fires banner_probe_viewed once per session.",
+   "Rebuild: src/features/shell/BannerImpressionProbe.tsx (same delays, style and session key sa.banner_probe)."
   ],
   "audience": "system",
   "platform": "all",
@@ -19054,7 +19062,8 @@
    "OnInView: fires callback on each rising edge to 100% visibility",
    "useOnceFullyVisible(onVisible,key): IntersectionObserver threshold 1, fires once per sessionStorage key",
    "handleAnalyticsOnMarkdown: delegated click handler finding nearest a in rendered markdown, firing supplied gtag fn (rank, product, cta, label, link_type, analytics_event)",
-   "useOnceFullyVisible(onVisible,sessionKey) fires once per session when 100% visible (Misc.jsx:36-60); OnInView fires on each rising edge to fully visible (2063-2105)."
+   "useOnceFullyVisible(onVisible,sessionKey) fires once per session when 100% visible (Misc.jsx:36-60); OnInView fires on each rising edge to fully visible (2063-2105).",
+   "Rebuild: useOnceFullyVisible (callback ref, so elements that appear after mount are observed)."
   ],
   "audience": "system",
   "platform": "all",
@@ -19075,7 +19084,8 @@
   "summary": "An invisible control element measures how reliably banner impressions are recorded.",
   "details": [
    "BannerImpressionProbe: invisible 1px fixed element rendered after 2s + simulated 300-800ms delay; fires banner_probe_viewed (Simple Analytics + GA) once per session",
-   "Mounted at ReaderApp root (:2620)"
+   "Mounted at ReaderApp root (:2620)",
+   "Rebuild: src/features/shell/BannerImpressionProbe.tsx (same delays, style and session key sa.banner_probe)."
   ],
   "audience": "system",
   "platform": "all",
@@ -19095,7 +19105,8 @@
   "summary": "Search box interactions are tracked.",
   "details": [
    "Events: search_focus, search_defocus (with text), search_navto (Nav To by Mouse/Keyboard), search_submit.",
-   "Input maxLength=75, placeholder 'Search', class hebrewSearch for Hebrew interface; suggestions show only while focused and menu open (567)."
+   "Input maxLength=75, placeholder 'Search', class hebrewSearch for Hebrew interface; suggestions show only while focused and menu open (567).",
+   "Rebuild: src/lib/analytics/search-box.ts — search_focus, search_defocus {text}, search_navto (keyboard with link_type; mouse without), search_submit (Search Results / Autolink), plus the old Track 'Search Box …' events."
   ],
   "audience": "system",
   "platform": "all",
@@ -19114,7 +19125,8 @@
   "summary": "App start is tracked once per session and visitors are marked new/returning for targeting.",
   "details": [
    "reader_app_mounted (sa_event + gtag) once per session (sessionStorage sa.reader_app_mounted); intersection_observer_not_supported once per browser (localStorage sa.intersection_observer_api_checked) (ReaderApp.jsx:246-258).",
-   "Logged-in user -> markUserAsReturningVisitor; new visitor -> markUserAsNewVisitor (237-243); feeds Strapi audience targeting."
+   "Logged-in user -> markUserAsReturningVisitor; new visitor -> markUserAsNewVisitor (237-243); feeds Strapi audience targeting.",
+   "Rebuild: useAppAnalytics — reader_app_mounted once per session, intersection_observer_not_supported once per browser, print on beforeprint, visitor marking (waits for sign-in state)."
   ],
   "audience": "system",
   "platform": "all",
@@ -19136,7 +19148,8 @@
    "'Reader': Choose Version, Open Connections Panel, Open Connections Panel from Header, Other Text Click, Change Language, Set Translation Language Preference, Display Option Click; 'Tools': {mode} Click, Prompt Login; 'Search Box ...'; 'Saved / saving'.",
    "data-anl-batch on each panel: {panel_type,panel_number,content_lang,panel_name}; topics special-cased 'Topic Navigation', topics_{tab}, 'Topic Landing' (ReaderPanel.jsx:684-713).",
    "Search analytics flow source labels nav_bar/back_click, endFlow('abandoned') on in-app navigation away, reporting of modified-click results (ReaderApp.jsx:1164,1225-1227,1240-1242,2035-2037,336-338).",
-   "ToolTipped clicks go via TrackG4.gtagClick with AdContext (Misc.jsx:1458-1468)."
+   "ToolTipped clicks go via TrackG4.gtagClick with AdContext (Misc.jsx:1458-1468).",
+   "Rebuild (src/lib/analytics/reader.ts): select_content on opening a text; Text Segment Click (+ Open Connections Panel when no sidebar), Citation Link Click, Named Entity Link Click, Change Language (aleph buttons and the sidebar's), Choose Version, Other Text Click. NOT sent: Display Option Click (FOUND: only the retired ToggleOption sent it; the current display menu sends nothing), Set Translation Language Preference (the setting is not in this client)."
   ],
   "audience": "system",
   "platform": "all",
@@ -19156,7 +19169,8 @@
   "summary": "Custom dimensions describing the page are computed for each navigation.",
   "details": [
    "trackPageview (355-413) via Sefaria.track: page type (menuOpen or mode; 'Static' with no panels), number of panels ('2' or '3.2' text.connection), refs and book names (joined ' | '), primary category ('X Commentary' for commentaries) and secondary, content languages and version titles per text panel, sidebars (filters or 'all').",
-   "DEAD: actual Sefaria.track.pageview call is commented out. It would fire on push, on replace after 3s of unchanged refs (checkScrollIntentAndTrack), and initially."
+   "DEAD: actual Sefaria.track.pageview call is commented out. It would fire on push, on replace after 3s of unchanged refs (checkScrollIntentAndTrack), and initially.",
+   "Confirmed dead (the pageview call is commented out): not ported."
   ],
   "audience": "system",
   "platform": "all",
@@ -19175,7 +19189,8 @@
   "summary": "Copying text and printing are tracked.",
   "details": [
    "gtag copy_text {length,panelType,book,category}; bilingual_copy_text (both .en and .he selected); spanning_copy_text (more than one segment in a language) (ReaderApp.jsx:2208-2236).",
-   "gtag print on beforeprint (217,2204-2206)."
+   "gtag print on beforeprint (217,2204-2206).",
+   "Rebuild: TextColumn onCopy → copy_text {length, panelType, book, category}, bilingual_copy_text, spanning_copy_text (primary/translation sides counted as .he/.en)."
   ],
   "audience": "system",
   "platform": "all",
@@ -19195,7 +19210,8 @@
   "summary": "Sidebar interactions are tracked through Sefaria.track and gtag events.",
   "details": [
    "Sefaria.track.event: Tools '<mode> Click', Prompt Login, Note Save Private|Public, Delete Note, Add Connection, Add to Source Sheet Save, Edit Text Click, Add Translation Click, Send Feedback; Reader Connections Category Click, Category Filter Click, Text Filter Click, Text Filter in Recent Click, Click Text from TextList, Citation Link Click, Click Dictionary Entry from Lookup, Named Entity Link Click, Choose Version, Set Version Preference, Version Download, Other Text Click, Open Connections Panel from Header; Lexicon Open[ No Result]; Search Sidebar Search Result Click; Tools Sheet Click, My Sheet Click, Sheet Owner Click, Topic Click (SheetListing).",
-   "gtag: feature_clicked {name:tools_button_<en>}, onClick_version_title, onClick_select_version, guide_question_clicked, guide_answer_clicked, guide_view_auto|manual, guide_close, guide_nav, guide_click, promo_viewed, promo_clicked."
+   "gtag: feature_clicked {name:tools_button_<en>}, onClick_version_title, onClick_select_version, guide_question_clicked, guide_answer_clicked, guide_view_auto|manual, guide_close, guide_nav, guide_click, promo_viewed, promo_clicked.",
+   "Rebuild: feature_clicked {name: tools_button_<en>} + Tools '<mode> Click' (account tools only when signed in), Connections Category / Category Filter / Text Filter Click, Click Text from TextList, onClick_version_title / onClick_select_version, Version Download, Send Feedback, Lexicon Open[/No Result] and Click Dictionary Entry from Lookup. Guide events wait for Guided Learning."
   ],
   "audience": "system",
   "platform": "all",
@@ -19241,7 +19257,9 @@
    "Simple Analytics (sa_event queue stub; metadata logged_in, interface_lang, device_type, new/old user, custom session id, persistent sa_id, sefaria-email traffic flag; DNT collected)",
    "Unbounce embed (popups/banners)",
    "Google Identity Services / Apple JS / reCAPTCHA only when logged out",
-   "React 16 + ReactDOM UMD from unpkg; jQuery 2.2.4 + jQuery UI 1.12.1 from cdnjs with local fallbacks; js/lib/keyboard.js (virtual Hebrew keyboard); analyticsEventTracker.js"
+   "React 16 + ReactDOM UMD from unpkg; jQuery 2.2.4 + jQuery UI 1.12.1 from cdnjs with local fallbacks; js/lib/keyboard.js (virtual Hebrew keyboard); analyticsEventTracker.js",
+   "VERIFIED 2026-10-06 (scripts/probes/anl-probe.mjs, dataLayer recorded on www.sefaria.org/Genesis.1): GTM container + gtag config G-5S6RP1RFZ2 {user_id, traffic_type, site_lang:'english', site_version:'v7.2.3-prod.2'}; GTM also loads a legacy property G-P6B48B03CT ('is_legacy_loaded') and a `ga` shim, so Sefaria.track.event (Universal Analytics) calls are still converted into GA4 events.",
+   "Rebuild: src/lib/analytics/scripts.ts writes GTM, gtag (same config) and Simple Analytics (stub, sa_metadata, latest[.dev].js with DNT) from env GOOGLE_TAG_MANAGER_CODE / GOOGLE_GTAG / SIMPLE_ANALYTICS_HOSTNAME / APP_VERSION; each off when unset (development, tests). Helm (reader mode) reads the IDs from the local-settings secret by key. NOT ported: VWO (hides <body> until loaded), Hotjar, Unbounce — owner decision."
   ],
   "audience": "system",
   "platform": "all",
@@ -19262,7 +19280,8 @@
    "AnalyticsEventTracker.attach('#s2, #staticContentWrapper', [click, scrollIntoView, toggle, mouseover, input, inputStart])",
    "Elements declare data-anl-event='<name>:<type>|...'; fields aggregated from data-anl-<field> / data-anl-batch JSON on ancestors (closest wins)",
    "Whitelist: project, panel_type, panel_number, item_id, version, content_lang, content_id, content_type, panel_name, panel_category, position, ai, text, experiment, feature_name, from, to, action, engagement_value, engagement_type, logged_in, site_lang, traffic_type, promotion_name, link_type, form_name, form_destination",
-   "Derived data for details toggle (from/to) and input (text); scrollIntoView via IntersectionObserver; inputStart fires on first input; MutationObserver attaches to new nodes"
+   "Derived data for details toggle (from/to) and input (text); scrollIntoView via IntersectionObserver; inputStart fires on first input; MutationObserver attaches to new nodes",
+   "Rebuild: src/lib/analytics/declarative.ts, a port of analyticsEventTracker.js (same whitelist, closest-wins aggregation, data-anl-batch, derived toggle/input data, scrollIntoView and inputStart) attached to the app root. Module switcher uses it (modswitch_open/close/item_click)."
   ],
   "audience": "system",
   "platform": "all",
@@ -19285,7 +19304,8 @@
    "window.onerror -> GA Javascript Errors event when GA tracker present (track.js:5-9)",
    "TrackG4.gtagClick(e,onClick,comp_name,params,AdContext) -> onclick_<comp> with keywordTargets + interfaceLang",
    "Direct gtag/sa_event: banner_viewed, modal_viewed, *_interacted_with_*, promo_viewed/promo_clicked, header_viewed, banner_probe_viewed, products_*",
-   "Server: api/linker-track, /api/send_feedback"
+   "Server: api/linker-track, /api/send_feedback",
+   "Rebuild: uaEvent(category, action, label, value) sends through GTM's ga shim with the tracker name (as track.js), only when the shim is present. TrackG4.gtagClick (onclick_ToolTipped) belongs to promotions/AdContext — not built."
   ],
   "audience": "system",
   "platform": "all",
@@ -19305,7 +19325,8 @@
   "summary": "Front-end errors and performance traces are reported to Sentry.",
   "details": [
    "client.jsx:21-34: @sentry/react with BrowserTracing + Replay; sample rates from remoteConfig.sentry.*; release = appVersion; DSN CLIENT_SENTRY_DSN",
-   "Server Sentry config in sefaria/settings_utils.py"
+   "Server Sentry config in sefaria/settings_utils.py",
+   "Rebuild: src/lib/analytics/sentry.ts — @sentry/react loaded on demand when CLIENT_SENTRY_DSN is set; release = APP_VERSION; tracing + replay; sample rates from /api/remote-config feature.client.remote_config_json.sentry (VERIFIED live: sampleRate 1.0, others 0)."
   ],
   "audience": "system",
   "platform": "all",

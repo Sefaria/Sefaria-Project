@@ -20,6 +20,8 @@ export interface FilterRowProps {
   href: string;
   /** Handle a plain click as client navigation; modified clicks fall through to the browser. */
   onNavigate?: (href: string, event: MouseEvent) => void;
+  /** Called on any click (analytics: the old handlers reported plain and modified clicks alike). */
+  onTrack?: () => void;
   /** Greyed out: no links for this selection (the row still lists the commentator). */
   dimmed?: boolean;
   /** The active filter. */
@@ -38,7 +40,7 @@ export interface FilterRowProps {
  *
  * @feature CON-019 @feature CON-025 @feature CON-026 @feature CON-016
  */
-export function FilterRow({ label, count, color, icon = "book", hasEnglish, description, href, onNavigate, dimmed, current, trailing, external, tool }: FilterRowProps) {
+export function FilterRow({ label, count, color, icon = "book", hasEnglish, description, href, onNavigate, dimmed, current, trailing, external, tool, onTrack }: FilterRowProps) {
   const lang = useInterfaceLang();
   const Anchor = external ? PlainAnchor : Link;
   const desc = description && (lang === "hebrew" ? description.he || description.en : description.en || description.he);
@@ -51,6 +53,7 @@ export function FilterRow({ label, count, color, icon = "book", hasEnglish, desc
       aria-current={current ? "true" : undefined}
       data-tool={tool || undefined}
       onClick={(e) => {
+        onTrack?.();
         if (onNavigate && e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
           e.preventDefault();
           onNavigate(href, e);

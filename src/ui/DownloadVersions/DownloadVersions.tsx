@@ -1,3 +1,4 @@
+import { readerAnalytics } from "~/lib/analytics/reader";
 import { useId, useState } from "react";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { languageName } from "~/lib/versions/translations";
@@ -71,7 +72,7 @@ export function DownloadVersions({ title, versions, origin = SITE_ORIGIN }: Down
           {FORMATS.map((f) => <option key={f.value} value={f.value}>{hebrew ? f.he : f.en}</option>)}
         </select>
         {href ? (
-          <a className={styles.button} href={href} download>
+          <a className={styles.button} href={href} download onClick={() => chosen && readerAnalytics.versionDownloaded(`${title} / ${chosen.title} / ${chosen.language} / ${format}`)}>
             <InterfaceText en="Download" he="הורדה" />
           </a>
         ) : (
