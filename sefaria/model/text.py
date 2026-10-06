@@ -5058,9 +5058,9 @@ class Library(object):
         if DISABLE_ENTITY_ALT_INDEX:
             logger.warning("DISABLE_ENTITY_ALT_INDEX is set; skipping entity alt index build.")
             return
-        from sefaria.helper.entity_alt_index import build_entity_alt_index
+        from sefaria.helper.entity_alt_index import build_entity_alt_trie
         with build_pathway("build_entity_alt_index"):
-            self._entity_alt_index = build_entity_alt_index()
+            self._entity_alt_index = build_entity_alt_trie()
 
     def cross_lexicon_auto_completer(self):
         """

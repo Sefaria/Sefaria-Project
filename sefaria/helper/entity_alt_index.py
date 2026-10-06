@@ -31,7 +31,7 @@ from typing import Dict, Sequence
 
 import structlog
 
-from sefaria.helper.top_n_grams_for_search_autocorrect import normalize_word
+from sefaria.helper.top_n_grams_for_search_autocorrect import build_phrase_trie, normalize_word
 
 logger = structlog.get_logger(__name__)
 
@@ -124,3 +124,13 @@ def build_entity_alt_index(langs: Sequence[str] = ('en', 'he'),
                 _add_entry(index, _normalize_phrase(title), score)
 
     return index
+
+
+def build_entity_alt_trie(langs: Sequence[str] = ('en', 'he'),
+                           min_topic_sources: int = MIN_TOPIC_SOURCES):
+    """
+    `build_entity_alt_index`, as the trie `autocorrect_query` looks phrases up in at runtime
+    (see `build_phrase_trie`) -- what `Library.build_entity_alt_index` holds. Scores are floats,
+    so this is a `datrie.Trie` rather than the int-valued `BaseTrie` the corpus table uses.
+    """
+    return build_phrase_trie(build_entity_alt_index(langs, min_topic_sources).items(), int_values=False)

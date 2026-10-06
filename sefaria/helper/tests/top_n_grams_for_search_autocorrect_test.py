@@ -29,6 +29,7 @@ from sefaria.helper.top_n_grams_for_search_autocorrect import (
     AutocorrectResult,
     autocorrect_query,
     save_top_n_grams,
+    build_phrase_trie,
     load_top_n_grams,
 )
 import sefaria.helper.top_n_grams_for_search_autocorrect as top_n_grams_for_search_autocorrect
@@ -359,7 +360,7 @@ def test_autocorrect_query_long_query_falls_through_to_windowed_scan_when_no_who
 
 
 def test_autocorrect_query_entity_alt_index_is_optional():
-    # Omitting entity_alt_index entirely (e.g. DISABLE_ENTITY_ALT_INDEX) must behave exactly
+    # Omitting entity_alt_index entirely (e.g. DISABLE_AUTOCOMPLETER) must behave exactly
     # like the top-n-grams-only signature this replaced.
     top_n_grams = {"bereishit rabbah": 10}
     assert autocorrect_query("bereshit rabbah", top_n_grams) == AutocorrectResult(
@@ -462,7 +463,7 @@ def fake_mongo(monkeypatch):
 def test_save_then_load_top_n_grams_round_trips(fake_mongo):
     top_n_grams = {"bereishit rabbah": 10, "the": 100}
     save_top_n_grams(top_n_grams, min_doc_count=3)
-    assert load_top_n_grams() == top_n_grams
+    assert dict(load_top_n_grams().items()) == top_n_grams
 
 
 def test_save_top_n_grams_removes_phrases_dropped_from_a_later_batch(fake_mongo, monkeypatch):
@@ -472,7 +473,7 @@ def test_save_top_n_grams_removes_phrases_dropped_from_a_later_batch(fake_mongo,
     monkeypatch.setattr(top_n_grams_for_search_autocorrect.time, "strftime", lambda *a, **k: next(batches))
     save_top_n_grams({"old phrase": 5}, min_doc_count=3)
     save_top_n_grams({"new phrase": 5}, min_doc_count=3)
-    assert load_top_n_grams() == {"new phrase": 5}
+    assert dict(load_top_n_grams().items()) == {"new phrase": 5}
 
 
 def test_save_top_n_grams_writes_meta_document(fake_mongo):
@@ -487,16 +488,16 @@ def test_save_top_n_grams_chunks_bulk_writes(fake_mongo, monkeypatch):
     monkeypatch.setattr(top_n_grams_for_search_autocorrect, "_BULK_WRITE_CHUNK_SIZE", 2)
     save_top_n_grams({"a": 1, "b": 1, "c": 1, "d": 1, "e": 1}, min_doc_count=0)
     assert fake_mongo.bulk_write_calls == 3  # ceil(5 / 2)
-    assert load_top_n_grams() == {"a": 1, "b": 1, "c": 1, "d": 1, "e": 1}
+    assert dict(load_top_n_grams().items()) == {"a": 1, "b": 1, "c": 1, "d": 1, "e": 1}
 
 
-def test_load_top_n_grams_returns_empty_dict_on_error(monkeypatch):
+def test_load_top_n_grams_returns_empty_trie_on_error(monkeypatch):
     class _BrokenCollection:
         def find(self, *args, **kwargs):
             raise RuntimeError("no connection")
 
     monkeypatch.setattr(top_n_grams_for_search_autocorrect, "db", _FakeDb(_BrokenCollection()))
-    assert load_top_n_grams() == {}
+    assert len(load_top_n_grams()) == 0
 
 
 # --------------------------------------------------------------------------- #
@@ -525,3 +526,45 @@ def test_build_top_n_grams_matches_brute_force_count(monkeypatch, min_doc_count)
     expected = {p: c for p, c in brute.items() if c > min_doc_count}
 
     assert top_n_grams_for_search_autocorrect.build_top_n_grams(min_doc_count) == expected
+
+
+# --------------------------------------------------------------------------- #
+#  build_phrase_trie / trie-backed autocorrect                                #
+# --------------------------------------------------------------------------- #
+
+def test_build_phrase_trie_normalizes_keys_and_keeps_the_higher_value_on_collision():
+    # "moshé" and "moshe" collide once accents are unidecoded; apostrophes are dropped.
+    trie = build_phrase_trie([("moshé", 3), ("moshe", 9), ("don't", 4)])
+    assert trie["moshe"] == 9
+    assert trie["dont"] == 4
+    assert len(trie) == 2
+
+
+def test_build_phrase_trie_skips_keys_outside_the_alphabet():
+    # "@" survives normalization but isn't in letter_scope; datrie would silently drop it.
+    trie = build_phrase_trie([("a@b", 1), ("ab", 2), ("", 3)])
+    assert dict(trie.items()) == {"ab": 2}
+
+
+def test_build_phrase_trie_holds_float_values_when_asked():
+    trie = build_phrase_trie([("rashi", 2.5)], int_values=False)
+    assert trie["rashi"] == 2.5
+
+
+def test_autocorrect_query_against_tries_matches_dicts():
+    table = {"bereishit rabbah": 10, "mishneh torah": 40, "moshe": 7}
+    entities = {"shulchan arukh": 3.0}
+    for query in ["bereshit rabbah", "mishne torah", "moshé", "shulchan aruch", "unrelated words here"]:
+        expected = autocorrect_query(query, table, entities)
+        actual = autocorrect_query(query, build_phrase_trie(table.items()),
+                                   build_phrase_trie(entities.items(), int_values=False))
+        assert actual == expected, query
+
+
+def test_autocorrect_query_normalizes_the_query_like_the_table_keys():
+    # An accented query word must not fall outside the trie alphabet: it normalizes to the
+    # known phrase, so there is nothing to correct -- and the user's spelling is left alone.
+    trie = build_phrase_trie([("moshe rabbeinu", 10)])
+    assert autocorrect_query("moshé rabbeinu", trie) is None
+    result = autocorrect_query("moshé rabbenu", trie)
+    assert result.corrected_query == "moshé rabbeinu"

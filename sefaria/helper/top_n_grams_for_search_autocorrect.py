@@ -29,6 +29,14 @@ same collection at startup with no artifact-shipping step of its own (see `save_
 the search-time lookup share, plus the edit-distance-1 candidate generation and the Mongo
 load/save helpers.
 
+At search time both tables live in `datrie` tries (see `build_phrase_trie`), the same
+structure the autocompleters in sefaria/model/autospell.py use, rather than Python dicts: a
+trie shares common prefixes, which cuts the resident size of a multi-million-phrase table
+considerably. Keys are normalized with autospell's `normalize_chars` so every one fits the
+trie's `letter_scope` alphabet; `autocorrect_query` normalizes the query the same way.
+Lookups are unchanged (`in` / `[]`), so a plain dict works anywhere a trie does -- the
+builder, which only ever holds its counts transiently, still produces one.
+
 `autocorrect_query` also optionally takes `entity_alt_index`: the runtime-only (never
 persisted to Mongo) index of Book/Author/Topic alternate titles built by
 `sefaria/helper/entity_alt_index.py` and held on `Library._entity_alt_index`. A candidate
@@ -52,11 +60,13 @@ import tempfile
 import time
 from collections import Counter
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Tuple, Union
 
+import datrie
 import structlog
 from pymongo import UpdateOne
 
+from sefaria.model.autospell import SpellChecker, letter_scope, normalize_chars
 from sefaria.system.database import db
 
 logger = structlog.get_logger(__name__)
@@ -295,49 +305,99 @@ def save_top_n_grams(top_n_grams: Dict[str, int], min_doc_count: int) -> None:
     )
 
 
-def load_top_n_grams() -> Dict[str, int]:
+_TRIE_ALPHABET = frozenset(letter_scope)
+
+# What the lookup functions accept for either table: a datrie trie from `build_phrase_trie`
+# at runtime, or a plain dict (the builder's output, and what tests pass) -- they only use
+# `in`, `[]` and truthiness.
+PhraseTable = Union[Dict[str, Union[int, float]], datrie.BaseTrie]
+
+
+def build_phrase_trie(items: Iterable[Tuple[str, Union[int, float]]], int_values: bool = True) -> datrie.BaseTrie:
+    """
+    Build a `datrie` trie of {phrase: value} for `autocorrect_query` to look phrases up in.
+
+    Each key goes through autospell's `normalize_chars` (accents/odd characters unidecoded,
+    apostrophes dropped) so it fits the trie's `letter_scope` alphabet -- datrie silently
+    discards a key with a character outside its alphabet, so a key that still doesn't fit
+    after normalizing is skipped explicitly and counted in a warning instead. Phrases that
+    collide once normalized keep the higher value, matching how entity_alt_index resolves a
+    shared title.
+
+    `int_values=True` (the corpus doc counts) uses `datrie.BaseTrie`, which stores each value
+    as a C int -- compact, and what makes the multi-million-phrase table affordable.
+    `int_values=False` (the entity index's float scores) uses `datrie.Trie`, which holds
+    arbitrary Python objects; that index is small enough for the extra per-value cost not to matter.
+
+    `items` is consumed once, so a Mongo cursor can be streamed straight in with no
+    intermediate dict.
+    """
+    trie = (datrie.BaseTrie if int_values else datrie.Trie)(letter_scope)
+    skipped = 0
+    for phrase, value in items:
+        key = normalize_chars(phrase)
+        if not key or not _TRIE_ALPHABET.issuperset(key):
+            skipped += 1
+            continue
+        if key not in trie or value > trie[key]:
+            trie[key] = value
+    if skipped:
+        logger.warning(f"Skipped {skipped} phrases with characters outside the trie alphabet.")
+    return trie
+
+
+def load_top_n_grams() -> datrie.BaseTrie:
     """
     Load the top-n-grams table built by the most recent
-    `scripts/build_top_n_grams_for_search_autocorrect.py` run from Mongo. Returns {} (which
-    silently disables auto-correction -- `autocorrect_query` always returns None against an
-    empty table) if it hasn't been built yet in this environment, or on any read error --
-    that must not be a startup error.
+    `scripts/build_top_n_grams_for_search_autocorrect.py` run from Mongo, as a trie (see
+    `build_phrase_trie`). Returns an empty trie (which silently disables auto-correction --
+    `autocorrect_query` always returns None against an empty table) if it hasn't been built
+    yet in this environment, or on any read error -- that must not be a startup error.
     """
     try:
-        return {
-            doc["_id"]: doc["count"]
-            for doc in db[TOP_N_GRAMS_COLLECTION].find({"_id": {"$ne": _META_ID}}, {"count": 1})
-        }
+        cursor = db[TOP_N_GRAMS_COLLECTION].find({"_id": {"$ne": _META_ID}}, {"count": 1})
+        return build_phrase_trie((doc["_id"], doc["count"]) for doc in cursor)
     except Exception as e:
         logger.warning(f"Could not load top-n-grams table from Mongo: {e}")
-        return {}
+        return build_phrase_trie(())
 
 
 # --- Autocorrect -----------------------------------------------------------------------
 
 # Alphabet used to generate edit candidates: Hebrew letters, English letters, digits, and
-# the quote characters a top-n-grams phrase can legitimately contain internally (e.g. רמב"ם).
-# Deliberately excludes the space character -- replace/insert never introduces a new word
-# boundary, so a candidate can only gain or lose one by *deleting* an existing space.
-_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789'\"" + ''.join(chr(c) for c in range(0x05d0, 0x05eb))
+# the gershayim a top-n-grams phrase can legitimately contain internally (e.g. רמב"ם). No
+# apostrophe: `normalize_chars` strips them from every key, so a candidate with one could
+# never match. Deliberately excludes the space character -- replace/insert never introduces a
+# new word boundary, so a candidate can only gain or lose one by *deleting* an existing space.
+# Every character is within autospell's `letter_scope`, so no candidate can fall outside the
+# trie's alphabet.
+_ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789\"" + ''.join(chr(c) for c in range(0x05d0, 0x05eb))
+
+
+class _PhraseSpellChecker(SpellChecker):
+    """
+    autospell's SpellChecker, used only for its `single_edits` (the Norvig-style candidate
+    generator the autocompleter already relies on), over this table's own mixed
+    Hebrew + Latin + digit alphabet rather than one language's letters -- a top-n-grams
+    phrase can be either language, and the table isn't split by one.
+    """
+    def __init__(self):
+        super().__init__("en")
+        self.letters = _ALPHABET
+
+
+_phrase_spell_checker = _PhraseSpellChecker()
 
 
 def _one_edit_candidates(phrase: str) -> set:
     """
     Every string exactly one edit (delete, transpose, replace, or insert) away from
-    `phrase`. Same brute-force approach as the Norvig-style corrector in
-    sefaria/model/autospell.py's SpellChecker.single_edits, reimplemented locally so this
-    table's own alphabet (Hebrew + Latin + digits + quotes) is used instead of the lexicon's,
-    and so this module has no dependency on the lexicon/autocomplete stack. `phrase` may be a
-    single word or several words joined by spaces -- the edit operates on the string as a
-    whole either way.
+    `phrase`, which may be a single word or several words joined by spaces -- the edit
+    operates on the string as a whole either way. Unlike the autocompleter, the first
+    character is editable too (`hold_first_letter=False`): a typo there is as likely as
+    anywhere else, and this is a phrase correction, not a prefix completion.
     """
-    splits = [(phrase[:i], phrase[i:]) for i in range(len(phrase) + 1)]
-    deletes = [L + R[1:] for L, R in splits if R]
-    transposes = [L + R[1] + R[0] + R[2:] for L, R in splits if len(R) > 1]
-    replaces = [L + c + R[1:] for L, R in splits if R for c in _ALPHABET]
-    inserts = [L + c + R for L, R in splits for c in _ALPHABET]
-    return set(deletes + transposes + replaces + inserts)
+    return _phrase_spell_checker.single_edits(phrase, hold_first_letter=False)
 
 
 def _tie_break_score(count: int) -> float:
@@ -356,8 +416,8 @@ def _tie_break_score(count: int) -> float:
     return math.log10(1 + max(count, 0))
 
 
-def _ranked_candidates(phrase: str, top_n_grams: Dict[str, int],
-                        entity_alt_index: Optional[Dict[str, float]] = None) -> List[Tuple[str, float]]:
+def _ranked_candidates(phrase: str, top_n_grams: PhraseTable,
+                        entity_alt_index: Optional[PhraseTable] = None) -> List[Tuple[str, float]]:
     """
     Every one-edit-distance candidate for `phrase`, found in either source, paired with its
     tie-break score -- the higher of the two sources' scores when a candidate is found in
@@ -378,8 +438,8 @@ def _ranked_candidates(phrase: str, top_n_grams: Dict[str, int],
     return sorted(scores.items(), key=lambda pair: (-pair[1], pair[0]))
 
 
-def _best_match(phrase: str, top_n_grams: Dict[str, int],
-                 entity_alt_index: Optional[Dict[str, float]] = None) -> Optional[str]:
+def _best_match(phrase: str, top_n_grams: PhraseTable,
+                 entity_alt_index: Optional[PhraseTable] = None) -> Optional[str]:
     """
     One-edit-distance correction for a phrase (one or more words), chosen from both the
     top-n-grams table and the optional runtime entity-alt index: the single
@@ -424,8 +484,8 @@ class AmbiguousCandidates:
 
 
 def _try_window(words: List[str], normalized: List[str], start: int, end: int,
-                 top_n_grams: Dict[str, int],
-                 entity_alt_index: Optional[Dict[str, float]] = None) -> Union[str, AmbiguousCandidates, None]:
+                 top_n_grams: PhraseTable,
+                 entity_alt_index: Optional[PhraseTable] = None) -> Union[str, AmbiguousCandidates, None]:
     """
     Try to correct `normalized[start:end]` (a contiguous run of query words) as a single
     phrase. Returns:
@@ -469,8 +529,8 @@ class AutocorrectResult:
     suggested_queries: Optional[List[str]] = None
 
 
-def autocorrect_query(query: str, top_n_grams: Dict[str, int],
-                       entity_alt_index: Optional[Dict[str, float]] = None) -> Optional[AutocorrectResult]:
+def autocorrect_query(query: str, top_n_grams: PhraseTable,
+                       entity_alt_index: Optional[PhraseTable] = None) -> Optional[AutocorrectResult]:
     """
     Product spec sc-47189. Corrects a *phrase*, never a lone word in isolation, so a fix is
     only ever offered when the resulting phrase is itself something the corpus contains, or a
@@ -508,7 +568,7 @@ def autocorrect_query(query: str, top_n_grams: Dict[str, int],
     words = query.split()
     if not words:
         return None
-    normalized = [normalize_word(w) for w in words]
+    normalized = [normalize_chars(normalize_word(w)) for w in words]  # same as the table's keys
     n = len(normalized)
 
     def finish(result: Union[str, AmbiguousCandidates, None]) -> Optional[AutocorrectResult]:
