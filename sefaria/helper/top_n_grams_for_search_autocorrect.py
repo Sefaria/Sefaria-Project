@@ -60,7 +60,7 @@ import tempfile
 import time
 from collections import Counter
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Optional, Tuple, Union
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import datrie
 import structlog
@@ -216,14 +216,30 @@ def _spool_tokenized_segments(spool, langs, categories: Optional[List[str]]) -> 
     return unigram_counts
 
 
-def build_top_n_grams(min_doc_count: int, langs=('he', 'en'), categories: Optional[List[str]] = None,
+def thresholds_by_length(min_doc_count: Union[int, Sequence[int]]) -> List[int]:
+    """
+    Normalize `min_doc_count` to one threshold per phrase length: a list of MAX_PHRASE_WORDS
+    ints, index i being the threshold for (i + 1)-word phrases. A single int (or a one-element
+    sequence) applies to every length; otherwise exactly MAX_PHRASE_WORDS values are required.
+    """
+    values = [min_doc_count] if isinstance(min_doc_count, int) else list(min_doc_count)
+    if len(values) == 1:
+        values = values * MAX_PHRASE_WORDS
+    if len(values) != MAX_PHRASE_WORDS:
+        raise ValueError(f"min_doc_count needs 1 or {MAX_PHRASE_WORDS} values (one per phrase length), got {len(values)}")
+    return values
+
+
+def build_top_n_grams(min_doc_count: Union[int, Sequence[int]], langs=('he', 'en'), categories: Optional[List[str]] = None,
                       num_shards: int = _DEFAULT_NUM_SHARDS) -> Dict[str, int]:
     """
     Walk every segment in the library (optionally scoped to `categories`, e.g. ["Tanakh"])
     and count, per normalized phrase (every contiguous run of 1 to MAX_PHRASE_WORDS words),
     the number of distinct segments ("documents") it appears in at least once. A phrase that
     occurs 5 times in one segment and never again still has a doc count of 1. Returns only
-    phrases whose doc count is > `min_doc_count`.
+    phrases whose doc count is > the threshold for their length: `min_doc_count` is one int
+    for every length, or one value per phrase length (see `thresholds_by_length`) -- longer
+    phrases are rarer, so they can be kept at a lower bar than single words.
 
     Memory: counting every 1..MAX_PHRASE_WORDS-gram of the whole library in one Counter holds
     hundreds of millions of mostly-singleton phrases and can exhaust RAM. Instead this counts
@@ -231,7 +247,12 @@ def build_top_n_grams(min_doc_count: int, langs=('he', 'en'), categories: Option
     disk, and counts single words; each later pass n re-reads the spool and counts only the
     n-word runs whose two (n-1)-word sub-runs survived the previous pass (see
     `_frequent_ngrams`). The result is identical to counting everything, but only phrases that
-    can still clear the threshold ever occupy memory. Even so, a level's counter (bigrams
+    can still clear the threshold ever occupy memory. With per-length thresholds, "can still
+    clear" means the *lowest* threshold of this length and every longer one: a trigram that
+    clears a low bar needs its bigrams and words to clear that same low bar, even when they
+    are only kept in the output at a higher one. So each level is counted and carried forward
+    down to that floor, then filtered to its own threshold for the result -- still exact.
+    Even so, a level's counter (bigrams
     especially) can reach tens of GB, so each level is itself split into `num_shards` passes
     over the spool, each counting only the phrases whose hash falls in that shard -- peak
     memory is roughly 1/num_shards of the level's full counter, at the cost of re-reading the
@@ -252,31 +273,36 @@ def build_top_n_grams(min_doc_count: int, langs=('he', 'en'), categories: Option
     phrases twice -- there is no other version-counting logic here.
     """
     with tempfile.TemporaryFile(mode="w+", encoding="utf-8") as spool:
+        thresholds = thresholds_by_length(min_doc_count)
+        # floors[i]: lowest bar a phrase of length i + 1 must clear to still matter, either
+        # as output (thresholds[i]) or as a sub-phrase of a longer kept phrase.
+        floors = [min(thresholds[i:]) for i in range(MAX_PHRASE_WORDS)]
         unigram_counts = _spool_tokenized_segments(spool, langs, categories)
-        result = {w: c for w, c in unigram_counts.items() if c > min_doc_count}
+        carried = {w: c for w, c in unigram_counts.items() if c > floors[0]}
         del unigram_counts
-        logger.info(f"1-word phrases kept: {len(result)}")
+        result = {w: c for w, c in carried.items() if c > thresholds[0]}
+        logger.info(f"1-word phrases: {len(carried)} carried, {len(result)} kept")
 
-        frequent_prev = result
         for n in range(2, MAX_PHRASE_WORDS + 1):
-            if not frequent_prev:
+            if not carried:
                 break
             kept = {}
             for shard in range(num_shards):
                 counts = Counter()
                 spool.seek(0)
                 for line in spool:
-                    counts.update(_frequent_ngrams(line.split(), n, frequent_prev, shard, num_shards))
-                kept.update({p: c for p, c in counts.items() if c > min_doc_count})
+                    counts.update(_frequent_ngrams(line.split(), n, carried, shard, num_shards))
+                kept.update({p: c for p, c in counts.items() if c > floors[n - 1]})
                 del counts
-                logger.info(f"{n}-word phrases: shard {shard + 1}/{num_shards} done, {len(kept)} kept so far")
-            frequent_prev = kept
-            logger.info(f"{n}-word phrases kept: {len(frequent_prev)}")
-            result.update(frequent_prev)
+                logger.info(f"{n}-word phrases: shard {shard + 1}/{num_shards} done, {len(kept)} carried so far")
+            carried = kept
+            level_result = {p: c for p, c in carried.items() if c > thresholds[n - 1]}
+            logger.info(f"{n}-word phrases: {len(carried)} carried, {len(level_result)} kept")
+            result.update(level_result)
     return result
 
 
-def save_top_n_grams(top_n_grams: Dict[str, int], min_doc_count: int) -> None:
+def save_top_n_grams(top_n_grams: Dict[str, int], min_doc_count: Union[int, Sequence[int]]) -> None:
     """
     Persist a freshly built top-n-grams table to `db.top_n_grams_for_search_autocorrect`, one
     document per phrase, so every web pod can load it at startup with a single query and no

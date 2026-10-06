@@ -504,7 +504,8 @@ def test_load_top_n_grams_returns_empty_trie_on_error(monkeypatch):
 #  build_top_n_grams: level-wise (low-memory) counting                        #
 # --------------------------------------------------------------------------- #
 
-@pytest.mark.parametrize("min_doc_count", [0, 1, 2, 3])
+# One int for every length, or one per phrase length (falling, rising and mixed).
+@pytest.mark.parametrize("min_doc_count", [0, 1, 2, 3, [3, 2, 1], [1, 2, 3], [2, 0, 2], [3], (2, 1, 0)])
 def test_build_top_n_grams_matches_brute_force_count(monkeypatch, min_doc_count):
     from collections import Counter
     segments = [
@@ -520,12 +521,46 @@ def test_build_top_n_grams_matches_brute_force_count(monkeypatch, min_doc_count)
 
     monkeypatch.setattr(top_n_grams_for_search_autocorrect, "_spool_tokenized_segments", fake_spool)
 
+    thresholds = top_n_grams_for_search_autocorrect.thresholds_by_length(min_doc_count)
     brute = Counter()
     for seg in segments:
         brute.update(_segment_phrases(seg.split()))
-    expected = {p: c for p, c in brute.items() if c > min_doc_count}
+    expected = {p: c for p, c in brute.items() if c > thresholds[len(p.split()) - 1]}
 
     assert top_n_grams_for_search_autocorrect.build_top_n_grams(min_doc_count) == expected
+    # Sharding the counting passes must not change the result either.
+    assert top_n_grams_for_search_autocorrect.build_top_n_grams(min_doc_count, num_shards=3) == expected
+
+
+def test_lower_threshold_for_longer_phrases_keeps_a_trigram_whose_words_are_below_the_word_bar(monkeypatch):
+    # "x y z" is in 2 segments, so its words and bigrams are only carried at the low bar; they
+    # must still be counted (not pruned) for the trigram to survive, yet not appear in the
+    # output at the higher word/bigram threshold.
+    from collections import Counter
+    segments = ["x y z", "x y z", "m", "m", "m"]
+
+    def fake_spool(spool, langs, categories):
+        counts = Counter()
+        for seg in segments:
+            spool.write(seg + "\n")
+            counts.update(set(seg.split()))
+        return counts
+
+    monkeypatch.setattr(top_n_grams_for_search_autocorrect, "_spool_tokenized_segments", fake_spool)
+    assert top_n_grams_for_search_autocorrect.build_top_n_grams([2, 2, 1]) == {"m": 3, "x y z": 2}
+
+
+def test_thresholds_by_length_broadcasts_a_single_value():
+    assert top_n_grams_for_search_autocorrect.thresholds_by_length(7) == [7] * MAX_PHRASE_WORDS
+    assert top_n_grams_for_search_autocorrect.thresholds_by_length([7]) == [7] * MAX_PHRASE_WORDS
+    assert top_n_grams_for_search_autocorrect.thresholds_by_length([9, 5, 1]) == [9, 5, 1]
+
+
+def test_thresholds_by_length_rejects_the_wrong_number_of_values():
+    with pytest.raises(ValueError):
+        top_n_grams_for_search_autocorrect.thresholds_by_length([1, 2])
+    with pytest.raises(ValueError):
+        top_n_grams_for_search_autocorrect.thresholds_by_length([1, 2, 3, 4])
 
 
 # --------------------------------------------------------------------------- #

@@ -15,19 +15,21 @@ also be run by hand:
 
 Usage:
     ./run build_top_n_grams_for_search_autocorrect.py
-    ./run build_top_n_grams_for_search_autocorrect.py --min-doc-count 5 --langs he
+    ./run build_top_n_grams_for_search_autocorrect.py --min-doc-count 100 20 5 --langs he
     ./run build_top_n_grams_for_search_autocorrect.py --categories Tanakh Mishnah
 """
 import django
 import argparse
 django.setup()
-from sefaria.helper.top_n_grams_for_search_autocorrect import build_top_n_grams, save_top_n_grams
+from sefaria.helper.top_n_grams_for_search_autocorrect import build_top_n_grams, save_top_n_grams, thresholds_by_length
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--min-doc-count", type=int, default=100,
-                         help="Keep only phrases appearing in more than this many documents (segments). Default: 100")
+    parser.add_argument("--min-doc-count", type=int, nargs="+", default=[100, 20, 5], metavar="N",
+                         help="Keep only phrases appearing in more than this many documents (segments). Give one "
+                              "value for every phrase length, or one per length (1-word 2-word 3-word) -- longer "
+                              "phrases are rarer, so a lower bar suits them. Default: 100 20 5")
     parser.add_argument("--langs", nargs="+", default=["he", "en"], choices=["he", "en"],
                          help="Languages to pull segment text in. Default: he en")
     parser.add_argument("--categories", nargs="+", default=None,
@@ -36,6 +38,10 @@ if __name__ == '__main__':
                          help="Split each phrase-length counting pass into this many hash shards to cap RAM "
                               "(more shards = less memory, more time). Default: 16")
     args = parser.parse_args()
+    try:
+        thresholds_by_length(args.min_doc_count)
+    except ValueError as e:
+        parser.error(str(e))
 
     print(f"Building top-n-grams table (min_doc_count={args.min_doc_count}, langs={args.langs}, "
           f"categories={args.categories or 'ALL'})...")
