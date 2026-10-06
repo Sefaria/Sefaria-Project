@@ -1,0 +1,30 @@
+# Append these objects to the branch's existing imagepolicies YAML in cauldrons.
+# Keeping them in that file lets normal branch cleanup remove them together.
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: codexlemma-search-experiment-lemma-search
+  namespace: default
+  labels:
+    branch: codexlemma-search-experiment
+spec:
+  interval: 5m
+  provider: gcp
+  image: us-east1-docker.pkg.dev/development-205018/containers/sefaria-lemma-search-codexlemma-search-experiment
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta1
+kind: ImagePolicy
+metadata:
+  name: codexlemma-search-experiment-lemma-search
+  namespace: default
+  labels:
+    branch: codexlemma-search-experiment
+spec:
+  filterTags:
+    pattern: '^sha-[a-f0-9]+-(?P<ts>[0-9]+)$'
+    extract: '$ts'
+  policy:
+    numerical:
+      order: asc
+  imageRepositoryRef:
+    name: codexlemma-search-experiment-lemma-search

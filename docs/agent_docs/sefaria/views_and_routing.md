@@ -82,6 +82,10 @@ The bulk of the URL patterns live here. Included by both `urls_library` and `url
 - `/api/follow/`, `/api/unfollow/`, `/api/block/`, `/api/unblock/`
 
 **Search**:
+- Opt-in local experiment: `/experimental/lemma-search/` and `/api/experimental/lemma-search`
+  use `reader/lemma_search.py`. Local mode requires DEBUG, the experiment flag, and a loopback client;
+  opt-in Celery mode instead requires the flag and authenticated staff. Job handles bind to the user/index.
+  See `docs/lemma_search_experiment.md` for the separate asynchronous Shoshan worker.
 - `/search/`, `/api/search-wrapper/es8`, `/api/search-wrapper/es6`
 - `/api/opensearch-suggestions/`
 

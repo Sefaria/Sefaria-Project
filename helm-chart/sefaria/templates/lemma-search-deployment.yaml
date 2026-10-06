@@ -1,0 +1,57 @@
+{{- if .Values.lemmaSearch.enabled }}
+{{- if not .Values.tasks.enabled }}
+{{- fail "lemmaSearch requires tasks.enabled for shared Redis/Sentinel settings" }}
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.deployEnv }}-lemma-search
+  labels:
+    deployEnv: {{ .Values.deployEnv | quote }}
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: {{ .Values.deployEnv }}-lemma-search
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.deployEnv }}-lemma-search
+        deployEnv: {{ .Values.deployEnv | quote }}
+    spec:
+      terminationGracePeriodSeconds: 240
+      containers:
+        - name: lemma-search
+          image: {{ required "lemmaSearch.image is required" .Values.lemmaSearch.image | quote }}
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: local-settings-{{ .Values.deployEnv }}
+            - secretRef:
+                name: {{ .Values.tasks.redis.redisPassword.ref }}
+            - secretRef:
+                name: {{ .Values.tasks.redis.sentinelPassword.ref }}
+            - secretRef:
+                name: {{ template "sefaria.secrets.elasticUser" . }}
+          env:
+            - name: LEMMA_SEARCH_ES_URL
+              value: {{ required "lemmaSearch.esURL is required" .Values.lemmaSearch.esURL | quote }}
+            - name: LEMMA_SEARCH_ES_ALLOWED_HOSTS
+              value: {{ required "lemmaSearch.allowedHosts is required" .Values.lemmaSearch.allowedHosts | quote }}
+          resources: {{ toYaml .Values.lemmaSearch.resources | nindent 12 }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+          readinessProbe:
+            exec:
+              command:
+                - python
+                - -c
+                - 'import socket; from scripts.lemma_search_celery import app; assert app.control.inspect(destination=["celery@"+socket.gethostname()],timeout=4).ping()'
+            periodSeconds: 20
+            timeoutSeconds: 8
+            failureThreshold: 3
+{{- end }}
