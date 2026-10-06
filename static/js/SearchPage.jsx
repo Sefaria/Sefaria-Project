@@ -29,7 +29,7 @@ import SearchAnalytics, { tabLabel } from './sefaria/searchAnalytics';
 
 /**
  * Fuzzy-search query auto-correction (sc-47189). Shown once, above the tab strip, when the
- * server auto-corrected the typed query against the string warehouse (see search_wrapper_api /
+ * server auto-corrected the typed query against the top-n-grams table (see search_wrapper_api /
  * entity_search_api / ElasticSearchQuerier) -- the same correction applies to every tab
  * (Sources/Books/Authors/Topics), so there's one shared banner rather than one per tab.
  * The search bar itself keeps showing what the user actually typed -- this banner is the

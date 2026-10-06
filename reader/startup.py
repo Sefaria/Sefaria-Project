@@ -43,9 +43,9 @@ def init_library_cache():
         logger.info("Initializing Shared Cache")
         library.init_shared_cache()
 
-        if not settings.DISABLE_STRING_WAREHOUSE:
-            logger.info("Loading String Warehouse")
-            library.build_string_warehouse()
+        if not settings.DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT:
+            logger.info("Loading Top N-Grams For Search Autocorrect")
+            library.build_top_n_grams_for_search_autocorrect()
 
         if not settings.DISABLE_ENTITY_ALT_INDEX:
             logger.info("Building Entity Alt Index")

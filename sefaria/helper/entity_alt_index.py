@@ -2,33 +2,36 @@
 """
 Runtime-only entity alt-title/name index for search-query auto-correction (sc-47189).
 
-Unlike sefaria/helper/string_warehouse.py's corpus phrase warehouse -- built by a weekly
-CronJob and persisted to Mongo (`db.string_warehouse`) -- this index is built fresh
-in-process at startup from already-live Mongo collections (Index / Topic / AuthorTopic) and
-is NEVER written back to Mongo. There is no `db.entity_alt_index` collection, and there must
-never be one: every web pod rebuilds this from the same source data it already has to load
-anyway, the same way the autocompleters do (see `Library.build_full_auto_completer`).
+Unlike sefaria/helper/top_n_grams_for_search_autocorrect.py's corpus phrase table -- built by
+a weekly CronJob and persisted to Mongo (`db.top_n_grams_for_search_autocorrect`) -- this
+index is built fresh in-process at startup from already-live Mongo collections
+(Index / Topic / AuthorTopic) and is NEVER written back to Mongo. There is no
+`db.entity_alt_index` collection, and there must never be one: every web pod rebuilds this
+from the same source data it already has to load anyway, the same way the autocompleters do
+(see `Library.build_full_auto_completer`).
 
 It holds every Book title/variant, Author name/variant, and sufficiently-sourced Topic
 title/variant, each mapped to a precomputed tie-break score so it can be ranked against a
-corpus-warehouse candidate on one scale (see `sefaria.helper.string_warehouse._tie_break_score`
-and `_entity_tie_break_score` below) -- letting `autocorrect_query` offer a fix like
-"Mishne Torah" -> "Mishneh Torah" even though that phrase never clears the corpus warehouse's
-doc-count threshold, or exceeds its MAX_PHRASE_WORDS cap.
+top-n-grams candidate on one scale (see
+`sefaria.helper.top_n_grams_for_search_autocorrect._tie_break_score` and
+`_entity_tie_break_score` below) -- letting `autocorrect_query` offer a fix like
+"Mishne Torah" -> "Mishneh Torah" even though that phrase never clears the top-n-grams
+table's doc-count threshold, or exceeds its MAX_PHRASE_WORDS cap.
 
 `Library.build_entity_alt_index()` (sefaria/model/text.py) builds this once per process, from
 `init_library_cache()` (reader/startup.py), onto `Library._entity_alt_index`. Normalization
-deliberately reuses string_warehouse.py's own (`normalize_word`, simple whitespace split) --
-not the separate ES-analyzer-mirroring tokenizer in sefaria/helper/search.py -- because this
-index feeds the same edit-distance phrase matching the corpus warehouse already does, and the
-two sides of that comparison have to agree on what a "phrase" looks like.
+deliberately reuses top_n_grams_for_search_autocorrect.py's own (`normalize_word`, simple
+whitespace split) -- not the separate ES-analyzer-mirroring tokenizer in
+sefaria/helper/search.py -- because this index feeds the same edit-distance phrase matching
+the top-n-grams table already does, and the two sides of that comparison have to agree on
+what a "phrase" looks like.
 """
 import math
 from typing import Dict, Sequence
 
 import structlog
 
-from sefaria.helper.string_warehouse import normalize_word
+from sefaria.helper.top_n_grams_for_search_autocorrect import normalize_word
 
 logger = structlog.get_logger(__name__)
 
@@ -56,9 +59,9 @@ NAMED_ENTITY_BONUS = 2.0
 def _entity_tie_break_score(weight: float, bonus: bool = False) -> float:
     """
     Damps a raw popularity count (numSources, or 0 for an entity with no such signal) onto the
-    same log scale sefaria.helper.string_warehouse._tie_break_score uses for a corpus
-    phrase's doc count, so a candidate from this index and a candidate from the corpus
-    warehouse can be ranked against each other at query time without one source's naturally
+    same log scale sefaria.helper.top_n_grams_for_search_autocorrect._tie_break_score uses for a
+    phrase's doc count, so a candidate from this index and a candidate from the top-n-grams
+    table can be ranked against each other at query time without one source's naturally
     larger raw numbers (corpus doc counts are typically far bigger than a topic's numSources)
     automatically winning. `bonus=True` (books, authors) adds NAMED_ENTITY_BONUS on top --
     see that constant.
@@ -88,7 +91,7 @@ def build_entity_alt_index(langs: Sequence[str] = ('en', 'he'),
     Book title/variant, Author name/variant, and sufficiently-sourced Topic title/variant, in
     every language in `langs`. One bulk Mongo query per entity type -- `IndexSet()`,
     `TopicSet(...)`, `AuthorTopicSet()` -- no per-record round trips, mirroring
-    `string_warehouse.build_warehouse()`'s own `IndexSet()` walk.
+    `top_n_grams_for_search_autocorrect.build_top_n_grams()`'s own `IndexSet()` walk.
     """
     from sefaria.model import IndexSet
     from sefaria.model.topic import TopicSet, AuthorTopicSet

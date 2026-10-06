@@ -94,8 +94,8 @@ spec:
             value: "true"
           {{- end }}
           # task/Celery pods never serve search_wrapper_api, so there's no reason to load the
-          # string warehouse (search-query auto-correction, sc-47189) into their memory
-          - name: DISABLE_STRING_WAREHOUSE
+          # top-n-grams table (search-query auto-correction, sc-47189) into their memory
+          - name: DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT
             value: "true"
           - name: REDIS_HOST
             value: "redis-{{ .Values.deployEnv }}"

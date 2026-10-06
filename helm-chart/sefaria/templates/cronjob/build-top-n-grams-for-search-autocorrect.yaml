@@ -1,9 +1,9 @@
-{{- if .Values.cronJobs.buildStringWarehouse.enabled }}
+{{- if .Values.cronJobs.buildTopNGramsForSearchAutocorrect.enabled }}
 ---
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: {{ .Values.deployEnv }}-build-string-warehouse
+  name: {{ .Values.deployEnv }}-build-top-n-grams-for-search-autocorrect
   labels:
     {{- include "sefaria.labels" . | nindent 4 }}
 spec:
@@ -15,7 +15,7 @@ spec:
       template:
         spec:
           containers:
-          - name: build-string-warehouse
+          - name: build-top-n-grams-for-search-autocorrect
             image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
             env:
             - name: REDIS_HOST
@@ -41,7 +41,7 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "/app/run /app/scripts/build_string_warehouse.py"
+              "/app/run /app/scripts/build_top_n_grams_for_search_autocorrect.py"
             ]
           restartPolicy: OnFailure
           volumes:

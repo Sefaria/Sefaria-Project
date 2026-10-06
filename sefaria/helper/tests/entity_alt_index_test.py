@@ -21,7 +21,7 @@ from sefaria.helper.entity_alt_index import (
 #  _entity_tie_break_score                                                    #
 # --------------------------------------------------------------------------- #
 
-def test_entity_tie_break_score_damps_like_the_warehouse_scale():
+def test_entity_tie_break_score_damps_like_the_top_n_grams_scale():
     assert _entity_tie_break_score(0) == 0
     assert _entity_tie_break_score(9) < _entity_tie_break_score(99)
 
@@ -87,7 +87,8 @@ class _FakeIndex:
 
 class _FakeIndexNoNodes:
     """A stub/malformed Index with no schema tree -- build_entity_alt_index must skip it,
-    not crash (mirrors string_warehouse.build_warehouse's own `if not index.nodes` guard)."""
+    not crash (mirrors top_n_grams_for_search_autocorrect.build_top_n_grams's own
+    `if not index.nodes` guard)."""
     nodes = None
 
 

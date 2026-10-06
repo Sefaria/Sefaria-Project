@@ -105,7 +105,7 @@ class ElasticSearchQuerier extends Component {
         error:          false,
         topics:         [],
         // Fuzzy-search POC (sc-47189): correctedQuery is set from the server's response
-        // when the typed query was auto-corrected against the string warehouse.
+        // when the typed query was auto-corrected against the top-n-grams table.
         // disableAutoCorrect is flipped on by the user clicking "Search instead for
         // <original query>" in the resulting banner, and reset whenever the query text
         // itself changes (see componentWillReceiveProps).
@@ -337,7 +337,7 @@ class ElasticSearchQuerier extends Component {
                   pagesLoaded: 1,
                   moreToLoad: currTotal.getValue() > this.querySize[this.props.searchState.type],
                   // Fuzzy-search POC (sc-47189): present only when the server substituted
-                  // a string-warehouse match for the query it was actually sent (see
+                  // a top-n-grams match for the query it was actually sent (see
                   // search_wrapper_api / library.autocorrect_query).
                   correctedQuery: data.corrected_query || null,
                 };

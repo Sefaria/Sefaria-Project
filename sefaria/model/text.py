@@ -36,7 +36,7 @@ skip_bad_record = bad_record_guard(logger)
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string, flatten_jagged_array
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER, DISABLE_STRING_WAREHOUSE, DISABLE_ENTITY_ALT_INDEX
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER, DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT, DISABLE_ENTITY_ALT_INDEX
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
 from sefaria.helper.normalization import NormalizerFactory
@@ -4511,16 +4511,17 @@ class Library(object):
 
         self.langs = ["en", "he"]
 
-        # String warehouse for search-query auto-correction (sc-47189, sefaria/helper/string_warehouse.py).
-        # Empty until build_string_warehouse() populates it from Mongo during init_library_cache()
-        # (reader/startup.py) -- mirrors the autocompleters' staged, flag-gated build below rather
-        # than doing Mongo I/O unconditionally inside __init__.
-        self._string_warehouse = {}
+        # Top n-grams table for search-query auto-correction (sc-47189,
+        # sefaria/helper/top_n_grams_for_search_autocorrect.py). Empty until
+        # build_top_n_grams_for_search_autocorrect() populates it from Mongo during
+        # init_library_cache() (reader/startup.py) -- mirrors the autocompleters' staged,
+        # flag-gated build below rather than doing Mongo I/O unconditionally inside __init__.
+        self._top_n_grams_for_search_autocorrect = {}
 
         # Runtime-only Book/Author/Topic alt-title index for the same auto-correction (sc-47189,
-        # sefaria/helper/entity_alt_index.py) -- NEVER persisted to Mongo, unlike _string_warehouse
-        # above. Empty until build_entity_alt_index() populates it, likewise during
-        # init_library_cache().
+        # sefaria/helper/entity_alt_index.py) -- NEVER persisted to Mongo, unlike
+        # _top_n_grams_for_search_autocorrect above. Empty until build_entity_alt_index()
+        # populates it, likewise during init_library_cache().
         self._entity_alt_index = {}
 
         # Maps, keyed by language, from index key to array of titles
@@ -4620,13 +4621,14 @@ class Library(object):
 
     def autocorrect_query(self, query):
         """
-        Fuzzy-search POC (sc-47189). See sefaria.helper.string_warehouse.autocorrect_query
-        for the algorithm. Returns (corrected_query, original_query) if `query` should be
-        auto-corrected against the corpus string warehouse or the runtime Book/Author/Topic
-        alt-title index (sefaria/helper/entity_alt_index.py), else None (search `query` as typed).
+        Fuzzy-search POC (sc-47189). See
+        sefaria.helper.top_n_grams_for_search_autocorrect.autocorrect_query for the algorithm.
+        Returns (corrected_query, original_query) if `query` should be auto-corrected against
+        the top-n-grams table or the runtime Book/Author/Topic alt-title index
+        (sefaria/helper/entity_alt_index.py), else None (search `query` as typed).
         """
-        from sefaria.helper.string_warehouse import autocorrect_query
-        return autocorrect_query(query, self._string_warehouse, self._entity_alt_index)
+        from sefaria.helper.top_n_grams_for_search_autocorrect import autocorrect_query
+        return autocorrect_query(query, self._top_n_grams_for_search_autocorrect, self._entity_alt_index)
 
     def _reset_index_derivative_objects(self, include_auto_complete=False):
         """
@@ -5026,31 +5028,32 @@ class Library(object):
             self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
             self._cross_lexicon_auto_completer_is_ready = True
 
-    def build_string_warehouse(self):
+    def build_top_n_grams_for_search_autocorrect(self):
         """
-        Loads the string warehouse (search-query auto-correction, sc-47189) from Mongo, where
-        it's written by the scheduled `scripts/build_string_warehouse.py` CronJob -- this is a
-        read of a precomputed artifact, not a build, so unlike the autocompleters above there's
-        no expensive in-process construction here. No-op when DISABLE_STRING_WAREHOUSE is set.
-        Missing/not-yet-built data just leaves the warehouse empty, silently disabling
-        auto-correction rather than failing startup.
+        Loads the top-n-grams table (search-query auto-correction, sc-47189) from Mongo,
+        where it's written by the scheduled
+        `scripts/build_top_n_grams_for_search_autocorrect.py` CronJob -- this is a read of a
+        precomputed artifact, not a build, so unlike the autocompleters above there's no
+        expensive in-process construction here. No-op when
+        DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT is set. Missing/not-yet-built data just
+        leaves the table empty, silently disabling auto-correction rather than failing startup.
         """
-        if DISABLE_STRING_WAREHOUSE:
-            logger.warning("DISABLE_STRING_WAREHOUSE is set; skipping string warehouse load.")
+        if DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT:
+            logger.warning("DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT is set; skipping top-n-grams table load.")
             return
-        from sefaria.helper.string_warehouse import load_warehouse
-        with build_pathway("build_string_warehouse"):
-            self._string_warehouse = load_warehouse()
+        from sefaria.helper.top_n_grams_for_search_autocorrect import load_top_n_grams
+        with build_pathway("build_top_n_grams_for_search_autocorrect"):
+            self._top_n_grams_for_search_autocorrect = load_top_n_grams()
 
     def build_entity_alt_index(self):
         """
         Builds the runtime Book/Author/Topic alt-title index (search-query auto-correction,
         sc-47189) from live Mongo data (Index/Topic/AuthorTopic) -- an in-process
         construction from already-loaded collections, like the autocompleters above, not a
-        read of a precomputed artifact (contrast build_string_warehouse() above: this index
-        is never persisted to Mongo, so there is nothing to load). No-op when
-        DISABLE_ENTITY_ALT_INDEX is set; an empty index just leaves auto-correction without
-        entity-alt matches, it does not fail startup.
+        read of a precomputed artifact (contrast build_top_n_grams_for_search_autocorrect()
+        above: this index is never persisted to Mongo, so there is nothing to load). No-op
+        when DISABLE_ENTITY_ALT_INDEX is set; an empty index just leaves auto-correction
+        without entity-alt matches, it does not fail startup.
         """
         if DISABLE_ENTITY_ALT_INDEX:
             logger.warning("DISABLE_ENTITY_ALT_INDEX is set; skipping entity alt index build.")

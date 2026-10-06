@@ -126,9 +126,9 @@ USE_VARNISH_ESI = False
 # Prevent modification of Index records
 DISABLE_INDEX_SAVE = False
 
-# String warehouse (search-query auto-correction, sc-47189) isn't built in CI -- skip trying
+# Top-n-grams table (search-query auto-correction, sc-47189) isn't built in CI -- skip trying
 # to load it at startup.
-DISABLE_STRING_WAREHOUSE = True
+DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT = True
 
 # Same feature's runtime entity alt-title index (sefaria/helper/entity_alt_index.py) would
 # build fine in CI (it's an in-process construction, not a Mongo-persisted artifact to skip

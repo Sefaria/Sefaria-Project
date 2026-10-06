@@ -4928,7 +4928,7 @@ def _apply_query_autocorrect(query, disable_autocorrect):
     Fuzzy-search query auto-correction (sc-47189), shared by search_wrapper_api (Sources tab)
     and entity_search_api (Books/Topics/Authors tabs) so a query corrects the same way
     regardless of which tab searched it. `library.autocorrect_query` is a pure function of
-    `query` against the string warehouse, so calling it once per tab -- rather than sharing
+    `query` against the top-n-grams table, so calling it once per tab -- rather than sharing
     one result across tabs -- still always agrees; it just means every tab's request/response
     cycle handles its own correction independently, matching how each tab already runs its
     own search.

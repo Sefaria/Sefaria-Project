@@ -431,7 +431,7 @@ class Search {
         sort_fields: fieldArray,
         sort_reverse: direction === "desc",
         sort_score_missing: score_missing,
-        // Fuzzy-search POC (sc-47189): when true, server skips the string-warehouse
+        // Fuzzy-search POC (sc-47189): when true, server skips the top-n-grams
         // autocorrect check and searches exactly what the user typed.
         disable_autocorrect: !!disable_autocorrect,
       };

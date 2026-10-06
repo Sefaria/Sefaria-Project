@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-String warehouse for search-query auto-correction (sc-47189).
+Top n-grams table for search-query auto-correction (sc-47189).
 
-The "string warehouse" is a precomputed set of normalized *phrases* -- contiguous runs of
+The "top n-grams" table is a precomputed set of normalized *phrases* -- contiguous runs of
 1 to `MAX_PHRASE_WORDS` words -- that occur in more than some threshold of Sefaria segments
 ("documents"), each mapped to the number of documents it appears in. It powers query
 auto-correction: a search query (or, for a query longer than `MAX_PHRASE_WORDS` words, the
@@ -14,18 +14,20 @@ phrase before hitting Elasticsearch (see `autocorrect_query` below and its calle
 Correcting whole phrases rather than individual words (the original POC) matters because a
 lone word can be a perfectly good 1-edit fix in isolation while still producing a corrected
 *phrase* that appears nowhere in the corpus -- e.g. a real word substituted into a sequence
-that never actually occurs together. Requiring the corrected phrase itself to be a warehouse
+that never actually occurs together. Requiring the corrected phrase itself to be a top-n-gram
 entry means a correction is only ever offered if the result is something the corpus actually
 contains.
 
-The warehouse is built by `scripts/build_string_warehouse.py`, run on a schedule by the
-`build-string-warehouse` CronJob (helm-chart/sefaria/templates/cronjob/), and persisted to
-Mongo (`db.string_warehouse`) rather than a local file -- every web pod reads the same
-collection at startup with no artifact-shipping step of its own (see `save_warehouse` /
-`load_warehouse` below). `Library.build_string_warehouse()` (sefaria/model/text.py) loads it
-once, from `init_library_cache()` (reader/startup.py), onto `Library._string_warehouse`. This
-module holds the tokenizer the builder and the search-time lookup share, plus the
-edit-distance-1 candidate generation and the Mongo load/save helpers.
+The table is built by `scripts/build_top_n_grams_for_search_autocorrect.py`, run on a
+schedule by the `build-top-n-grams-for-search-autocorrect` CronJob
+(helm-chart/sefaria/templates/cronjob/), and persisted to Mongo
+(`db.top_n_grams_for_search_autocorrect`) rather than a local file -- every web pod reads the
+same collection at startup with no artifact-shipping step of its own (see `save_top_n_grams` /
+`load_top_n_grams` below). `Library.build_top_n_grams_for_search_autocorrect()`
+(sefaria/model/text.py) loads it once, from `init_library_cache()` (reader/startup.py), onto
+`Library._top_n_grams_for_search_autocorrect`. This module holds the tokenizer the builder and
+the search-time lookup share, plus the edit-distance-1 candidate generation and the Mongo
+load/save helpers.
 
 `autocorrect_query` also optionally takes `entity_alt_index`: the runtime-only (never
 persisted to Mongo) index of Book/Author/Topic alternate titles built by
@@ -47,18 +49,18 @@ from sefaria.system.database import db
 
 logger = structlog.get_logger(__name__)
 
-# Mongo collection the built warehouse lives in: one document per phrase ({"_id": phrase,
+# Mongo collection the built table lives in: one document per phrase ({"_id": phrase,
 # "count": doc_count, "batch": <build timestamp>}), plus one "__meta__" document carrying
 # build info. `phrase` is 1 to MAX_PHRASE_WORDS words, normalized and joined by a single
 # space -- the same shape `autocorrect_query` looks phrases up by.
-WAREHOUSE_COLLECTION = "string_warehouse"
+TOP_N_GRAMS_COLLECTION = "top_n_grams_for_search_autocorrect"
 _META_ID = "__meta__"
 # Mongo bulk_write payloads are chunked at this size so a full-library build (potentially
 # millions of phrases, now that every 1-3 word run is counted rather than every word) doesn't
 # assemble one enormous in-memory request.
 _BULK_WRITE_CHUNK_SIZE = 5000
 
-# The longest phrase (in words) the warehouse indexes and autocorrect_query will ever try to
+# The longest phrase (in words) the table indexes and autocorrect_query will ever try to
 # correct as a unit. Chosen so correction stays scoped to a coherent phrase rather than a
 # single word -- see the module docstring -- while keeping the build tractable: a segment of
 # length L contributes O(L * MAX_PHRASE_WORDS) phrases rather than O(L^2).
@@ -72,7 +74,7 @@ _EDGE_STRIP_RE = re.compile(r'^\W+|\W+$', re.UNICODE)
 
 def normalize_word(word: str) -> str:
     """
-    Normalize a single already-whitespace-split token for the string warehouse: strip
+    Normalize a single already-whitespace-split token for the top-n-grams table: strip
     leading/trailing punctuation (keeping internal punctuation, e.g. internal quotation
     marks, untouched) and lowercase the result. No lemmatization is attempted (POC).
     """
@@ -81,8 +83,8 @@ def normalize_word(word: str) -> str:
 
 def tokenize(text: str, lang: str) -> List[str]:
     """
-    Split a segment of text into normalized warehouse words. Runs the same normalizer the
-    linker applies server-side (get_linker_normalizer) first, so warehouse words are
+    Split a segment of text into normalized words for the top-n-grams table. Runs the same
+    normalizer the linker applies server-side (get_linker_normalizer) first, so words are
     tokenized consistently with the rest of the NLP pipeline -- cantillation/maqaf/HTML/
     footnote-markers stripped, quote characters unidecoded to ASCII -- then splits on
     whitespace and strips edge punctuation per word.
@@ -97,7 +99,7 @@ def _segment_phrases(tokens: List[str], max_n: int = MAX_PHRASE_WORDS) -> set:
     Every contiguous run of 1 to `max_n` words in `tokens` (a tokenized segment), each
     joined into a single space-separated phrase string. A phrase that recurs within the
     same segment (e.g. a word repeated twice) appears once in the returned set -- doc
-    counting, like the original per-word warehouse, counts a segment at most once per phrase.
+    counting, like the original per-word table, counts a segment at most once per phrase.
     """
     phrases = set()
     n_tokens = len(tokens)
@@ -109,7 +111,7 @@ def _segment_phrases(tokens: List[str], max_n: int = MAX_PHRASE_WORDS) -> set:
 
 # --- Build / persist / load ----------------------------------------------------------
 
-def build_warehouse(min_doc_count: int, langs=('he', 'en'), categories: Optional[List[str]] = None) -> Dict[str, int]:
+def build_top_n_grams(min_doc_count: int, langs=('he', 'en'), categories: Optional[List[str]] = None) -> Dict[str, int]:
     """
     Walk every segment in the library (optionally scoped to `categories`, e.g. ["Tanakh"])
     and count, per normalized phrase (every contiguous run of 1 to MAX_PHRASE_WORDS words),
@@ -127,7 +129,7 @@ def build_warehouse(min_doc_count: int, langs=('he', 'en'), categories: Optional
     moment it's been counted once. Walking in priority order means that's normally the
     top-priority version's wording; a tref only falls through to a lower-priority version
     when the higher-priority one doesn't have it at all (a partial translation, a stub,
-    etc.), so a partial top version can't silently drop that segment from the warehouse.
+    etc.), so a partial top version can't silently drop that segment from the table.
     The same set is what prevents two versions that both cover a tref from counting its
     phrases twice -- there is no other version-counting logic here.
     """
@@ -172,55 +174,57 @@ def build_warehouse(min_doc_count: int, langs=('he', 'en'), categories: Optional
     return {phrase: count for phrase, count in doc_counts.items() if count > min_doc_count}
 
 
-def save_warehouse(warehouse: Dict[str, int], min_doc_count: int) -> None:
+def save_top_n_grams(top_n_grams: Dict[str, int], min_doc_count: int) -> None:
     """
-    Persist a freshly built warehouse to `db.string_warehouse`, one document per phrase, so
-    every web pod can load it at startup with a single query and no file/bucket to ship.
+    Persist a freshly built top-n-grams table to `db.top_n_grams_for_search_autocorrect`, one
+    document per phrase, so every web pod can load it at startup with a single query and no
+    file/bucket to ship.
 
     Writes are tagged with a fresh `batch` id (a timestamp); once every phrase of the new
     batch has been upserted, documents left over from the previous batch (an old phrase that
     no longer clears `min_doc_count`, or was dropped from the library) are deleted. Readers
-    never see a half-written warehouse -- concurrently, they see the previous complete batch
+    never see a half-written table -- concurrently, they see the previous complete batch
     until this finishes, then the new one.
     """
     batch = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
-    items = list(warehouse.items())
+    items = list(top_n_grams.items())
     for i in range(0, len(items), _BULK_WRITE_CHUNK_SIZE):
         chunk = items[i:i + _BULK_WRITE_CHUNK_SIZE]
-        db[WAREHOUSE_COLLECTION].bulk_write(
+        db[TOP_N_GRAMS_COLLECTION].bulk_write(
             [UpdateOne({"_id": phrase}, {"$set": {"count": count, "batch": batch}}, upsert=True)
              for phrase, count in chunk],
             ordered=False,
         )
-    db[WAREHOUSE_COLLECTION].delete_many({"_id": {"$ne": _META_ID}, "batch": {"$ne": batch}})
-    db[WAREHOUSE_COLLECTION].update_one(
+    db[TOP_N_GRAMS_COLLECTION].delete_many({"_id": {"$ne": _META_ID}, "batch": {"$ne": batch}})
+    db[TOP_N_GRAMS_COLLECTION].update_one(
         {"_id": _META_ID},
-        {"$set": {"min_doc_count": min_doc_count, "generated": batch, "num_words": len(warehouse)}},
+        {"$set": {"min_doc_count": min_doc_count, "generated": batch, "num_words": len(top_n_grams)}},
         upsert=True,
     )
 
 
-def load_warehouse() -> Dict[str, int]:
+def load_top_n_grams() -> Dict[str, int]:
     """
-    Load the warehouse built by the most recent `scripts/build_string_warehouse.py` run from
-    Mongo. Returns {} (which silently disables auto-correction -- `autocorrect_query` always
-    returns None against an empty warehouse) if it hasn't been built yet in this environment,
-    or on any read error -- that must not be a startup error.
+    Load the top-n-grams table built by the most recent
+    `scripts/build_top_n_grams_for_search_autocorrect.py` run from Mongo. Returns {} (which
+    silently disables auto-correction -- `autocorrect_query` always returns None against an
+    empty table) if it hasn't been built yet in this environment, or on any read error --
+    that must not be a startup error.
     """
     try:
         return {
             doc["_id"]: doc["count"]
-            for doc in db[WAREHOUSE_COLLECTION].find({"_id": {"$ne": _META_ID}}, {"count": 1})
+            for doc in db[TOP_N_GRAMS_COLLECTION].find({"_id": {"$ne": _META_ID}}, {"count": 1})
         }
     except Exception as e:
-        logger.warning(f"Could not load string warehouse from Mongo: {e}")
+        logger.warning(f"Could not load top-n-grams table from Mongo: {e}")
         return {}
 
 
 # --- Autocorrect -----------------------------------------------------------------------
 
 # Alphabet used to generate edit candidates: Hebrew letters, English letters, digits, and
-# the quote characters a warehouse phrase can legitimately contain internally (e.g. רמב"ם).
+# the quote characters a top-n-grams phrase can legitimately contain internally (e.g. רמב"ם).
 # Deliberately excludes the space character -- replace/insert never introduces a new word
 # boundary, so a candidate can only gain or lose one by *deleting* an existing space.
 _ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789'\"" + ''.join(chr(c) for c in range(0x05d0, 0x05eb))
@@ -230,11 +234,11 @@ def _one_edit_candidates(phrase: str) -> set:
     """
     Every string exactly one edit (delete, transpose, replace, or insert) away from
     `phrase`. Same brute-force approach as the Norvig-style corrector in
-    sefaria/model/autospell.py's SpellChecker.single_edits, reimplemented locally so the
-    warehouse's own alphabet (Hebrew + Latin + digits + quotes) is used instead of the
-    lexicon's, and so this module has no dependency on the lexicon/autocomplete stack.
-    `phrase` may be a single word or several words joined by spaces -- the edit operates on
-    the string as a whole either way.
+    sefaria/model/autospell.py's SpellChecker.single_edits, reimplemented locally so this
+    table's own alphabet (Hebrew + Latin + digits + quotes) is used instead of the lexicon's,
+    and so this module has no dependency on the lexicon/autocomplete stack. `phrase` may be a
+    single word or several words joined by spaces -- the edit operates on the string as a
+    whole either way.
     """
     splits = [(phrase[:i], phrase[i:]) for i in range(len(phrase) + 1)]
     deletes = [L + R[1:] for L, R in splits if R]
@@ -249,7 +253,7 @@ def _tie_break_score(count: int) -> float:
     Damps a raw doc count onto a log scale: large counts stop mattering in direct proportion
     to their size, so a phrase with 50,000 hits isn't treated as 500x "more correct" than one
     with 100. This is also the scale `sefaria.helper.entity_alt_index` precomputes its own
-    candidates' scores on (see that module's `_entity_tie_break_score`), so a corpus-warehouse
+    candidates' scores on (see that module's `_entity_tie_break_score`), so a top-n-grams
     candidate and an entity-alt candidate can be ranked against each other by this one number
     even though their raw weights (corpus doc counts vs. a topic's `numSources`) are on
     completely different scales. Mirrors the shape (not the exact constants) of the
@@ -260,19 +264,19 @@ def _tie_break_score(count: int) -> float:
     return math.log10(1 + max(count, 0))
 
 
-def _best_match(phrase: str, warehouse: Dict[str, int],
+def _best_match(phrase: str, top_n_grams: Dict[str, int],
                  entity_alt_index: Optional[Dict[str, float]] = None) -> Optional[str]:
     """
     One-edit-distance correction for a phrase (one or more words), chosen from both the
-    corpus warehouse and the optional runtime entity-alt index. A candidate found in both is
+    top-n-grams table and the optional runtime entity-alt index. A candidate found in both is
     scored by whichever source ranks it higher. Ties (including a tie between the two
     sources) are broken by `_tie_break_score`/`entity_alt_index`'s own precomputed score --
     never by raw magnitude, since the two sources' raw weights aren't comparable.
     """
     best, best_score = None, None
     for c in _one_edit_candidates(phrase):
-        if c in warehouse:
-            score = _tie_break_score(warehouse[c])
+        if c in top_n_grams:
+            score = _tie_break_score(top_n_grams[c])
             if best_score is None or score > best_score:
                 best, best_score = c, score
         if entity_alt_index and c in entity_alt_index:
@@ -283,7 +287,7 @@ def _best_match(phrase: str, warehouse: Dict[str, int],
 
 
 def _try_window(words: List[str], normalized: List[str], start: int, end: int,
-                 warehouse: Dict[str, int],
+                 top_n_grams: Dict[str, int],
                  entity_alt_index: Optional[Dict[str, float]] = None) -> Optional[str]:
     """
     Try to correct `normalized[start:end]` (a contiguous run of query words) as a single
@@ -293,9 +297,9 @@ def _try_window(words: List[str], normalized: List[str], start: int, end: int,
     1-edit match for anything.
     """
     phrase = " ".join(normalized[start:end])
-    if phrase in warehouse or (entity_alt_index and phrase in entity_alt_index):
+    if phrase in top_n_grams or (entity_alt_index and phrase in entity_alt_index):
         return None  # already an attested phrase/title -- nothing to correct here
-    candidate = _best_match(phrase, warehouse, entity_alt_index)
+    candidate = _best_match(phrase, top_n_grams, entity_alt_index)
     if candidate is None:
         return None
 
@@ -304,7 +308,7 @@ def _try_window(words: List[str], normalized: List[str], start: int, end: int,
     if len(candidate_words) == end - start:
         # Same word count as the window: swap in only the word(s) that actually changed, so
         # a word the user already typed correctly keeps its original casing instead of being
-        # flattened to the warehouse's lowercase form.
+        # flattened to the table's lowercase form.
         for offset, (orig, corr) in enumerate(zip(normalized[start:end], candidate_words)):
             if orig != corr:
                 corrected_words[start + offset] = corr
@@ -316,7 +320,7 @@ def _try_window(words: List[str], normalized: List[str], start: int, end: int,
     return " ".join(corrected_words)
 
 
-def autocorrect_query(query: str, warehouse: Dict[str, int],
+def autocorrect_query(query: str, top_n_grams: Dict[str, int],
                        entity_alt_index: Optional[Dict[str, float]] = None) -> Optional[Tuple[str, str]]:
     """
     Product spec sc-47189. Corrects a *phrase*, never a lone word in isolation, so a fix is
@@ -325,12 +329,12 @@ def autocorrect_query(query: str, warehouse: Dict[str, int],
     sefaria/helper/entity_alt_index.py).
 
     - A query of up to MAX_PHRASE_WORDS words is treated as a single phrase: if it already
-      matches a warehouse or entity-alt entry, it's searched normally, uncorrected (returns
+      matches a top-n-grams or entity-alt entry, it's searched normally, uncorrected (returns
       None). Otherwise, if the whole phrase is exactly one edit away from some phrase in
       either source, that's the correction.
     - A longer query first gets one extra, entity-alt-only chance to be corrected *in its
       entirety*: an entity title/name is a single curated unit, not generated as a sliding
-      window over corpus text, so unlike the warehouse it is never capped at
+      window over corpus text, so unlike the top-n-grams table it is never capped at
       MAX_PHRASE_WORDS -- explaining the WHOLE query this way beats any partial fix below.
       Failing that, the query is corrected at most once, in its longest fixable contiguous
       run of words: window sizes MAX_PHRASE_WORDS down to 1 are tried (against both sources),
@@ -340,13 +344,13 @@ def autocorrect_query(query: str, warehouse: Dict[str, int],
       or too far off to fix within a 1-edit budget) also returns None.
 
     :param query: the raw query text as typed/submitted.
-    :param warehouse: {normalized_phrase: doc_count}, e.g. `library._string_warehouse`.
+    :param top_n_grams: {normalized_phrase: doc_count}, e.g. `library._top_n_grams_for_search_autocorrect`.
     :param entity_alt_index: {normalized_phrase: tie_break_score}, e.g.
         `library._entity_alt_index` -- see sefaria/helper/entity_alt_index.py. Optional: a
-        query corrects against the warehouse alone when omitted.
+        query corrects against the top-n-grams table alone when omitted.
     :return: (corrected_query, original_query) if a correction applies, else None.
     """
-    if not query or (not warehouse and not entity_alt_index):
+    if not query or (not top_n_grams and not entity_alt_index):
         return None
     words = query.split()
     if not words:
@@ -355,7 +359,7 @@ def autocorrect_query(query: str, warehouse: Dict[str, int],
     n = len(normalized)
 
     if n <= MAX_PHRASE_WORDS:
-        corrected = _try_window(words, normalized, 0, n, warehouse, entity_alt_index)
+        corrected = _try_window(words, normalized, 0, n, top_n_grams, entity_alt_index)
         return (corrected, query) if corrected else None
 
     if entity_alt_index:
@@ -365,7 +369,7 @@ def autocorrect_query(query: str, warehouse: Dict[str, int],
 
     for size in range(MAX_PHRASE_WORDS, 0, -1):
         for start in range(0, n - size + 1):
-            corrected = _try_window(words, normalized, start, start + size, warehouse, entity_alt_index)
+            corrected = _try_window(words, normalized, start, start + size, top_n_grams, entity_alt_index)
             if corrected:
                 return corrected, query
     return None
