@@ -95,6 +95,28 @@ class ExperimentTests(unittest.TestCase):
         self.assertEqual([c.args[1] for c in engine.query_body.call_args_list], [None,"בן ישראל"])
         self.assertEqual([c.args[4] for c in engine.query_body.call_args_list], [0,0])
 
+    def test_excessive_expansion_falls_back_without_losing_search(self):
+        engine = Engine.__new__(Engine)
+        query = "לקרוא שמע בערב"
+        tokens = [{"original_start":query.index(word),"original_end":query.index(word)+len(word),
+                   "lemma":lemma,"status":"ok"}
+                  for word, lemma in zip(query.split(), ["קרא","שמע","ערב"])]
+        engine.annotate = Mock(return_value={"shoshan_lemma":"קרא שמע ערב","tokens":tokens})
+        engine.annotations = Mock()
+        # Reproduce the reported 504-combination query without loading a model.
+        engine.annotations.alternatives.side_effect = lambda lemma: [lemma] + [lemma+str(i) for i in range({"קרא":6,"שמע":7,"ערב":8}[lemma])]
+        engine.index, engine.url, engine.documents = "lemma-poc-test", "http://127.0.0.1:19200", 10
+        engine.query_body = Mock(side_effect=lambda q, lemmas, w, n, slop: {"lemmas":lemmas,"_source":[]})
+        engine.request = Mock(return_value={"_shards":{"failed":0},"hits":{"total":{"value":0},"hits":[]}})
+        fallback = engine.compare(query, 1, 20, expand_yod_vav=True)
+        ordinary = engine.compare(query, 1, 20, expand_yod_vav=False)
+        self.assertEqual(fallback["results"], ordinary["results"])
+        self.assertTrue(fallback["expansion_requested"])
+        self.assertFalse(fallback["expand_yod_vav"])
+        self.assertIn("504", fallback["warnings"][0])
+        self.assertEqual([p["alternatives"] for p in fallback["annotation"]["parts"] if "lemma" in p], [["קרא"],["שמע"],["ערב"]])
+        self.assertEqual(ordinary["warnings"], [])
+
     def test_parts_preserve_marks_punctuation_and_repeated_words(self):
         text = "😀 בֵּן, בֵּן!"
         tokens = [{"original_start":2,"original_end":6,"lemma":"בן","status":"ok"},

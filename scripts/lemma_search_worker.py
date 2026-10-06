@@ -39,11 +39,14 @@ def folded(lemma):
     return lemma.translate(str.maketrans("", "", "יו")) or lemma
 
 
+MAX_EXPANDED_PHRASES = 256
+
+
 def expanded_clause(groups, weight, slop):
     """Enumerate bounded alternatives to preserve Elasticsearch phrase slop exactly."""
     count = math.prod(len(group) for group in groups)
-    if count > 256:
-        raise ValueError(f"Expansion would create {count} phrases (limit 256). Shorten the query or turn off Ignore י / ו.")
+    if count > MAX_EXPANDED_PHRASES:
+        raise ValueError(f"Expansion would create {count} phrases (limit {MAX_EXPANDED_PHRASES}). Shorten the query or turn off Ignore י / ו.")
     phrases = [" ".join(words) for words in itertools.product(*groups)]
     return {"dis_max": {"queries": [
         {"match_phrase": {"shoshan_lemma": {"query": phrase, "slop": slop}}}
@@ -161,6 +164,17 @@ class Engine:
         annotation = dict(annotation, parts=token_parts(query, annotation["tokens"]))
         groups = [self.annotations.alternatives(t["lemma"]) if expand_yod_vav else [t["lemma"]]
                   for t in annotation["tokens"]]
+        expansion_requested = expand_yod_vav
+        warnings = []
+        combination_count = math.prod(len(group) for group in groups)
+        if expand_yod_vav and weight > 0 and combination_count > MAX_EXPANDED_PHRASES:
+            warnings.append(
+                f"Ignore י / ו was not applied: {combination_count:,} phrase combinations "
+                f"exceed the limit of {MAX_EXPANDED_PHRASES}. "
+                "Results use ordinary lemma matching instead."
+            )
+            expand_yod_vav = False
+            groups = [[t["lemma"]] for t in annotation["tokens"]]
         word_parts = [p for p in annotation["parts"] if "lemma" in p]
         for part, alternatives in zip(word_parts, groups):
             part["alternatives"] = alternatives
@@ -182,6 +196,7 @@ class Engine:
                              "hits": response["hits"]["hits"], "request": body}
         return {"query": query, "weight": weight, "depth": depth, "slop": slop, "expand_yod_vav": expand_yod_vav, "annotation": annotation,
                 "index": self.index, "documents": self.documents, "results": results,
+                "expansion_requested": expansion_requested, "warnings": warnings,
                 "seconds": round(time.monotonic() - started, 3)}
 
 

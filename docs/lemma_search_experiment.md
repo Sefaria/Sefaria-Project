@@ -338,3 +338,11 @@ The initial deployment required staff login. That restriction has since been
 removed: the page and query API allow anonymous visitors. Anonymous job handles
 and rate limits are scoped to a random browser-session identity, rather than
 sharing a single anonymous user ID. CSRF protection and signed job handles remain.
+
+### Expansion limit fallback
+
+If ignoring י/ו would generate more than 256 phrase combinations, the worker
+continues with the original lemma query and returns a visible warning. It records
+`expansion_requested: true` and `expand_yod_vav: false`, and the displayed alternatives
+reflect what was actually searched. It does not truncate alternatives silently or
+raise the Elasticsearch workload limit. The baseline remains unchanged.
