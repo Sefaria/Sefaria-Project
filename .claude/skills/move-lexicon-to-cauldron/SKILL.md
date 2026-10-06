@@ -40,7 +40,17 @@ Do not explain Sefaria basics (lexicons, entries, word forms, versions, links, c
 
 ## Step 0 — Setup file (silent)
 
-Follow **Step 0** of `.claude/skills/move-text-to-cauldron/SKILL.md` exactly (the `~/.sefaria/cauldron-setup.md` setup file and finding `<Sefaria-Project>`). When it checks the repo path, check for `scripts/move_draft_lexicon.py` instead of `scripts/move_draft_text.py`. If Step 0 used the setup file, its `<prefix>` (Python setup and API-key loading) goes in front of this skill's `cd <Sefaria-Project>` commands and its API key check too.
+`git-update` has already stopped the skill if Claude is running on plain Windows, so this is either a Mac/Linux computer or a Claude session inside WSL. Every command in this skill runs directly.
+
+Run `cat ~/.sefaria/cauldron-setup.md 2>/dev/null`. The `cauldron-setup` skill writes this file on Windows computers, where Claude runs inside WSL. It never contains the key. There is no such file on a Mac.
+
+**No file** → `<Sefaria-Project>` is `git rev-parse --show-toplevel`. Run every command in this skill as written.
+
+**The file exists:**
+- `<Sefaria-Project>` is its `sefaria_project:` value. If `test -f <Sefaria-Project>/scripts/move_draft_lexicon.py` fails, say `~/.sefaria/cauldron-setup.md is out of date. Run the cauldron-setup skill again.` and stop.
+- Build `<prefix>` and put it in front of every command in this skill that starts with `cd <Sefaria-Project>`, and in front of the Step 1 key check:
+  - the `python_setup:` line followed by ` && `, unless it says `(none needed)`;
+  - if there's an `api_key_file:` line, `eval "$(grep -E '^[[:space:]]*(export[[:space:]]+)?SEFARIA_CAULDRON_API_KEY=' <api_key_file> | tail -1)" && export SEFARIA_CAULDRON_API_KEY && `. This loads just that one line from the file, wherever it is in the file, and prints nothing.
 
 ## Step 1 — Look up the lexicon (silent)
 
@@ -58,7 +68,20 @@ It prints one JSON object: `found`, `name`, `entry_count`, `word_form_count`, `i
 - `index_title` set but `versions_found` empty → note it; the Index will be sent with no version. Mention this in the confirmation line (Step 4).
 - Python can't import Sefaria/Django → ask how they run Sefaria locally (virtualenv / pyenv version) and retry.
 
-Also check the API key silently, exactly as in **Step 1** of `.claude/skills/move-text-to-cauldron/SKILL.md` (the check and its one-line messages). It uses the same `SEFARIA_CAULDRON_API_KEY`.
+Also check the API key silently. The check prints only file names, never the key.
+
+```bash
+if [ -n "$SEFARIA_CAULDRON_API_KEY" ]; then echo "key is set"; else
+  echo "key is NOT set"; echo "shell: $(basename "$SHELL")"
+  grep -l SEFARIA_CAULDRON_API_KEY ~/.zshrc ~/.zprofile ~/.zshenv ~/.bashrc ~/.bash_profile ~/.profile 2>/dev/null
+fi
+```
+
+If Step 0 used the setup file (run the check with `<prefix>` in front) and the key isn't set, say `SEFARIA_CAULDRON_API_KEY isn't set in <api_key_file>. Run the cauldron-setup skill again.` and stop. Otherwise:
+
+Claude reads one startup file when a session starts: `~/.zshrc` if the shell is `zsh`, `~/.bashrc` if it's `bash`. Call that `<rc>` (for any other shell, say "your shell's startup file"). If the key isn't set:
+- Not found in `<rc>`: say `SEFARIA_CAULDRON_API_KEY isn't set. Add it to <rc> and restart the session.` If `grep` found it in another file, add ` (It's in <that file>, which Claude doesn't read.)` Then stop.
+- Found in `<rc>`: say `SEFARIA_CAULDRON_API_KEY is in <rc> but not loaded. Restart the session; if that doesn't help, check that line.` and stop.
 
 ## Step 2 — Ask the questions (one message)
 
@@ -67,10 +90,10 @@ If the lexicon has an `index_title`, send exactly this shape and nothing else:
 ```
 Links: none / manual (<manual_link_count>) / all (<all_link_count>)
 
-Cauldron name?
+What is the cauldron name?
 ```
 
-If it has no `index_title`, only ask `Cauldron name?`.
+If it has no `index_title`, only ask `What is the cauldron name?`.
 
 Internal notes (don't tell the user unless it blocks them):
 - If the chosen link option sends more than 1,000 links, add `-s 500`.
