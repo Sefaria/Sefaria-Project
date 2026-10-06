@@ -9,8 +9,7 @@ assembly/scoring logic.
 """
 from sefaria.helper.entity_alt_index import (
     MIN_TOPIC_SOURCES,
-    AUTHOR_BONUS,
-    BOOK_WEIGHT,
+    NAMED_ENTITY_BONUS,
     _entity_tie_break_score,
     _normalize_phrase,
     _add_entry,
@@ -27,16 +26,16 @@ def test_entity_tie_break_score_damps_like_the_warehouse_scale():
     assert _entity_tie_break_score(9) < _entity_tie_break_score(99)
 
 
-def test_entity_tie_break_score_adds_author_bonus():
+def test_entity_tie_break_score_adds_named_entity_bonus():
     plain = _entity_tie_break_score(50)
-    author = _entity_tie_break_score(50, is_author=True)
-    assert author == plain + AUTHOR_BONUS
+    with_bonus = _entity_tie_break_score(50, bonus=True)
+    assert with_bonus == plain + NAMED_ENTITY_BONUS
 
 
-def test_entity_tie_break_score_author_bonus_applies_even_at_zero_sources():
-    # Authors are included regardless of source count (mirrors AutoCompleter) -- the bonus
-    # must still land even when numSources is 0.
-    assert _entity_tie_break_score(0, is_author=True) == AUTHOR_BONUS
+def test_entity_tie_break_score_bonus_applies_even_at_zero_weight():
+    # Books/authors are included regardless of their own popularity signal (mirrors
+    # AutoCompleter for authors) -- the bonus must still land at weight 0.
+    assert _entity_tie_break_score(0, bonus=True) == NAMED_ENTITY_BONUS
 
 
 # --------------------------------------------------------------------------- #
@@ -114,11 +113,11 @@ def test_build_entity_alt_index_indexes_books_authors_and_topics(monkeypatch):
 
     index = build_entity_alt_index(langs=("en", "he"))
 
-    assert index["mishneh torah"] == BOOK_WEIGHT
-    assert index["משנה תורה"] == BOOK_WEIGHT
+    assert index["mishneh torah"] == NAMED_ENTITY_BONUS  # no book popularity signal -> bonus alone
+    assert index["משנה תורה"] == NAMED_ENTITY_BONUS
     assert index["prayer"] == _entity_tie_break_score(50)
     assert index["tefillah"] == _entity_tie_break_score(50)
-    assert index["rashi"] == _entity_tie_break_score(500, is_author=True)
+    assert index["rashi"] == _entity_tie_break_score(500, bonus=True)
     # The no-nodes stub index contributed nothing and didn't raise.
     assert len(index) == 5
 
@@ -140,7 +139,7 @@ def test_build_entity_alt_index_author_outscores_equally_sourced_topic(monkeypat
     monkeypatch.setattr(sefaria_topic, "AuthorTopicSet", lambda *a, **k: authors)
     author_only = build_entity_alt_index(langs=("en",))
 
-    assert author_only["same name"] == topic_only["same name"] + AUTHOR_BONUS
+    assert author_only["same name"] == topic_only["same name"] + NAMED_ENTITY_BONUS
 
 
 def test_build_entity_alt_index_min_topic_sources_excludes_low_signal_topics(monkeypatch):
@@ -160,6 +159,20 @@ def test_build_entity_alt_index_min_topic_sources_excludes_low_signal_topics(mon
 
     build_entity_alt_index(langs=("en",), min_topic_sources=25)
     assert captured["query"]["numSources"] == {"$gte": 25}
+
+
+def test_build_entity_alt_index_books_get_the_same_bonus_as_a_zero_sourced_author(monkeypatch):
+    books = [_FakeIndex({"en": ["Some Book"]})]
+    authors = [_FakeTopic({"en": ["Some Author"]}, num_sources=0)]
+
+    import sefaria.model as sefaria_model
+    import sefaria.model.topic as sefaria_topic
+    monkeypatch.setattr(sefaria_model, "IndexSet", lambda *a, **k: books, raising=False)
+    monkeypatch.setattr(sefaria_topic, "TopicSet", lambda *a, **k: [])
+    monkeypatch.setattr(sefaria_topic, "AuthorTopicSet", lambda *a, **k: authors)
+
+    index = build_entity_alt_index(langs=("en",))
+    assert index["some book"] == index["some author"] == NAMED_ENTITY_BONUS
 
 
 def test_min_topic_sources_default_matches_autocompleter_threshold():
