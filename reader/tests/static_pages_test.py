@@ -90,6 +90,14 @@ class SettingsPageTest(TestCase):
 
         self.assertEqual(props["initialSettingsTab"], "developer")
         self.assertEqual(props["initialDeveloperProjectId"], "abc123")
+        self.assertIsNone(props["initialDeveloperProjectSection"])
+
+    def test_a_project_powered_by_url_carries_its_section(self):
+        props = self.props_for("/settings/developer/projects/abc123/powered-by")
+
+        self.assertEqual(props["initialSettingsTab"], "developer")
+        self.assertEqual(props["initialDeveloperProjectId"], "abc123")
+        self.assertEqual(props["initialDeveloperProjectSection"], "powered-by")
 
     def test_stored_mock_state_is_rendered_into_the_props(self):
         self.client.force_login(self.user)

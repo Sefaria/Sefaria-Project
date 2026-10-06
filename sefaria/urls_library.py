@@ -48,6 +48,8 @@ urlpatterns = [
     re_path(r'^settings/profile/?$', reader_views.settings_profile_redirect),
     re_path(r'^settings/developer/?$', partial(reader_views.settings_page, tab="developer")),
     path('settings/developer/projects/<str:project_id>', partial(reader_views.settings_page, tab="developer")),
+    path('settings/developer/projects/<str:project_id>/powered-by',
+         partial(reader_views.settings_page, tab="developer", project_section="powered-by")),
     path('api/developer-poc/state', reader_views.developer_poc_state_api),
 
     re_path(r'^community/?$', reader_views.community_to_voices_redirect),

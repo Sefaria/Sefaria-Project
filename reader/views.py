@@ -4589,7 +4589,7 @@ def _account_settings_props(request, profile):
 
 @login_required
 @ensure_csrf_cookie
-def settings_page(request, tab="account", project_id=None):
+def settings_page(request, tab="account", project_id=None, project_section=None):
     """
     Account and developer settings, as one React page. The developer tab shows a
     browser-facing mock held in the session, not real projects or keys.
@@ -4598,6 +4598,7 @@ def settings_page(request, tab="account", project_id=None):
     props = {
         "initialSettingsTab": tab,
         "initialDeveloperProjectId": project_id,
+        "initialDeveloperProjectSection": project_section,
         "initialAccountSettings": _account_settings_props(request, profile),
         "initialDeveloperPoc": request.session.get(DEVELOPER_POC_SESSION_KEY),
     }

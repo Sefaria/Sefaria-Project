@@ -597,9 +597,9 @@ class ReaderPanel extends Component {
     this.replaceHistory = false;
     this.conditionalSetState({settingsTab: tab});
   }
-  setDeveloperProjectId(projectId) {
+  setDeveloperProjectId(projectId, section=null) {
     this.replaceHistory = false;
-    this.conditionalSetState({developerProjectId: projectId});
+    this.conditionalSetState({developerProjectId: projectId, developerProjectSection: section});
   }
   setTab(tab, replaceHistoryIfReaderAppUpdated=false) {
     // There is a race condition such that when navigating to a new page that has a TabView component, sometimes TabView
@@ -1109,6 +1109,7 @@ class ReaderPanel extends Component {
         <SettingsPage
           tab={this.state.settingsTab}
           projectId={this.state.developerProjectId}
+          projectSection={this.state.developerProjectSection}
           accountSettings={this.state.accountSettings}
           initialDeveloperPoc={this.state.developerPoc}
           setTab={this.setSettingsTab.bind(this)}
