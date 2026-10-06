@@ -2,23 +2,15 @@ import React, { useEffect, useRef, useState } from 'react';
 import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
-import PoweredByForm from './poweredBy/PoweredByForm';
 import {
   MAX_DESCRIPTION_LENGTH,
   MAX_KEYS_PER_PROJECT,
   POWERED_BY_LISTINGS,
-  CONSENT_NO,
-  CONSENT_YES,
-  applyPoweredByValues,
   canLinkByEmail,
   emailMatchedListing,
   emptyState,
-  fillRequiredAnswers,
   listingConflicts,
   listingForWebsite,
-  listingIncomplete,
-  listingMissingFields,
-  poweredByValues,
   poweredByListings,
   publicListing,
   makeKey,
@@ -40,7 +32,6 @@ const KEY_SETUP_MS = 4000;
 
 const API_DOCS_URL = "https://developers.sefaria.org/reference/getting-started";
 const POWERED_BY_URL = "https://developers.sefaria.org/docs/powered-by-sefaria";
-const POWERED_BY_SECTION = "powered-by";
 const CONTACT_EMAIL = "hello@sefaria.org";
 const API_TERMS_URL = "/api-terms";
 
@@ -81,12 +72,6 @@ const copyToClipboard = (text, node, onDone) => {
 /* The name and email the account itself carries, which the developer profile shows locked. */
 const accountName = () => (Sefaria.full_name || "").trim();
 const accountEmail = () => (Sefaria._email && Sefaria._email !== "null" ? Sefaria._email : "");
-
-/* Who the Powered by answers are prefilled from. */
-const pocAccount = (state) => ({
-  name: accountName() || (state.profile ? state.profile.developerName : ""),
-  email: accountEmail(),
-});
 
 
 const CopyIcon = () => (
@@ -202,13 +187,10 @@ const accountStatus = (state, realProviders) => {
   return "Now: " + kind + " · " + email + " · " + dev;
 };
 
-/* Mock Powered by data the walkthrough needs: a listing submitted with this account's email,
-   and a way to fill a public project's required Powered by answers. */
-const PocListingControls = ({state, update, listingProject, onFillAnswers}) => {
+/* Mock Powered by data the walkthrough needs: a listing submitted with this account's email. */
+const PocListingControls = ({state, update}) => {
   const email = accountEmail();
   const linkable = POWERED_BY_LISTINGS.filter(l => !l.ownedByAnotherAccount);
-  const missing = listingProject && listingProject.visibility === "public"
-    ? listingMissingFields(listingProject, pocAccount(state)) : [];
   return (
     <div className="devPocPanelGroup">
       <div className="devPocPanelGroupLabel">Powered by listings</div>
@@ -227,20 +209,11 @@ const PocListingControls = ({state, update, listingProject, onFillAnswers}) => {
         Taken by another account: {POWERED_BY_LISTINGS.filter(l => l.ownedByAnotherAccount).map(l => l.url).join(", ")}.
         Any other listed website asks to request a link.
       </p>
-      {missing.length ?
-        <div className="devPocPanelRow">
-          <button
-            type="button"
-            className="devPocPanelButton"
-            data-poc-control="fill-answers"
-            onClick={() => onFillAnswers(listingProject.id)}
-          >Fill {listingProject.name}'s {missing.length} missing answers</button>
-        </div> : null}
     </div>
   );
 };
 
-const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpenMockEmail, listingProject, onFillAnswers}) => {
+const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpenMockEmail}) => {
   const [open, setOpen] = useState(false);
 
   useEffect(() => { setOpen(readPanelOpen()); }, []);
@@ -333,7 +306,7 @@ const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpen
           </p>
         </div>
 
-        <PocListingControls state={state} update={update} listingProject={listingProject} onFillAnswers={onFillAnswers} />
+        <PocListingControls state={state} update={update} />
 
         <div className="devPocPanelGroup">
           <div className="devPocPanelGroupLabel">Mock data</div>
@@ -438,8 +411,7 @@ const AgentInstructions = () => (
         offers to link it (link-listing) or to request a link (request-listing-link); ask the
         user before either. Press "Create project" (create-project). If there is no website, a
         dialog asks about it: choose "Save without a website" (save-without-website) or add
-        one. Saving a public project opens its Powered by details page; "Back to" the project
-        (back-to-project) returns to it.
+        one.
       </li>
       <li>
         In the project's "API keys" section, press "Create your first key" or "Create key"
@@ -1884,7 +1856,7 @@ const UsageSection = ({project}) => {
 };
 
 
-const ProjectCard = ({project, expanded, authorName, account, listingContext, update, setConfirm, onToggleExpand, onOpenPoweredBy, notice}) => {
+const ProjectCard = ({project, expanded, authorName, listingContext, update, setConfirm, onToggleExpand, notice}) => {
   const [editing, setEditing] = useState(false);
   const cardRef = useRef(null);
 
@@ -1917,10 +1889,6 @@ const ProjectCard = ({project, expanded, authorName, account, listingContext, up
       }),
     }));
     setEditing(false);
-    const missing = listingMissingFields({...project, ...fields}, account);
-    if (fields.visibility === "public" && (project.visibility !== "public" || missing.length)) {
-      onOpenPoweredBy(project.id);
-    }
     if (losingUrl && restrictedKeys.length) {
       notice(Sefaria._v({
         en: restrictedKeys.join(", ") + " now works anywhere again, because the project no longer has a website.",
@@ -1980,14 +1948,6 @@ const ProjectCard = ({project, expanded, authorName, account, listingContext, up
             </span>
             {project.aiAssisted ?
               <span className="devPocBadge"><InterfaceText text={{en: "Built with AI tools", he: "נבנה בעזרת בינה מלאכותית"}} /></span> : null}
-            {listingIncomplete(project, account) ?
-              <span className="devPocBadge devPocBadgePending" data-badge="listing-incomplete">
-                <InterfaceText text={{en: "Listing incomplete", he: "הרישום לא הושלם"}} />
-              </span> : null}
-            {listingIncomplete(project, account) && expanded ?
-              <button type="button" className="devPocTextButton" data-agent-action="open-powered-by" onClick={() => onOpenPoweredBy(project.id)}>
-                <InterfaceText text={{en: "Finish the listing", he: "השלמת הרישום"}} />
-              </button> : null}
           </div>
           {expanded ?
             <button type="button" className="button small transparent devPocProjectEdit" onClick={() => setEditing(e => !e)}>
@@ -2025,107 +1985,6 @@ const ProjectCard = ({project, expanded, authorName, account, listingContext, up
 };
 
 
-const AUTOSAVE_MS = 800;
-
-/* A public project's Powered by details: the Powered by form, prefilled and saved as it
-   changes. Only fields changed here are written, so an edit made elsewhere in the meantime
-   isn't overwritten. */
-const PoweredByDetailsPage = ({project, account, update, onBack}) => {
-  const [initialValues, setInitialValues] = useState(() => poweredByValues(project, account));
-  const [formVersion, setFormVersion] = useState(0);
-  const [askPrivate, setAskPrivate] = useState(false);
-  const [missing, setMissing] = useState(() => listingMissingFields(project, account));
-  const [saveStatus, setSaveStatus] = useState("");   // "" | saving | saved
-  const savedValues = useRef(initialValues);
-  const pendingValues = useRef(null);
-  const timer = useRef(null);
-  const mounted = useRef(true);
-
-  const flush = () => {
-    clearTimeout(timer.current);
-    const values = pendingValues.current;
-    if (!values) { return; }
-    pendingValues.current = null;
-    const changed = Object.fromEntries(Object.entries(values)
-      .filter(([name, value]) => JSON.stringify(value) !== JSON.stringify(savedValues.current[name])));
-    savedValues.current = values;
-    update(s => ({
-      ...s,
-      projects: s.projects.map(p => p.id !== project.id ? p :
-        applyPoweredByValues(p, {...poweredByValues(p, account), ...changed})),
-    }));
-    if (mounted.current) { setSaveStatus("saved"); }
-  };
-
-  useEffect(() => () => { mounted.current = false; flush(); }, []);
-
-  /* Answering no to consent is the same as making the project private, so it asks first
-     and the answer itself stays yes. */
-  const onChange = (values) => {
-    if (values.consent === CONSENT_NO) {
-      values = {...values, consent: CONSENT_YES};
-      setAskPrivate(true);
-    }
-    pendingValues.current = values;
-    setSaveStatus("saving");
-    clearTimeout(timer.current);
-    timer.current = setTimeout(flush, AUTOSAVE_MS);
-  };
-
-  return (
-    <section className="devPocCard devPocPoweredBy" aria-labelledby="devPocPoweredByTitle">
-      <button type="button" className="devPocTextButton" data-agent-action="back-to-project" onClick={() => { flush(); onBack(); }}>
-        <InterfaceText text={{en: "← Back to " + project.name, he: "→ חזרה אל " + project.name}} />
-      </button>
-      <div className="devPocHeading">
-        <div>
-          <h2 id="devPocPoweredByTitle"><InterfaceText text={{en: "Powered by details", he: "פרטים ל־Powered by"}} /></h2>
-          <p className="devPocHelp">
-            <InterfaceText text={{
-              en: "What Powered by Sefaria shows about your project. Changes save as you type.",
-              he: "מה ש־Powered by Sefaria מציג על הפרויקט שלך. השינויים נשמרים תוך כדי הקלדה.",
-            }} />
-          </p>
-        </div>
-        <span className="devPocSaveStatus" role="status" data-save-status={saveStatus}>
-          {saveStatus === "saving" ? <InterfaceText text={{en: "Saving…", he: "שומר…"}} /> :
-            saveStatus === "saved" ? <InterfaceText text={{en: "Saved", he: "נשמר"}} /> : null}
-        </span>
-      </div>
-      {missing.length ?
-        <p className="devPocNotice" data-badge="listing-incomplete">
-          <span className="devPocBadge devPocBadgePending"><InterfaceText text={{en: "Listing incomplete", he: "הרישום לא הושלם"}} /></span>{" "}
-          <InterfaceText text={{
-            en: "Fill in the fields marked * to complete the listing. Your project stays public in the meantime.",
-            he: "מלאו את השדות המסומנים ב־* כדי להשלים את הרישום. בינתיים הפרויקט נשאר ציבורי.",
-          }} />
-        </p> : null}
-      <PoweredByForm
-        mode="project"
-        initialValues={initialValues}
-        onChange={onChange}
-        onMissingRequiredChange={setMissing}
-        key={formVersion}
-      />
-      {askPrivate ?
-        <MakePrivateDialog
-          onConfirm={() => {
-            setAskPrivate(false);
-            flush();
-            update(s => ({...s, projects: s.projects.map(p => p.id === project.id ? withdrawConsent(p) : p)}));
-            onBack();
-          }}
-          onCancel={() => {
-            setAskPrivate(false);
-            setInitialValues(pendingValues.current || savedValues.current);
-            setFormVersion(v => v + 1);
-          }}
-        /> : null}
-    </section>
-  );
-};
-
-
 const ConfirmDialog = ({confirm, onClose}) => {
   const cancelRef = useRef(null);
   useDialogKeys(cancelRef, () => onClose(false));
@@ -2149,15 +2008,13 @@ const ConfirmDialog = ({confirm, onClose}) => {
 const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, setConfirm, notice, setNotice,
                        connectedMessage, editingProfile, setEditingProfile, showNewProject,
                        setShowNewProject, onCreateProject, setProjectId, onStart,
-                       settingUp, poweredByProjectId, poweredByFormVersion, onOpenPoweredBy, onClosePoweredBy}) => {
+                       settingUp}) => {
   const authorName = accountName() || (state.profile ? state.profile.developerName : "");
-  const account = pocAccount(state);
   const listingContext = {
     listings: poweredByListings(state, accountEmail()),
     email: accountEmail(),
     verified: accountVerified(state, socialProviders),
   };
-  const poweredByProject = poweredByProjectId && state.projects.find(p => p.id === poweredByProjectId);
 
   const toggleExpand = (project) => {
     const expandedProjectId = state.expandedProjectId === project.id ? null : project.id;
@@ -2207,14 +2064,6 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
         /> :
         !state.profile ?
         <ProfileOnboarding onSave={profile => update(s => ({...s, profile}))} /> :
-        poweredByProject ?
-        <PoweredByDetailsPage
-          key={poweredByProject.id + "-" + poweredByFormVersion}
-          project={poweredByProject}
-          account={account}
-          update={update}
-          onBack={onClosePoweredBy}
-        /> :
         <React.Fragment>
           {notice ?
             <div className="devPocNotice" role="status">
@@ -2281,13 +2130,11 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
               project={p}
               expanded={state.expandedProjectId === p.id}
               authorName={authorName}
-              account={account}
               listingContext={listingContext}
               update={update}
               setConfirm={setConfirm}
               notice={setNotice}
               onToggleExpand={() => toggleExpand(p)}
-              onOpenPoweredBy={onOpenPoweredBy}
             />
           ))}
         </React.Fragment>}
@@ -2729,7 +2576,7 @@ const CONNECTED_MS = 8000;
 const SETUP_MS = 1200;
 const ARRIVAL_HIGHLIGHT_MS = 2400;
 
-const SettingsPage = ({tab, projectId, projectSection, accountSettings, initialDeveloperPoc, setTab, setProjectId}) => {
+const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, setTab, setProjectId}) => {
   const settings = accountSettings || {};
   const socialProviders = settings.socialProviders || [];
 
@@ -2741,8 +2588,6 @@ const SettingsPage = ({tab, projectId, projectSection, accountSettings, initialD
     return loaded;
   });
   const [showNewProject, setShowNewProject] = useState(false);
-  const [poweredByFormVersion, setPoweredByFormVersion] = useState(0);
-  const [poweredByProjectId, setPoweredByProjectId] = useState(projectSection === POWERED_BY_SECTION ? projectId : null);
   const [editingProfile, setEditingProfile] = useState(false);
   const [confirm, setConfirm] = useState(null);
   const [notice, setNotice] = useState("");
@@ -2767,11 +2612,6 @@ const SettingsPage = ({tab, projectId, projectSection, accountSettings, initialD
     };
   }, []);
 
-  /* The address can change underneath the page, with the browser's back button. */
-  useEffect(() => {
-    setPoweredByProjectId(projectSection === POWERED_BY_SECTION ? projectId : null);
-  }, [projectId, projectSection]);
-
   /* The UI updates first and the write follows; a failed write only leaves a notice.
      Updates read through a ref, so a change made while a key is being "created" still
      builds on the newest state. */
@@ -2782,7 +2622,7 @@ const SettingsPage = ({tab, projectId, projectSection, accountSettings, initialD
     writeState(next).catch(() => setNotice(Sefaria._v(SAVE_FAILED)));
     return next;
   };
-  /* A details page leaving with the settings page still saves its last changes. */
+  /* A change that lands after the page has gone still saves. */
   const pageMounted = useRef(true);
   useEffect(() => () => { pageMounted.current = false; }, []);
   const update = (fn) => {
@@ -2797,39 +2637,15 @@ const SettingsPage = ({tab, projectId, projectSection, accountSettings, initialD
     setEditingProfile(false);
     setConfirm(null);
     setNotice("");
-    setPoweredByProjectId(null);
   };
 
   const developerOn = accountVerified(pocState, socialProviders) && !!pocState.developerEnabled;
-
-  const openPoweredBy = (id) => {
-    setPoweredByProjectId(id);
-    setProjectId(id, POWERED_BY_SECTION);
-    if (typeof window !== "undefined") { window.scrollTo(0, 0); }
-  };
-
-  const closePoweredBy = () => {
-    const id = poweredByProjectId;
-    setPoweredByProjectId(null);
-    update(s => ({...s, expandedProjectId: id}));
-    setProjectId(id);
-  };
-
-  const fillAnswers = (id) => {
-    update(s => ({
-      ...s,
-      projects: s.projects.map(p => p.id !== id ? p :
-        applyPoweredByValues(p, fillRequiredAnswers(poweredByValues(p, pocAccount(s)), pocAccount(s)))),
-    }));
-    setPoweredByFormVersion(v => v + 1);
-  };
-  const listingProject = pocState.projects.find(p => p.id === (poweredByProjectId || pocState.expandedProjectId));
 
   const createProject = (fields) => {
     const project = makeProject(fields);
     update(s => ({...s, projects: [project, ...s.projects], expandedProjectId: project.id}));
     setShowNewProject(false);
-    if (project.visibility === "public") { openPoweredBy(project.id); } else { setProjectId(project.id); }
+    setProjectId(project.id);
   };
 
   /* A short loader before developer settings appear, so the change doesn't read as a reload. */
@@ -2883,10 +2699,6 @@ const SettingsPage = ({tab, projectId, projectSection, accountSettings, initialD
         setProjectId={setProjectId}
         onStart={() => startDeveloper()}
         settingUp={settingUp}
-        poweredByProjectId={poweredByProjectId}
-        poweredByFormVersion={poweredByFormVersion}
-        onOpenPoweredBy={openPoweredBy}
-        onClosePoweredBy={closePoweredBy}
       />
     ),
   };
@@ -2917,8 +2729,6 @@ const SettingsPage = ({tab, projectId, projectSection, accountSettings, initialD
           reset={reset}
           showSimulate={true}
           onOpenMockEmail={() => setMockEmailOpen(true)}
-          listingProject={listingProject}
-          onFillAnswers={fillAnswers}
         />
       </div>
     </div>

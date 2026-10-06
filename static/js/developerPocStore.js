@@ -9,7 +9,6 @@
  */
 
 import { getCsrfToken } from './sefaria/csrf';
-import { ALL_FIELDS, emptyValues, missingRequiredFields } from './poweredBy/poweredByFormDefinition';
 
 export const DEVELOPER_POC_STATE_URL = "/api/developer-poc/state";
 export const DEVELOPER_POC_VERSION = 1;
@@ -141,7 +140,6 @@ export const makeProject = (fields) => ({
   aiAssisted: false,
   listingRequest: null,        // {id, name, url}: a link staff have still to confirm
   linkedListingId: null,       // the Powered by listing this project is
-  poweredByAnswers: null,      // the Powered by form's answers, apart from the shared fields
   consentWithdrawnAt: null,    // when a public project was made private
   usage: {requests30: 0, lastUsed: null},
   keys: [],
@@ -266,79 +264,9 @@ export const listingConflicts = (fields, listing) => [
     same: normalizeWebsite(fields.websiteUrl) === normalizeWebsite(listing.url)},
 ].filter(c => !(c.same !== undefined ? c.same : c.project === c.listing));
 
-/* Choosing Public is consent to a possible listing, so a public project's consent answer
-   starts as yes; answering no makes the project private. */
-export const CONSENT_YES = "Yes";
-export const CONSENT_NO = "No";
-
-/* Name, link and description are one value each, held on the project; the Powered by
-   form reads and writes them there. */
-export const SHARED_LISTING_FIELDS = {projectName: "name", projectLink: "websiteUrl", description: "description"};
-
-const splitName = (fullName) => {
-  const name = (fullName || "").trim();
-  const space = name.indexOf(" ");
-  return space === -1 ? {firstName: name, lastName: ""} : {firstName: name.slice(0, space), lastName: name.slice(space + 1).trim()};
-};
-
-/* The form's values for a project: stored answers when there are any, otherwise a prefill
-   from the account and the project. */
-export const poweredByValues = (project, account) => {
-  const answers = project.poweredByAnswers || {
-    ...splitName(account.name),
-    email: account.email || "",
-    vibeCoded: project.aiAssisted ? "Yes" : "",
-  };
-  const shared = {};
-  Object.entries(SHARED_LISTING_FIELDS).forEach(([field, key]) => { shared[field] = project[key] || ""; });
-  const consent = answers.consent || (project.visibility === "public" ? CONSENT_YES : "");
-  return {...emptyValues(), ...answers, ...shared, consent};
-};
-
-const LISTING_OPTIONS = {hideEndpointSections: true};
-
-export const listingMissingFields = (project, account) => missingRequiredFields(poweredByValues(project, account), LISTING_OPTIONS);
-
-/* A public project's listing is incomplete while a required Powered by field is empty. */
-export const listingIncomplete = (project, account) => (
-  project.visibility === "public" && listingMissingFields(project, account).length > 0
-);
-
-/* The project after the Powered by form changes: shared fields go to the project itself. */
-export const applyPoweredByValues = (project, values) => {
-  const answers = {...values};
-  const changes = {};
-  Object.entries(SHARED_LISTING_FIELDS).forEach(([field, key]) => {
-    changes[key] = values[field] || "";
-    delete answers[field];
-  });
-  const losingUrl = !!project.websiteUrl && !changes.websiteUrl.trim();
-  return {
-    ...project,
-    ...changes,
-    keys: losingUrl ? project.keys.map(k => ({...k, restrictToWebsite: false})) : project.keys,
-    poweredByAnswers: answers,
-  };
-};
-
-/* POC shortcut: fills every empty required answer with a sample value. */
-export const fillRequiredAnswers = (values, account) => {
-  const filled = {...values};
-  missingRequiredFields(values, LISTING_OPTIONS).forEach(name => {
-    const field = ALL_FIELDS.find(f => f.name === name);
-    if (field.type === "checkbox") { filled[name] = [field.options[0].value]; }
-    else if (field.type === "radio" || field.type === "select") { filled[name] = field.options[0].value; }
-    else if (field.type === "email") { filled[name] = account.email || "you@example.org"; }
-    else if (name === "projectLink") { filled[name] = "https://example.org"; }
-    else { filled[name] = "Sample"; }
-  });
-  return filled;
-};
-
-/* Making a public project private withdraws consent; a later Public starts at yes again. */
+/* Making a public project private withdraws its consent to being listed. */
 export const withdrawConsent = (project) => ({
   ...project,
   visibility: "private",
   consentWithdrawnAt: new Date().toISOString(),
-  poweredByAnswers: project.poweredByAnswers ? {...project.poweredByAnswers, consent: ""} : null,
 });

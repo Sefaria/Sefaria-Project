@@ -89,7 +89,6 @@ class ReaderApp extends Component {
         linkerEditorBook:        props.initialLinkerEditorBook,
         settingsTab:             props.initialSettingsTab,
         developerProjectId:      props.initialDeveloperProjectId,
-        developerProjectSection: props.initialDeveloperProjectSection,
         accountSettings:         props.initialAccountSettings,
         developerPoc:            props.initialDeveloperPoc,
       };
@@ -183,7 +182,6 @@ class ReaderApp extends Component {
       collectionData:          state.collectionData          || null,
       settingsTab:             state.settingsTab             || "account",
       developerProjectId:      state.developerProjectId      || null,
-      developerProjectSection: state.developerProjectSection || null,
       accountSettings:         state.accountSettings         || null,
       developerPoc:            state.developerPoc            || null,
       searchQuery:             state.searchQuery             || null,
@@ -464,7 +462,6 @@ class ReaderApp extends Component {
           (prev.tab !== next.tab) ||
           (prev.settingsTab !== next.settingsTab) ||
           (next.menuOpen === "settings" && prev.developerProjectId !== next.developerProjectId) ||
-          (next.menuOpen === "settings" && prev.developerProjectSection !== next.developerProjectSection) ||
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
@@ -640,8 +637,7 @@ class ReaderApp extends Component {
           case "settings":
             if (state.settingsTab === "developer") {
               hist.title = Sefaria.getPageTitle("Developer Settings");
-              hist.url = "settings/developer" + (state.developerProjectId ? "/projects/" + state.developerProjectId : "")
-                + (state.developerProjectId && state.developerProjectSection ? "/" + state.developerProjectSection : "");
+              hist.url = "settings/developer" + (state.developerProjectId ? "/projects/" + state.developerProjectId : "");
             } else {
               hist.title = Sefaria.getPageTitle("Account Settings");
               hist.url = "settings/account";
