@@ -330,9 +330,11 @@ describe('making a public project private', () => {
     return container.querySelector('[aria-labelledby="devPocPrivateTitle"]');
   };
 
-  it('warns that the listing may already appear elsewhere', () => {
+  it('warns only that published copies may remain, without promising a take-down', () => {
     const dialog = editPublicProject();
-    expect(dialog.textContent).toContain('may already appear on Powered by Sefaria or elsewhere');
+    expect(dialog.textContent).toContain('The project will be marked private.');
+    expect(dialog.textContent).toContain("we can't guarantee it's removed everywhere");
+    expect(dialog.textContent).not.toContain('take it down');
     expect(dialog.querySelector('a[href="mailto:hello@sefaria.org"]')).toBeTruthy();
     expect(visibilityRadio('public').checked).toBe(true);
   });
@@ -350,7 +352,7 @@ describe('making a public project private', () => {
     const saved = lastSavedState().projects[0];
     expect(saved.visibility).toBe('private');
     expect(saved.consentWithdrawnAt).toBeTruthy();
-    expect(developerPanel().textContent).toContain('taken down from Powered by Sefaria');
+    expect(developerPanel().textContent).not.toContain('taken down');
   });
 
   it("doesn't ask for a project that was never public", () => {
@@ -358,6 +360,37 @@ describe('making a public project private', () => {
     act(() => { visibilityRadio('private').click(); });
     expect(container.querySelector('[aria-labelledby="devPocPrivateTitle"]')).toBeNull();
     expect(visibilityRadio('private').checked).toBe(true);
+  });
+});
+
+describe('deleting a project', () => {
+  const withKey = (extra) => publicProject({
+    keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, lastUsed: null, requests30: 0, restrictToWebsite: false }],
+    ...extra,
+  });
+  const deleteFromEditor = (projects) => {
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects, expandedProjectId: 'proj01' });
+    act(() => { buttonNamed(container, 'Edit project').click(); });
+    act(() => { buttonNamed(container, 'Delete project').click(); });
+    return container.querySelector('[aria-labelledby="devPocConfirmTitle"]');
+  };
+  const other = { ...publicProject({ id: 'proj02', name: 'Other' }) };
+
+  it('removes the project and its keys from the store', () => {
+    const dialog = deleteFromEditor([withKey(), other]);
+    expect(dialog.textContent).toContain('These keys stop working right away: Production');
+    act(() => { buttonNamed(dialog, 'Delete project').click(); });
+    const saved = lastSavedState();
+    expect(saved.projects.map(p => p.id)).toEqual(['proj02']);
+    expect(JSON.stringify(saved)).not.toContain('sfr_test_x');
+    expect(saved.expandedProjectId).toBeNull();
+  });
+
+  it('warns about published copies only for a public project', () => {
+    expect(deleteFromEditor([withKey()]).textContent).toContain("we can't guarantee it's removed everywhere");
+    ReactDOM.unmountComponentAtNode(container);
+    container.remove();
+    expect(deleteFromEditor([withKey({ visibility: 'private' })]).textContent).not.toContain("can't guarantee");
   });
 });
 

@@ -264,6 +264,13 @@ export const listingConflicts = (fields, listing) => [
     same: normalizeWebsite(fields.websiteUrl) === normalizeWebsite(listing.url)},
 ].filter(c => !(c.same !== undefined ? c.same : c.project === c.listing));
 
+/* Deleting a project revokes its keys with it: they live only on the project. */
+export const removeProject = (state, projectId) => ({
+  ...state,
+  projects: state.projects.filter(p => p.id !== projectId),
+  expandedProjectId: state.expandedProjectId === projectId ? null : state.expandedProjectId,
+});
+
 /* Making a public project private withdraws its consent to being listed. */
 export const withdrawConsent = (project) => ({
   ...project,

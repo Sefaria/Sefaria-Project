@@ -14,6 +14,7 @@ import {
   poweredByListings,
   publicListing,
   makeKey,
+  removeProject,
   makeProject,
   sampleState,
   ssoConnected,
@@ -1040,8 +1041,15 @@ const LinkConflictDialog = ({listing, conflicts, onLink, onCancel}) => {
 };
 
 
-/* Making a public project private takes the listing down, but copies may already be
-   elsewhere, so the dialog says so before it happens. */
+/* A public project may already have been published, so neither making it private nor
+   deleting it can promise it disappears everywhere. */
+const PublishedCopiesWarning = () => (
+  <InterfaceText text={{
+    en: <React.Fragment>If it already appeared on a published page, we can't guarantee it's removed everywhere. If that's a problem, email <ContactLink />.</React.Fragment>,
+    he: <React.Fragment>אם הוא כבר הופיע בעמוד שפורסם, איננו יכולים להבטיח שיוסר מכל מקום. אם זו בעיה, כתבו אל <ContactLink />.</React.Fragment>,
+  }} />
+);
+
 const MakePrivateDialog = ({onConfirm, onCancel}) => {
   const cancelRef = useRef(null);
   useDialogKeys(cancelRef, onCancel);
@@ -1050,10 +1058,8 @@ const MakePrivateDialog = ({onConfirm, onCancel}) => {
       <section className="devPocDialog">
         <h2 id="devPocPrivateTitle"><InterfaceText text={{en: "Make this project private?", he: "להפוך את הפרויקט לפרטי?"}} /></h2>
         <p>
-          <InterfaceText text={{
-            en: <React.Fragment>Your project may already appear on Powered by Sefaria or elsewhere. We'll take it down from our listing. If you still find it somewhere, email <ContactLink />.</React.Fragment>,
-            he: <React.Fragment>ייתכן שהפרויקט שלך כבר מופיע ב־Powered by Sefaria או במקומות אחרים. נסיר אותו מהרשימה שלנו. אם עדיין תמצאו אותו איפשהו, כתבו אל <ContactLink />.</React.Fragment>,
-          }} />
+          <InterfaceText text={{en: "The project will be marked private.", he: "הפרויקט יסומן כפרטי."}} />{" "}
+          <PublishedCopiesWarning />
         </p>
         <div className="devPocActions">
           <button type="button" className="button small white" ref={cancelRef} onClick={onCancel}>
@@ -1675,9 +1681,6 @@ const listingStatus = (project) => {
   if (project.visibility === "public") {
     return {en: "Public: Sefaria may show it on Powered by Sefaria.", he: "ציבורי: ספריא עשויה להציג אותו ב־Powered by Sefaria."};
   }
-  if (project.consentWithdrawnAt) {
-    return {en: "Private: taken down from Powered by Sefaria.", he: "פרטי: הוסר מ־Powered by Sefaria."};
-  }
   if (project.visibility === "private") {
     return {en: "Private: not shown on Powered by Sefaria.", he: "פרטי: לא מוצג ב־Powered by Sefaria."};
   }
@@ -1878,20 +1881,19 @@ const ProjectCard = ({project, expanded, authorName, listingContext, update, set
   };
 
   const keyLabels = project.keys.map(k => k.label).join(", ");
+  const keysText = project.keys.length
+    ? Sefaria._v({
+      en: "These keys stop working right away: " + keyLabels + ". You can't get the project or its keys back.",
+      he: "המפתחות האלה יפסיקו לעבוד מיד: " + keyLabels + ". לא יהיה אפשר לשחזר את הפרויקט או את המפתחות שלו.",
+    })
+    : Sefaria._v({en: "This project has no keys. You can't undo this.", he: "לפרויקט הזה אין מפתחות. אי אפשר לבטל את הפעולה."});
   const deleteProject = () => setConfirm({
     title: Sefaria._v({en: "Delete " + project.name + "?", he: "למחוק את " + project.name + "?"}),
-    body: project.keys.length
-      ? Sefaria._v({
-        en: "These keys stop working right away: " + keyLabels + ". You can't get the project or its keys back.",
-        he: "המפתחות האלה יפסיקו לעבוד מיד: " + keyLabels + ". לא יהיה אפשר לשחזר את הפרויקט או את המפתחות שלו.",
-      })
-      : Sefaria._v({en: "This project has no keys. You can't undo this.", he: "לפרויקט הזה אין מפתחות. אי אפשר לבטל את הפעולה."}),
+    body: project.visibility === "public"
+      ? <React.Fragment>{keysText} <PublishedCopiesWarning /></React.Fragment>
+      : keysText,
     actionLabel: Sefaria._v({en: "Delete project", he: "מחיקת הפרויקט"}),
-    onConfirm: () => update(s => ({
-      ...s,
-      projects: s.projects.filter(p => p.id !== project.id),
-      expandedProjectId: s.expandedProjectId === project.id ? null : s.expandedProjectId,
-    })),
+    onConfirm: () => update(s => removeProject(s, project.id)),
   });
 
   const keyCount = project.keys.length;
