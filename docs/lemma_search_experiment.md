@@ -341,6 +341,10 @@ sharing a single anonymous user ID. CSRF protection and signed job handles remai
 
 ### Ranked expansion limit
 
+The page enables “Include י/ו lemma variants” by default; testers can uncheck it
+to compare ordinary lemma matching. The explanatory text describes corpus-derived
+alternatives and the 256-combination limit. API defaults and ranking are unchanged.
+
 The worker keeps the best 256 complete phrase combinations, always including the
 original lemma sequence. Ranking prefers fewer changed query words, then fewer
 character edits, then larger summed log(1 + corpus count) for altered forms.
