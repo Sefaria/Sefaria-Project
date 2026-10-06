@@ -44,7 +44,7 @@ import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
 import AuthPage from './auth/AuthPage';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
-import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
+import { resumePendingAuthAttempt } from './auth/authAnalytics.js';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -142,7 +142,8 @@ class ReaderApp extends Component {
     this.setState({ editorSaveState: nextState });
     };
   handleAuthNavigate = (path, source = null) => {
-    this.setState({ showAuth: true, authPath: path, authSource: source });
+    // Hide the sign up modal and show the auth page, with the given path and source.
+    this.setState({ showAuth: true, authPath: path, authSource: source, showSignUpModal: false });
   }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
@@ -241,7 +242,7 @@ class ReaderApp extends Component {
       Sefaria.markUserAsNewVisitor();
     }
 
-    resumePendingSignUpAttempt();
+    resumePendingAuthAttempt();
     if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
       sessionStorage.setItem("sa.reader_app_mounted", "true");
       sa_event("reader_app_mounted");

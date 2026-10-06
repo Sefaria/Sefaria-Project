@@ -395,6 +395,9 @@ def trending_topics(days=30, ntags=14):
 
 
 def rebuild_sheet_nodes(sheet):
+    # Only runs when save_sheet() is called with rebuild_nodes=True, which no live client sends.
+    from sefaria.model.legacy_text import LegacyTextChunk
+
     def find_next_unused_node(node_number, used_nodes):
         while True:
             node_number += 1
@@ -432,8 +435,8 @@ def rebuild_sheet_nodes(sheet):
 
             try:
                 oref = model.Ref(source["ref"])
-                tc_eng = model.TextChunk(oref, "en")
-                tc_heb = model.TextChunk(oref, "he")
+                tc_eng = LegacyTextChunk(oref, "en")
+                tc_heb = LegacyTextChunk(oref, "he")
                 if tc_eng:
                     source["text"]["en"] = tc_eng.ja().flatten_to_string()
                 if tc_heb:
@@ -557,9 +560,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
             scored_by_llm = True
         if sheet["status"] != "public":
             # UNPUBLISH
-            if SEARCH_INDEX_ON_SAVE and not search_override:
-                es_index_name = search.get_new_and_current_index_names("sheet")['current']
-                search.delete_sheet(es_index_name, sheet['id'])
+            # Removal from search happens via the index queue at the end of save_sheet.
 
             delete_sheet_publication(sheet["id"], user_id)  # remove history
 
@@ -609,12 +610,14 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
         update_sheet_topic_links(sheet["id"], [], old_topics)
 
 
-    if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
+    # Public sheets and sheets leaving public status both need a search sync; the queue
+    # consumer (index-from-queue CronJob, ES admin credentials) indexes or removes the doc
+    # based on the sheet's state when it runs. Web pods only have read access to ES.
+    if (sheet["status"] == "public" or status_changed) and SEARCH_INDEX_ON_SAVE and not search_override:
         try:
-            index_name = search.get_new_and_current_index_names("sheet")['current']
-            search.index_sheet(index_name, sheet["id"])
-        except:
-            logger.error("Failed index on " + str(sheet["id"]))
+            search.queue_sheet_sync(sheet["id"])
+        except Exception as e:
+            logger.error("Failed to queue sheet for search indexing", sheet_id=sheet["id"], error=f"{type(e).__name__}: {e}")
 
     return sheet
 
@@ -737,12 +740,15 @@ def refine_ref_by_text(ref, text):
     Returns a ref (string) which refines 'ref' (string) by comparing 'text' (string),
     to the hebrew text stored in the Library.
     """
+    # Only reachable via refs_in_sources(sources, refine_refs=True), which save_sheet() never passes.
+    from sefaria.model.legacy_text import LegacyTextChunk
+
     try:
         oref   = model.Ref(ref).section_ref()
     except:
         return ref
     needle = strip_tags(text).strip().replace("\n", "")
-    hay    = model.TextChunk(oref, lang="he").text
+    hay    = LegacyTextChunk(oref, lang="he").text
 
     start, end = None, None
     for n in range(len(hay)):
