@@ -3,9 +3,16 @@ import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
 import {
+  MAX_DESCRIPTION_LENGTH,
   MAX_KEYS_PER_PROJECT,
   POWERED_BY_LISTINGS,
+  canLinkByEmail,
+  emailMatchedListing,
   emptyState,
+  listingConflicts,
+  listingForWebsite,
+  poweredByListings,
+  publicListing,
   makeKey,
   makeProject,
   sampleState,
@@ -24,6 +31,8 @@ const KEY_SETUP_MS = 4000;
 
 const API_DOCS_URL = "https://developers.sefaria.org/reference/getting-started";
 const POWERED_BY_URL = "https://developers.sefaria.org/docs/powered-by-sefaria";
+const POWERED_BY_SECTION = "powered-by";
+const CONTACT_EMAIL = "hello@sefaria.org";
 const API_TERMS_URL = "/api-terms";
 
 const maskKey = (value) => {
@@ -178,6 +187,48 @@ const accountStatus = (state, realProviders) => {
   return "Now: " + kind + " · " + email + " · " + dev;
 };
 
+/* Mock Powered by data the walkthrough needs: a listing submitted with this account's email,
+   and whether the open project's listing has every required field. */
+const PocListingControls = ({state, update}) => {
+  const email = accountEmail();
+  const linkable = POWERED_BY_LISTINGS.filter(l => !l.ownedByAnotherAccount);
+  const expanded = state.projects.find(p => p.id === state.expandedProjectId);
+  return (
+    <div className="devPocPanelGroup">
+      <div className="devPocPanelGroupLabel">Powered by listings</div>
+      <label className="devPocPanelChoice devPocPanelSelect">
+        <span>Submitted with {email || "the account email"}:</span>
+        <select
+          data-poc-control="submitter-email-listing"
+          value={state.submitterEmailListingId || ""}
+          onChange={e => update(s => ({...s, submitterEmailListingId: e.target.value || null}))}
+        >
+          <option value="">None</option>
+          {linkable.map(l => <option key={l.id} value={l.id}>{l.name} ({l.url})</option>)}
+        </select>
+      </label>
+      <p className="devPocPanelNote">
+        Taken by another account: {POWERED_BY_LISTINGS.filter(l => l.ownedByAnotherAccount).map(l => l.url).join(", ")}.
+        Any other listed website asks to request a link.
+      </p>
+      {expanded && expanded.visibility === "public" ?
+        <label className="devPocPanelChoice">
+          <input
+            type="checkbox"
+            className="devPocSwitch"
+            data-poc-control="listing-complete"
+            checked={!!expanded.listingComplete}
+            onChange={e => update(s => ({
+              ...s,
+              projects: s.projects.map(p => p.id === expanded.id ? {...p, listingComplete: e.target.checked} : p),
+            }))}
+          />
+          <span>{expanded.name}: listing {expanded.listingComplete ? "complete" : "incomplete"}</span>
+        </label> : null}
+    </div>
+  );
+};
+
 const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpenMockEmail}) => {
   const [open, setOpen] = useState(false);
 
@@ -271,6 +322,8 @@ const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpen
             {" "}Google or Apple sign-in is auto-approved: no real sign-in happens.
           </p>
         </div>
+
+        <PocListingControls state={state} update={update} />
 
         <div className="devPocPanelGroup">
           <div className="devPocPanelGroupLabel">Mock data</div>
@@ -368,12 +421,16 @@ const AgentInstructions = () => (
       </li>
       <li>
         Under "Projects", press "Create your first project" or "New project" (new-project).
-        Enter a project name and a short description (both required). Organization, website
-        and "Built with help from AI tools" are optional. Leave visibility Private unless the
-        user wants the project public; choosing Public shows what would be public and asks
-        for confirmation. Press "Create project" (create-project). If there is no website, a
+        Enter a project name and a short description of at most 150 characters (both
+        required). Organization, website and "Built with help from AI tools" are optional.
+        Choose a visibility, which is required: Public (recommended) or Private. Ask the user
+        which they want; choosing Public shows what would be public and asks for confirmation.
+        If a Powered by Sefaria listing matches the account email or the website, the form
+        offers to link it (link-listing) or to request a link (request-listing-link); ask the
+        user before either. Press "Create project" (create-project). If there is no website, a
         dialog asks about it: choose "Save without a website" (save-without-website) or add
-        one.
+        one. Saving a public project opens its Powered by details page; "Back to" the project
+        (back-to-project) returns to it.
       </li>
       <li>
         In the project's "API keys" section, press "Create your first key" or "Create key"
@@ -720,86 +777,131 @@ const ProfileForm = ({profile, onSave, onCancel}) => {
 };
 
 
-const ListingPicker = ({listing, onPick, onClear}) => {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const normalized = query.trim().toLowerCase();
-  const results = normalized.length >= 2
-    ? POWERED_BY_LISTINGS.filter(l => (l.name + " " + l.url).toLowerCase().includes(normalized))
-    : [];
+/* A listing's public fields only: what anyone can already see on Powered by Sefaria. */
+const ListingSummary = ({listing}) => (
+  <div className="devPocListingSummary">
+    <strong dir="auto">{listing.name}</strong> <span className="devPocMuted" dir="ltr">({listing.url})</span>
+    <p className="devPocHelp" dir="auto">{listing.description}</p>
+  </div>
+);
 
-  if (listing) {
+const ContactLink = () => <a href={"mailto:" + CONTACT_EMAIL} dir="ltr">{CONTACT_EMAIL}</a>;
+
+/* An unowned listing submitted with this account's verified email can be linked straight away. */
+const EmailMatchNotice = ({listing, onLink, onDismiss}) => (
+  <div className="devPocMatch" role="region" aria-label={Sefaria._v({en: "Your Powered by Sefaria listing", he: "הרישום שלך ב־Powered by Sefaria"})}>
+    <p>
+      <InterfaceText text={{
+        en: <React.Fragment>We found a Powered by Sefaria listing you submitted: <strong dir="auto">{listing.name}</strong></React.Fragment>,
+        he: <React.Fragment>מצאנו רישום ב־Powered by Sefaria שהגשת: <strong dir="auto">{listing.name}</strong></React.Fragment>,
+      }} />
+    </p>
+    <ListingSummary listing={listing} />
+    <div className="devPocActions">
+      <button type="button" className="button small blue" data-agent-action="link-listing" onClick={onLink}>
+        <InterfaceText text={{en: "Link", he: "קישור"}} />
+      </button>
+      <button type="button" className="button small white" onClick={onDismiss}>
+        <InterfaceText text={{en: "Not mine", he: "זה לא שלי"}} />
+      </button>
+    </div>
+  </div>
+);
+
+/* Typing a website that is already listed never grants the listing: only a matching
+   verified email links it, and anything else goes to Sefaria to confirm. */
+const WebsiteMatchNotice = ({listing, canLink, requested, onLink, onRequest, onCancelRequest, onDismiss}) => {
+  if (listing.ownedByAnotherAccount) {
     return (
-      <div className="devPocListingSearch devPocListingPending">
+      <div className="devPocMatch devPocMatchBlocked" role="status">
         <p>
-          <span className="devPocBadge devPocBadgePending"><InterfaceText text={{en: "Link requested", he: "התבקש קישור"}} /></span>{" "}
-          <strong dir="auto">{listing.name}</strong> <span className="devPocMuted" dir="ltr">({listing.url})</span>
-          <InfoTip label={Sefaria._v({en: "What happens next", he: "מה קורה עכשיו"})}>
-            <InterfaceText text={{
-              en: "Someone at Sefaria will check it and connect the two. Until then it shows as requested.",
-              he: "צוות ספריא יבדוק את הבקשה ויקשר בין השניים. עד אז היא תופיע כבקשה ממתינה.",
-            }} />
-          </InfoTip>
+          <InterfaceText text={{
+            en: <React.Fragment>This website is already registered by another account. If it's yours, contact <ContactLink />.</React.Fragment>,
+            he: <React.Fragment>האתר הזה כבר רשום בחשבון אחר. אם הוא שלך, פנו אל <ContactLink />.</React.Fragment>,
+          }} />
         </p>
-        <button type="button" className="devPocTextButton" onClick={onClear}>
-          <InterfaceText text={{en: "Cancel request", he: "ביטול הבקשה"}} />
-        </button>
       </div>
     );
   }
-  if (!open) {
+  if (listing.linkedProjectId) {
     return (
-      <button type="button" className="devPocTextButton" onClick={() => setOpen(true)}>
-        <InterfaceText text={{en: "Already on Powered by Sefaria? Find your listing", he: "הפרויקט כבר מופיע ב־Powered by Sefaria? חפשו אותו"}} />
-      </button>
+      <div className="devPocMatch devPocMatchBlocked" role="status">
+        <p>
+          <InterfaceText text={{
+            en: "This website's Powered by Sefaria listing is already linked to another of your projects.",
+            he: "הרישום של האתר הזה ב־Powered by Sefaria כבר מקושר לפרויקט אחר שלך.",
+          }} />
+        </p>
+      </div>
     );
   }
   return (
-    <div className="devPocListingSearch">
-      <div className="devPocField">
-        <label htmlFor="devPocListingSearch">
-          <InterfaceText text={{en: "Find your listing", he: "חיפוש הפרויקט שלכם"}} />
-          <InfoTip label={Sefaria._v({en: "About linking a listing", he: "על קישור לפרויקט קיים"})}>
+    <div className="devPocMatch" role="region" aria-label={Sefaria._v({en: "Website already listed", he: "האתר כבר מופיע ברשימה"})}>
+      <p><strong><InterfaceText text={{en: "This website is already on Powered by Sefaria", he: "האתר הזה כבר מופיע ב־Powered by Sefaria"}} /></strong></p>
+      <ListingSummary listing={listing} />
+      {requested ?
+        <React.Fragment>
+          <p>
+            <span className="devPocBadge devPocBadgePending"><InterfaceText text={{en: "Link requested", he: "התבקש קישור"}} /></span>{" "}
             <InterfaceText text={{
-              en: "Sefaria checks each request before connecting it, because anyone can submit a listing.",
-              he: "ספריא בודקת כל בקשה לפני הקישור, כי כל אחד יכול להגיש פרויקט לרשימה.",
+              en: "Someone at Sefaria will check it and connect the two.",
+              he: "צוות ספריא יבדוק את הבקשה ויקשר בין השניים.",
             }} />
-          </InfoTip>
-        </label>
-        <input
-          id="devPocListingSearch"
-          type="search"
-          dir="auto"
-          placeholder={Sefaria._v({en: "Project name or website", he: "שם הפרויקט או האתר"})}
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-        />
-      </div>
-      {normalized.length >= 2 && results.length === 0 ?
-        <p className="devPocHelp">
-          <InterfaceText text={{en: "No listings match. Try another name or website.", he: "לא נמצאו תוצאות. נסו שם או אתר אחר."}} />
-        </p> : null}
-      {results.map(l => (
-        <div className="devPocResult" key={l.url}>
-          <div>
-            <strong dir="auto">{l.name}</strong> <span className="devPocMuted" dir="ltr">{l.url}</span>
-            <p className="devPocHelp" dir="auto">{l.description}</p>
+          </p>
+          <div className="devPocActions">
+            <button type="button" className="devPocTextButton" onClick={onCancelRequest}>
+              <InterfaceText text={{en: "Cancel request", he: "ביטול הבקשה"}} />
+            </button>
           </div>
-          <button type="button" className="button small white" onClick={() => { onPick(l); setOpen(false); }}>
-            <InterfaceText text={{en: "Request link", he: "בקשת קישור"}} />
+        </React.Fragment> :
+        canLink ?
+        <div className="devPocActions">
+          <button type="button" className="button small blue" data-agent-action="link-listing" onClick={onLink}>
+            <InterfaceText text={{en: "Link this listing", he: "קישור הרישום הזה"}} />
           </button>
-        </div>
-      ))}
-      <button type="button" className="devPocTextButton" onClick={() => setOpen(false)}>
-        <InterfaceText text={{en: "Close search", he: "סגירת החיפוש"}} />
-      </button>
+          <button type="button" className="button small white" onClick={onDismiss}>
+            <InterfaceText text={{en: "Not mine", he: "זה לא שלי"}} />
+          </button>
+        </div> :
+        <React.Fragment>
+          <p className="devPocHelp">
+            <InterfaceText text={{
+              en: "If it's yours, ask to link it and Sefaria will confirm. Or carry on with a new project.",
+              he: "אם הוא שלך, בקשו לקשר אותו וספריא תאשר. או המשיכו עם פרויקט חדש.",
+            }} />
+          </p>
+          <div className="devPocActions">
+            <button type="button" className="button small white" data-agent-action="request-listing-link" onClick={onRequest}>
+              <InterfaceText text={{en: "Request to link", he: "בקשת קישור"}} />
+            </button>
+            <button type="button" className="button small transparent" onClick={onDismiss}>
+              <InterfaceText text={{en: "Continue as a new project", he: "להמשיך כפרויקט חדש"}} />
+            </button>
+          </div>
+        </React.Fragment>}
     </div>
   );
 };
 
+const LinkedListingNote = ({listing}) => (
+  <p className="devPocHelp devPocLinked" role="status">
+    <span className="devPocBadge"><InterfaceText text={{en: "Linked", he: "מקושר"}} /></span>{" "}
+    <InterfaceText text={{
+      en: <React.Fragment>This project is the <strong dir="auto">{listing.name}</strong> listing on Powered by Sefaria.</React.Fragment>,
+      he: <React.Fragment>הפרויקט הזה הוא הרישום <strong dir="auto">{listing.name}</strong> ב־Powered by Sefaria.</React.Fragment>,
+    }} />
+  </p>
+);
 
-const ProjectFields = ({fields, set, onChoosePublic}) => (
+
+const RecommendedTag = () => (
+  <span className="devPocBadge devPocBadgeRecommended"><InterfaceText text={{en: "Recommended", he: "מומלץ"}} /></span>
+);
+
+const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, emailNotice, websiteNotice, linkedNote}) => (
   <React.Fragment>
+    {emailNotice}
+    {linkedNote}
     <div className="devPocField">
       <label htmlFor="devPocProjectName"><InterfaceText text={{en: "Project name", he: "שם הפרויקט"}} /></label>
       <input id="devPocProjectName" dir="auto" value={fields.name} onChange={e => set("name", e.target.value)} />
@@ -817,6 +919,8 @@ const ProjectFields = ({fields, set, onChoosePublic}) => (
       <input
         id="devPocProjectDescription"
         dir="auto"
+        maxLength={MAX_DESCRIPTION_LENGTH}
+        aria-describedby="devPocProjectDescriptionCount"
         placeholder={Sefaria._v({
           en: "One sentence, e.g. a daily study tracker for my community",
           he: "משפט אחד, למשל: כלי למעקב אחר לימוד יומי בקהילה שלי",
@@ -824,6 +928,7 @@ const ProjectFields = ({fields, set, onChoosePublic}) => (
         value={fields.description}
         onChange={e => set("description", e.target.value)}
       />
+      <CharacterCount id="devPocProjectDescriptionCount" length={fields.description.length} />
     </div>
     <div className="devPocField">
       <label htmlFor="devPocProjectOrg"><InterfaceText text={{en: "Organization", he: "ארגון"}} /> <OptionalMark /></label>
@@ -846,6 +951,7 @@ const ProjectFields = ({fields, set, onChoosePublic}) => (
         value={fields.websiteUrl}
         onChange={e => set("websiteUrl", e.target.value)}
       />
+      {websiteNotice}
     </div>
     <label className="devPocChoice">
       <input type="checkbox" checked={fields.aiAssisted} onChange={e => set("aiAssisted", e.target.checked)} />
@@ -862,18 +968,9 @@ const ProjectFields = ({fields, set, onChoosePublic}) => (
     <fieldset className="devPocFieldset">
       <legend><InterfaceText text={{en: "Visibility", he: "נראוּת"}} /></legend>
       <label className="devPocChoice">
-        <input type="radio" name="devPocVisibility" checked={fields.visibility === "private"} onChange={() => set("visibility", "private")} />
+        <input type="radio" name="devPocVisibility" value="public" checked={fields.visibility === "public"} onChange={onChoosePublic} />
         <span>
-          <InterfaceText text={{en: "Private", he: "פרטי"}} />
-          <InfoTip label={Sefaria._v({en: "Who sees a private project", he: "מי רואה פרויקט פרטי"})}>
-            <InterfaceText text={{en: "Only you and the Sefaria team can see this project.", he: "רק את/ה וצוות ספריא יכולים לראות את הפרויקט."}} />
-          </InfoTip>
-        </span>
-      </label>
-      <label className="devPocChoice">
-        <input type="radio" name="devPocVisibility" checked={fields.visibility === "public"} onChange={onChoosePublic} />
-        <span>
-          <InterfaceText text={{en: "Public", he: "ציבורי"}} />
+          <InterfaceText text={{en: "Public", he: "ציבורי"}} /> <RecommendedTag />
           <InfoTip label={Sefaria._v({en: "Who sees a public project", he: "מי רואה פרויקט ציבורי"})} wide>
             <InterfaceText text={{
               en: "Sefaria may show this project on Powered by Sefaria, our gallery of projects built with Sefaria. We choose what to feature, so it may not appear.",
@@ -882,17 +979,136 @@ const ProjectFields = ({fields, set, onChoosePublic}) => (
           </InfoTip>
         </span>
       </label>
-      {fields.visibility === "public" ?
-        <div className="devPocListingArea">
-          <ListingPicker
-            listing={fields.listingRequest}
-            onPick={l => set("listingRequest", l)}
-            onClear={() => set("listingRequest", null)}
-          />
-        </div> : null}
+      <label className="devPocChoice">
+        <input type="radio" name="devPocVisibility" value="private" checked={fields.visibility === "private"} onChange={onChoosePrivate} />
+        <span>
+          <InterfaceText text={{en: "Private", he: "פרטי"}} />
+          <InfoTip label={Sefaria._v({en: "Who sees a private project", he: "מי רואה פרויקט פרטי"})}>
+            <InterfaceText text={{en: "Only you and the Sefaria team can see this project.", he: "רק את/ה וצוות ספריא יכולים לראות את הפרויקט."}} />
+          </InfoTip>
+        </span>
+      </label>
     </fieldset>
   </React.Fragment>
 );
+
+const CharacterCount = ({id, length}) => (
+  <p className={"devPocCount" + (length >= MAX_DESCRIPTION_LENGTH ? " devPocCountFull" : "")} id={id} dir="ltr">
+    {length}/{MAX_DESCRIPTION_LENGTH}
+  </p>
+);
+
+
+const CONFLICT_LABELS = {
+  name: {en: "Project name", he: "שם הפרויקט"},
+  description: {en: "Short description", he: "תיאור קצר"},
+  websiteUrl: {en: "Website", he: "אתר"},
+};
+
+/* Where the project and the listing disagree, both values are shown and the person
+   writes what to keep; nothing is chosen for them. */
+const LinkConflictDialog = ({listing, conflicts, onLink, onCancel}) => {
+  const [kept, setKept] = useState(() => Object.fromEntries(conflicts.map(c => [c.field, ""])));
+  const firstRef = useRef(null);
+  useDialogKeys(firstRef, onCancel);
+  const keep = (field, value) => setKept(k => ({...k, [field]: value}));
+  const ready = conflicts.every(c => kept[c.field].trim());
+  const empty = <span className="devPocMuted"><InterfaceText text={{en: "Empty", he: "ריק"}} /></span>;
+
+  return (
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocConflictTitle">
+      <section className="devPocDialog devPocConflictDialog">
+        <h2 id="devPocConflictTitle"><InterfaceText text={{en: "Choose what to keep", he: "בחרו מה לשמור"}} /></h2>
+        <p>
+          <InterfaceText text={{
+            en: <React.Fragment>Your project and the <strong dir="auto">{listing.name}</strong> listing say different things. Write what you want to keep for each. Linking makes the project public, like the listing.</React.Fragment>,
+            he: <React.Fragment>הפרויקט שלך והרישום <strong dir="auto">{listing.name}</strong> אומרים דברים שונים. כתבו מה לשמור בכל שדה. הקישור הופך את הפרויקט לציבורי, כמו הרישום.</React.Fragment>,
+          }} />
+        </p>
+        {conflicts.map((c, i) => {
+          const inputId = "devPocKeep-" + c.field;
+          const dir = c.field === "websiteUrl" ? "ltr" : "auto";
+          return (
+            <div className="devPocConflict" key={c.field} data-conflict={c.field}>
+              <h3><InterfaceText text={CONFLICT_LABELS[c.field]} /></h3>
+              <div className="devPocConflictSides">
+                <div className="devPocConflictSide">
+                  <p className="devPocMuted"><InterfaceText text={{en: "Your project", he: "הפרויקט שלך"}} /></p>
+                  <p dir={c.project ? dir : null}>{c.project || empty}</p>
+                  {c.project ?
+                    <button type="button" className="devPocTextButton" onClick={() => keep(c.field, c.project)}>
+                      <InterfaceText text={{en: "Use this", he: "להשתמש בזה"}} />
+                    </button> : null}
+                </div>
+                <div className="devPocConflictSide">
+                  <p className="devPocMuted"><InterfaceText text={{en: "Powered by listing", he: "הרישום ב־Powered by"}} /></p>
+                  <p dir={dir}>{c.listing}</p>
+                  <button type="button" className="devPocTextButton" onClick={() => keep(c.field, c.listing)}>
+                    <InterfaceText text={{en: "Use this", he: "להשתמש בזה"}} />
+                  </button>
+                </div>
+              </div>
+              <div className="devPocField">
+                <label htmlFor={inputId}><InterfaceText text={{en: "Keep", he: "לשמור"}} /></label>
+                <input
+                  id={inputId}
+                  ref={i === 0 ? firstRef : null}
+                  dir={dir}
+                  maxLength={c.field === "description" ? MAX_DESCRIPTION_LENGTH : null}
+                  value={kept[c.field]}
+                  onChange={e => keep(c.field, e.target.value)}
+                />
+              </div>
+            </div>
+          );
+        })}
+        <div className="devPocActions">
+          <button type="button" className="button small white" onClick={onCancel}>
+            <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
+          </button>
+          <button
+            type="button"
+            className="button small blue"
+            disabled={!ready}
+            data-agent-action="confirm-link-listing"
+            onClick={() => onLink(Object.fromEntries(conflicts.map(c => [c.field, kept[c.field].trim()])))}
+          >
+            <InterfaceText text={{en: "Link listing", he: "קישור הרישום"}} />
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+
+/* Making a public project private takes the listing down, but copies may already be
+   elsewhere, so the dialog says so before it happens. */
+const MakePrivateDialog = ({onConfirm, onCancel}) => {
+  const cancelRef = useRef(null);
+  useDialogKeys(cancelRef, onCancel);
+  return (
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocPrivateTitle">
+      <section className="devPocDialog">
+        <h2 id="devPocPrivateTitle"><InterfaceText text={{en: "Make this project private?", he: "להפוך את הפרויקט לפרטי?"}} /></h2>
+        <p>
+          <InterfaceText text={{
+            en: <React.Fragment>Your project may already appear on Powered by Sefaria or elsewhere. We'll take it down from our listing. If you still find it somewhere, email <ContactLink />.</React.Fragment>,
+            he: <React.Fragment>ייתכן שהפרויקט שלך כבר מופיע ב־Powered by Sefaria או במקומות אחרים. נסיר אותו מהרשימה שלנו. אם עדיין תמצאו אותו איפשהו, כתבו אל <ContactLink />.</React.Fragment>,
+          }} />
+        </p>
+        <div className="devPocActions">
+          <button type="button" className="button small white" ref={cancelRef} onClick={onCancel}>
+            <InterfaceText text={{en: "Keep public", he: "להשאיר ציבורי"}} />
+          </button>
+          <button type="button" className="button small blue" data-agent-action="confirm-private" onClick={onConfirm}>
+            <InterfaceText text={{en: "Make private", he: "להפוך לפרטי"}} />
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+};
 
 
 /* Asked when a project is switched to Public, not when the form opens, so the extra step
@@ -987,14 +1203,46 @@ const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => (
 
 
 /* One form for creating and editing a project. A missing website asks once before saving,
-   and the website field gets focus if the developer goes back to add one. */
-const ProjectForm = ({initial, authorName, submitLabel, onSave, onCancel, onDelete}) => {
+   and the website field gets focus if the developer goes back to add one. Matching Powered
+   by listings are offered as the developer types. */
+const ProjectForm = ({initial, savedVisibility, authorName, submitLabel, listingContext, onSave, onCancel, onDelete}) => {
   const [fields, setFields] = useState(initial);
   const [error, setError] = useState("");
   const [askWebsite, setAskWebsite] = useState(false);
   const [previewPublic, setPreviewPublic] = useState(false);
+  const [askPrivate, setAskPrivate] = useState(false);
+  const [linking, setLinking] = useState(null);   // {listing, conflicts}
+  const [dismissed, setDismissed] = useState([]);
   const formRef = useRef(null);
   const set = (key, value) => { setFields(f => ({...f, [key]: value})); setError(""); };
+
+  const {listings, email, verified} = listingContext;
+  const unsettled = !fields.linkedListingId && !fields.listingRequest;
+  const emailMatch = unsettled ? emailMatchedListing(listings, email, verified) : null;
+  const websiteMatch = listingForWebsite(listings, fields.websiteUrl);
+  const showWebsiteMatch = websiteMatch && websiteMatch.id !== fields.linkedListingId
+    && !dismissed.includes(websiteMatch.id)
+    && (!fields.listingRequest || fields.listingRequest.id === websiteMatch.id);
+  const showEmailMatch = emailMatch && !dismissed.includes(emailMatch.id)
+    && !(showWebsiteMatch && websiteMatch.id === emailMatch.id);
+  const linkedListing = fields.linkedListingId ? listings.find(l => l.id === fields.linkedListingId) : null;
+
+  const dismiss = (listing) => setDismissed(d => [...d, listing.id]);
+
+  const applyLink = (listing, kept) => {
+    setLinking(null);
+    setFields(f => ({
+      ...f, ...kept, linkedListingId: listing.id, listingRequest: null,
+      visibility: "public", listingComplete: true,
+    }));
+    setError("");
+  };
+
+  const startLink = (listing) => {
+    const conflicts = listingConflicts(fields, listing);
+    if (conflicts.length) { setLinking({listing: publicListing(listing), conflicts}); }
+    else { applyLink(listing, {}); }
+  };
 
   const save = () => onSave({
     ...fields, name: fields.name.trim(), description: fields.description.trim(),
@@ -1005,6 +1253,17 @@ const ProjectForm = ({initial, authorName, submitLabel, onSave, onCancel, onDele
     e.preventDefault();
     if (!fields.name.trim()) { setError(Sefaria._v({en: "Enter a project name.", he: "נא להזין שם לפרויקט."})); return; }
     if (!fields.description.trim()) { setError(Sefaria._v({en: "Enter a short description.", he: "נא להזין תיאור קצר."})); return; }
+    if (fields.description.trim().length > MAX_DESCRIPTION_LENGTH) {
+      setError(Sefaria._v({
+        en: "Keep the description to " + MAX_DESCRIPTION_LENGTH + " characters.",
+        he: "התיאור יכול להכיל עד " + MAX_DESCRIPTION_LENGTH + " תווים.",
+      }));
+      return;
+    }
+    if (!fields.visibility) {
+      setError(Sefaria._v({en: "Choose whether the project is public or private.", he: "נא לבחור אם הפרויקט ציבורי או פרטי."}));
+      return;
+    }
     setError("");
     if (!fields.websiteUrl.trim()) { setAskWebsite(true); return; }
     save();
@@ -1021,6 +1280,11 @@ const ProjectForm = ({initial, authorName, submitLabel, onSave, onCancel, onDele
     if (makePublic) { set("visibility", "public"); }
   };
 
+  const choosePrivate = () => {
+    if (fields.visibility === "private") { return; }
+    if (savedVisibility === "public") { setAskPrivate(true); } else { set("visibility", "private"); }
+  };
+
   return (
     <React.Fragment>
       <form className="devPocForm" onSubmit={submit} ref={formRef}>
@@ -1028,6 +1292,25 @@ const ProjectForm = ({initial, authorName, submitLabel, onSave, onCancel, onDele
           fields={fields}
           set={set}
           onChoosePublic={() => { if (fields.visibility !== "public") { setPreviewPublic(true); } }}
+          onChoosePrivate={choosePrivate}
+          emailNotice={showEmailMatch ?
+            <EmailMatchNotice
+              listing={publicListing(emailMatch)}
+              onLink={() => startLink(emailMatch)}
+              onDismiss={() => dismiss(emailMatch)}
+            /> : null}
+          websiteNotice={showWebsiteMatch ?
+            <WebsiteMatchNotice
+              listing={{...publicListing(websiteMatch), ownedByAnotherAccount: websiteMatch.ownedByAnotherAccount,
+                linkedProjectId: websiteMatch.linkedProjectId}}
+              canLink={canLinkByEmail(websiteMatch, email, verified)}
+              requested={!!fields.listingRequest && fields.listingRequest.id === websiteMatch.id}
+              onLink={() => startLink(websiteMatch)}
+              onRequest={() => set("listingRequest", publicListing(websiteMatch))}
+              onCancelRequest={() => set("listingRequest", null)}
+              onDismiss={() => dismiss(websiteMatch)}
+            /> : null}
+          linkedNote={linkedListing ? <LinkedListingNote listing={publicListing(linkedListing)} /> : null}
         />
         <p className="devPocHelp">
           <InterfaceText text={{
@@ -1058,17 +1341,29 @@ const ProjectForm = ({initial, authorName, submitLabel, onSave, onCancel, onDele
           onConfirm={() => closePreview(true)}
           onCancel={() => closePreview(false)}
         /> : null}
+      {askPrivate ?
+        <MakePrivateDialog
+          onConfirm={() => { setAskPrivate(false); set("visibility", "private"); }}
+          onCancel={() => setAskPrivate(false)}
+        /> : null}
+      {linking ?
+        <LinkConflictDialog
+          listing={linking.listing}
+          conflicts={linking.conflicts}
+          onLink={kept => applyLink(linking.listing, kept)}
+          onCancel={() => setLinking(null)}
+        /> : null}
     </React.Fragment>
   );
 };
 
 const newProjectFields = () => ({
   name: "", description: "", organization: "", websiteUrl: "",
-  visibility: "private", aiAssisted: false, listingRequest: null,
+  visibility: null, aiAssisted: false, listingRequest: null, linkedListingId: null,
 });
 
 /* The new-project form opens in place at the top of the project list. */
-const NewProjectPanel = ({authorName, onCreate, onCancel}) => {
+const NewProjectPanel = ({authorName, listingContext, onCreate, onCancel}) => {
   const panelRef = useRef(null);
   useEffect(() => {
     const input = panelRef.current && panelRef.current.querySelector("#devPocProjectName");
@@ -1082,7 +1377,9 @@ const NewProjectPanel = ({authorName, onCreate, onCancel}) => {
       </p>
       <ProjectForm
         initial={newProjectFields()}
+        savedVisibility={null}
         authorName={authorName}
+        listingContext={listingContext}
         submitLabel={{en: "Create project", he: "יצירת פרויקט"}}
         onSave={onCreate}
         onCancel={onCancel}
@@ -1422,6 +1719,13 @@ const KeysSection = ({project, update, setConfirm, onAddWebsite}) => {
 
 
 const listingStatus = (project) => {
+  const linked = project.linkedListingId && POWERED_BY_LISTINGS.find(l => l.id === project.linkedListingId);
+  if (linked && project.visibility === "public") {
+    return {
+      en: "Public: this is the " + linked.name + " listing on Powered by Sefaria.",
+      he: "ציבורי: זה הרישום " + linked.name + " ב־Powered by Sefaria.",
+    };
+  }
   if (project.listingRequest) {
     const name = project.listingRequest.name;
     return {
@@ -1432,8 +1736,16 @@ const listingStatus = (project) => {
   if (project.visibility === "public") {
     return {en: "Public: Sefaria may show it on Powered by Sefaria.", he: "ציבורי: ספריא עשויה להציג אותו ב־Powered by Sefaria."};
   }
-  return {en: "Private: not shown on Powered by Sefaria.", he: "פרטי: לא מוצג ב־Powered by Sefaria."};
+  if (project.consentWithdrawnAt) {
+    return {en: "Private: taken down from Powered by Sefaria.", he: "פרטי: הוסר מ־Powered by Sefaria."};
+  }
+  if (project.visibility === "private") {
+    return {en: "Private: not shown on Powered by Sefaria.", he: "פרטי: לא מוצג ב־Powered by Sefaria."};
+  }
+  return {en: "Visibility not chosen yet.", he: "עדיין לא נבחרה נראוּת."};
 };
+
+const listingIncomplete = (project) => project.visibility === "public" && !project.listingComplete;
 
 
 const CHART_WIDTH = 320;
@@ -1585,7 +1897,7 @@ const UsageSection = ({project}) => {
 };
 
 
-const ProjectCard = ({project, expanded, authorName, update, setConfirm, onToggleExpand, notice}) => {
+const ProjectCard = ({project, expanded, authorName, listingContext, update, setConfirm, onToggleExpand, onOpenPoweredBy, notice}) => {
   const [editing, setEditing] = useState(false);
   const cardRef = useRef(null);
 
@@ -1602,6 +1914,7 @@ const ProjectCard = ({project, expanded, authorName, update, setConfirm, onToggl
     const hadUrl = !!project.websiteUrl;
     const losingUrl = hadUrl && !fields.websiteUrl.trim();
     const restrictedKeys = project.keys.filter(k => k.restrictToWebsite).map(k => k.label);
+    const withdrawing = project.visibility === "public" && fields.visibility === "private";
     update(s => ({
       ...s,
       projects: s.projects.map(p => p.id !== project.id ? p : {
@@ -1609,9 +1922,12 @@ const ProjectCard = ({project, expanded, authorName, update, setConfirm, onToggl
         ...fields,
         websiteUrl: fields.websiteUrl.trim(),
         keys: losingUrl ? p.keys.map(k => ({...k, restrictToWebsite: false})) : p.keys,
+        consentWithdrawnAt: withdrawing ? new Date().toISOString()
+          : fields.visibility === "public" ? null : p.consentWithdrawnAt,
       }),
     }));
     setEditing(false);
+    if (fields.visibility === "public") { onOpenPoweredBy(project.id); }
     if (losingUrl && restrictedKeys.length) {
       notice(Sefaria._v({
         en: restrictedKeys.join(", ") + " now works anywhere again, because the project no longer has a website.",
@@ -1671,6 +1987,14 @@ const ProjectCard = ({project, expanded, authorName, update, setConfirm, onToggl
             </span>
             {project.aiAssisted ?
               <span className="devPocBadge"><InterfaceText text={{en: "Built with AI tools", he: "נבנה בעזרת בינה מלאכותית"}} /></span> : null}
+            {listingIncomplete(project) ?
+              <span className="devPocBadge devPocBadgePending" data-badge="listing-incomplete">
+                <InterfaceText text={{en: "Listing incomplete", he: "הרישום לא הושלם"}} />
+              </span> : null}
+            {listingIncomplete(project) && expanded ?
+              <button type="button" className="devPocTextButton" data-agent-action="open-powered-by" onClick={() => onOpenPoweredBy(project.id)}>
+                <InterfaceText text={{en: "Finish the listing", he: "השלמת הרישום"}} />
+              </button> : null}
           </div>
           {expanded ?
             <button type="button" className="button small transparent devPocProjectEdit" onClick={() => setEditing(e => !e)}>
@@ -1689,9 +2013,11 @@ const ProjectCard = ({project, expanded, authorName, update, setConfirm, onToggl
                 initial={{
                   name: project.name, description: project.description, organization: project.organization,
                   websiteUrl: project.websiteUrl, visibility: project.visibility, aiAssisted: project.aiAssisted,
-                  listingRequest: project.listingRequest,
+                  listingRequest: project.listingRequest, linkedListingId: project.linkedListingId || null,
                 }}
+                savedVisibility={project.visibility}
                 authorName={authorName}
+                listingContext={listingContext}
                 submitLabel={{en: "Save project", he: "שמירת הפרויקט"}}
                 onSave={saveProject}
                 onCancel={() => setEditing(false)}
@@ -1704,6 +2030,21 @@ const ProjectCard = ({project, expanded, authorName, update, setConfirm, onToggl
     </article>
   );
 };
+
+
+/* The page a public project's Powered by details live on. */
+const PoweredByDetailsPage = ({project, onBack}) => (
+  <section className="devPocCard devPocPoweredBy" aria-labelledby="devPocPoweredByTitle">
+    <button type="button" className="devPocTextButton" data-agent-action="back-to-project" onClick={onBack}>
+      <InterfaceText text={{en: "← Back to " + project.name, he: "→ חזרה אל " + project.name}} />
+    </button>
+    <h2 id="devPocPoweredByTitle"><InterfaceText text={{en: "Powered by details", he: "פרטים ל־Powered by"}} /></h2>
+    <p className="devPocHelp" dir="auto">{project.name}</p>
+    {listingIncomplete(project) ?
+      <p><span className="devPocBadge devPocBadgePending"><InterfaceText text={{en: "Listing incomplete", he: "הרישום לא הושלם"}} /></span></p> : null}
+    <p><InterfaceText text={{en: "Powered by details — coming next.", he: "פרטים ל־Powered by — בקרוב."}} /></p>
+  </section>
+);
 
 
 const ConfirmDialog = ({confirm, onClose}) => {
@@ -1729,8 +2070,14 @@ const ConfirmDialog = ({confirm, onClose}) => {
 const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, setConfirm, notice, setNotice,
                        connectedMessage, editingProfile, setEditingProfile, showNewProject,
                        setShowNewProject, onCreateProject, setProjectId, onStart,
-                       onConnectSso, settingUp}) => {
+                       onConnectSso, settingUp, poweredByProjectId, onOpenPoweredBy, onClosePoweredBy}) => {
   const authorName = accountName() || (state.profile ? state.profile.developerName : "");
+  const listingContext = {
+    listings: poweredByListings(state, accountEmail()),
+    email: accountEmail(),
+    verified: accountVerified(state, socialProviders),
+  };
+  const poweredByProject = poweredByProjectId && state.projects.find(p => p.id === poweredByProjectId);
 
   const toggleExpand = (project) => {
     const expandedProjectId = state.expandedProjectId === project.id ? null : project.id;
@@ -1781,6 +2128,8 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
         /> :
         !state.profile ?
         <ProfileOnboarding onSave={profile => update(s => ({...s, profile}))} /> :
+        poweredByProject ?
+        <PoweredByDetailsPage project={poweredByProject} onBack={onClosePoweredBy} /> :
         <React.Fragment>
           {notice ?
             <div className="devPocNotice" role="status">
@@ -1826,7 +2175,7 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
           </div>
 
           {showNewProject ?
-            <NewProjectPanel authorName={authorName} onCreate={onCreateProject} onCancel={() => setShowNewProject(false)} /> :
+            <NewProjectPanel authorName={authorName} listingContext={listingContext} onCreate={onCreateProject} onCancel={() => setShowNewProject(false)} /> :
             state.projects.length === 0 ?
             <div className="devPocEmpty">
               <h2><InterfaceText text={{en: "No projects yet", he: "עדיין אין פרויקטים"}} /></h2>
@@ -1847,10 +2196,12 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
               project={p}
               expanded={state.expandedProjectId === p.id}
               authorName={authorName}
+              listingContext={listingContext}
               update={update}
               setConfirm={setConfirm}
               notice={setNotice}
               onToggleExpand={() => toggleExpand(p)}
+              onOpenPoweredBy={onOpenPoweredBy}
             />
           ))}
         </React.Fragment>}
@@ -2330,7 +2681,7 @@ const CONNECTED_MS = 8000;
 const SETUP_MS = 1200;
 const ARRIVAL_HIGHLIGHT_MS = 2400;
 
-const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, setTab, setProjectId}) => {
+const SettingsPage = ({tab, projectId, projectSection, accountSettings, initialDeveloperPoc, setTab, setProjectId}) => {
   const settings = accountSettings || {};
   const socialProviders = settings.socialProviders || [];
 
@@ -2342,6 +2693,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     return loaded;
   });
   const [showNewProject, setShowNewProject] = useState(false);
+  const [poweredByProjectId, setPoweredByProjectId] = useState(projectSection === POWERED_BY_SECTION ? projectId : null);
   const [editingProfile, setEditingProfile] = useState(false);
   const [confirm, setConfirm] = useState(null);
   const [notice, setNotice] = useState("");
@@ -2367,6 +2719,11 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     };
   }, []);
 
+  /* The address can change underneath the page, with the browser's back button. */
+  useEffect(() => {
+    setPoweredByProjectId(projectSection === POWERED_BY_SECTION ? projectId : null);
+  }, [projectId, projectSection]);
+
   /* The UI updates first and the write follows; a failed write only leaves a notice.
      Updates read through a ref, so a change made while a key is being "created" still
      builds on the newest state. */
@@ -2386,15 +2743,29 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     setEditingProfile(false);
     setConfirm(null);
     setNotice("");
+    setPoweredByProjectId(null);
   };
 
   const developerOn = accountVerified(pocState, socialProviders) && !!pocState.developerEnabled;
 
+  const openPoweredBy = (id) => {
+    setPoweredByProjectId(id);
+    setProjectId(id, POWERED_BY_SECTION);
+    if (typeof window !== "undefined") { window.scrollTo(0, 0); }
+  };
+
+  const closePoweredBy = () => {
+    const id = poweredByProjectId;
+    setPoweredByProjectId(null);
+    update(s => ({...s, expandedProjectId: id}));
+    setProjectId(id);
+  };
+
   const createProject = (fields) => {
     const project = makeProject(fields);
     update(s => ({...s, projects: [project, ...s.projects], expandedProjectId: project.id}));
-    setProjectId(project.id);
     setShowNewProject(false);
+    if (project.visibility === "public") { openPoweredBy(project.id); } else { setProjectId(project.id); }
   };
 
   /* A short loader before developer settings appear, so the change doesn't read as a reload. */
@@ -2464,6 +2835,9 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
         onStart={() => startDeveloper()}
         onConnectSso={setMockSso}
         settingUp={settingUp}
+        poweredByProjectId={poweredByProjectId}
+        onOpenPoweredBy={openPoweredBy}
+        onClosePoweredBy={closePoweredBy}
       />
     ),
   };

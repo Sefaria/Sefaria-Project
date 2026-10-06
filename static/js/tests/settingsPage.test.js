@@ -41,7 +41,7 @@ const PROFILE = {
   termsAccepted: true, developerNews: false, notADeveloper: false,
 };
 
-function mount(tab, developerPoc = null) {
+function mount(tab, developerPoc = null, props = {}) {
   container = document.createElement('div');
   document.body.appendChild(container);
   act(() => {
@@ -49,15 +49,27 @@ function mount(tab, developerPoc = null) {
       <SettingsPage
         tab={tab}
         projectId={null}
+        projectSection={null}
         accountSettings={{ socialProviders: [], email: 'tova@example.org' }}
         initialDeveloperPoc={developerPoc}
         setTab={() => {}}
         setProjectId={() => {}}
+        {...props}
       />,
       container,
     );
   });
 }
+
+const typeInto = (input, value) => {
+  const proto = input.tagName === 'SELECT' ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
+  act(() => {
+    Object.getOwnPropertyDescriptor(proto, 'value').set.call(input, value);
+    input.dispatchEvent(new Event(input.tagName === 'SELECT' ? 'change' : 'input', { bubbles: true }));
+  });
+};
+
+const lastSavedState = () => JSON.parse(global.fetch.mock.calls[global.fetch.mock.calls.length - 1][1].body);
 
 const developerPanel = () => container.querySelectorAll('.settingsPanel')[1];
 const buttonNamed = (root, name) => Array.from(root.querySelectorAll('button')).find(b => b.textContent.trim() === name);
@@ -65,6 +77,7 @@ const buttonNamed = (root, name) => Array.from(root.querySelectorAll('button')).
 beforeEach(() => {
   Sefaria.interfaceLang = 'english';
   global.fetch = jest.fn(() => Promise.resolve({ ok: true }));
+  window.scrollTo = jest.fn();
 });
 
 afterEach(() => {
@@ -118,42 +131,256 @@ describe('developer onboarding', () => {
   });
 });
 
-describe('making a project public', () => {
-  const openNewProject = () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [] });
-    act(() => { buttonNamed(container, 'Create your first project').click(); });
-    const nameInput = container.querySelector('#devPocProjectName');
-    act(() => {
-      const setValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
-      setValue.call(nameInput, 'Daf Tracker');
-      nameInput.dispatchEvent(new Event('input', { bubbles: true }));
-    });
-    return Array.from(container.querySelectorAll('input[name="devPocVisibility"]'));
-  };
+const openNewProject = (state = {}, props = {}) => {
+  mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], ...state }, props);
+  act(() => { container.querySelector('[data-agent-action="new-project"]').click(); });
+  typeInto(container.querySelector('#devPocProjectName'), 'Daf Tracker');
+};
 
-  it('starts private and previews what becomes public before switching', () => {
-    const [privateRadio, publicRadio] = openNewProject();
-    expect(privateRadio.checked).toBe(true);
+const visibilityRadio = (value) => container.querySelector(`input[name="devPocVisibility"][value="${value}"]`);
+const submitProject = () => act(() => { container.querySelector('[data-agent-action="create-project"]').click(); });
 
-    act(() => { publicRadio.click(); });
+describe('project visibility', () => {
+  it('has nothing preselected, and marks Public as recommended', () => {
+    openNewProject();
+    expect(container.querySelector('input[name="devPocVisibility"]:checked')).toBeNull();
+    expect(visibilityRadio('public').parentElement.textContent).toContain('Recommended');
+    expect(visibilityRadio('private').parentElement.textContent).not.toContain('Recommended');
+  });
+
+  it("won't save until a visibility is chosen", () => {
+    openNewProject();
+    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
+    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
+    submitProject();
+    expect(container.querySelector('[role="alert"]').textContent).toContain('Choose whether the project is public or private');
+    expect(container.querySelector('.devPocNewProject')).toBeTruthy();
+  });
+
+  it('previews what becomes public before switching', () => {
+    openNewProject();
+    act(() => { visibilityRadio('public').click(); });
 
     const dialog = container.querySelector('[aria-labelledby="devPocPublicTitle"]');
     expect(dialog.textContent).toContain('Daf Tracker');
     expect(dialog.textContent).toContain('Tova Levi');
     expect(dialog.querySelector('a[href="https://developers.sefaria.org/docs/powered-by-sefaria"]')).toBeTruthy();
-    expect(container.querySelector('input[name="devPocVisibility"]:checked')).toBe(privateRadio);
+    expect(container.querySelector('input[name="devPocVisibility"]:checked')).toBeNull();
 
     act(() => { buttonNamed(dialog, 'Make public').click(); });
 
     expect(container.querySelector('[aria-labelledby="devPocPublicTitle"]')).toBeNull();
-    expect(container.querySelector('input[name="devPocVisibility"]:checked').parentElement.textContent).toContain('Public');
+    expect(visibilityRadio('public').checked).toBe(true);
   });
 
-  it('stays private when the preview is dismissed', () => {
-    const [privateRadio, publicRadio] = openNewProject();
-    act(() => { publicRadio.click(); });
+  it('stays unchosen when the preview is dismissed', () => {
+    openNewProject();
+    act(() => { visibilityRadio('public').click(); });
     act(() => { buttonNamed(container, 'Keep private').click(); });
-    expect(container.querySelector('input[name="devPocVisibility"]:checked')).toBe(privateRadio);
+    expect(container.querySelector('input[name="devPocVisibility"]:checked')).toBeNull();
+  });
+});
+
+describe('short description', () => {
+  it('is limited to 150 characters, with a counter', () => {
+    openNewProject();
+    const description = container.querySelector('#devPocProjectDescription');
+    expect(description.maxLength).toBe(150);
+    typeInto(description, 'A daily tracker');
+    expect(container.querySelector('#devPocProjectDescriptionCount').textContent).toBe('15/150');
+  });
+});
+
+describe('Powered by listing matches', () => {
+  it('offers a listing submitted with the account email', () => {
+    openNewProject({ submitterEmailListingId: 'pb03' });
+    const notice = container.querySelector('.devPocMatch');
+    expect(notice.textContent).toContain('We found a Powered by Sefaria listing you submitted: Mishnah Yomit Tracker');
+    expect(buttonNamed(notice, 'Link')).toBeTruthy();
+
+    act(() => { buttonNamed(notice, 'Not mine').click(); });
+    expect(container.querySelector('.devPocMatch')).toBeNull();
+  });
+
+  it('offers nothing when no listing has the account email', () => {
+    openNewProject();
+    expect(container.querySelector('.devPocMatch')).toBeNull();
+  });
+
+  it('spots a listed website however it is typed, and offers only a request to link', () => {
+    openNewProject();
+    typeInto(container.querySelector('#devPocProjectUrl'), 'https://www.DafYomiCompanion.org/');
+    const notice = container.querySelector('.devPocMatch');
+    expect(notice.textContent).toContain('This website is already on Powered by Sefaria');
+    expect(notice.textContent).toContain('Daf Yomi Companion');
+    expect(notice.textContent).not.toContain('editor@dafyomicompanion.org');
+    expect(buttonNamed(notice, 'Link this listing')).toBeUndefined();
+
+    act(() => { buttonNamed(notice, 'Request to link').click(); });
+    expect(container.querySelector('.devPocMatch').textContent).toContain('Link requested');
+  });
+
+  it('lets the website match carry on as a new project', () => {
+    openNewProject();
+    typeInto(container.querySelector('#devPocProjectUrl'), 'parshasheets.org');
+    act(() => { buttonNamed(container.querySelector('.devPocMatch'), 'Continue as a new project').click(); });
+    expect(container.querySelector('.devPocMatch')).toBeNull();
+  });
+
+  it('offers to link a listed website whose submitter email is the account email', () => {
+    openNewProject({ submitterEmailListingId: 'pb03' });
+    typeInto(container.querySelector('#devPocProjectUrl'), 'mishnahtracker.app');
+    const notices = container.querySelectorAll('.devPocMatch');
+    expect(notices.length).toBe(1);
+    expect(notices[0].textContent).toContain('This website is already on Powered by Sefaria');
+    expect(buttonNamed(notices[0], 'Link this listing')).toBeTruthy();
+  });
+
+  it('sends a website owned by another account to hello@sefaria.org', () => {
+    openNewProject();
+    typeInto(container.querySelector('#devPocProjectUrl'), 'chavrutamatch.com');
+    const notice = container.querySelector('.devPocMatch');
+    expect(notice.textContent).toContain('already registered by another account');
+    expect(notice.querySelector('a[href="mailto:hello@sefaria.org"]')).toBeTruthy();
+    expect(notice.querySelector('button')).toBeNull();
+  });
+});
+
+describe('linking a listing', () => {
+  const startLink = () => {
+    openNewProject({ submitterEmailListingId: 'pb03' });
+    typeInto(container.querySelector('#devPocProjectDescription'), 'My own tracker');
+    act(() => { buttonNamed(container.querySelector('.devPocMatch'), 'Link').click(); });
+    return container.querySelector('[aria-labelledby="devPocConflictTitle"]');
+  };
+
+  it('shows each differing field side by side and chooses nothing', () => {
+    const dialog = startLink();
+    const fields = Array.from(dialog.querySelectorAll('[data-conflict]')).map(c => c.dataset.conflict);
+    expect(fields).toEqual(['name', 'description', 'websiteUrl']);
+    const name = dialog.querySelector('[data-conflict="name"]');
+    expect(name.textContent).toContain('Daf Tracker');
+    expect(name.textContent).toContain('Mishnah Yomit Tracker');
+    expect(dialog.querySelector('#devPocKeep-name').value).toBe('');
+    expect(buttonNamed(dialog, 'Link listing').disabled).toBe(true);
+  });
+
+  it('links with what the person kept and makes the project public', () => {
+    const dialog = startLink();
+    act(() => { buttonNamed(dialog.querySelector('[data-conflict="name"]'), 'Use this').click(); });
+    typeInto(dialog.querySelector('#devPocKeep-description'), 'Both, really');
+    const websiteSide = dialog.querySelectorAll('[data-conflict="websiteUrl"] .devPocConflictSide')[1];
+    act(() => { buttonNamed(websiteSide, 'Use this').click(); });
+    act(() => { buttonNamed(dialog, 'Link listing').click(); });
+
+    expect(container.querySelector('[aria-labelledby="devPocConflictTitle"]')).toBeNull();
+    expect(container.querySelector('#devPocProjectName').value).toBe('Daf Tracker');
+    expect(container.querySelector('#devPocProjectDescription').value).toBe('Both, really');
+    expect(container.querySelector('#devPocProjectUrl').value).toBe('mishnahtracker.app');
+    expect(container.querySelector('.devPocLinked').textContent).toContain('Mishnah Yomit Tracker');
+    expect(visibilityRadio('public').checked).toBe(true);
+    expect(container.querySelector('.devPocMatch')).toBeNull();
+  });
+
+  it('cancels without changing anything', () => {
+    const dialog = startLink();
+    act(() => { buttonNamed(dialog, 'Cancel').click(); });
+    expect(container.querySelector('.devPocLinked')).toBeNull();
+    expect(container.querySelector('#devPocProjectDescription').value).toBe('My own tracker');
+  });
+});
+
+describe('saving a public project', () => {
+  it('opens the Powered by details page at its own address', () => {
+    const setProjectId = jest.fn();
+    openNewProject({}, { setProjectId });
+    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
+    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
+    act(() => { visibilityRadio('public').click(); });
+    act(() => { buttonNamed(container, 'Make public').click(); });
+    submitProject();
+
+    const saved = lastSavedState().projects[0];
+    expect(saved.visibility).toBe('public');
+    expect(saved.listingComplete).toBe(false);
+    expect(setProjectId).toHaveBeenLastCalledWith(saved.id, 'powered-by');
+    expect(developerPanel().textContent).toContain('Powered by details — coming next');
+
+    act(() => { container.querySelector('[data-agent-action="back-to-project"]').click(); });
+    expect(setProjectId).toHaveBeenLastCalledWith(saved.id);
+    expect(container.querySelector('[data-badge="listing-incomplete"]')).toBeTruthy();
+  });
+
+  it('stays on the project list after saving a private project', () => {
+    const setProjectId = jest.fn();
+    openNewProject({}, { setProjectId });
+    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
+    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
+    act(() => { visibilityRadio('private').click(); });
+    submitProject();
+    expect(setProjectId).toHaveBeenLastCalledWith(lastSavedState().projects[0].id);
+    expect(developerPanel().textContent).not.toContain('coming next');
+  });
+});
+
+const publicProject = (extra = {}) => ({
+  id: 'proj01', name: 'Daf Tracker', description: 'A tracker', visibility: 'public', organization: '',
+  websiteUrl: 'https://daftracker.org', aiAssisted: false, listingRequest: null, linkedListingId: null,
+  listingComplete: false, consentWithdrawnAt: null, usage: { requests30: 0, lastUsed: null }, keys: [], ...extra,
+});
+
+describe('the Powered by details page', () => {
+  it('renders from its address', () => {
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject()] },
+      { projectId: 'proj01', projectSection: 'powered-by' });
+    expect(developerPanel().textContent).toContain('Powered by details — coming next');
+    expect(developerPanel().textContent).toContain('Listing incomplete');
+  });
+
+  it("isn't a listing-incomplete project once the listing is complete", () => {
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject({ listingComplete: true })],
+      expandedProjectId: 'proj01' });
+    expect(container.querySelector('[data-badge="listing-incomplete"]')).toBeNull();
+  });
+});
+
+describe('making a public project private', () => {
+  const editPublicProject = () => {
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject({ listingComplete: true })],
+      expandedProjectId: 'proj01' });
+    act(() => { buttonNamed(container, 'Edit project').click(); });
+    act(() => { visibilityRadio('private').click(); });
+    return container.querySelector('[aria-labelledby="devPocPrivateTitle"]');
+  };
+
+  it('warns that the listing may already appear elsewhere', () => {
+    const dialog = editPublicProject();
+    expect(dialog.textContent).toContain('may already appear on Powered by Sefaria or elsewhere');
+    expect(dialog.querySelector('a[href="mailto:hello@sefaria.org"]')).toBeTruthy();
+    expect(visibilityRadio('public').checked).toBe(true);
+  });
+
+  it('keeps the project public when dismissed', () => {
+    const dialog = editPublicProject();
+    act(() => { buttonNamed(dialog, 'Keep public').click(); });
+    expect(visibilityRadio('public').checked).toBe(true);
+  });
+
+  it('withdraws consent once saved', () => {
+    const dialog = editPublicProject();
+    act(() => { buttonNamed(dialog, 'Make private').click(); });
+    act(() => { container.querySelector('[data-agent-action="save-project"]').click(); });
+    const saved = lastSavedState().projects[0];
+    expect(saved.visibility).toBe('private');
+    expect(saved.consentWithdrawnAt).toBeTruthy();
+    expect(developerPanel().textContent).toContain('taken down from Powered by Sefaria');
+  });
+
+  it("doesn't ask for a project that was never public", () => {
+    openNewProject();
+    act(() => { visibilityRadio('private').click(); });
+    expect(container.querySelector('[aria-labelledby="devPocPrivateTitle"]')).toBeNull();
+    expect(visibilityRadio('private').checked).toBe(true);
   });
 });
 
@@ -175,6 +402,13 @@ describe('Hebrew interface', () => {
     expect(developerPanel().textContent).toContain('הגדרות מפתחים');
     expect(developerPanel().textContent).toContain('עדיין אין פרויקטים');
     expect(developerPanel().textContent).not.toContain('No projects yet');
+  });
+
+  it('renders the listing match and visibility in Hebrew', () => {
+    Sefaria.interfaceLang = 'hebrew';
+    openNewProject({ submitterEmailListingId: 'pb03' });
+    expect(container.querySelector('.devPocMatch').textContent).toContain('מצאנו רישום ב־Powered by Sefaria שהגשת');
+    expect(visibilityRadio('public').parentElement.textContent).toContain('מומלץ');
   });
 });
 
@@ -214,5 +448,13 @@ describe('POC test panel', () => {
     act(() => { container.querySelector('[data-scenario="email-sent"]').click(); });
     expect(developerPanel().textContent).toContain('Check your email');
     expect(container.querySelector('.devPocPanelStatus').textContent).toContain('Email account · confirmation link sent');
+  });
+
+  it("gives a listing the account email as its submitter email", () => {
+    openNewProject();
+    expect(container.querySelector('.devPocMatch')).toBeNull();
+    typeInto(container.querySelector('[data-poc-control="submitter-email-listing"]'), 'pb07');
+    expect(lastSavedState().submitterEmailListingId).toBe('pb07');
+    expect(container.querySelector('.devPocMatch').textContent).toContain('Rambam Daily Audio');
   });
 });

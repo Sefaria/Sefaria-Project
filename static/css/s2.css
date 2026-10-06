@@ -17871,6 +17871,25 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocChoice a { text-decoration: underline; }
 .devPocBadgePending { background: #fcf6e9; border-color: #e8d5a6; color: #69501e; }
 .devPocListingPending p { margin: 0; }
+.devPocBadgeRecommended { margin-inline-start: 4px; background: #edf5f0; border-color: #c9dfd1; color: #305840; }
+.devPocCount { margin: 4px 0 0; font-size: 12px; color: var(--devPoc-muted); text-align: end; max-width: 520px; }
+.devPocCountFull { color: #69501e; }
+.devPocMatch { margin-top: var(--devPoc-s2); padding: var(--devPoc-s2) var(--devPoc-s3); background: #eef3f8; border: 1px solid #d4dfea; border-radius: 6px; font-size: 14px; max-width: 520px; }
+.devPocMatch p { margin: 0 0 var(--devPoc-s1); }
+.devPocMatch .devPocActions { margin-top: var(--devPoc-s2); }
+.devPocMatchBlocked { background: #fcf6e9; border-color: #e8d5a6; color: #69501e; }
+.devPocListingSummary { padding-inline-start: var(--devPoc-s2); border-inline-start: 3px solid #d4dfea; }
+.devPocListingSummary .devPocHelp { margin: 2px 0 0; }
+.devPocLinked { margin: 0; }
+.devPocConflictDialog { max-height: 85vh; overflow-y: auto; }
+.devPocConflict { padding: var(--devPoc-s2) 0; border-top: 1px solid var(--devPoc-line); }
+.devPocConflict h3 { margin: 0 0 var(--devPoc-s1); font-size: 14px; font-weight: 600; }
+.devPocConflictSides { display: grid; grid-template-columns: 1fr 1fr; gap: var(--devPoc-s2); margin-bottom: var(--devPoc-s2); }
+.devPocConflictSide p { margin: 0 0 4px; font-size: 14px; overflow-wrap: anywhere; }
+@media (max-width: 540px) { .devPocConflictSides { grid-template-columns: 1fr; } }
+.devPocPoweredBy h2 { margin: var(--devPoc-s2) 0 var(--devPoc-s1); }
+.devPocPanel .devPocPanelSelect { flex-direction: column; align-items: stretch; }
+.devPocPanel .devPocPanelSelect select { margin-top: 4px; max-width: 100%; }
 
 /* One button grid everywhere: primary first, secondary beside it, destructive at the end. */
 .devPocActions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--devPoc-s2); }
