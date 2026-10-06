@@ -220,7 +220,7 @@ class ClusterTests(SimpleTestCase):
         self.assertEqual(response.status_code,400)
 
     def test_invalid_or_other_index_job_rejected(self):
-        for token in ["task-123",signing.dumps({"task":"x","user":5,"index":"lemma-poc-other"},salt=SALT)]:
+        for token in ["task-123",signing.dumps({"task":"x","owner":"user:5","index":"lemma-poc-other"},salt=SALT)]:
             self.assertEqual(jobs(self.staff(self.factory.get("/",{"job":token}))).status_code,400)
         self.app.AsyncResult.assert_not_called()
 
