@@ -60,4 +60,33 @@ describe("SiteHeader", () => {
     expect(within(screen.getByRole("navigation", { name: "ניווט ראשי" })).getByRole("link", { name: "מקורות" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Switch to English" })).toHaveAttribute("href", "/interface/english?next=%2F");
   });
+  // @feature GUI-010 @feature GUI-003 @feature ANL-002
+  it("signed out: Sign Up and the account menu's Log in / Sign up are this client's pages, with next and nav_bar", async () => {
+    render(<SiteHeader next="/Genesis.1?lang=bi" search={STUB_SEARCH} />);
+    const signup = screen.getAllByRole("link", { name: "Sign Up" })[0]!;
+    expect(signup).toHaveAttribute("href", "/register?next=%2FGenesis.1%3Flang%3Dbi");
+    expect(signup).toHaveAttribute("data-signup-source", "nav_bar");
+    await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
+    const menu = screen.getByRole("dialog", { name: "Account menu" });
+    expect(within(menu).getByRole("link", { name: "Log in" })).toHaveAttribute("href", "/login?next=%2FGenesis.1%3Flang%3Dbi");
+  });
+  it("on the login page, Sign Up keeps that page's own next", () => {
+    render(<SiteHeader next="/login?next=%2FGenesis.1" search={STUB_SEARCH} />);
+    expect(screen.getAllByRole("link", { name: "Sign Up" })[0]).toHaveAttribute("href", "/register?next=%2FGenesis.1");
+  });
+  it("signed in: no Sign Up or language menu; Saved; the picture opens name, settings, language and Log Out", async () => {
+    render(<SiteHeader next="/" search={STUB_SEARCH} viewer={{ name: "Ada Lovelace", profileUrl: "/profile/ada" }} />);
+    expect(screen.queryByRole("link", { name: "Sign Up" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Toggle Interface Language Menu" })).toBeNull();
+    expect(screen.getByRole("link", { name: "Saved items" })).toHaveAttribute("href", "https://www.sefaria.org/saved");
+    await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
+    const menu = screen.getByRole("dialog", { name: "Account menu" });
+    expect(menu).toHaveTextContent("Ada Lovelace");
+    expect(within(menu).getByRole("link", { name: "Account Settings" })).toHaveAttribute("href", "https://www.sefaria.org/settings/account");
+    expect(within(menu).getByRole("link", { name: "Torah Tracker" })).toBeInTheDocument();
+    expect(within(menu).getByRole("link", { name: "Log Out" })).toHaveAttribute("href", "https://www.sefaria.org/logout?next=/texts");
+    const mobile = document.getElementById("mobile-nav")!;
+    expect(within(mobile).getByRole("link", { name: "Logout", hidden: true })).toBeInTheDocument();
+    expect(within(mobile).queryByRole("link", { name: "Log in", hidden: true })).toBeNull();
+  });
 });

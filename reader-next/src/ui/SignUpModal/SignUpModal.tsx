@@ -7,7 +7,6 @@ import { InterfaceText } from "../InterfaceText/InterfaceText";
 import { Link } from "../Link/Link";
 import { Modal } from "../Modal/Modal";
 import styles from "./SignUpModal.module.css";
-import { SITE_ORIGIN } from "~/lib/config";
 
 export interface SignUpModalProps {
   /** Which action asked: it picks the words. Closed when undefined. */
@@ -15,17 +14,18 @@ export interface SignUpModalProps {
   onClose: () => void;
   /** Where signing up or in comes back to (the current address). */
   next: string;
-  /** Where the account pages live. */
+  /** Where the account pages live ("" = this client's own /login and /register). */
   accountOrigin?: string;
 }
 
 /**
  * Shown when someone not signed in tries an action that needs an account: what an account is for, and Sign Up / Sign in.
- * Both go to the account pages with the current address as `next`; this client has no sign-in of its own yet.
+ * Both go to this client's auth page (an in-app navigation, carrying data-signup-source for the funnel) with the current address as
+ * `next`.
  *
  * @feature GUI-004 Sign-up modal for anonymous users
  */
-export function SignUpModal({ kind, onClose, next, accountOrigin = SITE_ORIGIN }: SignUpModalProps) {
+export function SignUpModal({ kind, onClose, next, accountOrigin = "" }: SignUpModalProps) {
   const lang = useInterfaceLang();
   const code = lang === "hebrew" ? "he" : "en";
   const c = signUpContent(kind);

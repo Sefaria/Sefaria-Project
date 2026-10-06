@@ -4,7 +4,7 @@ import { Spinner } from "../Spinner/Spinner";
 import styles from "./Button.module.css";
 
 export type ButtonVariant = "primary" | "secondary" | "tertiary" | "danger";
-export type ButtonSize = "sm" | "md" | "lg";
+export type ButtonSize = "sm" | "md" | "lg" | "xl";
 
 interface CommonProps {
   variant?: ButtonVariant;

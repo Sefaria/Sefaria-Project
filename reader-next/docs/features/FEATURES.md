@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**945 features**, 3606 documented behaviors. Proposed tiers: core 320, standard 412, optional 153, retire 60.
+**946 features**, 3637 documented behaviors. Proposed tiers: core 321, standard 412, optional 153, retire 60.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 301 · partial 40 · todo 474 · replaced 18 · deferred 25 · n/a 87; 296 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 319 · partial 39 · todo 459 · replaced 18 · deferred 23 · n/a 88; 311 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -15,7 +15,7 @@ Master list of every feature in the current Sefaria web client, extracted from a
 - **Reader**: [Reader shell & panels](#reader-shell) (75) · [Text display & reading settings](#text-display) (69) · [Text types & special cases](#text-types) (27) · [Connections & resources sidebar](#connections) (71) · [Versions & translations](#versions) (21)
 - **Library & discovery**: [Library navigation](#library-nav) (69) · [Book pages](#book-pages) (23) · [Topics](#topics) (32) · [Calendars](#calendars) (3) · [Search & autocomplete](#search) (110)
 - **Voices (sheets & community)**: [Sheets: viewing](#sheets-view) (27) · [Sheets: editing & publishing](#sheets-editor) (29) · [Collections](#collections) (10) · [Profiles & social](#profile-social) (12) · [Saved, history & notes](#user-library) (12) · [Notifications & email](#notifications) (11)
-- **Site & accounts**: [Global UI](#global-ui) (28) · [Accounts & sign-in](#accounts) (15) · [Promotions & CMS](#promotions) (17) · [Static pages](#static-pages) (19) · [Language & accessibility](#i18n-a11y) (13) · [AI features](#ai) (20)
+- **Site & accounts**: [Global UI](#global-ui) (28) · [Accounts & sign-in](#accounts) (16) · [Promotions & CMS](#promotions) (17) · [Static pages](#static-pages) (19) · [Language & accessibility](#i18n-a11y) (13) · [AI features](#ai) (20)
 - **Platform**: [URLs & routing](#routing) (64) · [SSR, SEO & platform](#platform-seo) (32) · [Public API & data exports](#api-data) (17) · [Analytics](#analytics) (17) · [Linker & embeds](#linker-embeds) (14)
 - **Internal & legacy**: [Admin & moderator tools](#admin-tools) (58) · [Legacy pages](#legacy-pages) (30)
 
@@ -2629,7 +2629,7 @@ Code: [`static/js/ReaderApp.jsx:500`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_04_connections.md#0`
 
 #### CON-011 · Sign-in gating across sidebar tools
-`core` `live` · rebuild: **partial** — Signed-out gating done; signed-in tools need accounts (Phase 7) · *tested*
+`core` `live` · rebuild: **partial** — Signed-out gating done; the client knows who is signed in; signed-in tools still to build · *tested*
 
 Several sidebar tools require sign-in or moderator rights.
 
@@ -2639,6 +2639,7 @@ Several sidebar tools require sign-in or moderator rights.
 - Moderators only: Topics add, link delete, version edit/delete, Linker Admin, always-visible Topics button.
 - VERIFIED 2026-10-05 (signed out): Notes -> sign-up modal (kind Notes); Add to Sheet -> modal (AddToSheet); Advanced shows exactly two rows, 'Add Translation' / 'הוספת תרגום' and 'Add Connection' / 'הוספת קישור לטקסט אחר'; those open the AddTranslation / AddConnection modals (strings in signupModalContent.js). Compare Text shows in the Tools list on a desktop-width panel. Feedback and Share need no account.
 - Rebuild: Notes, Add to Sheet and Add Connection views show Resources with the modal over it (URL briefly with=Notes etc.; closing returns to with=all).
+- 2026-10-06: the client now knows who is signed in (viewer query); the signed-in tools themselves (notes, add to sheet …) are still to build — signed-in readers still get the sign-up modal for them.
 
 Code: [`static/js/ConnectionsPanel.jsx:687`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L687), [`static/js/ReaderPanel.jsx:550`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L550)
 
@@ -8717,6 +8718,7 @@ Search box plus account/auth buttons, help, language and module switching.
 - VERIFIED 2026-10-05: right side = search combobox (placeholder 'Search', aria-label 'Search for Texts or Keywords Here', maxlength 75, Hebrew keyboard icon), 'Sign Up' (/register, data-signup-source=nav_bar), Help icon link (aria-label 'Help', help.sefaria.org/hc/en-us), globe button 'Toggle Interface Language Menu', module-switcher button (aria-label 'Library'), profile button. Not rebuilt: the autocomplete (Phase 6) — submitting goes to the library's search page; the Hebrew keyboard.
 - VERIFIED 2026-10-05 geometry (1280px): header 60px, 30px sides; logo 154×25; Texts/Topics/Donate 16px/500 #666 at x=244/313/391 (60px after the logo, 30px apart, no boxes); search 250×30 (pill, 18px input) → 20px → Sign Up 74×28 (padding 6px 12px) → 20px → four 18px icons 20px apart ending at x=1250. Rebuild matched (it had 34px-tall controls and padded link boxes).
 - FOUND: the site header's menus (language, Library, account) opened UNDER the reader's sticky panel header (z-index 100 vs 20), hiding their items; the header is now z-index 110.
+- REBUILD: Sign Up goes to the client's /register?next= (in-app, data-signup-source=nav_bar).
 
 Code: [`static/js/Header.jsx:291`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L291)
 
@@ -8726,7 +8728,7 @@ Source: `inv_02_reader_shell.md#16`
 ### Modals and banners
 
 #### GUI-004 · Sign-up modal for anonymous users
-`core` `live` · rebuild: **done** — Modal, all eight kinds; links go to the old account pages · *tested*
+`core` `live` · rebuild: **done** — Modal, all eight kinds; links to the client's own auth page · *tested*
 
 When anonymous users try an account-only action, a modal explains the benefits and offers sign up or log in.
 
@@ -8736,7 +8738,7 @@ When anonymous users try an account-only action, a modal explains the benefits a
 - VERIFIED 2026-10-05 (signed out, Genesis 1:1): Tools > Notes opens the modal 'Don’t lose that thought!' / 'Create a free account to do more on Sefaria' with four bullets (Take notes on this text; Build & create source sheets; Connect with other users; Get updates on new features), 'Sign Up' and 'Already have an account? Sign in'; Tools > Add to Sheet opens 'Want to make your own source sheet?' / 'Create a free account to join the conversation'. The address bar does not change and the sidebar stays on Resources behind the modal.
 - Hebrew strings: Sign Up = 'להרשמה', 'כבר יש לכם חשבון?', 'התחברו', close = 'סגירה'.
 - A11y (old): the modal is a div box with an overlay div and a '×' role=button; no focus trap, no dialog role. Rebuild: native <dialog> (focus kept inside, Escape, backdrop click, focus restored).
-- REBUILD DECISION (pending owner): there is no sign-in in the new client. The modal's Sign Up / Sign in links go to www.sefaria.org/register|login?next=<current address>; the address is a path on the new client, so after signing in the reader lands on the old site's page for it. Real account handling is Phase 7 and needs the owner's design.
+- REBUILD (2026-10-06, owner decision 7-1): the modal's Sign Up / Sign in go to the client's own auth page (/register, /login ?next=<current address>), in-app.
 
 Code: [`static/js/Misc.jsx:2004`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L2004), [`static/js/sefaria/signupModalContent.js`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/signupModalContent.js)
 
@@ -8820,13 +8822,14 @@ Source: `inv_02_reader_shell.md#16`
 ### Profile menu
 
 #### GUI-010 · Profile / account dropdown
-`core` `live` · rebuild: **partial** — Signed-out menu only · *tested*
+`core` `live` · rebuild: **done** — Signed-out and signed-in menus (signed-in not checked live) · *tested*
 
 The profile icon opens account links that differ by login state and module.
 
 - Logged out: Log in / Sign up (in-app auth, source nav_bar), Site language toggle, New Additions (/updates, Library only), Help (new tab) (43-76).
 - Logged in (ProfilePic) (78-148): name bold prevent-close (links to profile in Voices); Library: Account Settings (/settings/account), Torah Tracker (/torahtracker); Voices: Profile, Saved, History, Account Settings (Library module); Site language toggle; New Additions (Library); Help; Log Out (Sefaria.getLogoutUrl()).
 - Rebuild: signed-out profile menu = Log in, Sign up, Site Language, New Additions (/updates), Help — with the library's account pages behind the links until accounts exist.
+- REBUILD (2026-10-06): signed-in menu built from Header.jsx LoggedInDropdown (Library module): profile picture (initials on #6f6f6f when there is none or a gravatar has not loaded), bold name, Account Settings, Torah Tracker, Site Language, New Additions, Help, Log Out (/logout?next=/texts). Signed in, the header drops Sign Up and the globe menu and shows Saved (/saved), as the old header does. Not checked live signed in (needs an account; e2e/auth-signed-in.spec.ts runs against a deployment).
 
 Code: [`static/js/Header.jsx:43`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L43), [`static/js/Header.jsx:78`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L78)
 
@@ -8844,6 +8847,7 @@ A slide-out menu holds search, sections, account and cross-product links on mobi
 - Logged-in Library: 'Saved, History & Notes' (/saved); logged-in Voices: Profile (with picture), 'Saved & History', Notifications (unread icon); Account Settings; interface language toggle; Get Help (new tab); About Sefaria (/mobile-about-menu).
 - Cross-module switcher (Voices on Sefaria <-> Library); Developers on Sefaria; More from Sefaria (/products); Logout or Sign up/Log in (in-app auth, closes menu). Slides open via 'closed' class toggle.
 - VERIFIED 2026-10-05 (390px): bar = menu button (aria-label 'Menu'), centred logo, aleph/ayin language toggle; slide-out nav (aria-label 'Mobile navigation menu') = search, Texts, Topics, Learning Schedules (/calendars), Donate (c_src=MobileNavMenu), language toggle 'English • עברית', Get Help, About Sefaria (/mobile-about-menu), Voices on Sefaria, Developers on Sefaria, More from Sefaria, Sign up, Log in.
+- REBUILD: signed in, the phone menu has Saved, History & Notes, Account Settings and Logout instead of Sign up / Log in.
 
 Code: [`static/js/Header.jsx:425`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L425)
 
@@ -9101,7 +9105,7 @@ Source: `inv_08_other.md#1.6`
 ### In-app auth page
 
 #### ACC-001 · In-app login/register page integration
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** — Auth page is a route; in-app links with signup source · *tested*
 
 Login and registration render inside the reader app instead of a separate page.
 
@@ -9109,6 +9113,7 @@ Login and registration render inside the reader app instead of a separate page.
 - openURL on auth path calls handleAuthNavigate(withNext(path,next),signupSource) (ReaderApp.jsx:1375-1379,144-147), hides sign-up modal; next is current path or existing next; safeNext rejects cross-origin next (auth/utils.js:43-51).
 - History: auth states push {showAuth,authPath,authSource,panels:[]} with URL=authPath (488-493,417-418).
 - While auth showing, main renders <AuthPage initialPath authSource resetValid onNavigate/> instead of panels (2596-2602). resumePendingSignUpAttempt() runs on mount (245).
+- REBUILD: the auth page is a route of the new client (src/features/auth/AuthRoute.tsx); in-app links to /login and /register (header, sign-up modal, cross-links) are router navigations and carry data-signup-source (src/features/auth/signup-source.ts). resumePendingSignUpAttempt runs once per page load in the root shell.
 
 Code: [`static/js/auth/utils.js:61`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/utils.js#L61), [`static/js/ReaderApp.jsx:1375`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1375), [`static/js/ReaderApp.jsx:2596`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2596)
 
@@ -9118,7 +9123,7 @@ Source: `inv_02_reader_shell.md#13`
 ### Google One Tap
 
 #### ACC-002 · Google One Tap sign-in
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** — One Tap ported (needs GOOGLE_SSO_CLIENT_ID and same-origin Django) · *tested*
 
 Anonymous visitors may see a Google sign-in prompt, at most once per session.
 
@@ -9126,6 +9131,7 @@ Anonymous visitors may see a Google sign-in prompt, at most once per session.
 - Suppressed if interruptive UI present (cookie notice, site-wide banner, .modal, aria-modal dialog); then marked as shown.
 - Posts credential to allauth provider-token endpoint with CSRF, reloads on success; waits for 'google-identity-loaded' event if GIS not yet loaded.
 - Fires signup funnel analytics: flow_started, method_chosen, process_started/ended, flow_ended.
+- REBUILD: src/features/auth/use-google-one-tap.ts — same session key, 1.2s delay, auth-path re-check, prompt listener, analytics burst on the credential callback, reload on success; also suppressed over the client's cookie notice ([data-interruptive-ui]) and open <dialog>s. GIS is loaded for signed-out readers when a Google client ID is configured, as base.html did.
 
 Code: [`static/js/auth/GoogleOneTap.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/GoogleOneTap.jsx)
 
@@ -9182,7 +9188,7 @@ Source: `inv_07_sheets_users.md#12`
 ### Prompts
 
 #### ACC-006 · Login prompt and sign-up modal
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** — Sign-up modal links to the client's own auth page
 
 When an anonymous user tries a signed-in feature (save, follow, notes, add to sheet...), a prompt explains the benefits and invites them to sign up or log in.
 
@@ -9191,6 +9197,7 @@ When an anonymous user tries a signed-in feature (save, follow, notes, add to sh
 - Kinds: AddConnection, ViewHistory, AddToSheet, AddTranslation, Follow, Notes, Save, Default; each has EN/HE copy
 - Sign Up button -> /register?next=... with data-signup-source=signup_modal_<kind> (add_connection, view_history, add_to_sheet, add_translation, follow, notes, save, default)
 - Includes Already have an account? Sign in link
+- REBUILD: the sign-up modal's Sign Up / Sign in now go to the new client's own /register and /login (in-app), with next and data-signup-source=signup_modal_<kind>.
 
 Code: [`static/js/Misc.jsx:1964`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L1964), [`static/js/Misc.jsx:2004`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L2004), [`static/js/sefaria/signupModalContent.js`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/signupModalContent.js)
 
@@ -9200,7 +9207,7 @@ Source: `inv_08_other.md#1.7 and #2.6`
 ### Routing
 
 #### ACC-007 · Auth routes and in-app auth page mounting
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** — /login, /register, reset link rendered here; logout Django's · *tested*
 
 Login, register and password reset are one in-app page inside the reader app rather than separate server pages.
 
@@ -9212,6 +9219,7 @@ Login, register and password reset are one in-app page inside the reader app rat
 - Already-authenticated GET of /login or /register redirects to /
 - Logged-out page templates/registration/logged_out.html
 - getLogoutUrl(): /logout?next=/texts (library) or / (voices)
+- REBUILD: routes src/routes/_auth.tsx (+ login, register, password.reset.confirm.$uidb64.$token). Logout stays Django's (/logout?next=/texts).
 
 Code: [`sefaria/urls_shared.py:24`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_shared.py#L24), [`static/js/ReaderApp.jsx:2596`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2596), [`static/js/auth/utils.js:46`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/utils.js#L46), [`sefaria/views.py:103`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L103)
 
@@ -9221,7 +9229,7 @@ Source: `inv_08_other.md#2.1`
 ### Login
 
 #### ACC-008 · Auth page with choose / email views
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** — Ported; geometry matched to sefaria.org at 1280 and on a phone · *tested*
 
 A single card guides users through log in or sign up, offering Google, Apple or email.
 
@@ -9232,18 +9240,26 @@ A single card guides users through log in or sign up, offering Google, Apple or 
 - MessageView generic terminal message card; ErrorBanner role=alert with generic message + optional link
 - Inputs: EmailInput (type=email, LTR, placeholder you@example.com), PasswordInput (LTR)
 - CSRF token read from meta csrf-token only (never cookie) to avoid dual-cookie 403 on cauldrons
+- VERIFIED 2026-10-06 (www.sefaria.org/login, /register; 1280×900 and Pixel 7, computed styles + geometry): navy page #18345d with the line drawing (auth-bg-desktop.png at the bottom, auth-bg-mobile.png at the top on phones), padding 56px 32px (phone 56px 32px 24px); card 640px max, 16px radius, padding 56px 24px (phone 56 24 24), gap 32px, min-height 535 (choose) / 538 (login email) / 823 (register email); content capped at 348px. At 1280: card at (320,116) 640×535; heading at y 184; provider buttons 348×51 (1.5px #18345d border, 4px radius, 16px/600); 'or' divider 14px #707070 with #e6e6e6 rules; Continue with Email 348×51 navy; legal line 12px/1.35. Phone: card 348 wide at x 32, heading 30px.
+- CORRECTION (VERIFIED 2026-10-06): the card heading is NOT serif — it is Roboto 40px/400 #121212 (30px at ≤842px), line-height normal. The AuthCard.jsx comment says 'serif heading'; the CSS never sets a serif face.
+- VERIFIED 2026-10-06: copy of the choose / email / forgot views (English) as in i18n/interface/en.json auth.*; inputs 348×45, 1px #e6e6e6, 4px radius, 16px text, 14px labels; back arrow 48×48 at (32,32) in the card (phone (8,8), 16px padding).
+- REBUILD (sefaria-reader auth-port): src/features/auth (AuthPage state machine, views, FormView, Google/Apple triggers, One Tap) and src/ui (AuthCard, TextField, ProviderButton, Captcha, AuthErrorBanner, LegalText, labelled Divider, Button size xl, AuthText). Same copy (en/he from the old json), same requests, same error handling; e2e/auth.spec.ts asserts the live geometry above at 1280 and on a phone.
+- REBUILD DIFFERENCE (CSRF): there is no Django-rendered <meta name=csrf-token> in this client. The token is the LAST csrftoken cookie (as Django's parse_cookie picks it — safe with the cauldron double cookie); when there is none yet, GET /_allauth/browser/v1/auth/session first (VERIFIED 2026-10-06: it sets csrftoken; allauth browser_view calls get_token). src/lib/auth/csrf.ts, http.ts.
+- REBUILD DIFFERENCE (a11y): the old inputs have outline:none and only lighten the border on focus; the rebuild adds a visible :focus-visible ring. The Google shell is aria-disabled while Google's button is not ready.
+- REBUILD DIFFERENCE (phones): the old page is a fixed-height box that scrolls inside; in the rebuild the page itself scrolls (the reader's phone layout).
 
 Code: [`static/js/auth/AuthPage.jsx:18`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/AuthPage.jsx#L18), [`static/js/auth/ChooseView.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/ChooseView.jsx), [`static/js/auth/AuthCard.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/AuthCard.jsx), [`static/js/sefaria/csrf.js`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/csrf.js)
 
 Source: `inv_08_other.md#2.2`
 
 #### ACC-009 · Email and password login
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** · *tested*
 
 Users log in with email and password, with a Forgot password link.
 
 - LoginView posts JSON to /api/auth/login; on ok window.location = safeNext(next); fallback error auth.invalid_credentials
 - Inline Forgot password trailing link in password field
+- REBUILD: LoginView posts JSON to /api/auth/login with X-CSRFToken; success is a full page load of safeNext(next), as before. Tested with mocked endpoints (unit + e2e).
 
 Code: [`static/js/auth/LoginView.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/LoginView.jsx), [`sso/urls.py`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sso/urls.py)
 
@@ -9253,7 +9269,7 @@ Source: `inv_08_other.md#2.2`
 ### Registration
 
 #### ACC-010 · Email registration with reCAPTCHA
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** — reCAPTCHA when RECAPTCHA_PUBLIC_KEY is configured · *tested*
 
 New users create an account with email, password and name, protected by a captcha.
 
@@ -9264,6 +9280,7 @@ New users create an account with email, password and name, protected by a captch
 - Server success: create user + Mongo UserProfile (slug, join invited collections, interface language), import Gravatar to GCS, session login, append ?welcome=to-sefaria to next
 - ?educator=1 on GET pre-checks subscribe_educator in legacy Django form
 - ?welcome=to-sefaria has no client-side consumer found in static/js
+- REBUILD: same form-encoded noredirect POST to /register, the same field-code mapping (EMAIL_EXISTS_ERRORS, required → auth.required_field), reCAPTCHA v2 (explicit render, scaled, RTL-anchored) when RECAPTCHA_PUBLIC_KEY is set in the client's runtime config.
 
 Code: [`static/js/auth/RegisterView.jsx:101`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/RegisterView.jsx#L101), [`sefaria/views.py:199`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L199), [`sefaria/views.py:241`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L241), [`static/js/auth/emailExistsErrors.js`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/emailExistsErrors.js)
 
@@ -9273,7 +9290,7 @@ Source: `inv_08_other.md#2.2 and #2.6`
 ### Password reset
 
 #### ACC-011 · Forgot and reset password
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** — Reset validity asked with a side-effect-free probe; token link handed to Django first · *tested*
 
 Users who forget their password can request a reset link, set a new password, and request a fresh link if the old one expired.
 
@@ -9282,6 +9299,8 @@ Users who forget their password can request a reset link, set a new password, an
 - ResetExpiredView: Request new link POSTs {action:resend}; server resolves user from uid even with expired token (views.py:147-170); no_account_for_link falls back to Forgot view
 - reset-success: MessageView + Log in button
 - Email templates: registration/password_reset_email.html/.txt, password_reset_subject.txt; legacy _cross_flow_nav.html partial
+- REBUILD DIFFERENCE: Django rendered authResetValid into its page; the client is not Django, so the reset card first asks with an empty JSON POST to the link (a valid link answers 400 field errors and saves nothing; an invalid one answers _auth.code invalid_reset_link) and shows the card's Loading line meanwhile. src/features/auth/AuthPage.tsx probeResetLink.
+- BUG (code reading, not verified live — needs a real reset link): in ResetExpiredView's 'no account for this link' case, 'Request New Link' sets the Forgot view and navigates to /login in the same tick; AuthPage's flow-change effect then resets the view to 'choose', so the reader lands on the choice, not on Forgot Password. Rebuild: lands on Forgot Password (AuthPage keepViewRef).
 
 Code: [`static/js/auth/ForgotView.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/ForgotView.jsx), [`static/js/auth/ResetView.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/ResetView.jsx), [`static/js/auth/ResetExpiredView.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/ResetExpiredView.jsx), [`sefaria/views.py:147`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L147)
 
@@ -9291,7 +9310,7 @@ Source: `inv_08_other.md#2.2 and #2.6`
 ### SSO
 
 #### ACC-012 · Sign in with Google and Apple
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** — Needs the client IDs in the runtime config and same-origin Django · *tested*
 
 Users can log in or register with Google or Apple; the same email always links to one account.
 
@@ -9304,13 +9323,14 @@ Users can log in or register with Google or Apple; the same email always links t
 - Backend policy: SSO always wins on email collision - existing password account gets password wiped and becomes SSO-only
 - New SSO users get Mongo profile + Gravatar + Salesforce CRM registration
 - ErrorBanner sso_only_account variant lists providers with inline Continue links
+- REBUILD: useProviderTriggers ported (src/features/auth/use-provider-triggers.tsx): same GIS options (use_fedcm_for_button, ux_mode popup/redirect by ssoUseRedirect, continue_with, locale iw/en), same allauth provider-token POST, same Apple init/signIn and /api/auth/apple/callback, same redirect-mode cookie sefaria_sso_next and /accounts/apple/login/?next=. Client IDs come from GOOGLE_SSO_CLIENT_ID / APPLE_SSO_CLIENT_ID in the runtime config (empty = button hidden, as on the old site). Works only when the client is served same-origin with Django.
 
 Code: [`static/js/auth/useSsoSignIn.jsx:114`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/useSsoSignIn.jsx#L114), [`static/js/auth/useSsoSignIn.jsx:207`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/useSsoSignIn.jsx#L207), [`sso/adapters.py:104`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sso/adapters.py#L104), [`sso/urls.py`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sso/urls.py)
 
 Source: `inv_08_other.md#2.3`
 
 #### ACC-013 · Google One Tap
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 Logged-out visitors may see a Google One Tap prompt to sign in with one click.
 
@@ -9318,6 +9338,7 @@ Logged-out visitors may see a Google One Tap prompt to sign in with one click.
 - Suppressed (and marked shown) if cookie bar, .siteWideBanner, .modal or [role=dialog][aria-modal] present
 - Waits for google-identity-loaded event if GIS not loaded
 - On credential: POST allauth provider-token, then window.location.reload()
+- REBUILD: see ACC-002 (same hook).
 
 Code: [`static/js/auth/GoogleOneTap.jsx:6`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/GoogleOneTap.jsx#L6), [`static/js/ReaderApp.jsx:2586`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2586)
 
@@ -9327,7 +9348,7 @@ Source: `inv_08_other.md#2.4`
 ### Mobile app
 
 #### ACC-014 · Mobile app auth endpoints (JWT)
-`standard` `live` · rebuild: **todo** `third-party` `mobile only`
+`standard` `live` · rebuild: **n/a** — Mobile-app JWT endpoints; not used by the web client `third-party` `mobile only`
 
 The native mobile apps log in and register through token-based endpoints.
 
@@ -9353,6 +9374,19 @@ A link can switch on the Library Assistant for a signed-in user and return them 
 Code: [`reader/views.py:4204`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4204), [`reader/views.py:4205-4238`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4205-L4238)
 
 Source: `inv_08_other.md#2.6; inv_01_urls_routing.md#1.3`
+
+
+### Session
+
+#### ACC-016 · Who is signed in, at first paint (rebuild)
+`core` `rebuild-only` · rebuild: **done** · *tested*
+
+The new client learns who is signed in from Django's session cookie while rendering on the server, so the header is right from the first frame.
+
+- Viewer query (src/features/auth/viewer.ts): on the server, only when the request carries a sessionid cookie, the cookie is forwarded to /_allauth/browser/v1/auth/session and /api/user_stats/<id>?quick=1 (through Varnish, which passes them); the answer is dehydrated into the page. In the browser the same endpoints are asked same-origin after 5 minutes. Sign-in and sign-out are full page loads.
+- Replaces the old DJANGO_VARS _uid / full_name / profile_pic_url / slug. /api/profile could not be used (see API-012).
+
+Source: `sefaria-reader: src/lib/auth/session.ts, src/features/auth/viewer.ts`
 
 
 <a id="promotions"></a>
@@ -9725,7 +9759,7 @@ Source: `inv_08_other.md#3.2`
 ### Legal
 
 #### STA-007 · Terms and privacy policy
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** · *tested*
 
 Terms of use and privacy policy pages, linked from sign-up and the cookie notice.
 
@@ -10924,7 +10958,7 @@ Code: [`reader/views.py:1334-1394`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_01_urls_routing.md#1.3`
 
 #### RTE-032 · Login, register and logout URLs
-`core` `live` · rebuild: **deferred** — Depends on the owner's decisions on Voices, auth and hosting
+`core` `live` · rebuild: **done** — Login/register/reset routes here; logout Django's · *tested*
 
 Sign-in, sign-up and logout have their own addresses and open the in-app auth page.
 
@@ -10937,13 +10971,16 @@ Sign-in, sign-up and logout have their own addresses and open the in-app auth pa
 - openURL turns /login and /register links into in-app AuthPage with next = current path; data-signup-source captured for funnel analytics.
 - Client helpers withNext, safeNext (same-origin check) in static/js/auth/utils.js.
 - No first-party JS reads the welcome param (presumably analytics/GTM).
+- VERIFIED 2026-10-06: titles 'Log in to Sefaria' and 'Create an Account' (www.sefaria.org); Hebrew site 'כניסה לחשבון בספריא' and 'יצירת חשבון' (www.sefaria.org.il). The reset page's 'Reset Your Password' has no Hebrew in locale/he.
+- REBUILD: /login, /register and /password/reset/confirm/<uidb64>/<token>/ are routes of the new client (src/routes/_auth*.tsx — one AuthPage stays mounted across them); 'login', 'register' and 'password' left DJANGO_PREFIXES (src/server/pass-through.ts). Every POST to them still goes to Django. A signed-in reader asking for /login or /register goes to '/' as Django did. Trailing slashes are dropped by the router (307), the reset POSTs re-add Django's slash.
+- REBUILD: the emailed token link is handed to Django (it validates the token, stores it in the session and 302s to …/<uid>/set-password/, which the client renders); VERIFIED 2026-10-06 against www.sefaria.org through the client's pass-through: an invalid token gets Django's page (no redirect), which the client turns into a 302 to the set-password address so the expired card shows there.
 
 Code: [`sefaria/views.py:95-197`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L95-L197), [`sefaria/views.py:257-290`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L257-L290), [`static/js/auth/utils.js:41-77`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/utils.js#L41-L77), [`static/js/sefaria/sefaria.js:3867-3870`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L3867-L3870)
 
 Source: `inv_01_urls_routing.md#1.3`
 
 #### RTE-033 · SSO and auth API endpoints
-`core` `live` · rebuild: **deferred** — Depends on the owner's decisions on Voices, auth and hosting
+`core` `live` · rebuild: **done** — Endpoints called same-origin; stay Django's in the pass-through
 
 Social and email login use dedicated endpoints under /accounts, /_allauth and /api/auth.
 
@@ -10951,6 +10988,7 @@ Social and email login use dedicated endpoints under /accounts, /_allauth and /a
 - /api/auth/google/redirect, /api/auth/google/mobile, /api/auth/apple/callback, /api/auth/apple/mobile, /api/auth/login (JSON email login), /api/auth/password/reset.
 - /api/login/ and /api/login/refresh/ JWT for mobile.
 - /gauth, /gauth/callback, /unlink-gauth (Google Drive OAuth); unlink-gauth?redirect=0 returns JSON instead of 302 to profile.
+- REBUILD: the client calls /api/auth/login, /api/auth/password/reset, /api/auth/apple/callback, /_allauth/browser/v1/auth/provider/token and /_allauth/browser/v1/auth/session same-origin; /_allauth, /accounts, /api, /logout stay Django's in the pass-through.
 
 Code: [`sefaria/urls_shared.py:21-23`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_shared.py#L21-L23), [`sso/urls.py:5-17`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sso/urls.py#L5-L17), [`sefaria/views.py:372-384`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/views.py#L372-L384)
 
@@ -11228,7 +11266,7 @@ Code: [`sefaria/system/context_processors.py:148-172`](https://github.com/Sefari
 Source: `inv_01_urls_routing.md#2.2`
 
 #### RTE-052 · Other page params (login/next, activity, topic, profile)
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 Non-reader pages have small param conventions.
 
@@ -12177,6 +12215,8 @@ Endpoints cover profiles, history, follows, blocks, notifications, stats, regist
 - /api/user_history/saved?ref=.
 - /api/(follow|unfollow)/<uid>, /api/(followers|followees)/<uid>, /api/(block|unblock)/<uid>, /api/notifications + /read, /api/updates[/<gid>] (staff POST), /api/user_stats/<uid>, /api/site_stats,
 - DELETE /api/account/delete (emails support), /api/register, /api/login + /api/login/refresh (JWT for mobile), /_allauth/*, /accounts/*, SSO endpoints (inv_08).
+- CORRECTION (VERIFIED 2026-10-06): GET /api/profile with no slug is NOT 'self' — profile_api raises Http404 when slug is missing (reader/views.py), so the anonymous request gets the HTML 404 page (checked live) and a signed-in one does too (code). The old client never asks: who is signed in arrives in DJANGO_VARS.
+- Who-am-I for the new client: GET /_allauth/browser/v1/auth/session (VERIFIED 2026-10-06 anonymous: 401 JSON, meta.is_authenticated false; 200 with data.user.id when signed in) plus GET /api/user_stats/<id>?quick=1 (public_user_data: name, profileUrl, imageUrl = profile_pic_url_small; login_required and only for oneself). Neither is cached by Varnish.
 
 Code: [`sefaria/urls_shared.py:1`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/urls_shared.py#L1)
 
@@ -12285,11 +12325,12 @@ Source: `inv_01_urls_routing.md#4.3`
 ### Signup funnel
 
 #### ANL-002 · Sign-up source attribution
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** · *tested*
 
 Where a person clicked 'sign up' is recorded for funnel analysis.
 
 - data-signup-source on link or ancestor. Examples: 'nav_bar' (header Sign up), 'login_prompt', 'signup_modal_{kind}'. AuthNavLink passes 'nav_bar' (Header.jsx:26-35). Typed/direct /register has null source (ReaderApp.jsx:136-138).
+- REBUILD: a capturing click listener records data-signup-source for links to /login and /register; the auth page takes it on arrival (nav_bar, login_crosslink, signup_modal_<kind>). Typed/direct arrivals have none, as before.
 
 Code: [`static/js/Header.jsx:26`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L26), [`static/js/ReaderApp.jsx:136`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L136)
 
@@ -12450,7 +12491,7 @@ Source: `inv_04_connections.md#25`
 ### Sign-up funnel
 
 #### ANL-013 · Sign-up funnel analytics
-`standard` `live` · rebuild: **todo** `system`
+`standard` `live` · rebuild: **done** — Through trackAuthEvent → gtag until the shared analytics module · *tested* `system`
 
 The sign-up journey is measured from first arrival to completion, by method and by the button that started it.
 
@@ -12458,6 +12499,7 @@ The sign-up journey is measured from first arrival to completion, by method and 
 - Pending SSO attempt persisted in sessionStorage across provider redirects; resumePendingSignUpAttempt uses document.referrer on next load
 - useSignUpTracking: flow start on /register arrival; end on leave/popstate/beforeunload/bfcache pageshow/unmount; source = data-signup-source (nav_bar, login_prompt, signup_modal_*, login_crosslink...)
 - Tests in static/js/auth/tests/*.test.js
+- REBUILD: signupAnalytics.js and useSignUpTracking.js ported with their tests (src/lib/auth/analytics.ts, use-sign-up-tracking.ts): same event names, params, defaults (project site_registration, feature_name site_registration_form, transport beacon) and sessionStorage keys. Every event leaves through trackAuthEvent(name, params), which calls window.gtag('event', …) as the old code did — to be rewired to the shared analytics module at merge.
 
 Code: [`static/js/auth/signupAnalytics.js`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/signupAnalytics.js), [`static/js/auth/useSignUpTracking.js`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/auth/useSignUpTracking.js)
 

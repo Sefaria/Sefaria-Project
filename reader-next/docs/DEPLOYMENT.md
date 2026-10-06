@@ -12,7 +12,7 @@ Cloudflare → nginx (www server)
                ├─ /api/…               → Varnish → Django          (never touches the client)
                └─ everything else      → node (this client)
                                            ├─ reader / library page → rendered here; data read from Varnish
-                                           ├─ Django's page (topics, sheets, login, profile…), any write, or our 404
+                                           ├─ Django's page (topics, sheets, profile…), any write, or our 404
                                            │                         → passed to Varnish → Django, answer returned as is
                                            └─ client down (502/503/504) → nginx falls back to Varnish → Django
 ```
@@ -37,7 +37,28 @@ Cloudflare → nginx (www server)
 | Helm changes | `conf/nginx.template.conf.tpl` (node upstream, `/api/`, `@varnish`), `templates/rollout/nodejs.yaml` (env, probes), `templates/configmap/local-settings-file.yaml` (`USE_NODE`) |
 
 Environment variables of the node container in reader mode: `SEFARIA_API_ORIGIN`, `SEFARIA_API_HOST`, `PUBLIC_API_ORIGIN=""`,
-`PUBLIC_SITE_ORIGIN=""`, `SEFARIA_PASS_THROUGH=1`, `PORT=3000`.
+`PUBLIC_SITE_ORIGIN=""`, `SEFARIA_PASS_THROUGH=1`, `PORT=3000`, and for sign-in the same public keys Django uses:
+`GOOGLE_SSO_CLIENT_ID`, `APPLE_SSO_CLIENT_ID`, `RECAPTCHA_PUBLIC_KEY` (empty = that button / the captcha is not shown). These are not in
+the Helm chart yet (`templates/rollout/nodejs.yaml` needs them, from the same values/secrets the web pods use).
+
+## Sign-in (the ported AuthPage)
+
+- `/login`, `/register` and the password-reset link are rendered by this client (`src/routes/_auth*.tsx`, `src/features/auth`); they are
+  no longer in `DJANGO_PREFIXES`. Their POSTs (`/api/auth/login`, `/register` noredirect, the reset link's JSON) are writes, so they still
+  go to Django. `/logout`, `/_allauth`, `/accounts`, `/api` stay Django's.
+- **Reset link.** Django must see the emailed `/password/reset/confirm/<uid>/<token>/` first: it checks the token, stores it in the
+  session and redirects to `…/<uid>/set-password/`, which this client renders. For an invalid token Django answers with its own page;
+  the request middleware (`passResetLink`) turns that into a redirect to the set-password address. There the page asks Django whether
+  the stored token is still good with an empty JSON POST (valid → 400 field errors, nothing saved; invalid → `invalid_reset_link`) —
+  Django's `authResetValid` was only ever in its own page context. Cost: one small POST and a "Loading" line on that card.
+- **Who is signed in.** `GET /api/profile` cannot tell (it 404s without a slug). The viewer query asks allauth's
+  `/_allauth/browser/v1/auth/session` and `/api/user_stats/<id>?quick=1`, forwarding the request's cookie during SSR (only when a
+  `sessionid` cookie is present), so the header is right at first paint.
+- **CSRF.** The last `csrftoken` cookie (Django's own choice when a cauldron has two), fetched first from the allauth session endpoint if
+  the browser has none (`src/lib/auth/csrf.ts`, `http.ts` — the one helper for writes).
+- Google/Apple/One Tap only work same-origin with Django (provider token and callbacks are Django endpoints; Google's redirect mode posts
+  back to `/api/auth/google/redirect`). Locally the client points at www.sefaria.org cross-origin, so sign-in cannot work in `npm run dev`;
+  use a local Django with `SEFARIA_PASS_THROUGH=1 SEFARIA_API_ORIGIN=<local Django>` or a cauldron.
 
 ## Creating a cauldron
 

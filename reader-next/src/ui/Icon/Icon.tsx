@@ -59,6 +59,8 @@ const PATHS = {
   layers: "M12 3l9 5-9 5-9-5 9-5zM3 12l9 5 9-5M3 16l9 5 9-5",
   pen: "M4 20l1-4L16 5l3 3L8 19l-4 1zM14 7l3 3",
   school: "M3 9l9-4 9 4-9 4zM7 11v5c3 2 7 2 10 0v-5M21 9v6",
+  settings: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1",
+  "log-out": "M9 20H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h4M16 16l4-4-4-4M20 12H9",
 } as const;
 
 export type IconName = keyof typeof PATHS;

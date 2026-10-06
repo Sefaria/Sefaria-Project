@@ -1,0 +1,34 @@
+/* The navy page behind the card, ported from static/css/auth.scss (.sefaria-auth-page); VERIFIED against www.sefaria.org 2026-10-06:
+   desktop padding 56px 32px, phone 56px 32px 24px, #18345d with the line drawing at the bottom (desktop) / top (phone). */
+.page {
+  box-sizing: border-box;
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 56px 32px;
+  background-color: #18345d;
+  background-image: url("/auth/auth-bg-desktop.png");
+  background-size: cover;
+  background-position: center bottom;
+  background-repeat: no-repeat;
+  color: #000000;
+  line-height: normal;
+  color-scheme: light;
+}
+@media (max-width: 842px) {
+  .page {
+    height: auto;
+    min-height: calc(100dvh - var(--sefaria-header-height));
+    padding: 56px 32px 24px;
+    background-image: url("/auth/auth-bg-mobile.png");
+    background-position: center top;
+  }
+}
+
+.choose, .ssoGroup, .form { display: flex; flex-direction: column; gap: 24px; }
+.providers { display: flex; flex-direction: column; gap: 16px; }
+.fields { display: flex; flex-direction: column; gap: 20px; }
+/* pull the banner a little closer to what is above it in a form */
+.form > [data-auth-error] { margin-bottom: -8px; }

@@ -3,8 +3,8 @@
  * config parameters), each only when its setting is present (src/lib/config.ts). Development and tests configure none.
  *
  *  - Google Tag Manager (GOOGLE_TAG_MANAGER_CODE): the container snippet. GTM also installs the `ga` shim used by uaEvent.
- *  - gtag.js (GOOGLE_GTAG): config { user_id, traffic_type, site_lang, site_version } — user_id/traffic_type are filled once the
- *    signed-in user is known (setAnalyticsUser), as the old page does from DJANGO_VARS.
+ *  - gtag.js (GOOGLE_GTAG): config { user_id, traffic_type, site_lang, site_version } — the signed-in reader is known when the page
+ *    is rendered (the root loader's viewer), as the old page knew it from DJANGO_VARS.
  *  - Simple Analytics (SIMPLE_ANALYTICS_HOSTNAME): the sa_event queue stub, sa_metadata, the script with data-collect-dnt.
  *
  * Not ported (owner decision pending, see docs/PHASE7_PLAN.md §3): VWO (hides <body> until loaded), Hotjar, Unbounce.
@@ -24,8 +24,8 @@ export interface HeadScript {
   "data-collect-dnt"?: string;
 }
 
-/** `siteLang` is the old `request.interfaceLang` ("english" | "hebrew"). */
-export function analyticsHeadScripts(cfg: AnalyticsConfig, siteLang: string): HeadScript[] {
+/** `siteLang` is the old `request.interfaceLang` ("english" | "hebrew"); `user` the signed-in reader (DJANGO_VARS.props._uid/_email). */
+export function analyticsHeadScripts(cfg: AnalyticsConfig, siteLang: string, user?: { uid: number; email?: string } | null): HeadScript[] {
   const out: HeadScript[] = [];
   if (cfg.gtm) {
     out.push({
@@ -35,7 +35,7 @@ export function analyticsHeadScripts(cfg: AnalyticsConfig, siteLang: string): He
   if (cfg.gtag) {
     out.push({ src: `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(cfg.gtag)}`, async: true });
     out.push({
-      children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;gtag('js',new Date());gtag('config',${js(cfg.gtag)},${js({ user_id: null, traffic_type: null, site_lang: siteLang, site_version: cfg.appVersion || null })});`,
+      children: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}window.gtag=gtag;gtag('js',new Date());gtag('config',${js(cfg.gtag)},${js({ user_id: user?.uid ?? null, traffic_type: user?.email?.includes("sefaria.org") ? "sefariaemail" : null, site_lang: siteLang, site_version: cfg.appVersion || null })});`,
     });
   }
   if (cfg.simpleAnalyticsHost) {

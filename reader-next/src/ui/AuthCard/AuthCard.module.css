@@ -1,0 +1,78 @@
+/* Ported from static/css/auth.scss (.sefaria-auth-card…); values VERIFIED against www.sefaria.org/login 2026-10-06 at 1280px and 412px. */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 640px;
+  min-height: 480px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 56px 24px;
+  gap: 32px;
+  align-items: center;
+  justify-content: center;
+  line-height: normal;
+  color-scheme: light;
+}
+.card a { text-decoration: underline; }
+.card[data-size="choose"] { min-height: 535px; }
+.card[data-size="login-email"] { min-height: 538px; }
+.card[data-size="register-email"] { min-height: 823px; }
+
+/* content is capped at 348px (all but the back arrow and the header) */
+.card > :not(.back):not(.header) { width: 100%; max-width: 348px; }
+
+.back {
+  position: absolute;
+  inset-inline-start: 32px;
+  top: 32px;
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  padding: 12px;
+  margin: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #121212;
+}
+.back img { width: 24px; height: 24px; display: block; }
+:dir(rtl) .back img, [dir="rtl"] .back img { transform: scaleX(-1); }
+
+.header { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+.card[data-size="message"] .header { gap: 32px; }
+
+.heading {
+  margin: 0;
+  font-size: 40px;
+  font-weight: 400;
+  line-height: normal;
+  text-align: center;
+  color: #121212;
+  outline: none;
+}
+
+.sub { text-align: center; font-size: 16px; color: #121212; }
+.sub a { color: var(--sefaria-color-brand, #18345d); }
+
+.loading { display: inline-flex; align-items: center; gap: 6px; color: #18345d; }
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgb(24 52 93 / 0.25);
+  border-top-color: #18345d;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.stack { display: flex; flex-direction: column; gap: 12px; }
+
+@media (max-width: 842px) {
+  .card { min-height: 0; padding: 56px 24px 24px; }
+  .card[data-size] { min-height: 0; }
+  .back { top: 8px; inset-inline-start: 8px; padding: 16px; }
+  .heading { font-size: 30px; }
+}

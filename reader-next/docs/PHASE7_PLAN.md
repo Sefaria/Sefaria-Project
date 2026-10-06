@@ -56,6 +56,10 @@ Plan (with option A):
 5. **Tests.** e2e against a local Django with a seeded test user (`auth_english_user.json`-style fixtures exist in
    `e2e-tests/`); never against production accounts.
 
+**Built 2026-10-06 (branch auth-port):** the AuthPage port, routes, viewer query, signed-in header, One Tap and the funnel
+analytics — see `docs/DEPLOYMENT.md` › Sign-in and the atlas changelog. Step 1 uses allauth's session endpoint, not `/api/profile` (it 404s
+without a slug). Still to do: step 3 (the signed-in tools themselves).
+
 **Owner decisions 7-1 (2026-10-06):** PORT the new SSO login component (`static/js/auth/AuthPage.jsx` and its component library:
 Input, ProviderButton, Divider, LegalText, Captcha, AuthCard; `api/auth/login`, `api/auth/password/reset`, Google and Apple
 buttons) into this client. e2e uses the same test accounts as Sefaria-Project's e2e suite (its `.env`).

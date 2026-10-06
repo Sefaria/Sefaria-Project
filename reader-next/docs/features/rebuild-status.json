@@ -164,12 +164,14 @@
   "status": "todo"
  },
  "RTE-032": {
-  "status": "deferred",
-  "note": "Depends on the owner's decisions on Voices, auth and hosting"
+  "status": "done",
+  "note": "Login/register/reset routes here; logout Django's",
+  "by": "src/routes/_auth.tsx"
  },
  "RTE-033": {
-  "status": "deferred",
-  "note": "Depends on the owner's decisions on Voices, auth and hosting"
+  "status": "done",
+  "note": "Endpoints called same-origin; stay Django's in the pass-through",
+  "by": "src/lib/auth, src/server/pass-through.ts"
  },
  "RTE-034": {
   "status": "done",
@@ -723,12 +725,12 @@
  },
  "GUI-004": {
   "status": "done",
-  "note": "Modal, all eight kinds; links go to the old account pages",
+  "note": "Modal, all eight kinds; links to the client's own auth page",
   "by": "src/ui/SignUpModal, src/ui/Modal"
  },
  "CON-011": {
   "status": "partial",
-  "note": "Signed-out gating done; signed-in tools need accounts (Phase 7)",
+  "note": "Signed-out gating done; the client knows who is signed in; signed-in tools still to build",
   "by": "src/features/reader/ConnectionsPane.tsx"
  },
  "CON-048": {
@@ -983,8 +985,8 @@
   "by": "src/ui/SiteHeader"
  },
  "GUI-010": {
-  "status": "partial",
-  "note": "Signed-out menu only",
+  "status": "done",
+  "note": "Signed-out and signed-in menus (signed-in not checked live)",
   "by": "src/ui/SiteHeader"
  },
  "GUI-011": {
@@ -1406,6 +1408,71 @@
   "status": "done",
   "note": ":active on touch devices",
   "by": "src/ui/SearchPage"
+ },
+ "ACC-001": {
+  "status": "done",
+  "note": "Auth page is a route; in-app links with signup source",
+  "by": "src/features/auth/AuthRoute.tsx"
+ },
+ "ACC-002": {
+  "status": "done",
+  "note": "One Tap ported (needs GOOGLE_SSO_CLIENT_ID and same-origin Django)",
+  "by": "src/features/auth/use-google-one-tap.ts"
+ },
+ "ACC-006": {
+  "status": "done",
+  "note": "Sign-up modal links to the client's own auth page",
+  "by": "src/ui/SignUpModal"
+ },
+ "ACC-007": {
+  "status": "done",
+  "note": "/login, /register, reset link rendered here; logout Django's",
+  "by": "src/routes/_auth.tsx"
+ },
+ "ACC-008": {
+  "status": "done",
+  "note": "Ported; geometry matched to sefaria.org at 1280 and on a phone",
+  "by": "src/features/auth/AuthPage.tsx"
+ },
+ "ACC-009": {
+  "status": "done",
+  "by": "src/features/auth/views.tsx"
+ },
+ "ACC-010": {
+  "status": "done",
+  "note": "reCAPTCHA when RECAPTCHA_PUBLIC_KEY is configured",
+  "by": "src/features/auth/views.tsx"
+ },
+ "ACC-011": {
+  "status": "done",
+  "note": "Reset validity asked with a side-effect-free probe; token link handed to Django first",
+  "by": "src/features/auth/AuthPage.tsx, src/server/pass-through.ts"
+ },
+ "ACC-012": {
+  "status": "done",
+  "note": "Needs the client IDs in the runtime config and same-origin Django",
+  "by": "src/features/auth/use-provider-triggers.tsx"
+ },
+ "ACC-013": {
+  "status": "done",
+  "by": "src/features/auth/use-google-one-tap.ts"
+ },
+ "ACC-014": {
+  "status": "n/a",
+  "note": "Mobile-app JWT endpoints; not used by the web client"
+ },
+ "ACC-016": {
+  "status": "done",
+  "by": "src/features/auth/viewer.ts"
+ },
+ "ANL-002": {
+  "status": "done",
+  "by": "src/features/auth/signup-source.ts"
+ },
+ "ANL-013": {
+  "status": "done",
+  "note": "Through trackAuthEvent → gtag until the shared analytics module",
+  "by": "src/lib/auth/analytics.ts"
  },
  "ANL-003": {
   "status": "done",

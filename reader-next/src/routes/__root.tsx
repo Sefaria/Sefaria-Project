@@ -16,6 +16,12 @@ import { setMobileMenuOpen, useMobileMenuOpen } from "~/features/shell/mobile-me
 import { SkipLink } from "~/ui/SkipLink/SkipLink";
 import { CookieNotice } from "~/ui/CookieNotice/CookieNotice";
 import { BannerImpressionProbe } from "~/features/shell/BannerImpressionProbe";
+import { useViewer, viewerQuery } from "~/features/auth/viewer";
+import { installSignupSourceCapture } from "~/features/auth/signup-source";
+import { useGoogleOneTap } from "~/features/auth/use-google-one-tap";
+import { resumePendingSignUpAttempt } from "~/lib/auth/analytics";
+import { loadGoogleIdentity } from "~/lib/auth/sdk";
+import { SSO_CONFIG } from "~/lib/config";
 import appCss from "~/features/shell/App.module.css";
 import tokens from "~/ui/tokens/tokens.css?url";
 import fonts from "~/ui/tokens/fonts.css?url";
@@ -37,11 +43,13 @@ const getRequestPrefs = createServerFn({ method: "GET" }).handler(async () => {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   beforeLoad: async () => getRequestPrefs(),
-  head: ({ match }) => ({
+  // who is signed in, in the first paint (the query forwards the request's cookie on the server: src/features/auth/viewer.ts)
+  loader: ({ context }) => context.queryClient.ensureQueryData(viewerQuery).then((viewer) => ({ viewer })),
+  head: ({ match, loaderData }) => ({
     meta: [{ charSet: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1" }, { title: "Sefaria Reader" }],
     // the runtime config (API and site origins) for the browser, before any module runs: src/lib/config.ts
     // then the analytics vendors, each only when configured (src/lib/analytics/scripts.ts)
-    scripts: [{ children: configScript() }, ...analyticsHeadScripts(PUBLIC_CONFIG.analytics, match.context.interfaceLang ?? "english")],
+    scripts: [{ children: configScript() }, ...analyticsHeadScripts(PUBLIC_CONFIG.analytics, match.context.interfaceLang ?? "english", loaderData?.viewer ? { uid: loaderData.viewer.id, email: loaderData.viewer.email } : null)],
     links: [
       // The faces on screen at first paint, preloaded with the page: a face that arrives later reflows the
       // text under the reader (see TXD-054). Everything else in fonts.css loads on demand.
@@ -68,7 +76,6 @@ function RootComponent() {
     document.documentElement.dataset.hydrated = "true";
     void initSentry();
   }, []);
-  useAppAnalytics(undefined);
   return (
     <RootDocument lang={interfaceLang === "hebrew" ? "he" : "en"} dir={interfaceLang === "hebrew" ? "rtl" : "ltr"}>
       <InterfaceLangProvider lang={interfaceLang}>
@@ -94,6 +101,19 @@ function Shell() {
   const reading = isReaderPath(loc.pathname) && !book;
   const search = useHeaderSearch();
   const menuOpen = useMobileMenuOpen();
+  const viewer = useViewer();
+  // visitor marking and once-per-session events (the old ReaderApp mount)
+  useAppAnalytics(!!viewer);
+  // sign-in plumbing of the old ReaderApp: close out an SSO redirect's funnel attempt, remember which control started a sign-up,
+  // and (signed out, a Google client configured) load Google Identity Services for One Tap, as the old base.html did
+  useEffect(() => {
+    resumePendingSignUpAttempt();
+    installSignupSourceCapture();
+  }, []);
+  useEffect(() => {
+    if (!viewer && SSO_CONFIG.googleClientId) loadGoogleIdentity();
+  }, [viewer]);
+  useGoogleOneTap({ googleClientId: SSO_CONFIG.googleClientId, enabled: !viewer });
   // going somewhere closes the phone menu
   useEffect(() => setMobileMenuOpen(false), [loc.pathname]);
   // data-anl-* declarations anywhere in the page (the old attach("#s2, #staticContentWrapper", …))
@@ -112,7 +132,7 @@ function Shell() {
     <div ref={appRef} className={appCss.app} data-reading={reading ? "true" : undefined} data-menu={menuOpen ? "open" : undefined}>
       <SkipLink />
       <div className={appCss.header}>
-        <SiteHeader next={loc.pathname + (loc.searchStr ?? "")} search={search} menuOpen={menuOpen} onMenuOpenChange={setMobileMenuOpen} />
+        <SiteHeader next={loc.pathname + (loc.searchStr ?? "")} search={search} viewer={viewer} menuOpen={menuOpen} onMenuOpenChange={setMobileMenuOpen} />
       </div>
       <main id="main" className={appCss.main} tabIndex={-1}>
         <Outlet />
@@ -124,9 +144,10 @@ function Shell() {
 }
 
 const simpleAnalytics = simpleAnalyticsScript(PUBLIC_CONFIG.analytics);
-const saMetadata = saMetadataScript(PUBLIC_CONFIG.analytics, { loggedIn: false, staff: false });
 
 function RootDocument({ children, lang, dir }: Readonly<{ children: ReactNode; lang: string; dir: string }>) {
+  const viewer = Route.useLoaderData()?.viewer;
+  const saMetadata = saMetadataScript(PUBLIC_CONFIG.analytics, { loggedIn: !!viewer, staff: !!viewer?.email?.includes("sefaria.org") });
   return (
     <html lang={lang} dir={dir}>
       <head>

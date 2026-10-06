@@ -40,3 +40,8 @@
 
 .button[aria-disabled="true"] { cursor: not-allowed; opacity: 0.55; box-shadow: none; }
 .button[aria-busy="true"] { cursor: progress; }
+
+/* The form-action size of the auth card (static/css/common-component.scss .auth-primary + .fullwidth): 51px, 16px/600, 4px radius,
+   1.5px border, no shadow. VERIFIED against www.sefaria.org/login 2026-10-06. */
+.xl { min-height: 51px; padding: 10px 20px; border-width: 1.5px; border-radius: 4px; font-size: 16px; font-weight: 600; box-shadow: none; }
+.xl[aria-disabled="true"] { opacity: 1; }

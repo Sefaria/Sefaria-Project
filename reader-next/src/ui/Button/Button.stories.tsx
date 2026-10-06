@@ -30,3 +30,4 @@ export const Loading: Story = { args: { loading: true, variant: "primary", child
 export const AsLink: Story = { args: { href: "/texts", children: "Browse texts" } };
 export const Block: Story = { args: { block: true, variant: "primary" }, parameters: { layout: "padded" } };
 export const Hebrew: Story = { args: { children: "לרשימת התרגומים" }, globals: { interfaceLang: "hebrew" } };
+export const AuthPrimary: Story = { args: { variant: "primary", size: "xl", block: true, children: "Continue with Email" }, decorators: [(Story) => <div style={{ width: 348 }}><Story /></div>] };

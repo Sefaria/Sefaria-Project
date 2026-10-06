@@ -15,3 +15,5 @@ type Story = StoryObj<typeof meta>;
 export const Desktop: Story = { args: {} };
 export const Hebrew: Story = { args: {}, decorators: [(Story) => <InterfaceLangProvider lang="hebrew"><Story /></InterfaceLangProvider>] };
 export const Phone: Story = { args: {}, globals: { viewport: { value: "mobile1" } }, parameters: { viewport: { defaultViewport: "mobile1" } } };
+export const SignedIn: Story = { args: { viewer: { name: "Ada Lovelace", profileUrl: "/profile/ada-lovelace" } } };
+export const SignedInPhone: Story = { args: { viewer: { name: "Ada Lovelace" } }, globals: { viewport: { value: "mobile1" } }, parameters: { viewport: { defaultViewport: "mobile1" } } };
