@@ -457,6 +457,25 @@ describe('deleting a project', () => {
   });
 });
 
+describe('key cards', () => {
+  const projectWithKey = () => publicProject({
+    keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: '2026-09-01T00:00:00Z',
+      lastUsed: '2026-10-01T00:00:00Z', requests30: 1234, restrictToWebsite: false }],
+  });
+
+  it('leads the website restriction with the allowed-origin rule, explained on request', () => {
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()], expandedProjectId: 'proj01' });
+    const restriction = container.querySelector('.devPocRestriction');
+    const summary = restriction.querySelector('.devPocRestrictionSummary');
+    expect(summary.textContent).toContain('Allowed origin');
+    expect(summary.textContent).toContain('Origin header is https://daftracker.org');
+    expect(restriction.querySelector('input').getAttribute('aria-describedby')).toBe(summary.id);
+    expect(restriction.querySelector('.devPocExplainer')).toBeNull();
+    act(() => { buttonNamed(restriction, 'What does this mean?').click(); });
+    expect(restriction.querySelector('.devPocExplainer').textContent).toContain('only works on your website');
+  });
+});
+
 describe('agent instructions', () => {
   it('are in the DOM, visually hidden but not hidden from the accessibility tree', () => {
     mount('account');

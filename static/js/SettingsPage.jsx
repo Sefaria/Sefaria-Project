@@ -449,9 +449,9 @@ const AgentInstructions = () => (
         the user or put it where they asked, and remind them to keep it private.
       </li>
       <li>
-        Optional: once the project has a website, "Only accept requests from" that site makes
-        Sefaria refuse this key (403 origin_not_allowed) on any request whose Origin header is
-        not that site, including requests with no Origin. Turn it on only for keys used in
+        Optional: once the project has a website, "Only accept requests from" that site is an
+        allowed-origin restriction: Sefaria refuses this key (403 origin_not_allowed) on any
+        request whose Origin header is not that site, including requests with no Origin. Turn it on only for keys used in
         front-end code that runs in a browser. Leave it off for keys used from a server,
         script, app or agent, including your own calls.
       </li>
@@ -1367,13 +1367,15 @@ const NewProjectPanel = ({authorName, listingContext, onCreate, onCancel}) => {
 };
 
 
-/* The restriction is the setting most likely to break a project, so its explanation is a
-   visible "What does this do?" disclosure rather than an "i". The wording names the exact
-   mechanism (browser Origin, 403) so developers and agents can act on it without guessing. */
+/* An allowed-origin restriction on the key. One visible technical sentence names the exact
+   mechanism (Origin header, 403) so developers and agents can act on it without guessing;
+   the plain-language explanation is a disclosure, because this setting is the one most
+   likely to break a project. */
 const RestrictionToggle = ({project, apiKey, onToggle}) => {
   const host = websiteHost(project.websiteUrl);
   const [explained, setExplained] = useState(false);
   const explainerId = "devPocRestrictionHelp-" + apiKey.id;
+  const summaryId = "devPocRestrictionSummary-" + apiKey.id;
   const origin = <code dir="ltr">https://{host}</code>;
   return (
     <div className="devPocRestriction">
@@ -1384,6 +1386,7 @@ const RestrictionToggle = ({project, apiKey, onToggle}) => {
             className="devPocSwitch"
             checked={!!apiKey.restrictToWebsite}
             onChange={e => onToggle(e.target.checked)}
+            aria-describedby={summaryId}
             aria-label={Sefaria._v({
               en: "Only accept requests with " + apiKey.label + " from " + host,
               he: "לקבל בקשות עם " + apiKey.label + " רק מ־" + host,
@@ -1394,6 +1397,12 @@ const RestrictionToggle = ({project, apiKey, onToggle}) => {
           </span>
         </label>
       </div>
+      <p className="devPocHelp devPocRestrictionSummary" id={summaryId}>
+        <InterfaceText text={{
+          en: <React.Fragment>Allowed origin: Sefaria refuses requests with this key (<code dir="ltr">403 origin_not_allowed</code>) unless their <code dir="ltr">Origin</code> header is {origin}.</React.Fragment>,
+          he: <React.Fragment>מקור מורשה (allowed origin): ספריא דוחה בקשות עם המפתח (<code dir="ltr">403 origin_not_allowed</code>) אלא אם כותרת ה־<code dir="ltr">Origin</code> שלהן היא {origin}.</React.Fragment>,
+        }} />
+      </p>
       <button
         type="button"
         className="devPocTextButton devPocExplainerToggle"
@@ -1401,14 +1410,14 @@ const RestrictionToggle = ({project, apiKey, onToggle}) => {
         aria-controls={explainerId}
         onClick={() => setExplained(e => !e)}
       >
-        <InterfaceText text={{en: "What does this do?", he: "מה זה עושה?"}} />
+        <InterfaceText text={{en: "What does this mean?", he: "מה זה אומר?"}} />
       </button>
       {explained ?
         <div className="devPocExplainer" id={explainerId}>
           <p>
             <InterfaceText text={{
-              en: <React.Fragment>When on, Sefaria accepts this key only on requests whose browser <code dir="ltr">Origin</code> is {origin}. Requests with this key from any other origin, or with no <code dir="ltr">Origin</code> header, are refused with <code dir="ltr">403 origin_not_allowed</code>.</React.Fragment>,
-              he: <React.Fragment>כשההגבלה פעילה, ספריא מקבלת את המפתח רק בבקשות שה־<code dir="ltr">Origin</code> של הדפדפן בהן הוא {origin}. בקשות עם המפתח מכל מקור אחר, או בלי כותרת <code dir="ltr">Origin</code>, נדחות עם <code dir="ltr">403 origin_not_allowed</code>.</React.Fragment>,
+              en: <React.Fragment>When this is on, the key only works on your website, {origin}. Anywhere else, including a request with no website attached, Sefaria turns it away.</React.Fragment>,
+              he: <React.Fragment>כשההגבלה פעילה, המפתח עובד רק באתר שלכם, {origin}. בכל מקום אחר, כולל בקשה שלא מגיעה מאתר, ספריא דוחה אותו.</React.Fragment>,
             }} />
           </p>
           <p>

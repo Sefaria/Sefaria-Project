@@ -17677,6 +17677,8 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocPage .devPocExplainer p + p { margin-top: var(--devPoc-s1); }
 .devPocExplainer code { font-size: 12px; overflow-wrap: anywhere; }
 .devPocRestrictionRow { display: flex; align-items: flex-start; gap: var(--devPoc-s1); }
+.devPocPage p.devPocRestrictionSummary { margin: var(--devPoc-s1) 0 0; }
+.devPocRestrictionSummary code { font-size: 12px; overflow-wrap: anywhere; }
 .devPocTip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 4px; }
 .devPocInfoButton {
   display: inline-flex;
