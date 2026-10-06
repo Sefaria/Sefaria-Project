@@ -48,6 +48,7 @@ auto-corrects exactly as before.
 """
 import math
 import re
+import tempfile
 import time
 from collections import Counter
 from dataclasses import dataclass, field
@@ -70,6 +71,9 @@ _META_ID = "__meta__"
 # millions of phrases, now that every 1-3 word run is counted rather than every word) doesn't
 # assemble one enormous in-memory request.
 _BULK_WRITE_CHUNK_SIZE = 5000
+# build_top_n_grams splits each phrase-length level into this many passes over the spooled
+# segments to bound the size of the in-memory counter (see its docstring).
+_DEFAULT_NUM_SHARDS = 16
 
 # The longest phrase (in words) the table indexes and autocorrect_query will ever try to
 # correct as a unit. Chosen so correction stays scoped to a coherent phrase rather than a
@@ -131,31 +135,36 @@ def _segment_phrases(tokens: List[str], max_n: int = MAX_PHRASE_WORDS) -> set:
 
 # --- Build / persist / load ----------------------------------------------------------
 
-def build_top_n_grams(min_doc_count: int, langs=('he', 'en'), categories: Optional[List[str]] = None) -> Dict[str, int]:
+def _frequent_ngrams(tokens: List[str], n: int, frequent_prev: Dict[str, int],
+                     shard: int = 0, num_shards: int = 1) -> set:
     """
-    Walk every segment in the library (optionally scoped to `categories`, e.g. ["Tanakh"])
-    and count, per normalized phrase (every contiguous run of 1 to MAX_PHRASE_WORDS words),
-    the number of distinct segments ("documents") it appears in at least once. A phrase that
-    occurs 5 times in one segment and never again still has a doc count of 1. Returns only
-    phrases whose doc count is > `min_doc_count`.
+    Every contiguous run of exactly `n` (>= 2) words in `tokens` whose two (n-1)-word
+    sub-runs are both in `frequent_prev` (the surviving phrases of length n-1). A phrase can
+    only appear in more than k documents if each of its sub-phrases does too, so a run with a
+    non-surviving sub-run can never clear the threshold and isn't worth a counter slot.
+    Deduped within the segment, like `_segment_phrases`. With `num_shards` > 1 only phrases
+    whose hash falls in `shard` are returned, so a caller can split one level's counting
+    across several passes to cap the size of its counter.
+    """
+    phrases = set()
+    for start in range(0, len(tokens) - n + 1):
+        if " ".join(tokens[start:start + n - 1]) in frequent_prev and \
+                " ".join(tokens[start + 1:start + n]) in frequent_prev:
+            phrase = " ".join(tokens[start:start + n])
+            if num_shards == 1 or hash(phrase) % num_shards == shard:
+                phrases.add(phrase)
+    return phrases
 
-    Uses Version.walk_thru_contents, which bulk-fetches a whole version's content in one
-    query, instead of one ref.text() call per segment -- far fewer round trips to Mongo.
 
-    Every version of a requested language is walked (not just the top-priority one), but
-    each tref is only ever counted once per (index, lang): `index.versionSet()` sorts by
-    priority descending (VersionSet's default sort), and a `seen_trefs` set shared across
-    all of an index's versions of a language -- not reset per version -- skips a tref the
-    moment it's been counted once. Walking in priority order means that's normally the
-    top-priority version's wording; a tref only falls through to a lower-priority version
-    when the higher-priority one doesn't have it at all (a partial translation, a stub,
-    etc.), so a partial top version can't silently drop that segment from the table.
-    The same set is what prevents two versions that both cover a tref from counting its
-    phrases twice -- there is no other version-counting logic here.
+def _spool_tokenized_segments(spool, langs, categories: Optional[List[str]]) -> Counter:
+    """
+    Walk the library once (see `build_top_n_grams` for the version/dedup rules), write every
+    non-empty tokenized segment to `spool` as one space-joined line, and return the document
+    counts of the single-word phrases.
     """
     from sefaria.model import IndexSet
 
-    doc_counts = Counter()
+    unigram_counts = Counter()
     query = {"categories": {"$in": categories}} if categories else {}
     indexes = list(IndexSet(query))
     total = len(indexes)
@@ -183,15 +192,78 @@ def build_top_n_grams(min_doc_count: int, langs=('he', 'en'), categories: Option
                 _seen.add(tref)
                 if not segment_str:
                     return
+                tokens = tokenize(segment_str, _lang)
+                if not tokens:
+                    return
+                spool.write(" ".join(tokens) + "\n")
                 # A phrase counts once per document, no matter how many times it recurs in it.
-                doc_counts.update(_segment_phrases(tokenize(segment_str, _lang)))
+                unigram_counts.update(set(tokens))
 
             try:
                 version.walk_thru_contents(action)
             except Exception as e:
                 logger.warning(f"Failed walking {index.title} ({version.versionTitle}, {lang}): {e}")
+    return unigram_counts
 
-    return {phrase: count for phrase, count in doc_counts.items() if count > min_doc_count}
+
+def build_top_n_grams(min_doc_count: int, langs=('he', 'en'), categories: Optional[List[str]] = None,
+                      num_shards: int = _DEFAULT_NUM_SHARDS) -> Dict[str, int]:
+    """
+    Walk every segment in the library (optionally scoped to `categories`, e.g. ["Tanakh"])
+    and count, per normalized phrase (every contiguous run of 1 to MAX_PHRASE_WORDS words),
+    the number of distinct segments ("documents") it appears in at least once. A phrase that
+    occurs 5 times in one segment and never again still has a doc count of 1. Returns only
+    phrases whose doc count is > `min_doc_count`.
+
+    Memory: counting every 1..MAX_PHRASE_WORDS-gram of the whole library in one Counter holds
+    hundreds of millions of mostly-singleton phrases and can exhaust RAM. Instead this counts
+    level by level (Apriori): pass 1 tokenizes each segment once, spools it to a temp file on
+    disk, and counts single words; each later pass n re-reads the spool and counts only the
+    n-word runs whose two (n-1)-word sub-runs survived the previous pass (see
+    `_frequent_ngrams`). The result is identical to counting everything, but only phrases that
+    can still clear the threshold ever occupy memory. Even so, a level's counter (bigrams
+    especially) can reach tens of GB, so each level is itself split into `num_shards` passes
+    over the spool, each counting only the phrases whose hash falls in that shard -- peak
+    memory is roughly 1/num_shards of the level's full counter, at the cost of re-reading the
+    spool that many times per level.
+
+    Uses Version.walk_thru_contents, which bulk-fetches a whole version's content in one
+    query, instead of one ref.text() call per segment -- far fewer round trips to Mongo.
+
+    Every version of a requested language is walked (not just the top-priority one), but
+    each tref is only ever counted once per (index, lang): `index.versionSet()` sorts by
+    priority descending (VersionSet's default sort), and a `seen_trefs` set shared across
+    all of an index's versions of a language -- not reset per version -- skips a tref the
+    moment it's been counted once. Walking in priority order means that's normally the
+    top-priority version's wording; a tref only falls through to a lower-priority version
+    when the higher-priority one doesn't have it at all (a partial translation, a stub,
+    etc.), so a partial top version can't silently drop that segment from the table.
+    The same set is what prevents two versions that both cover a tref from counting its
+    phrases twice -- there is no other version-counting logic here.
+    """
+    with tempfile.TemporaryFile(mode="w+", encoding="utf-8") as spool:
+        unigram_counts = _spool_tokenized_segments(spool, langs, categories)
+        result = {w: c for w, c in unigram_counts.items() if c > min_doc_count}
+        del unigram_counts
+        logger.info(f"1-word phrases kept: {len(result)}")
+
+        frequent_prev = result
+        for n in range(2, MAX_PHRASE_WORDS + 1):
+            if not frequent_prev:
+                break
+            kept = {}
+            for shard in range(num_shards):
+                counts = Counter()
+                spool.seek(0)
+                for line in spool:
+                    counts.update(_frequent_ngrams(line.split(), n, frequent_prev, shard, num_shards))
+                kept.update({p: c for p, c in counts.items() if c > min_doc_count})
+                del counts
+                logger.info(f"{n}-word phrases: shard {shard + 1}/{num_shards} done, {len(kept)} kept so far")
+            frequent_prev = kept
+            logger.info(f"{n}-word phrases kept: {len(frequent_prev)}")
+            result.update(frequent_prev)
+    return result
 
 
 def save_top_n_grams(top_n_grams: Dict[str, int], min_doc_count: int) -> None:

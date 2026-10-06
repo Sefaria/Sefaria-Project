@@ -497,3 +497,31 @@ def test_load_top_n_grams_returns_empty_dict_on_error(monkeypatch):
 
     monkeypatch.setattr(top_n_grams_for_search_autocorrect, "db", _FakeDb(_BrokenCollection()))
     assert load_top_n_grams() == {}
+
+
+# --------------------------------------------------------------------------- #
+#  build_top_n_grams: level-wise (low-memory) counting                        #
+# --------------------------------------------------------------------------- #
+
+@pytest.mark.parametrize("min_doc_count", [0, 1, 2, 3])
+def test_build_top_n_grams_matches_brute_force_count(monkeypatch, min_doc_count):
+    from collections import Counter
+    segments = [
+        "a b c a b", "a b c d", "b c d", "a b", "x y z", "x y", "a b c", "c d a b", "q",
+    ]
+
+    def fake_spool(spool, langs, categories):
+        counts = Counter()
+        for seg in segments:
+            spool.write(seg + "\n")
+            counts.update(set(seg.split()))
+        return counts
+
+    monkeypatch.setattr(top_n_grams_for_search_autocorrect, "_spool_tokenized_segments", fake_spool)
+
+    brute = Counter()
+    for seg in segments:
+        brute.update(_segment_phrases(seg.split()))
+    expected = {p: c for p, c in brute.items() if c > min_doc_count}
+
+    assert top_n_grams_for_search_autocorrect.build_top_n_grams(min_doc_count) == expected

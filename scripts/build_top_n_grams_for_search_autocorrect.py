@@ -32,11 +32,15 @@ if __name__ == '__main__':
                          help="Languages to pull segment text in. Default: he en")
     parser.add_argument("--categories", nargs="+", default=None,
                          help="Restrict to these top-level categories (e.g. Tanakh Mishnah). Default: whole library")
+    parser.add_argument("--num-shards", type=int, default=16,
+                         help="Split each phrase-length counting pass into this many hash shards to cap RAM "
+                              "(more shards = less memory, more time). Default: 16")
     args = parser.parse_args()
 
     print(f"Building top-n-grams table (min_doc_count={args.min_doc_count}, langs={args.langs}, "
           f"categories={args.categories or 'ALL'})...")
-    top_n_grams = build_top_n_grams(args.min_doc_count, langs=args.langs, categories=args.categories)
+    top_n_grams = build_top_n_grams(args.min_doc_count, langs=args.langs, categories=args.categories,
+                                    num_shards=args.num_shards)
     print(f"{len(top_n_grams)} phrases cleared the threshold. Writing to Mongo (db.top_n_grams_for_search_autocorrect)")
     save_top_n_grams(top_n_grams, args.min_doc_count)
     print("Done.")
