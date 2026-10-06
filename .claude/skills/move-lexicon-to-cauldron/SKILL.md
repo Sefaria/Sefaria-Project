@@ -28,7 +28,7 @@ The user is a longtime Sefaria employee. Keep the conversation bare-bones. The o
 4. **Errors**, one short line each, saying which part failed (lexicon / entries / word forms / term / category / Index / version / links).
 5. **A final message** (Step 6).
 
-Do not explain Sefaria basics (lexicons, entries, word forms, versions, links, cauldrons). Do not explain what the script does, show the command you'll run, or explain shell commands. Do not narrate your checks. This overrides any general instruction to explain things in plain language.
+Do not explain Sefaria basics (lexicons, entries, word forms, versions, links, cauldrons). Do not explain what the script does or explain shell commands. Do not narrate your checks. This overrides any general instruction to explain things in plain language.
 
 ## Rules that always apply
 
