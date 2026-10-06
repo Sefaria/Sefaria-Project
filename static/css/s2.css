@@ -17984,8 +17984,8 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   }
 }
 
-/* The mock provider chooser. It stands in for the Google or Apple sign-in window, and the
-   magenta banner is the POC test panel's colour so nobody mistakes it for a real prompt. */
+/* The mock confirmation email. The magenta banner is the POC test panel's colour so nobody
+   mistakes it for a real message. */
 .devPocMockSso {
   position: fixed;
   inset: 0;
@@ -18021,37 +18021,7 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
   text-transform: uppercase;
 }
 .devPocMockSsoBody { padding: 28px 28px 22px; color: #252b32; }
-.devPocMockSso .devPocMockSsoBrand {
-  margin: 0 0 18px;
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: #5f6368;
-}
 .devPocMockSso h2 { margin: 0; font-size: 22px; font-weight: 400; text-align: left; text-transform: none; }
-.devPocMockSso .devPocMockSsoSub { margin: 6px 0 0; font-size: 14px; color: #5f6368; }
-.devPocMockSsoAccount {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 22px;
-  padding: 12px;
-  border: 1px solid #dadce0;
-  border-radius: 8px;
-}
-.devPocMockSsoAvatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #18345d;
-  color: #fff;
-  font-size: 13px;
-}
-.devPocMockSsoAccountText { display: flex; flex-direction: column; font-size: 14px; }
-.devPocMockSsoAccountText span { color: #5f6368; }
 .devPocMockSsoActions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 26px; }
 .devPocMockSsoCancel, .devPocMockSsoContinue {
   padding: 9px 20px;
@@ -18061,8 +18031,6 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 }
 .devPocMockSsoCancel { background: transparent; border: none; color: #18345d; }
 .devPocMockSsoContinue { background: #18345d; border: 1px solid #18345d; color: #fff; }
-.devPocSsoAlternative { margin-top: var(--devPoc-s3); padding-top: var(--devPoc-s3); border-top: 1px solid var(--devPoc-line); }
-.devPocPage p.devPocOr { margin: 0 0 var(--devPoc-s2); font-size: 14px; font-weight: 500; }
 .devPocMockEmail h2 { font-size: 20px; margin: 8px 0 12px; }
 .devPocMockEmailMeta { font-size: 12px; color: #626971; margin: 0; }
 .devPocMockEmailFoot { font-size: 12px; color: #626971; margin-top: 16px; }

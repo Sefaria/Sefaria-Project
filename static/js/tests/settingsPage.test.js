@@ -548,12 +548,16 @@ describe('Hebrew interface', () => {
 describe('confirming the email', () => {
   const unverified = { developerEnabled: false, ssoOverride: false };
 
-  it('offers an emailed link first, with Google or Apple as the alternative', () => {
+  it('offers only the emailed link, never a change of sign-in method', () => {
     mount('developer', unverified);
     act(() => { buttonNamed(developerPanel(), 'Get started').click(); });
-    const actions = Array.from(developerPanel().querySelectorAll('button')).map(b => b.textContent.trim());
-    expect(actions.indexOf('Email me a confirmation link')).toBeLessThan(actions.indexOf('Continue with Google'));
+    expect(buttonNamed(developerPanel(), 'Email me a confirmation link')).toBeTruthy();
+    expect(developerPanel().textContent).not.toContain('Google');
+    expect(developerPanel().textContent).not.toContain('Apple');
     expect(developerPanel().textContent).toContain('you keep signing in the way you do now');
+
+    act(() => { buttonNamed(developerPanel(), 'Email me a confirmation link').click(); });
+    expect(developerPanel().textContent).not.toContain('Google');
   });
 
   it('shows the check-your-email step once the link is sent', () => {
