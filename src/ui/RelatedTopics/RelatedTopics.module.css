@@ -1,0 +1,7 @@
+.module { margin-block-start: var(--sefaria-space-6); }
+.list { list-style: none; margin: 0; padding: 0; font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); }
+.list li { padding-block: var(--sefaria-space-1); }
+.list a { color: var(--sefaria-color-text); text-decoration: none; }
+.list a:hover { text-decoration: underline; }
+.more { margin-block-start: var(--sefaria-space-2); padding: 0; border: 0; background: none; font: inherit; font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); color: var(--sefaria-color-text-secondary); cursor: pointer; }
+.more:hover { text-decoration: underline; }

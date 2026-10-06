@@ -1,0 +1,58 @@
+# Progress
+
+Updated as work lands. "Atlas" = `docs/features/features.json` (945 features). Run `npm run features:coverage`.
+
+## Built
+
+| Area | What | Tests |
+|---|---|---|
+| Foundation | TanStack Start app with SSR, Query hydration, Storybook 10 + a11y, Vitest (unit + stories), Playwright e2e | — |
+| Library cache | TanStack Query with per-class policies, IndexedDB per-query persistence, ref index (book metadata + ref aliases), section-granular text cache, neighbour prefetch | `src/lib/text/queries.test.ts`: second read of a section, a verse in it, or a super-section alias makes **zero** requests, including after a simulated reload |
+| Refs | URL ⇄ ref codec, Hebrew numerals, Talmud/Folio address arithmetic | unit |
+| Text model | One normalised model for every book type (verified against 36 recorded responses); alt-structure markers attached to segments | `book-types.test.ts` matrix |
+| Text pipeline | Safe HTML, citations as links, footnotes, poetry, itags, Vilna/Venice overlays, vocalization, Talmud punctuation | unit on real fixtures |
+| Settings | Model, old-cookie compatibility, display-menu rules, URL params (`lang`, `aliyot`, `ven`, `vhe`) | unit |
+| Components | tokens, Button, Link, Icon, IconButton, InterfaceText, Spinner, Skeleton, Feedback states, SegmentedControl, Switch, Stepper, Popover, DisplaySettingsMenu, PanelHeader, CategoryColorLine, SegmentText, Segment, SectionTitle, ParashahHeader, ReaderSurface, TextSection | unit + story tests (axe) |
+| Reader page | `/<ref>` route: SSR, 301 to canonical ref, 404 for unknown, verse/range highlight, settings menu, settings cookies | e2e |
+| Scrolling column | infinite scroll up/down from the cache, no jump on prepend, visible-section tracking → URL + title through the router, verse links scroll into view | 12 e2e + unit |
+| Scrolling, polished | jump-free reading (anchor keeping, pre-paint placement, fonts self-hosted and preloaded, inline font runs that cannot change line height), highlight + sidebar follow the reader, segment-level URL, range collapse, selection pinning, neighbour sections preloaded with the page | `e2e/smoothness.spec.ts` (after-paint jump analysis), `scripts/jank-probe.mjs` |
+| Workspace and panels | Layout tree (rows/columns; reorder and stacking ready), panels own their side panels, pure operations, old-site sizing (68/32, 37/26/37), `p2=`/`w2=` URLs read and written (old gapped numbering accepted), per-panel scroll tracking and sidebars, citation opens beside, close cascades, phone = first panel + 54vh sidebar sheet | unit (tree, ops, sizing, codec, serializer), `SplitView` stories, `e2e/panels.spec.ts` |
+| Sidebar Resources home | top tools (About, Table of Contents, Search in this Text, Translations n), Related Texts, Resources (Sheets → Voices, Web Pages, Topics, Manuscripts, Torah Readings) and Tools with the old visibility rules and counts equal to sefaria.org's; unbuilt tools say so and link to sefaria.org | unit, stories, e2e |
+| Translations | sidebar list by language (old bucketing), previews, details (source, licence, history, buy, Open Text), Select swaps the text in place without moving the reader, Hebrew-only → bilingual rule | unit, stories (axe), `e2e/versions.spec.ts` |
+| Resources views | Topics (seven for Genesis 1:1, as sefaria.org), Manuscripts, Torah Readings (clip player), Web Pages (sites by page count → a site's pages; Berakhot 2a:1: 31 sites, 516 pages); Translations count per verse; Web Pages count only once loaded | unit, stories (axe), `e2e/topics|resources|webpages.spec.ts` |
+| Dictionaries | select up to three Hebrew words with the sidebar open → `lookup=…&with=Lexicon`: definitions from each applicable dictionary (Strong's, Jastrow, BDB…) with nested senses, citations that open beside, attribution; typed search; text identical to sefaria.org for the words checked | unit, stories, `e2e/lexicon.spec.ts` |
+| About this Text | book details (title, category, authors, description, composition), current translation and source versions with notes and facts, Select Version (writes `vhe`, bilingual), Version Open preview, related topics, downloads; text matches sefaria.org's for Tanakh, Talmud and a commentary | unit, stories (axe), `e2e/about.spec.ts` |
+| Translation Open | click a translation's preview → `with=Translation Open&vside=<title>\|<lang>` shows it alone with Open and back; both URL forms read; no extra request | unit, stories, e2e |
+| Header | title in the language of the version on screen, Talmud attribution, version line (English/bilingual only): 16/16 texts × languages identical to sefaria.org | unit, `e2e/header.spec.ts` |
+| Version preferences | corpus and translation-language preferences resolve the translation when the URL names none (server render too), validated against the text's versions; choosing a translation remembers it for the corpus and makes the panel bilingual | unit (resolution, cookies, loader), e2e |
+| Back/forward | every panel's place saved per history entry (segment + offset) at each change, restored before paint; back to another text restarts the column | `e2e/history.spec.ts`, unit |
+| Commentary links | in-app opens of a comment → base text + commentator (old rules); citations open beside (phones: in place) | unit, e2e |
+| Table of contents | sidebar `with=Navigation`: chapter grids, Torah portions with aliyot, Talmud chapters with dafs, complex-text titles, Zohar dafs/essay toggle, dictionary letters; the reader's place marked; links navigate the owning panel and keep the sidebar; text and marked places identical to sefaria.org for six books | unit (model on recorded index records), stories (axe), `e2e/toc.spec.ts` |
+| Search in this text | sidebar `with=SidebarSearch&sbsq=`: book-scoped full-text search (path filter → search-wrapper), results merged by ref with other versions beneath, bold matches, paging on scroll, Hebrew queries, empty/loading/error states, a hit opens in place in its version; text identical to sefaria.org | unit (query, merge, snippets, paging), stories (axe), `e2e/sidebar-search.spec.ts` |
+| Share, Feedback | Share: link box + copy, Facebook/X/email; Feedback: type, message, email, validation, optimistic 'sent' (failure returns to the form); the request is built but only sent when a reader submits | unit, stories (axe), `e2e/share-feedback.spec.ts` (feedback intercepted) |
+| Signed-out tools | Notes, Add to Sheet, Add Connection, Advanced › Add Translation / Add Connection open the sign-up modal (native dialog; eight kinds with the old words in both languages; Sign Up / Sign in go to the old account pages) | unit, stories (axe), `e2e/signup-gate.spec.ts` |
+| Text parity | `scripts/parity-text.mjs`: segments of 36 texts × bi/he/en identical to sefaria.org; `scripts/parity-shots.mjs` + `parity-diff.py`: pixel crops at 1280/390px (`docs/PARITY_SHOTS.md`); Hebrew in Taamey Frank, narrow-panel padding, clean copy, translations banner, continuous-layout gutter numbers | unit, e2e (`language-fallbacks`, `copy`, `continuous-numbers`) |
+| Shell | site header (desktop + phone menu, language/module/account menus), skip link + main landmark, cookie notice, `/interface/<lang>` (guarded redirect), Escape closes a panel, new panels take focus and scroll into view, route error state; named-entity sidebar | unit, stories (axe), `e2e/shell.spec.ts` |
+| Book pages | `/Genesis`, `/Berakhot`, …: title, category link, edition credit, Start / Continue Reading, Contents (TocView, page variant) and Versions tabs (`?tab=`), sidebar with description, related topics, download; canonical-title redirects; node refs stay texts; main column text identical to sefaria.org for 12 books | unit, stories (axe), `e2e/book-page.spec.ts`, `scripts/parity-book.mjs` |
+| Library | `/texts` (Browse the Library), `/texts/<category>/…` (nested sections, short descriptions, shortened titles, Talmud/Tosefta toggles, Hebrew ordering), sidebar modules (About Sefaria, Translations, Learning Schedules, Resources, About category, Weekly portion, Daf Yomi, Visualizations, Support, footer); main and sidebar text identical to sefaria.org for 25 pages | unit (model on the real catalog), stories (axe), `e2e/library.spec.ts`, `scripts/parity-library.mjs` |
+| Search | header autocomplete (name API, groups in the old reversed order, smart submit, Hebrew keyboard, gershayim repair) → `/search`: Sources/Books/Authors/Topics tabs with counts, All/Exact, sorts, cards with versions folded, filter tree in the old catalog order (commentary and Targum roots last), Books category filter, entity cards/sorts, infinite scroll, no-results and error states, loading skeleton, phone layout (strip + Sort & filter panel); matched words highlighted in the verse a result opens (history state, not the URL); dictionary word box on dictionary books, the Lexicon sidebar and the sidebar search; text identical to sefaria.org for 8 queries × tabs (desktop and phone) | unit, stories (axe), `e2e/search-page.spec.ts`, `header.spec.ts`, `lexicon.spec.ts`, `scripts/parity-search.mjs` |
+| Connections sidebar (MVP) | click a verse → `?with=all` Resources (Related Texts: categories, counts, EN tags, four rows + More) → category (All X + books, zero-count commentators) → connected texts for a commentator (one language, real text); back/close; link dots per verse that follow the filter; every sidebar state is a real link | 14 e2e + unit + stories |
+
+## Next (in build order, see COMPONENT_AUDIT §E)
+
+1. **Connections, rest of the sidebar**: Tools/Resources rows (About, Translations, Sheets, Web Pages, Topics, Manuscripts, Share, Add to Sheet…), recent-filter chips, itag markers for the filtered commentator, commentary-in-sidebar citation clicks, zero-link states per view, `Sheets`/`Topics` from `/api/related` per segment.
+2. **Panels, rest**: more panel kinds (book TOC, sheet, search, compare picker), `vside`/`lookup`/`sbsq` params, Escape closes a panel, horizontal auto-scroll to a new panel, sidebar language toggle (`lang2`).
+3. **Versions, rest**: header version menu, Hebrew source versions (`vhe`), "Translation Open" preview in the sidebar, corpus preference cookie (VER-002), About this Text (CON-039); **lexicon** on word selection.
+4. Phase 7 (topics pages, Voices, collections, profiles, accounts) — waits for the owner; see `docs/OWNER_QUESTIONS.md`.
+
+## Known gaps in what exists
+
+- Segment-number collisions in continuous layout (two segments starting on one line) are not offset; the old client measured with JS. Plan: CSS only.
+- `aria-label` on page overlay markers, `<mark>` for search highlights: not yet.
+- Header subtitle shows the version title; the old header shows an attribution string (e.g. “The William Davidson Talmud (Koren - Steinsaltz)”). Needs the index/version metadata.
+- Zohar paragraph numbers should honour `index_offsets_by_depth`.
+- `?with=` views: resources, category, connected texts; other named modes parse but show Resources.
+- Sidebar: `hasEnglish` for a category counts any source with an English version; the old "EN" tag is only shown on Torah-specific deployments, which we treat as always.
+- Sidebar book descriptions fall back to the book's own TOC description only; the old category-level fallback chain (`getDescriptions`) is not ported.
+- Link data weight: `/api/links/<section>` is ~600 KB gzipped for Genesis 1 (6 MB raw). It is fetched once per section after hydration and cached (7 days, IndexedDB). `/api/link-summary/<ref>` (10 KB) could draw the first Resources paint faster; not wired.
+- The "book title" line above the first section of a book is plain text; the old reader hid it in this view.

@@ -1,0 +1,136 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Genesis",
+    "Genesis Rabba",
+    "Genesis Emmanuel Gonzales",
+    "Kedushat Levi, Genesis, Genesis",
+    "Sefat Emet, Genesis, Genesis",
+    "Onkelos Genesis",
+    "Abarbanel, Genesis",
+    "Chizkooni, Genesis",
+    "Re'em, Genesis",
+    "Parashat Genesis"
+  ],
+  "completion_objects": [
+    {
+      "title": "Genesis",
+      "key": "Genesis",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Genesis Rabba",
+      "key": "Bereshit Rabbah",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Genesis",
+      "type": "Topic",
+      "key": "genesis",
+      "is_primary": true,
+      "order": 4999833,
+      "topic_pools": [
+        "torah_tab",
+        "library",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Genesis Emmanuel Gonzales",
+      "type": "User",
+      "key": "genesis-emmanuel-gonzales",
+      "pic": "https://storage.googleapis.com/sefaria-profile-pictures/genesis-emmanuel-gonzales-1626811136-small.png",
+      "order": 6999999,
+      "is_primary": true
+    },
+    {
+      "title": "Kedushat Levi, Genesis, Genesis",
+      "key": "Kedushat Levi, Genesis, Bereshit",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Sefat Emet, Genesis, Genesis",
+      "key": "Sefat Emet, Genesis, Bereshit",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Onkelos Genesis",
+      "key": "Onkelos Genesis",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Abarbanel, Genesis",
+      "key": "Abarbanel on Torah, Genesis",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Chizkooni, Genesis",
+      "key": "Chizkuni, Genesis",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Re'em, Genesis",
+      "key": "Mizrachi, Genesis",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Parashat Genesis",
+      "type": "Topic",
+      "key": "parashat-bereshit",
+      "is_primary": false,
+      "order": 4999738,
+      "topic_pools": [
+        "library",
+        "sheets"
+      ]
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Genesis",
+  "url": "Genesis",
+  "index": "Genesis",
+  "book": "Genesis",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": [],
+  "sectionNames": [
+    "Chapter",
+    "Verse"
+  ],
+  "heSectionNames": [
+    "פרק",
+    "פסוק"
+  ],
+  "addressExamples": [
+    "3",
+    "6"
+  ],
+  "heAddressExamples": [
+    "ג׳",
+    "ו׳"
+  ]
+}

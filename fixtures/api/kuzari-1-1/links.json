@@ -1,0 +1,1764 @@
+[
+  {
+    "_id": "696122a0b55513e6d216c1af",
+    "index_title": "LeNevukhei HaTekufah",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "LeNevukhei HaTekufah 1:1:5",
+    "anchorRef": "Kuzari 1:1",
+    "anchorRefExpanded": [
+      "Kuzari 1:1"
+    ],
+    "sourceRef": "LeNevukhei HaTekufah 1:1:5",
+    "sourceHeRef": "לנבוכי התקופה א׳:א׳:ה׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "compDate": [
+      1938,
+      1942
+    ],
+    "commentaryNum": 1.0005,
+    "collectiveTitle": {
+      "en": "LeNevukhei HaTekufah",
+      "he": "לנבוכי התקופה"
+    }
+  },
+  {
+    "_id": "6a158a6b6f19efcc1368ea83",
+    "index_title": "Malbim on Genesis",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Malbim on Genesis 10:21:1",
+    "anchorRef": "Kuzari 1:101",
+    "anchorRefExpanded": [
+      "Kuzari 1:101"
+    ],
+    "sourceRef": "Malbim on Genesis 10:21:1",
+    "sourceHeRef": "מלבי\"ם על בראשית י׳:כ״א:א׳",
+    "anchorVerse": 101,
+    "sourceHasEn": false,
+    "compDate": [
+      1845,
+      1875
+    ],
+    "commentaryNum": 21.0001,
+    "collectiveTitle": {
+      "en": "Malbim on Genesis",
+      "he": "מלבי\"ם על בראשית"
+    },
+    "heTitle": "מלבי\"ם על בראשית"
+  },
+  {
+    "_id": "695ea6228d828dfe928033d6",
+    "index_title": "Leviticus",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Leviticus 6:1-8:36",
+    "anchorRef": "Kuzari 1:102",
+    "anchorRefExpanded": [
+      "Kuzari 1:102"
+    ],
+    "sourceRef": "Leviticus 6:1-8:36",
+    "sourceHeRef": "ויקרא ו׳:א׳-ח׳:ל״ו",
+    "anchorVerse": 102,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 6.0001,
+    "collectiveTitle": {
+      "en": "Leviticus",
+      "he": "ויקרא"
+    },
+    "heTitle": "ויקרא"
+  },
+  {
+    "_id": "65a97cfce925d3b0369605ea",
+    "index_title": "Malbim on Exodus",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Malbim on Exodus 32:1:1",
+    "anchorRef": "Kuzari 1:103",
+    "anchorRefExpanded": [
+      "Kuzari 1:103"
+    ],
+    "sourceRef": "Malbim on Exodus 32:1:1",
+    "sourceHeRef": "מלבי\"ם על שמות ל״ב:א׳:א׳",
+    "anchorVerse": 103,
+    "sourceHasEn": false,
+    "compDate": [
+      1844,
+      1874
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Malbim on Exodus",
+      "he": "מלבי\"ם על שמות"
+    },
+    "heTitle": "מלבי\"ם על שמות"
+  },
+  {
+    "_id": "6960ca618f7b45fc30f2a677",
+    "index_title": "Peninei Halakhah, Shemitah and Yovel",
+    "category": "Halakhah",
+    "type": "",
+    "ref": "Peninei Halakhah, Shemitah and Yovel 1:4:3",
+    "anchorRef": "Kuzari 1:103",
+    "anchorRefExpanded": [
+      "Kuzari 1:103"
+    ],
+    "sourceRef": "Peninei Halakhah, Shemitah and Yovel 1:4:3",
+    "sourceHeRef": "פניני הלכה, שביעית ויובל א׳:ד׳:ג׳",
+    "anchorVerse": 103,
+    "sourceHasEn": false,
+    "compDate": [
+      2011,
+      2015
+    ],
+    "commentaryNum": 4.0003,
+    "collectiveTitle": {
+      "en": "Peninei Halakhah, Shemitah and Yovel",
+      "he": "פניני הלכה, שביעית ויובל"
+    }
+  },
+  {
+    "_id": "6a01aca9c45ba15e2495dc33",
+    "index_title": "Malbim on Leviticus",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Malbim on Leviticus, Shmini 3:1",
+    "anchorRef": "Kuzari 1:103",
+    "anchorRefExpanded": [
+      "Kuzari 1:103"
+    ],
+    "sourceRef": "Malbim on Leviticus, Shmini 3:1",
+    "sourceHeRef": "מלבי\"ם על ויקרא, שמיני ג׳:א׳",
+    "anchorVerse": 103,
+    "sourceHasEn": false,
+    "compDate": [
+      1844,
+      1874
+    ],
+    "commentaryNum": 3.0001,
+    "collectiveTitle": {
+      "en": "Malbim on Leviticus",
+      "he": "מלבי\"ם על ויקרא"
+    },
+    "heTitle": "שמיני"
+  },
+  {
+    "_id": "6a0664cedcbec2c7c81b076c",
+    "index_title": "Midbar Shur",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "Midbar Shur 33:9",
+    "anchorRef": "Kuzari 1:103",
+    "anchorRefExpanded": [
+      "Kuzari 1:103"
+    ],
+    "sourceRef": "Midbar Shur 33:9",
+    "sourceHeRef": "מדבר שור ל״ג:ט׳",
+    "anchorVerse": 103,
+    "sourceHasEn": false,
+    "compDate": [
+      1899
+    ],
+    "commentaryNum": 33.0009,
+    "collectiveTitle": {
+      "en": "Midbar Shur",
+      "he": "מדבר שור"
+    },
+    "heTitle": "מדבר שור"
+  },
+  {
+    "_id": "6a0ae8c667bc62a65c8b2526",
+    "index_title": "Shem MiShmuel",
+    "category": "Chasidut",
+    "type": "",
+    "ref": "Shem MiShmuel, Mishpatim 6:8",
+    "anchorRef": "Kuzari 1:103",
+    "anchorRefExpanded": [
+      "Kuzari 1:103"
+    ],
+    "sourceRef": "Shem MiShmuel, Mishpatim 6:8",
+    "sourceHeRef": "שם משמואל, משפטים ו׳:ח׳",
+    "anchorVerse": 103,
+    "sourceHasEn": false,
+    "compDate": [
+      1910,
+      1926
+    ],
+    "commentaryNum": 6.0008,
+    "collectiveTitle": {
+      "en": "Shem MiShmuel",
+      "he": "שם משמואל"
+    },
+    "heTitle": "משפטים"
+  },
+  {
+    "_id": "6a0aea8b2a4d14bc3fb4b833",
+    "index_title": "Shem MiShmuel",
+    "category": "Chasidut",
+    "type": "",
+    "ref": "Shem MiShmuel, Vayakhel 9:16",
+    "anchorRef": "Kuzari 1:103",
+    "anchorRefExpanded": [
+      "Kuzari 1:103"
+    ],
+    "sourceRef": "Shem MiShmuel, Vayakhel 9:16",
+    "sourceHeRef": "שם משמואל, ויקהל ט׳:ט״ז",
+    "anchorVerse": 103,
+    "sourceHasEn": false,
+    "compDate": [
+      1910,
+      1926
+    ],
+    "commentaryNum": 9.0016,
+    "collectiveTitle": {
+      "en": "Shem MiShmuel",
+      "he": "שם משמואל"
+    },
+    "heTitle": "ויקהל"
+  },
+  {
+    "_id": "6a0aeebea7908b1aa4ab51ec",
+    "index_title": "Shem MiShmuel",
+    "category": "Chasidut",
+    "type": "",
+    "ref": "Shem MiShmuel, Shavuot 18:5",
+    "anchorRef": "Kuzari 1:103",
+    "anchorRefExpanded": [
+      "Kuzari 1:103"
+    ],
+    "sourceRef": "Shem MiShmuel, Shavuot 18:5",
+    "sourceHeRef": "שם משמואל, שבועות י״ח:ה׳",
+    "anchorVerse": 103,
+    "sourceHasEn": false,
+    "compDate": [
+      1910,
+      1926
+    ],
+    "commentaryNum": 18.0005,
+    "collectiveTitle": {
+      "en": "Shem MiShmuel",
+      "he": "שם משמואל"
+    },
+    "heTitle": "שבועות"
+  },
+  {
+    "_id": "6a0af06c83cb7fe6b2b48ffc",
+    "index_title": "Shem MiShmuel",
+    "category": "Chasidut",
+    "type": "",
+    "ref": "Shem MiShmuel, Eikev 4:24",
+    "anchorRef": "Kuzari 1:103",
+    "anchorRefExpanded": [
+      "Kuzari 1:103"
+    ],
+    "sourceRef": "Shem MiShmuel, Eikev 4:24",
+    "sourceHeRef": "שם משמואל, עקב ד׳:כ״ד",
+    "anchorVerse": 103,
+    "sourceHasEn": false,
+    "compDate": [
+      1910,
+      1926
+    ],
+    "commentaryNum": 4.0024,
+    "collectiveTitle": {
+      "en": "Shem MiShmuel",
+      "he": "שם משמואל"
+    },
+    "heTitle": "עקב"
+  },
+  {
+    "_id": "6a13619717f6b82b61a7b130",
+    "index_title": "Ohel Ya'akov on Torah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Ohel Ya'akov on Torah, Beha'alotcha 6:10",
+    "anchorRef": "Kuzari 1:103",
+    "anchorRefExpanded": [
+      "Kuzari 1:103"
+    ],
+    "sourceRef": "Ohel Ya'akov on Torah, Beha'alotcha 6:10",
+    "sourceHeRef": "אהל יעקב על התורה, בהעלותך ו׳:י׳",
+    "anchorVerse": 103,
+    "sourceHasEn": false,
+    "commentaryNum": 6.001,
+    "collectiveTitle": {
+      "en": "Ohel Ya'akov on Torah",
+      "he": "אהל יעקב על התורה"
+    },
+    "heTitle": "בהעלותך"
+  },
+  {
+    "_id": "695fd87896492cd138966f8d",
+    "index_title": "Tov haLevanon",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Tov haLevanon, Fourth Treatise on Trust 4:160",
+    "anchorRef": "Kuzari 1:104",
+    "anchorRefExpanded": [
+      "Kuzari 1:104"
+    ],
+    "sourceRef": "Tov haLevanon, Fourth Treatise on Trust 4:160",
+    "sourceHeRef": "טוב הלבנון, שער רביעי - שער הביטחון ד׳:ק״ס",
+    "anchorVerse": 104,
+    "sourceHasEn": true,
+    "compDate": [
+      1730,
+      1770
+    ],
+    "commentaryNum": 4.016,
+    "collectiveTitle": {
+      "en": "Tov haLevanon",
+      "he": "טוב הלבנון"
+    }
+  },
+  {
+    "_id": "69601bdda7c505f140144b42",
+    "index_title": "Leviticus",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Leviticus 25:1-26:2",
+    "anchorRef": "Kuzari 1:105",
+    "anchorRefExpanded": [
+      "Kuzari 1:105"
+    ],
+    "sourceRef": "Leviticus 25:1-26:2",
+    "sourceHeRef": "ויקרא כ״ה:א׳-כ״ו:ב׳",
+    "anchorVerse": 105,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 25.0001,
+    "collectiveTitle": {
+      "en": "Leviticus",
+      "he": "ויקרא"
+    },
+    "heTitle": "ויקרא"
+  },
+  {
+    "_id": "6a1606a5ee98e1e3aaefc564",
+    "index_title": "Malbim on Deuteronomy",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Malbim on Deuteronomy 11:26:1",
+    "anchorRef": "Kuzari 1:115",
+    "anchorRefExpanded": [
+      "Kuzari 1:115"
+    ],
+    "sourceRef": "Malbim on Deuteronomy 11:26:1",
+    "sourceHeRef": "מלבי\"ם על דברים י״א:כ״ו:א׳",
+    "anchorVerse": 115,
+    "sourceHasEn": false,
+    "compDate": [
+      1844,
+      1874
+    ],
+    "commentaryNum": 26.0001,
+    "collectiveTitle": {
+      "en": "Malbim on Deuteronomy",
+      "he": "מלבי\"ם על דברים"
+    },
+    "heTitle": "מלבי\"ם על דברים"
+  },
+  {
+    "_id": "696288a8b9ff47a9e50cefa5",
+    "index_title": "Numbers",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Numbers 23:10",
+    "anchorRef": "Kuzari 1:121",
+    "anchorRefExpanded": [
+      "Kuzari 1:121"
+    ],
+    "sourceRef": "Numbers 23:10",
+    "sourceHeRef": "במדבר כ״ג:י׳",
+    "anchorVerse": 121,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 23.001,
+    "collectiveTitle": {
+      "en": "Numbers",
+      "he": "במדבר"
+    },
+    "heTitle": "במדבר"
+  },
+  {
+    "_id": "6a153aa67a8e8612454bab3e",
+    "index_title": "Radical Then, Radical Now",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "Radical Then, Radical Now, Part I; The Question, 1 Why Be Jewish? 16",
+    "anchorRef": "Kuzari 1:121",
+    "anchorRefExpanded": [
+      "Kuzari 1:121"
+    ],
+    "sourceRef": "Radical Then, Radical Now, Part I; The Question, 1 Why Be Jewish? 16",
+    "sourceHeRef": "רדיקלית אז, רדיקלית עכשיו, חלק ראשון; השאלה, א; מדוע להיות יהודי? ט״ז",
+    "anchorVerse": 121,
+    "sourceHasEn": false,
+    "commentaryNum": 16,
+    "collectiveTitle": {
+      "en": "Radical Then, Radical Now",
+      "he": "רדיקלית אז, רדיקלית עכשיו"
+    },
+    "heTitle": "א; מדוע להיות יהודי?"
+  },
+  {
+    "_id": "6962f0566f3243339249c9b7",
+    "index_title": "The Great Partnership; God, Science, and the Search for Meaning",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "The Great Partnership; God, Science, and the Search for Meaning, I; God and the Search for Meaning, 3; Diverging Paths 30",
+    "anchorRef": "Kuzari 1:25",
+    "anchorRefExpanded": [
+      "Kuzari 1:25"
+    ],
+    "sourceRef": "The Great Partnership; God, Science, and the Search for Meaning, I; God and the Search for Meaning, 3; Diverging Paths 30",
+    "sourceHeRef": "השותפות הגדולה; הדת, המדע והחיפוש אחר משמעות, חלק ראשון; אלוהים והחיפוש אחר משמעות, פרק ג; שבילים מתפצלים ל׳",
+    "anchorVerse": 25,
+    "sourceHasEn": false,
+    "commentaryNum": 30,
+    "collectiveTitle": {
+      "en": "The Great Partnership; God, Science, and the Search for Meaning",
+      "he": "השותפות הגדולה; הדת, המדע והחיפוש אחר משמעות"
+    },
+    "heTitle": "פרק ג; שבילים מתפצלים"
+  },
+  {
+    "_id": "6a0ae2b28e25bcfdd424fcfb",
+    "index_title": "Shem MiShmuel",
+    "category": "Chasidut",
+    "type": "",
+    "ref": "Shem MiShmuel, Bereshit 2:5",
+    "anchorRef": "Kuzari 1:31",
+    "anchorRefExpanded": [
+      "Kuzari 1:31"
+    ],
+    "sourceRef": "Shem MiShmuel, Bereshit 2:5",
+    "sourceHeRef": "שם משמואל, בראשית ב׳:ה׳",
+    "anchorVerse": 31,
+    "sourceHasEn": false,
+    "compDate": [
+      1910,
+      1926
+    ],
+    "commentaryNum": 2.0005,
+    "collectiveTitle": {
+      "en": "Shem MiShmuel",
+      "he": "שם משמואל"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "6a0aedd0bc972e19d7493e17",
+    "index_title": "Shem MiShmuel",
+    "category": "Chasidut",
+    "type": "",
+    "ref": "Shem MiShmuel, Vaetchanan 4:14",
+    "anchorRef": "Kuzari 1:31",
+    "anchorRefExpanded": [
+      "Kuzari 1:31"
+    ],
+    "sourceRef": "Shem MiShmuel, Vaetchanan 4:14",
+    "sourceHeRef": "שם משמואל, ואתחנן ד׳:י״ד",
+    "anchorVerse": 31,
+    "sourceHasEn": false,
+    "compDate": [
+      1910,
+      1926
+    ],
+    "commentaryNum": 4.0014,
+    "collectiveTitle": {
+      "en": "Shem MiShmuel",
+      "he": "שם משמואל"
+    },
+    "heTitle": "ואתחנן"
+  },
+  {
+    "_id": "6a0e715d4e56c16ae7ade88a",
+    "index_title": "Sermons Unto My People",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "Sermons Unto My People, Chanuka, Purim, and Special Shabbatot 19:45",
+    "anchorRef": "Kuzari 1:31",
+    "anchorRefExpanded": [
+      "Kuzari 1:31"
+    ],
+    "sourceRef": "Sermons Unto My People, Chanuka, Purim, and Special Shabbatot 19:45",
+    "sourceHeRef": "דרשות אל עמי, חגים וזמנים שונים י״ט:מ״ה",
+    "anchorVerse": 31,
+    "sourceHasEn": false,
+    "compDate": [
+      1936
+    ],
+    "commentaryNum": 19.0045,
+    "collectiveTitle": {
+      "en": "Sermons Unto My People",
+      "he": "דרשות אל עמי"
+    },
+    "heTitle": "חגים וזמנים שונים"
+  },
+  {
+    "_id": "6a1d1deaf919b99df2346b42",
+    "index_title": "Pat Lechem",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Pat Lechem, Third Treatise on Service of God 5:62",
+    "anchorRef": "Kuzari 1:31",
+    "anchorRefExpanded": [
+      "Kuzari 1:31"
+    ],
+    "sourceRef": "Pat Lechem, Third Treatise on Service of God 5:62",
+    "sourceHeRef": "פת לחם, שער שלישי - שער עבודת האלוהים ה׳:ס״ב",
+    "anchorVerse": 31,
+    "sourceHasEn": false,
+    "compDate": [
+      1760,
+      1800
+    ],
+    "commentaryNum": 5.0062,
+    "collectiveTitle": {
+      "en": "Pat Lechem",
+      "he": "פת לחם"
+    }
+  },
+  {
+    "_id": "6ab5021b2f55e6ad2465028e",
+    "index_title": "Notes by Rabbi Yehoshua Hartman on Gevurot Hashem",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Notes by Rabbi Yehoshua Hartman on Gevurot Hashem 44:8",
+    "anchorRef": "Kuzari 1:31",
+    "anchorRefExpanded": [
+      "Kuzari 1:31"
+    ],
+    "sourceRef": "Notes by Rabbi Yehoshua Hartman on Gevurot Hashem 44:8",
+    "sourceHeRef": "פירושים והערות מהרב יהושע הרטמן על גבורות השם מ״ד:ח׳",
+    "anchorVerse": 31,
+    "sourceHasEn": false,
+    "compDate": [
+      2006,
+      2020
+    ],
+    "commentaryNum": 44.0008,
+    "collectiveTitle": {
+      "en": "Notes by Rabbi Yehoshua Hartman on Gevurot Hashem",
+      "he": "פירושים והערות מהרב יהושע הרטמן על גבורות השם"
+    }
+  },
+  {
+    "_id": "6a165f8f4611c53279cc2c48",
+    "index_title": "Lechem Shamayim on Mishnah Berakhot",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Lechem Shamayim on Mishnah Berakhot 7:3:4",
+    "anchorRef": "Kuzari 1:32",
+    "anchorRefExpanded": [
+      "Kuzari 1:32"
+    ],
+    "sourceRef": "Lechem Shamayim on Mishnah Berakhot 7:3:4",
+    "sourceHeRef": "לחם שמים על משנה ברכות ז׳:ג׳:ד׳",
+    "anchorVerse": 32,
+    "sourceHasEn": false,
+    "compDate": [
+      1722,
+      1728
+    ],
+    "commentaryNum": 3.0004,
+    "collectiveTitle": {
+      "en": "Lechem Shamayim on Mishnah Berakhot",
+      "he": "לחם שמים על משנה ברכות"
+    },
+    "heTitle": "לחם שמים על משנה ברכות"
+  },
+  {
+    "_id": "69606af97d785ba4c848c5fc",
+    "index_title": "Olat Reiyah",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "Olat Reiyah, Essays on Prayer, Paths of Action in Prayer 10",
+    "anchorRef": "Kuzari 1:35",
+    "anchorRefExpanded": [
+      "Kuzari 1:35"
+    ],
+    "sourceRef": "Olat Reiyah, Essays on Prayer, Paths of Action in Prayer 10",
+    "sourceHeRef": "עולת ראיה, עניני תפילה, דרכי פעולת התפלה י׳",
+    "anchorVerse": 35,
+    "sourceHasEn": true,
+    "compDate": [
+      1900,
+      1930
+    ],
+    "commentaryNum": 10,
+    "collectiveTitle": {
+      "en": "Olat Reiyah",
+      "he": "עולת ראיה"
+    },
+    "heTitle": "דרכי פעולת התפלה"
+  },
+  {
+    "_id": "6a097378ea45003ee2cb1320",
+    "index_title": "Yismach Moshe",
+    "category": "Chasidut",
+    "type": "",
+    "ref": "Yismach Moshe, Korach 5:2",
+    "anchorRef": "Kuzari 1:45",
+    "anchorRefExpanded": [
+      "Kuzari 1:45"
+    ],
+    "sourceRef": "Yismach Moshe, Korach 5:2",
+    "sourceHeRef": "ישמח משה, קרח ה׳:ב׳",
+    "anchorVerse": 45,
+    "sourceHasEn": false,
+    "compDate": [
+      1790,
+      1840
+    ],
+    "commentaryNum": 5.0002,
+    "collectiveTitle": {
+      "en": "Yismach Moshe",
+      "he": "ישמח משה"
+    },
+    "heTitle": "קרח"
+  },
+  {
+    "_id": "6a0aeae1a037fb6554673417",
+    "index_title": "Shem MiShmuel",
+    "category": "Chasidut",
+    "type": "",
+    "ref": "Shem MiShmuel, Shmini 7:9",
+    "anchorRef": "Kuzari 1:47",
+    "anchorRefExpanded": [
+      "Kuzari 1:47"
+    ],
+    "sourceRef": "Shem MiShmuel, Shmini 7:9",
+    "sourceHeRef": "שם משמואל, שמיני ז׳:ט׳",
+    "anchorVerse": 47,
+    "sourceHasEn": false,
+    "compDate": [
+      1910,
+      1926
+    ],
+    "commentaryNum": 7.0009,
+    "collectiveTitle": {
+      "en": "Shem MiShmuel",
+      "he": "שם משמואל"
+    },
+    "heTitle": "שמיני"
+  },
+  {
+    "_id": "6655ef6ccaead3b3dff2c711",
+    "index_title": "Shabbat",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Shabbat 146a:2",
+    "anchorRef": "Kuzari 1:53",
+    "anchorRefExpanded": [
+      "Kuzari 1:53"
+    ],
+    "sourceRef": "Shabbat 146a:2",
+    "sourceHeRef": "שבת קמ״ו א:ב׳",
+    "anchorVerse": 53,
+    "sourceHasEn": true,
+    "compDate": [
+      450,
+      550
+    ],
+    "commentaryNum": 291.0002,
+    "collectiveTitle": {
+      "en": "Shabbat",
+      "he": "שבת"
+    },
+    "heTitle": "שבת"
+  },
+  {
+    "_id": "6a1a8580dfc3f8bc1f53b7d4",
+    "index_title": "Malbim on Genesis",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Malbim on Genesis 11:7:2",
+    "anchorRef": "Kuzari 1:55",
+    "anchorRefExpanded": [
+      "Kuzari 1:55"
+    ],
+    "sourceRef": "Malbim on Genesis 11:7:2",
+    "sourceHeRef": "מלבי\"ם על בראשית י״א:ז׳:ב׳",
+    "anchorVerse": 55,
+    "sourceHasEn": false,
+    "compDate": [
+      1845,
+      1875
+    ],
+    "commentaryNum": 7.0002,
+    "collectiveTitle": {
+      "en": "Malbim on Genesis",
+      "he": "מלבי\"ם על בראשית"
+    },
+    "heTitle": "מלבי\"ם על בראשית"
+  },
+  {
+    "_id": "6a1dcde2063fbad2fbfd05d5",
+    "index_title": "Perush Maharzu on Bereshit Rabbah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Perush Maharzu on Bereshit Rabbah 36:1:15",
+    "anchorRef": "Kuzari 1:64",
+    "anchorRefExpanded": [
+      "Kuzari 1:64"
+    ],
+    "sourceRef": "Perush Maharzu on Bereshit Rabbah 36:1:15",
+    "sourceHeRef": "פירוש מהרז״ו על בראשית רבה ל״ו:א׳:ט״ו",
+    "anchorVerse": 64,
+    "sourceHasEn": false,
+    "compDate": [
+      1810,
+      1830
+    ],
+    "commentaryNum": 1.0015,
+    "collectiveTitle": {
+      "en": "Perush Maharzu on Bereshit Rabbah",
+      "he": "פירוש מהרז״ו על בראשית רבה"
+    },
+    "heTitle": "פירוש מהרז״ו על בראשית רבה"
+  },
+  {
+    "_id": "6962f067d1275d9d3dcc7a48",
+    "index_title": "The Great Partnership; God, Science, and the Search for Meaning",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "The Great Partnership; God, Science, and the Search for Meaning, Appendix; Jewish Sources on Creation, the Age of the Universe and Evolution 20",
+    "anchorRef": "Kuzari 1:67",
+    "anchorRefExpanded": [
+      "Kuzari 1:67"
+    ],
+    "sourceRef": "The Great Partnership; God, Science, and the Search for Meaning, Appendix; Jewish Sources on Creation, the Age of the Universe and Evolution 20",
+    "sourceHeRef": "השותפות הגדולה; הדת, המדע והחיפוש אחר משמעות, נספח; מקורות יהודיים על בריאה, גיל העולם ואבולוציה כ׳",
+    "anchorVerse": 67,
+    "sourceHasEn": false,
+    "commentaryNum": 20,
+    "collectiveTitle": {
+      "en": "The Great Partnership; God, Science, and the Search for Meaning",
+      "he": "השותפות הגדולה; הדת, המדע והחיפוש אחר משמעות"
+    },
+    "heTitle": "נספח; מקורות יהודיים על בריאה, גיל העולם ואבולוציה"
+  },
+  {
+    "_id": "680fe734a180e5b62faf4da9",
+    "index_title": "Marpeh la'Nefesh",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Marpeh la'Nefesh, Third Treatise on Service of God 3:26",
+    "anchorRef": "Kuzari 1:69-70",
+    "anchorRefExpanded": [
+      "Kuzari 1:69",
+      "Kuzari 1:70"
+    ],
+    "sourceRef": "Marpeh la'Nefesh, Third Treatise on Service of God 3:26",
+    "sourceHeRef": "מרפא לנפש, שער שלישי - שער עבודת האלוהים ג׳:כ״ו",
+    "anchorVerse": 69,
+    "sourceHasEn": false,
+    "compDate": [
+      1734,
+      1774
+    ],
+    "commentaryNum": 3.0026,
+    "collectiveTitle": {
+      "en": "Marpeh la'Nefesh",
+      "he": "מרפא לנפש"
+    }
+  },
+  {
+    "_id": "680fe73b37b677a8fcaf56c8",
+    "index_title": "Marpeh la'Nefesh",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Marpeh la'Nefesh, Third Treatise on Service of God 3:26",
+    "anchorRef": "Kuzari 1:71-72",
+    "anchorRefExpanded": [
+      "Kuzari 1:71",
+      "Kuzari 1:72"
+    ],
+    "sourceRef": "Marpeh la'Nefesh, Third Treatise on Service of God 3:26",
+    "sourceHeRef": "מרפא לנפש, שער שלישי - שער עבודת האלוהים ג׳:כ״ו",
+    "anchorVerse": 71,
+    "sourceHasEn": false,
+    "compDate": [
+      1734,
+      1774
+    ],
+    "commentaryNum": 3.0026,
+    "collectiveTitle": {
+      "en": "Marpeh la'Nefesh",
+      "he": "מרפא לנפש"
+    }
+  },
+  {
+    "_id": "680fe73f169c528edafc5e6a",
+    "index_title": "Marpeh la'Nefesh",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Marpeh la'Nefesh, Third Treatise on Service of God 3:26",
+    "anchorRef": "Kuzari 1:73",
+    "anchorRefExpanded": [
+      "Kuzari 1:73"
+    ],
+    "sourceRef": "Marpeh la'Nefesh, Third Treatise on Service of God 3:26",
+    "sourceHeRef": "מרפא לנפש, שער שלישי - שער עבודת האלוהים ג׳:כ״ו",
+    "anchorVerse": 73,
+    "sourceHasEn": false,
+    "compDate": [
+      1734,
+      1774
+    ],
+    "commentaryNum": 3.0026,
+    "collectiveTitle": {
+      "en": "Marpeh la'Nefesh",
+      "he": "מרפא לנפש"
+    }
+  },
+  {
+    "_id": "6a1d1e1e4a651bf21be42903",
+    "index_title": "Tov haLevanon",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Tov haLevanon, Third Treatise on Service of God 4:76",
+    "anchorRef": "Kuzari 1:93",
+    "anchorRefExpanded": [
+      "Kuzari 1:93"
+    ],
+    "sourceRef": "Tov haLevanon, Third Treatise on Service of God 4:76",
+    "sourceHeRef": "טוב הלבנון, שער שלישי - שער עבודת האלוהים ד׳:ע״ו",
+    "anchorVerse": 93,
+    "sourceHasEn": false,
+    "compDate": [
+      1730,
+      1770
+    ],
+    "commentaryNum": 4.0076,
+    "collectiveTitle": {
+      "en": "Tov haLevanon",
+      "he": "טוב הלבנון"
+    }
+  },
+  {
+    "_id": "6a1d1de216949d3d05c4466a",
+    "index_title": "Marpeh la'Nefesh",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Marpeh la'Nefesh, Third Treatise on Service of God 4:67",
+    "anchorRef": "Kuzari 1:94",
+    "anchorRefExpanded": [
+      "Kuzari 1:94"
+    ],
+    "sourceRef": "Marpeh la'Nefesh, Third Treatise on Service of God 4:67",
+    "sourceHeRef": "מרפא לנפש, שער שלישי - שער עבודת האלוהים ד׳:ס״ז",
+    "anchorVerse": 94,
+    "sourceHasEn": true,
+    "compDate": [
+      1734,
+      1774
+    ],
+    "commentaryNum": 4.0067,
+    "collectiveTitle": {
+      "en": "Marpeh la'Nefesh",
+      "he": "מרפא לנפש"
+    }
+  },
+  {
+    "_id": "69610e869b8a40f34eb0df05",
+    "index_title": "MeAvur HaAretz; on Joshua",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "MeAvur HaAretz; on Joshua 26:6",
+    "anchorRef": "Kuzari 1:95",
+    "anchorRefExpanded": [
+      "Kuzari 1:95"
+    ],
+    "sourceRef": "MeAvur HaAretz; on Joshua 26:6",
+    "sourceHeRef": "מעבור הארץ; יהושע כ״ו:ו׳",
+    "anchorVerse": 95,
+    "sourceHasEn": false,
+    "compDate": [
+      1970,
+      1990
+    ],
+    "commentaryNum": 26.0006,
+    "collectiveTitle": {
+      "en": "MeAvur HaAretz; on Joshua",
+      "he": "מעבור הארץ; יהושע"
+    }
+  },
+  {
+    "_id": "6962f6fba7116e307799a037",
+    "index_title": "The Kehot Chumash; A Chasidic Commentary",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "The Kehot Chumash; A Chasidic Commentary, Parashah Overviews, Bereshit 10",
+    "anchorRef": "Kuzari 1:95",
+    "anchorRefExpanded": [
+      "Kuzari 1:95"
+    ],
+    "sourceRef": "The Kehot Chumash; A Chasidic Commentary, Parashah Overviews, Bereshit 10",
+    "sourceHeRef": "חומש קה\"ת; ביאורי חסידות, הקדמות לפרשה, בראשית י׳",
+    "anchorVerse": 95,
+    "sourceHasEn": true,
+    "compDate": [
+      2023
+    ],
+    "commentaryNum": 10,
+    "collectiveTitle": {
+      "en": "The Kehot Chumash; A Chasidic Commentary",
+      "he": "חומש קה\"ת; ביאורי חסידות"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "69610e7c1001674249c4a3ac",
+    "index_title": "MeAvur HaAretz; on Joshua",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "MeAvur HaAretz; on Joshua 15:10",
+    "anchorRef": "Kuzari 1:97",
+    "anchorRefExpanded": [
+      "Kuzari 1:97"
+    ],
+    "sourceRef": "MeAvur HaAretz; on Joshua 15:10",
+    "sourceHeRef": "מעבור הארץ; יהושע ט״ו:י׳",
+    "anchorVerse": 97,
+    "sourceHasEn": false,
+    "compDate": [
+      1970,
+      1990
+    ],
+    "commentaryNum": 15.001,
+    "collectiveTitle": {
+      "en": "MeAvur HaAretz; on Joshua",
+      "he": "מעבור הארץ; יהושע"
+    }
+  },
+  {
+    "_id": "6961242de8113a06f384d8be",
+    "index_title": "Redeeming Relevance; Numbers",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Redeeming Relevance; Numbers, CHAPTER 3 Korach and the Limits of Popular Government 41",
+    "anchorRef": "Kuzari 1:97",
+    "anchorRefExpanded": [
+      "Kuzari 1:97"
+    ],
+    "sourceRef": "Redeeming Relevance; Numbers, CHAPTER 3 Korach and the Limits of Popular Government 41",
+    "sourceHeRef": "פדיון הרלוונטיות על במדבר, פרק שלישי מ״א",
+    "anchorVerse": 97,
+    "sourceHasEn": true,
+    "compDate": [
+      2011,
+      2015
+    ],
+    "commentaryNum": 41,
+    "collectiveTitle": {
+      "en": "Redeeming Relevance; Numbers",
+      "he": "פדיון הרלוונטיות על במדבר"
+    },
+    "heTitle": "פרק שלישי"
+  },
+  {
+    "_id": "69626c947c5498194807b921",
+    "index_title": "Notes by Rabbi Yehoshua Hartman on Tiferet Yisrael",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Notes by Rabbi Yehoshua Hartman on Tiferet Yisrael 46:30",
+    "anchorRef": "Kuzari 1:97",
+    "anchorRefExpanded": [
+      "Kuzari 1:97"
+    ],
+    "sourceRef": "Notes by Rabbi Yehoshua Hartman on Tiferet Yisrael 46:30",
+    "sourceHeRef": "הערות ומקורות על תפארת ישראל מ״ו:ל׳",
+    "anchorVerse": 97,
+    "sourceHasEn": false,
+    "commentaryNum": 46.003,
+    "collectiveTitle": {
+      "en": "Notes by Rabbi Yehoshua Hartman on Tiferet Yisrael",
+      "he": "הערות ומקורות על תפארת ישראל"
+    }
+  },
+  {
+    "_id": "6a13136740a5ddc34333d23b",
+    "index_title": "Eretz Chemdah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Eretz Chemdah, Bereshit 51:3",
+    "anchorRef": "Kuzari 1:101",
+    "anchorRefExpanded": [
+      "Kuzari 1:101"
+    ],
+    "sourceRef": "Eretz Chemdah, Bereshit 51:3",
+    "sourceHeRef": "ארץ חמדה, בראשית נ״א:ג׳",
+    "anchorVerse": 101,
+    "sourceHasEn": false,
+    "commentaryNum": 51.0003,
+    "collectiveTitle": {
+      "en": "Eretz Chemdah",
+      "he": "ארץ חמדה"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "6a131cd598f30db79533841f",
+    "index_title": "Eretz Chemdah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Eretz Chemdah, Yitro 1:3",
+    "anchorRef": "Kuzari 1:103",
+    "anchorRefExpanded": [
+      "Kuzari 1:103"
+    ],
+    "sourceRef": "Eretz Chemdah, Yitro 1:3",
+    "sourceHeRef": "ארץ חמדה, יתרו א׳:ג׳",
+    "anchorVerse": 103,
+    "sourceHasEn": false,
+    "commentaryNum": 1.0003,
+    "collectiveTitle": {
+      "en": "Eretz Chemdah",
+      "he": "ארץ חמדה"
+    },
+    "heTitle": "יתרו"
+  },
+  {
+    "_id": "6a132836c8b9735bdca72993",
+    "index_title": "Eretz Chemdah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Eretz Chemdah, Pekudei 1:7",
+    "anchorRef": "Kuzari 1:103",
+    "anchorRefExpanded": [
+      "Kuzari 1:103"
+    ],
+    "sourceRef": "Eretz Chemdah, Pekudei 1:7",
+    "sourceHeRef": "ארץ חמדה, פקודי א׳:ז׳",
+    "anchorVerse": 103,
+    "sourceHasEn": false,
+    "commentaryNum": 1.0007,
+    "collectiveTitle": {
+      "en": "Eretz Chemdah",
+      "he": "ארץ חמדה"
+    },
+    "heTitle": "פקודי"
+  },
+  {
+    "_id": "69607eebbce10e53ae5e2238",
+    "index_title": "Birkat Asher on Torah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Birkat Asher on Torah, Leviticus 26:12:5",
+    "anchorRef": "Kuzari 1:104-117",
+    "anchorRefExpanded": [
+      "Kuzari 1:104",
+      "Kuzari 1:105",
+      "Kuzari 1:106",
+      "Kuzari 1:107",
+      "Kuzari 1:108",
+      "Kuzari 1:109",
+      "Kuzari 1:110",
+      "Kuzari 1:111",
+      "Kuzari 1:112",
+      "Kuzari 1:113",
+      "Kuzari 1:114",
+      "Kuzari 1:115",
+      "Kuzari 1:116",
+      "Kuzari 1:117"
+    ],
+    "sourceRef": "Birkat Asher on Torah, Leviticus 26:12:5",
+    "sourceHeRef": "ברכת אשר על התורה, ויקרא כ״ו:י״ב:ה׳",
+    "anchorVerse": 104,
+    "sourceHasEn": false,
+    "compDate": [
+      1960,
+      2010
+    ],
+    "commentaryNum": 12.0005,
+    "collectiveTitle": {
+      "en": "Birkat Asher on Torah",
+      "he": "ברכת אשר על התורה"
+    },
+    "heTitle": "ויקרא"
+  },
+  {
+    "_id": "6960f57ea98f6e2aeda62e9a",
+    "index_title": "Hegyonei Uziel",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "Hegyonei Uziel, Gate III 39:13",
+    "anchorRef": "Kuzari 1:106",
+    "anchorRefExpanded": [
+      "Kuzari 1:106"
+    ],
+    "sourceRef": "Hegyonei Uziel, Gate III 39:13",
+    "sourceHeRef": "הגיוני עוזיאל, שער ג; האומה ותגמוליה ל״ט:י״ג",
+    "anchorVerse": 106,
+    "sourceHasEn": false,
+    "compDate": [
+      1910,
+      1950
+    ],
+    "commentaryNum": 39.0013,
+    "collectiveTitle": {
+      "en": "Hegyonei Uziel",
+      "he": "הגיוני עוזיאל"
+    },
+    "heTitle": "שער ג; האומה ותגמוליה"
+  },
+  {
+    "_id": "6962db8c5c6c29ff04afe099",
+    "index_title": "Covenant and Conversation; Deuteronomy; Renewal of the Sinai Covenant",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Covenant and Conversation; Deuteronomy; Renewal of the Sinai Covenant, Eikev, Geography and Destiny 13",
+    "anchorRef": "Kuzari 1:109",
+    "anchorRefExpanded": [
+      "Kuzari 1:109"
+    ],
+    "sourceRef": "Covenant and Conversation; Deuteronomy; Renewal of the Sinai Covenant, Eikev, Geography and Destiny 13",
+    "sourceHeRef": "שיג ושיח; קריאות חדשות בפרשת השבוע, דברים, עקב, ד י״ג",
+    "anchorVerse": 109,
+    "sourceHasEn": true,
+    "commentaryNum": 13,
+    "collectiveTitle": {
+      "en": "Covenant and Conversation; Deuteronomy; Renewal of the Sinai Covenant",
+      "he": "שיג ושיח; קריאות חדשות בפרשת השבוע, דברים"
+    },
+    "heTitle": "ד"
+  },
+  {
+    "_id": "6962e222d443e71cbc1a941d",
+    "index_title": "David Zvi Hoffmann on Leviticus",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "David Zvi Hoffmann on Leviticus, Introduction to Sacrificial Laws 184",
+    "anchorRef": "Kuzari 1:109",
+    "anchorRefExpanded": [
+      "Kuzari 1:109"
+    ],
+    "sourceRef": "David Zvi Hoffmann on Leviticus, Introduction to Sacrificial Laws 184",
+    "sourceHeRef": "פירושי רד\"צ הופמן על ויקרא, מבוא לחוקי הקרבנות קפ״ד",
+    "anchorVerse": 109,
+    "sourceHasEn": false,
+    "commentaryNum": 184,
+    "collectiveTitle": {
+      "en": "David Zvi Hoffmann on Leviticus",
+      "he": "פירושי רד\"צ הופמן על ויקרא"
+    },
+    "heTitle": "מבוא לחוקי הקרבנות"
+  },
+  {
+    "_id": "6962f34cb546ef1344ed4c77",
+    "index_title": "Ceremony and Celebration; Introduction to the Holidays",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "Ceremony and Celebration; Introduction to the Holidays, Sukkot; Season of Joy, The Four Kinds 24",
+    "anchorRef": "Kuzari 1:109",
+    "anchorRefExpanded": [
+      "Kuzari 1:109"
+    ],
+    "sourceRef": "Ceremony and Celebration; Introduction to the Holidays, Sukkot; Season of Joy, The Four Kinds 24",
+    "sourceHeRef": "מועדים לשיחה; קריאות חדשות בחגי ישראל, סוכות; זמן שמחתנו, ארבעת המינים כ״ד",
+    "anchorVerse": 109,
+    "sourceHasEn": true,
+    "commentaryNum": 24,
+    "collectiveTitle": {
+      "en": "Ceremony and Celebration; Introduction to the Holidays",
+      "he": "מועדים לשיחה; קריאות חדשות בחגי ישראל"
+    },
+    "heTitle": "ארבעת המינים"
+  },
+  {
+    "_id": "695eea885e52c6548cdf9f0a",
+    "index_title": "Kli Yakar on Leviticus",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Kli Yakar on Leviticus 26:12:5",
+    "anchorRef": "Kuzari 1:110-112",
+    "anchorRefExpanded": [
+      "Kuzari 1:110",
+      "Kuzari 1:111",
+      "Kuzari 1:112"
+    ],
+    "sourceRef": "Kli Yakar on Leviticus 26:12:5",
+    "sourceHeRef": "כלי יקר על ויקרא כ״ו:י״ב:ה׳",
+    "anchorVerse": 110,
+    "sourceHasEn": true,
+    "compDate": [
+      1598,
+      1602
+    ],
+    "commentaryNum": 12.0005,
+    "collectiveTitle": {
+      "en": "Kli Yakar on Leviticus",
+      "he": "כלי יקר על ויקרא"
+    },
+    "heTitle": "כלי יקר על ויקרא"
+  },
+  {
+    "_id": "69607ee59e89d99eb168a0ca",
+    "index_title": "Birkat Asher on Torah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Birkat Asher on Torah, Leviticus 26:12:7",
+    "anchorRef": "Kuzari 1:115",
+    "anchorRefExpanded": [
+      "Kuzari 1:115"
+    ],
+    "sourceRef": "Birkat Asher on Torah, Leviticus 26:12:7",
+    "sourceHeRef": "ברכת אשר על התורה, ויקרא כ״ו:י״ב:ז׳",
+    "anchorVerse": 115,
+    "sourceHasEn": false,
+    "compDate": [
+      1960,
+      2010
+    ],
+    "commentaryNum": 12.0007,
+    "collectiveTitle": {
+      "en": "Birkat Asher on Torah",
+      "he": "ברכת אשר על התורה"
+    },
+    "heTitle": "ויקרא"
+  },
+  {
+    "_id": "6962dbe157d2a5214c050a93",
+    "index_title": "Covenant and Conversation; Leviticus; The Book of Holiness",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Covenant and Conversation; Leviticus; The Book of Holiness, Tazria, Circumcision, Sex, and Violence 26",
+    "anchorRef": "Kuzari 1:115",
+    "anchorRefExpanded": [
+      "Kuzari 1:115"
+    ],
+    "sourceRef": "Covenant and Conversation; Leviticus; The Book of Holiness, Tazria, Circumcision, Sex, and Violence 26",
+    "sourceHeRef": "שיג ושיח; קריאות חדשות בפרשת השבוע, ויקרא, תזריע, א כ״ו",
+    "anchorVerse": 115,
+    "sourceHasEn": true,
+    "commentaryNum": 26,
+    "collectiveTitle": {
+      "en": "Covenant and Conversation; Leviticus; The Book of Holiness",
+      "he": "שיג ושיח; קריאות חדשות בפרשת השבוע, ויקרא"
+    },
+    "heTitle": "א"
+  },
+  {
+    "_id": "6a155a4127c8e0aaf7aa8168",
+    "index_title": "Ceremony and Celebration; Introduction to the Holidays",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "Ceremony and Celebration; Introduction to the Holidays, Sukkot; Season of Joy, The Four Kinds 24",
+    "anchorRef": "Kuzari 1:115",
+    "anchorRefExpanded": [
+      "Kuzari 1:115"
+    ],
+    "sourceRef": "Ceremony and Celebration; Introduction to the Holidays, Sukkot; Season of Joy, The Four Kinds 24",
+    "sourceHeRef": "מועדים לשיחה; קריאות חדשות בחגי ישראל, סוכות; זמן שמחתנו, ארבעת המינים כ״ד",
+    "anchorVerse": 115,
+    "sourceHasEn": true,
+    "commentaryNum": 24,
+    "collectiveTitle": {
+      "en": "Ceremony and Celebration; Introduction to the Holidays",
+      "he": "מועדים לשיחה; קריאות חדשות בחגי ישראל"
+    },
+    "heTitle": "ארבעת המינים"
+  },
+  {
+    "_id": "6ab4a0ae1ce76cf3677fa981",
+    "index_title": "David Zvi Hoffmann on Leviticus",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "David Zvi Hoffmann on Leviticus, Introduction to Sacrificial Laws 184",
+    "anchorRef": "Kuzari 1:115",
+    "anchorRefExpanded": [
+      "Kuzari 1:115"
+    ],
+    "sourceRef": "David Zvi Hoffmann on Leviticus, Introduction to Sacrificial Laws 184",
+    "sourceHeRef": "פירושי רד\"צ הופמן על ויקרא, מבוא לחוקי הקרבנות קפ״ד",
+    "anchorVerse": 115,
+    "sourceHasEn": false,
+    "commentaryNum": 184,
+    "collectiveTitle": {
+      "en": "David Zvi Hoffmann on Leviticus",
+      "he": "פירושי רד\"צ הופמן על ויקרא"
+    },
+    "heTitle": "מבוא לחוקי הקרבנות"
+  },
+  {
+    "_id": "66849ab685cc5eb3722155f4",
+    "index_title": "Ibn Ezra on Exodus",
+    "category": "Quoting Commentary",
+    "type": "related",
+    "ref": "Ibn Ezra on Exodus 20:2:2",
+    "anchorRef": "Kuzari 1:17",
+    "anchorRefExpanded": [
+      "Kuzari 1:17"
+    ],
+    "sourceRef": "Ibn Ezra on Exodus 20:2:2",
+    "sourceHeRef": "אבן עזרא על שמות כ׳:ב׳:ב׳",
+    "anchorVerse": 17,
+    "sourceHasEn": true,
+    "compDate": [
+      1155,
+      1165
+    ],
+    "commentaryNum": 2.0002,
+    "collectiveTitle": {
+      "en": "Ibn Ezra on Exodus",
+      "he": "אבן עזרא על שמות"
+    },
+    "heTitle": "אבן עזרא על שמות"
+  },
+  {
+    "_id": "6960f58ce5a882b6d71cb4a8",
+    "index_title": "Hegyonei Uziel",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "Hegyonei Uziel, Gate IV 9:1",
+    "anchorRef": "Kuzari 1:2",
+    "anchorRefExpanded": [
+      "Kuzari 1:2"
+    ],
+    "sourceRef": "Hegyonei Uziel, Gate IV 9:1",
+    "sourceHeRef": "הגיוני עוזיאל, שער ד; אמונה צרופה ט׳:א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": false,
+    "compDate": [
+      1910,
+      1950
+    ],
+    "commentaryNum": 9.0001,
+    "collectiveTitle": {
+      "en": "Hegyonei Uziel",
+      "he": "הגיוני עוזיאל"
+    },
+    "heTitle": "שער ד; אמונה צרופה"
+  },
+  {
+    "_id": "6960f59408c58498b3544843",
+    "index_title": "Hegyonei Uziel",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "Hegyonei Uziel, Gate V 9:2",
+    "anchorRef": "Kuzari 1:2",
+    "anchorRefExpanded": [
+      "Kuzari 1:2"
+    ],
+    "sourceRef": "Hegyonei Uziel, Gate V 9:2",
+    "sourceHeRef": "הגיוני עוזיאל, שער ה; הבחירה ט׳:ב׳",
+    "anchorVerse": 2,
+    "sourceHasEn": false,
+    "compDate": [
+      1910,
+      1950
+    ],
+    "commentaryNum": 9.0002,
+    "collectiveTitle": {
+      "en": "Hegyonei Uziel",
+      "he": "הגיוני עוזיאל"
+    },
+    "heTitle": "שער ה; הבחירה"
+  },
+  {
+    "_id": "6962f06dd443e71cbc1ac39a",
+    "index_title": "I Believe; A Weekly Reading of the Jewish Bible",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "I Believe; A Weekly Reading of the Jewish Bible, Shemot; Faith in the Future 5",
+    "anchorRef": "Kuzari 1:25",
+    "anchorRefExpanded": [
+      "Kuzari 1:25"
+    ],
+    "sourceRef": "I Believe; A Weekly Reading of the Jewish Bible, Shemot; Faith in the Future 5",
+    "sourceHeRef": "אני מאמין; קריאה שבועית בפרשת השבוע, שמות; אמונה בעתיד ה׳",
+    "anchorVerse": 25,
+    "sourceHasEn": true,
+    "compDate": [
+      2020
+    ],
+    "commentaryNum": 5,
+    "collectiveTitle": {
+      "en": "I Believe; A Weekly Reading of the Jewish Bible",
+      "he": "אני מאמין; קריאה שבועית בפרשת השבוע"
+    },
+    "heTitle": "שמות; אמונה בעתיד"
+  },
+  {
+    "_id": "67ade820d0e0aa73c8f068ba",
+    "index_title": "Ibn Ezra on Exodus",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Ibn Ezra on Exodus 20:2:2",
+    "anchorRef": "Kuzari 1:31",
+    "anchorRefExpanded": [
+      "Kuzari 1:31"
+    ],
+    "sourceRef": "Ibn Ezra on Exodus 20:2:2",
+    "sourceHeRef": "אבן עזרא על שמות כ׳:ב׳:ב׳",
+    "anchorVerse": 31,
+    "sourceHasEn": true,
+    "compDate": [
+      1155,
+      1165
+    ],
+    "commentaryNum": 2.0002,
+    "collectiveTitle": {
+      "en": "Ibn Ezra on Exodus",
+      "he": "אבן עזרא על שמות"
+    },
+    "heTitle": "אבן עזרא על שמות"
+  },
+  {
+    "_id": "695f301e1ae70b66ca46cafc",
+    "index_title": "Abarbanel on Torah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Abarbanel on Torah, Deuteronomy 5:6:2",
+    "anchorRef": "Kuzari 1:31",
+    "anchorRefExpanded": [
+      "Kuzari 1:31"
+    ],
+    "sourceRef": "Abarbanel on Torah, Deuteronomy 5:6:2",
+    "sourceHeRef": "אברבנאל על תורה, דברים ה׳:ו׳:ב׳",
+    "anchorVerse": 31,
+    "sourceHasEn": false,
+    "compDate": [
+      1483,
+      1513
+    ],
+    "commentaryNum": 6.0002,
+    "collectiveTitle": {
+      "en": "Abarbanel on Torah",
+      "he": "אברבנאל על תורה"
+    }
+  },
+  {
+    "_id": "696288a4d04d616b134941b1",
+    "index_title": "Exodus",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Exodus 7:16",
+    "anchorRef": "Kuzari 1:31",
+    "anchorRefExpanded": [
+      "Kuzari 1:31"
+    ],
+    "sourceRef": "Exodus 7:16",
+    "sourceHeRef": "שמות ז׳:ט״ז",
+    "anchorVerse": 31,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 7.0016,
+    "collectiveTitle": {
+      "en": "Exodus",
+      "he": "שמות"
+    },
+    "heTitle": "שמות"
+  },
+  {
+    "_id": "696288a4d04d616b134941b3",
+    "index_title": "Exodus",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Exodus 20:2",
+    "anchorRef": "Kuzari 1:31",
+    "anchorRefExpanded": [
+      "Kuzari 1:31"
+    ],
+    "sourceRef": "Exodus 20:2",
+    "sourceHeRef": "שמות כ׳:ב׳",
+    "anchorVerse": 31,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 20.0002,
+    "collectiveTitle": {
+      "en": "Exodus",
+      "he": "שמות"
+    },
+    "heTitle": "שמות"
+  },
+  {
+    "_id": "6960f5b166a870b109415d68",
+    "index_title": "Hegyonei Uziel",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "Hegyonei Uziel, Gate XVII 1:2",
+    "anchorRef": "Kuzari 1:44",
+    "anchorRefExpanded": [
+      "Kuzari 1:44"
+    ],
+    "sourceRef": "Hegyonei Uziel, Gate XVII 1:2",
+    "sourceHeRef": "הגיוני עוזיאל, שער יז; ה' הוא האלקים א׳:ב׳",
+    "anchorVerse": 44,
+    "sourceHasEn": false,
+    "compDate": [
+      1910,
+      1950
+    ],
+    "commentaryNum": 1.0002,
+    "collectiveTitle": {
+      "en": "Hegyonei Uziel",
+      "he": "הגיוני עוזיאל"
+    },
+    "heTitle": "שער יז; ה' הוא האלקים"
+  },
+  {
+    "_id": "6a0dbcf57c16452d46056641",
+    "index_title": "Hegyonei Uziel",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "Hegyonei Uziel, Gate III 8:10",
+    "anchorRef": "Kuzari 1:5",
+    "anchorRefExpanded": [
+      "Kuzari 1:5"
+    ],
+    "sourceRef": "Hegyonei Uziel, Gate III 8:10",
+    "sourceHeRef": "הגיוני עוזיאל, שער ג; האומה ותגמוליה ח׳:י׳",
+    "anchorVerse": 5,
+    "sourceHasEn": false,
+    "compDate": [
+      1910,
+      1950
+    ],
+    "commentaryNum": 8.001,
+    "collectiveTitle": {
+      "en": "Hegyonei Uziel",
+      "he": "הגיוני עוזיאל"
+    },
+    "heTitle": "שער ג; האומה ותגמוליה"
+  },
+  {
+    "_id": "695ea620ce06144202d81af2",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Genesis 6:9-11:32",
+    "anchorRef": "Kuzari 1:64",
+    "anchorRefExpanded": [
+      "Kuzari 1:64"
+    ],
+    "sourceRef": "Genesis 6:9-11:32",
+    "sourceHeRef": "בראשית ו׳:ט׳-י״א:ל״ב",
+    "anchorVerse": 64,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 6.0009,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "6962a0a41ea8d32bd8dda395",
+    "index_title": "Gevia Kesef",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Gevia Kesef 15:14",
+    "anchorRef": "Kuzari 1:72",
+    "anchorRefExpanded": [
+      "Kuzari 1:72"
+    ],
+    "sourceRef": "Gevia Kesef 15:14",
+    "sourceHeRef": "גביע כסף ט״ו:י״ד",
+    "anchorVerse": 72,
+    "sourceHasEn": true,
+    "compDate": [
+      1330,
+      1340
+    ],
+    "commentaryNum": 15.0014,
+    "collectiveTitle": {
+      "en": "Gevia Kesef",
+      "he": "גביע כסף"
+    }
+  },
+  {
+    "_id": "6a0e745dd214d17adf3aeffa",
+    "index_title": "Hegyonot El Ami",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "Hegyonot El Ami, Volume II, Lech Lecha 10:66",
+    "anchorRef": "Kuzari 1:8",
+    "anchorRefExpanded": [
+      "Kuzari 1:8"
+    ],
+    "sourceRef": "Hegyonot El Ami, Volume II, Lech Lecha 10:66",
+    "sourceHeRef": "הגיונות אל עמי, חלק ב, לך לך י׳:ס״ו",
+    "anchorVerse": 8,
+    "sourceHasEn": false,
+    "compDate": [
+      1918,
+      1932
+    ],
+    "commentaryNum": 10.0066,
+    "collectiveTitle": {
+      "en": "Hegyonot El Ami",
+      "he": "הגיונות אל עמי"
+    },
+    "heTitle": "לך לך"
+  },
+  {
+    "_id": "69607d069806cee6831eeb6d",
+    "index_title": "Birkat Asher on Torah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Birkat Asher on Torah, Genesis 2:5:2",
+    "anchorRef": "Kuzari 1:95",
+    "anchorRefExpanded": [
+      "Kuzari 1:95"
+    ],
+    "sourceRef": "Birkat Asher on Torah, Genesis 2:5:2",
+    "sourceHeRef": "ברכת אשר על התורה, בראשית ב׳:ה׳:ב׳",
+    "anchorVerse": 95,
+    "sourceHasEn": false,
+    "compDate": [
+      1960,
+      2010
+    ],
+    "commentaryNum": 5.0002,
+    "collectiveTitle": {
+      "en": "Birkat Asher on Torah",
+      "he": "ברכת אשר על התורה"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "6960f55d8195eade2d4c1413",
+    "index_title": "Hegyonei Uziel",
+    "category": "Jewish Thought",
+    "type": "",
+    "ref": "Hegyonei Uziel, Gate I 8:2",
+    "anchorRef": "Kuzari 1:95",
+    "anchorRefExpanded": [
+      "Kuzari 1:95"
+    ],
+    "sourceRef": "Hegyonei Uziel, Gate I 8:2",
+    "sourceHeRef": "הגיוני עוזיאל, שער א; גמול השם ח׳:ב׳",
+    "anchorVerse": 95,
+    "sourceHasEn": false,
+    "compDate": [
+      1910,
+      1950
+    ],
+    "commentaryNum": 8.0002,
+    "collectiveTitle": {
+      "en": "Hegyonei Uziel",
+      "he": "הגיוני עוזיאל"
+    },
+    "heTitle": "שער א; גמול השם"
+  },
+  {
+    "_id": "69610ec08195eade2d4c6e5c",
+    "index_title": "Ish Kilvavo; on Samuel",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Ish Kilvavo; on Samuel 21:15",
+    "anchorRef": "Kuzari 1:95",
+    "anchorRefExpanded": [
+      "Kuzari 1:95"
+    ],
+    "sourceRef": "Ish Kilvavo; on Samuel 21:15",
+    "sourceHeRef": "איש כלבבו; שמואל כ״א:ט״ו",
+    "anchorVerse": 95,
+    "sourceHasEn": false,
+    "compDate": [
+      1970,
+      1990
+    ],
+    "commentaryNum": 21.0015,
+    "collectiveTitle": {
+      "en": "Ish Kilvavo; on Samuel",
+      "he": "איש כלבבו; שמואל"
+    }
+  },
+  {
+    "_id": "69607e751a10b08b12b08c7c",
+    "index_title": "Birkat Asher on Torah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Birkat Asher on Torah, Exodus 32:1:1",
+    "anchorRef": "Kuzari 1:97",
+    "anchorRefExpanded": [
+      "Kuzari 1:97"
+    ],
+    "sourceRef": "Birkat Asher on Torah, Exodus 32:1:1",
+    "sourceHeRef": "ברכת אשר על התורה, שמות ל״ב:א׳:א׳",
+    "anchorVerse": 97,
+    "sourceHasEn": false,
+    "compDate": [
+      1960,
+      2010
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Birkat Asher on Torah",
+      "he": "ברכת אשר על התורה"
+    },
+    "heTitle": "שמות"
+  },
+  {
+    "_id": "69607e76bce10e53ae5e217f",
+    "index_title": "Birkat Asher on Torah",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Birkat Asher on Torah, Exodus 32:4:5",
+    "anchorRef": "Kuzari 1:97",
+    "anchorRefExpanded": [
+      "Kuzari 1:97"
+    ],
+    "sourceRef": "Birkat Asher on Torah, Exodus 32:4:5",
+    "sourceHeRef": "ברכת אשר על התורה, שמות ל״ב:ד׳:ה׳",
+    "anchorVerse": 97,
+    "sourceHasEn": false,
+    "compDate": [
+      1960,
+      2010
+    ],
+    "commentaryNum": 4.0005,
+    "collectiveTitle": {
+      "en": "Birkat Asher on Torah",
+      "he": "ברכת אשר על התורה"
+    },
+    "heTitle": "שמות"
+  },
+  {
+    "_id": "6962dbdebdfde42b02f12fa8",
+    "index_title": "Covenant and Conversation; Leviticus; The Book of Holiness",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Covenant and Conversation; Leviticus; The Book of Holiness, Tzav, Jeremiah on Sacrifices 37",
+    "anchorRef": "Kuzari 1:97",
+    "anchorRefExpanded": [
+      "Kuzari 1:97"
+    ],
+    "sourceRef": "Covenant and Conversation; Leviticus; The Book of Holiness, Tzav, Jeremiah on Sacrifices 37",
+    "sourceHeRef": "שיג ושיח; קריאות חדשות בפרשת השבוע, ויקרא, צו, ה ל״ז",
+    "anchorVerse": 97,
+    "sourceHasEn": true,
+    "commentaryNum": 37,
+    "collectiveTitle": {
+      "en": "Covenant and Conversation; Leviticus; The Book of Holiness",
+      "he": "שיג ושיח; קריאות חדשות בפרשת השבוע, ויקרא"
+    },
+    "heTitle": "ה"
+  }
+]

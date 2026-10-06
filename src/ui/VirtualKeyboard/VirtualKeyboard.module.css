@@ -1,0 +1,8 @@
+.kb { display: flex; flex-direction: column; gap: 4px; padding: 8px; background: var(--sefaria-color-surface); border: 1px solid var(--sefaria-color-border); border-radius: 8px; box-shadow: 0 4px 16px rgb(0 0 0 / 22%); width: 520px; max-width: calc(100vw - 16px); user-select: none; }
+.row { display: flex; gap: 4px; justify-content: center; }
+.key { flex: 1 1 0; min-width: 0; height: 30px; padding: 0 2px; border: 1px solid var(--sefaria-color-border); border-radius: 4px; background: #fafaf9; font-family: var(--sefaria-font-text-he), var(--sefaria-font-ui-en); font-size: 15px; color: var(--sefaria-color-text); cursor: pointer; }
+.key:hover { background: #f0f0ef; }
+.key:active { background: #e4e4e2; }
+.key[data-control] { flex-grow: 1.7; font-family: var(--sefaria-font-ui-en); font-size: 12px; }
+.key[data-space] { flex-grow: 7; }
+.key[aria-pressed="true"] { background: #d2dcff; border-color: #9aaee8; }

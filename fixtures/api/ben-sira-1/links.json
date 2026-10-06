@@ -1,0 +1,52 @@
+[
+  {
+    "_id": "6960cdfbe6f501ab18706d44",
+    "index_title": "Tractate Kallah Rabbati",
+    "category": "Talmud",
+    "type": "",
+    "ref": "Tractate Kallah Rabbati 3:4",
+    "anchorRef": "Ben Sira 1:14",
+    "anchorRefExpanded": [
+      "Ben Sira 1:14"
+    ],
+    "sourceRef": "Tractate Kallah Rabbati 3:4",
+    "sourceHeRef": "מסכת כלה רבתי ג׳:ד׳",
+    "anchorVerse": 14,
+    "sourceHasEn": true,
+    "compDate": [
+      -100,
+      900
+    ],
+    "commentaryNum": 3.0004,
+    "collectiveTitle": {
+      "en": "Tractate Kallah Rabbati",
+      "he": "מסכת כלה רבתי"
+    },
+    "heTitle": "מסכת כלה רבתי"
+  },
+  {
+    "_id": "6960fe2e1001674249c473aa",
+    "index_title": "Ohev Ger",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Ohev Ger, Additions, On Syriac Grammar, Letter Resh 8",
+    "anchorRef": "Ben Sira 1:19",
+    "anchorRefExpanded": [
+      "Ben Sira 1:19"
+    ],
+    "sourceRef": "Ohev Ger, Additions, On Syriac Grammar, Letter Resh 8",
+    "sourceHeRef": "אוהב גר, נוספות, דרכי לשון סורי, אות הרי\"ש ח׳",
+    "anchorVerse": 19,
+    "sourceHasEn": false,
+    "compDate": [
+      1823,
+      1829
+    ],
+    "commentaryNum": 8,
+    "collectiveTitle": {
+      "en": "Ohev Ger",
+      "he": "אוהב גר"
+    },
+    "heTitle": "אות הרי\"ש"
+  }
+]

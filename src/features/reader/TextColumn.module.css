@@ -1,0 +1,13 @@
+/* Desktop: the column is its own scroll container (like the old reader; panels scroll independently). */
+/* Place keeping is ours (the inline script, then the engine); the browser's own anchoring would fight it. */
+.scroller { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; overflow-anchor: none; container: panel / inline-size; }
+:global(html):has(.scroller) { overflow-anchor: none; }
+.content { overflow-anchor: none; padding-block-end: var(--sefaria-space-12); }
+/* Placeholders at each end have a constant height, whatever they show, so loading never moves the text. */
+.edge { display: grid; place-items: center; height: 90px; color: var(--sefaria-color-text-muted); font-size: var(--sefaria-text-sans-small); }
+.bookTitle { margin: 0; font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); color: var(--sefaria-color-text-secondary); letter-spacing: 0.04em; }
+.bookTitle[lang="he"] { font-family: var(--sefaria-font-text-he); }
+/* Phone: the page scrolls, so the browser can collapse its address bar. */
+@media (max-width: 842px) {
+  .scroller { overflow: visible; flex: none; }
+}

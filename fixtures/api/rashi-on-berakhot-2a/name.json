@@ -1,0 +1,185 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Rashi on Berakhot",
+    "Rashi",
+    "Onkelos",
+    "Berakhot",
+    "Rashi on Amos",
+    "Rashi on Arachin",
+    "Rashi on Beiah",
+    "Rashi on Bechorot",
+    "Rashi on Chag.",
+    "Rashi on Hullin"
+  ],
+  "completion_objects": [
+    {
+      "title": "Rashi on Berakhot",
+      "key": "Rashi on Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Rashi",
+      "type": "TocCategory",
+      "key": [
+        "Tanakh",
+        "Rishonim on Tanakh",
+        "Rashi"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Rashi",
+      "type": "TocCategory",
+      "key": [
+        "Talmud",
+        "Bavli",
+        "Rishonim on Talmud",
+        "Rashi"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Rashi",
+      "type": "AuthorTopic",
+      "key": "rashi",
+      "is_primary": true,
+      "order": 4999683,
+      "topic_pools": [
+        "torah_tab",
+        "library",
+        "sheets",
+        "general_en"
+      ]
+    },
+    {
+      "title": "Onkelos",
+      "type": "TocCategory",
+      "key": [
+        "Tanakh",
+        "Targum",
+        "Onkelos"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Onkelos",
+      "type": "AuthorTopic",
+      "key": "onkelos",
+      "is_primary": true,
+      "order": 4999815,
+      "topic_pools": [
+        "library",
+        "sheets",
+        "general_en"
+      ]
+    },
+    {
+      "title": "Berakhot",
+      "key": "Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Berakhot",
+      "type": "Topic",
+      "key": "blessings-(halakhah)",
+      "is_primary": false,
+      "order": 4999651,
+      "topic_pools": [
+        "torah_tab",
+        "library",
+        "general_he",
+        "general_en",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Rashi on Amos",
+      "key": "Rashi on Amos",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Rashi on Arachin",
+      "key": "Rashi on Arakhin",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Rashi on Beiah",
+      "key": "Rashi on Beitzah",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Rashi on Bechorot",
+      "key": "Rashi on Bekhorot",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Rashi on Chag.",
+      "key": "Rashi on Chagigah",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Rashi on Hullin",
+      "key": "Rashi on Chullin",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Rashi on Berakhot",
+  "url": "Rashi_on_Berakhot",
+  "index": "Rashi on Berakhot",
+  "book": "Rashi on Berakhot",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": [],
+  "sectionNames": [
+    "Daf",
+    "Line",
+    "Comment"
+  ],
+  "heSectionNames": [
+    "דף",
+    "שורה",
+    "פירוש"
+  ],
+  "addressExamples": [
+    "2a",
+    "6",
+    "9"
+  ],
+  "heAddressExamples": [
+    "ב׳ א",
+    "ו׳",
+    "ט׳"
+  ]
+}

@@ -1,0 +1,160 @@
+/*
+ * Design tokens. Public names are `--sefaria-*` (same convention as the Sefaria frontend toolkit) so an
+ * embedder can override any of them. Values come from the old client's css/color-palette.css, fonts.scss
+ * and s2.css; see docs/COMPONENT_AUDIT.md section A for sources and the frequency data behind each choice.
+ *
+ * Themes: set `data-theme="light" | "dark" | "sepia"` on any ancestor (usually <html>). With no attribute
+ * the user's OS preference applies. `color-scheme` is set so native controls and `light-dark()` follow.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* ── Colour: neutrals ─────────────────────────────── */
+  --sefaria-color-text: light-dark(#121212, #ededec);
+  --sefaria-color-text-secondary: light-dark(#707070, #a3a3a0);
+  --sefaria-color-text-muted: light-dark(#6f6f6f, #8f8f8c);
+  /* Secondary text on the grey panel-header band. The old #707070 on #e6e6e6 is 3.96:1; this is ≥ 4.5:1 (WCAG AA). */
+  --sefaria-color-text-on-band: light-dark(#575757, #c9c9c5);
+  --sefaria-color-surface: light-dark(#ffffff, #1c1c1b);
+  --sefaria-color-surface-subtle: light-dark(#fbfbfa, #242423);
+  --sefaria-color-surface-muted: light-dark(#fafafa, #2a2a29);
+  --sefaria-color-surface-disabled: light-dark(#f5f5f5, #2f2f2e);
+  --sefaria-color-page: light-dark(#ffffff, #121211);
+  --sefaria-color-border: light-dark(#e6e6e6, #3a3a38);
+  --sefaria-color-border-strong: light-dark(#cccccc, #55554f);
+  --sefaria-color-border-title: light-dark(#e6e5e6, #3f3f3d);
+  --sefaria-color-skeleton: light-dark(#e6e6e6, #333331);
+  --sefaria-color-skeleton-shimmer: light-dark(#efefef, #3d3d3a);
+
+  /* ── Colour: brand & interaction ──────────────────── */
+  --sefaria-color-brand: light-dark(#18345d, #8fb4e3);
+  --sefaria-color-brand-hover: light-dark(#132b4c, #b3cdee);
+  --sefaria-color-on-brand: light-dark(#ffffff, #0f151c);
+  --sefaria-color-voices: light-dark(#518159, #86bd8f);
+  --sefaria-color-purple: light-dark(#7c416f, #c58bb8);
+  --sefaria-color-link: light-dark(#4871bf, #86a9e8);
+  --sefaria-color-focus: light-dark(#1976d2, #6fb1ff);
+  --sefaria-color-highlight: light-dark(#ddeeff, #243649);
+  --sefaria-color-highlight-soft: light-dark(#f0f7ff, #1f2b38);
+  --sefaria-color-highlight-voices: light-dark(#f1fcf5, #1d2d22);
+  --sefaria-color-selection: light-dark(#d2dcff, #3b4a78);
+
+  /* ── Colour: semantic ─────────────────────────────── */
+  --sefaria-color-danger: light-dark(#c03522, #f0897a);
+  --sefaria-color-danger-bg: light-dark(#fdeeee, #3a2321);
+  --sefaria-color-success: light-dark(#1b5e20, #7fd18a);
+  --sefaria-color-success-bg: light-dark(#eef8ef, #1f3322);
+  --sefaria-color-attention: #cb6158;
+
+  /* ── Colour: category palette (use categoryColor() in TS, never these directly) ── */
+  --sefaria-cat-tanakh: #004e5f;
+  --sefaria-cat-commentary: #4b71b7;
+  --sefaria-cat-mishnah: #5a99b7;
+  --sefaria-cat-talmud: #ccb479;
+  --sefaria-cat-midrash: #5d956f;
+  --sefaria-cat-halakhah: #802f3e;
+  --sefaria-cat-kabbalah: #594176;
+  --sefaria-cat-liturgy: #ab4e66;
+  --sefaria-cat-jewish-thought: #7f85a9;
+  --sefaria-cat-tosefta: #00827f;
+  --sefaria-cat-chasidut: #97b386;
+  --sefaria-cat-musar: #7c416f;
+  --sefaria-cat-responsa: #cb6158;
+  --sefaria-cat-second-temple: #c6a7b4;
+  --sefaria-cat-modern-commentary: #b8d4d3;
+  --sefaria-cat-reference: #d4896c;
+  --sefaria-cat-targum: #3b5849;
+  --sefaria-cat-sheets: #18345d;
+  --sefaria-cat-default: #7f85a9;
+
+  /* ── Typography: families ─────────────────────────── */
+  --sefaria-font-ui-en: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+  --sefaria-font-ui-he: "Heebo", "Roboto", sans-serif;
+  --sefaria-font-text-en: "Cardo", "Meltho", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  --sefaria-font-text-he: "Noto Color Emoji", "Taamey Frank", "Cardo", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
+  --sefaria-font-secondary-en: "Miriam Libre", var(--sefaria-font-ui-en);
+  --sefaria-font-secondary-he: "Miriam Libre", var(--sefaria-font-ui-he);
+
+  /* ── Typography: scale (px values from the old named scale) ── */
+  --sefaria-text-serif-h1: 48px;
+  --sefaria-text-serif-h2: 30px;
+  --sefaria-text-serif-h3: 24px;
+  --sefaria-text-serif-body: 18px;
+  --sefaria-text-serif-small: 14px;
+  --sefaria-text-sans-h1: 40px;
+  --sefaria-text-sans-h2: 30px;
+  --sefaria-text-sans-h3: 22px;
+  --sefaria-text-sans-body: 16px;
+  --sefaria-text-sans-small: 14px;
+  --sefaria-text-caption: 13px;
+  --sefaria-text-micro: 12px;
+  --sefaria-leading-tight: 1.2;
+  --sefaria-leading-ui: 1.4;
+  --sefaria-leading-text: 1.6;
+
+  /* ── Reader text ──────────────────────────────────── */
+  /* 1 = the old default (62.5% of 16px). Each step in the font-size control multiplies by 1.15. */
+  --sefaria-reader-font-scale: 1;
+  --sefaria-reader-body-en: 22px;
+  --sefaria-reader-body-he-ratio: 1.22;
+  --sefaria-reader-line-height: 1.6;
+  --sefaria-reader-measure: 760px;
+  --sefaria-connections-measure: 660px;
+  --sefaria-segment-gap: 26px;
+  --sefaria-segment-gap-stacked: 14px;
+  --sefaria-segment-gutter: 30px;
+  --sefaria-link-dot-size: 6px;
+
+  /* ── Layout constants ─────────────────────────────── */
+  --sefaria-header-height: 60px;
+  --sefaria-reader-controls-height: 60px;
+  --sefaria-nav-sidebar-width: 420px;
+  --sefaria-nav-menu-width: 725px;
+  --sefaria-layout-max: 1485px;
+
+  /* ── Spacing ──────────────────────────────────────── */
+  --sefaria-space-0: 0;
+  --sefaria-space-1: 4px;
+  --sefaria-space-2: 8px;
+  --sefaria-space-3: 12px;
+  --sefaria-space-4: 16px;
+  --sefaria-space-5: 20px;
+  --sefaria-space-6: 24px;
+  --sefaria-space-8: 30px;
+  --sefaria-space-10: 44px;
+  --sefaria-space-12: 60px;
+
+  /* ── Radii & shadows ──────────────────────────────── */
+  --sefaria-radius-xs: 2px;
+  --sefaria-radius-sm: 4px;
+  --sefaria-radius-md: 6px;
+  --sefaria-radius-lg: 8px;
+  --sefaria-radius-pill: 9999px;
+  --sefaria-radius-round: 50%;
+  --sefaria-shadow-1: 0 1px 3px rgb(0 0 0 / 0.25);
+  --sefaria-shadow-card: 0 0 10px -1px rgb(83 83 83 / 0.04);
+  --sefaria-shadow-raised: 0 4px 4px 0 rgb(0 0 0 / 0.25);
+  --sefaria-shadow-modal: 0 2px 10px rgb(0 0 0 / 0.1);
+
+  /* ── Layers: only portaled components use overlay and above ── */
+  --sefaria-z-base: 0;
+  --sefaria-z-raised: 1;
+  --sefaria-z-panel-chrome: 100;
+  --sefaria-z-shell: 1000;
+  --sefaria-z-header: 1001;
+  --sefaria-z-sheet: 1002;
+  --sefaria-z-overlay: 9999;
+  --sefaria-z-modal: 10000;
+  --sefaria-z-toast: 10001;
+}
+
+/* Explicit theme choices win over the OS preference. */
+:root[data-theme="light"] { color-scheme: light; }
+:root[data-theme="dark"] { color-scheme: dark; }
+:root[data-theme="sepia"] {
+  color-scheme: light;
+  --sefaria-color-surface: #f7f7f7;
+  --sefaria-color-page: #fbfbfa;
+  --sefaria-color-surface-subtle: #f3f3f1;
+  --sefaria-color-highlight-soft: #e3e3e1;
+}

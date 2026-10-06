@@ -1,0 +1,4940 @@
+{
+  "title": "Kitzur Shulchan Arukh",
+  "categories": [
+    "Halakhah"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Siman",
+      "Seif"
+    ],
+    "sectionNames": [
+      "Siman",
+      "Seif"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "kitzur1",
+          "shulchan-arukh",
+          "orach-chayim"
+        ]
+      },
+      {
+        "term_slugs": [
+          "kitzur1",
+          "shulchan-arukh"
+        ]
+      }
+    ],
+    "lengths": [
+      221,
+      2765
+    ],
+    "titles": [
+      {
+        "text": "<i>Kiẓur Shulḥan Arukh</i>",
+        "lang": "en"
+      },
+      {
+        "text": "Kitzur Shulchan Aruch Orach Chaim",
+        "lang": "en"
+      },
+      {
+        "text": "Kitzur Shulchan Aruch",
+        "lang": "en"
+      },
+      {
+        "text": "קיצור שלחן ערוך",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "קיצור שולחן ערוך",
+        "lang": "he"
+      },
+      {
+        "text": "Kitzur Shulchan Arukh",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Kitzur Shulchan Arukh",
+    "heTitle": "קיצור שלחן ערוך",
+    "heSectionNames": [
+      "סימן",
+      "סעיף"
+    ],
+    "key": "Kitzur Shulchan Arukh",
+    "content_counts": [
+      7,
+      9,
+      8,
+      6,
+      17,
+      11,
+      8,
+      6,
+      21,
+      26,
+      25,
+      15,
+      5,
+      8,
+      13,
+      5,
+      10,
+      22,
+      14,
+      12,
+      10,
+      10,
+      30,
+      12,
+      8,
+      22,
+      5,
+      13,
+      21,
+      9,
+      7,
+      27,
+      14,
+      16,
+      9,
+      28,
+      13,
+      15,
+      3,
+      21,
+      10,
+      23,
+      7,
+      18,
+      23,
+      46,
+      22,
+      10,
+      16,
+      16,
+      15,
+      18,
+      6,
+      9,
+      5,
+      7,
+      7,
+      14,
+      21,
+      15,
+      10,
+      18,
+      5,
+      4,
+      30,
+      12,
+      11,
+      12,
+      9,
+      5,
+      5,
+      23,
+      11,
+      4,
+      14,
+      23,
+      24,
+      11,
+      10,
+      93,
+      5,
+      13,
+      6,
+      19,
+      8,
+      7,
+      24,
+      18,
+      6,
+      23,
+      18,
+      10,
+      5,
+      27,
+      18,
+      15,
+      15,
+      37,
+      5,
+      22,
+      6,
+      7,
+      14,
+      21,
+      2,
+      8,
+      3,
+      7,
+      9,
+      15,
+      17,
+      6,
+      9,
+      14,
+      6,
+      18,
+      13,
+      11,
+      12,
+      11,
+      11,
+      17,
+      5,
+      22,
+      8,
+      4,
+      18,
+      16,
+      23,
+      6,
+      17,
+      5,
+      31,
+      15,
+      22,
+      10,
+      13,
+      10,
+      26,
+      3,
+      23,
+      10,
+      22,
+      9,
+      26,
+      4,
+      5,
+      4,
+      13,
+      17,
+      7,
+      17,
+      16,
+      7,
+      12,
+      3,
+      8,
+      4,
+      10,
+      6,
+      20,
+      14,
+      8,
+      10,
+      16,
+      5,
+      20,
+      7,
+      3,
+      2,
+      3,
+      3,
+      4,
+      3,
+      6,
+      8,
+      15,
+      5,
+      15,
+      16,
+      22,
+      16,
+      7,
+      11,
+      6,
+      4,
+      5,
+      5,
+      6,
+      3,
+      6,
+      10,
+      14,
+      12,
+      14,
+      22,
+      13,
+      16,
+      17,
+      11,
+      7,
+      16,
+      5,
+      11,
+      9,
+      11,
+      7,
+      15,
+      8,
+      9,
+      15,
+      5,
+      5,
+      3,
+      3,
+      3,
+      3,
+      2,
+      9,
+      10,
+      8
+    ]
+  },
+  "order": [
+    45
+  ],
+  "authors": [
+    {
+      "en": "Shlomo Ganzfried",
+      "he": "רבי שלמה בן יוסף גאנצפריד",
+      "slug": "shlomo-ganzfried"
+    }
+  ],
+  "enDesc": "The Kitzur Shulchan Arukh (“Abridged Shulchan Arukh”) is a simplified summary of the Shulchan Arukh, focusing on Orach Chayim and Yoreh De’ah, the sections most relevant to ordinary daily life. The work presents laws without listing differing views or providing reasoning, interspersing ethical maxims throughout. Immensely popular for its simplicity and clarity, it functions as a handbook for daily life for many Ashkenazi Jews and has been translated into five languages. It is known for its strict rulings.",
+  "heDesc": "\"קיצור שולחן ערוך\" הוא סיכום של ה\"שולחן ערוך\" של ר' יוסף קארו, עם התייחסות לפירושים מאוחרים יותר. הקיצור כותב באופן ברור ובלתי משתמע לשני פנים מה מותר ומה אסור. גאנצפריד הדגיש את מנהגי יהודי הונגריה בזמנו. החיבור נכתב באופן מוצהר כטקסט פופולרי, ותפוצתו הרחבה הפכה אותו לכתובת סטנדרטית לבירור שאלות הלכתיות, כאשר הוא מתפקד כקיצור ל\"שולחן ערוך\", בדומה למקבילתו הספרדית, ה\"בן איש חי.\" גאנצפריד ביסס את פסיקותיו על שלושה סמכויות הלכתיות אשכנזיות: ר' יעקב לורברבוים, מחבר \"דרך החיים\", ר' שניאור זלמן מלאדי, מחבר \"שולחן ערוך הרב\", ור' אברהם דנציג, מחבר ה\"חיי אדם\" וה\"חכמת שלמה\". במקרים של מחלוקות בין פוסקים אלו פסק גאנצפריד לפי דעת הרוב. בימינו, ה\"משנה ברורה\" תפסה את מקום ה\"קיצור שולחן ערוך\" כמעט לחלוטין, וה\"חיי אדם\" ו\"ערוך השולחן\" הינם הסמכויות המרכזיות בנושאי חיי היום-יום בקרב יהודים אשכנזיים.",
+  "enShortDesc": "Popular handbook with simplified summaries of laws relevant to daily life, published in 1864.",
+  "heShortDesc": "ספר הלכה ידוע שפורסם בשנת 1864. מתמצת ומנגיש את ההלכות הרלוונטיות לחיי היום-יום מתוך השולחן ערוך.",
+  "pubDate": [
+    1864
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    1844,
+    1864
+  ],
+  "compPlace": "Uzhgorod",
+  "pubPlace": "Uzhgorod",
+  "era": "AH",
+  "heTitle": "קיצור שלחן ערוך",
+  "titleVariants": [
+    "<i>Kiẓur Shulḥan Arukh</i>",
+    "Kitzur Shulchan Aruch Orach Chaim",
+    "Kitzur Shulchan Aruch",
+    "Kitzur Shulchan Arukh"
+  ],
+  "heTitleVariants": [
+    "קיצור שלחן ערוך",
+    "קיצור שולחן ערוך"
+  ],
+  "alts": {
+    "Topic": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 1",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 1 Laws Upon Awakening in the Morning\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן א] דיני השכמת הבקר\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 1 Laws Upon Awakening in the Morning\n",
+          "heTitle": "[סימן א] דיני השכמת הבקר\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 2",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 2 Laws of Washing the Hands in the Morning\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ב] הלכות נטילת ידים שחרית\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 2 Laws of Washing the Hands in the Morning\n",
+          "heTitle": "[סימן ב] הלכות נטילת ידים שחרית\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 3",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 3 Laws of Dressing and Conduct\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ג] דין לבישת בגדיו והלוכו\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 3 Laws of Dressing and Conduct\n",
+          "heTitle": "[סימן ג] דין לבישת בגדיו והלוכו\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 4",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 4 Proper Practices in the Lavatory and Laws of the Asher Yatsar Berachah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ד] הנהגת בית הכסא ודיני ברכת אשר יצר\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 4 Proper Practices in the Lavatory and Laws of the Asher Yatsar Berachah\n",
+          "heTitle": "[סימן ד] הנהגת בית הכסא ודיני ברכת אשר יצר\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 5",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 5 Cleanliness of the Place Used for a Sacred Purpose\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ה] נקיון המקום לדבר שבקדשה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 5 Cleanliness of the Place Used for a Sacred Purpose\n",
+          "heTitle": "[סימן ה] נקיון המקום לדבר שבקדשה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 6",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 6 Laws Relating to Berachos, the Response of Baruch Hu Uvaruch Shemo and Amein\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ו] קצת דיני ברכות ודיני ברוך הוא וברוך שמו ואמן\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 6 Laws Relating to Berachos, the Response of Baruch Hu Uvaruch Shemo and Amein\n",
+          "heTitle": "[סימן ו] קצת דיני ברכות ודיני ברוך הוא וברוך שמו ואמן\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 7",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 7 Laws Relating to the Morning Berachos\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ז] הלכות ברכות השחר\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 7 Laws Relating to the Morning Berachos\n",
+          "heTitle": "[סימן ז] הלכות ברכות השחר\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 8",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 8 Activities Which are Forbidden From Daybreak Until After Morning Prayers\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ח] דברים האסורים משהאיר היום עד לאחר שיתפלל\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 8 Activities Which are Forbidden From Daybreak Until After Morning Prayers\n",
+          "heTitle": "[סימן ח] דברים האסורים משהאיר היום עד לאחר שיתפלל\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 9",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 9 The Laws of Tzitzis\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ט] הלכות ציצית\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 9 The Laws of Tzitzis\n",
+          "heTitle": "[סימן ט] הלכות ציצית\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 10",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 10 Laws of Tefillin\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן י] הלכות תפלין\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 10 Laws of Tefillin\n",
+          "heTitle": "[סימן י] הלכות תפלין\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 11",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 11 Laws of Mezuzah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן יא] הלכות מזוזה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 11 Laws of Mezuzah\n",
+          "heTitle": "[סימן יא] הלכות מזוזה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 12",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 12 Preparation of the Body for Prayer and the Places in Which it is Fitting to Pray\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן יב] הכנת הגוף לתפלה ומקומות שראוי להתפלל שם\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 12 Preparation of the Body for Prayer and the Places in Which it is Fitting to Pray\n",
+          "heTitle": "[סימן יב] הכנת הגוף לתפלה ומקומות שראוי להתפלל שם\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 13",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 13 Laws Concerning the Sanctity of the Synagogue and the Beis Midrash\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן יג] דיני קדשת בית הכנסת ובית המדרש\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 13 Laws Concerning the Sanctity of the Synagogue and the Beis Midrash\n",
+          "heTitle": "[סימן יג] דיני קדשת בית הכנסת ובית המדרש\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 14",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 14 The Laws of Pesukei D'zimrah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן יד] דיני פסוקי דזמרה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 14 The Laws of Pesukei D'zimrah\n",
+          "heTitle": "[סימן יד] דיני פסוקי דזמרה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 15",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 15 The Laws of Kaddish, Barechu, Requirements of Minyan, and the Laws of the Chazzan\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן טו] דיני קדיש וברכו וצרוף עשרה ואם יצאו מקצתן ודין השליח צבור\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 15 The Laws of Kaddish, Barechu, Requirements of Minyan, and the Laws of the Chazzan\n",
+          "heTitle": "[סימן טו] דיני קדיש וברכו וצרוף עשרה ואם יצאו מקצתן ודין השליח צבור\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 16",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 16 Laws Concerning Interruptions During the Berachos of Kerias Shema and During Kerias Shema\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן טז] דיני הפסקות בברכות קריאת שמע ובקריאת שמע\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 16 Laws Concerning Interruptions During the Berachos of Kerias Shema and During Kerias Shema\n",
+          "heTitle": "[סימן טז] דיני הפסקות בברכות קריאת שמע ובקריאת שמע\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 17",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 17 The Laws of Reading the Shema\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן יז] הלכות קריאת שמע\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 17 The Laws of Reading the Shema\n",
+          "heTitle": "[סימן יז] הלכות קריאת שמע\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 18",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 18 Laws of Shemoneh Esrei (Amidah)\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן יח] הלכות תפלת שמנה עשרה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 18 Laws of Shemoneh Esrei (Amidah)\n",
+          "heTitle": "[סימן יח] הלכות תפלת שמנה עשרה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 19",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 19 Laws Dealing With Additions to Shemoneh Esrei\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן יט] דיני משיב הרוח טל ומטר יעלה ויבא ועננו\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 19 Laws Dealing With Additions to Shemoneh Esrei\n",
+          "heTitle": "[סימן יט] דיני משיב הרוח טל ומטר יעלה ויבא ועננו\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 20",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 20 The Laws Pertaining to the Repetition of the Shemoneh Esrei by the Chazzan\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן כ] דין חזרת תפלת השליח צבור\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 20 The Laws Pertaining to the Repetition of the Shemoneh Esrei by the Chazzan\n",
+          "heTitle": "[סימן כ] דין חזרת תפלת השליח צבור\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 21",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 21 Laws of Compensation When a Prayer is Omitted\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן כא] דין מי שלא התפלל האיך ישלימנה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 21 Laws of Compensation When a Prayer is Omitted\n",
+          "heTitle": "[סימן כא] דין מי שלא התפלל האיך ישלימנה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 22",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 22 Laws of Tachanun\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן כב] דיני תחנון\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 22 Laws of Tachanun\n",
+          "heTitle": "[סימן כב] דיני תחנון\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 23",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 23 Laws of Reading the Torah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן כג] קצת דיני קריאת ספר תורה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 23 Laws of Reading the Torah\n",
+          "heTitle": "[סימן כג] קצת דיני קריאת ספר תורה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 24",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 24 Laws Concerning Errors and Defects in a Seifer Torah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן כד] דין אם נמצא טעות ופסול בספר תורה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 24 Laws Concerning Errors and Defects in a Seifer Torah\n",
+          "heTitle": "[סימן כד] דין אם נמצא טעות ופסול בספר תורה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 25",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 25 Laws relating to Ashrei and Uva Letziyon to the Conclusion of the Prayers.\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן כה] דיני אשרי ובא לציון עד גמר התפלה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 25 Laws relating to Ashrei and Uva Letziyon to the Conclusion of the Prayers.\n",
+          "heTitle": "[סימן כה] דיני אשרי ובא לציון עד גמר התפלה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 26",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 26 Laws Concerning the Mourner's Kaddish\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן כו] דיני קדיש יתום\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 26 Laws Concerning the Mourner's Kaddish\n",
+          "heTitle": "[סימן כו] דיני קדיש יתום\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 27",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 27 Law Concerning the Study of Torah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן כז] הלכות תלמוד תורה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 27 Law Concerning the Study of Torah\n",
+          "heTitle": "[סימן כז] הלכות תלמוד תורה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 28",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 28 Laws Regarding the Seifer Torah and other Holy Books\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן כח] הלכות ספר תורה ושאר ספרי קדש\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 28 Laws Regarding the Seifer Torah and other Holy Books\n",
+          "heTitle": "[סימן כח] הלכות ספר תורה ושאר ספרי קדש\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 29",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 29 Moral and Ethical Rules Which a Person Should Adopt\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן כט] מדות שירגיל בהם האדם את עצמו\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 29 Moral and Ethical Rules Which a Person Should Adopt\n",
+          "heTitle": "[סימן כט] מדות שירגיל בהם האדם את עצמו\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 30",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 30 The Prohibition Against Talebearing, Slander, Vengeance and Bearing a Grudge\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ל] אסור רכילות לשון הרע נקימה ונטירה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 30 The Prohibition Against Talebearing, Slander, Vengeance and Bearing a Grudge\n",
+          "heTitle": "[סימן ל] אסור רכילות לשון הרע נקימה ונטירה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 31",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 31 All Man's Intentions Should be for the Sake of Heaven\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן לא] שכל כונות האדם יהיו לשם שמים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 31 All Man's Intentions Should be for the Sake of Heaven\n",
+          "heTitle": "[סימן לא] שכל כונות האדם יהיו לשם שמים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 32",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 32 Rules for Guarding One's Health\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן לב] שמירת הגוף על פי הטבע\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 32 Rules for Guarding One's Health\n",
+          "heTitle": "[סימן לב] שמירת הגוף על פי הטבע\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 33",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 33 Things Forbidden Because They Are Hazardous\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן לג] דברים האסורים משום סכנה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 33 Things Forbidden Because They Are Hazardous\n",
+          "heTitle": "[סימן לג] דברים האסורים משום סכנה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 34",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 34 The Laws of Charity\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן לד] הלכות צדקה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 34 The Laws of Charity\n",
+          "heTitle": "[סימן לד] הלכות צדקה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 35",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 35 The Separation of Challah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן לה] הלכות חלה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 35 The Separation of Challah\n",
+          "heTitle": "[סימן לה] הלכות חלה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 36",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 36 Laws of Salting Meat\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן לו] הלכות מליחה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 36 Laws of Salting Meat\n",
+          "heTitle": "[סימן לו] הלכות מליחה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 37",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 37 Laws Pertaining to the Ritual Immersion of Utensils\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן לז] הלכות טבילת כלים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 37 Laws Pertaining to the Ritual Immersion of Utensils\n",
+          "heTitle": "[סימן לז] הלכות טבילת כלים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 38",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 38 Laws Concerning Bread that was Baked, Food that was Cooked, and Milk that was Milked by a Non Jew\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן לח] הלכות פת ובשולי עובד כוכבים וחלב עובד כוכבים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 38 Laws Concerning Bread that was Baked, Food that was Cooked, and Milk that was Milked by a Non Jew\n",
+          "heTitle": "[סימן לח] הלכות פת ובשולי עובד כוכבים וחלב עובד כוכבים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 39",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 39 Laws Concerning Eating or Drinking Before the Meal\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן לט] דין מי שרוצה לאכל או לשתות קדם הסעודה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 39 Laws Concerning Eating or Drinking Before the Meal\n",
+          "heTitle": "[סימן לט] דין מי שרוצה לאכל או לשתות קדם הסעודה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 40",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 40 Laws Pertaining to Washing of Hands Before the Meal\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן מ] הלכות נטילת ידים לסעודה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 40 Laws Pertaining to Washing of Hands Before the Meal\n",
+          "heTitle": "[סימן מ] הלכות נטילת ידים לסעודה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 41",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 41 Laws Pertaining to the Breaking of Bread and the Berachah of Hamotzi\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן מא] הלכות בציעת הפת וברכת המוציא\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 41 Laws Pertaining to the Breaking of Bread and the Berachah of Hamotzi\n",
+          "heTitle": "[סימן מא] הלכות בציעת הפת וברכת המוציא\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 42",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 42 Laws Pertaining to the Meal\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן מב] הלכות סעודה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 42 Laws Pertaining to the Meal\n",
+          "heTitle": "[סימן מב] הלכות סעודה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 43",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 43 Laws Pertaining to the Berachos Over Special Courses During the Meal\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן מג] הלכות ברכות לדברים שאוכלים ושותים בתוך הסעודה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 43 Laws Pertaining to the Berachos Over Special Courses During the Meal\n",
+          "heTitle": "[סימן מג] הלכות ברכות לדברים שאוכלים ושותים בתוך הסעודה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 44",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 44 Laws Concerning the Washing of Hands After a Meal, and the Saying of Birkas Hamazon\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן מד] הלכות מים אחרונים וברכת המזון\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 44 Laws Concerning the Washing of Hands After a Meal, and the Saying of Birkas Hamazon\n",
+          "heTitle": "[סימן מד] הלכות מים אחרונים וברכת המזון\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 45",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 45 Laws Pertaining to Zimun and Birkas Hamazon\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן מה] הלכות ברכת הזמון\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 45 Laws Pertaining to Zimun and Birkas Hamazon\n",
+          "heTitle": "[סימן מה] הלכות ברכת הזמון\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 46",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 46 Laws Pertaining to Forbidden Foods\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן מו] הלכות מאכלות אסורות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 46 Laws Pertaining to Forbidden Foods\n",
+          "heTitle": "[סימן מו] הלכות מאכלות אסורות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 47",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 47 Laws Pertaining to Non Jewish Wine and the Method of Koshering (Purging) Utensils in Which it Was Held.\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן מז] הלכות סתם יינם והכשר הכלים ממנו\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 47 Laws Pertaining to Non Jewish Wine and the Method of Koshering (Purging) Utensils in Which it Was Held.\n",
+          "heTitle": "[סימן מז] הלכות סתם יינם והכשר הכלים ממנו\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 48",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 48 The Laws of Berachos on Foods [Made] of the Five Species of Grain\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן מח] דיני ברכות על מאכלים מחמשת מיני דגן\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 48 The Laws of Berachos on Foods [Made] of the Five Species of Grain\n",
+          "heTitle": "[סימן מח] דיני ברכות על מאכלים מחמשת מיני דגן\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 49",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 49 The Laws of Berachos on Wine [and the Berachah of] Hatov Vehameitiv\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן מט] דיני ברכת היין וברכת הטוב והמטיב\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 49 The Laws of Berachos on Wine [and the Berachah of] Hatov Vehameitiv\n",
+          "heTitle": "[סימן מט] דיני ברכת היין וברכת הטוב והמטיב\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 50",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 50 Rules Concerning the Berachos Said Before Enjoying Food, Drinks, and Fragrances\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן נ] כללים בברכה ראשונה מברכת הנהנין\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 50 Rules Concerning the Berachos Said Before Enjoying Food, Drinks, and Fragrances\n",
+          "heTitle": "[סימן נ] כללים בברכה ראשונה מברכת הנהנין\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 51",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 51 Laws Relating to the Concluding Berachah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן נא] כללים בברכה אחרונה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 51 Laws Relating to the Concluding Berachah\n",
+          "heTitle": "[סימן נא] כללים בברכה אחרונה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 52",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 52 The Berachos of Borei Peri Ha'eitz and Borei Peri Ha'adamah and Shehakol\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן נב] דיני ברכת בורא פרי העץ ובורא פרי האדמה ושהכל\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 52 The Berachos of Borei Peri Ha'eitz and Borei Peri Ha'adamah and Shehakol\n",
+          "heTitle": "[סימן נב] דיני ברכת בורא פרי העץ ובורא פרי האדמה ושהכל\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 53",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 53 Berachos Over Soup, Fruit, and Vegetable Juices\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן נג] דין רטב ומשקה של פרות וירקות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 53 Berachos Over Soup, Fruit, and Vegetable Juices\n",
+          "heTitle": "[סימן נג] דין רטב ומשקה של פרות וירקות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 54",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 54 Laws Relating to Primary and Secondary Foods\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן נד] דין עקר וטפל\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 54 Laws Relating to Primary and Secondary Foods\n",
+          "heTitle": "[סימן נד] דין עקר וטפל\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 55",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 55 Laws Concerning the Order of Precedence Relating to Berachos\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן נה] דין קדימה בברכות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 55 Laws Concerning the Order of Precedence Relating to Berachos\n",
+          "heTitle": "[סימן נה] דין קדימה בברכות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 56",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 56 Laws Concerning Berachos Recited Erroneously\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן נו] דין טעות בברכות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 56 Laws Concerning Berachos Recited Erroneously\n",
+          "heTitle": "[סימן נו] דין טעות בברכות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 57",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 57 Laws Relating to Berachos over Food and Drink Served in Addition to the Original Fare\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן נז] דין ברך על מאכל או משקה ואחר כך הביאו לו עוד\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 57 Laws Relating to Berachos over Food and Drink Served in Addition to the Original Fare\n",
+          "heTitle": "[סימן נז] דין ברך על מאכל או משקה ואחר כך הביאו לו עוד\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 58",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 58 Laws Concerning the Berachah over Fragrance\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן נח] דין ברכת הריח\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 58 Laws Concerning the Berachah over Fragrance\n",
+          "heTitle": "[סימן נח] דין ברכת הריח\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 59",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 59 Laws Relating to the Berachos Shehecheyanu and Hatov Vehameitiv\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן נט] דין ברכת שהחינו והטוב והמטיב\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 59 Laws Relating to the Berachos Shehecheyanu and Hatov Vehameitiv\n",
+          "heTitle": "[סימן נט] דין ברכת שהחינו והטוב והמטיב\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 60",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 60 Laws Concerning the Berachos over Phenomenal Sights\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ס] דין ברכות הראיה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 60 Laws Concerning the Berachos over Phenomenal Sights\n",
+          "heTitle": "[סימן ס] דין ברכות הראיה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 61",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 61 Laws Concerning the Berachah Hagomeil and Other Berachos on Various Occasions\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן סא] ברכת הגומל ועוד קצת ברכות פרטיות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 61 Laws Concerning the Berachah Hagomeil and Other Berachos on Various Occasions\n",
+          "heTitle": "[סימן סא] ברכת הגומל ועוד קצת ברכות פרטיות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 62",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 62 Laws Concerning Business and Commerce\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן סב] הלכות משא ומתן\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 62 Laws Concerning Business and Commerce\n",
+          "heTitle": "[סימן סב] הלכות משא ומתן\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 63",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 63 The Prohibition of Deceiving Others with Words and Misleading Others\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן סג] אסור להונות בדברים ולגנב דעת הבריות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 63 The Prohibition of Deceiving Others with Words and Misleading Others\n",
+          "heTitle": "[סימן סג] אסור להונות בדברים ולגנב דעת הבריות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 64",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 64 The Prohibition of Dealing in Forbidden Objects\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן סד] שלא לעשות סחורה בדבר האסור\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 64 The Prohibition of Dealing in Forbidden Objects\n",
+          "heTitle": "[סימן סד] שלא לעשות סחורה בדבר האסור\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 65",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 65 Laws of Interest\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן סה] הלכות רבית\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 65 Laws of Interest\n",
+          "heTitle": "[סימן סה] הלכות רבית\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 66",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 66 Laws of Iska\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן סו] הלכות עסקא\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 66 Laws of Iska\n",
+          "heTitle": "[סימן סו] הלכות עסקא\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 67",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 67 Laws of Vows and Oaths\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן סז] הלכות נדרים ושבועות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 67 Laws of Vows and Oaths\n",
+          "heTitle": "[סימן סז] הלכות נדרים ושבועות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 68",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 68 Laws of the Traveller's Prayer and Precautions To Be Taken When Traveling\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן סח] דין תפלת הדרך ושאר דברים שצריכין לזהר בדרך\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 68 Laws of the Traveller's Prayer and Precautions To Be Taken When Traveling\n",
+          "heTitle": "[סימן סח] דין תפלת הדרך ושאר דברים שצריכין לזהר בדרך\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 69",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 69 Laws of the Minchah Prayer\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן סט] דיני תפלת מנחה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 69 Laws of the Minchah Prayer\n",
+          "heTitle": "[סימן סט] דיני תפלת מנחה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 70",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 70 Laws of the Maariv Prayer\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ע] דיני תפלת מעריב\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 70 Laws of the Maariv Prayer\n",
+          "heTitle": "[סימן ע] דיני תפלת מעריב\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 71",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 71 The Order of the Night\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן עא] סדר הלילה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 71 The Order of the Night\n",
+          "heTitle": "[סימן עא] סדר הלילה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 72",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 72 The Great Holiness of the Shabbos; One Who Desecrates It is Like an Idolator. Laws Dealing with the Commencement of Shabbos\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן עב] גדל קדשת שבת והמחללו הרי הוא כמו עובד כוכבים ודיני הכנסת שבת\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 72 The Great Holiness of the Shabbos; One Who Desecrates It is Like an Idolator. Laws Dealing with the Commencement of Shabbos\n",
+          "heTitle": "[סימן עב] גדל קדשת שבת והמחללו הרי הוא כמו עובד כוכבים ודיני הכנסת שבת\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 73",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 73 The Conditions whereby it is Permitted to Give Work to a Non Jew on Friday and to Lend or Rent Vessels to him on Friday.\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן עג] באיזה אפן מתר לתת קודם שבת מלאכה לאינו יהודי ולהשאיל ולהשכיר לו כלים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 73 The Conditions whereby it is Permitted to Give Work to a Non Jew on Friday and to Lend or Rent Vessels to him on Friday.\n",
+          "heTitle": "[סימן עג] באיזה אפן מתר לתת קודם שבת מלאכה לאינו יהודי ולהשאיל ולהשכיר לו כלים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 74",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 74 Laws of Embarking on a Ship\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן עד] דין המפליג בספינה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 74 Laws of Embarking on a Ship\n",
+          "heTitle": "[סימן עד] דין המפליג בספינה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 75",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 75 The Laws of Candle Lighting\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן עה] דין הדלקת הנרות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 75 The Laws of Candle Lighting\n",
+          "heTitle": "[סימן עה] דין הדלקת הנרות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 76",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 76 The Laws of the Prayers on Shabbos and Yom Tov\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן עו] דיני התפלות בשבת וביום טוב\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 76 The Laws of the Prayers on Shabbos and Yom Tov\n",
+          "heTitle": "[סימן עו] דיני התפלות בשבת וביום טוב\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 77",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 77 The Laws of Kiddush and the Shabbos Meals For Night and Day\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן עז] דיני הקדוש והסעודות בלילה וביום\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 77 The Laws of Kiddush and the Shabbos Meals For Night and Day\n",
+          "heTitle": "[סימן עז] דיני הקדוש והסעודות בלילה וביום\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 78",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 78 Laws of Torah Reading On Shabbos and Yom Tov\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן עח] הלכות קריאת ספר תורה בשבת ויום טוב והחיובים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 78 Laws of Torah Reading On Shabbos and Yom Tov\n",
+          "heTitle": "[סימן עח] הלכות קריאת ספר תורה בשבת ויום טוב והחיובים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 79",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 79 The Laws of Maftir\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן עט] דיני מפטיר\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 79 The Laws of Maftir\n",
+          "heTitle": "[סימן עט] דיני מפטיר\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 80",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 80 Some of the Melachos (Work) that are Prohibited on Shabbos\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן פ] קצת ממלאכות האסורות בשבת\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 80 Some of the Melachos (Work) that are Prohibited on Shabbos\n",
+          "heTitle": "[סימן פ] קצת ממלאכות האסורות בשבת\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 81",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 81 The Four Domains With Regard to Shabbos\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן פא] ארבע רשיות לשבת\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 81 The Four Domains With Regard to Shabbos\n",
+          "heTitle": "[סימן פא] ארבע רשיות לשבת\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 82",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 82 The Prohibition Against Removing Things From One Domain To Another\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן פב] אסור העברה והוצאה מרשות לרשות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 82 The Prohibition Against Removing Things From One Domain To Another\n",
+          "heTitle": "[סימן פב] אסור העברה והוצאה מרשות לרשות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 83",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 83 The Enclosure of Partitions is Useful Only When Fenced Around Dwellings\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן פג] הקף מחצות לא מהני אלא כשהקף לדירה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 83 The Enclosure of Partitions is Useful Only When Fenced Around Dwellings\n",
+          "heTitle": "[סימן פג] הקף מחצות לא מהני אלא כשהקף לדירה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 84",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 84 Laws Regarding Carrying Garments and Ornaments\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן פד] דיני הוצאה דרך מלבוש ותכשיט\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 84 Laws Regarding Carrying Garments and Ornaments\n",
+          "heTitle": "[סימן פד] דיני הוצאה דרך מלבוש ותכשיט\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 85",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 85 Laws Pertaining to a Fire That Breaks Out on Shabbos\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן פה] דין אם נפלה דלקה בשבת\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 85 Laws Pertaining to a Fire That Breaks Out on Shabbos\n",
+          "heTitle": "[סימן פה] דין אם נפלה דלקה בשבת\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 86",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 86 Laws of Bathing [on Shabbos]\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן פו] דין רחיצה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 86 Laws of Bathing [on Shabbos]\n",
+          "heTitle": "[סימן פו] דין רחיצה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 87",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 87 Things You Must Heed Concerning Animals and Fowl\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן פז] דברים שצריכין לזהר בבהמות חיות ועופות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 87 Things You Must Heed Concerning Animals and Fowl\n",
+          "heTitle": "[סימן פז] דברים שצריכין לזהר בבהמות חיות ועופות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 88",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 88 The Laws of Muktzeh on Shabbos\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן פח] דיני מקצה בשבת\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 88 The Laws of Muktzeh on Shabbos\n",
+          "heTitle": "[סימן פח] דיני מקצה בשבת\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 89",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 89 Laws Concerning a Base For a Prohibited Object\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן פט] דין בסיס לדבר האסור\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 89 Laws Concerning a Base For a Prohibited Object\n",
+          "heTitle": "[סימן פט] דין בסיס לדבר האסור\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 90",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 90 Laws Concerning Doing Your Needs Where No Melachah is Involved Melachah Done Through a Non Jew\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן צ] דין עשית חפציו בלא מלאכה ומלאכה על ידי גוי\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 90 Laws Concerning Doing Your Needs Where No Melachah is Involved Melachah Done Through a Non Jew\n",
+          "heTitle": "[סימן צ] דין עשית חפציו בלא מלאכה ומלאכה על ידי גוי\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 91",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 91 [Laws Concerning] One Who Feels Slightly Ill And a Sick Person Whose Condition is Not Critical\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן צא] דין מי שיש לו מחוש וחולה שאין בו סכנה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 91 [Laws Concerning] One Who Feels Slightly Ill And a Sick Person Whose Condition is Not Critical\n",
+          "heTitle": "[סימן צא] דין מי שיש לו מחוש וחולה שאין בו סכנה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 92",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 92 Laws Pertaining to the Critically Ill and Laws of Forced Transgression\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן צב] דין חולה שיש בו סכנה ודין אנוס לעברה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 92 Laws Pertaining to the Critically Ill and Laws of Forced Transgression\n",
+          "heTitle": "[סימן צב] דין חולה שיש בו סכנה ודין אנוס לעברה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 93",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 93 Laws of a Woman at Childbirth on Shabbos\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן צג] דיני יולדת\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 93 Laws of a Woman at Childbirth on Shabbos\n",
+          "heTitle": "[סימן צג] דיני יולדת\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 94",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 94 Laws Concerning Eiruvei Chatzeiros (Eiruv of Courtyards)\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן צד] דיני ערובי חצרות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 94 Laws Concerning Eiruvei Chatzeiros (Eiruv of Courtyards)\n",
+          "heTitle": "[סימן צד] דיני ערובי חצרות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 95",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 95 Laws of Eiruvei Techumin (Eiruv of Boundaries)\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן צה] דין ערובי תחומין\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 95 Laws of Eiruvei Techumin (Eiruv of Boundaries)\n",
+          "heTitle": "[סימן צה] דין ערובי תחומין\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 96",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 96 Laws Concerning the Maariv Prayer on Shabbos Night and Havdalah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן צו] דיני תפלת ערבית ודיני הבדלה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 96 Laws Concerning the Maariv Prayer on Shabbos Night and Havdalah\n",
+          "heTitle": "[סימן צו] דיני תפלת ערבית ודיני הבדלה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 97",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 97 The Laws of Rosh Chodesh and Sanctification of the Moon\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן צז] הלכות ראש חדש וקדוש לבנה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 97 The Laws of Rosh Chodesh and Sanctification of the Moon\n",
+          "heTitle": "[סימן צז] הלכות ראש חדש וקדוש לבנה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 98",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 98 The Laws of Yom Tov\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן צח] הלכות יום טוב\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 98 The Laws of Yom Tov\n",
+          "heTitle": "[סימן צח] הלכות יום טוב\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 99",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 99 The Laws of Muktzeh on Yom Tov\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן צט] דיני מקצה ביום טוב\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 99 The Laws of Muktzeh on Yom Tov\n",
+          "heTitle": "[סימן צט] דיני מקצה ביום טוב\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 100",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 100 The Laws of the Priestly Blessing\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ק] הלכות נשיאת כפים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 100 The Laws of the Priestly Blessing\n",
+          "heTitle": "[סימן ק] הלכות נשיאת כפים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 101",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 101 Laws Concerning Preparation on the First Day of Yom Tov for the Second Day or for a Weekday\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קא] דין הכנה מיום טוב ראשון ליום טוב שני או לחל\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 101 Laws Concerning Preparation on the First Day of Yom Tov for the Second Day or for a Weekday\n",
+          "heTitle": "[סימן קא] דין הכנה מיום טוב ראשון ליום טוב שני או לחל\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 102",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 102 The Laws of Eiruv Tavshilin\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קב] דיני ערוב תבשילין\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 102 The Laws of Eiruv Tavshilin\n",
+          "heTitle": "[סימן קב] דיני ערוב תבשילין\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 103",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 103 Laws of Rejoicing on Yom Tov\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קג] דיני שמחת יום טוב\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 103 Laws of Rejoicing on Yom Tov\n",
+          "heTitle": "[סימן קג] דיני שמחת יום טוב\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 104",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 104 Laws of Chol Hamoed (Intermediate Days of a Yom Tov)\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קד] דיני חל המועד\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 104 Laws of Chol Hamoed (Intermediate Days of a Yom Tov)\n",
+          "heTitle": "[סימן קד] דיני חל המועד\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 105",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 105 Things Forbidden Because They are Bothersome\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קה] דברים האסורים משום טרחא\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 105 Things Forbidden Because They are Bothersome\n",
+          "heTitle": "[סימן קה] דברים האסורים משום טרחא\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 106",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 106 Buying and Selling During Chol Hamoed\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קו] דיני מקח וממכר בחל המועד\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 106 Buying and Selling During Chol Hamoed\n",
+          "heTitle": "[סימן קו] דיני מקח וממכר בחל המועד\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 107",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 107 The Month of Nisan\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קז] דיני חדש ניסן\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 107 The Month of Nisan\n",
+          "heTitle": "[סימן קז] דיני חדש ניסן\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 108",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 108 The Wheat and Flour for the Matzos\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קח] דיני החטין והקמח למצות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 108 The Wheat and Flour for the Matzos\n",
+          "heTitle": "[סימן קח] דיני החטין והקמח למצות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 109",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 109 The Laws Concerning the Water (Used for Kneading the Matzos)\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קט] דין המים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 109 The Laws Concerning the Water (Used for Kneading the Matzos)\n",
+          "heTitle": "[סימן קט] דין המים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 110",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 110 Laws Concerning the Kneading and Baking of the Matzos\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קי] דיני הלשה ואפית המצות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 110 Laws Concerning the Kneading and Baking of the Matzos\n",
+          "heTitle": "[סימן קי] דיני הלשה ואפית המצות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 111",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 111 The Search and Nullification of the Chametz\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קיא] הלכות בדיקת ובטול חמץ\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 111 The Search and Nullification of the Chametz\n",
+          "heTitle": "[סימן קיא] הלכות בדיקת ובטול חמץ\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 112",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 112 Chametz That is Forbidden to be Kept on Pesach and That Which May be Kept on Pesach\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קיב] איזה חמץ אסור להשהות בפסח ואיזה מתר להשהותו\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 112 Chametz That is Forbidden to be Kept on Pesach and That Which May be Kept on Pesach\n",
+          "heTitle": "[סימן קיב] איזה חמץ אסור להשהות בפסח ואיזה מתר להשהותו\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 113",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 113 Laws Concerning Erev Pesach and the Baking of Matzos\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קיג] דיני ערב פסח ודיני אפית המצות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 113 Laws Concerning Erev Pesach and the Baking of Matzos\n",
+          "heTitle": "[סימן קיג] דיני ערב פסח ודיני אפית המצות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 114",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 114 The Laws Concerning the Selling of Chametz\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קיד] דיני מכירת חמץ\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 114 The Laws Concerning the Selling of Chametz\n",
+          "heTitle": "[סימן קיד] דיני מכירת חמץ\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 115",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 115 The Laws of Erev Pesach When it Occurs on Shabbos\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קטו] דיני ערב פסח שחל להיות בשבת\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 115 The Laws of Erev Pesach When it Occurs on Shabbos\n",
+          "heTitle": "[סימן קטו] דיני ערב פסח שחל להיות בשבת\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 116",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 116 Laws of Kashering\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קטז] דיני הגעלה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 116 Laws of Kashering\n",
+          "heTitle": "[סימן קטז] דיני הגעלה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 117",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 117 Various Laws Concerning Pesach\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קיז] קצת דינים מלקטים לפסח\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 117 Various Laws Concerning Pesach\n",
+          "heTitle": "[סימן קיז] קצת דינים מלקטים לפסח\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 118",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 118 The Preparation for the Seder\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קיח] דיני הכנת הסדר\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 118 The Preparation for the Seder\n",
+          "heTitle": "[סימן קיח] דיני הכנת הסדר\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 119",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 119 The Seder\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קיט] סדר ליל פסח\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 119 The Seder\n",
+          "heTitle": "[סימן קיט] סדר ליל פסח\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 120",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 120 The Laws of Counting the Omer and the Days of Sefirah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קכ] הלכות ספירת העמר וימי הספירה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 120 The Laws of Counting the Omer and the Days of Sefirah\n",
+          "heTitle": "[סימן קכ] הלכות ספירת העמר וימי הספירה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 121",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 121 Laws Concerning Public Fast Days\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קכא] הלכות תענית צבור\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 121 Laws Concerning Public Fast Days\n",
+          "heTitle": "[סימן קכא] הלכות תענית צבור\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 122",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 122 Laws Concerning the Three Weeks between the Seventeenth of Tammuz and Tishah beAv\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קכב] דינים מן שבעה עשר בתמוז עד תשעה באב\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 122 Laws Concerning the Three Weeks between the Seventeenth of Tammuz and Tishah beAv\n",
+          "heTitle": "[סימן קכב] דינים מן שבעה עשר בתמוז עד תשעה באב\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 123",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 123 Laws Concerning Erev Tishah beAv\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קכג] דיני ערב תשעה באב\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 123 Laws Concerning Erev Tishah beAv\n",
+          "heTitle": "[סימן קכג] דיני ערב תשעה באב\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 124",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 124 Laws of Tishah beAv\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קכד] הלכות תשעה באב\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 124 Laws of Tishah beAv\n",
+          "heTitle": "[סימן קכד] הלכות תשעה באב\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 125",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 125 Laws of Tishah beAv When it Occurs on Shabbos or on Sunday\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קכה] דיני תשעה באב שחל בשבת או באחד בשבת\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 125 Laws of Tishah beAv When it Occurs on Shabbos or on Sunday\n",
+          "heTitle": "[סימן קכה] דיני תשעה באב שחל בשבת או באחד בשבת\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 126",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 126 Commemorating the Destruction of the Beis Hamikdash\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קכו] לעשות זכר לחרבן\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 126 Commemorating the Destruction of the Beis Hamikdash\n",
+          "heTitle": "[סימן קכו] לעשות זכר לחרבן\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 127",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 127 Laws Concerning Private Fast Days\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קכז] הלכות תענית יחיד\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 127 Laws Concerning Private Fast Days\n",
+          "heTitle": "[סימן קכז] הלכות תענית יחיד\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 128",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 128 Laws Concerning the Month of Elul\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קכח] דיני חדש אלול\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 128 Laws Concerning the Month of Elul\n",
+          "heTitle": "[סימן קכח] דיני חדש אלול\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 129",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 129 Laws of Rosh Hashanah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קכט] הלכות ראש השנה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 129 Laws of Rosh Hashanah\n",
+          "heTitle": "[סימן קכט] הלכות ראש השנה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 130",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 130 Laws Relating to the Ten Days of Repentance\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קל] דיני עשרת ימי תשובה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 130 Laws Relating to the Ten Days of Repentance\n",
+          "heTitle": "[סימן קל] דיני עשרת ימי תשובה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 131",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 131 Laws of Erev Yom Kippur\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קלא] דיני ערב יום כפור\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 131 Laws of Erev Yom Kippur\n",
+          "heTitle": "[סימן קלא] דיני ערב יום כפור\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 132",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 132 The Order of Yom Kippur Eve\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קלב] סדר ליל יום הכפורים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 132 The Order of Yom Kippur Eve\n",
+          "heTitle": "[סימן קלב] סדר ליל יום הכפורים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 133",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 133 Laws of Yom Kippur\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קלג] הלכות יום הכפורים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 133 Laws of Yom Kippur\n",
+          "heTitle": "[סימן קלג] הלכות יום הכפורים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 134",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 134 The Laws of the Sukkah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קלד] הלכות סכה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 134 The Laws of the Sukkah\n",
+          "heTitle": "[סימן קלד] הלכות סכה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 135",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 135 Laws of Dwelling in the Sukkah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קלה] דיני ישיבת סכה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 135 Laws of Dwelling in the Sukkah\n",
+          "heTitle": "[סימן קלה] דיני ישיבת סכה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 136",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 136 Laws of the Lulav and the other Species\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קלו] הלכות לולב ושאר המינים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 136 Laws of the Lulav and the other Species\n",
+          "heTitle": "[סימן קלו] הלכות לולב ושאר המינים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 137",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 137 Laws of Taking the Lulav and the Hakafos\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קלז] דיני נטילתן וסדר ההקפות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 137 Laws of Taking the Lulav and the Hakafos\n",
+          "heTitle": "[סימן קלז] דיני נטילתן וסדר ההקפות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 138",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 138 Laws of Hoshana Rabbah, Shemini Atzeres and Simchas Torah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קלח] דיני הושענא רבא ושמיני עצרת ושמחת תורה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 138 Laws of Hoshana Rabbah, Shemini Atzeres and Simchas Torah\n",
+          "heTitle": "[סימן קלח] דיני הושענא רבא ושמיני עצרת ושמחת תורה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 139",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 139 Laws of Chanukah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קלט] הלכות חנכה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 139 Laws of Chanukah\n",
+          "heTitle": "[סימן קלט] הלכות חנכה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 140",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 140 The Order of the Four Parshiyos\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קמ] סדר ארבע פרשיות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 140 The Order of the Four Parshiyos\n",
+          "heTitle": "[סימן קמ] סדר ארבע פרשיות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 141",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 141 Laws Concerning the Reading of the Megillah\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קמא] הלכות מגלה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 141 Laws Concerning the Reading of the Megillah\n",
+          "heTitle": "[סימן קמא] הלכות מגלה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 142",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 142 Laws Concerning the Sending of Gifts of Food, Gifts to the Needy and the Seudas Purim, Purim Feast\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קמב] הלכות משלוח מנות איש לרעהו ומתנות לאביונים וסעודת פורים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 142 Laws Concerning the Sending of Gifts of Food, Gifts to the Needy and the Seudas Purim, Purim Feast\n",
+          "heTitle": "[סימן קמב] הלכות משלוח מנות איש לרעהו ומתנות לאביונים וסעודת פורים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 143",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 143 Honoring Father and Mother\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קמג] הלכות כבוד אב ואם\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 143 Honoring Father and Mother\n",
+          "heTitle": "[סימן קמג] הלכות כבוד אב ואם\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 144",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 144 Honor Due the Rebbe the Aged, the Scholar, and the Kohein.\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קמד] הלכות כבוד רבו וזקן ותלמיד חכם וכהן\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 144 Honor Due the Rebbe the Aged, the Scholar, and the Kohein.\n",
+          "heTitle": "[סימן קמד] הלכות כבוד רבו וזקן ותלמיד חכם וכהן\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 145",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 145 Laws Concerning Marriage\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קמה] הלכות אישות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 145 Laws Concerning Marriage\n",
+          "heTitle": "[סימן קמה] הלכות אישות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 146",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 146 The Fast of the Bridegroom and Bride\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קמו] מנהגי תענית חתן וכלה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 146 The Fast of the Bridegroom and Bride\n",
+          "heTitle": "[סימן קמו] מנהגי תענית חתן וכלה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 147",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 147 The Nuptial Ceremony\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קמז] מנהגי החפה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 147 The Nuptial Ceremony\n",
+          "heTitle": "[סימן קמז] מנהגי החפה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 148",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 148 The Privacy Following the Marriage Ceremony\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קמח] יחוד שאחר הקדושין\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 148 The Privacy Following the Marriage Ceremony\n",
+          "heTitle": "[סימן קמח] יחוד שאחר הקדושין\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 149",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 149 The Laws of Birkas Hamazon for Weddings and the Mitzvah to Gladden the Bride and Groom\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קמט] דיני ברכת המזון בנשואין ומצות שמחת חתן וכלה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 149 The Laws of Birkas Hamazon for Weddings and the Mitzvah to Gladden the Bride and Groom\n",
+          "heTitle": "[סימן קמט] דיני ברכת המזון בנשואין ומצות שמחת חתן וכלה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 150",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 150 Laws of Modesty\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קנ] הלכות צניעות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 150 Laws of Modesty\n",
+          "heTitle": "[סימן קנ] הלכות צניעות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 151",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 151 The Prohibition of Discharging Semen in Vain And the Ways of Ammendment for One Who has Succumbed to this Sin\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קנא] אסור הוצאת זרע לבטלה ותקונים למי שנכשל בו\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 151 The Prohibition of Discharging Semen in Vain And the Ways of Ammendment for One Who has Succumbed to this Sin\n",
+          "heTitle": "[סימן קנא] אסור הוצאת זרע לבטלה ותקונים למי שנכשל בו\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 152",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 152 Prohibition Against Being Secluded with Women and Other Forbidden Associations with Them.\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קנב] אסור יחוד ושאר קרבות בנשים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 152 Prohibition Against Being Secluded with Women and Other Forbidden Associations with Them.\n",
+          "heTitle": "[סימן קנב] אסור יחוד ושאר קרבות בנשים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 153",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 153 The Laws of a Woman Who is Menstrually Unclean\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קנג] הלכות נדה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 153 The Laws of a Woman Who is Menstrually Unclean\n",
+          "heTitle": "[סימן קנג] הלכות נדה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 154",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 154 Regulations Concerning the Menses, Laws of Examination Before and After Marital Relations\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קנד] סדר קביעת הוסת ודין בדיקה לפני תשמיש ולאחר תשמיש\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 154 Regulations Concerning the Menses, Laws of Examination Before and After Marital Relations\n",
+          "heTitle": "[סימן קנד] סדר קביעת הוסת ודין בדיקה לפני תשמיש ולאחר תשמיש\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 155",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 155 Separation Before the Menstrual Term Differences Between Regular and Irregular Menses\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קנה] דין פרישה סמוך לוסת והחלוקים שבין וסת קבוע לאינו קבוע\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 155 Separation Before the Menstrual Term Differences Between Regular and Irregular Menses\n",
+          "heTitle": "[סימן קנה] דין פרישה סמוך לוסת והחלוקים שבין וסת קבוע לאינו קבוע\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 156",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 156 Perception of Blood as a Result of Cohabitation\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קנו] דין ראתה דם מחמת תשמיש\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 156 Perception of Blood as a Result of Cohabitation\n",
+          "heTitle": "[סימן קנו] דין ראתה דם מחמת תשמיש\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 157",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 157 Prenuptial Laws\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קנז] דיני כלה הנכנסת לחפה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 157 Prenuptial Laws\n",
+          "heTitle": "[סימן קנז] דיני כלה הנכנסת לחפה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 158",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 158 Childbirth and Miscarriage\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קנח] דין יולדת ומפלת\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 158 Childbirth and Miscarriage\n",
+          "heTitle": "[סימן קנח] דין יולדת ומפלת\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 159",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 159 Putting on White Linen and Counting the Clean Days\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קנט] דיני לבישת הלבון וספירת הנקיים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 159 Putting on White Linen and Counting the Clean Days\n",
+          "heTitle": "[סימן קנט] דיני לבישת הלבון וספירת הנקיים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 160",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 160 How to Shampoo the Hair\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קס] הלכות חפיפה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 160 How to Shampoo the Hair\n",
+          "heTitle": "[סימן קס] הלכות חפיפה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 161",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 161 What Constitutes a Chatsitsah (interposition)\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קסא] דיני חציצה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 161 What Constitutes a Chatsitsah (interposition)\n",
+          "heTitle": "[סימן קסא] דיני חציצה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 162",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 162 Immersion\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קסב] הלכות טבילה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 162 Immersion\n",
+          "heTitle": "[סימן קסב] הלכות טבילה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 163",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 163 The Laws of Circumcision\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קסג] הלכות מילה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 163 The Laws of Circumcision\n",
+          "heTitle": "[סימן קסג] הלכות מילה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 164",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 164 The Redemption of The Firstborn\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קסד] הלכות פדיון בכור\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 164 The Redemption of The Firstborn\n",
+          "heTitle": "[סימן קסד] הלכות פדיון בכור\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 165",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 165 The Training of Children\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קסה] דין חנוך קטנים וקצת דיני מלמד\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 165 The Training of Children\n",
+          "heTitle": "[סימן קסה] דין חנוך קטנים וקצת דיני מלמד\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 166",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 166 Prohibition of Omens and Auspicious Times\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קסו] שלא לנחש לעונן ולכשף\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 166 Prohibition of Omens and Auspicious Times\n",
+          "heTitle": "[סימן קסו] שלא לנחש לעונן ולכשף\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 167",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 167 Laws Concerning Idolatry\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קסז] הלכות עבודה זרה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 167 Laws Concerning Idolatry\n",
+          "heTitle": "[סימן קסז] הלכות עבודה זרה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 168",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 168 Images That are Forbidden\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קסח] צורות האסורות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 168 Images That are Forbidden\n",
+          "heTitle": "[סימן קסח] צורות האסורות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 169",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 169 The Prohibition of Tatooing, and Making Gashes of Mourning\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קסט] אסור כתבת קעקע וקרחה על מת\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 169 The Prohibition of Tatooing, and Making Gashes of Mourning\n",
+          "heTitle": "[סימן קסט] אסור כתבת קעקע וקרחה על מת\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 170",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 170 The Prohibition of Shaving the Hair of the Temples and Beard\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קע] אסור גלוח פאות הראש והזקן\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 170 The Prohibition of Shaving the Hair of the Temples and Beard\n",
+          "heTitle": "[סימן קע] אסור גלוח פאות הראש והזקן\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 171",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 171 Things that are Forbidden Because A Man Should Not Wear a Woman's Garb\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קעא] דברים האסורים משום לא ילבש גבר שמלת אשה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 171 Things that are Forbidden Because A Man Should Not Wear a Woman's Garb\n",
+          "heTitle": "[סימן קעא] דברים האסורים משום לא ילבש גבר שמלת אשה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 172",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 172 Laws Concerning New Crops\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קעב] הלכות חדש\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 172 Laws Concerning New Crops\n",
+          "heTitle": "[סימן קעב] הלכות חדש\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 173",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 173 Law of Orlah (Fruits of the First Three Years)\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קעג] הלכות ערלה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 173 Law of Orlah (Fruits of the First Three Years)\n",
+          "heTitle": "[סימן קעג] הלכות ערלה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 174",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 174 The Laws of Tree Grafting\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קעד] הלכות כלאי אילן\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 174 The Laws of Tree Grafting\n",
+          "heTitle": "[סימן קעד] הלכות כלאי אילן\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 175",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 175 The Laws of Interbreeding Animals\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קעה] הלכות כלאי בהמה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 175 The Laws of Interbreeding Animals\n",
+          "heTitle": "[סימן קעה] הלכות כלאי בהמה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 176",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 176 Laws Concerning Shaatnez (Wool Mixed with Linen)\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קעו] הלכות כלאי בגדים (שעטנז)\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 176 Laws Concerning Shaatnez (Wool Mixed with Linen)\n",
+          "heTitle": "[סימן קעו] הלכות כלאי בגדים (שעטנז)\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 177",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 177 The Firstborn of Clean Animals\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קעז] הלכות בכור בהמה טהורה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 177 The Firstborn of Clean Animals\n",
+          "heTitle": "[סימן קעז] הלכות בכור בהמה טהורה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 178",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 178 The Firstborn of a Donkey\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קעח] הלכות פטר חמור\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 178 The Firstborn of a Donkey\n",
+          "heTitle": "[סימן קעח] הלכות פטר חמור\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 179",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 179 Laws Concerning Loans\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קעט] הלכות הלואה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 179 Laws Concerning Loans\n",
+          "heTitle": "[סימן קעט] הלכות הלואה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 180",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 180 Cancellation of Debts in the Sabbatical Year\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קפ] הלכות שמטת כספים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 180 Cancellation of Debts in the Sabbatical Year\n",
+          "heTitle": "[סימן קפ] הלכות שמטת כספים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 181",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 181 Laws of Litigation and Testimony\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קפא] הלכות טוען ונטען ועדות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 181 Laws of Litigation and Testimony\n",
+          "heTitle": "[סימן קפא] הלכות טוען ונטען ועדות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 182",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 182 Laws Concerning Theft and Robbery\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קפב] הלכות גנבה וגזלה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 182 Laws Concerning Theft and Robbery\n",
+          "heTitle": "[סימן קפב] הלכות גנבה וגזלה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 183",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 183 The Laws of Property Damages\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קפג] הלכות נזקי ממון\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 183 The Laws of Property Damages\n",
+          "heTitle": "[סימן קפג] הלכות נזקי ממון\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 184",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 184 The Laws of Physical Injury\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קפד] הלכות נזקי הגוף\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 184 The Laws of Physical Injury\n",
+          "heTitle": "[סימן קפד] הלכות נזקי הגוף\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 185",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 185 Laws of Borrowing and Hiring\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קפה] הלכות שאלה ושכירות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 185 Laws of Borrowing and Hiring\n",
+          "heTitle": "[סימן קפה] הלכות שאלה ושכירות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 186",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 186 The Laws of Muzzling Animals\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קפו] הלכות לא תחסם\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 186 The Laws of Muzzling Animals\n",
+          "heTitle": "[סימן קפו] הלכות לא תחסם\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 187",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 187 The Laws of Articles Lost and Found\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קפז] הלכות אבדה ומציאה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 187 The Laws of Articles Lost and Found\n",
+          "heTitle": "[סימן קפז] הלכות אבדה ומציאה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 188",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 188 Laws Concerning Bailments\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קפח] הלכות פקדון\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 188 Laws Concerning Bailments\n",
+          "heTitle": "[סימן קפח] הלכות פקדון\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 189",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 189 Laws of Unloading and Loading\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קפט] הלכות פריקה וטעינה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 189 Laws of Unloading and Loading\n",
+          "heTitle": "[סימן קפט] הלכות פריקה וטעינה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 190",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 190 Laws of Protection of Life and Property\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קצ] הלכות [מעקה] שמירת הגוף ובל תשחית\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 190 Laws of Protection of Life and Property\n",
+          "heTitle": "[סימן קצ] הלכות [מעקה] שמירת הגוף ובל תשחית\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 191",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 191 Prohibition of Cruelty to Animals\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קצא] אסור צער בעלי חיים ואסור סרוס\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 191 Prohibition of Cruelty to Animals\n",
+          "heTitle": "[סימן קצא] אסור צער בעלי חיים ואסור סרוס\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 192",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 192 Laws of The Sick, the Physician, and Remedies\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קצב] דין החולה והרופא ובמה מתרפאין\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 192 Laws of The Sick, the Physician, and Remedies\n",
+          "heTitle": "[סימן קצב] דין החולה והרופא ובמה מתרפאין\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 193",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 193 The Laws of Visiting the Sick\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קצג] הלכות בקור חולים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 193 The Laws of Visiting the Sick\n",
+          "heTitle": "[סימן קצג] הלכות בקור חולים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 194",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 194 Laws Pertaining To A Person Near Death, And Guarding The Body Of The Deceased.\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קצד] דיני גוסס ושמירת המת\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 194 Laws Pertaining To A Person Near Death, And Guarding The Body Of The Deceased.\n",
+          "heTitle": "[סימן קצד] דיני גוסס ושמירת המת\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 195",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 195 The Laws of Tearing the Garments\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קצה] הלכות קריעה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 195 The Laws of Tearing the Garments\n",
+          "heTitle": "[סימן קצה] הלכות קריעה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 196",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 196 The Laws Of An Onein* Regarding Weekdays, Shabbos And Yom Tov.\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קצו] הלכות אונן בחל ובשבת וביום טוב\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 196 The Laws Of An Onein* Regarding Weekdays, Shabbos And Yom Tov.\n",
+          "heTitle": "[סימן קצו] הלכות אונן בחל ובשבת וביום טוב\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 197",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 197 The Laws of the Shrouds, and Purification. The Prohibition of Deriving Pleasure from Belongings of the Deceased.\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קצז] דין התכריכין והטהרה ואסור הנאה במת\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 197 The Laws of the Shrouds, and Purification. The Prohibition of Deriving Pleasure from Belongings of the Deceased.\n",
+          "heTitle": "[סימן קצז] דין התכריכין והטהרה ואסור הנאה במת\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 198",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 198 The Removal of the Deceased The Funeral and Burial Services.\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קצח] הלכות הוצאת המת והלויתו וצדוק הדין\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 198 The Removal of the Deceased The Funeral and Burial Services.\n",
+          "heTitle": "[סימן קצח] הלכות הוצאת המת והלויתו וצדוק הדין\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 199",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 199 Laws of Burial And The Cemetery\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן קצט] דין הקבורה ובית הקברות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 199 Laws of Burial And The Cemetery\n",
+          "heTitle": "[סימן קצט] דין הקבורה ובית הקברות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 200",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 200 Laws of Burial on Yom Tov\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ר] דין הקבורה ביום טוב\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 200 Laws of Burial on Yom Tov\n",
+          "heTitle": "[סימן ר] דין הקבורה ביום טוב\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 201",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 201 The Laws of Suicide and the Wicked\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן רא] דין המאבד עצמו לדעת ושאר רשע שמת\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 201 The Laws of Suicide and the Wicked\n",
+          "heTitle": "[סימן רא] דין המאבד עצמו לדעת ושאר רשע שמת\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 202",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 202 The Laws Of Defilement Of A Kohein\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן רב] הלכות טמאת כהן\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 202 The Laws Of Defilement Of A Kohein\n",
+          "heTitle": "[סימן רב] הלכות טמאת כהן\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 203",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 203 Relatives and Infants For Whom Mourning Must Be Observed\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן רג] על איזה קרוב ותינוק מתאבלים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 203 Relatives and Infants For Whom Mourning Must Be Observed\n",
+          "heTitle": "[סימן רג] על איזה קרוב ותינוק מתאבלים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 204",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 204 When Does The Mourning Period Begin?\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן רד] אימתי מתחילה האבלות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 204 When Does The Mourning Period Begin?\n",
+          "heTitle": "[סימן רד] אימתי מתחילה האבלות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 205",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 205 The Meal of Condolence\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן רה] דין סעודת הבראה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 205 The Meal of Condolence\n",
+          "heTitle": "[סימן רה] דין סעודת הבראה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 206",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 206 The Laws of Timely and Delayed News\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן רו] דין שמועה קרובה ושמועה רחוקה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 206 The Laws of Timely and Delayed News\n",
+          "heTitle": "[סימן רו] דין שמועה קרובה ושמועה רחוקה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 207",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 207 Laws of Consoling The Mourners\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן רז] דיני ניחום אבלים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 207 Laws of Consoling The Mourners\n",
+          "heTitle": "[סימן רז] דיני ניחום אבלים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 208",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 208 Work that a Mourner Is Forbidden To Perform\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן רח] שהאבל אסור במלאכה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 208 Work that a Mourner Is Forbidden To Perform\n",
+          "heTitle": "[סימן רח] שהאבל אסור במלאכה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 209",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 209 The prohibition to Bathe, Anoint, Wear Shoes And to Engage In Marital Relations.\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן רט] אסור רחיצה וסיכה ונעילת הסנדל ותשמיש המטה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 209 The prohibition to Bathe, Anoint, Wear Shoes And to Engage In Marital Relations.\n",
+          "heTitle": "[סימן רט] אסור רחיצה וסיכה ונעילת הסנדל ותשמיש המטה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 210",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 210 The Prohibition To Study Torah And To Exchange Greetings\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן רי] אסור תלמוד תורה ושאילת שלום\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 210 The Prohibition To Study Torah And To Exchange Greetings\n",
+          "heTitle": "[סימן רי] אסור תלמוד תורה ושאילת שלום\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 211",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 211 Other Things A Mourner Is Forbidden To Do\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ריא] שאר דברים שהאבל אסור בהם\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 211 Other Things A Mourner Is Forbidden To Do\n",
+          "heTitle": "[סימן ריא] שאר דברים שהאבל אסור בהם\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 212",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 212 Things that are Forbidden Because of \"Rejoicing\" After the Seven Days.\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ריב] דברים האסורים משום שמחה גם לאחר שבעה\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 212 Things that are Forbidden Because of \"Rejoicing\" After the Seven Days.\n",
+          "heTitle": "[סימן ריב] דברים האסורים משום שמחה גם לאחר שבעה\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 213",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 213 A Mourner is Forbidden to Marry Laws of a Groom or Bride Who Becomes Mourners\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ריג] שהאבל אסור לשא אשה ודין חתן או כלה שנעשו אבלים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 213 A Mourner is Forbidden to Marry Laws of a Groom or Bride Who Becomes Mourners\n",
+          "heTitle": "[סימן ריג] שהאבל אסור לשא אשה ודין חתן או כלה שנעשו אבלים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 214",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 214 When a Mourner May Leave His House.\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ריד] מתי האבל יכול לצאת מביתו\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 214 When a Mourner May Leave His House.\n",
+          "heTitle": "[סימן ריד] מתי האבל יכול לצאת מביתו\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 215",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 215 Excessive Grief is Forbidden\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן רטו] שלא להתקשות על המת יותר מדי\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 215 Excessive Grief is Forbidden\n",
+          "heTitle": "[סימן רטו] שלא להתקשות על המת יותר מדי\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 216",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 216 Parts of the Seventh and Thirtieth Days and Laws of the Twelve Months\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן רטז] דין מקצת יום שביעי ומקצת יום שלשים ודין שנים עשר חדש\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 216 Parts of the Seventh and Thirtieth Days and Laws of the Twelve Months\n",
+          "heTitle": "[סימן רטז] דין מקצת יום שביעי ומקצת יום שלשים ודין שנים עשר חדש\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 217",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 217 The Law if One Neglected to Observe Mourning.\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ריז] דין מי שלא נהג אבלות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 217 The Law if One Neglected to Observe Mourning.\n",
+          "heTitle": "[סימן ריז] דין מי שלא נהג אבלות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 218",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 218 The Law of Testimony Relating to Mourning\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ריח] דין עדות לאבלות\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 218 The Law of Testimony Relating to Mourning\n",
+          "heTitle": "[סימן ריח] דין עדות לאבלות\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 219",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 219 The Law of Mourning on a Shabbos or Yom Tov\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן ריט] דין אבלות בשבת ויום טוב\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 219 The Law of Mourning on a Shabbos or Yom Tov\n",
+          "heTitle": "[סימן ריט] דין אבלות בשבת ויום טוב\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 220",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 220 The Mourning Period is Cancelled By a Festival\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן רכ] דין שהרגלים מבטלין גזרת שבעה ושלשים\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 220 The Mourning Period is Cancelled By a Festival\n",
+          "heTitle": "[סימן רכ] דין שהרגלים מבטלין גזרת שבעה ושלשים\n"
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Kitzur Shulchan Arukh 221",
+          "refs": [],
+          "titles": [
+            {
+              "primary": true,
+              "text": "Chapter 221 The Law of Fasting on the Day of Yahrzeit\n",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "[סימן רכא] דין תענית יארצייט\n",
+              "lang": "he"
+            }
+          ],
+          "title": "Chapter 221 The Law of Fasting on the Day of Yahrzeit\n",
+          "heTitle": "[סימן רכא] דין תענית יארצייט\n"
+        }
+      ],
+      "titles": [
+        {
+          "text": "<i>Kiẓur Shulḥan Arukh</i>",
+          "lang": "en"
+        },
+        {
+          "text": "Kitzur Shulchan Aruch Orach Chaim",
+          "lang": "en"
+        },
+        {
+          "text": "Kitzur Shulchan Aruch",
+          "lang": "en"
+        },
+        {
+          "text": "קיצור שלחן ערוך",
+          "lang": "he",
+          "primary": true
+        },
+        {
+          "text": "קיצור שולחן ערוך",
+          "lang": "he"
+        },
+        {
+          "text": "Kitzur Shulchan Arukh",
+          "lang": "en",
+          "primary": true
+        }
+      ],
+      "title": "Kitzur Shulchan Arukh",
+      "heTitle": "קיצור שלחן ערוך"
+    }
+  },
+  "sectionNames": [
+    "Siman",
+    "Seif"
+  ],
+  "depth": 2,
+  "firstSectionRef": "Kitzur Shulchan Arukh 1",
+  "heCategories": [
+    "הלכה"
+  ],
+  "compDateString": {
+    "en": " (c.1844  – c.1864 CE)",
+    "he": " (1844 – 1864 לספירה בקירוב)"
+  },
+  "pubDateString": {
+    "en": " (1864 CE)",
+    "he": " (1864 לספירה)"
+  },
+  "compPlaceString": {
+    "en": "Uzhgorod",
+    "he": "אוז'הורוד"
+  },
+  "pubPlaceString": {
+    "en": "Uzhgorod",
+    "he": "אוז'הורוד"
+  },
+  "relatedTopics": [
+    {
+      "slug": "elul",
+      "title": {
+        "en": "Elul",
+        "he": "אלול"
+      }
+    },
+    {
+      "slug": "rosh-hashanah",
+      "title": {
+        "en": "Rosh Hashanah",
+        "he": "ראש השנה"
+      }
+    },
+    {
+      "slug": "shlomo-ganzfried",
+      "title": {
+        "en": "Shlomo Ganzfried",
+        "he": "רבי שלמה בן יוסף גאנצפריד"
+      }
+    },
+    {
+      "slug": "teshuvah",
+      "title": {
+        "en": "Repentance (Teshuvah)",
+        "he": "תשובה"
+      }
+    },
+    {
+      "slug": "chanukkah",
+      "title": {
+        "en": "Chanukkah",
+        "he": "חנוכה"
+      }
+    },
+    {
+      "slug": "challah",
+      "title": {
+        "en": "Challah",
+        "he": "חלה"
+      }
+    },
+    {
+      "slug": "high-holidays",
+      "title": {
+        "en": "High Holidays",
+        "he": "הימים הנוראים"
+      }
+    },
+    {
+      "slug": "tashlich",
+      "title": {
+        "en": "Tashlikh",
+        "he": "תשליך"
+      }
+    },
+    {
+      "slug": "shabbat",
+      "title": {
+        "en": "Shabbat",
+        "he": "שבת"
+      }
+    },
+    {
+      "slug": "light",
+      "title": {
+        "en": "Light",
+        "he": "אור"
+      }
+    },
+    {
+      "slug": "shivah-asar-betammuz",
+      "title": {
+        "en": "Shivah Asar BeTammuz",
+        "he": "י״ז (שבעה עשר) בתמוז"
+      }
+    },
+    {
+      "slug": "forgiveness",
+      "title": {
+        "en": "Forgiveness",
+        "he": "סליחה"
+      }
+    },
+    {
+      "slug": "mourning",
+      "title": {
+        "en": "Mourning",
+        "he": "אבלות"
+      }
+    },
+    {
+      "slug": "fasting",
+      "title": {
+        "en": "Fasting",
+        "he": "תענית"
+      }
+    },
+    {
+      "slug": "kashrut",
+      "title": {
+        "en": "Kashrut",
+        "he": "כשרות"
+      }
+    },
+    {
+      "slug": "chametz",
+      "title": {
+        "en": "Chametz",
+        "he": "חמץ"
+      }
+    },
+    {
+      "slug": "candles",
+      "title": {
+        "en": "Candles",
+        "he": "נרות"
+      }
+    },
+    {
+      "slug": "four-cups",
+      "title": {
+        "en": "Four Cups",
+        "he": "ארבע כוסות"
+      }
+    }
+  ]
+}

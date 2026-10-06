@@ -1,0 +1,14 @@
+node_modules
+.output
+.vinxi
+.tanstack
+dist
+storybook-static
+*.log
+.DS_Store
+coverage
+src/routeTree.gen.ts
+test-results
+playwright-report
+debug-storybook.log
+docs/features/build/

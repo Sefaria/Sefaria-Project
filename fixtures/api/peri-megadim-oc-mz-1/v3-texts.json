@@ -1,0 +1,146 @@
+{
+  "versions": [
+    {
+      "status": "locked",
+      "priority": "",
+      "license": "Public Domain",
+      "versionNotes": "<p dir=\"rtl\">\nבאדיבות פנינים - הספרייה החופשית <a href=\"https://pninim.org\">pninim.org</a>\n<br>\nגם אתם יכולים לסייע להרחבתה - דרך קופת הצדקה שלכם - ע\"י תמיכה באברכים נזקקים שהם השוקדים על בנייתה\n</p>\n<p dir=\"rtl\">\n<big><strong>זכויות יוצרים</strong></big>\n<br><br>\nכל הזכויות שמורות ל\"פנינים\". הספרים מתפרסמים תחת הרישיון החופשי GNU Free Documentation License (גרסה 1.3 עם Invariant Sections, Front-Cover Text, Back-Cover Text):\n</p>\n<p dir=\"ltr\">Copyright (C) 2018 - 2019  Pninim <a href=\"https://pninim.org\">https://pninim.org</a><br><br>\nPermission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.3 published by the Free Software Foundation;<br>\nwith Invariant Sections being \"הקדשות\", \"פרויקט פנינים\",</p>\n<p dir=\"ltr\">one Front-Cover Text:</p>\n<p dir=\"rtl\">\n\"באדיבות פנינים - הספרייה החופשית <a href=\"https://pninim.org\">pninim.org</a>\",\n</p>\n<p dir=\"ltr\">and one Back-Cover Text:</p>\n<p dir=\"rtl\">\n\"באדיבות פנינים - הספרייה החופשית <a href=\"https://pninim.org\">pninim.org</a><br>\n גם אתם יכולים לסייע להרחבתה - דרך קופת הצדקה שלכם - ע\"י תמיכה באברכים נזקקים שהם השוקדים על בנייתה\".\n</p>\n<p dir=\"ltr\">A copy of the license is included in the section entitled \"<a href=\"/GNU_FDL/\">GNU Free Documentation License</a>\".</p>\n\n<div dir=\"rtl\">\n<p>\n<big><strong>פרויקט פנינים</strong></big>\n</p>\n<p>\nהמטרה של המיזם היא לאפשר לתלמידי חכמים נזקקים להתפרנס בכבוד תוך כדי יצירת ערך מוסף לכלל הציבור. תומכי הפרויקט זוכים לעשות צדקה בגדר של \"מטיל בכיס\" (שבת סג.) שהיא מעולה ממתנה (נהמא דכיסופא = \"לחם של בושה\") ואפילו מהלוואה.\n</p>\n<p>\nבמסגרתם הלימודית אברכים מכל רחבי הארץ עובדים על יצירת מאגר תורני ממוחשב שניתן להשתמש בו ללא תמורה (ואפילו למטרות מסחריות, בכפוף לתנאי הרישיון). ספרים עתיקים נסרקים ועוברים תהליך המרה מתמונה למסמך תמליל ממוחשב. לאחר מכן, כל טקסט עובר הגהה קפדנית - ומתפרסם לכלל הציבור באמצעות גישה מקוונת חופשית.\n</p>\n<p>\nלפרטים נוספים נא בקרו באתרנו: <a href=\"https://pninim.org\">pninim.org</a>\n</p>\nסטיות מנוסח המקור צוינו כדלהלן:\n<ul>\n<li>קטעים שלדעת העורך ראוי להחסירם מוסגרו בטילדות ~ ~</li>\n<li>קטעים שלדעת העורך ראוי להוסיפם מוסגרו בסוגריים מסולסלים { }</li>\n</ul>\n<p>\nבמקרה ומצאתם טעות או אי דיוק כלשהו - נבקש בכל לשון של בקשה להודיע לנו על כך בכתובת: <a href=\"mailto:contact@pninim.org\">contact@pninim.org</a>\n</p>\n<p>\n<big><strong>הקדשות</strong></big>\n</p>\n<ul>\n<li>להצלחתו ולהצלחת בני משפחתו של התורם החפץ בעילום שמו ברוחניות ובגשמיות בתוך שאר עם ישראל</li>\n<li>לע\"נ אברהם בן דוד</li>\n<li>לע\"נ חנה בת אהרן</li>\n<li>להצלחת א.פ. בכל ענייניו</li>\n<li>נחמה בת שרה, רפואה שלמה</li>\n<li>לע\"נ אורי בן איליה</li>\n<li>לע\"נ ברוניה בת לזר</li>\n<li>דוד בן אברהם, תשובה שלמה</li>\n<li>לע\"נ יהודה בן שמואל</li>\n<li>לע\"נ אסתר בת לב</li>\n<li>לע\"נ חיה אסתר בת יעל</li>\n<li>טוביה בן מרים, רפואה שלמה בתוך שאר ח\"י</li>\n<li>אלעזר בן אסתר, רפואה שלמה בתוך שאר ח\"י</li>\n<li>לע\"נ הרוגי מירון</li>\n</ul>\n</div>",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "",
+      "versionNotesInHebrew": "<p dir=\"rtl\">\nבאדיבות פנינים - הספרייה החופשית <a href=\"https://pninim.org\">pninim.org</a>\n<br>\nגם אתם יכולים לסייע להרחבתה - דרך קופת הצדקה שלכם - ע\"י תמיכה באברכים נזקקים שהם השוקדים על בנייתה\n</p>\n<p dir=\"rtl\">\n<big><strong>זכויות יוצרים</strong></big>\n<br><br>\nכל הזכויות שמורות ל\"פנינים\". הספרים מתפרסמים תחת הרישיון החופשי GNU Free Documentation License (גרסה 1.3 עם Invariant Sections, Front-Cover Text, Back-Cover Text):\n</p>\n<p dir=\"ltr\">Copyright (C) 2018 - 2019  Pninim <a href=\"https://pninim.org\">https://pninim.org</a><br><br>\nPermission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.3 published by the Free Software Foundation;<br>\nwith Invariant Sections being \"הקדשות\", \"פרויקט פנינים\",</p>\n<p dir=\"ltr\">one Front-Cover Text:</p>\n<p dir=\"rtl\">\n\"באדיבות פנינים - הספרייה החופשית <a href=\"https://pninim.org\">pninim.org</a>\",\n</p>\n<p dir=\"ltr\">and one Back-Cover Text:</p>\n<p dir=\"rtl\">\n\"באדיבות פנינים - הספרייה החופשית <a href=\"https://pninim.org\">pninim.org</a><br>\n גם אתם יכולים לסייע להרחבתה - דרך קופת הצדקה שלכם - ע\"י תמיכה באברכים נזקקים שהם השוקדים על בנייתה\".\n</p>\n<p dir=\"ltr\">A copy of the license is included in the section entitled \"<a href=\"/GNU_FDL/\">GNU Free Documentation License</a>\".</p>\n\n<div dir=\"rtl\">\n<p>\n<big><strong>פרויקט פנינים</strong></big>\n</p>\n<p>\nהמטרה של המיזם היא לאפשר לתלמידי חכמים נזקקים להתפרנס בכבוד תוך כדי יצירת ערך מוסף לכלל הציבור. תומכי הפרויקט זוכים לעשות צדקה בגדר של \"מטיל בכיס\" (שבת סג.) שהיא מעולה ממתנה (נהמא דכיסופא = \"לחם של בושה\") ואפילו מהלוואה.\n</p>\n<p>\nבמסגרתם הלימודית אברכים מכל רחבי הארץ עובדים על יצירת מאגר תורני ממוחשב שניתן להשתמש בו ללא תמורה (ואפילו למטרות מסחריות, בכפוף לתנאי הרישיון). ספרים עתיקים נסרקים ועוברים תהליך המרה מתמונה למסמך תמליל ממוחשב. לאחר מכן, כל טקסט עובר הגהה קפדנית - ומתפרסם לכלל הציבור באמצעות גישה מקוונת חופשית.\n</p>\n<p>\nלפרטים נוספים נא בקרו באתרנו: <a href=\"https://pninim.org\">pninim.org</a>\n</p>\nסטיות מנוסח המקור צוינו כדלהלן:\n<ul>\n<li>קטעים שלדעת העורך ראוי להחסירם מוסגרו בטילדות ~ ~</li>\n<li>קטעים שלדעת העורך ראוי להוסיפם מוסגרו בסוגריים מסולסלים { }</li>\n</ul>\n<p>\nבמקרה ומצאתם טעות או אי דיוק כלשהו - נבקש בכל לשון של בקשה להודיע לנו על כך בכתובת: <a href=\"mailto:contact@pninim.org\">contact@pninim.org</a>\n</p>\n<p>\n<big><strong>הקדשות</strong></big>\n</p>\n<ul>\n<li>להצלחתו ולהצלחת בני משפחתו של התורם החפץ בעילום שמו ברוחניות ובגשמיות בתוך שאר עם ישראל</li>\n<li>לע\"נ אברהם בן דוד</li>\n<li>לע\"נ חנה בת אהרן</li>\n<li>להצלחת א.פ. בכל ענייניו</li>\n<li>נחמה בת שרה, רפואה שלמה</li>\n<li>לע\"נ אורי בן איליה</li>\n<li>לע\"נ ברוניה בת לזר</li>\n<li>דוד בן אברהם, תשובה שלמה</li>\n<li>לע\"נ יהודה בן שמואל</li>\n<li>לע\"נ אסתר בת לב</li>\n<li>לע\"נ חיה אסתר בת יעל</li>\n<li>טוביה בן מרים, רפואה שלמה בתוך שאר ח\"י</li>\n<li>אלעזר בן אסתר, רפואה שלמה בתוך שאר ח\"י</li>\n<li>לע\"נ הרוגי מירון</li>\n</ul>\n</div>",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "he",
+      "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH990020906970205171/NLI",
+      "versionTitle": "Warsaw, 1877",
+      "actualLanguage": "he",
+      "languageFamilyName": "hebrew",
+      "isSource": true,
+      "isPrimary": true,
+      "direction": "rtl",
+      "text": [
+        [
+          "יתגבר כו׳ עט״ז: ידוע כי החומר והצורה צרות זו לזו אמר תי״ו התפעל להיות אדם מתגבר הנפש על החומר כי יצר לב האדם רע מנעוריו וא״כ יהיה נוצח ומנוצח בעצמו גם חי״ו תמידי כי בכל יום היצה״ר מסיתו וצריך לעמוד על נפשו נגדו. כמ״ש מקולם לא יחת (<a class=\"refLink \" href=\"Isaiah.31.4\" data-ref=\"Isaiah 31:4\" data-range=231-243>ישעיה ל״א ד׳</a>) ועיין <a class=\"refLink \" href=\"I_Samuel.2.9\" data-ref=\"I Samuel 2:9\" data-range=251-265>שמואל א׳ ב׳ ט׳</a> רגלי חסידיו ישמור ורשעים בחושך ידמו. רמ״א שם ומסיים כי לא בכח יגבר איש ר״ל כי צריך לעזר ה׳ רק שיהא האדם המתחיל <a class=\"refLink \" href=\"Job.15.25\" data-ref=\"Job 15:25\" data-range=377-390>ואיוב ט״ו כ״ה</a> ואל שדי יתגבר ימ״ש התי״ו: יש תי״ו הראות כמו יש מתעשר בדמיון כו׳ והנה ודאי יצה״ר תקיף מאדם כמ״ש כי מי יוכל לדון עם שתקיף ממנו. אלא שצריך האדם להיות עז בדעתו ומש״ה אמר כארי מיותר אלא מה ארי לא יחת מפני רועים וכמה בני אדם אף שיודע שבני אדם תקיפים ממנו מ״מ טבעו שלא יחת כן האדם יתגבר ויהיה עז בטבע וא״כ קשה היינו עז כנמר לז״א כי עז בפני המלעיג אין כ״כ גבורה כי יחשוב שהוא אדם כמותו אבל נגד יצה״ר מלאך ותקיף נקרא גבור כמ״ש איזה גבור: רמ״א פתר יפה ב׳ ראשונים נגד מ״ע ב׳ אחרונים נגד ל״ת יע״ש:"
+        ],
+        [
+          "שיהא עט״ז קשה ליה דהול״ל ויהא הוא מעורר השחר כי בטור כתוב שאל ישיאך יצרך (שי״ן ימנית) איך תעמוד וקור גדול או לא שבעת משנתך ויכוחו עמך לאו אעמידה קודם עמוד השחר כי בקיץ לאחר עמוד השחר ובחורף יאמר כן: ויהא הוא מעורר השחר הוא ענין בפ״ע שאדם ירגיל במאכלים קלים וכדומה שלא ישן הרבה כי בשינה לא שייך התגברות. ע״כ תירץ על פי דרוש כי מלת שחר נדרש בזוהר ויקרא דף י״א עמוד ג״ד על כ״י יע״ש וכל אדם צריך להתעורר עצמו תחלה ואח״כ מסייעין משמים כי לא בכח שלו לבד יגבר איש כמש״ל ודוד שיבח עצמו שא״צ לו אח״כ לסייע משמים אלא הוא מעיר השחר נותן התעוררות ושמחה ושפע למעלה ואין השחר כ״י מעיר אותו לסייע אפילו אח״כ: ולפי זה א״ש הכל ענין א׳ יתגבר בהתעוררות עצמו שיהא הוא מעורר לא שיהא התעוררות תחלה משמים ומיהו לסוף צריך התעוררות סיוע מלמעלה כי לא כ״ע דוד הע״ה ומשו״ה השמיט המחבר ואין השחר מעיר אותו. והמדפיס הבין שראשי תיבות כל״י כ״מו ל״קדושת י״שראל וטעות הוא רק כביכול לכנסת ישראל או היה כתוב לכ״י לכנסת י״שראל והיפך המדפיס והבן: וא״ש אעירה שחר (<a class=\"refLink \" href=\"Psalms.57.9\" data-ref=\"Psalms 57:9\" data-range=925-936>תלים נ״ז ט׳</a> וק״ח ג׳) הא בחצות קם ולפי הדרש א״ש ועיין <a class=\"refLink \" href=\"Rif_Berakhot.1\" data-ref=\"Rif Berakhot 1\" data-range=978-994>רי״ף ברכות ד׳ א׳</a> בעין יעקב: מה שכתב הרב בהג״ה ועכ״פ לא יאחר זמן כו׳ שהציבור מתפללין היינו אע״פ שלא יעבור זמן תפלה מ״מ מצוה עם הציבור ושינה מלשון הטור שכתב זמן התפלה אשר הוא מועד לכל חי:"
+        ],
+        [
+          "טוב עט״ז <a class=\"refLink \" href=\"I_Kings.7\" data-ref=\"I Kings 7\" data-range=9-16>עמ״א ז׳</a> ודאי כן הוא לט״ז ג״כ דממעיט אין יכולת בידו להרבות כמו עני בקרבן אלא מלת ובלבד שיכוין לש״ש לכאורה קאי אמרבה דממעיט פשיטא דבעי לכוין ולט״ז א״ש טפי דקאי אדסמיך וה״פ ובלבד שמה שממעט יהא לשמים שיוכל לכוין היטב וז״ש כ״י נתילת טעם שריבוי בלא כוונה אין טוב: ויש לראות מה הוא הל׳ טוב כו׳ דמשמע דהרבה שלא בכוונה ג״כ טוב וזה טוב יותר וז״א כי שלא בכוונה לא אותי קראת יעקב ולט״ז א״ש לשון הטור אבל לא לשון המחבר והבן:"
+        ],
+        [
+          "פרשת עט״ז כ״כ ב״י טעמים אלו ובאר הגולה ו׳ טור ובפרישה בשם רש״ל בירושלמי ברכות כל האומר פ׳ המן מובטח שלא יתמעטו מזונותיו ועשרת הדברות כתב הב״י לזכור מעמד הר סיני ויתחזק אמונתו ופ׳ קרבנות כו׳ וזאת כו׳ הפרישה כתב מלת וזאת מיותרת לומר וזאת התורה כאילו הקריב חטאת אבל רש״י מנחות ק״י מדלא כתיב חוקת החטאת ועיין לבוש הקשה על זה יע״ש:"
+        ],
+        [
+          "ודוקא עט״ז עיין <a class=\"refLink \" href=\"Berakhot.12a.5\" data-ref=\"Berakhot 12a:5\" data-range=16-28>ברכות י״ב א׳</a> ופירש״י תרעומת המינין שלא יאמרו לעמי הארץ כו׳ דבשביל המינין אין אנו אחראין יע״ש ומיהו אח״כ פירש״י צדוקין עובדי עכו״ם דאי צדוקים ובייתוסים הא מאמינים בכל תורה שבכתב א״כ ודאי א״א אחראין לעכו״ם ועיין דרישה בשם רש״ל שפסק לאומרו בציבור קודם ברוך שאמר דרש״י פירש בקשו לקבוע בק״ש היינו עם ברכות יע״ש ואנן פסקינן כש״ע ומיהו בלחש אומרים כל יחיד בביה״כ לא בקול רם וראוי לומר קודם ב״ש כמ״ש מהרש״ל כי פ״ז תיבות בב״ש וראשו כתם פ״ז דנדרש ע״פ דיבור א׳ אנכי יע״ש:"
+        ],
+        [
+          "אלא עט״ז המחבר שינה מלשון הטור שכתב טוב יותר אלא דוקא ביום כמו פ׳ התמיד במ״ו סי״ג ועתב״ש י״ב ואם אין לו פנאי ביום יוכל לומר בלילה וכ״ש חטאת ואשם:"
+        ],
+        [
+          "שהם עט״ז הנה דעת המחבר דאחר אשם לא יאמר דאין בא בנדבה דאין הל׳ כר״א <a class=\"refLink \" href=\"Keritot.25a.18\" data-ref=\"Keritot 25a:18\" data-range=68-83>בכריתות (כ״ה א׳</a>) כ״א כרבנן דאשם תלוי אין בא נדבה ואשם נזיר <a class=\"refLink \" href=\"I_Kings.11\" data-ref=\"I Kings 11\" data-range=127-135>עמ״א י״א</a> מ״ש על רש״ל וב״ח תירץ בא״ר י״ג דמתנה וא״ל יהא כקורא בתורה וכן הסכים התב״ש אות ט׳: וכתב א״ר שם אם ידוע שחטא יאמר תחלה חטאתי עויתי פשעתי ואח״כ יאמר פ׳ חטאת ואשם ויה״ר ואמת כ״ה בר״מ ש״א מהלכות תשובה שהקרבן בלא וידוי אין מכפר כמ״ש בתורה וידוי הוא חטאתי כו׳ שם פ״א ופ״ב וידוי בעמידה עיין תר״ז במ״א ד׳: ומ״ש ונשלמה פרים כו׳ ה״ה אשם יוציא מהכלל כתב הדרישה שיש לומר יה״ר כאלו הקרבתי כו׳ אחר איזהו מקומן וכן היה אומר מורו ועיין סי׳ נו״ן בב״ח מיקטר כו׳:"
+        ],
+        [
+          "פסוק עט״ז א״ר י״ד בשם תוצאות חיים זה יאמר קודם פ׳ הקרבנות ופ׳ קרבנות יאמר קודם איזהו מקומן. הנה פ׳ קרבנות קוד׳ איזהו מקומן נכון הוא דיאמר אח״כ הביאור מקרא אח״כ משנה ופסוק ושחט על ירך (<a class=\"refLink \" href=\"Leviticus.1.18\" data-ref=\"Leviticus 1:18\" data-range=184-194>ויקרא א יח</a>) ובב״י ושחט לפנ״י (ט״ס הוא) אנו אומרים אחר פ׳ התמיד: <b>ראוי</b> לומר תהלים קודם תפלה שנקראים זמירות להכרית המקטריגים לבוש א״ר י״ד: והנה פסוקי דזמרה הם <a class=\"refLink \" href=\"Psalms.145.1\" data-ref=\"Psalms 145:1\" data-range=347-351>תלים</a> תהלה לדוד עד ברוך ה׳ לעולם. א״כ בעל תורה ילמוד קודם. ע״ש בשם של״ה תלים לומר במתון לא לחטוף פסוקים העונים חוטפים של האומר והאומר של עונים אין זה מברך אלא ח״ו מנאץ וכן במ״ש השירת הים פסוק אחר פסוק וחוטפים לא טוב עושים. מ״ש הט״ז יאמר ונשלמה פרים במקום עבודת תמיד אשגרת לשון הוא דתמיד כבש עתב״ש אות ד׳ מזה:"
+        ]
+      ]
+    }
+  ],
+  "available_versions": [
+    {
+      "status": "locked",
+      "priority": "",
+      "license": "Public Domain",
+      "versionNotes": "<p dir=\"rtl\">\nבאדיבות פנינים - הספרייה החופשית <a href=\"https://pninim.org\">pninim.org</a>\n<br>\nגם אתם יכולים לסייע להרחבתה - דרך קופת הצדקה שלכם - ע\"י תמיכה באברכים נזקקים שהם השוקדים על בנייתה\n</p>\n<p dir=\"rtl\">\n<big><strong>זכויות יוצרים</strong></big>\n<br><br>\nכל הזכויות שמורות ל\"פנינים\". הספרים מתפרסמים תחת הרישיון החופשי GNU Free Documentation License (גרסה 1.3 עם Invariant Sections, Front-Cover Text, Back-Cover Text):\n</p>\n<p dir=\"ltr\">Copyright (C) 2018 - 2019  Pninim <a href=\"https://pninim.org\">https://pninim.org</a><br><br>\nPermission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.3 published by the Free Software Foundation;<br>\nwith Invariant Sections being \"הקדשות\", \"פרויקט פנינים\",</p>\n<p dir=\"ltr\">one Front-Cover Text:</p>\n<p dir=\"rtl\">\n\"באדיבות פנינים - הספרייה החופשית <a href=\"https://pninim.org\">pninim.org</a>\",\n</p>\n<p dir=\"ltr\">and one Back-Cover Text:</p>\n<p dir=\"rtl\">\n\"באדיבות פנינים - הספרייה החופשית <a href=\"https://pninim.org\">pninim.org</a><br>\n גם אתם יכולים לסייע להרחבתה - דרך קופת הצדקה שלכם - ע\"י תמיכה באברכים נזקקים שהם השוקדים על בנייתה\".\n</p>\n<p dir=\"ltr\">A copy of the license is included in the section entitled \"<a href=\"/GNU_FDL/\">GNU Free Documentation License</a>\".</p>\n\n<div dir=\"rtl\">\n<p>\n<big><strong>פרויקט פנינים</strong></big>\n</p>\n<p>\nהמטרה של המיזם היא לאפשר לתלמידי חכמים נזקקים להתפרנס בכבוד תוך כדי יצירת ערך מוסף לכלל הציבור. תומכי הפרויקט זוכים לעשות צדקה בגדר של \"מטיל בכיס\" (שבת סג.) שהיא מעולה ממתנה (נהמא דכיסופא = \"לחם של בושה\") ואפילו מהלוואה.\n</p>\n<p>\nבמסגרתם הלימודית אברכים מכל רחבי הארץ עובדים על יצירת מאגר תורני ממוחשב שניתן להשתמש בו ללא תמורה (ואפילו למטרות מסחריות, בכפוף לתנאי הרישיון). ספרים עתיקים נסרקים ועוברים תהליך המרה מתמונה למסמך תמליל ממוחשב. לאחר מכן, כל טקסט עובר הגהה קפדנית - ומתפרסם לכלל הציבור באמצעות גישה מקוונת חופשית.\n</p>\n<p>\nלפרטים נוספים נא בקרו באתרנו: <a href=\"https://pninim.org\">pninim.org</a>\n</p>\nסטיות מנוסח המקור צוינו כדלהלן:\n<ul>\n<li>קטעים שלדעת העורך ראוי להחסירם מוסגרו בטילדות ~ ~</li>\n<li>קטעים שלדעת העורך ראוי להוסיפם מוסגרו בסוגריים מסולסלים { }</li>\n</ul>\n<p>\nבמקרה ומצאתם טעות או אי דיוק כלשהו - נבקש בכל לשון של בקשה להודיע לנו על כך בכתובת: <a href=\"mailto:contact@pninim.org\">contact@pninim.org</a>\n</p>\n<p>\n<big><strong>הקדשות</strong></big>\n</p>\n<ul>\n<li>להצלחתו ולהצלחת בני משפחתו של התורם החפץ בעילום שמו ברוחניות ובגשמיות בתוך שאר עם ישראל</li>\n<li>לע\"נ אברהם בן דוד</li>\n<li>לע\"נ חנה בת אהרן</li>\n<li>להצלחת א.פ. בכל ענייניו</li>\n<li>נחמה בת שרה, רפואה שלמה</li>\n<li>לע\"נ אורי בן איליה</li>\n<li>לע\"נ ברוניה בת לזר</li>\n<li>דוד בן אברהם, תשובה שלמה</li>\n<li>לע\"נ יהודה בן שמואל</li>\n<li>לע\"נ אסתר בת לב</li>\n<li>לע\"נ חיה אסתר בת יעל</li>\n<li>טוביה בן מרים, רפואה שלמה בתוך שאר ח\"י</li>\n<li>אלעזר בן אסתר, רפואה שלמה בתוך שאר ח\"י</li>\n<li>לע\"נ הרוגי מירון</li>\n</ul>\n</div>",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "",
+      "versionNotesInHebrew": "<p dir=\"rtl\">\nבאדיבות פנינים - הספרייה החופשית <a href=\"https://pninim.org\">pninim.org</a>\n<br>\nגם אתם יכולים לסייע להרחבתה - דרך קופת הצדקה שלכם - ע\"י תמיכה באברכים נזקקים שהם השוקדים על בנייתה\n</p>\n<p dir=\"rtl\">\n<big><strong>זכויות יוצרים</strong></big>\n<br><br>\nכל הזכויות שמורות ל\"פנינים\". הספרים מתפרסמים תחת הרישיון החופשי GNU Free Documentation License (גרסה 1.3 עם Invariant Sections, Front-Cover Text, Back-Cover Text):\n</p>\n<p dir=\"ltr\">Copyright (C) 2018 - 2019  Pninim <a href=\"https://pninim.org\">https://pninim.org</a><br><br>\nPermission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.3 published by the Free Software Foundation;<br>\nwith Invariant Sections being \"הקדשות\", \"פרויקט פנינים\",</p>\n<p dir=\"ltr\">one Front-Cover Text:</p>\n<p dir=\"rtl\">\n\"באדיבות פנינים - הספרייה החופשית <a href=\"https://pninim.org\">pninim.org</a>\",\n</p>\n<p dir=\"ltr\">and one Back-Cover Text:</p>\n<p dir=\"rtl\">\n\"באדיבות פנינים - הספרייה החופשית <a href=\"https://pninim.org\">pninim.org</a><br>\n גם אתם יכולים לסייע להרחבתה - דרך קופת הצדקה שלכם - ע\"י תמיכה באברכים נזקקים שהם השוקדים על בנייתה\".\n</p>\n<p dir=\"ltr\">A copy of the license is included in the section entitled \"<a href=\"/GNU_FDL/\">GNU Free Documentation License</a>\".</p>\n\n<div dir=\"rtl\">\n<p>\n<big><strong>פרויקט פנינים</strong></big>\n</p>\n<p>\nהמטרה של המיזם היא לאפשר לתלמידי חכמים נזקקים להתפרנס בכבוד תוך כדי יצירת ערך מוסף לכלל הציבור. תומכי הפרויקט זוכים לעשות צדקה בגדר של \"מטיל בכיס\" (שבת סג.) שהיא מעולה ממתנה (נהמא דכיסופא = \"לחם של בושה\") ואפילו מהלוואה.\n</p>\n<p>\nבמסגרתם הלימודית אברכים מכל רחבי הארץ עובדים על יצירת מאגר תורני ממוחשב שניתן להשתמש בו ללא תמורה (ואפילו למטרות מסחריות, בכפוף לתנאי הרישיון). ספרים עתיקים נסרקים ועוברים תהליך המרה מתמונה למסמך תמליל ממוחשב. לאחר מכן, כל טקסט עובר הגהה קפדנית - ומתפרסם לכלל הציבור באמצעות גישה מקוונת חופשית.\n</p>\n<p>\nלפרטים נוספים נא בקרו באתרנו: <a href=\"https://pninim.org\">pninim.org</a>\n</p>\nסטיות מנוסח המקור צוינו כדלהלן:\n<ul>\n<li>קטעים שלדעת העורך ראוי להחסירם מוסגרו בטילדות ~ ~</li>\n<li>קטעים שלדעת העורך ראוי להוסיפם מוסגרו בסוגריים מסולסלים { }</li>\n</ul>\n<p>\nבמקרה ומצאתם טעות או אי דיוק כלשהו - נבקש בכל לשון של בקשה להודיע לנו על כך בכתובת: <a href=\"mailto:contact@pninim.org\">contact@pninim.org</a>\n</p>\n<p>\n<big><strong>הקדשות</strong></big>\n</p>\n<ul>\n<li>להצלחתו ולהצלחת בני משפחתו של התורם החפץ בעילום שמו ברוחניות ובגשמיות בתוך שאר עם ישראל</li>\n<li>לע\"נ אברהם בן דוד</li>\n<li>לע\"נ חנה בת אהרן</li>\n<li>להצלחת א.פ. בכל ענייניו</li>\n<li>נחמה בת שרה, רפואה שלמה</li>\n<li>לע\"נ אורי בן איליה</li>\n<li>לע\"נ ברוניה בת לזר</li>\n<li>דוד בן אברהם, תשובה שלמה</li>\n<li>לע\"נ יהודה בן שמואל</li>\n<li>לע\"נ אסתר בת לב</li>\n<li>לע\"נ חיה אסתר בת יעל</li>\n<li>טוביה בן מרים, רפואה שלמה בתוך שאר ח\"י</li>\n<li>אלעזר בן אסתר, רפואה שלמה בתוך שאר ח\"י</li>\n<li>לע\"נ הרוגי מירון</li>\n</ul>\n</div>",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "he",
+      "title": "Peri Megadim on Orach Chayim",
+      "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH990020906970205171/NLI",
+      "versionTitle": "Warsaw, 1877",
+      "actualLanguage": "he",
+      "languageFamilyName": "hebrew",
+      "isSource": true,
+      "isPrimary": true,
+      "direction": "rtl"
+    }
+  ],
+  "ref": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1",
+  "heRef": "פרי מגדים על אורח חיים, משבצות זהב א׳",
+  "sections": [
+    "1"
+  ],
+  "toSections": [
+    "1"
+  ],
+  "sectionRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1",
+  "heSectionRef": "פרי מגדים על אורח חיים, משבצות זהב א׳",
+  "firstAvailableSectionRef": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1:1",
+  "isSpanning": false,
+  "next": "Peri Megadim on Orach Chayim, Mishbezot Zahav 2:1",
+  "prev": "Peri Megadim on Orach Chayim, Principles in Shulchan Arukh",
+  "title": "Peri Megadim on Orach Chayim, Mishbezot Zahav 1",
+  "book": "Peri Megadim on Orach Chayim, Mishbezot Zahav",
+  "heTitle": "פרי מגדים על אורח חיים, משבצות זהב",
+  "primary_category": "Commentary",
+  "type": "Commentary",
+  "indexTitle": "Peri Megadim on Orach Chayim",
+  "categories": [
+    "Halakhah",
+    "Shulchan Arukh"
+  ],
+  "heIndexTitle": "פרי מגדים על אורח חיים",
+  "isComplex": true,
+  "isDependant": true,
+  "order": "",
+  "collectiveTitle": "Pri Megadim",
+  "heCollectiveTitle": "פרי מגדים",
+  "alts": [],
+  "textDepth": 3,
+  "sectionNames": [
+    "Siman",
+    "Seif",
+    "Paragraph"
+  ],
+  "addressTypes": [
+    "Integer",
+    "Integer",
+    "Integer"
+  ],
+  "titleVariants": [
+    "Mishbezot Zahav"
+  ],
+  "heTitleVariants": [
+    "משבצות זהב"
+  ],
+  "index_offsets_by_depth": {},
+  "warnings": [
+    {
+      "translation": {
+        "warning_code": 104,
+        "message": "We do not have a translation for Peri Megadim on Orach Chayim, Mishbezot Zahav 1"
+      }
+    }
+  ]
+}

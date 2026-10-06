@@ -1,0 +1,9 @@
+node_modules
+dist
+.tanstack
+test-results
+playwright-report
+coverage
+storybook-static
+docs/features/build
+*.log

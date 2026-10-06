@@ -1,0 +1,5 @@
+.view { display: flex; flex-direction: column; gap: var(--sefaria-space-4); }
+.box { display: flex; align-items: center; gap: var(--sefaria-space-2); padding: var(--sefaria-space-2) var(--sefaria-space-3); background: var(--sefaria-color-surface-subtle, var(--sefaria-color-surface)); border-radius: var(--sefaria-radius-md, 6px); }
+.box input { flex: 1; min-width: 0; border: 0; background: none; font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); color: var(--sefaria-color-text); }
+.copy { display: inline-flex; padding: 0; border: 0; background: none; cursor: pointer; color: var(--sefaria-color-text-muted); }
+.copied { font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-caption); color: var(--sefaria-color-text-muted); }

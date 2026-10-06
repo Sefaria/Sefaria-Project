@@ -1,0 +1,266 @@
+{
+  "title": "Peri Megadim on Orach Chayim",
+  "categories": [
+    "Halakhah",
+    "Shulchan Arukh"
+  ],
+  "schema": {
+    "nodes": [
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "authors-introduction"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "text": "Author's Introduction",
+            "lang": "en",
+            "primary": true
+          },
+          {
+            "text": "הקדמת המחבר",
+            "lang": "he",
+            "primary": true
+          }
+        ],
+        "key": "Author's Introduction"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 2,
+        "addressTypes": [
+          "Integer",
+          "Integer"
+        ],
+        "sectionNames": [
+          "Chapter",
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "letters"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "text": "Letters",
+            "lang": "en",
+            "primary": true
+          },
+          {
+            "text": "אגרות",
+            "lang": "he",
+            "primary": true
+          }
+        ],
+        "key": "Letters"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 2,
+        "addressTypes": [
+          "Integer",
+          "Integer"
+        ],
+        "sectionNames": [
+          "Chapter",
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "general-introduction"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "text": "General Introduction",
+            "lang": "en",
+            "primary": true
+          },
+          {
+            "text": "פתיחה כוללת",
+            "lang": "he",
+            "primary": true
+          }
+        ],
+        "key": "General Introduction"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 2,
+        "addressTypes": [
+          "Integer",
+          "Integer"
+        ],
+        "sectionNames": [
+          "Chapter",
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "guidance-on-addressing-halakhic-queries"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "text": "Guidance on Addressing Halakhic Queries",
+            "lang": "en",
+            "primary": true
+          },
+          {
+            "text": "סדר והנהגת הנשאל עם השואל",
+            "lang": "he",
+            "primary": true
+          }
+        ],
+        "key": "Guidance on Addressing Halakhic Queries"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "principles-in-shulchan-arukh"
+            ]
+          }
+        ],
+        "titles": [
+          {
+            "text": "Principles in Shulchan Arukh",
+            "lang": "en",
+            "primary": true
+          },
+          {
+            "text": "כללים בשולחן ערוך",
+            "lang": "he",
+            "primary": true
+          }
+        ],
+        "key": "Principles in Shulchan Arukh"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 3,
+        "addressTypes": [
+          "Integer",
+          "Integer",
+          "Integer"
+        ],
+        "sectionNames": [
+          "Siman",
+          "Seif",
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "mishbezot-zahav"
+            ]
+          }
+        ],
+        "toc_zoom": 2,
+        "titles": [
+          {
+            "text": "Mishbezot Zahav",
+            "lang": "en",
+            "primary": true
+          },
+          {
+            "text": "משבצות זהב",
+            "lang": "he",
+            "primary": true
+          }
+        ],
+        "key": "Mishbezot Zahav"
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 3,
+        "addressTypes": [
+          "Integer",
+          "Integer",
+          "Integer"
+        ],
+        "sectionNames": [
+          "Siman",
+          "Seif",
+          "Paragraph"
+        ],
+        "match_templates": [
+          {
+            "term_slugs": [
+              "eshel-avraham"
+            ]
+          }
+        ],
+        "toc_zoom": 2,
+        "sharedTitle": "Eshel Avraham",
+        "key": "Eshel Avraham"
+      }
+    ],
+    "nodeType": "SchemaNode",
+    "match_templates": [
+      {
+        "term_slugs": [
+          "peri-megadim",
+          "orach-chayim"
+        ]
+      }
+    ],
+    "titles": [
+      {
+        "text": "פרי מגדים על אורח חיים",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Peri Megadim on Orach Chayim",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Peri Megadim on Orach Chayim"
+  },
+  "authors": [
+    "joseph-ben-meir-teomim"
+  ],
+  "enDesc": "*Peri Megadim* is an 18th-century commentary by Rabbi Yosef Teomim on the Orach Chaim and Yoreh Deah sections of the *Shulchan Arukh*. It primarily focuses on the *Magen Avraham*, *Turei Zahav* (Taz), and *Siftei Kohen* (Shach) commentaries. Later, halakhic authorities saw Peri Megadim as an important source of halakhah, and the *Mishneh Berurah* often relied on its rulings. Teomim wrote many drafts of the work, sometimes entirely rewriting it, before arriving at the final edition. The commentary is traditionally printed in the back of or alongside the text of the *Shulchan Arukh.* ",
+  "heDesc": "'פרי מגדים' הוא פירוש מהמאה ה-18 מאת רבי יוסף תאומים על חלקי 'אורח חיים' ו'יורה דעה' ב'שולחן ערוך'. הוא מתמקד בעיקר בפירושיהם של המגן אברהם, טתורי זהב (טז\") ושפתי כהן (ש\"ך). פוסקי הלכה מאוחרים יותר ראו ב'פרי מגדים' מקור חשוב להלכה, ביניהם ה'משנה ברורה' שמרבה להסתמך על פסיקותיו. תאומים כתב טיוטות רבות לספרו לפני שהגיע למהדורה הסופית. הפירוש נדפס באופן מסורתי בחלקו האחורי של השולחן ערוך או לצדו.",
+  "enShortDesc": "18th-century commentary by R. Yosef Teomim, primarily focusing on the Magen Avraham, Turei Zahav, and Siftei Kohen commentaries",
+  "heShortDesc": "פירוש מהמאה ה-18 מאת רבי יוסף תאומים, התמקד בעיקר בפירושי מגן אברהם, טורי זהב ושפתי כהן",
+  "pubDate": [
+    1886
+  ],
+  "pubPlace": "Frankfurt",
+  "dependence": "Commentary",
+  "base_text_titles": [
+    "Shulchan Arukh, Orach Chayim",
+    "Turei Zahav on Shulchan Arukh, Orach Chayim",
+    "Magen Avraham"
+  ],
+  "collective_title": "Pri Megadim"
+}

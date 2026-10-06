@@ -1,0 +1,14 @@
+import { chromium } from "playwright";
+const b = await chromium.launch(); const ctx = await b.newContext({ viewport: { width: 1280, height: 860 }, permissions: ["clipboard-read", "clipboard-write"] });
+await ctx.addCookies([{ name: "interfaceLang", value: "english", domain: "www.sefaria.org", path: "/" }]);
+const p = await ctx.newPage();
+const url = process.argv[2] ?? "https://www.sefaria.org/Genesis.1?lang=bi", ours = url.includes("localhost");
+await p.goto(url, { waitUntil: "domcontentloaded" });
+await p.waitForSelector(ours ? '[role="group"]' : ".segment"); await p.waitForTimeout(2000);
+await p.evaluate(() => document.querySelectorAll("#interruptingMessageBox,#interruptingMessageOverlay,.cookiesNotification").forEach((n) => n.remove()));
+await p.evaluate((ours) => { const segs = [...document.querySelectorAll(ours ? '[role="group"]' : ".segment")].slice(0, 3); const r = document.createRange(); r.setStartBefore(segs[0]); r.setEndAfter(segs[2]); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }, ours);
+await p.evaluate(() => { window.__copied = null; window.addEventListener("copy", (e) => { window.__copied = { html: e.clipboardData.getData("text/html"), text: e.clipboardData.getData("text/plain"), prevented: e.defaultPrevented }; }); });
+await p.evaluate(() => document.execCommand("copy"));
+await p.waitForTimeout(500);
+console.log(JSON.stringify(await p.evaluate(() => window.__copied), null, 1));
+await b.close();

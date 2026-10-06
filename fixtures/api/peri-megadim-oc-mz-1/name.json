@@ -1,0 +1,120 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Peri Megadim on Orach Chayim",
+    "Peri Megadim on Orach Chayim, Letters",
+    "Peri Megadim on Orach Chayim, Eshel Avraham",
+    "Peri Megadim on Orach Chayim, Mishbezot Zahav",
+    "Peri Megadim on Orach Chayim, Author's Introduction",
+    "Peri Megadim on Orach Chayim, General Introduction",
+    "Peri Megadim on Orach Chayim, Principles in Shulchan Arukh",
+    "Peri Megadim on Orach Chayim, Guidance on Addressing Halakhic Queries",
+    "Onkelos",
+    "Peri Megadim on Yoreh De'ah"
+  ],
+  "completion_objects": [
+    {
+      "title": "Peri Megadim on Orach Chayim",
+      "key": "Peri Megadim on Orach Chayim",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Peri Megadim on Orach Chayim, Letters",
+      "key": "Peri Megadim on Orach Chayim, Letters",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Peri Megadim on Orach Chayim, Eshel Avraham",
+      "key": "Peri Megadim on Orach Chayim, Eshel Avraham",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Peri Megadim on Orach Chayim, Mishbezot Zahav",
+      "key": "Peri Megadim on Orach Chayim, Mishbezot Zahav",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Peri Megadim on Orach Chayim, Author's Introduction",
+      "key": "Peri Megadim on Orach Chayim, Author's Introduction",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Peri Megadim on Orach Chayim, General Introduction",
+      "key": "Peri Megadim on Orach Chayim, General Introduction",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Peri Megadim on Orach Chayim, Principles in Shulchan Arukh",
+      "key": "Peri Megadim on Orach Chayim, Principles in Shulchan Arukh",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Peri Megadim on Orach Chayim, Guidance on Addressing Halakhic Queries",
+      "key": "Peri Megadim on Orach Chayim, Guidance on Addressing Halakhic Queries",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Onkelos",
+      "type": "TocCategory",
+      "key": [
+        "Tanakh",
+        "Targum",
+        "Onkelos"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Onkelos",
+      "type": "AuthorTopic",
+      "key": "onkelos",
+      "is_primary": true,
+      "order": 4999815,
+      "topic_pools": [
+        "library",
+        "sheets",
+        "general_en"
+      ]
+    },
+    {
+      "title": "Peri Megadim on Yoreh De'ah",
+      "key": "Peri Megadim on Yoreh De'ah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Peri Megadim on Orach Chayim",
+  "url": "Peri_Megadim_on_Orach_Chayim",
+  "index": "Peri Megadim on Orach Chayim",
+  "book": "Peri Megadim on Orach Chayim",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": []
+}
