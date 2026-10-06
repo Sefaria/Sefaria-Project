@@ -339,10 +339,17 @@ removed: the page and query API allow anonymous visitors. Anonymous job handles
 and rate limits are scoped to a random browser-session identity, rather than
 sharing a single anonymous user ID. CSRF protection and signed job handles remain.
 
-### Expansion limit fallback
+### Ranked expansion limit
 
-If ignoring י/ו would generate more than 256 phrase combinations, the worker
-continues with the original lemma query and returns a visible warning. It records
-`expansion_requested: true` and `expand_yod_vav: false`, and the displayed alternatives
-reflect what was actually searched. It does not truncate alternatives silently or
-raise the Elasticsearch workload limit. The baseline remains unchanged.
+The worker keeps the best 256 complete phrase combinations, always including the
+original lemma sequence. Ranking prefers fewer changed query words, then fewer
+character edits, then larger summed log(1 + corpus count) for altered forms.
+Lexical order breaks ties reproducibly. Frequencies come from the same frozen
+annotation export as the index. A bounded prefix selection finds the exact top
+256 for this additive ranking without materializing the full Cartesian product.
+
+Truncation is shown in a visible notice; query details record available/selected
+counts and the actual ES clauses. Word cards show only forms used by retained
+combinations. All retained phrases keep the existing boost and phrase slop; this
+change ranks candidates for inclusion, not their relevance scores. No reindexing
+is needed, and weight zero still returns the baseline in both lists.

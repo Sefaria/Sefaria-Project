@@ -8,8 +8,8 @@ import json
 import hashlib
 import unicodedata
 import math
-import itertools
-from collections import defaultdict
+import heapq
+from collections import Counter, defaultdict
 from pathlib import Path
 import sys
 from threading import Lock
@@ -42,12 +42,46 @@ def folded(lemma):
 MAX_EXPANDED_PHRASES = 256
 
 
-def expanded_clause(groups, weight, slop):
-    """Enumerate bounded alternatives to preserve Elasticsearch phrase slop exactly."""
-    count = math.prod(len(group) for group in groups)
-    if count > MAX_EXPANDED_PHRASES:
-        raise ValueError(f"Expansion would create {count} phrases (limit {MAX_EXPANDED_PHRASES}). Shorten the query or turn off Ignore י / ו.")
-    phrases = [" ".join(words) for words in itertools.product(*groups)]
+@lru_cache(maxsize=4096)
+def edit_distance(left, right):
+    """Unit-cost character edits; no change to the underlying lemma forms."""
+    row = list(range(len(right) + 1))
+    for i, a in enumerate(left, 1):
+        next_row = [i]
+        for j, b in enumerate(right, 1):
+            next_row.append(min(next_row[-1] + 1, row[j] + 1, row[j-1] + (a != b)))
+        row = next_row
+    return row[-1]
+
+
+def ranked_phrases(groups, frequencies=None, limit=MAX_EXPANDED_PHRASES):
+    """Exact top-k under additive costs, without enumerating the full product.
+
+    Prefer fewer changed words, then fewer edits, then greater corpus frequency
+    (sum of log1p counts for changed words). Lexical order makes ties stable.
+    Keeping k prefixes is exact: a discarded prefix has k better prefixes that
+    can all take the same remaining suffix. Memory stays bounded by k prefixes.
+    The first form of each group is the original and always ranks first.
+    """
+    if limit < 1:
+        raise ValueError("The phrase limit must be positive")
+    frequencies = frequencies or {}
+    prefixes = [(0, 0, 0.0, ())]
+    for group in groups:
+        original = group[0]
+        options = [(int(word != original), edit_distance(original, word),
+                    -math.log1p(frequencies.get(word, 0)) if word != original else 0.0, word)
+                   for word in dict.fromkeys(group)]
+        candidates = ((changed + dc, edits + de, frequency + df, words + (word,))
+                      for changed, edits, frequency, words in prefixes
+                      for dc, de, df, word in options)
+        prefixes = heapq.nsmallest(limit, candidates)
+    return [item[3] for item in prefixes] if groups else []
+
+
+def expanded_clause(groups, weight, slop, frequencies=None):
+    """Bound phrase alternatives while preserving Elasticsearch phrase slop."""
+    phrases = [" ".join(words) for words in ranked_phrases(groups, frequencies)]
     return {"dis_max": {"queries": [
         {"match_phrase": {"shoshan_lemma": {"query": phrase, "slop": slop}}}
         for phrase in phrases], "tie_breaker": 0, "boost": weight, "_name": "lemma_expanded"}}
@@ -78,6 +112,7 @@ class Annotations:
     def __init__(self, path, expected_hash):
         self.path, self.offsets = path, {}
         self.groups = defaultdict(set)
+        self.frequencies = Counter()
         digest = hashlib.sha256()
         with path.open("rb") as source:
             while True:
@@ -92,6 +127,7 @@ class Annotations:
                 self.offsets[row["doc_id"]] = offset
                 for lemma in row["shoshan_lemma"].split():
                     self.groups[folded(lemma)].add(lemma)
+                    self.frequencies[lemma] += 1
         if digest.hexdigest() != expected_hash:
             raise ValueError("Annotations differ from those used to build the index")
 
@@ -167,18 +203,19 @@ class Engine:
         expansion_requested = expand_yod_vav
         warnings = []
         combination_count = math.prod(len(group) for group in groups)
-        if expand_yod_vav and weight > 0 and combination_count > MAX_EXPANDED_PHRASES:
+        expansion = expanded_clause(groups, weight, slop, self.annotations.frequencies) if expand_yod_vav and weight > 0 and groups else None
+        selected = [item["match_phrase"]["shoshan_lemma"]["query"].split(" ")
+                    for item in expansion["dis_max"]["queries"]] if expansion else []
+        if selected and combination_count > len(selected):
             warnings.append(
-                f"Ignore י / ו was not applied: {combination_count:,} phrase combinations "
-                f"exceed the limit of {MAX_EXPANDED_PHRASES}. "
-                "Results use ordinary lemma matching instead."
+                f"Ignore י / ו: using the top {len(selected):,} of {combination_count:,} "
+                "phrase combinations, prioritizing original lemmas, fewer changed words, "
+                "fewer letter changes, then corpus frequency."
             )
-            expand_yod_vav = False
-            groups = [[t["lemma"]] for t in annotation["tokens"]]
         word_parts = [p for p in annotation["parts"] if "lemma" in p]
-        for part, alternatives in zip(word_parts, groups):
-            part["alternatives"] = alternatives
-        expansion = expanded_clause(groups, weight, slop) if expand_yod_vav and weight > 0 and groups else None
+        for i, (part, alternatives) in enumerate(zip(word_parts, groups)):
+            used = {words[i] for words in selected} if selected else {part["lemma"]}
+            part["alternatives"] = [word for word in alternatives if word in used]
         results = {}
         for mode in ("baseline", "enhanced"):
             # Weight zero means a true baseline, including the candidate set.
@@ -197,6 +234,8 @@ class Engine:
         return {"query": query, "weight": weight, "depth": depth, "slop": slop, "expand_yod_vav": expand_yod_vav, "annotation": annotation,
                 "index": self.index, "documents": self.documents, "results": results,
                 "expansion_requested": expansion_requested, "warnings": warnings,
+                "expansion_selection": {"available": combination_count, "selected": len(selected),
+                                        "limit": MAX_EXPANDED_PHRASES, "ranking": "changed_words,edits,-sum_log1p_frequency,lexical"},
                 "seconds": round(time.monotonic() - started, 3)}
 
 

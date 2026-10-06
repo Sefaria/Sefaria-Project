@@ -24,7 +24,7 @@ from django.test import RequestFactory, override_settings, SimpleTestCase
 from django.http import Http404
 from django.core import signing
 from reader.lemma_search import page, jobs, SALT
-from lemma_search_worker import Engine, Jobs, validate, Annotations, token_parts, folded, expanded_clause
+from lemma_search_worker import Engine, Jobs, validate, Annotations, token_parts, folded, expanded_clause, ranked_phrases, edit_distance
 
 
 from lemma_search_transport import validate_target, transport
@@ -95,7 +95,7 @@ class ExperimentTests(unittest.TestCase):
         self.assertEqual([c.args[1] for c in engine.query_body.call_args_list], [None,"בן ישראל"])
         self.assertEqual([c.args[4] for c in engine.query_body.call_args_list], [0,0])
 
-    def test_excessive_expansion_falls_back_without_losing_search(self):
+    def test_excessive_expansion_keeps_ranked_phrases(self):
         engine = Engine.__new__(Engine)
         query = "לקרוא שמע בערב"
         tokens = [{"original_start":query.index(word),"original_end":query.index(word)+len(word),
@@ -108,14 +108,40 @@ class ExperimentTests(unittest.TestCase):
         engine.index, engine.url, engine.documents = "lemma-poc-test", "http://127.0.0.1:19200", 10
         engine.query_body = Mock(side_effect=lambda q, lemmas, w, n, slop: {"lemmas":lemmas,"_source":[]})
         engine.request = Mock(return_value={"_shards":{"failed":0},"hits":{"total":{"value":0},"hits":[]}})
-        fallback = engine.compare(query, 1, 20, expand_yod_vav=True)
-        ordinary = engine.compare(query, 1, 20, expand_yod_vav=False)
-        self.assertEqual(fallback["results"], ordinary["results"])
-        self.assertTrue(fallback["expansion_requested"])
-        self.assertFalse(fallback["expand_yod_vav"])
-        self.assertIn("504", fallback["warnings"][0])
-        self.assertEqual([p["alternatives"] for p in fallback["annotation"]["parts"] if "lemma" in p], [["קרא"],["שמע"],["ערב"]])
-        self.assertEqual(ordinary["warnings"], [])
+        engine.annotations.frequencies = {}
+        engine.query_body = Mock(side_effect=lambda q, lemmas, w, n, slop: {
+            "lemmas":lemmas,"_source":[],"query":{"function_score":{"query":{"bool":{"should":[{},{}]}}}}})
+        result = engine.compare(query, 1, 20, expand_yod_vav=True)
+        self.assertTrue(result["expand_yod_vav"])
+        self.assertIn("504", result["warnings"][0])
+        self.assertEqual(result["expansion_selection"]["selected"],256)
+        queries=result["results"]["enhanced"]["request"]["query"]["function_score"]["query"]["bool"]["should"][1]["dis_max"]["queries"]
+        self.assertEqual(queries[0]["match_phrase"]["shoshan_lemma"]["query"],"קרא שמע ערב")
+        self.assertEqual(result["results"]["baseline"]["request"]["query"]["function_score"]["query"]["bool"]["should"],[{},{}])
+
+    def test_ranked_phrases_match_exhaustive_oracle(self):
+        import itertools
+        import math
+        groups=[["קרא","קורא","קריא"],["שמע","שומע","שמוע"],["ערב","עורב","עירוב"]]
+        counts={"קורא":40,"קריא":5,"שומע":50,"שמוע":6,"עורב":32,"עירוב":1}
+        def key(words):
+            changed=[(group[0], word) for group,word in zip(groups,words) if group[0]!=word]
+            return (len(changed),sum(edit_distance(a,b) for a,b in changed),
+                    -sum(math.log1p(counts.get(b,0)) for a,b in changed),words)
+        expected=sorted(itertools.product(*groups),key=key)
+        for limit in (1,4,10,27,40):
+            self.assertEqual(ranked_phrases(groups,counts,limit),expected[:limit])
+        self.assertEqual(expected[0],("קרא","שמע","ערב"))
+        self.assertLess(expected.index(("קורא","שמע","ערב")),expected.index(("קריא","שמע","ערב")))
+        reversed_alternatives=[[g[0]]+list(reversed(g[1:])) for g in groups]
+        self.assertEqual(ranked_phrases(reversed_alternatives,counts,10),expected[:10])
+
+    def test_huge_product_is_bounded_and_preserves_original(self):
+        groups=[["אב","איב","אוב"]]*30  # 3**30 potential phrases
+        phrases=ranked_phrases(groups)
+        self.assertEqual(len(phrases),256)
+        self.assertEqual(len(set(phrases)),256)
+        self.assertEqual(phrases[0],tuple(["אב"]*30))
 
     def test_parts_preserve_marks_punctuation_and_repeated_words(self):
         text = "😀 בֵּן, בֵּן!"
@@ -163,7 +189,7 @@ class ExperimentTests(unittest.TestCase):
         self.assertTrue(all(p["slop"]==10 for p in phrases))
         self.assertEqual(clause["boost"],.5)
         self.assertEqual(clause["tie_breaker"],0)
-        with self.assertRaises(ValueError): expanded_clause([[str(i) for i in range(17)]]*2,1,10)
+        self.assertEqual(len(expanded_clause([[str(i) for i in range(17)]]*2,1,10)["dis_max"]["queries"]),256)
 
     def test_worker_failure_is_returned_to_browser(self):
         engine = Mock()
