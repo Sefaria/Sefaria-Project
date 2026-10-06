@@ -221,7 +221,7 @@ export function SearchResultCard({ hit, hrefFor, onOpen }: SearchResultCardProps
   };
   return (
     <article className={styles.card} style={{ ["--_c" as string]: categoryColor(s.categories?.[0]) }} onClick={open}>
-      <Link className={styles.title} href={hrefFor(hit)} lang={he ? "he" : "en"} onClick={(e) => { if (plain(e)) { e.preventDefault(); onOpen(hit); } }}>{he ? s.heRef : s.ref}</Link>
+      <Link className={styles.title} href={hrefFor(hit)} lang={he ? "he" : "en"} data-result-title="" onClick={(e) => { if (plain(e)) { e.preventDefault(); onOpen(hit); } }}>{he ? s.heRef : s.ref}</Link>
       <div className={styles.snippet} lang={snip.lang} dir={snip.lang === "he" ? "rtl" : "ltr"} dangerouslySetInnerHTML={{ __html: sanitizeHtml(snip.html) }} />
       <div className={styles.version} lang={he && s.hebrew_version_title ? "he" : "en"}>{(he && s.hebrew_version_title) || s.version}</div>
       {n > 0 ? (
@@ -235,7 +235,7 @@ export function SearchResultCard({ hit, hrefFor, onOpen }: SearchResultCardProps
               {dups.map((d) => (
                 <div key={d._id}>
                   <div className={styles.snippet} lang={snippetOf(d).lang} dangerouslySetInnerHTML={{ __html: sanitizeHtml(snippetOf(d).html) }} />
-                  <div className={styles.version}><Link href={hrefFor(d)} onClick={(e) => { if (plain(e)) { e.preventDefault(); onOpen(d); } }}>{(he && d._source.hebrew_version_title) || d._source.version}</Link></div>
+                  <div className={styles.version}><Link href={hrefFor(d)} data-result-title="" onClick={(e) => { if (plain(e)) { e.preventDefault(); onOpen(d); } }}>{(he && d._source.hebrew_version_title) || d._source.version}</Link></div>
                 </div>
               ))}
             </div>
@@ -335,7 +335,7 @@ function Crumbs({ items }: { items: { label: string; href?: string }[] }) {
 }
 
 /** One Books / Authors / Topics result: a round icon, the crumbs above the name, a date or author line, the description. */
-export function EntityCard({ type, hit, topicParent }: { type: EntityType; hit: EntityHit; topicParent?: TopicCategory }) {
+export function EntityCard({ type, hit, topicParent, liProps }: { type: EntityType; hit: EntityHit; topicParent?: TopicCategory; liProps?: Record<string, unknown> }) {
   const he = useInterfaceLang() === "hebrew";
   const name = he ? hit.title_he || hit.title_en : hit.title_en || hit.title_he;
   const desc = he ? hit.description_he || hit.description_en : hit.description_en || hit.description_he;
@@ -356,11 +356,11 @@ export function EntityCard({ type, hit, topicParent }: { type: EntityType; hit: 
   const titleLink = useRef<HTMLAnchorElement>(null);
   return (
     // The whole card opens the result (a click on one of its own links goes where that link does)
-    <li className={styles.entity} style={{ "--_c": accent } as never} onClick={(e) => { if (plain(e) && !(e.target as Element).closest("a")) titleLink.current?.click(); }}>
+    <li {...liProps} className={styles.entity} style={{ "--_c": accent } as never} onClick={(e) => { if (plain(e) && !(e.target as Element).closest("a")) titleLink.current?.click(); }}>
       <span className={styles.entityIcon} style={type === "book" ? { color: accent } : undefined}><Icon name={icon} size="1.4em" /></span>
       <div className={styles.entityBody}>
         {crumbs.length ? <Crumbs items={crumbs} /> : null}
-        <Link ref={titleLink} className={styles.entityTitle} href={href} lang={lang}>{name}</Link>
+        <Link ref={titleLink} className={styles.entityTitle} href={href} lang={lang} data-result-title="">{name}</Link>
         {date || authorName ? (
           <div className={styles.entityMeta} lang={lang}>
             {date ? (he ? date.he : date.en) : null}
@@ -375,11 +375,11 @@ export function EntityCard({ type, hit, topicParent }: { type: EntityType; hit: 
 }
 
 /** `topicParents`: slug → the topic category above it (the topic TOC), for the crumb on Author and Topic cards. */
-export function EntityResults({ type, hits, empty, topicParents }: { type: EntityType; hits: readonly EntityHit[]; empty: ReactNode; topicParents?: Record<string, TopicCategory> }) {
+export function EntityResults({ type, hits, empty, topicParents, itemProps }: { type: EntityType; hits: readonly EntityHit[]; empty: ReactNode; topicParents?: Record<string, TopicCategory>; itemProps?: (hit: EntityHit, index: number) => Record<string, unknown> }) {
   if (!hits.length) return <>{empty}</>;
   return (
     <ul className={styles.list}>
-      {hits.map((h, i) => <EntityCard key={`${h.url ?? h.slug ?? h.path}-${i}`} type={type} hit={h} topicParent={type !== "book" && h.slug ? topicParents?.[h.slug] : undefined} />)}
+      {hits.map((h, i) => <EntityCard key={`${h.url ?? h.slug ?? h.path}-${i}`} type={type} hit={h} topicParent={type !== "book" && h.slug ? topicParents?.[h.slug] : undefined} liProps={itemProps?.(h, i)} />)}
     </ul>
   );
 }

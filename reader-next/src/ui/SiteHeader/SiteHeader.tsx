@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { bothEvent, gtagEvent, useOnceFullyVisible } from "~/lib/analytics";
 import { DEVELOPERS, HELP, LIBRARY, VOICES, donateHref, interfaceHref } from "~/lib/shell/links";
 import { HeaderSearch, type HeaderSearchProps } from "./HeaderSearch";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
@@ -18,21 +19,43 @@ export interface SiteHeaderProps {
   onMenuOpenChange?: (open: boolean) => void;
 }
 
-const A = ({ href, children, ...rest }: { href: string; children: ReactNode; className?: string; target?: string; "data-testid"?: string }) => (
+const A = ({ href, children, ...rest }: { href: string; children: ReactNode; className?: string; target?: string; "data-testid"?: string; "data-anl-event"?: string; "data-anl-text"?: string }) => (
   <a href={href} {...(rest.target === "_blank" ? { rel: "noopener noreferrer" } : {})} {...rest}>
     {children}
   </a>
 );
 
-/** A header drop-down: an icon button that opens a small menu of links. */
-function Menu({ icon, label, children }: { icon: IconName; label: string; children: ReactNode }) {
+/**
+ * A header drop-down: an icon button that opens a small menu of links. With `anlFeature` it reports as the old DropdownMenu
+ * does: modswitch_open / modswitch_close on the button (data-anl), and modswitch_close when dismissed some other way.
+ */
+function Menu({ icon, label, children, anlFeature }: { icon: IconName; label: string; children: ReactNode; anlFeature?: string }) {
   const [open, setOpen] = useState(false);
+  const byButton = useRef(false);
+  const change = (o: boolean) => {
+    if (!o && open && anlFeature && !byButton.current) gtagEvent("modswitch_close", { feature_name: anlFeature });
+    byButton.current = false;
+    setOpen(o);
+  };
   return (
-    <Popover open={open} onOpenChange={setOpen} label={label} trigger={(p) => <IconButton {...p} icon={icon} label={label} />}>
-      <div className={styles.menu} onClick={(e) => (e.target as Element).closest("a") && setOpen(false)}>{children}</div>
-    </Popover>
+    <div className={styles.menuWrap} data-anl-feature_name={anlFeature}>
+      <Popover
+        open={open}
+        onOpenChange={change}
+        label={label}
+        trigger={(p) => (
+          <span onClickCapture={() => (byButton.current = true)} data-anl-event={anlFeature ? (open ? "modswitch_close:click" : "modswitch_open:click") : undefined}>
+            <IconButton {...p} icon={icon} label={label} />
+          </span>
+        )}
+      >
+        <div className={styles.menu} onClick={(e) => (e.target as Element).closest("a") && setOpen(false)}>{children}</div>
+      </Popover>
+    </div>
   );
 }
+
+const SWITCH = "modswitch_item_click:click";
 
 const LanguageLinks = ({ next, lang }: { next: string; lang: "english" | "hebrew" }) => (
   <div className={styles.langRow}>
@@ -52,6 +75,7 @@ const LanguageLinks = ({ next, lang }: { next: string; lang: "english" | "hebrew
  * @feature GUI-010 Profile / account dropdown
  * @feature GUI-011 Mobile navigation menu
  * @feature I18-008 Interface language switcher
+ * @feature ANL-003 Header and category line impression events
  */
 export function SiteHeader({ next, search, menuOpen, onMenuOpenChange }: SiteHeaderProps) {
   const lang = useInterfaceLang();
@@ -73,9 +97,11 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange }: SiteHea
   const logoLabel = he ? "לוגו ספריית ספריא" : "Sefaria library logo";
   const other = he ? "english" : "hebrew";
   const t = (en: string, hebrew: string) => (he ? hebrew : en);
+  // header_viewed once per session when the header is fully on screen (ANL-003)
+  const seen = useOnceFullyVisible<HTMLElement>(() => bothEvent("header_viewed", { impression_type: "regular_header" }), "sa.header_viewed");
 
   return (
-    <header className={styles.header} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
+    <header ref={seen} className={styles.header} lang={he ? "he" : "en"} dir={he ? "rtl" : "ltr"}>
       <div className={`${styles.inner} ${styles.desktop}`}>
         <nav className={styles.nav} aria-label={t("Primary navigation", "ניווט ראשי")}>
           <A href={LIBRARY + "/"} className={styles.logo}><img src={logo} alt={logoLabel} /></A>
@@ -94,14 +120,14 @@ export function SiteHeader({ next, search, menuOpen, onMenuOpenChange }: SiteHea
               <div className={styles.menuHeading}>{t("Site Language", "שפת האתר")}</div>
               <LanguageLinks next={next} lang={lang} />
             </Menu>
-            <Menu icon="grid" label={t("Library", "ספריה")}>
-              <A href={`${LIBRARY}/about`} className={styles.menuItem}><img src={logo} alt="Sefaria" height={18} /></A>
+            <Menu icon="grid" label={t("Library", "ספריה")} anlFeature="module_switcher">
+              <A href={`${LIBRARY}/about`} className={styles.menuItem} data-anl-event={SWITCH} data-anl-text="About Sefaria"><img src={logo} alt="Sefaria" height={18} /></A>
               <div className={styles.sep} />
-              <A href={`${LIBRARY}/`} className={styles.menuItem}><span className={styles.dot} style={{ background: "var(--sefaria-blue, #18345d)" }} />{t("Library", "ספריה")}</A>
-              <A href={`${VOICES}/`} className={styles.menuItem}><span className={styles.dot} style={{ background: "var(--sheets-green, #4b8a6d)" }} />{t("Voices", "חיבורים")}</A>
-              <A href={DEVELOPERS} className={styles.menuItem} target="_blank"><span className={styles.dot} style={{ background: "var(--devportal-purple, #5d4b8a)" }} />{t("Developers", "מפתחים")}</A>
+              <A href={`${LIBRARY}/`} className={styles.menuItem} data-anl-event={SWITCH} data-anl-text="Library"><span className={styles.dot} style={{ background: "var(--sefaria-blue, #18345d)" }} />{t("Library", "ספריה")}</A>
+              <A href={`${VOICES}/`} className={styles.menuItem} data-anl-event={SWITCH} data-anl-text="Voices"><span className={styles.dot} style={{ background: "var(--sheets-green, #4b8a6d)" }} />{t("Voices", "חיבורים")}</A>
+              <A href={DEVELOPERS} className={styles.menuItem} target="_blank" data-anl-event={SWITCH} data-anl-text="Developers"><span className={styles.dot} style={{ background: "var(--devportal-purple, #5d4b8a)" }} />{t("Developers", "מפתחים")}</A>
               <div className={styles.sep} />
-              <A href={`${LIBRARY}/products`} className={styles.menuItem} target="_blank">{t("More from Sefaria", "עוד מספריא")} ›</A>
+              <A href={`${LIBRARY}/products`} className={styles.menuItem} target="_blank" data-anl-event={SWITCH} data-anl-text="More">{t("More from Sefaria", "עוד מספריא")} ›</A>
             </Menu>
             <Menu icon="user" label={t("Account menu", "תפריט חשבון")}>
               <A href={`${LIBRARY}/login?next=${encodeURIComponent(next)}`} className={styles.menuItem}>{t("Log in", "התחברות")}</A>

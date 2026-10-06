@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
-import { useEffect, type ReactNode } from "react";
-import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useLocation, useMatches } from "@tanstack/react-router";
+import { useEffect, useRef, type ReactNode } from "react";
+import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useLocation, useMatches, useRouter } from "@tanstack/react-router";
 import type { QueryClient } from "@tanstack/react-query";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { createServerFn } from "@tanstack/react-start";
@@ -15,11 +15,13 @@ import { SiteHeader } from "~/ui/SiteHeader/SiteHeader";
 import { setMobileMenuOpen, useMobileMenuOpen } from "~/features/shell/mobile-menu";
 import { SkipLink } from "~/ui/SkipLink/SkipLink";
 import { CookieNotice } from "~/ui/CookieNotice/CookieNotice";
+import { BannerImpressionProbe } from "~/features/shell/BannerImpressionProbe";
 import appCss from "~/features/shell/App.module.css";
 import tokens from "~/ui/tokens/tokens.css?url";
 import fonts from "~/ui/tokens/fonts.css?url";
 import base from "~/ui/tokens/base.css?url";
-import { configScript } from "~/lib/config";
+import { configScript, PUBLIC_CONFIG } from "~/lib/config";
+import { analyticsHeadScripts, attachDeclarativeAnalytics, initSentry, saMetadataScript, searchFlow, simpleAnalyticsScript, useAppAnalytics } from "~/lib/analytics";
 import { GARAMOND_FILES, TYPEKIT_CSS } from "~/lib/fonts/typekit";
 import robotoLatin from "@fontsource/roboto/files/roboto-latin-400-normal.woff2?url";
 import heeboHebrewBold from "@fontsource/heebo/files/heebo-hebrew-700-normal.woff2?url";
@@ -35,10 +37,11 @@ const getRequestPrefs = createServerFn({ method: "GET" }).handler(async () => {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   beforeLoad: async () => getRequestPrefs(),
-  head: () => ({
+  head: ({ match }) => ({
     meta: [{ charSet: "utf-8" }, { name: "viewport", content: "width=device-width, initial-scale=1" }, { title: "Sefaria Reader" }],
     // the runtime config (API and site origins) for the browser, before any module runs: src/lib/config.ts
-    scripts: [{ children: configScript() }],
+    // then the analytics vendors, each only when configured (src/lib/analytics/scripts.ts)
+    scripts: [{ children: configScript() }, ...analyticsHeadScripts(PUBLIC_CONFIG.analytics, match.context.interfaceLang ?? "english")],
     links: [
       // The faces on screen at first paint, preloaded with the page: a face that arrives later reflows the
       // text under the reader (see TXD-054). Everything else in fonts.css loads on demand.
@@ -63,7 +66,9 @@ function RootComponent() {
   // Lets tests (and anything else that must wait for interactivity) know React has attached its handlers.
   useEffect(() => {
     document.documentElement.dataset.hydrated = "true";
+    void initSentry();
   }, []);
+  useAppAnalytics(undefined);
   return (
     <RootDocument lang={interfaceLang === "hebrew" ? "he" : "en"} dir={interfaceLang === "hebrew" ? "rtl" : "ltr"}>
       <InterfaceLangProvider lang={interfaceLang}>
@@ -91,8 +96,20 @@ function Shell() {
   const menuOpen = useMobileMenuOpen();
   // going somewhere closes the phone menu
   useEffect(() => setMobileMenuOpen(false), [loc.pathname]);
+  // data-anl-* declarations anywhere in the page (the old attach("#s2, #staticContentWrapper", …))
+  const appRef = useRef<HTMLDivElement>(null);
+  useEffect(() => (appRef.current ? attachDeclarativeAnalytics(appRef.current) : undefined), []);
+  // back / forward into the search page starts its funnel with source "back_click" (the old handlePopState)
+  const router = useRouter();
+  useEffect(
+    () =>
+      router.history.subscribe(({ location, action }) => {
+        if (action.type !== "PUSH" && action.type !== "REPLACE" && location.pathname === "/search") searchFlow.setNextFlowSource("back_click");
+      }),
+    [router],
+  );
   return (
-    <div className={appCss.app} data-reading={reading ? "true" : undefined} data-menu={menuOpen ? "open" : undefined}>
+    <div ref={appRef} className={appCss.app} data-reading={reading ? "true" : undefined} data-menu={menuOpen ? "open" : undefined}>
       <SkipLink />
       <div className={appCss.header}>
         <SiteHeader next={loc.pathname + (loc.searchStr ?? "")} search={search} menuOpen={menuOpen} onMenuOpenChange={setMobileMenuOpen} />
@@ -101,9 +118,13 @@ function Shell() {
         <Outlet />
       </main>
       <CookieNotice />
+      <BannerImpressionProbe />
     </div>
   );
 }
+
+const simpleAnalytics = simpleAnalyticsScript(PUBLIC_CONFIG.analytics);
+const saMetadata = saMetadataScript(PUBLIC_CONFIG.analytics, { loggedIn: false, staff: false });
 
 function RootDocument({ children, lang, dir }: Readonly<{ children: ReactNode; lang: string; dir: string }>) {
   return (
@@ -114,6 +135,8 @@ function RootDocument({ children, lang, dir }: Readonly<{ children: ReactNode; l
       <body>
         {children}
         <Scripts />
+        {saMetadata ? <script dangerouslySetInnerHTML={{ __html: saMetadata }} /> : null}
+        {simpleAnalytics ? <script {...simpleAnalytics} /> : null}
       </body>
     </html>
   );

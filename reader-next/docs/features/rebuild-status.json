@@ -1366,24 +1366,24 @@
   "note": "Collections / Voices / topics: Phase 7, owner decides."
  },
  "SRC-104": {
-  "status": "deferred",
-  "note": "Analytics would send data to Sefaria: ask the owner."
+  "status": "done",
+  "by": "src/lib/analytics/search-flow.ts"
  },
  "SRC-105": {
-  "status": "deferred",
-  "note": "Analytics would send data to Sefaria: ask the owner."
+  "status": "done",
+  "by": "src/features/search/use-search-analytics.ts"
  },
  "SRC-106": {
-  "status": "deferred",
-  "note": "Analytics would send data to Sefaria: ask the owner."
+  "status": "done",
+  "by": "src/features/search/use-search-analytics.ts"
  },
  "SRC-107": {
-  "status": "deferred",
-  "note": "Analytics would send data to Sefaria: ask the owner."
+  "status": "done",
+  "by": "src/lib/analytics/search-box.ts"
  },
  "SRC-108": {
-  "status": "deferred",
-  "note": "Analytics would send data to Sefaria: ask the owner."
+  "status": "done",
+  "by": "src/lib/analytics/search-flow.ts"
  },
  "SRC-028": {
   "status": "deferred",
@@ -1406,5 +1406,69 @@
   "status": "done",
   "note": ":active on touch devices",
   "by": "src/ui/SearchPage"
+ },
+ "ANL-003": {
+  "status": "done",
+  "by": "src/ui/SiteHeader"
+ },
+ "ANL-004": {
+  "status": "done",
+  "by": "src/features/shell/BannerImpressionProbe.tsx"
+ },
+ "ANL-005": {
+  "status": "done",
+  "by": "src/lib/analytics/session.ts"
+ },
+ "ANL-006": {
+  "status": "done",
+  "by": "src/features/shell/BannerImpressionProbe.tsx"
+ },
+ "ANL-007": {
+  "status": "done",
+  "by": "src/lib/analytics/search-box.ts"
+ },
+ "ANL-008": {
+  "status": "done",
+  "by": "src/lib/analytics/session.ts"
+ },
+ "ANL-011": {
+  "status": "done",
+  "by": "src/lib/analytics/session.ts"
+ },
+ "ANL-015": {
+  "status": "done",
+  "by": "src/lib/analytics/declarative.ts"
+ },
+ "ANL-016": {
+  "status": "done",
+  "by": "src/lib/analytics/core.ts"
+ },
+ "ANL-017": {
+  "status": "done",
+  "by": "src/lib/analytics/sentry.ts"
+ },
+ "ANL-009": {
+  "status": "partial",
+  "note": "Built for the reader; Display Option Click is dead on the old site; translation preference setting not in this client",
+  "by": "src/lib/analytics/reader.ts"
+ },
+ "ANL-012": {
+  "status": "partial",
+  "note": "Built for the sidebar views this client has; Guide, notes and sheet events wait for those features",
+  "by": "src/lib/analytics/reader.ts"
+ },
+ "ANL-014": {
+  "status": "partial",
+  "note": "GTM, gtag, Simple Analytics, Sentry built; VWO / Hotjar / Unbounce need an owner decision",
+  "by": "src/lib/analytics/scripts.ts"
+ },
+ "ANL-001": {
+  "status": "done",
+  "note": "Page views come from GTM / gtag as on the old site",
+  "by": "src/lib/analytics/scripts.ts"
+ },
+ "ANL-010": {
+  "status": "n/a",
+  "note": "Dead on the old site"
  }
 }

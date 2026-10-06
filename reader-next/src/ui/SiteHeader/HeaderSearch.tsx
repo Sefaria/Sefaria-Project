@@ -1,3 +1,4 @@
+import { searchBoxAnalytics } from "~/lib/analytics/search-box";
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { GROUP_TITLES, MIN_SUGGEST_LENGTH, type Suggestion, type SuggestionType } from "~/lib/search/autocomplete";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
@@ -63,7 +64,11 @@ export function HeaderSearch({ getSuggestions, onSmartSubmit, onSearch, onChoose
     setQ("");
     setItems([]);
   };
-  const choose = (s: Suggestion) => {
+  const choose = (s: Suggestion, how: "keyboard" | "mouse") => {
+    // the old box: a clicked "Search for" row is a search; Enter on it just opens the results; others report the choice
+    if (s.type === "search") {
+      if (how === "mouse") searchBoxAnalytics.search(s.label);
+    } else searchBoxAnalytics.navTo(how, s, q);
     clear();
     if (s.type === "search") onSearch(s.label);
     else onChoose(s);
@@ -85,14 +90,14 @@ export function HeaderSearch({ getSuggestions, onSmartSubmit, onSearch, onChoose
       setItems([]);
     } else if (e.key === "Enter") {
       e.preventDefault();
-      if (active >= 0 && items[active]) choose(items[active]!);
+      if (active >= 0 && items[active]) choose(items[active]!, "keyboard");
       else submit();
     }
   };
   const click = (s: Suggestion) => (e: MouseEvent) => {
     if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
       e.preventDefault();
-      choose(s);
+      choose(s, "mouse");
     }
   };
 
@@ -106,7 +111,11 @@ export function HeaderSearch({ getSuggestions, onSmartSubmit, onSearch, onChoose
   const label = he ? "חיפוש טקסט או מילות מפתח" : "Search for Texts or Keywords Here";
 
   return (
-    <div className={styles.box} data-mobile={mobile || undefined} ref={root} onBlur={(e) => !root.current?.contains(e.relatedTarget as Node) && setFocused(false)}>
+    <div className={styles.box} data-mobile={mobile || undefined} ref={root} onBlur={(e) => {
+        if (root.current?.contains(e.relatedTarget as Node)) return;
+        setFocused(false);
+        searchBoxAnalytics.defocus(q);
+      }}>
       <div className={styles.field} role="search" aria-label={he ? "חיפוש באתר" : "Site search"} data-focused={focused || undefined}>
         <button type="button" className={styles.btn} aria-label={he ? "חיפוש" : "Search"} onClick={submit}><Icon name="search" size="1.1em" /></button>
         <input
@@ -126,7 +135,10 @@ export function HeaderSearch({ getSuggestions, onSmartSubmit, onSearch, onChoose
           autoComplete="off"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          onFocus={() => setFocused(true)}
+          onFocus={() => {
+            if (!focused) searchBoxAnalytics.focus();
+            setFocused(true);
+          }}
           onKeyDown={onKeyDown}
         />
         {!he && !mobile ? <KeyboardLauncher inputRef={input} value={q} onChange={setQ} onEnter={submit} focused={focused} /> : null}

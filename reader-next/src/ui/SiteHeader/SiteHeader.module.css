@@ -45,3 +45,8 @@
 /* VERIFIED on sefaria.org (1280px): 18px icons 20px apart, 24px targets kept by negative margins */
 .icons > div > button:first-child { width: 24px; height: 24px; margin: -3px; padding: 0; }
 .icons > a svg, .icons > div > button:first-child svg { width: 18px; height: 18px; }
+
+/* the drop-down and its button share the analytics feature name */
+.menuWrap {
+  display: contents;
+}

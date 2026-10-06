@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**945 features**, 3585 documented behaviors. Proposed tiers: core 320, standard 412, optional 153, retire 60.
+**945 features**, 3606 documented behaviors. Proposed tiers: core 320, standard 412, optional 153, retire 60.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 285 · partial 37 · todo 488 · replaced 18 · deferred 30 · n/a 87; 281 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 301 · partial 40 · todo 474 · replaced 18 · deferred 25 · n/a 87; 296 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -7072,7 +7072,7 @@ Source: `inv_06_search.md#0.15`
 ### Search analytics
 
 #### SRC-104 · GA4 search funnel events
-`standard` `live` · rebuild: **deferred** — Analytics would send data to Sefaria: ask the owner. `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 The main search page emits a structured funnel (flow started, query executed, element clicked, flow ended) to GA4.
 
@@ -7082,54 +7082,59 @@ The main search page emits a structured funnel (flow started, query executed, el
 - search_query_executed {flow_id, search_id, search_text, status, result_counts JSON {sources,books,authors,topics}, error, tab}: fires once all four APIs report for current search_id; only first report per API counts; tab snapshot from query start.
 - search_element_clicked {element_type tab|filter|sort|toggle|result, element_value, tab (live), count, result_position}.
 - search_flow_ended {reason clicked_result|abandoned}; ends only once.
+- OWNER DECISION 2026-10-06: build analytics with the old names and parameters. BUILT: src/lib/analytics/search-flow.ts (port of searchAnalytics.js) wired in src/features/search/use-search-analytics.ts; e2e/analytics.spec.ts checks the funnel against the live API (deep_link and nav_bar sources, four-API completion, tab and result clicks, flow end).
 
 Code: [`static/js/sefaria/searchAnalytics.js:181`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/searchAnalytics.js#L181), [`static/js/sefaria/searchAnalytics.js:245`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/searchAnalytics.js#L245), [`static/js/sefaria/searchAnalytics.js:310`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/searchAnalytics.js#L310), [`static/js/ElasticSearchQuerier.jsx:200`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ElasticSearchQuerier.jsx#L200)
 
 Source: `inv_06_search.md#14.1`
 
 #### SRC-105 · Search flow lifecycle tracking
-`standard` `live` · rebuild: **deferred** — Analytics would send data to Sefaria: ask the owner. `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 Flow start/end is tied to mount, unmount, page hide, bfcache restore and new queries.
 
 - Mount starts flow+query; unmount ends 'abandoned'; pagehide -> abandoned; pageshow persisted -> new flow with back_click.
 - New query in same visit gets new search_id with same flow_id; sort/filter changes do not.
 - In-app navigation away ends flow 'abandoned' only if page actually navigated (ReaderApp link handler).
+- OWNER DECISION 2026-10-06: build analytics with the old names and parameters. BUILT: src/lib/analytics/search-flow.ts (port of searchAnalytics.js) wired in src/features/search/use-search-analytics.ts; e2e/analytics.spec.ts checks the funnel against the live API (deep_link and nav_bar sources, four-API completion, tab and result clicks, flow end).
 
 Code: [`static/js/ElasticSearchQuerier.jsx:129`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ElasticSearchQuerier.jsx#L129), [`static/js/ReaderApp.jsx:1218`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1218)
 
 Source: `inv_06_search.md#14.1`
 
 #### SRC-106 · Search result click analytics
-`standard` `live` · rebuild: **deferred** — Analytics would send data to Sefaria: ask the owner. `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 Result clicks, including modified and middle clicks, are reported with position.
 
 - Card, title, version row, breadcrumb, author link all report 'result'; plain click ends flow clicked_result.
 - Modified clicks (killed by ReaderApp capture-phase handler) report via data-search-result-value/position and reportModifiedResultLinkClick without ending flow; middle-click via auxclick also reports without ending.
 - Tab click reports raw tab count; filter reports docCount; sort reports English label; toggle reports 'All Results'/'Exact Phrase'.
+- OWNER DECISION 2026-10-06: build analytics with the old names and parameters. BUILT: src/lib/analytics/search-flow.ts (port of searchAnalytics.js) wired in src/features/search/use-search-analytics.ts; e2e/analytics.spec.ts checks the funnel against the live API (deep_link and nav_bar sources, four-API completion, tab and result clicks, flow end).
 
 Code: [`static/js/sefaria/searchAnalytics.js:93`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/searchAnalytics.js#L93), [`static/js/sefaria/searchAnalytics.js:294`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/searchAnalytics.js#L294), [`static/js/ReaderApp.jsx:1153`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1153), [`static/js/SearchResultCard.jsx:241`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SearchResultCard.jsx#L241)
 
 Source: `inv_06_search.md#14.1`
 
 #### SRC-107 · Header search gtag events
-`standard` `live` · rebuild: **deferred** — Analytics would send data to Sefaria: ask the owner. `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 Header search interactions send gtag events under 'Global Search'.
 
 - search_focus, search_defocus {text}, search_submit {feature_name 'Search Results'|'Autolink', text, link_type}, search_navto {feature_name 'Nav To by Keyboard'|'Nav To by Mouse', link_type, text, to}; all project 'Global Search'.
+- OWNER DECISION 2026-10-06: build analytics with the old names and parameters. BUILT: src/lib/analytics/search-flow.ts (port of searchAnalytics.js) wired in src/features/search/use-search-analytics.ts; e2e/analytics.spec.ts checks the funnel against the live API (deep_link and nav_bar sources, four-API completion, tab and result clicks, flow end).
 
 Code: [`static/js/HeaderAutocomplete.jsx:210`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/HeaderAutocomplete.jsx#L210)
 
 Source: `inv_06_search.md#14.2`
 
 #### SRC-108 · Legacy search event tracking
-`optional` `legacy` · rebuild: **deferred** — Analytics would send data to Sefaria: ask the owner. `system`
+`optional` `legacy` · rebuild: **done** · *tested* `system`
 
 Older Sefaria.track.event 'Search' events are still emitted.
 
 - Events: Search Box Search; Search Box Navigation - Book|Citation|Topic|<type>; [SidebarSearch ]Query: <type>; Search Result Card Click; Search Result Text Click; Sidebar Search Result Click; Search Result Sheet Click; Search Result Sheet Owner Click.
+- OWNER DECISION 2026-10-06: build analytics with the old names and parameters. BUILT: src/lib/analytics/search-flow.ts (port of searchAnalytics.js) wired in src/features/search/use-search-analytics.ts; e2e/analytics.spec.ts checks the funnel against the live API (deep_link and nav_bar sources, four-API completion, tab and result clicks, flow end).
 
 Code: [`static/js/HeaderAutocomplete.jsx:442`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/HeaderAutocomplete.jsx#L442), [`static/js/ElasticSearchQuerier.jsx:314`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ElasticSearchQuerier.jsx#L314)
 
@@ -12264,12 +12269,13 @@ Source: `inv_08b_admin_linker_apps.md#5.6`
 ### URL-change analytics
 
 #### ANL-001 · Page-view tracking on URL change
-`standard` `live` · rebuild: **todo** `system`
+`standard` `live` · rebuild: **done** — Page views come from GTM / gtag as on the old site `system`
 
 Each navigation reports a page view with rich context, and the last place read is saved for signed-in users.
 
 - trackPageview sets page type, #panels ('2' / '3.2'), refs, book names, primary/secondary category, content languages, version titles, sidebars.
 - saveLastPlace after 3s intent -> Sefaria.saveUserHistory.
+- Rebuild: page views come from the same GTM container and gtag config (GTM history triggers / GA4 enhanced measurement), as on the old site; nothing to call from the client. saveLastPlace is part of signed-in history (Phase 7c).
 
 Code: [`static/js/ReaderApp.jsx:355-413`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L355-L413), [`static/js/ReaderApp.jsx:948-959`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L948-L959), [`static/js/ReaderApp.jsx:2161-2167`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2161-L2167)
 
@@ -12293,30 +12299,32 @@ Source: `inv_02_reader_shell.md#13`
 ### Impressions
 
 #### ANL-003 · Header and category line impression events
-`optional` `live` · rebuild: **todo** `system`
+`optional` `live` · rebuild: **done** · *tested* `system`
 
 Header visibility is reported once per session.
 
 - header_viewed {impression_type:'regular_header'} (sa_event + gtag) once per session when 100% visible (useOnceFullyVisible, sessionStorage sa.header_viewed) (Header.jsx:257-261).
 - CategoryColorLine shares same session key with impression_type 'category_color_line' (Misc.jsx:1633-1646).
+- Rebuild: SiteHeader and CategoryColorLine report header_viewed (sa + gtag) once per session via useOnceFullyVisible (shared key sa.header_viewed, checked when the element mounts — as on the old site, both report only when they mount before either fires).
 
 Code: [`static/js/Header.jsx:257`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Header.jsx#L257), [`static/js/Misc.jsx:1633`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L1633)
 
 Source: `inv_02_reader_shell.md#16`
 
 #### ANL-004 · Banner visibility probe
-`optional` `live` · rebuild: **todo** `system`
+`optional` `live` · rebuild: **done** · *tested* `system`
 
 An invisible element measures whether banners can be seen (ad-blocking baseline).
 
 - BannerImpressionProbe: invisible 1px fixed element rendered after 2s + random 300-800ms; when fully visible fires banner_probe_viewed once per session.
+- Rebuild: src/features/shell/BannerImpressionProbe.tsx (same delays, style and session key sa.banner_probe).
 
 Code: [`static/js/BannerImpressionProbe.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/BannerImpressionProbe.jsx)
 
 Source: `inv_02_reader_shell.md#20`
 
 #### ANL-005 · Visibility-based impression tracking
-`standard` `live` · rebuild: **todo** `system`
+`standard` `live` · rebuild: **done** `system`
 
 The app records when promos and key elements are actually seen.
 
@@ -12324,18 +12332,20 @@ The app records when promos and key elements are actually seen.
 - useOnceFullyVisible(onVisible,key): IntersectionObserver threshold 1, fires once per sessionStorage key
 - handleAnalyticsOnMarkdown: delegated click handler finding nearest a in rendered markdown, firing supplied gtag fn (rank, product, cta, label, link_type, analytics_event)
 - useOnceFullyVisible(onVisible,sessionKey) fires once per session when 100% visible (Misc.jsx:36-60); OnInView fires on each rising edge to fully visible (2063-2105).
+- Rebuild: useOnceFullyVisible (callback ref, so elements that appear after mount are observed).
 
 Code: [`static/js/Misc.jsx:2063`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L2063), [`static/js/Misc.jsx:36`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L36), [`static/js/Misc.jsx:3362`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L3362)
 
 Source: `inv_08_other.md#1.1 and #1.8; inv_02_reader_shell.md#18`
 
 #### ANL-006 · Banner impression probe
-`optional` `live` · rebuild: **todo** `system`
+`optional` `live` · rebuild: **done** `system`
 
 An invisible control element measures how reliably banner impressions are recorded.
 
 - BannerImpressionProbe: invisible 1px fixed element rendered after 2s + simulated 300-800ms delay; fires banner_probe_viewed (Simple Analytics + GA) once per session
 - Mounted at ReaderApp root (:2620)
+- Rebuild: src/features/shell/BannerImpressionProbe.tsx (same delays, style and session key sa.banner_probe).
 
 Code: [`static/js/BannerImpressionProbe.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/BannerImpressionProbe.jsx), [`static/js/ReaderApp.jsx:2620`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2620)
 
@@ -12345,12 +12355,13 @@ Source: `inv_08_other.md#4.5`
 ### Search box events
 
 #### ANL-007 · Search box analytics and input constraints
-`standard` `live` · rebuild: **todo** `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 Search box interactions are tracked.
 
 - Events: search_focus, search_defocus (with text), search_navto (Nav To by Mouse/Keyboard), search_submit.
 - Input maxLength=75, placeholder 'Search', class hebrewSearch for Hebrew interface; suggestions show only while focused and menu open (567).
+- Rebuild: src/lib/analytics/search-box.ts — search_focus, search_defocus {text}, search_navto (keyboard with link_type; mouse without), search_submit (Search Results / Autolink), plus the old Track 'Search Box …' events.
 
 Code: [`static/js/HeaderAutocomplete.jsx:567`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/HeaderAutocomplete.jsx#L567)
 
@@ -12360,19 +12371,20 @@ Source: `inv_02_reader_shell.md#17`
 ### Shell events
 
 #### ANL-008 · App mount and visitor marking events
-`standard` `live` · rebuild: **todo** `system`
+`standard` `live` · rebuild: **done** · *tested* `system`
 
 App start is tracked once per session and visitors are marked new/returning for targeting.
 
 - reader_app_mounted (sa_event + gtag) once per session (sessionStorage sa.reader_app_mounted); intersection_observer_not_supported once per browser (localStorage sa.intersection_observer_api_checked) (ReaderApp.jsx:246-258).
 - Logged-in user -> markUserAsReturningVisitor; new visitor -> markUserAsNewVisitor (237-243); feeds Strapi audience targeting.
+- Rebuild: useAppAnalytics — reader_app_mounted once per session, intersection_observer_not_supported once per browser, print on beforeprint, visitor marking (waits for sign-in state).
 
 Code: [`static/js/ReaderApp.jsx:237`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L237), [`static/js/ReaderApp.jsx:246`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L246)
 
 Source: `inv_02_reader_shell.md#20`
 
 #### ANL-009 · Reader interaction event names
-`standard` `live` · rebuild: **todo** `system`
+`standard` `live` · rebuild: **partial** — Built for the reader; Display Option Click is dead on the old site; translation preference setting not in this client · *tested* `system`
 
 Named events from the shell used by analytics.
 
@@ -12380,6 +12392,7 @@ Named events from the shell used by analytics.
 - data-anl-batch on each panel: {panel_type,panel_number,content_lang,panel_name}; topics special-cased 'Topic Navigation', topics_{tab}, 'Topic Landing' (ReaderPanel.jsx:684-713).
 - Search analytics flow source labels nav_bar/back_click, endFlow('abandoned') on in-app navigation away, reporting of modified-click results (ReaderApp.jsx:1164,1225-1227,1240-1242,2035-2037,336-338).
 - ToolTipped clicks go via TrackG4.gtagClick with AdContext (Misc.jsx:1458-1468).
+- Rebuild (src/lib/analytics/reader.ts): select_content on opening a text; Text Segment Click (+ Open Connections Panel when no sidebar), Citation Link Click, Named Entity Link Click, Change Language (aleph buttons and the sidebar's), Choose Version, Other Text Click. NOT sent: Display Option Click (FOUND: only the retired ToggleOption sent it; the current display menu sends nothing), Set Translation Language Preference (the setting is not in this client).
 
 Code: [`static/js/ReaderPanel.jsx:684`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L684), [`static/js/ReaderApp.jsx:1225`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1225)
 
@@ -12389,12 +12402,13 @@ Source: `inv_02_reader_shell.md#20`
 ### Pageview tracking
 
 #### ANL-010 · Pageview dimensions
-`retire` `unused` · rebuild: **n/a** `system`
+`retire` `unused` · rebuild: **n/a** — Dead on the old site `system`
 
 Custom dimensions describing the page are computed for each navigation.
 
 - trackPageview (355-413) via Sefaria.track: page type (menuOpen or mode; 'Static' with no panels), number of panels ('2' or '3.2' text.connection), refs and book names (joined ' | '), primary category ('X Commentary' for commentaries) and secondary, content languages and version titles per text panel, sidebars (filters or 'all').
 - **DEAD:** actual Sefaria.track.pageview call is commented out. It would fire on push, on replace after 3s of unchanged refs (checkScrollIntentAndTrack), and initially.
+- Confirmed dead (the pageview call is commented out): not ported.
 
 Code: [`static/js/ReaderApp.jsx:355`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L355)
 
@@ -12404,12 +12418,13 @@ Source: `inv_02_reader_shell.md#20`
 ### Content events
 
 #### ANL-011 · Copy and print events
-`optional` `live` · rebuild: **todo** `system`
+`optional` `live` · rebuild: **done** · *tested* `system`
 
 Copying text and printing are tracked.
 
 - gtag copy_text {length,panelType,book,category}; bilingual_copy_text (both .en and .he selected); spanning_copy_text (more than one segment in a language) (ReaderApp.jsx:2208-2236).
 - gtag print on beforeprint (217,2204-2206).
+- Rebuild: TextColumn onCopy → copy_text {length, panelType, book, category}, bilingual_copy_text, spanning_copy_text (primary/translation sides counted as .he/.en).
 
 Code: [`static/js/ReaderApp.jsx:2208`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2208), [`static/js/ReaderApp.jsx:2204`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2204)
 
@@ -12419,12 +12434,13 @@ Source: `inv_02_reader_shell.md#20`
 ### Sidebar analytics
 
 #### ANL-012 · Sidebar analytics events
-`standard` `live` · rebuild: **todo** `system`
+`standard` `live` · rebuild: **partial** — Built for the sidebar views this client has; Guide, notes and sheet events wait for those features · *tested* `system`
 
 Sidebar interactions are tracked through Sefaria.track and gtag events.
 
 - Sefaria.track.event: Tools '<mode> Click', Prompt Login, Note Save Private|Public, Delete Note, Add Connection, Add to Source Sheet Save, Edit Text Click, Add Translation Click, Send Feedback; Reader Connections Category Click, Category Filter Click, Text Filter Click, Text Filter in Recent Click, Click Text from TextList, Citation Link Click, Click Dictionary Entry from Lookup, Named Entity Link Click, Choose Version, Set Version Preference, Version Download, Other Text Click, Open Connections Panel from Header; Lexicon Open[ No Result]; Search Sidebar Search Result Click; Tools Sheet Click, My Sheet Click, Sheet Owner Click, Topic Click (SheetListing).
 - gtag: feature_clicked {name:tools_button_<en>}, onClick_version_title, onClick_select_version, guide_question_clicked, guide_answer_clicked, guide_view_auto|manual, guide_close, guide_nav, guide_click, promo_viewed, promo_clicked.
+- Rebuild: feature_clicked {name: tools_button_<en>} + Tools '<mode> Click' (account tools only when signed in), Connections Category / Category Filter / Text Filter Click, Click Text from TextList, onClick_version_title / onClick_select_version, Version Download, Send Feedback, Lexicon Open[/No Result] and Click Dictionary Entry from Lookup. Guide events wait for Guided Learning.
 
 Code: [`static/js/ConnectionsPanel.jsx:1095`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L1095)
 
@@ -12451,7 +12467,7 @@ Source: `inv_08_other.md#2.5`
 ### Third-party tools
 
 #### ANL-014 · Third-party analytics and testing scripts
-`standard` `live` · rebuild: **todo** `system`
+`standard` `live` · rebuild: **partial** — GTM, gtag, Simple Analytics, Sentry built; VWO / Hotjar / Unbounce need an owner decision · *tested* `system`
 
 The site loads several external tools for tag management, A/B testing, behavior analytics and promo popups.
 
@@ -12462,6 +12478,8 @@ The site loads several external tools for tag management, A/B testing, behavior 
 - Unbounce embed (popups/banners)
 - Google Identity Services / Apple JS / reCAPTCHA only when logged out
 - React 16 + ReactDOM UMD from unpkg; jQuery 2.2.4 + jQuery UI 1.12.1 from cdnjs with local fallbacks; js/lib/keyboard.js (virtual Hebrew keyboard); analyticsEventTracker.js
+- VERIFIED 2026-10-06 (scripts/probes/anl-probe.mjs, dataLayer recorded on www.sefaria.org/Genesis.1): GTM container + gtag config G-5S6RP1RFZ2 {user_id, traffic_type, site_lang:'english', site_version:'v7.2.3-prod.2'}; GTM also loads a legacy property G-P6B48B03CT ('is_legacy_loaded') and a `ga` shim, so Sefaria.track.event (Universal Analytics) calls are still converted into GA4 events.
+- Rebuild: src/lib/analytics/scripts.ts writes GTM, gtag (same config) and Simple Analytics (stub, sa_metadata, latest[.dev].js with DNT) from env GOOGLE_TAG_MANAGER_CODE / GOOGLE_GTAG / SIMPLE_ANALYTICS_HOSTNAME / APP_VERSION; each off when unset (development, tests). Helm (reader mode) reads the IDs from the local-settings secret by key. NOT ported: VWO (hides <body> until loaded), Hotjar, Unbounce — owner decision.
 
 Code: [`templates/base.html`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/base.html)
 
@@ -12471,7 +12489,7 @@ Source: `inv_08_other.md#5.1 and #5.4`
 ### Declarative events
 
 #### ANL-015 · Declarative data-anl event tracking
-`core` `live` · rebuild: **todo** `system`
+`core` `live` · rebuild: **done** · *tested* `system`
 
 Analytics events are declared directly on page elements and collected automatically.
 
@@ -12479,6 +12497,7 @@ Analytics events are declared directly on page elements and collected automatica
 - Elements declare data-anl-event='<name>:<type>|...'; fields aggregated from data-anl-<field> / data-anl-batch JSON on ancestors (closest wins)
 - Whitelist: project, panel_type, panel_number, item_id, version, content_lang, content_id, content_type, panel_name, panel_category, position, ai, text, experiment, feature_name, from, to, action, engagement_value, engagement_type, logged_in, site_lang, traffic_type, promotion_name, link_type, form_name, form_destination
 - Derived data for details toggle (from/to) and input (text); scrollIntoView via IntersectionObserver; inputStart fires on first input; MutationObserver attaches to new nodes
+- Rebuild: src/lib/analytics/declarative.ts, a port of analyticsEventTracker.js (same whitelist, closest-wins aggregation, data-anl-batch, derived toggle/input data, scrollIntoView and inputStart) attached to the app root. Module switcher uses it (modswitch_open/close/item_click).
 
 Code: [`static/js/analyticsEventTracker.js`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/analyticsEventTracker.js)
 
@@ -12488,7 +12507,7 @@ Source: `inv_08_other.md#5.4`
 ### Legacy tracking
 
 #### ANL-016 · Legacy Universal Analytics wrapper and TrackG4
-`standard` `legacy` · rebuild: **todo** `system`
+`standard` `legacy` · rebuild: **done** · *tested* `system`
 
 Older event tracking helpers still used by many components.
 
@@ -12498,6 +12517,7 @@ Older event tracking helpers still used by many components.
 - TrackG4.gtagClick(e,onClick,comp_name,params,AdContext) -> onclick_<comp> with keywordTargets + interfaceLang
 - Direct gtag/sa_event: banner_viewed, modal_viewed, *_interacted_with_*, promo_viewed/promo_clicked, header_viewed, banner_probe_viewed, products_*
 - Server: api/linker-track, /api/send_feedback
+- Rebuild: uaEvent(category, action, label, value) sends through GTM's ga shim with the tracker name (as track.js), only when the shim is present. TrackG4.gtagClick (onclick_ToolTipped) belongs to promotions/AdContext — not built.
 
 Code: [`static/js/sefaria/track.js`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/track.js), [`static/js/sefaria/trackG4.js`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/trackG4.js)
 
@@ -12507,12 +12527,13 @@ Source: `inv_08_other.md#5.4`
 ### Error reporting
 
 #### ANL-017 · Browser error reporting (Sentry)
-`standard` `live` · rebuild: **todo** `system`
+`standard` `live` · rebuild: **done** `system`
 
 Front-end errors and performance traces are reported to Sentry.
 
 - client.jsx:21-34: @sentry/react with BrowserTracing + Replay; sample rates from remoteConfig.sentry.*; release = appVersion; DSN CLIENT_SENTRY_DSN
 - Server Sentry config in sefaria/settings_utils.py
+- Rebuild: src/lib/analytics/sentry.ts — @sentry/react loaded on demand when CLIENT_SENTRY_DSN is set; release = APP_VERSION; tracing + replay; sample rates from /api/remote-config feature.client.remote_config_json.sentry (VERIFIED live: sampleRate 1.0, others 0).
 
 Code: [`static/js/client.jsx:21`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/client.jsx#L21), [`sefaria/settings_utils.py`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/settings_utils.py)
 

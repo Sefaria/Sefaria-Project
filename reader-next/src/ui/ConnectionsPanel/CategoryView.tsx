@@ -1,3 +1,4 @@
+import { readerAnalytics } from "~/lib/analytics/reader";
 import type { MouseEvent } from "react";
 import type { Catalog } from "~/lib/catalog/toc";
 import { categoryDescription, categoryLabel } from "~/lib/connections/terms";
@@ -47,6 +48,7 @@ export function CategoryView({ hrefFor, categories, catalog, basePath, search = 
               current={current === c.category}
               href={href_({ view: "texts", filter: c.category })}
               onNavigate={onNavigate}
+              onTrack={() => readerAnalytics.categoryFilterClicked(c.category)}
             />
             {c.books.map((b) => (
               <FilterRow
@@ -61,6 +63,7 @@ export function CategoryView({ hrefFor, categories, catalog, basePath, search = 
                 // Quoting commentary books are filtered with a suffix so they don't match their own commentary.
                 href={href_({ view: "texts", filter: isQuoting ? `${b.book}|Quoting` : b.book })}
                 onNavigate={onNavigate}
+                onTrack={() => readerAnalytics.textFilterClicked(isQuoting ? `${b.book}|Quoting` : b.book)}
               />
             ))}
           </div>

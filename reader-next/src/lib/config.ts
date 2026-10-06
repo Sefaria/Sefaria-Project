@@ -8,11 +8,23 @@
  *  - SEFARIA_API_HOST     the Host header those internal requests carry (Django routes by host: "www.<env>.cauldron.sefaria.org").
  *  - PUBLIC_API_ORIGIN    the API as the BROWSER reaches it; "" means the page's own origin (nginx sends /api/* to Varnish).
  *  - PUBLIC_SITE_ORIGIN   where links to the pages this client does not render (topics, sheets, login…) go; "" = same origin.
- * Browser: the server writes the two PUBLIC_ values into the page (window.__SEFARIA_CONFIG__) before any module runs.
+ *  - Analytics (src/lib/analytics), the same settings Django's templates/base.html reads; each is off when unset, so development and
+ *    tests send nothing: GOOGLE_TAG_MANAGER_CODE, GOOGLE_GTAG, CLIENT_SENTRY_DSN, SIMPLE_ANALYTICS_HOSTNAME ("sefaria.org" in
+ *    production), APP_VERSION (gtag's site_version, Sentry's release).
+ * Browser: the server writes the PUBLIC_ values and the analytics settings into the page (window.__SEFARIA_CONFIG__) before any
+ * module runs.
  */
+export interface AnalyticsConfig {
+  gtm: string | null;
+  gtag: string | null;
+  sentryDsn: string | null;
+  simpleAnalyticsHost: string | null;
+  appVersion: string | null;
+}
 export interface PublicConfig {
   apiOrigin: string;
   siteOrigin: string;
+  analytics: AnalyticsConfig;
 }
 
 const DEFAULT_ORIGIN = "https://www.sefaria.org";
@@ -25,10 +37,26 @@ declare global {
   }
 }
 
+const NO_ANALYTICS: AnalyticsConfig = { gtm: null, gtag: null, sentryDsn: null, simpleAnalyticsHost: null, appVersion: null };
+
 /** What the browser is told (also what the server uses for links it renders). */
 export const PUBLIC_CONFIG: PublicConfig = isServer
-  ? { apiOrigin: env("PUBLIC_API_ORIGIN") ?? DEFAULT_ORIGIN, siteOrigin: env("PUBLIC_SITE_ORIGIN") ?? DEFAULT_ORIGIN }
-  : { apiOrigin: window.__SEFARIA_CONFIG__?.apiOrigin ?? DEFAULT_ORIGIN, siteOrigin: window.__SEFARIA_CONFIG__?.siteOrigin ?? DEFAULT_ORIGIN };
+  ? {
+      apiOrigin: env("PUBLIC_API_ORIGIN") ?? DEFAULT_ORIGIN,
+      siteOrigin: env("PUBLIC_SITE_ORIGIN") ?? DEFAULT_ORIGIN,
+      analytics: {
+        gtm: env("GOOGLE_TAG_MANAGER_CODE") || null,
+        gtag: env("GOOGLE_GTAG") || null,
+        sentryDsn: env("CLIENT_SENTRY_DSN") || null,
+        simpleAnalyticsHost: env("SIMPLE_ANALYTICS_HOSTNAME") || null,
+        appVersion: env("APP_VERSION") || null,
+      },
+    }
+  : {
+      apiOrigin: window.__SEFARIA_CONFIG__?.apiOrigin ?? DEFAULT_ORIGIN,
+      siteOrigin: window.__SEFARIA_CONFIG__?.siteOrigin ?? DEFAULT_ORIGIN,
+      analytics: { ...NO_ANALYTICS, ...window.__SEFARIA_CONFIG__?.analytics },
+    };
 
 /** The API origin for this side: the internal one on the server, the public one in the browser. */
 export const API_ORIGIN: string = isServer ? (env("SEFARIA_API_ORIGIN") ?? PUBLIC_CONFIG.apiOrigin) : PUBLIC_CONFIG.apiOrigin;

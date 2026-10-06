@@ -1,3 +1,4 @@
+import { readerAnalytics } from "~/lib/analytics/reader";
 import { useState, type ReactNode } from "react";
 import { InterfaceLangProvider, useInterfaceLang } from "~/lib/i18n/interface-lang";
 import styles from "./ContentLanguage.module.css";
@@ -16,7 +17,10 @@ export function ContentLanguage({ children }: { children: ReactNode }) {
   return (
     <InterfaceLangProvider lang={hebrew ? "hebrew" : "english"}>
       <div className={styles.wrap}>
-        <button type="button" className={styles.toggle} aria-pressed={hebrew} aria-label={hebrew ? "English Language Toggle Icon" : "Hebrew Language Toggle Icon"} onClick={() => setHebrew((h) => !h)}>
+        <button type="button" className={styles.toggle} aria-pressed={hebrew} aria-label={hebrew ? "English Language Toggle Icon" : "Hebrew Language Toggle Icon"} onClick={() => {
+          readerAnalytics.languageToggled(hebrew ? "english" : "hebrew");
+          setHebrew((h) => !h);
+        }}>
           <img src={hebrew ? "/img/aye.svg" : "/img/aleph.svg"} alt="" width={18} height={18} />
         </button>
         {children}

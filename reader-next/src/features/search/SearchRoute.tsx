@@ -15,6 +15,8 @@ import { InterfaceText } from "~/ui/InterfaceText/InterfaceText";
 import { NavPage } from "~/ui/NavPage/NavPage";
 import { EntityResults, ExactToggle, MobileFilterButton, MobileFilterPanel, NoResults, PanelSection, SearchError, SearchSkeleton, SearchBar, SearchFilters, SearchResultCard, SearchTabs, SortMenu, SortRadios } from "~/ui/SearchPage/SearchPage";
 import { toRouterLocation } from "../shared/RouterLink";
+import { searchFlow, tabLabel } from "~/lib/analytics";
+import { resultClickHandlers, useSearchFlowAnalytics } from "./use-search-analytics";
 
 const ENTITY_TABS: Partial<Record<SearchTab, EntityType>> = { books: "book", authors: "author", topics: "topic" };
 
@@ -38,6 +40,8 @@ const ENTITY_TABS: Partial<Record<SearchTab, EntityType>> = { books: "book", aut
  * @feature SRC-064 No-results empty state
  * @feature SRC-066 Books, Authors and Topics result tabs
  * @feature SRC-085 Text filter panel (category/book tree)
+ * @feature SRC-104 GA4 search funnel events
+ * @feature SRC-106 Search result click analytics
  */
 export function SearchRoute() {
   const raw = useSearch({ strict: false }) as Record<string, unknown>;
@@ -90,6 +94,41 @@ export function SearchRoute() {
     ...(entityCounts[2]?.data ? { topics: formatEntityCount(entityCounts[2].data.total) } : {}),
   };
 
+  // The search funnel (SRC-104…108): the APIs' first answers, the old per-query Track event
+  useSearchFlowAnalytics(
+    params.q,
+    params.tab,
+    {
+      sources: { total: first0?.total, error: sources.isError ? sources.error : undefined },
+      books: { total: entityCounts[0]?.data?.total, error: entityCounts[0]?.isError ? entityCounts[0].error : undefined },
+      authors: { total: entityCounts[1]?.data?.total, error: entityCounts[1]?.isError ? entityCounts[1].error : undefined },
+      topics: { total: entityCounts[2]?.data?.total, error: entityCounts[2]?.isError ? entityCounts[2].error : undefined },
+    },
+    first0 && hasQuery ? { total: first0.total, filters: params.filters, key: first0 } : undefined,
+  );
+  const rawCount = (t: SearchTab): number | undefined =>
+    t === "sources" ? first?.total : entityCounts[["books", "authors", "topics"].indexOf(t)]?.data?.total;
+  const onTabClick = (t: SearchTab) => {
+    // reported before the tab changes: `tab` is the one being left, element_value the destination
+    if (t !== params.tab) searchFlow.elementClicked({ elementType: "tab", elementValue: tabLabel(t), count: rawCount(t) });
+    go({ tab: t });
+  };
+  const onSourcesSort = (sort: SearchParams["sort"]) => {
+    if (sort === params.sort) return;
+    searchFlow.elementClicked({ elementType: "sort", elementValue: SOURCE_SORTS.find((o) => o.value === sort)?.en ?? sort });
+    go({ sort });
+  };
+  const onEntitySort = (type: EntityType, v: EntitySort) => {
+    if (entitySort[type] === v) return;
+    searchFlow.elementClicked({ elementType: "sort", elementValue: ENTITY_SORTS[type].find((o) => o.value === v)?.en ?? v });
+    setEntitySort((cur) => ({ ...cur, [type]: v }));
+  };
+  const onExact = (exact: boolean) => {
+    if (exact === params.exact) return;
+    searchFlow.elementClicked({ elementType: "toggle", elementValue: exact ? "Exact Phrase" : "All Results" });
+    go({ exact });
+  };
+
   // More results as the list reaches its end
   const sentinel = useRef<HTMLDivElement>(null);
   const active = entityType ? entities : sources;
@@ -107,22 +146,28 @@ export function SearchRoute() {
   };
   const openHit = (h: SearchHit) => void router.navigate({ ...(toRouterLocation(hitHref(h)) as object), state: { nav: "go", terms: highlightsOf(h) } } as never);
 
-  const onToggle = (node: FilterNode) => go({ filters: toggleFilter(node, params.filters, tree) });
-  const onToggleBook = (node: FilterNode) => setBookFilters((cur) => toggleFilter(node, cur, bookTree));
+  const onToggle = (node: FilterNode) => {
+    searchFlow.elementClicked({ elementType: "filter", elementValue: node.title, count: node.count });
+    go({ filters: toggleFilter(node, params.filters, tree) });
+  };
+  const onToggleBook = (node: FilterNode) => {
+    searchFlow.elementClicked({ elementType: "filter", elementValue: node.title, count: node.count });
+    setBookFilters((cur) => toggleFilter(node, cur, bookTree));
+  };
 
   let body;
   if (!hasQuery) body = null;
   else if (entityType) {
     const list = entities.data?.pages.flatMap((p) => p.hits);
-    body = entities.isError && !list ? <SearchError onRetry={() => void entities.refetch()} /> : !list ? <p role="status" style={{ textAlign: "center" }}><InterfaceText en="Searching..." he="מבצע חיפוש..." /></p> : <EntityResults type={entityType} hits={list} topicParents={topicParents} empty={<NoResults tab={params.tab} query={params.q} />} />;
+    body = entities.isError && !list ? <SearchError onRetry={() => void entities.refetch()} /> : !list ? <p role="status" style={{ textAlign: "center" }}><InterfaceText en="Searching..." he="מבצע חיפוש..." /></p> : <EntityResults type={entityType} hits={list} topicParents={topicParents} itemProps={(h, i) => resultClickHandlers(h.title_en || h.title_he, i + 1)} empty={<NoResults tab={params.tab} query={params.q} />} />;
   } else if (sources.isError && !hits) body = <SearchError onRetry={() => void sources.refetch()} />;
   else if (!hits) body = null; // the skeleton below stands in while the first query runs
   else if (!hits.length) body = <NoResults tab="sources" query={params.q} />;
   else
     body = (
       <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 20 }} aria-label="Search results">
-        {hits.map((h) => (
-          <li key={h._id}><SearchResultCard hit={h} hrefFor={hitHref} onOpen={openHit} /></li>
+        {hits.map((h, i) => (
+          <li key={h._id} {...resultClickHandlers(h._source.ref, i + 1)}><SearchResultCard hit={h} hrefFor={hitHref} onOpen={openHit} /></li>
         ))}
       </ul>
     );
@@ -141,30 +186,30 @@ export function SearchRoute() {
       <SearchBar query={params.q} onSubmit={(q) => go({ q, filters: [] })} />
       {skeleton ? <SearchSkeleton /> : hasQuery ? (
         <>
-          <SearchTabs mobile={mobile} active={params.tab} counts={counts} hrefFor={(t) => searchHref({ ...params, tab: t })} onTab={(t) => go({ tab: t })} />
+          <SearchTabs mobile={mobile} active={params.tab} counts={counts} hrefFor={(t) => searchHref({ ...params, tab: t })} onTab={onTabClick} />
           {mobile ? (
             <MobileFilterButton onClick={() => setPanelOpen(true)} />
           ) : params.tab === "sources" ? (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBlockEnd: 18 }}>
-              <ExactToggle exact={params.exact} onChange={(exact) => go({ exact })} />
-              <SortMenu sort={params.sort} onChange={(sort) => go({ sort })} disabled={first?.total === 0} />
+              <ExactToggle exact={params.exact} onChange={onExact} />
+              <SortMenu sort={params.sort} onChange={onSourcesSort} disabled={first?.total === 0} />
             </div>
           ) : entityType ? (
             <div style={{ display: "flex", justifyContent: "flex-end", marginBlockEnd: 18 }}>
-              <SortMenu sort={entitySort[entityType]} options={ENTITY_SORTS[entityType]} onChange={(v) => setEntitySort((cur) => ({ ...cur, [entityType]: v }))} disabled={entities.data?.pages[0]?.hits.length === 0} />
+              <SortMenu sort={entitySort[entityType]} options={ENTITY_SORTS[entityType]} onChange={(v) => onEntitySort(entityType, v)} disabled={entities.data?.pages[0]?.hits.length === 0} />
             </div>
           ) : null}
           {mobile && panelOpen ? (
             <MobileFilterPanel title={<InterfaceText en={params.tab === "sources" ? "Filters" : params.tab === "books" ? "Filter" : "Sort"} he={params.tab === "sources" ? "פילטרים" : params.tab === "books" ? "סינון" : "מיון"} />} onClose={() => setPanelOpen(false)}>
               {params.tab === "sources" ? (
                 <>
-                  <PanelSection title={<InterfaceText en="Search Type" he="סוג חיפוש" />}><ExactToggle block exact={params.exact} onChange={(exact) => go({ exact })} /></PanelSection>
-                  <PanelSection title={<InterfaceText en="Sort by" he="מיון לפי" />}><SortRadios name="sort" value={params.sort} options={SOURCE_SORTS} onChange={(sort) => go({ sort })} /></PanelSection>
+                  <PanelSection title={<InterfaceText en="Search Type" he="סוג חיפוש" />}><ExactToggle block exact={params.exact} onChange={onExact} /></PanelSection>
+                  <PanelSection title={<InterfaceText en="Sort by" he="מיון לפי" />}><SortRadios name="sort" value={params.sort} options={SOURCE_SORTS} onChange={onSourcesSort} /></PanelSection>
                   {tree.length ? <PanelSection title={<InterfaceText en="Filters" he="סינונים" />}><SearchFilters tree={tree} applied={params.filters} onToggle={onToggle} /></PanelSection> : null}
                 </>
               ) : (
                 <>
-                  {entityType ? <PanelSection title={<InterfaceText en="Sort by" he="מיון לפי" />}><SortRadios name="esort" value={entitySort[entityType]} options={ENTITY_SORTS[entityType]} onChange={(v) => setEntitySort((cur) => ({ ...cur, [entityType]: v }))} /></PanelSection> : null}
+                  {entityType ? <PanelSection title={<InterfaceText en="Sort by" he="מיון לפי" />}><SortRadios name="esort" value={entitySort[entityType]} options={ENTITY_SORTS[entityType]} onChange={(v) => onEntitySort(entityType, v)} /></PanelSection> : null}
                   {params.tab === "books" && bookTree.length ? <PanelSection title={<InterfaceText en="Filters" he="סינונים" />}><SearchFilters tree={bookTree} applied={bookFilters} onToggle={onToggleBook} /></PanelSection> : null}
                 </>
               )}
