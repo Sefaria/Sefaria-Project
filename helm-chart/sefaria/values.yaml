@@ -204,6 +204,7 @@ nodejs:
   #  reader: the new reader client (reader-next/, build/node/Dockerfile). nginx sends page requests to it first; it renders the
   #          reader and library pages, reads the API through Varnish, and hands Django's pages, our 404s and every write to Varnish.
   #          Django's own SSR is switched off (USE_NODE = False).
+  #          Runbook: reader-next/docs/DEPLOYMENT.md.
   mode: reader
   containerImage:
     # Full path of the image registry inclusive of the image name
