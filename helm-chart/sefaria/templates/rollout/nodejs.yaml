@@ -95,6 +95,19 @@ spec:
             value: "1"
           - name: PORT
             value: "3000"
+          # analytics: the IDs Django's base.html uses (each optional; reader-next/src/lib/analytics), the build as site_version
+          - name: APP_VERSION
+            value: "{{ .Values.nodejs.containerImage.tag }}"
+          - name: SIMPLE_ANALYTICS_HOSTNAME
+            value: {{ if eq (toString .Values.localSettings.DEBUG) "true" }}"sa-dev.sefaria.org"{{ else }}"sefaria.org"{{ end }}
+          {{- range list "GOOGLE_TAG_MANAGER_CODE" "GOOGLE_GTAG" "CLIENT_SENTRY_DSN" }}
+          - name: {{ . }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ $.Values.secrets.localSettings.ref }}
+                key: {{ . }}
+                optional: true
+          {{- end }}
           {{- end }}
           {{- if .Values.mongo.enabled }}
           - name: MONGO_HOST
