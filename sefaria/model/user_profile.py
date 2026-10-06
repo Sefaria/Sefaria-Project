@@ -476,7 +476,8 @@ class UserProfile(object):
 
     def _set_flags_on_update(self, obj):
         if "first_name" in obj or "last_name" in obj:
-            if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
+            if (self.first_name != obj.get("first_name", self.first_name)
+                    or self.last_name != obj.get("last_name", self.last_name)):
                 self._name_updated = True
 
         # getattr default guards against a field not yet set on a partially built profile
