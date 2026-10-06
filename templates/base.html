@@ -5,7 +5,7 @@
 {% load sefaria_tags %}
 
 <!DOCTYPE html>
-<html lang="{{ request.LANGUAGE_CODE }}">
+<html lang="{{ request.LANGUAGE_CODE }}"{% if resolved_theme %} data-theme="{{ resolved_theme }}"{% endif %}>
 <head>
     {% block meta_title %}{% meta_title %}{{ title|striptags }}{% endmeta_title %}{% endblock %}
     <meta charset="utf-8"/>
@@ -57,7 +57,8 @@
     <link rel="apple-touch-icon" sizes="180x180" href="{{ STATIC_PREFIX }}icons/{{ active_module }}/apple-touch-icon.png?v={{ favicon_version }}">
     <link rel="manifest" href="/site.webmanifest?v={{ favicon_version }}">
     {# In the future in case there are more than 2 modules, define a custom filter with a dictionary that maps module names to colors/strings #}
-    <meta name="theme-color" content="{% if active_module == 'voices' %}#518159{% else %}#18345D{% endif %}">
+    {# Keep these colours in step with THEME_COLORS in static/js/sefaria/theme.js (checked by Jest). #}
+    <meta name="theme-color" content="{% if resolved_theme == 'dark' %}#181818{% elif active_module == 'voices' %}#518159{% else %}#18345D{% endif %}">
     <meta name="apple-mobile-web-app-title"
           content="{% if active_module == 'voices' %}
                     {% trans 'Voices' %}
@@ -65,6 +66,9 @@
                     {% trans 'Library' %}
                   {% endif %}">
     {% endwith %}
+
+    {# Light/dark safety net: must stay after the theme-color meta and before any stylesheet or script. #}
+    {% include "elements/theme_head.html" %}
 
     {% if ldBreadcrumbs %}{% autoescape off %}
     <script type="application/ld+json">{{ ldBreadcrumbs }}</script>
@@ -112,12 +116,14 @@
         
     <link rel="stylesheet" href="{%  static 'css/font-faces.css' %}">
     <link rel="stylesheet" href="{%  static 'css/color-palette.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-tokens.css' %}">
     <link rel="stylesheet" href="{%  static 'css/themes/library-theme.css' %}">
     <link rel="stylesheet" href="{%  static 'css/themes/sheets-theme.css' %}">
     <link rel="stylesheet" href="{%  static 'css/common-components.css' %}">
     <link rel="stylesheet" href="{%  static 'css/common-component.css' %}">
     <link rel="stylesheet" href="{%  static 'css/auth.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
+    <link rel="stylesheet" href="{% static 'css/theme-dark-overrides.css' %}">
     <link rel="stylesheet" href="{%  static 'css/s2-print.css' %}" media="print" />
     {% if page == 'modtools' %}
     <link rel="stylesheet" href="{% static 'css/modtools.css' %}">

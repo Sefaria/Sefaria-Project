@@ -34,7 +34,7 @@ $not-selector: "";
   box-sizing: border-box;
   padding: 0 30px;
   justify-content: space-between;
-  background: white;
+  background: var(--color-bg-surface, var(--white));
   @include breakpoint(mobile) {
     padding: 0 15px;
   }
@@ -51,7 +51,7 @@ $not-selector: "";
 }
 
 .headerInner.boxShadow {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px var(--color-shadow);
 }
 
 $logo-widths: (
@@ -117,7 +117,7 @@ $interfaces: english hebrew;
 
 .textLink,
 .textLink:hover {
-  color: var(--dark-grey);
+  color: var(--color-text-secondary, var(--dark-grey));
 }
 
 .headerLinksSection {
@@ -127,7 +127,7 @@ $interfaces: english hebrew;
 
 .header .searchBox {
   overflow: hidden;
-  background: var(--lighter-grey);
+  background: var(--color-bg-muted, var(--lighter-grey));
   border-radius: 250px;
   width: 250px;
   height: 30px;
@@ -162,8 +162,28 @@ $interfaces: english hebrew;
   cursor: pointer;
 }
 
+// Dark mode toggle (ThemeToggle.jsx), between the module switcher and the avatar.
+// `button.icon-only` (common-components.css) already gives it the 18x18 box, no padding, no
+// border and a transparent background, like its neighbours. The icon is an inline SVG drawn
+// with currentColor, so this colour is the one the neighbouring #666 icon images are drawn in.
+.header .themeToggle {
+  margin: 0;
+  color: var(--color-text-secondary, var(--dark-grey));
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.header .themeToggle .themeToggleIcon {
+  flex-shrink: 0;
+}
+
+body.user-is-tabbing .header .themeToggle:focus {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
 .header .menuButton {
-  color: var(--medium-grey);
+  color: var(--color-text-muted, var(--medium-grey));
   border: none;
   background: transparent;
   padding: 0;

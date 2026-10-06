@@ -5,7 +5,8 @@ import { LANGUAGES, t } from '../globals';
 import {
   MODULE_SELECTORS,
   SEARCH_DROPDOWN,
-  MODULE_URLS
+  MODULE_URLS,
+  TabOrderItem
 } from '../constants';
 import { testUser, testAdminUser } from '../globals';
 
@@ -272,18 +273,46 @@ export class ModuleHeaderPage extends HelperBase {
   }
 
   // Accessibility Methods
-  async testTabOrder(_tabOrder: readonly any[]) {
-    // Ensure overlays are dismissed and header is visible for accessibility checks
+  /**
+   * Press Tab from the top of the document and assert that the listed header controls
+   * receive focus in exactly this relative order. Focus stops that match none of the
+   * listed selectors (skip link, logo, …) are allowed in between; a listed control that
+   * is reached out of order, or never reached, fails with the offending entry named.
+   */
+  async testTabOrder(tabOrder: readonly TabOrderItem[]) {
     await hideAllModalsAndPopups(this.page);
-    try {
-      await this.header.waitFor({ state: 'visible', timeout: t(15000) });
-      await expect(this.header).toBeVisible();
-    } catch (e) {
-      // If header is rendered but not visible due to site behavior in this environment,
-      // fall back to asserting the header exists in the DOM so the accessibility test
-      // can continue without flakiness.
-      await expect(this.page.locator('[role="banner"]')).toHaveCount(1);
+    // Attached, not visible: `.header[role=banner]` has no box of its own (Playwright reports it
+    // hidden), and the virtual-keyboard icon takes focus while reported hidden (it fades in on
+    // hover). The Tab walk below is the real reachability check.
+    await expect(this.page.locator('[role="banner"]')).toHaveCount(1, { timeout: t(15000) });
+    for (const item of tabOrder) {
+      await expect(this.page.locator(item.selector).first(), `${item.description} (${item.selector})`)
+        .toBeAttached({ timeout: t(10000) });
     }
+
+    // Start from the document, not from whatever the page focused on load.
+    await this.page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur?.());
+    const selectors = tabOrder.map((item) => item.selector);
+    // Safari/WebKit on macOS skips links on plain Tab (Option+Tab reaches them).
+    const webkitOnMac = this.page.context().browser()?.browserType().name() === 'webkit' && process.platform === 'darwin';
+    const tabKey = webkitOnMac ? 'Alt+Tab' : 'Tab';
+    const seen: string[] = [];
+    let next = 0;
+    // Generous budget: the listed stops plus any unlisted ones before and between them.
+    for (let press = 0; press < tabOrder.length + 15 && next < tabOrder.length; press++) {
+      await this.page.keyboard.press(tabKey);
+      const hit = await this.page.evaluate((sels) => {
+        const el = document.activeElement;
+        return el ? sels.findIndex((s) => el.matches(s) || !!el.closest(s)) : -1;
+      }, selectors);
+      if (hit === -1) continue;
+      seen.push(tabOrder[hit].description);
+      expect(hit, `Tab stop #${seen.length} was "${tabOrder[hit].description}", expected "${tabOrder[next].description}" (order so far: ${seen.join(' → ')})`)
+        .toBe(next);
+      next++;
+    }
+    expect(next, `Tab never reached "${tabOrder[next]?.description}" (order so far: ${seen.join(' → ')})`)
+      .toBe(tabOrder.length);
   }
 
   async testModuleSwitcherKeyboard() {

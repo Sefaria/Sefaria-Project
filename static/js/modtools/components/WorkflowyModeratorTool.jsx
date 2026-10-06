@@ -238,7 +238,7 @@ class WorkflowyModeratorTool extends Component {
                 onChange={this.handleFileChange}
               />
               {this.state.files.length > 0 && (
-                <div style={{ fontSize: "12px", color: "#666", marginTop: "4px" }}>
+                <div style={{ fontSize: "12px", color: "var(--color-text-secondary, #666)", marginTop: "4px" }}>
                   Selected: {this.state.files.map(f => f.name).join(', ')}
                 </div>
               )}

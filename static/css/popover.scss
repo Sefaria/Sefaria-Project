@@ -4,9 +4,9 @@
 
 // Popover theme variables
 $popover-bg: var(--theme-primary);
-$popover-text: white;
+$popover-text: var(--color-text-on-accent);
 $popover-radius: 8px;
-$popover-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+$popover-shadow: 0px 1px 3px var(--color-shadow-strong);
 $popover-arrow-offset: -4px;
 
 // Mixin for consistent desktop (14px) / mobile (16px) font sizing
@@ -94,7 +94,7 @@ $button-height-desktop: 30px;
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
-  background-color: white;
+  background-color: var(--color-bg-on-accent);
   color: var(--theme-primary);
   border: none;
   height: $button-height-desktop;
@@ -102,8 +102,8 @@ $button-height-desktop: 30px;
 
   &:is(:hover, :active, :focus) {
     background: transparent;
-    color: white;
-    box-shadow: inset 0 0 0 1px white;
+    color: var(--color-text-on-accent);
+    box-shadow: inset 0 0 0 1px var(--color-text-on-accent);
     outline: none;
   }
 }
