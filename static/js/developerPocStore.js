@@ -14,38 +14,54 @@ export const DEVELOPER_POC_STATE_URL = "/api/developer-poc/state";
 export const DEVELOPER_POC_VERSION = 1;
 export const MAX_KEYS_PER_PROJECT = 5;
 
-/* Stand-ins for Powered by Sefaria listings, so the listing search has something to find.
-   Only public listing fields are included, as the real search would return. */
+/* Stand-ins for Powered by Sefaria listings. Name, link and description are public; the
+   submitter email and owner are private and never shown, only compared. */
 export const POWERED_BY_LISTINGS = [
-  {name: "Daf Yomi Companion", url: "dafyomicompanion.org",
-    description: "Today's daf with Steinsaltz, Rashi and a daily review quiz."},
-  {name: "Parsha Sheets for Educators", url: "parshasheets.org",
-    description: "Printable weekly source sheets for day-school classrooms."},
-  {name: "Mishnah Yomit Tracker", url: "mishnahtracker.app",
-    description: "Track your daily two mishnayot and share progress with a study group."},
-  {name: "Tehillim Circle", url: "tehillimcircle.org",
-    description: "Split the book of Psalms among a group, with the text in Hebrew and English."},
-  {name: "Chavruta Match", url: "chavrutamatch.com",
-    description: "Find a study partner and a text to learn together."},
-  {name: "Siddur Builder", url: "siddurbuilder.net",
-    description: "Assemble a custom prayer booklet for a simcha or a minyan."},
-  {name: "Rambam Daily Audio", url: "rambamdaily.fm",
-    description: "A daily Mishneh Torah podcast with the day's text alongside."},
-  {name: "Talmud Map", url: "talmudmap.org",
-    description: "An interactive map of the places named in the Talmud."},
-  {name: "Midrash Explorer", url: "midrashexplorer.org",
-    description: "Browse midrashim by verse, theme and character."},
-  {name: "My Bar Mitzvah Parsha", url: "mybarmitzvahparsha.com",
-    description: "Find your Torah portion by birth date and read it with trope."},
-  {name: "Shnayim Mikra Reader", url: "shnayimmikra.app",
-    description: "The weekly portion twice in Hebrew and once in Onkelos, verse by verse."},
-  {name: "Halacha Quiz for Kids", url: "halachaquiz.org",
-    description: "Short daily questions on everyday Jewish law for children."},
-  {name: "Luach Widgets", url: "luachwidgets.dev",
-    description: "Embeddable Hebrew calendar and daily learning widgets for synagogue websites."},
-  {name: "Jewish Text Graph", url: "jewishtextgraph.io",
-    description: "A visual network of how texts cite one another."},
+  {id: "pb01", name: "Daf Yomi Companion", url: "dafyomicompanion.org",
+    description: "Today's daf with Steinsaltz, Rashi and a daily review quiz.",
+    submitterEmail: "editor@dafyomicompanion.org", ownedByAnotherAccount: false},
+  {id: "pb02", name: "Parsha Sheets for Educators", url: "parshasheets.org",
+    description: "Printable weekly source sheets for day-school classrooms.",
+    submitterEmail: "", ownedByAnotherAccount: false},
+  {id: "pb03", name: "Mishnah Yomit Tracker", url: "mishnahtracker.app",
+    description: "Track your daily two mishnayot and share progress with a study group.",
+    submitterEmail: "hello@mishnahtracker.app", ownedByAnotherAccount: false},
+  {id: "pb04", name: "Tehillim Circle", url: "tehillimcircle.org",
+    description: "Split the book of Psalms among a group, with the text in Hebrew and English.",
+    submitterEmail: "", ownedByAnotherAccount: false},
+  {id: "pb05", name: "Chavruta Match", url: "chavrutamatch.com",
+    description: "Find a study partner and a text to learn together.",
+    submitterEmail: "team@chavrutamatch.com", ownedByAnotherAccount: true},
+  {id: "pb06", name: "Siddur Builder", url: "siddurbuilder.net",
+    description: "Assemble a custom prayer booklet for a simcha or a minyan.",
+    submitterEmail: "", ownedByAnotherAccount: false},
+  {id: "pb07", name: "Rambam Daily Audio", url: "rambamdaily.fm",
+    description: "A daily Mishneh Torah podcast with the day's text alongside.",
+    submitterEmail: "shiur@rambamdaily.fm", ownedByAnotherAccount: false},
+  {id: "pb08", name: "Talmud Map", url: "talmudmap.org",
+    description: "An interactive map of the places named in the Talmud.",
+    submitterEmail: "maps@talmudmap.org", ownedByAnotherAccount: true},
+  {id: "pb09", name: "Midrash Explorer", url: "midrashexplorer.org",
+    description: "Browse midrashim by verse, theme and character.",
+    submitterEmail: "", ownedByAnotherAccount: false},
+  {id: "pb10", name: "My Bar Mitzvah Parsha", url: "mybarmitzvahparsha.com",
+    description: "Find your Torah portion by birth date and read it with trope.",
+    submitterEmail: "", ownedByAnotherAccount: false},
+  {id: "pb11", name: "Shnayim Mikra Reader", url: "shnayimmikra.app",
+    description: "The weekly portion twice in Hebrew and once in Onkelos, verse by verse.",
+    submitterEmail: "dev@shnayimmikra.app", ownedByAnotherAccount: false},
+  {id: "pb12", name: "Halacha Quiz for Kids", url: "halachaquiz.org",
+    description: "Short daily questions on everyday Jewish law for children.",
+    submitterEmail: "", ownedByAnotherAccount: false},
+  {id: "pb13", name: "Luach Widgets", url: "luachwidgets.dev",
+    description: "Embeddable Hebrew calendar and daily learning widgets for synagogue websites.",
+    submitterEmail: "widgets@luachwidgets.dev", ownedByAnotherAccount: false},
+  {id: "pb14", name: "Jewish Text Graph", url: "jewishtextgraph.io",
+    description: "A visual network of how texts cite one another.",
+    submitterEmail: "", ownedByAnotherAccount: false},
 ];
+
+export const MAX_DESCRIPTION_LENGTH = 150;
 
 export const emptyState = () => ({
   version: DEVELOPER_POC_VERSION,
@@ -54,6 +70,7 @@ export const emptyState = () => ({
   emailVerified: false,       // confirmed through the emailed link
   confirmationSentAt: null,   // when a confirmation link was last "sent"
   failNextKey: false,
+  submitterEmailListingId: null,   // the listing whose submitter email is the account email
   profile: null,
   projects: [],
   expandedProjectId: null,
@@ -117,11 +134,14 @@ export const makeProject = (fields) => ({
   id: randomId(),
   name: "",
   description: "",
-  visibility: "private",
+  visibility: null,
   organization: "",
   websiteUrl: "",
   aiAssisted: false,
-  listingRequest: null,
+  listingRequest: null,        // {id, name, url}: a link staff have still to confirm
+  linkedListingId: null,       // the Powered by listing this project is
+  listingComplete: false,      // the Powered by details have every required field
+  consentWithdrawnAt: null,    // when a public project was made private
   usage: {requests30: 0, lastUsed: null},
   keys: [],
   ...fields,
@@ -197,3 +217,50 @@ export const websiteHost = (url) => {
     return url;
   }
 };
+
+/* Listing links compare as host and path, ignoring scheme, "www." and a trailing slash. */
+export const normalizeWebsite = (url) => (
+  (url || "").trim().toLowerCase()
+    .replace(/^[a-z]+:\/\//, "")
+    .replace(/^www\./, "")
+    .replace(/[?#].*$/, "")
+    .replace(/\/+$/, "")
+);
+
+/* The mock listings as this account sees them: the test panel can give one of them the
+   account email as its submitter email, and a listing linked to one of this account's
+   projects belongs to this account. */
+export const poweredByListings = (state, email) => POWERED_BY_LISTINGS.map(listing => ({
+  ...listing,
+  submitterEmail: listing.id === state.submitterEmailListingId && email ? email : listing.submitterEmail,
+  linkedProjectId: ((state.projects || []).find(p => p.linkedListingId === listing.id) || {}).id || null,
+}));
+
+const sameEmail = (a, b) => !!a && !!b && a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/* An unowned listing submitted with the verified account email can be linked without staff. */
+export const emailMatchedListing = (listings, email, verified) => (
+  verified ? listings.find(l => !l.ownedByAnotherAccount && !l.linkedProjectId && sameEmail(l.submitterEmail, email)) || null : null
+);
+
+export const listingForWebsite = (listings, url) => {
+  const wanted = normalizeWebsite(url);
+  return wanted ? listings.find(l => normalizeWebsite(l.url) === wanted) || null : null;
+};
+
+export const canLinkByEmail = (listing, email, verified) => (
+  !!listing && verified && !listing.ownedByAnotherAccount && !listing.linkedProjectId && sameEmail(listing.submitterEmail, email)
+);
+
+/* Only these listing fields are public, so only these can be compared on screen. */
+export const publicListing = (listing) => (
+  listing ? {id: listing.id, name: listing.name, url: listing.url, description: listing.description} : null
+);
+
+/* Project and listing fields that disagree, for the person to settle by hand. */
+export const listingConflicts = (fields, listing) => [
+  {field: "name", project: (fields.name || "").trim(), listing: listing.name},
+  {field: "description", project: (fields.description || "").trim(), listing: listing.description},
+  {field: "websiteUrl", project: (fields.websiteUrl || "").trim(), listing: listing.url,
+    same: normalizeWebsite(fields.websiteUrl) === normalizeWebsite(listing.url)},
+].filter(c => !(c.same !== undefined ? c.same : c.project === c.listing));
