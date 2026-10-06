@@ -145,8 +145,9 @@ to `<deployEnv>-lemma-search` using the existing web Celery app and shared
 Redis/Sentinel. A separate CPU image consumes only this queue, using the same
 `generate_config.py` connection logic. Ordinary `<deployEnv>-tasks` stays separate.
 Results expire after 30 minutes; browser job handles are signed and bound to the
-staff user and configured index. Submissions are rate limited per user. Cluster
-access requires authenticated staff and the experiment flag, not DEBUG or localhost.
+signed-in user or anonymous browser session and configured index. Submissions are
+rate limited per user/session. Cluster access requires only the experiment flag;
+no login or staff account is needed.
 Local mode and its worker continue to work unchanged.
 
 The dedicated image avoids changing the web app's Python dependencies. Its model
@@ -259,7 +260,7 @@ update the digest after checking document/query provenance compatibility.
    separator). That file is already registered by the normal creator. This places
    the worker policy alongside the web/node/asset policies, with the same lifecycle.
 5. Import the dedicated ES index once with the bundled importer and review the
-   release diff. Merge the cauldrons review branch to deploy. Verify a staff user
+   release diff. Merge the cauldrons review branch to deploy. Verify an anonymous visitor
    can search at `/experimental/lemma-search/`.
 
 Flux then writes each newer worker image into `lemmaSearch.image` and reconciles
@@ -277,7 +278,7 @@ also requires updating the workflow opt-in and the worker registry/policy names.
 - Cauldron configuration: https://github.com/Sefaria/cauldrons/pull/166 (merged).
 - Pinned chart: `0.91.0-codexlemma-search-experiment.2`.
 - Endpoint after installation: https://lemma-search.cauldron.sefaria.org/experimental/lemma-search/
-  (authenticated staff only).
+  (no login required).
 - The dev index `lemma-poc-lemma-search-tanakh-rashi-mishnah-v1` contains all 55,589
   documents. A Linux CPU query against this index reproduced baseline 0 / expanded
   2, including both Jeremiah 31:15 and Rashi on Jeremiah 31:15:2.
@@ -305,7 +306,7 @@ The cold round trip was 26.06 seconds. The same task sent by the web container's
 actual Sefaria Celery app returned successfully in 0.13 seconds with the model and
 query cached. These are smoke-test timings, not load-test results.
 
-The public HTTPS page and API return 403 to anonymous requests as intended. Staff
-page rendering and job ownership are covered by the isolated endpoint tests; an
-interactive staff login/browser session has not been exercised by this deployment
-check. Sign in with a staff account before visiting the comparison page.
+The initial deployment required staff login. That restriction has since been
+removed: the page and query API allow anonymous visitors. Anonymous job handles
+and rate limits are scoped to a random browser-session identity, rather than
+sharing a single anonymous user ID. CSRF protection and signed job handles remain.

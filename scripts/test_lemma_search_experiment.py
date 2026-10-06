@@ -23,7 +23,6 @@ django.setup()
 from django.test import RequestFactory, override_settings, SimpleTestCase
 from django.http import Http404
 from django.core import signing
-from django.core.exceptions import PermissionDenied
 from reader.lemma_search import page, jobs, SALT
 from lemma_search_worker import Engine, Jobs, validate, Annotations, token_parts, folded, expanded_clause
 
@@ -176,10 +175,35 @@ class ClusterTests(SimpleTestCase):
         self.assertEqual(response.status_code,200)
         self.assertIn("no-store",response["Cache-Control"])
 
-    def test_nonstaff_cannot_access(self):
+    def anonymous(self, request, session):
+        request.user=SimpleNamespace(pk=None,is_staff=False,is_authenticated=False)
+        request.session=session
+        return request
+
+    def test_nonstaff_and_anonymous_can_view_page(self):
         req=self.staff(self.factory.get("/"));req.user.is_staff=False
-        with self.assertRaises(PermissionDenied): jobs(req)
-        self.app.send_task.assert_not_called()
+        self.assertEqual(page(req).status_code,200)
+        response=page(self.anonymous(self.factory.get("/"),{}))
+        self.assertEqual(response.status_code,200)
+        self.assertIn("no-store",response["Cache-Control"])
+
+    def test_anonymous_jobs_are_bound_to_independent_browser_sessions(self):
+        session={}
+        req=self.anonymous(self.factory.post("/",data={"query":"אמר"},content_type="application/json"),session)
+        with patch("reader.lemma_search.cache.add",return_value=True) as rate:
+            response=jobs(req)
+        self.assertEqual(response.status_code,202)
+        first_rate_key=rate.call_args.args[0]
+        token=json.loads(response.content)["job"]
+        self.app.AsyncResult.return_value.ready.return_value=False
+        response=jobs(self.anonymous(self.factory.get("/",{"job":token}),session))
+        self.assertEqual(json.loads(response.content)["status"],"running")
+        response=jobs(self.anonymous(self.factory.get("/",{"job":token}),{}))
+        self.assertEqual(response.status_code,400)
+        other=self.anonymous(self.factory.post("/",data={"query":"אמר"},content_type="application/json"),{})
+        with patch("reader.lemma_search.cache.add",return_value=True) as rate:
+            self.assertEqual(jobs(other).status_code,202)
+        self.assertNotEqual(first_rate_key,rate.call_args.args[0])
 
     def test_dispatch_and_poll_signed_job(self):
         req=self.staff(self.factory.post("/",data={"query":"אמר"},content_type="application/json"))
