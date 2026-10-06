@@ -160,6 +160,43 @@ def test_main_rebuilds_entities_after_the_text_sheet_cutover():
     )
 
 
+def test_main_cleans_failed_reindex_targets_on_failed_barrier_and_timeout():
+    """Static check because main() imports django/kubernetes at runtime.
+
+    The failure branches must clean up the target index created by init before exiting,
+    while still leaving the alias unchanged.
+    """
+    import ast
+    import pathlib as _pathlib
+
+    src = _pathlib.Path("scripts/scheduled/reindex_orchestrator.py").read_text()
+    fn = next(n for n in ast.parse(src).body
+              if isinstance(n, ast.FunctionDef) and n.name == "main")
+    branches = {
+        compare.comparators[0].value: node
+        for node in ast.walk(fn)
+        if isinstance(node, ast.If)
+        for compare in [node.test]
+        if (
+            isinstance(compare, ast.Compare)
+            and isinstance(compare.left, ast.Name)
+            and compare.left.id == "barrier_state"
+            and isinstance(compare.comparators[0], ast.Constant)
+        )
+    }
+    for state in ("failed", "timeout"):
+        branch_calls = [
+            n.func.id for n in ast.walk(branches[state])
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)
+        ]
+        branch_attr_calls = [
+            n.func.attr for n in ast.walk(branches[state])
+            if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
+        ]
+        assert "cleanup_after_init_failure" in branch_calls
+        assert "exit" in branch_attr_calls
+
+
 def test_build_shard_job_manifest_marks_pods_unsafe_to_evict():
     """Shard pods must survive cluster-autoscaler scale-down.
 
@@ -433,6 +470,90 @@ def test_parse_shard_resources_accepts_valid_shape(monkeypatch):
     )
     result = orch.parse_shard_resources()
     assert result == {"requests": {"memory": "4Gi"}, "limits": {"memory": "8Gi"}}
+
+
+class _FakeIndexClient:
+    def __init__(self, live_alias_pairs=()):
+        self.live_alias_pairs = set(live_alias_pairs)
+
+    def exists_alias(self, index, name):
+        return (index, name) in self.live_alias_pairs
+
+
+class _FakeSearchModule:
+    def __init__(self, names_by_type, live_alias_pairs=()):
+        self.names_by_type = names_by_type
+        self.index_client = _FakeIndexClient(live_alias_pairs)
+        self.deleted = []
+
+    def get_new_and_current_index_names(self, type, debug=False):
+        return self.names_by_type[type]
+
+    def _assert_not_shared_index(self, alias, type):
+        if alias in ("text", "sheet", "topic", "book", "category"):
+            raise ValueError("shared alias")
+
+    def clear_index(self, index_name):
+        self.deleted.append(index_name)
+
+
+def test_cleanup_failed_reindex_targets_deletes_only_unaliased_targets(monkeypatch):
+    spec.loader.exec_module(orch)
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "sefariastaging_text-a", "current": "sefariastaging_text-b", "alias": "sefariastaging_text"},
+            "sheet": {"new": "sefariastaging_sheet-a", "current": "sefariastaging_sheet-b", "alias": "sefariastaging_sheet"},
+        }
+    )
+
+    deleted = orch.cleanup_failed_reindex_targets(
+        index_types=("text", "sheet"),
+        search_module=search,
+        log_fn=lambda level, msg: None,
+    )
+
+    assert deleted == ["sefariastaging_text-a", "sefariastaging_sheet-a"]
+    assert search.deleted == deleted
+
+
+def test_cleanup_failed_reindex_targets_never_deletes_live_alias_target():
+    spec.loader.exec_module(orch)
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "sefariastaging_text-a", "current": "sefariastaging_text-b", "alias": "sefariastaging_text"},
+        },
+        live_alias_pairs={("sefariastaging_text-a", "sefariastaging_text")},
+    )
+    logged = []
+
+    deleted = orch.cleanup_failed_reindex_targets(
+        index_types=("text",),
+        search_module=search,
+        log_fn=lambda level, msg: logged.append((level, msg)),
+    )
+
+    assert deleted == []
+    assert search.deleted == []
+    assert any("live alias" in msg for level, msg in logged)
+
+
+def test_cleanup_failed_reindex_targets_never_deletes_shared_text_or_sheet_aliases():
+    spec.loader.exec_module(orch)
+    search = _FakeSearchModule(
+        {
+            "text": {"new": "text", "current": "text-b", "alias": "text"},
+            "sheet": {"new": "sheet", "current": "sheet-b", "alias": "sheet"},
+        }
+    )
+
+    deleted = orch.cleanup_failed_reindex_targets(
+        index_types=("text", "sheet"),
+        search_module=search,
+        log_fn=lambda level, msg: None,
+    )
+
+    assert deleted == []
+    assert search.deleted == []
 
 
 class _FakeApiException(Exception):

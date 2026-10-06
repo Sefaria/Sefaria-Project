@@ -317,6 +317,43 @@ def parse_shard_resources():
     return parsed
 
 
+def cleanup_failed_reindex_targets(index_types=("text", "sheet"), debug=False, search_module=None, log_fn=None):
+    """Drop target indices created by init when the orchestrator will not finalize.
+
+    This intentionally deletes only the computed in-progress target side for each type.
+    It refuses to delete if that target is currently behind the alias, and also refuses
+    to delete the alias/shared default names themselves.
+    """
+    log = log_fn or (lambda level, msg: getattr(logger, level)(msg))
+    if search_module is None:
+        import sefaria.search as search_module
+
+    shared_index_names = ("text", "sheet", "topic", "book", "category")
+    deleted = []
+    for index_type in index_types:
+        try:
+            names = search_module.get_new_and_current_index_names(type=index_type, debug=debug)
+            target = names["new"]
+            alias = names["alias"]
+            current = names["current"]
+            search_module._assert_not_shared_index(alias, index_type)
+            if target in shared_index_names or target == alias:
+                log("error", f"Refusing failed-reindex cleanup of shared alias/name - type: {index_type}, target: {target}, alias: {alias}")
+                continue
+            if target == current:
+                log("error", f"Refusing failed-reindex cleanup because target is current - type: {index_type}, target: {target}, alias: {alias}")
+                continue
+            if search_module.index_client.exists_alias(index=target, name=alias):
+                log("error", f"Refusing failed-reindex cleanup because target has live alias - type: {index_type}, target: {target}, alias: {alias}")
+                continue
+            log("warning", f"Cleaning up failed reindex target - type: {index_type}, target: {target}, alias: {alias}, current: {current}")
+            search_module.clear_index(target)
+            deleted.append(target)
+        except Exception as e:
+            log("error", f"Failed to clean up failed reindex target - type: {index_type}, error: {e}")
+    return deleted
+
+
 def main():
     # Heavy imports are lazy so unit tests can exec_module without these packages
     import django
@@ -325,6 +362,7 @@ def main():
     from kubernetes import client, config
     from sefaria.pagesheetrank import update_pagesheetrank
     from scripts.scheduled.reindex_pipeline import (
+        REINDEX_TYPES,
         run_reindex_entities,
         run_reindex_finalize_all,
         run_reindex_init_all,
@@ -433,62 +471,84 @@ def main():
         logger.error(f"Failed to clear stale shard job - status: {exc.status}, reason: {exc.reason}")
         sys.exit(1)
 
-    logger.info("Orchestrator: running init (pagesheetrank + create indexes)")
-    update_pagesheetrank()
-    run_reindex_init_all(debug=debug)
+    init_complete = False
+    finalized = False
+
+    def cleanup_after_init_failure():
+        if not init_complete or finalized:
+            return
+        cleanup_failed_reindex_targets(index_types=REINDEX_TYPES, debug=debug)
 
     try:
-        batch.create_namespaced_job(namespace, manifest)
-    except client.exceptions.ApiException as exc:
-        logger.error(
-            f"Failed to create Indexed Job after init - status: {exc.status}, reason: {exc.reason}. "
-            "ES indexes were initialized; manual cleanup may be required."
+        logger.info("Orchestrator: running init (pagesheetrank + create indexes)")
+        update_pagesheetrank()
+        run_reindex_init_all(debug=debug)
+        init_complete = True
+
+        try:
+            batch.create_namespaced_job(namespace, manifest)
+        except client.exceptions.ApiException as exc:
+            logger.error(
+                f"Failed to create Indexed Job after init - status: {exc.status}, reason: {exc.reason}. "
+                "ES indexes were initialized; cleaning up failed reindex targets."
+            )
+            cleanup_after_init_failure()
+            sys.exit(1)
+
+        logger.info(
+            f"Orchestrator: created Indexed Job {job_name} with {shard_count} shards, "
+            f"activeDeadlineSeconds={shard_active_deadline_seconds}, "
+            f"barrier_timeout={barrier_timeout_seconds}s"
         )
-        sys.exit(1)
 
-    logger.info(
-        f"Orchestrator: created Indexed Job {job_name} with {shard_count} shards, "
-        f"activeDeadlineSeconds={shard_active_deadline_seconds}, "
-        f"barrier_timeout={barrier_timeout_seconds}s"
-    )
-
-    barrier_state, incomplete = run_barrier_loop(
-        read_job_status=lambda: batch.read_namespaced_job_status(job_name, namespace).status,
-        shard_count=shard_count,
-        timeout_seconds=barrier_timeout_seconds,
-        log_fn=lambda msg: logger.info(f"Orchestrator: {msg}"),
-    )
-    if barrier_state == "failed":
-        logger.error(
-            f"Orchestrator: shard job failed; incomplete shard indexes: {incomplete}; "
-            "NOT finalizing (alias unchanged)"
+        barrier_state, incomplete = run_barrier_loop(
+            read_job_status=lambda: batch.read_namespaced_job_status(job_name, namespace).status,
+            shard_count=shard_count,
+            timeout_seconds=barrier_timeout_seconds,
+            log_fn=lambda msg: logger.info(f"Orchestrator: {msg}"),
         )
-        sys.exit(1)
-    if barrier_state == "timeout":
-        logger.error(
-            f"Orchestrator: barrier timed out after {barrier_timeout_seconds}s; shard "
-            f"indexes still incomplete: {incomplete}; NOT finalizing (alias unchanged)"
+        if barrier_state == "failed":
+            logger.error(
+                f"Orchestrator: shard job failed; incomplete shard indexes: {incomplete}; "
+                "NOT finalizing (alias unchanged); cleaning up failed reindex targets"
+            )
+            cleanup_after_init_failure()
+            sys.exit(1)
+        if barrier_state == "timeout":
+            logger.error(
+                f"Orchestrator: barrier timed out after {barrier_timeout_seconds}s; shard "
+                f"indexes still incomplete: {incomplete}; NOT finalizing (alias unchanged); "
+                "cleaning up failed reindex targets"
+            )
+            # The shard Job may still be running; stop it first so it cannot write into
+            # (or re-create) the target index while it is being dropped.
+            delete_stale_shard_job(batch, job_name, namespace, client.exceptions.ApiException)
+            cleanup_after_init_failure()
+            sys.exit(1)
+
+        logger.info("Orchestrator: all shards complete; finalizing")
+        run_reindex_finalize_all(
+            debug=debug,
+            sheet_catch_up_timestamp=sheet_catch_up_timestamp,
+            clear_queue=True,
         )
-        sys.exit(1)
+        finalized = True
 
-    logger.info("Orchestrator: all shards complete; finalizing")
-    run_reindex_finalize_all(
-        debug=debug,
-        sheet_catch_up_timestamp=sheet_catch_up_timestamp,
-        clear_queue=True,
-    )
-
-    # Entity indices (topic, book, category) last, after the text/sheet aliases are
-    # durably swapped above -- matching index_all()'s ordering, so a failure here costs
-    # a re-run of entity indexing rather than the whole reindex. Not sharded: these
-    # corpora are thousands of documents, and index_entities() runs its own
-    # init -> index -> finalize cycle per type.
-    logger.info("Orchestrator: rebuilding entity indices")
-    run_reindex_entities(debug=debug)
+        # Entity indices (topic, book, category) last, after the text/sheet aliases are
+        # durably swapped above -- matching index_all()'s ordering, so a failure here costs
+        # a re-run of entity indexing rather than the whole reindex. Not sharded: these
+        # corpora are thousands of documents, and index_entities() runs its own
+        # init -> index -> finalize cycle per type.
+        logger.info("Orchestrator: rebuilding entity indices")
+        run_reindex_entities(debug=debug)
+    except SystemExit:
+        raise
+    except Exception:
+        cleanup_after_init_failure()
+        raise
 
     logger.info("Orchestrator: reindex complete")
 
 
 if __name__ == "__main__":
     main()
-
