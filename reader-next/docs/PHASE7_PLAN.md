@@ -28,7 +28,9 @@ the web.
 Development: point `SEFARIA_API_ORIGIN` at a local Sefaria-Project server and proxy `/api`, `/login`, `/logout` through Vite, so
 the dev setup is same-origin like production (option A) and nothing signed-in touches production.
 
-**Owner decision 7-0:** A, B or C; and who owns the edge routing change.
+**Owner decision 7-0 (2026-10-06): A, done differently.** The client replaces the legacy Node server: nginx sends page requests to
+it first and it passes what it does not render to Varnish/Django (same origin, no edge path list to maintain). Built on the
+Sefaria-Project branch `reader-next`; see `docs/DEPLOYMENT.md`.
 
 ---
 
@@ -54,7 +56,9 @@ Plan (with option A):
 5. **Tests.** e2e against a local Django with a seeded test user (`auth_english_user.json`-style fixtures exist in
    `e2e-tests/`); never against production accounts.
 
-**Owner decisions 7-1:** keep Django's login page (recommended) or port it; which test accounts e2e may use.
+**Owner decisions 7-1 (2026-10-06):** PORT the new SSO login component (`static/js/auth/AuthPage.jsx` and its component library:
+Input, ProviderButton, Divider, LegalText, Captcha, AuthCard; `api/auth/login`, `api/auth/password/reset`, Google and Apple
+buttons) into this client. e2e uses the same test accounts as Sefaria-Project's e2e suite (its `.env`).
 
 ---
 
@@ -74,7 +78,7 @@ Plan:
 5. Hardening worth proposing upstream (not required for parity): rate limiting, and the old code reads `uid` from the client
    instead of `request.user`.
 
-**Owner decision 7-2:** staging inbox and go-ahead for the staging test.
+**Owner decision 7-2 (2026-10-06):** not yet — no live feedback test.
 
 ---
 
@@ -102,8 +106,8 @@ Plan:
 6. **Consent**: match the old behaviour exactly (verify what loads before the cookie notice is accepted); if the owner wants a
    change (for example GDPR consent mode), it is a product decision, not part of parity.
 
-**Owner decisions 7-3:** the same GA4 property and GTM container or a new data stream; whether Sentry gets a separate project for
-the new client; consent behaviour.
+**Owner decision 7-3 (2026-10-06):** one small analytics module, the same GA4/GTM property and the same event names and
+parameters as the old site.
 
 ---
 
@@ -145,12 +149,11 @@ screenshots and computed styles (not only text), write a parity script for the a
 
 | # | Decision | Recommendation |
 |---|---|---|
-| 7-0 | Where the client is served | A: same origin, path-routed at the edge |
-| 7-1 | Login page | Keep Django's (the new AuthPage); link with `next=` |
-| 7-1 | e2e test accounts | Local Django with seeded users only |
-| 7-2 | Feedback live test | Staging, with an inbox the owner watches |
-| 7-3 | Analytics property and Sentry | Same GA4 property plus a `client` dimension; separate Sentry project |
-| 7-3 | Consent | Match the old site |
-| 7b | A public topic TOC endpoint in Sefaria-Project | Yes (small Django view returning `library.get_topic_toc_json()`) |
-| 7d | Promotions (Strapi), Library Assistant, static pages | Decide per area when 7c is done |
+| 7-0 | Where the client is served | DECIDED: replaces the Node server; requests reach it first (`docs/DEPLOYMENT.md`) |
+| 7-1 | Login page | DECIDED: port the SSO AuthPage |
+| 7-1 | e2e test accounts | DECIDED: the accounts in Sefaria-Project's e2e `.env` |
+| 7-2 | Feedback live test | DECIDED: not yet |
+| 7-3 | Analytics | DECIDED: one module, same property, same event names and parameters |
+| 7b | A public topic TOC endpoint in Sefaria-Project | Open (explained to the owner 2026-10-06) |
+| 7d | Promotions (Strapi), Library Assistant, static pages | DECIDED: later |
 | — | Adobe Fonts kit domains | Add the new client's host to kit `aeg8div` before launch |
