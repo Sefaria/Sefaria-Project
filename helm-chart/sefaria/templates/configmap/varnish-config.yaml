@@ -48,7 +48,7 @@ data:
         # paths were never cached (they fell through to pass below), so routing
         # plus pass preserves their caching semantics exactly.  Must precede the
         # staging pass so staging hosts route here too.
-        if (req.url ~ "^/(api/name/|api/words/completion/|api/opensearch-suggestions|search-autocomplete-redirecter)") {
+        if (req.url ~ "^/(api/name/|api/words/completion/|api/opensearch-suggestions|api/search-autocorrect|search-autocomplete-redirecter)") {
             set req.backend_hint = name_service;
             return (pass);
         }

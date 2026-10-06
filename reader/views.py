@@ -4923,39 +4923,34 @@ def dummy_search_api(request):
     return resp
 
 
-def _apply_query_autocorrect(query, disable_autocorrect):
+@catch_error_as_json
+def search_autocorrect_api(request):
     """
-    Fuzzy-search query auto-correction (sc-47189), shared by search_wrapper_api (Sources tab)
-    and entity_search_api (Books/Topics/Authors tabs) so a query corrects the same way
-    regardless of which tab searched it. `library.autocorrect_query` is a pure function of
-    `query` against the top-n-grams table, so calling it once per tab -- rather than sharing
-    one result across tabs -- still always agrees; it just means every tab's request/response
-    cycle handles its own correction independently, matching how each tab already runs its
-    own search.
+    Fuzzy-search query auto-correction (sc-47189).
 
-    Returns (effective_query, corrected_query, suggested_queries):
-    - `effective_query` is what should actually be searched: the correction when one applies,
-      else `query` unchanged (an ambiguous result -- see below -- also leaves it unchanged,
-      since nothing is confident enough to search instead).
-    - `corrected_query` is non-None only when a confident correction was applied, for the
-      response's "results for X / search instead for Y" banner.
-    - `suggested_queries` is non-None only when multiple candidate corrections were too close
-      in popularity to pick one with confidence (see AMBIGUITY_LOG_GAP in
-      sefaria/helper/top_n_grams_for_search_autocorrect.py) -- a sorted list of alternate,
-      ready-to-search queries for a "did you mean" prompt, while `query` itself still runs
-      uncorrected.
+    GET /api/search-autocorrect?q=<query>
 
-    `disable_autocorrect` is set by the banner's "search instead" action, to force the
-    original query back through untouched.
+    Returns {"corrected_query": str|None, "suggested_queries": [str]|None}; both are None when
+    no correction applies. A confident correction sets `corrected_query` (the client searches
+    that instead and shows a "results for X / search instead for Y" banner); an ambiguous one
+    -- several candidates too close in popularity to pick one with confidence, see
+    AMBIGUITY_LOG_GAP in sefaria/helper/top_n_grams_for_search_autocorrect.py -- sets
+    `suggested_queries` for a "did you mean" prompt while the original query still runs.
+    The two are mutually exclusive.
+
+    Served by the name service when deployed, like /api/name: it holds the top-n-grams table
+    and entity alt index (see reader/startup.py), which web pods deliberately don't load. The
+    search endpoints themselves (search_wrapper_api, entity_search_api) never correct -- the
+    client calls this first and searches whatever it returns.
     """
-    if not query or disable_autocorrect:
-        return query, None, None
-    result = library.autocorrect_query(query)
-    if result is None:
-        return query, None, None
-    if result.corrected_query is None:
-        return query, None, result.suggested_queries
-    return result.corrected_query, result.corrected_query, None
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+    query = request.GET.get("q", "").strip()
+    result = library.autocorrect_query(query) if query else None
+    return jsonResponse({
+        "corrected_query": result.corrected_query if result else None,
+        "suggested_queries": result.suggested_queries if result else None,
+    }, callback=request.GET.get("callback", None))
 
 
 @csrf_exempt
@@ -4974,11 +4969,6 @@ def search_wrapper_api(request, es6_compat=False):
             j = request.body  # using content-type: application/json
         j = json.loads(j)
 
-        # Fuzzy-search query auto-correction (sc-47189) -- see _apply_query_autocorrect.
-        original_query = j.get("query")
-        disable_autocorrect = j.pop("disable_autocorrect", False)
-        j["query"], corrected_query, suggested_queries = _apply_query_autocorrect(original_query, disable_autocorrect)
-
         es_client = get_elasticsearch_client_for_online_search()
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
@@ -4987,12 +4977,6 @@ def search_wrapper_api(request, es6_compat=False):
             response_json = response.to_dict().body
             if es6_compat and isinstance(response_json['hits']['total'], dict):
                 response_json['hits']['total'] = response_json['hits']['total']['value']
-            if corrected_query is not None:
-                response_json['corrected_query'] = corrected_query
-                response_json['original_query'] = original_query
-            if suggested_queries is not None:
-                response_json['suggested_queries'] = suggested_queries
-                response_json['original_query'] = original_query
             return jsonResponse(response_json, callback=request.GET.get("callback", None))
         return jsonResponse({"error": "Error with connection to Elasticsearch. Total shards: {}, Shards successful: {}, Timed out: {}".format(response._shards.total, response._shards.successful, response.timed_out)}, callback=request.GET.get("callback", None))
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
@@ -5004,14 +4988,10 @@ def entity_search_api(request):
 
     GET /api/entity-search?q=<query>&type=<topic|author|book>&sort=<relevance|alpha|year_asc|year_desc>
                           &filter=<category path>&start=<offset>&size=<page size>
-                          &disable_autocorrect=<true|false>
 
-    Fuzzy-search query auto-correction (sc-47189) applies here too, same as search_wrapper_api
-    (Sources tab): see _apply_query_autocorrect. A confident correction adds `corrected_query`
-    / `original_query` to the response; an ambiguous one (multiple candidates too close in
-    popularity to pick) adds `suggested_queries` / `original_query` instead, leaving `q`
-    itself unchanged. `disable_autocorrect=true` (sent by that banner's "search instead"
-    action) searches `q` exactly as given.
+    Searches `q` exactly as given. Fuzzy-search query auto-correction (sc-47189) is not applied
+    here: the client corrects the query first via search_autocorrect_api (name service) and
+    sends the result as `q`.
 
     `start` (default 0) and `size` (default 20, capped at 100) page the results; the tab
     fetches successive pages on scroll. `total` always reports the full match count.
@@ -5040,13 +5020,11 @@ def entity_search_api(request):
     """
     from sefaria.helper.search import entity_search, ENTITY_TYPES, ENTITY_SORTS, ENTITY_MAX_RESULT_WINDOW
 
-    original_query = request.GET.get("q", "").strip()
+    query = request.GET.get("q", "").strip()
     entity_type = request.GET.get("type", "topic").strip()
     sort = request.GET.get("sort", "relevance").strip()
     category_paths = [f.strip() for f in request.GET.getlist("filter") if f.strip()]
     callback = request.GET.get("callback", None)
-    disable_autocorrect = request.GET.get("disable_autocorrect", "").strip().lower() == "true"
-    query, corrected_query, suggested_queries = _apply_query_autocorrect(original_query, disable_autocorrect)
 
     if not query:
         return jsonResponse({"error": "Missing required query parameter 'q'."}, callback=callback)
@@ -5088,13 +5066,6 @@ def entity_search_api(request):
     except Exception as e:
         logger.error(f"entity_search_api failed - q: {query}, type: {entity_type}, sort: {sort}, filter: {category_paths}, error: {e}", exc_info=True)
         return jsonResponse({"error": "Error running entity search."}, callback=callback)
-
-    if corrected_query is not None:
-        results["corrected_query"] = corrected_query
-        results["original_query"] = original_query
-    if suggested_queries is not None:
-        results["suggested_queries"] = suggested_queries
-        results["original_query"] = original_query
 
     return jsonResponse(results, callback=callback)
 

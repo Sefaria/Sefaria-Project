@@ -244,12 +244,6 @@ class Search {
     }
     mergeQueries(addAggregations, sortType, filters) {
         let result = {hits: {}};
-        // Fuzzy-search POC (sc-47189): the merged result is a fresh object, so metadata
-        // set by the server on the raw Sefaria response (see search_wrapper_api) has to be
-        // carried over explicitly or it's silently dropped for Dicta-federated queries.
-        result.corrected_query = this.sefariaQueryQueue.corrected_query;
-        result.suggested_queries = this.sefariaQueryQueue.suggested_queries;
-        result.original_query = this.sefariaQueryQueue.original_query;
         if(addAggregations) {
 
             let newBuckets = this.sefariaQueryQueue['aggregations']['path']['buckets'].filter(
@@ -412,8 +406,7 @@ class Search {
       type,
       field,
       sort_type,
-      exact,
-      disable_autocorrect
+      exact
     }) {
       const { sortTypeArray, aggregation_field_array } = SearchState.metadataByType[type];
       const { sort_method, fieldArray, score_missing, direction } = sortTypeArray.find( x => x.type === sort_type );
@@ -432,9 +425,6 @@ class Search {
         sort_fields: fieldArray,
         sort_reverse: direction === "desc",
         sort_score_missing: score_missing,
-        // Fuzzy-search POC (sc-47189): when true, server skips the top-n-grams
-        // autocorrect check and searches exactly what the user typed.
-        disable_autocorrect: !!disable_autocorrect,
       };
     }
     mergeTextResultsVersions(hits) {
@@ -593,6 +583,30 @@ class Search {
       });
       return { availableFilters, registry: {}, orphans: [] };
     }
+    autocorrectQuery(query) {
+        // Fuzzy-search query auto-correction (sc-47189). Asks the name service (/api/search-autocorrect,
+        // routed there by varnish like /api/name) whether `query` should be corrected. Resolves to
+        // {corrected_query, suggested_queries}, each null when it doesn't apply.
+        //
+        // Never rejects: correction is an enhancement, so a failed or slow lookup must leave the
+        // search running on the query as typed rather than blocking it. A failed lookup is also
+        // evicted from the cache so it isn't remembered for the rest of the session.
+        const noCorrection = {corrected_query: null, suggested_queries: null};
+        if (!query) { return Promise.resolve(noCorrection); }
+        const cacheKey = `autocorrect|${query}`;
+        const url = `${Sefaria.apiHost}/api/search-autocorrect?q=${encodeURIComponent(query)}`;
+        return Promise.resolve(Sefaria._cachedApiPromise({url, key: cacheKey, store: this._cache}))
+            .then(data => {
+                if (!data || data.error) { delete this._cache[cacheKey]; return noCorrection; }
+                return data;
+            })
+            .catch(() => { delete this._cache[cacheKey]; return noCorrection; });
+    }
+    getCachedAutocorrect(query) {
+        // Synchronous view of autocorrectQuery's cache (undefined until that lookup has resolved),
+        // so a component can find already-cached results for the corrected query at construction.
+        return this._cache[`autocorrect|${query}`];
+    }
     entitySearch(query, type, start = 0, {sort = "relevance", categoryPaths = [], disableAutocorrect = false} = {}) {
         // Fetches one page of entity results (from `start`), so the tab panels can lazily
         // load more on scroll. `total` reports the full match count so the count badges and
@@ -604,11 +618,11 @@ class Search {
         // `categoryPaths` (Books tab only; the API rejects it for other types) are category
         // paths like "Tanakh" or "Tanakh/Torah", OR'd together by the server.
         //
-        // `disableAutocorrect` (sc-47189) mirrors the Sources tab's `disable_autocorrect`
-        // flag: set once the user clicks "Search instead for <original query>" in the
-        // auto-correction banner, so every tab -- not just Sources -- re-searches the exact
-        // typed query. Belongs in the cache key for the same reason `sort`/`categoryPaths`
-        // do: it's a different request, not a different page of the same one.
+        // `disableAutocorrect` (sc-47189): set once the user clicks "Search instead for
+        // <original query>" in the auto-correction banner, so every tab -- not just Sources --
+        // re-searches the exact typed query. Otherwise `query` is first run through
+        // autocorrectQuery and the confident correction, if any, is what's searched. The cache
+        // key uses the query actually searched, so it needs no flag of its own.
         //
         // Both belong in the cache key alongside `start`: page 1 sorted by year and page 1
         // sorted by relevance are different responses at the same offset, and caching them
@@ -617,24 +631,27 @@ class Search {
         // Sorted so the key depends on which categories are selected, not on the order they
         // were clicked in.
         const paths = [...categoryPaths].sort();
-        const cacheKey = `entitySearch|${type}|${query}|${start}|${sort}|${paths.join("|")}|${disableAutocorrect}`;
-        let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&start=${start}&sort=${encodeURIComponent(sort)}`;
-        if (disableAutocorrect) { url += `&disable_autocorrect=true`; }
-        paths.forEach(path => { url += `&filter=${encodeURIComponent(path)}`; });
-        // Sefaria._cachedApiPromise is the shared helper for cached GETs: it returns the
-        // stored value on a hit, and on a miss fetches, caches under `key`, and de-duplicates
-        // concurrent requests for the same url. Promise.resolve() re-wraps its result because
-        // on the miss path it hands back a jQuery 2 Deferred, which has no .catch() for callers.
-        return Promise.resolve(Sefaria._cachedApiPromise({url, key: cacheKey, store: this._cache}))
-            .then(data => {
-                if (data.error) {
-                    // The helper caches whatever the API returned, so evict the error body —
-                    // otherwise one failed page would stick for the rest of the session.
-                    delete this._cache[cacheKey];
-                    throw new Error(data.error);
-                }
-                return data;
-            });
+        const correction = disableAutocorrect ? Promise.resolve(null) : this.autocorrectQuery(query);
+        return correction.then(corrected => {
+            const searched = corrected?.corrected_query || query;
+            const cacheKey = `entitySearch|${type}|${searched}|${start}|${sort}|${paths.join("|")}`;
+            let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(searched)}&type=${encodeURIComponent(type)}&start=${start}&sort=${encodeURIComponent(sort)}`;
+            paths.forEach(path => { url += `&filter=${encodeURIComponent(path)}`; });
+            // Sefaria._cachedApiPromise is the shared helper for cached GETs: it returns the
+            // stored value on a hit, and on a miss fetches, caches under `key`, and de-duplicates
+            // concurrent requests for the same url. Promise.resolve() re-wraps its result because
+            // on the miss path it hands back a jQuery 2 Deferred, which has no .catch() for callers.
+            return Promise.resolve(Sefaria._cachedApiPromise({url, key: cacheKey, store: this._cache}))
+                .then(data => {
+                    if (data.error) {
+                        // The helper caches whatever the API returned, so evict the error body —
+                        // otherwise one failed page would stick for the rest of the session.
+                        delete this._cache[cacheKey];
+                        throw new Error(data.error);
+                    }
+                    return data;
+                });
+        });
     }
 }
 

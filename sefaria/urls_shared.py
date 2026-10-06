@@ -109,6 +109,7 @@ shared_patterns = [
     re_path(r'^api/calendars/topics/parasha/?$', reader_views.parasha_data_api),
     re_path(r'^api/calendars/topics/holiday/?$', reader_views.seasonal_topic_api),
     path('api/name/<path:name>', reader_views.name_api),
+    re_path(r'^api/search-autocorrect/?$', reader_views.search_autocorrect_api),
 
     # Linker editor (staff-only): edit index linker metadata (match templates, address types,
     # node properties, NonUniqueTerms). Node key paths are dot-separated keys, e.g. "Berakhot.Intro".
