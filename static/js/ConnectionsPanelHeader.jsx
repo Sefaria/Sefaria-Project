@@ -39,11 +39,11 @@ class ConnectionsPanelHeader extends Component {
     }
   }
 
-  // Mobile sheet: dragging the header resizes the panel and snaps it closed, to half height or to full height.
+  // Mobile sheet: dragging the header resizes the panel to any height; dragging or flicking it to the bottom closes it.
   onPointerDown(e) {
     if (e.button !== 0) { return; }
     const panel = e.currentTarget.closest(".textList");
-    this.drag = {panel, x: e.clientX, y: e.clientY, h: panel.offsetHeight, t: e.timeStamp, v: 0, active: false};
+    this.drag = {panel, x: e.clientX, y: e.clientY, h: panel.offsetHeight, height: panel.style.height, t: e.timeStamp, v: 0, active: false};
   }
   onPointerMove(e) {
     const d = this.drag;
@@ -65,22 +65,21 @@ class ConnectionsPanelHeader extends Component {
     this.drag = null;
     if (!d?.active) { return; }
     this.dragEndedAt = e.timeStamp;
-    const projected = d.panel.offsetHeight + d.v * 150;  // let a flick carry to the next stop
-    const stops = [0, window.innerHeight * 0.54, window.innerHeight - 48];  // closed, half, full (see s2.css)
-    const target = stops.reduce((a, b) => Math.abs(b - projected) < Math.abs(a - projected) ? b : a);
+    const h = d.panel.offsetHeight;
     d.panel.style.transition = "";
-    if (target === 0) {
+    if (h + d.v * 150 < 120) {  // a flick carries 150ms further
       d.panel.style.height = "0px";
       setTimeout(this.props.closePanel, 200);
     } else {
-      d.panel.style.height = "";
-      this.props.setExpanded(target === stops[2]);
+      const height = `${100 * h / window.innerHeight}%`;  // a share of the screen, so it survives rotation
+      d.panel.style.height = height;
+      this.props.setHeight(height);
     }
   }
   onPointerCancel() {
     if (this.drag?.active) {
       this.drag.panel.style.transition = "";
-      this.drag.panel.style.height = "";
+      this.drag.panel.style.height = this.drag.height;
     }
     this.drag = null;
   }
@@ -231,7 +230,7 @@ class ConnectionsPanelHeader extends Component {
                         textCategory={this.props.previousCategory}
                         setFilter={this.props.setFilter} />
                         : null }
-                      <CloseButton icon="circledX" onClick={this.props.closePanel} url={Sefaria.util.removeUrlParam("with")} />
+                      <CloseButton icon="circledXSolid" onClick={this.props.closePanel} url={Sefaria.util.removeUrlParam("with")} />
                     </div>
                   </div>
                 </div>
@@ -250,7 +249,7 @@ ConnectionsPanelHeader.propTypes = {
     setConnectionsMode:     PropTypes.func.isRequired,
     setConnectionsCategory: PropTypes.func.isRequired,
     closePanel:             PropTypes.func.isRequired,
-    setExpanded:            PropTypes.func,
+    setHeight:              PropTypes.func,
     toggleLanguage:         PropTypes.func,
     interfaceLang:          PropTypes.string.isRequired,
     backButtonSettings:     PropTypes.object,

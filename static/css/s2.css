@@ -16962,12 +16962,12 @@ span.ref-link-color-3 {color: blue}
 .readerApp.singlePanel .textList.fullPanel {
   height: 100vh;
 }
-/* Mobile sheet: the header drags the panel between closed, half and full height (ConnectionsPanelHeader.onPointerUp) */
-.readerApp.singlePanel .textList.expanded {
-  height: calc(100% - 48px);
-}
+/* Mobile sheet: dragging the header resizes the panel (ConnectionsPanelHeader.onPointerUp) */
 .textList.singlePanel .connectionsHeader {
   touch-action: pan-x; /* vertical drags resize the sheet instead of scrolling the page */
+}
+.textList.singlePanel .connectionsHeader .readerTextToc {
+  height: 60px; /* the full bar, so the title and X center in it */
 }
 .textList.singlePanel .connectionsDragHandle {
   position: absolute;
@@ -16980,6 +16980,8 @@ span.ref-link-color-3 {color: blue}
   background-color: var(--light-grey);
 }
 .textList.singlePanel .connectionsPanelHeader .readerNavMenuCloseButton {
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
   align-self: center;
   margin-inline-start: auto;
