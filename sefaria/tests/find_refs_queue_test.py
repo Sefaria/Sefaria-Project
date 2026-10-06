@@ -1,5 +1,6 @@
 import importlib
 import json
+from enum import Enum
 from unittest.mock import patch
 
 import pytest
@@ -36,15 +37,23 @@ def test_find_refs_queue_falls_back_to_tasks_queue(reload_celery_config):
     assert queue.FIND_REFS.value == "prod-tasks"
 
 
+class _DistinctQueues(Enum):
+    # In CI CELERY_QUEUES is empty, so the real FIND_REFS aliases TASKS and can't tell them apart.
+    TASKS = "test-tasks"
+    LLM = "test-llm"
+    FIND_REFS = "test-find-refs"
+
+
 def test_find_refs_api_enqueues_on_find_refs_queue_with_expiry():
     from sefaria import views
     post_data = {'text': {'title': 'title', 'body': 'body'}, 'version_preferences_by_corpus': {}}
     request = RequestFactory().post('/api/find-refs', data=json.dumps(post_data), content_type='application/json')
-    with patch("sefaria.helper.linker.tasks.find_refs_api_task") as task:
+    with patch("sefaria.helper.linker.tasks.find_refs_api_task") as task, \
+            patch.object(views, "CeleryQueue", _DistinctQueues):
         task.apply_async.return_value.id = "task-id"
         response = views.find_refs_api(request)
 
     assert response.status_code == 202
     kwargs = task.apply_async.call_args.kwargs
-    assert kwargs["queue"] == celery_config.CeleryQueue.FIND_REFS.value
+    assert kwargs["queue"] == "test-find-refs"
     assert kwargs["expires"] == views.FIND_REFS_TASK_EXPIRES_SECONDS
