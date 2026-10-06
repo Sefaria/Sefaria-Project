@@ -113,10 +113,30 @@ const ExternalIcon = () => (
   </svg>
 );
 
-/* An "i" that opens on hover and on keyboard focus, and toggles on tap. Inside a <label>,
-   a tap on the "i" doesn't tick the label's checkbox. */
-const InfoTip = ({label, wide, children}) => {
+const tipId = (fieldId) => fieldId + "Tip";
+
+const keyboardFocused = (node) => {
+  try { return node.matches(":focus-visible"); } catch (e) { return true; }
+};
+
+/* An "i" for pointer users: it opens on hover and toggles on tap, and inside a <label> a tap
+   doesn't tick the label's checkbox. It is not a tab stop. Its text is the field's
+   description (aria-describedby={tipId(fieldId)}) for assistive tech, kept hidden so it
+   stays out of the label, and it opens while the field has keyboard focus. */
+const InfoTip = ({fieldId, wide, children}) => {
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const field = document.getElementById(fieldId);
+    if (!field) { return undefined; }
+    const show = () => { if (keyboardFocused(field)) { setOpen(true); } };
+    const hide = () => setOpen(false);
+    field.addEventListener("focus", show);
+    field.addEventListener("blur", hide);
+    return () => {
+      field.removeEventListener("focus", show);
+      field.removeEventListener("blur", hide);
+    };
+  }, [fieldId]);
   return (
     <span
       className="devPocTip"
@@ -126,17 +146,20 @@ const InfoTip = ({label, wide, children}) => {
       <button
         type="button"
         className="devPocInfoButton"
-        aria-expanded={open}
-        aria-label={label}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
+        tabIndex={-1}
+        aria-hidden="true"
         onClick={(e) => { e.preventDefault(); setOpen(o => !o); }}
       >i</button>
       {open ?
-        <span className={"devPocPopover" + (wide ? " devPocPopoverWide" : "")} role="note">{children}</span> : null}
+        <span className={"devPocPopover" + (wide ? " devPocPopoverWide" : "")} aria-hidden="true">{children}</span> : null}
+      <span id={tipId(fieldId)} hidden>{children}</span>
     </span>
   );
 };
+
+/* A field description read only through aria-describedby. Hidden content still counts
+   there, and staying hidden keeps it out of any label it sits in. */
+const FieldNote = ({fieldId, children}) => <span id={tipId(fieldId)} hidden>{children}</span>;
 
 /* Escape closes, and the given button takes focus when the dialog opens. */
 const useDialogKeys = (focusRef, onEscape) => {
@@ -556,49 +579,50 @@ const AboutYouFields = ({fields, set}) => {
       <div className="devPocField">
         <label htmlFor="devPocName">
           <InterfaceText text={{en: "Name", he: "שם"}} />
-          {name ?
-            <InfoTip label={Sefaria._v({en: "About your name", he: "על השם"})}>
-              <InterfaceText text={{en: "From your Sefaria account.", he: "מתוך חשבון ספריא שלך."}} />
-            </InfoTip> : null}
         </label>
         {name ?
-          <input id="devPocName" value={name} readOnly aria-readonly="true" className="devPocLocked" dir="auto" /> :
+          <FieldNote fieldId="devPocName">
+            <InterfaceText text={{en: "From your Sefaria account.", he: "מתוך חשבון ספריא שלך."}} />
+          </FieldNote> : null}
+        {name ?
+          <input id="devPocName" value={name} readOnly aria-readonly="true" aria-describedby={tipId("devPocName")} className="devPocLocked" dir="auto" /> :
           <input id="devPocName" value={fields.developerName} onChange={e => set("developerName", e.target.value)} dir="auto" />}
       </div>
       {email ?
         <div className="devPocField">
           <label htmlFor="devPocEmail">
             <InterfaceText text={{en: "Email", he: "דוא״ל"}} />
-            <InfoTip label={Sefaria._v({en: "About your email", he: "על כתובת הדוא״ל"})}>
-              <InterfaceText text={{
-                en: "From your Sefaria account. We send project and key emails here.",
-                he: "מתוך חשבון ספריא שלך. לכתובת הזו נשלח הודעות על פרויקטים ומפתחות.",
-              }} />
-            </InfoTip>
           </label>
-          <input id="devPocEmail" type="email" value={email} readOnly aria-readonly="true" className="devPocLocked" dir="ltr" />
+          <FieldNote fieldId="devPocEmail">
+            <InterfaceText text={{
+              en: "From your Sefaria account. We send project and key emails here.",
+              he: "מתוך חשבון ספריא שלך. לכתובת הזו נשלח הודעות על פרויקטים ומפתחות.",
+            }} />
+          </FieldNote>
+          <input id="devPocEmail" type="email" value={email} readOnly aria-readonly="true" aria-describedby={tipId("devPocEmail")} className="devPocLocked" dir="ltr" />
         </div> : null}
       <div className="devPocField">
         <label htmlFor="devPocEmail2">
           <InterfaceText text={{en: "Also send project and key emails to", he: "לשלוח הודעות על פרויקטים ומפתחות גם אל"}} /> <OptionalMark />
-          <InfoTip label={Sefaria._v({en: "About the additional email", he: "על כתובת הדוא״ל הנוספת"})}>
+          <InfoTip fieldId="devPocEmail2">
             <InterfaceText text={{
               en: "Add another address, like a work address or a colleague who looks after the project, and it gets the same emails.",
               he: "הוסיפו כתובת נוספת, למשל כתובת עבודה או של עמית שמטפל בפרויקט, והיא תקבל את אותן הודעות.",
             }} />
           </InfoTip>
         </label>
-        <input id="devPocEmail2" type="email" dir="ltr" value={fields.additionalEmail} onChange={e => set("additionalEmail", e.target.value)} />
+        <input id="devPocEmail2" type="email" dir="ltr" aria-describedby={tipId("devPocEmail2")} value={fields.additionalEmail} onChange={e => set("additionalEmail", e.target.value)} />
       </div>
       <div className="devPocField">
         <label htmlFor="devPocDescription">
           <InterfaceText text={{en: "Tell us about yourself", he: "ספרו לנו על עצמכם"}} /> <OptionalMark />
-          <InfoTip label={Sefaria._v({en: "Why we ask", he: "למה אנחנו שואלים"})}>
+          <InfoTip fieldId="devPocDescription">
             <InterfaceText text={{en: "It helps us understand who uses the API.", he: "זה עוזר לנו להבין מי משתמש ב־API."}} />
           </InfoTip>
         </label>
         <textarea
           id="devPocDescription"
+          aria-describedby={tipId("devPocDescription")}
           rows={3}
           dir="auto"
           placeholder={Sefaria._v({
@@ -610,10 +634,10 @@ const AboutYouFields = ({fields, set}) => {
         />
       </div>
       <label className="devPocChoice">
-        <input type="checkbox" checked={!!fields.notADeveloper} onChange={e => set("notADeveloper", e.target.checked)} />
+        <input type="checkbox" id="devPocNotADeveloper" aria-describedby={tipId("devPocNotADeveloper")} checked={!!fields.notADeveloper} onChange={e => set("notADeveloper", e.target.checked)} />
         <span>
           <InterfaceText text={{en: "I don't write code myself", he: "אני לא כותב/ת קוד בעצמי"}} />
-          <InfoTip label={Sefaria._v({en: "What this means", he: "מה זה אומר"})}>
+          <InfoTip fieldId="devPocNotADeveloper">
             <InterfaceText text={{
               en: "For example, you build with AI tools, or someone else writes the code.",
               he: "למשל, אתם בונים בעזרת כלי בינה מלאכותית, או שמישהו אחר כותב את הקוד.",
@@ -646,10 +670,10 @@ const LegalFields = ({fields, set, accepted}) => (
         </span>
       </label>}
     <label className="devPocChoice">
-      <input type="checkbox" checked={!!fields.developerNews} onChange={e => set("developerNews", e.target.checked)} />
+      <input type="checkbox" id="devPocDeveloperNews" aria-describedby={tipId("devPocDeveloperNews")} checked={!!fields.developerNews} onChange={e => set("developerNews", e.target.checked)} />
       <span>
         <InterfaceText text={{en: "Send me Sefaria's developer news and promotional emails", he: "שלחו לי עדכונים למפתחים ודיוור שיווקי מספריא"}} /> <OptionalMark />
-        <InfoTip label={Sefaria._v({en: "About these emails", he: "על ההודעות האלה"})}>
+        <InfoTip fieldId="devPocDeveloperNews">
           <InterfaceText text={{
             en: "New features, events and ideas for building with Sefaria. You can unsubscribe at any time.",
             he: "תכונות חדשות, אירועים ורעיונות לבנייה עם ספריא. אפשר לבטל את ההרשמה בכל עת.",
@@ -865,7 +889,7 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
     <div className="devPocField">
       <label htmlFor="devPocProjectDescription">
         <InterfaceText text={{en: "Short description", he: "תיאור קצר"}} />
-        <InfoTip label={Sefaria._v({en: "Who sees the name and description", he: "מי רואה את השם והתיאור"})}>
+        <InfoTip fieldId="devPocProjectDescription">
           <InterfaceText text={{
             en: "The name and description help you tell your projects apart and tell the Sefaria team what you're building. If you make the project public, they're also what visitors to Powered by Sefaria see.",
             he: "השם והתיאור עוזרים לכם להבחין בין הפרויקטים שלכם ומספרים לצוות ספריא מה אתם בונים. אם תהפכו את הפרויקט לציבורי, זה גם מה שיראו המבקרים ב־Powered by Sefaria.",
@@ -876,7 +900,7 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
         id="devPocProjectDescription"
         dir="auto"
         maxLength={MAX_DESCRIPTION_LENGTH}
-        aria-describedby="devPocProjectDescriptionCount"
+        aria-describedby={tipId("devPocProjectDescription") + " devPocProjectDescriptionCount"}
         placeholder={Sefaria._v({
           en: "One sentence, e.g. a daily study tracker for my community",
           he: "משפט אחד, למשל: כלי למעקב אחר לימוד יומי בקהילה שלי",
@@ -893,7 +917,7 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
     <div className="devPocField">
       <label htmlFor="devPocProjectUrl">
         <InterfaceText text={{en: "Website", he: "אתר"}} /> <OptionalMark />
-        <InfoTip label={Sefaria._v({en: "About the website", he: "על האתר"})} wide>
+        <InfoTip fieldId="devPocProjectUrl" wide>
           <InterfaceText text={{
             en: "The address people visit to use your project. We show it with your project on Powered by Sefaria, and you can use it to keep your key from working anywhere else. No website yet? You can add it later.",
             he: "הכתובת שבה משתמשים בפרויקט שלכם. נציג אותה לצד הפרויקט ב־Powered by Sefaria, ותוכלו להשתמש בה כדי שהמפתח לא יעבוד בשום מקום אחר. עדיין אין אתר? אפשר להוסיף אותו מאוחר יותר.",
@@ -902,6 +926,7 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
       </label>
       <input
         id="devPocProjectUrl"
+        aria-describedby={tipId("devPocProjectUrl")}
         dir="ltr"
         placeholder="https://"
         value={fields.websiteUrl}
@@ -910,10 +935,10 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
       {websiteNotice}
     </div>
     <label className="devPocChoice">
-      <input type="checkbox" checked={fields.aiAssisted} onChange={e => set("aiAssisted", e.target.checked)} />
+      <input type="checkbox" id="devPocAiAssisted" aria-describedby={tipId("devPocAiAssisted")} checked={fields.aiAssisted} onChange={e => set("aiAssisted", e.target.checked)} />
       <span>
         <InterfaceText text={{en: "Built with help from AI tools", he: "נבנה בעזרת כלי בינה מלאכותית"}} />
-        <InfoTip label={Sefaria._v({en: "Why we ask", he: "למה אנחנו שואלים"})}>
+        <InfoTip fieldId="devPocAiAssisted">
           <InterfaceText text={{
             en: "Tick this if an AI tool wrote some or all of the code. It helps us learn how people build.",
             he: "סמנו אם כלי בינה מלאכותית כתב חלק מהקוד או את כולו. זה עוזר לנו ללמוד איך אנשים בונים.",
@@ -924,10 +949,10 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
     <fieldset className="devPocFieldset">
       <legend><InterfaceText text={{en: "Visibility", he: "נראוּת"}} /></legend>
       <label className="devPocChoice">
-        <input type="radio" name="devPocVisibility" value="public" checked={fields.visibility === "public"} onChange={onChoosePublic} />
+        <input type="radio" id="devPocVisibilityPublic" aria-describedby={tipId("devPocVisibilityPublic")} name="devPocVisibility" value="public" checked={fields.visibility === "public"} onChange={onChoosePublic} />
         <span>
           <InterfaceText text={{en: "Public", he: "ציבורי"}} />
-          <InfoTip label={Sefaria._v({en: "Who sees a public project", he: "מי רואה פרויקט ציבורי"})} wide>
+          <InfoTip fieldId="devPocVisibilityPublic" wide>
             <InterfaceText text={{
               en: "Sefaria may show this project on Powered by Sefaria, our gallery of projects built with Sefaria. We choose what to feature, so it may not appear.",
               he: "ספריא עשויה להציג את הפרויקט ב־Powered by Sefaria, הגלריה של פרויקטים שנבנו עם ספריא. אנחנו בוחרים מה להציג, כך שייתכן שהוא לא יופיע.",
@@ -936,10 +961,10 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPubl
         </span>
       </label>
       <label className="devPocChoice">
-        <input type="radio" name="devPocVisibility" value="private" checked={fields.visibility === "private"} onChange={onChoosePrivate} />
+        <input type="radio" id="devPocVisibilityPrivate" aria-describedby={tipId("devPocVisibilityPrivate")} name="devPocVisibility" value="private" checked={fields.visibility === "private"} onChange={onChoosePrivate} />
         <span>
           <InterfaceText text={{en: "Private", he: "פרטי"}} />
-          <InfoTip label={Sefaria._v({en: "Who sees a private project", he: "מי רואה פרויקט פרטי"})}>
+          <InfoTip fieldId="devPocVisibilityPrivate">
             <InterfaceText text={{en: "Only you and the Sefaria team can see this project.", he: "רק את/ה וצוות ספריא יכולים לראות את הפרויקט."}} />
           </InfoTip>
         </span>
@@ -1402,7 +1427,7 @@ const RestrictionToggle = ({project, apiKey, onToggle}) => {
 };
 
 
-const KeyValue = ({value}) => {
+const KeyValue = ({value, describedBy}) => {
   const [shown, setShown] = useState(false);
   const [copied, setCopied] = useState("");
   const codeRef = useRef(null);
@@ -1427,6 +1452,7 @@ const KeyValue = ({value}) => {
         className="devPocIconButton"
         aria-pressed={shown}
         aria-label={showLabel}
+        aria-describedby={describedBy}
         title={showLabel}
         data-agent-action="show-key"
         onClick={() => setShown(s => !s)}
@@ -1435,6 +1461,7 @@ const KeyValue = ({value}) => {
         type="button"
         className="devPocIconButton"
         aria-label={copyLabel}
+        aria-describedby={describedBy}
         title={copyLabel}
         data-agent-action="copy-key"
         onClick={copy}
@@ -1445,7 +1472,7 @@ const KeyValue = ({value}) => {
 };
 
 
-const KeyRow = ({project, apiKey, isNew, onToggleRestriction, onDelete, onAddWebsite}) => (
+const KeyRow = ({project, apiKey, isNew, describedBy, onToggleRestriction, onDelete, onAddWebsite}) => (
   <article className={"devPocKey" + (isNew ? " devPocKeyNew" : "")}>
     <div className="devPocKeyHeading">
       <strong dir="auto">{apiKey.label}</strong>
@@ -1453,7 +1480,7 @@ const KeyRow = ({project, apiKey, isNew, onToggleRestriction, onDelete, onAddWeb
         <InterfaceText text={{en: "Delete key", he: "מחיקת המפתח"}} />
       </button>
     </div>
-    <KeyValue value={apiKey.value} />
+    <KeyValue value={apiKey.value} describedBy={describedBy} />
     <div className="devPocKeyMeta">
       <span><InterfaceText text={{en: "Created " + formatDate(apiKey.created), he: "נוצר ב־" + formatDate(apiKey.created)}} /></span>
       <span><InterfaceText text={{en: "Last used " + formatDate(apiKey.lastUsed), he: "שימוש אחרון: " + formatDate(apiKey.lastUsed)}} /></span>
@@ -1502,6 +1529,7 @@ const KeysSection = ({project, update, setConfirm, onAddWebsite}) => {
   useEffect(() => () => { clearTimeout(timer.current); clearTimeout(highlightTimer.current); }, []);
 
   const atLimit = project.keys.length >= MAX_KEYS_PER_PROJECT;
+  const keysNoteField = "devPocKeys-" + project.id;
   const firstKeyPrompt = project.keys.length === 0 && !creating && phase === "idle";
   const startCreating = () => { setCreating(true); setPhase("idle"); setError(""); };
 
@@ -1559,13 +1587,13 @@ const KeysSection = ({project, update, setConfirm, onAddWebsite}) => {
         <div>
           <h3>
             <InterfaceText text={{en: "API keys", he: "מפתחות API"}} />
-            <InfoTip label={Sefaria._v({en: "What a key is", he: "מה זה מפתח"})} wide>
-              <InterfaceText text={{
-                en: "A key is like a password that lets your project use Sefaria. Paste it wherever your tool asks for a Sefaria API key, and keep it private. Developers: send it in an x-api-key header on every call to Sefaria.",
-                he: "מפתח הוא כמו סיסמה שמאפשרת לפרויקט שלכם להשתמש בספריא. הדביקו אותו בכל מקום שבו הכלי שלכם מבקש מפתח API של ספריא, ושמרו אותו בסוד. למפתחים: שלחו אותו בכותרת x-api-key בכל קריאה לספריא.",
-              }} />
-            </InfoTip>
           </h3>
+          <FieldNote fieldId={keysNoteField}>
+            <InterfaceText text={{
+              en: "A key is like a password that lets your project use Sefaria. Paste it wherever your tool asks for a Sefaria API key, and keep it private. Developers: send it in an x-api-key header on every call to Sefaria.",
+              he: "מפתח הוא כמו סיסמה שמאפשרת לפרויקט שלכם להשתמש בספריא. הדביקו אותו בכל מקום שבו הכלי שלכם מבקש מפתח API של ספריא, ושמרו אותו בסוד. למפתחים: שלחו אותו בכותרת x-api-key בכל קריאה לספריא.",
+            }} />
+          </FieldNote>
           <p className="devPocHelp">
             <InterfaceText text={{
               en: project.keys.length + " of " + MAX_KEYS_PER_PROJECT + " keys",
@@ -1595,12 +1623,13 @@ const KeysSection = ({project, update, setConfirm, onAddWebsite}) => {
           <div className="devPocField">
             <label htmlFor="devPocKeyLabel">
               <InterfaceText text={{en: "Key name", he: "שם המפתח"}} />
-              <InfoTip label={Sefaria._v({en: "About the key name", he: "על שם המפתח"})}>
+              <InfoTip fieldId="devPocKeyLabel">
                 <InterfaceText text={{en: "A name just for you, so you can tell your keys apart.", he: "שם רק בשבילכם, כדי להבחין בין המפתחות."}} />
               </InfoTip>
             </label>
             <input
               id="devPocKeyLabel"
+              aria-describedby={tipId("devPocKeyLabel")}
               dir="auto"
               placeholder={Sefaria._v({en: "e.g. My website", he: "למשל: האתר שלי"})}
               value={label}
@@ -1651,6 +1680,7 @@ const KeysSection = ({project, update, setConfirm, onAddWebsite}) => {
                 project={project}
                 apiKey={k}
                 isNew={k.id === newKeyId}
+                describedBy={tipId(keysNoteField)}
                 onToggleRestriction={on => toggleRestriction(k.id, on)}
                 onDelete={() => deleteKey(k)}
                 onAddWebsite={onAddWebsite}

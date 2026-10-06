@@ -120,6 +120,34 @@ describe('developer onboarding', () => {
     expect(container.querySelector('#devPocEmail2').readOnly).toBe(false);
   });
 
+  it('has no info tips on the locked fields, but describes them to assistive tech', () => {
+    mount('developer', DEVELOPER_ON);
+    ['#devPocName', '#devPocEmail'].forEach(selector => {
+      const input = container.querySelector(selector);
+      expect(input.closest('.devPocField').querySelector('.devPocInfoButton')).toBeNull();
+      expect(document.getElementById(input.getAttribute('aria-describedby')).textContent).toContain('From your Sefaria account');
+    });
+  });
+
+  it('keeps info tips out of the tab order, with their text on the field', () => {
+    mount('developer', DEVELOPER_ON);
+    const buttons = Array.from(container.querySelectorAll('.devPocInfoButton'));
+    expect(buttons.length).toBeGreaterThan(0);
+    buttons.forEach(b => {
+      expect(b.tabIndex).toBe(-1);
+      expect(b.getAttribute('aria-hidden')).toBe('true');
+    });
+    const extra = container.querySelector('#devPocEmail2');
+    const note = document.getElementById(extra.getAttribute('aria-describedby'));
+    expect(note.textContent).toContain('Add another address');
+    expect(note.hidden).toBe(true);
+
+    act(() => { extra.focus(); });
+    expect(extra.closest('.devPocField').querySelector('.devPocPopover').textContent).toContain('Add another address');
+    act(() => { extra.blur(); });
+    expect(extra.closest('.devPocField').querySelector('.devPocPopover')).toBeNull();
+  });
+
   it("doesn't change the copy when the user doesn't write code", () => {
     mount('developer', DEVELOPER_ON);
     const before = developerPanel().textContent;
