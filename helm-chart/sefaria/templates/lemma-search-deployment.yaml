@@ -21,6 +21,8 @@ spec:
         app: {{ .Values.deployEnv }}-lemma-search
         deployEnv: {{ .Values.deployEnv | quote }}
     spec:
+      affinity:
+        nodeAffinity: {{ include "sefaria.nodeAffinities" . | nindent 10 }}
       terminationGracePeriodSeconds: 240
       containers:
         - name: lemma-search
