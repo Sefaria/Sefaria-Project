@@ -60,11 +60,13 @@
   "note": "Component exists; library pages not built"
  },
  "PLT-002": {
-  "status": "todo"
+  "status": "done",
+  "note": "/healthz-reader + node rollout probes; Django health URLs pass through",
+  "by": "src/start.ts"
  },
  "PLT-003": {
   "status": "done",
-  "note": "Server-rendered text, canonical redirects, prev/next links",
+  "note": "Server-rendered text, canonical redirects, prev/next links; in the cluster the client answers first and passes Django's pages through (docs/DEPLOYMENT.md)",
   "by": "src/routes/$.tsx"
  },
  "PLT-004": {

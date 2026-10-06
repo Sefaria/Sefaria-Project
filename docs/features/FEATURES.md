@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**945 features**, 3582 documented behaviors. Proposed tiers: core 320, standard 412, optional 153, retire 60.
+**945 features**, 3584 documented behaviors. Proposed tiers: core 320, standard 412, optional 153, retire 60.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 283 · partial 38 · todo 489 · replaced 18 · deferred 30 · n/a 87; 281 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 284 · partial 38 · todo 488 · replaced 18 · deferred 30 · n/a 87; 281 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -11466,12 +11466,13 @@ Source: `inv_01_urls_routing.md#1.4`
 ### Health checks
 
 #### PLT-002 · Health and readiness endpoints
-`core` `live` · rebuild: **todo** `system`
+`core` `live` · rebuild: **done** — /healthz-reader + node rollout probes; Django health URLs pass through `system`
 
 Infrastructure probes check that the app and its dependencies are up.
 
 - /healthz, /health-check (full dependency check: Redis, Node, DB; 503 if not ready), /healthz-rollout (library initialized).
 - Node server also exposes /healthz and /Footer/:cachekey.
+- Rebuild: /healthz-reader (answered before routing; readiness and liveness probes of the node rollout in reader mode). Django's /healthz and /healthz-rollout pass through to Django unchanged.
 
 Code: [`sites/sefaria/urls.py:78-80`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sites/sefaria/urls.py#L78-L80), [`reader/views.py:5495-5572`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L5495-L5572), [`node/server.js:103-138`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/node/server.js#L103-L138)
 
@@ -11481,7 +11482,7 @@ Source: `inv_01_urls_routing.md#1.4`
 ### SSR
 
 #### PLT-003 · Server-side rendering pipeline
-`core` `live` · rebuild: **done** — Server-rendered text, canonical redirects, prev/next links `system`
+`core` `live` · rebuild: **done** — Server-rendered text, canonical redirects, prev/next links; in the cluster the client answers first and passes Django's pages through (docs/DEPLOYMENT.md) `system`
 
 Pages are rendered on a Node server for fast first paint and SEO, then hydrated in the browser.
 
@@ -11491,6 +11492,7 @@ Pages are rendered on a Node server for fast first paint and SEO, then hydrated 
 - node/server.js loads shared data (toc, topic_toc, terms, books, virtualBooks) from Redis, refreshing when Django's last_cached is newer;
 - Sefaria.setup(data, props, resetCache=true), unpackDataFromProps, renderToString(ReaderApp).
 - templates/base.html: #s2 holds SSR HTML; static pages use #staticContentWrapper/#content and #s2.headerOnly; DJANGO_VARS = {props, inReaderApp:!renderStatic}; STRAPI_INSTANCE.
+- OWNER DECISION 2026-10-06: the client replaces node/server.js in the node pods. Requests reach it FIRST (nginx `location /` → node); it renders reader/library pages reading the API through Varnish (http://varnish-<env>-<rev>:8040 with the public Host), and passes Django's pages, every write and its own 404s to Varnish (src/start.ts, src/server/pass-through.ts; header x-served-by: django). Django's own SSR is switched off in that mode (USE_NODE = False): Django pages render client-side only until moved. BUILT on Sefaria-Project branch reader-next (helm values nodejs.mode reader|legacy; build/node/Dockerfile builds reader-next/). Verified locally: rendered nginx config passes nginx -t; nginx → client → stand-in Varnish routes reader pages, Django pages, /api and the 404 correctly, and falls back to Django when the client is down. docs/DEPLOYMENT.md.
 
 Code: [`reader/views.py:206-285`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L206-L285), [`node/server.js:103-138`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/node/server.js#L103-L138), [`templates/base.html:230-273`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/templates/base.html#L230-L273)
 
