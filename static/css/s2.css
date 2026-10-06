@@ -17712,6 +17712,10 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   font-weight: 400;
   line-height: 1.5;
   color: #3c444c;
+  text-align: start;
+  text-transform: none;
+  letter-spacing: normal;
+  white-space: normal;
 }
 /* Anchored to the icon, and flipped to the trailing side when the icon sits at the end
    of a row so the popover cannot run past the card. */
