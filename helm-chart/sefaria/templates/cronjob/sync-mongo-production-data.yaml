@@ -108,6 +108,7 @@ spec:
                 - secretRef:
                     name: local-settings-secrets-{{ .Values.deployEnv }}
                     optional: true
+                {{- include "sefaria.secrets.redisSentinel" . | nindent 16 }}
                 - configMapRef:
                     name: local-settings-{{ .Values.deployEnv }}
               # 1Gi OOM-killed mongorestore mid-sheets (~14GB collection).

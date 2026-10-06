@@ -131,14 +131,6 @@ CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""
 CLOUDFLARE_TOKEN = ""
 
-# Multiserver
-MULTISERVER_ENABLED = False
-MULTISERVER_REDIS_SERVER = "127.0.0.1"
-MULTISERVER_REDIS_PORT = 6379
-MULTISERVER_REDIS_DB = 0
-MULTISERVER_REDIS_EVENT_CHANNEL = "msync"   # Message queue on Redis
-MULTISERVER_REDIS_CONFIRM_CHANNEL = "mconfirm"   # Message queue on Redis
-
 # OAUTH these fields dont need to be filled in. they are only required for oauth2client to __init__ successfully
 GOOGLE_OAUTH2_CLIENT_ID = ""
 GOOGLE_OAUTH2_CLIENT_SECRET = ""
@@ -171,6 +163,12 @@ SENTINEL_HEADLESS_URL = None
 SENTINEL_TRANSPORT_OPTS = {}
 SENTINEL_PASSWORD = None
 REDIS_URL = "redis://127.0.0.1"
+SENTINEL_MASTER_SET = "mymaster"
+
+GENCACHE_REDIS_DB_NUM = 6
+GENCACHE_CHECK_INTERVAL_SECONDS = 2
+GENCACHE_JITTER_MAX_SECONDS = 3
+DEPLOY_ENV = ""
 
 # Key which identifies the Sefaria app as opposed to a user
 # using our API outside of the app. Mainly for registration

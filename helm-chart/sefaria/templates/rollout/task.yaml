@@ -93,8 +93,6 @@ spec:
           - name: DISABLE_AUTOCOMPLETER
             value: "true"
           {{- end }}
-          - name: REDIS_HOST
-            value: "redis-{{ .Values.deployEnv }}"
           - name: NODEJS_HOST
             value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
           - name: VARNISH_HOST
@@ -120,11 +118,8 @@ spec:
             value: {{ .Values.deployEnv }}-mongo
           {{- end }}
         envFrom:
+          {{- include "sefaria.secrets.redisSentinel" . | nindent 10 }}
           {{- if .Values.tasks.enabled }}
-          - secretRef:
-              name: {{ .Values.tasks.redis.sentinelPassword.ref }}
-          - secretRef:
-              name: {{ .Values.tasks.redis.redisPassword.ref }}
           - secretRef:
               name: {{ .Values.tasks.anthropicSecretRef }}
               optional: true

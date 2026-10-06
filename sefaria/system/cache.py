@@ -1,9 +1,11 @@
 
 import hashlib
+import random
 import sys
+import time
 from datetime import datetime
 from functools import wraps
-from typing import Optional, Any, Union
+from typing import Callable, Optional, Any, Union
 
 from django.http import HttpRequest
 from django.core.cache import DEFAULT_CACHE_ALIAS
@@ -203,6 +205,118 @@ class InMemoryCache():
 
 
 in_memory_cache = InMemoryCache()
+
+
+_UNKNOWN_GEN = object()  # a generation that never matches Redis, forcing a refresh once Redis is back
+
+
+class GenCache:
+    """
+    Cross-process cache freshness via one Redis INCR counter per tracked object.
+
+    register() a refresh_fn per key at startup. get() serves this process's copy, re-checking
+    the key's counter at most every check_interval_seconds and calling refresh_fn when it has
+    changed. Writers call publish() (with the fresh value) or mark_fresh() (when the object
+    lives on its owner, e.g. Library, and was already rebuilt) to update this process and bump
+    the counter for peers, or invalidate() to make every process, this one included, refresh.
+
+    Fails open: if Redis is unreachable, get() serves the last value and bumps only log.
+    """
+    def __init__(self, redis_client, check_interval_seconds: float, jitter_max_seconds: float, key_prefix: str = ""):
+        self.check_interval_seconds = check_interval_seconds
+        self.jitter_max_seconds = jitter_max_seconds  # spreads the fleet's rebuilds after Redis loses its keyspace
+        self._data = {}            # key -> cached value
+        self._gens = {}            # key -> last-applied generation; absent until first refresh
+        self._last_checked = {}    # key -> monotonic time of last check
+        self._refreshers = {}      # key -> refresh_fn
+        self.redis = redis_client
+        # namespaces the counters when several deployments share one Redis (e.g. cauldrons)
+        self._key_prefix = f"{key_prefix}:" if key_prefix else ""
+
+    def _redis_key(self, key: str) -> str:
+        return f"{self._key_prefix}gen:{key}"
+
+    def register(self, key: str, refresh_fn: Callable[[], Any]):
+        self._refreshers[key] = refresh_fn
+
+    def is_registered(self, key: str) -> bool:
+        return key in self._refreshers
+
+    def get(self, key: str):
+        refresh_fn = self._refreshers[key]
+        is_first_access = key not in self._gens
+
+        now = time.monotonic()
+        if not is_first_access and now - self._last_checked.get(key, 0) < self.check_interval_seconds:
+            return self._data.get(key)
+        self._last_checked[key] = now
+
+        try:
+            redis_gen = self.redis.get(self._redis_key(key))
+        except Exception:
+            logger.error("GenCache: Redis unreachable checking %s; serving stale value", key)
+            if not is_first_access:
+                return self._data.get(key)
+            redis_gen = None
+
+        if is_first_access or self._gens[key] != redis_gen:
+            if not is_first_access and redis_gen is None and self._gens[key] is not None:
+                # The counter vanished: Redis lost its keyspace, so every process in the fleet
+                # is about to rebuild at once. Jitter to spread the load.
+                time.sleep(random.uniform(0, self.jitter_max_seconds))
+            self._data[key] = refresh_fn()
+            self._gens[key] = redis_gen
+        return self._data.get(key)
+
+    def _bump(self, key: str):
+        try:
+            return self.redis.incr(self._redis_key(key))
+        except Exception:
+            logger.error("GenCache: failed to bump %s; peers stay stale until the next bump", key)
+            return None
+
+    def mark_fresh(self, key: str):
+        """This process already rebuilt key's object: record it as current and bump for peers."""
+        self._last_checked[key] = time.monotonic()
+        new_gen = self._bump(key)
+        self._gens[key] = str(new_gen) if new_gen is not None else _UNKNOWN_GEN
+
+    def publish(self, key: str, value):
+        """mark_fresh() for a key whose value GenCache holds. Returns value."""
+        self._data[key] = value
+        self.mark_fresh(key)
+        return value
+
+    def invalidate(self, key: str):
+        """Makes the next get() of key refresh in every process, this one included."""
+        self.invalidate_local(key)
+        self._bump(key)
+
+    def invalidate_local(self, key: str):
+        """Makes this process's next get() of key refresh, without touching Redis."""
+        self._data.pop(key, None)
+        self._gens.pop(key, None)
+        self._last_checked.pop(key, None)
+
+
+def _build_gen_cache() -> GenCache:
+    from sefaria.system.redis_sentinel import RedisConfig, SentinelConfig, get_redis_client
+    redis_config = RedisConfig(settings.REDIS_URL, settings.REDIS_PASSWORD, settings.REDIS_PORT)
+    sentinel_config = SentinelConfig(
+        settings.SENTINEL_HEADLESS_URL, settings.SENTINEL_PASSWORD, settings.REDIS_PORT,
+        settings.SENTINEL_TRANSPORT_OPTS, settings.SENTINEL_MASTER_SET,
+    )
+    client = get_redis_client(redis_config, sentinel_config, settings.GENCACHE_REDIS_DB_NUM, decode_responses=True)
+    return GenCache(
+        client, settings.GENCACHE_CHECK_INTERVAL_SECONDS, settings.GENCACHE_JITTER_MAX_SECONDS,
+        key_prefix=settings.DEPLOY_ENV,
+    )
+
+
+if not hasattr(sys, '_doc_build'):  # redis-py connects lazily, so this opens no connection
+    gen_cache = _build_gen_cache()
+else:
+    gen_cache = None
 
 
 def invalidate_cache_by_pattern(pattern: str, cache_type: Optional[str] = None) -> dict:

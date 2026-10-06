@@ -135,7 +135,6 @@ MIDDLEWARE = [
     'sefaria.system.middleware.ProfileMiddleware',
     'sefaria.system.middleware.CORSDebugMiddleware',
     'sefaria.system.middleware.SharedCacheMiddleware',
-    'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
     'django_structlog.middlewares.RequestMiddleware',
     *(['sefaria.system.middleware.MaxRSSMiddleware'] if os.environ.get('ENABLE_MAXRSS_MIDDLEWARE') else []),
     #'easy_timezones.middleware.EasyTimezoneMiddleware',

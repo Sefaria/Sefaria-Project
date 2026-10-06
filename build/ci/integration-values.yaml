@@ -17,10 +17,6 @@ web:
       ref: logging-secret
     schoolLookup:
       ref: school-lookup-data
-redis:
-  containerImage:
-    imageRegistry: redis
-    tag: latest
 nodejs:
   containerImage: 
     imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-node-${BRANCH}
@@ -41,10 +37,6 @@ ingress:
 nginx:
   containerImage: 
     imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-asset-${BRANCH}
-    tag: 
-monitor:
-  containerImage: 
-    imageRegistry: us-east1-docker.pkg.dev/development-205018/containers/sefaria-web-${BRANCH}
     tag: 
 secrets:
   localSettings: 

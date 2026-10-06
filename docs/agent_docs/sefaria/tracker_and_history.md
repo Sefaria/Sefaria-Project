@@ -69,7 +69,7 @@ These two modules form the change-tracking system for Sefaria. `tracker.py` is t
 - **`sefaria.model`**: `tracker.py` calls `model.log_text`, `model.log_add`, `model.log_update`, `model.log_delete` (defined in `sefaria/model/history.py` -- the model-layer history, not to be confused with `sefaria/history.py`). Also uses `model.TextChunk`, `model.Version`, `model.IndexQueue`, `model.library`.
 - **`sefaria.system.varnish`**: Cache invalidation on text changes when `USE_VARNISH` is enabled.
 - **`sefaria.helper.marked_up_text_chunk_generator`**: Generates marked-up text chunks (e.g., auto-wrapped refs) via Celery when `CELERY_ENABLED`.
-- **`sefaria.system.multiserver.coordinator`**: Publishes recount events to other servers in multi-server deployments.
+- **`sefaria.model.text.library.recount_index_in_toc`**: Bumps GenCache's `toc_tree`/TOC-family counters itself, so other processes pick up a recount on their own next check -- no separate propagation call needed from `tracker.py`.
 - **`diff_match_patch`**: Used in `history.py` for applying revert patches to reconstruct historical text.
 - **`db.history`**: Both modules read/write the same MongoDB `history` collection.
 

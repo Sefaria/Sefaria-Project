@@ -27,7 +27,6 @@ data:
   SITE_PACKAGE: {{ .Values.localSettings.SITE_PACKAGE | quote }}
   DEFAULT_FROM_EMAIL: "{{ .Values.localSettings.DEFAULT_FROM_EMAIL }}"
   SERVER_EMAIL: "{{ .Values.localSettings.SERVER_EMAIL }}"
-  MULTISERVER_ENABLED: "{{ .Values.localSettings.MULTISERVER_ENABLED }}"
   CRM_TYPE: "{{ .Values.localSettings.CRM_TYPE }}"
   SENTRY_ENVIRONMENT: {{ .Values.deployEnv | quote }}
   SENTRY_CODE_VERSION: {{ .Values.web.containerImage.tag }}
@@ -70,14 +69,21 @@ data:
   SEARCH_INDEX_NAME_TOPIC: {{ $searchIndexNameTopic | quote }}
   SEARCH_INDEX_NAME_BOOK: {{ $searchIndexNameBook | quote }}
   SEARCH_INDEX_NAME_CATEGORY: {{ $searchIndexNameCategory | quote }}
-  {{- if .Values.tasks.enabled }}
+  # Redis/Sentinel: used by CACHES and GenCache in every pod, not only by Celery.
   REDIS_URL: {{ .Values.tasks.redis.url }}
   REDIS_PORT: {{ .Values.tasks.redis.port | quote }}
+  SENTINEL_HEADLESS_URL: {{ .Values.tasks.redis.sentinelURL }}
+  SENTINEL_TRANSPORT_OPTS: {{ .Values.tasks.redis.transportOptions | toJson | quote }}
+  SENTINEL_MASTER_SET: {{ .Values.tasks.redis.masterSet | quote }}
+  DEFAULT_CACHE_DB_NUM: {{ .Values.tasks.redis.defaultCacheDbNumber | quote }}
+  SHARED_CACHE_DB_NUM: {{ .Values.tasks.redis.sharedCacheDbNumber | quote }}
+  GENCACHE_REDIS_DB_NUM: {{ .Values.tasks.redis.gencacheDbNumber | quote }}
+  # Prefixes CACHES/GenCache keys, so deployments sharing one Redis (e.g. cauldrons) don't collide.
+  DEPLOY_ENV: {{ .Values.deployEnv | quote }}
+  {{- if .Values.tasks.enabled }}
   CELERY_REDIS_BROKER_DB_NUM: {{ .Values.tasks.redis.brokerDBNumber | quote }}
   CELERY_REDIS_RESULT_BACKEND_DB_NUM: {{ .Values.tasks.redis.resultBackendDBNumber | quote }}
   CELERY_QUEUES: {{ fromYaml (include "sefaria.tasks.queues" .) | toJson | quote }}
-  SENTINEL_HEADLESS_URL: {{ .Values.tasks.redis.sentinelURL }}
-  SENTINEL_TRANSPORT_OPTS: {{ .Values.tasks.redis.transportOptions | toJson | quote }}
   {{- end }}
   CELERY_ENABLED: "{{ .Values.tasks.enabled }}"
   PGVECTOR_HOST: {{ .Values.localSettings.PGVECTOR_HOST | quote }}

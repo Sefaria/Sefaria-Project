@@ -7,6 +7,7 @@
 #   pgvector-secret       — keys: POSTGRES_USER, POSTGRES_PASSWORD
 #   gemini-api-key        — key:  GEMINI_API_KEY
 #   local-settings-secrets — Sefaria app secrets
+#   sentinel-password, redis-password — Redis Sentinel auth (CACHES, GenCache)
 # Required configmaps:
 #   local-settings-embed-librry      — env vars (DJANGO_SETTINGS_MODULE etc.)
 #   local-settings-file-embed-librry — local_settings.py file
@@ -39,8 +40,6 @@ spec:
               value: "5432"
             - name: PGVECTOR_DB_PORT
               value: "5432"
-            - name: REDIS_HOST
-              value: "redis-production"
             - name: TQDM_DISABLE
               value: "1"
             - name: PYTHONUNBUFFERED
@@ -52,6 +51,11 @@ spec:
             - configMapRef:
                 name: local-settings-production
                 optional: true
+            # Redis/Sentinel passwords; the connection settings come from local-settings-production
+            - secretRef:
+                name: sentinel-password
+            - secretRef:
+                name: redis-password
             - secretRef:
                 name: pgvector-secret
             - secretRef:

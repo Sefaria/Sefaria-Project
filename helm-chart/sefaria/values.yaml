@@ -158,19 +158,16 @@ nameService:
   # NAME_SERVICE=true, serving only /api/name and the other completion
   # endpoints (see sefaria/urls_name.py); varnish routes those paths to it
   # and web and task pods then run with DISABLE_AUTOCOMPLETER=true.
-  # Rebuild signals reach the name service over the multiserver Redis
-  # channel -- do not disable MULTISERVER_ENABLED while this is on, or
-  # topic edits and /admin/reset/ac will no longer refresh completions.
+  # Topic edits and /admin/reset/ac bump a GenCache counter; each worker
+  # notices on its next completion request and rebuilds.
   enabled: false
   # key-pair values to load into name pod environment.  Takes precedence over global localsettings
   localsettings:
   replicaCount: 1
   resources:
-    # Scale with gunicornThreadCount and replicaCount.  Do NOT scale with
-    # gunicornWorkerCount: each multiserver rebuild event is delivered to a
-    # single process per pod, so sibling workers would serve stale
-    # completions forever.  Threads share the rebuilt completers and keep
-    # health probes answering while a rebuild runs.
+    # Scale with gunicornThreadCount and replicaCount. Each extra worker
+    # holds and rebuilds its own copy of the completers; threads share them
+    # and keep health probes answering while a rebuild runs.
     gunicornWorkerCount: 1
     gunicornThreadCount: 4
     resources:
@@ -181,22 +178,6 @@ nameService:
         memory: "4Gi"
         cpu: "1000m"
 
-redis:
-  containerImage:
-    # Full path of the image registry inclusive of the image name
-    imageRegistry: redis
-    # Version of varnish that's required for the application.
-    tag: latest
-  replicaCount: 1
-  resources:
-    requests:
-      memory: "250Mi"
-      cpu: "100m"
-    limits:
-      memory: "500Mi"
-      cpu: "120m"
-  # enable pod disruption budget
-  pdb: false
 
 nodejs:
   containerImage:
@@ -291,6 +272,14 @@ tasks:
     resultBackendDBNumber: "1"
     sentinelURL: ""
     transportOptions: {}
+    # the Bitnami redis chart's sentinel.masterSet
+    masterSet: "mymaster"
+    # DB numbers for Django's CACHES and GenCache on the same Redis. Must differ from
+    # each other and from the Celery DB numbers above, including env overrides (prod
+    # uses 2 and 3); redis_sentinel_test.py checks this.
+    defaultCacheDbNumber: "4"
+    sharedCacheDbNumber: "5"
+    gencacheDbNumber: "6"
     redisPassword:
       ref: redis-password
     sentinelPassword:
@@ -371,23 +360,6 @@ nginx:
       memory: "300Mi"
       cpu: "150m"
 
-monitor:
-  # key-pair values to load into monitor pod environment.  Takes precedence over global localsettings
-  localsettings:
-  # APP: monitor
-  containerImage:
-    # Full path of the image registry inclusive of the image name
-    imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-web
-    # Commit id of the repo for which the image build has been triggered.
-    tag: latest
-  replicaCount: 1
-  resources:
-    requests:
-      memory: "300Mi"
-      cpu: "50m"
-    limits:
-      memory: "400Mi"
-      cpu: "100m"
 
 secrets:
   ghDispatch:
@@ -582,7 +554,6 @@ localSettings:
   SITE_PACKAGE: "sites.sefaria"
   DEFAULT_FROM_EMAIL: "Sefaria <hello@sefaria.org>"
   SERVER_EMAIL: "dev@sefaria.org"
-  MULTISERVER_ENABLED: "True"
   CRM_TYPE: "NATIONBUILDER"
   FAIL_GRACEFULLY: "True"
   SESSION_COOKIE_SECURE: true
@@ -647,20 +618,12 @@ keda:
     maxReplicas: 1
   nodejs:
     enabled: true
-  monitor:
-    enabled: true
   tasks:
     enabled: true
-  redis:
-    enabled: true
-    # Redis is a plain Deployment, not an Argo Rollout.
-    apiVersion: apps/v1
-    kind: Deployment
-    maxReplicas: 1
   nameService:
-    # Scales with the same traffic trigger as web/redis so the name pod sleeps
-    # and wakes with the rest of the stack (it needs redis at boot).  After an
-    # idle scale-to-zero, the first wake rebuilds the autocompleters, so
+    # Scales with the same traffic trigger as web so the name pod sleeps and wakes with the
+    # rest of the stack (Sentinel, which it needs at boot, is always-on and isn't scaled by
+    # KEDA). After an idle scale-to-zero, the first wake rebuilds the autocompleters, so
     # completions return ~minutes after the rest of the site.
     enabled: true
   # Splash page served by Envoy Gateway during cold-start (scale-from-zero).

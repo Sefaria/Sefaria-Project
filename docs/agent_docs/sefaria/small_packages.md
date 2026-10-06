@@ -48,9 +48,7 @@ Implements a two-step OAuth 2.0 flow for Google API access (currently used only 
 - `generate_config_from_env()` -- builds Celery config from Django settings, supporting both direct Redis and Redis Sentinel
 
 **`celery_setup/generate_config.py`:**
-- `RedisConfig` / `SentinelConfig` dataclasses for connection parameters
-- `generate_config(redis_config, sentinel_config)` -- produces the broker/result-backend URL config. When Sentinel is configured, resolves DNS to get all Sentinel addresses and joins them.
-- `dns_refresher()` / `start_background_dns_refresher()` -- background thread that polls DNS every 60 seconds and updates the broker URL if Sentinel addresses change
+- `generate_config(redis_config, sentinel_config)` -- produces the broker/result-backend URL config. When Sentinel is configured, the broker URL points at the Sentinel headless Service hostname, which kombu resolves on each connection. The `RedisConfig` / `SentinelConfig` dataclasses live in `sefaria/system/redis_sentinel.py`.
 
 ### `sefaria/constants/model.py` -- Model Constants
 
@@ -88,7 +86,7 @@ These are data transfer objects used to pass structured change information betwe
 
 - **`site/` dynamic imports**: The `__import__` pattern with `fromlist` allows Sefaria to support multiple site configurations (e.g. Sefaria vs. other deployments) by swapping the `SITE_PACKAGE` setting. This affects URL patterns, feature flags, and site-specific settings.
 
-- **Sentinel DNS refresh**: In production with Redis Sentinel, Celery's broker URL may go stale if Sentinel instances change IP addresses. The background DNS refresher thread handles this transparently.
+- **Sentinel addresses**: Sentinel pod IPs change across restarts, so clients are given the headless Service hostname rather than resolved IPs; redis-py/kombu resolve it on every new connection.
 
 - **OAuth refresh token preservation**: In `gauth/views.py`, if Google does not return a new refresh token (which happens on subsequent authorizations), the existing refresh token from the user's profile is preserved.
 
