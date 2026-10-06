@@ -317,9 +317,11 @@ const AgentInstructions = () => (
         the user or put it where they asked, and remind them to keep it private.
       </li>
       <li>
-        Optional: once the project has a website, "Only allow this key on" that site limits
-        the key to web pages on it. Turn it on only for keys used in code that runs in a
-        browser.
+        Optional: once the project has a website, "Only accept requests from" that site makes
+        Sefaria refuse this key (403 origin_not_allowed) on any request whose Origin header is
+        not that site, including requests with no Origin. Turn it on only for keys used in
+        front-end code that runs in a browser. Leave it off for keys used from a server,
+        script, app or agent, including your own calls.
       </li>
     </ol>
     <p>API documentation: {API_DOCS_URL}</p>
@@ -927,6 +929,12 @@ const ProjectForm = ({initial, authorName, submitLabel, onSave, onCancel, onDele
           set={set}
           onChoosePublic={() => { if (fields.visibility !== "public") { setPreviewPublic(true); } }}
         />
+        <p className="devPocHelp">
+          <InterfaceText text={{
+            en: "Projects stay with this Sefaria account and can't be transferred to another account.",
+            he: "פרויקטים נשארים בחשבון ספריא הזה ואי אפשר להעביר אותם לחשבון אחר.",
+          }} />
+        </p>
         {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
         <div className="devPocActions">
           <button type="submit" className="button small blue" data-agent-action={onDelete ? "save-project" : "create-project"}>
@@ -984,8 +992,14 @@ const NewProjectPanel = ({authorName, onCreate, onCancel}) => {
 };
 
 
+/* The restriction is the setting most likely to break a project, so its explanation is a
+   visible "What does this do?" disclosure rather than an "i". The wording names the exact
+   mechanism (browser Origin, 403) so developers and agents can act on it without guessing. */
 const RestrictionToggle = ({project, apiKey, onToggle}) => {
   const host = websiteHost(project.websiteUrl);
+  const [explained, setExplained] = useState(false);
+  const explainerId = "devPocRestrictionHelp-" + apiKey.id;
+  const origin = <code dir="ltr">https://{host}</code>;
   return (
     <div className="devPocRestriction">
       <div className="devPocRestrictionRow">
@@ -996,21 +1010,51 @@ const RestrictionToggle = ({project, apiKey, onToggle}) => {
             checked={!!apiKey.restrictToWebsite}
             onChange={e => onToggle(e.target.checked)}
             aria-label={Sefaria._v({
-              en: "Only allow " + apiKey.label + " on " + host,
-              he: "לאפשר את " + apiKey.label + " רק ב־" + host,
+              en: "Only accept requests with " + apiKey.label + " from " + host,
+              he: "לקבל בקשות עם " + apiKey.label + " רק מ־" + host,
             })}
           />
           <span>
-            <InterfaceText text={{en: "Only allow this key on", he: "לאפשר את המפתח רק ב־"}} /> <code dir="ltr">{host}</code>
-            <InfoTip label={Sefaria._v({en: "When to turn this on", he: "מתי להפעיל"})} wide>
-              <InterfaceText text={{
-                en: "Turn this on if your key is inside a web page people visit. Then a copied key won't work on anyone else's site. Leave it off if your key is used anywhere else, or your own project will stop working.",
-                he: "הפעילו אם המפתח נמצא בתוך דף אינטרנט שאנשים מבקרים בו. כך מפתח שהועתק לא יעבוד באתר של מישהו אחר. השאירו כבוי אם המפתח משמש בכל מקום אחר, אחרת הפרויקט שלכם יפסיק לעבוד.",
-              }} />
-            </InfoTip>
+            <InterfaceText text={{en: "Only accept requests from", he: "לקבל בקשות רק מ־"}} /> <code dir="ltr">{host}</code>
           </span>
         </label>
       </div>
+      <button
+        type="button"
+        className="devPocTextButton devPocExplainerToggle"
+        aria-expanded={explained}
+        aria-controls={explainerId}
+        onClick={() => setExplained(e => !e)}
+      >
+        <InterfaceText text={{en: "What does this do?", he: "מה זה עושה?"}} />
+      </button>
+      {explained ?
+        <div className="devPocExplainer" id={explainerId}>
+          <p>
+            <InterfaceText text={{
+              en: <React.Fragment>When on, Sefaria accepts this key only on requests whose browser <code dir="ltr">Origin</code> is {origin}. Requests with this key from any other origin, or with no <code dir="ltr">Origin</code> header, are refused with <code dir="ltr">403 origin_not_allowed</code>.</React.Fragment>,
+              he: <React.Fragment>כשההגבלה פעילה, ספריא מקבלת את המפתח רק בבקשות שה־<code dir="ltr">Origin</code> של הדפדפן בהן הוא {origin}. בקשות עם המפתח מכל מקור אחר, או בלי כותרת <code dir="ltr">Origin</code>, נדחות עם <code dir="ltr">403 origin_not_allowed</code>.</React.Fragment>,
+            }} />
+          </p>
+          <p>
+            <InterfaceText text={{
+              en: <React.Fragment><strong>Turn it on</strong> if the key is in front-end code that runs in visitors' browsers, where anyone can read it. A copied key then won't work on another website.</React.Fragment>,
+              he: <React.Fragment><strong>הפעילו</strong> אם המפתח נמצא בקוד צד־לקוח שרץ בדפדפן של המבקרים, שם כל אחד יכול לקרוא אותו. כך מפתח שהועתק לא יעבוד באתר אחר.</React.Fragment>,
+            }} />
+          </p>
+          <p>
+            <InterfaceText text={{
+              en: <React.Fragment><strong>Leave it off</strong> if the key is used from a server, a script, a mobile or desktop app, or an AI agent. Those requests send no browser <code dir="ltr">Origin</code>, so they would be refused and your project would stop working.</React.Fragment>,
+              he: <React.Fragment><strong>השאירו כבוי</strong> אם המפתח משמש משרת, מסקריפט, מאפליקציה לנייד או למחשב, או מסוכן בינה מלאכותית. בקשות כאלה לא שולחות <code dir="ltr">Origin</code> של דפדפן, ולכן ייָדחו והפרויקט שלכם יפסיק לעבוד.</React.Fragment>,
+            }} />
+          </p>
+          <p>
+            <InterfaceText text={{
+              en: <React.Fragment>It stops casual copying, not a determined attacker: outside a browser, the <code dir="ltr">Origin</code> header can be faked.</React.Fragment>,
+              he: <React.Fragment>ההגבלה מונעת העתקה מזדמנת, לא תוקף נחוש: מחוץ לדפדפן אפשר לזייף את כותרת ה־<code dir="ltr">Origin</code>.</React.Fragment>,
+            }} />
+          </p>
+        </div> : null}
     </div>
   );
 };

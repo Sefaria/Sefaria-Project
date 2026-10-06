@@ -17663,6 +17663,19 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   100% { opacity: 0; }
 }
 .devPocRestriction { margin-top: var(--devPoc-s2); padding-top: var(--devPoc-s2); border-top: 1px solid #e3e6e9; }
+.devPocExplainerToggle { margin-top: var(--devPoc-s1); font-weight: 500; }
+.devPocExplainer {
+  margin-top: var(--devPoc-s1);
+  padding: var(--devPoc-s2);
+  border-inline-start: 3px solid var(--devPoc-blue);
+  background: #f5f7f9;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #3c444c;
+}
+.devPocPage .devPocExplainer p { margin: 0; }
+.devPocPage .devPocExplainer p + p { margin-top: var(--devPoc-s1); }
+.devPocExplainer code { font-size: 12px; overflow-wrap: anywhere; }
 .devPocRestrictionRow { display: flex; align-items: flex-start; gap: var(--devPoc-s1); }
 .devPocTip { position: relative; display: inline-flex; vertical-align: middle; margin-inline-start: 4px; }
 .devPocInfoButton {
