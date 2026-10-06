@@ -1501,12 +1501,6 @@ const KeyRow = ({project, apiKey, isNew, describedBy, onToggleRestriction, onDel
     <div className="devPocKeyMeta">
       <span><InterfaceText text={{en: "Created " + formatDate(apiKey.created), he: "נוצר ב־" + formatDate(apiKey.created)}} /></span>
       <span><InterfaceText text={{en: "Last used " + formatDate(apiKey.lastUsed), he: "שימוש אחרון: " + formatDate(apiKey.lastUsed)}} /></span>
-      <span>
-        <InterfaceText text={{
-          en: formatNumber(apiKey.requests30) + " requests in the last 30 days",
-          he: formatNumber(apiKey.requests30) + " בקשות ב־30 הימים האחרונים",
-        }} />
-      </span>
     </div>
     {isNew ?
       <p className="devPocKeyReady" role="status">

@@ -474,6 +474,15 @@ describe('key cards', () => {
     act(() => { buttonNamed(restriction, 'What does this mean?').click(); });
     expect(restriction.querySelector('.devPocExplainer').textContent).toContain('only works on your website');
   });
+
+  it('show when a key was created and last used, but not its request count', () => {
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()], expandedProjectId: 'proj01' });
+    const meta = container.querySelector('.devPocKeyMeta').textContent;
+    expect(meta).toContain('Created');
+    expect(meta).toContain('Last used');
+    expect(meta).not.toContain('requests');
+    expect(container.querySelector('.devPocStats').textContent).toContain('1,234');
+  });
 });
 
 describe('agent instructions', () => {
