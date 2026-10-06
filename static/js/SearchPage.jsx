@@ -325,6 +325,12 @@ class SearchPage extends Component {
     // would land afterwards and mix rows from the old ordering into the new list. Kept off
     // `state` because it must update synchronously, before React re-renders.
     this._entityFetchTokens = Object.fromEntries(ENTITY_TABS.map(t => [t.type, 0]));
+    // Fuzzy-search query auto-correction (sc-47189): whether the reader has clicked a tab by
+    // hand for the query on screen, and which query/correction pair maybeAutoSwitchTabAfter
+    // Correction() has already acted on (or decided not to act on). Both reset when the query
+    // changes. Kept off `state`: they gate a side effect rather than describe what to render.
+    this._userSelectedTab = false;
+    this._autoSwitchDecidedFor = null;
   }
 
   makeBookCategoryFilters() {
@@ -476,6 +482,7 @@ class SearchPage extends Component {
     this.fetchEntityResults();
     this._onResize();  // first real viewport measurement; the constructor could not take one
     window.addEventListener('resize', this._onResize);
+    this.maybeAutoSwitchTabAfterCorrection();
   }
 
   componentWillUnmount() {
@@ -501,6 +508,11 @@ class SearchPage extends Component {
       // previous result set — so rebuild the filter tree unselected before refetching.
       this.setState({bookCategoryFilters: this.makeBookCategoryFilters(), bookCategoryCounts: null},
                     () => this.resetEntityResults(ENTITY_TABS.map(t => t.type)));
+      // A new query starts the auto-switch decision over: forget which tab the reader picked
+      // for the previous query, and that we already decided (or didn't need to decide) where
+      // to land for the previous correction.
+      this._userSelectedTab = false;
+      this._autoSwitchDecidedFor = null;
     } else if (prevProps.disableAutoCorrect !== this.props.disableAutoCorrect) {
       // Fuzzy-search query auto-correction (sc-47189): clicking "Search instead for
       // <original query>" in the banner (any tab) re-searches every tab uncorrected, not
@@ -509,6 +521,43 @@ class SearchPage extends Component {
       // actually searched changes.
       this.resetEntityResults(ENTITY_TABS.map(t => t.type));
     }
+    this.maybeAutoSwitchTabAfterCorrection();
+  }
+
+  // Fuzzy-search query auto-correction (sc-47189): a corrected query that leaves Sources
+  // empty would otherwise strand the reader on a blank Sources tab, so land instead on the
+  // first tab (Books, then Authors, then Topics) that has at least one result. Only ever
+  // moves off of Sources -- the tab every query defaults to -- and only while that default is
+  // still showing: once the reader has clicked a tab by hand for this query, their choice
+  // sticks. If every tab is empty, Sources (already the default) is where it stays.
+  //
+  // Sources' count and the entity tabs' counts each arrive from their own independent fetch
+  // (see the class comment on componentDidMount/fetchEntityResults), so this runs on every
+  // update and simply waits (returns without deciding) until the tab it would need to check
+  // next has loaded.
+  maybeAutoSwitchTabAfterCorrection() {
+    if (this._userSelectedTab || !this.props.correctedQuery) { return; }
+    const decisionKey = `${this.props.query}||${this.props.correctedQuery}`;
+    if (this._autoSwitchDecidedFor === decisionKey) { return; }
+    if (this.activeTab() !== "sources") { return; }  // already moved on
+
+    const sourcesCount = this.props.totalResults?.getValue();
+    if (sourcesCount === undefined) { return; }  // Sources result not in yet
+    if (sourcesCount > 0) {
+      this._autoSwitchDecidedFor = decisionKey;
+      return;
+    }
+
+    for (const {id, type} of ENTITY_TABS) {
+      const data = this.state.entityData[type];
+      if (data === null) { return; }  // this tab hasn't loaded yet -- wait for it before deciding
+      if (data.total > 0) {
+        this._autoSwitchDecidedFor = decisionKey;
+        this.setTab(id, true);
+        return;
+      }
+    }
+    this._autoSwitchDecidedFor = decisionKey;  // every tab came back empty -- nowhere better to go
   }
 
   fetchEntityResults(types = ENTITY_TABS.map(t => t.type)) {
@@ -622,10 +671,13 @@ class SearchPage extends Component {
     // double-reporting the move that is about to arrive as a props change.
     this._reportedTabTransition = tab;
     // replaceHistory is only passed (as true) by TabView's programmatic
-    // default-tab call on mount (Misc.jsx TabView.componentDidMount) -- that's
-    // not a user click, so don't report it. User clicks omit the argument.
+    // default-tab call on mount (Misc.jsx TabView.componentDidMount) and by
+    // maybeAutoSwitchTabAfterCorrection() -- neither is a user click, so don't report it
+    // and don't let it count as the reader having picked a tab by hand. User clicks omit
+    // the argument.
     if (!replaceHistory) {
       this.reportTabChange(tab);
+      this._userSelectedTab = true;
     }
     this.setState({mobileFiltersOpen: false});
     this.props.setTab(tab, replaceHistory);
