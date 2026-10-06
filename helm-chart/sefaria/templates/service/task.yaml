@@ -13,3 +13,19 @@ spec:
   selector:
     app: "tasks-{{ .Values.deployEnv }}"
 {{- end }}
+{{- if and (or .Values.tasks.enabled .Values.gpuServer) .Values.tasks.findRefs.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: find-refs-{{ .Values.deployEnv }}
+  labels:
+    app: find-refs-{{ .Values.deployEnv }}
+    deployEnv: "{{ .Values.deployEnv }}"
+    stackRole: task
+spec:
+  ports:
+  - port: 80
+  selector:
+    app: "find-refs-{{ .Values.deployEnv }}"
+{{- end }}

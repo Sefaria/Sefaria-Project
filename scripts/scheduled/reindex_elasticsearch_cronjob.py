@@ -236,7 +236,7 @@ def log_index_state(index_type: str, result: ReindexingResult, debug: bool = Fal
         if new_exists and new_count > 0:
             result.add_warning(
                 f"New {index_type} index already exists with {new_count} documents",
-                f"Index {new_index} will be reused or recreated depending on phase"
+                f"Index {new_index} will be deleted and recreated by reindex_init"
             )
     except Exception as e:
         logger.error(f"Failed to get index state for {index_type} - {str(e)}")
