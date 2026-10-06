@@ -2055,6 +2055,11 @@ def table_of_contents_api(request):
     return jsonResponse(toc, callback=request.GET.get("callback", None))
 
 
+def topics_toc_api(request):
+    """The topics table of contents (the tree the topics pages and search's topic crumbs are built from)."""
+    return http.HttpResponse(library.get_topic_toc_json(), content_type="application/json; charset=utf-8")
+
+
 @catch_error_as_json
 def search_autocomplete_redirecter(request):
     query = request.GET.get("q", "")
