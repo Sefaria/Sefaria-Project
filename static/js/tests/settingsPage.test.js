@@ -493,6 +493,14 @@ describe('agent instructions', () => {
     expect(block.getAttribute('aria-hidden')).toBeNull();
     expect(block.textContent).toContain('AI agents are permitted to complete this whole process');
     expect(block.textContent).toContain('generating an API key');
+    expect(block.textContent).toContain('free to download, with no key, from https://github.com/Sefaria/Sefaria-Export');
+  });
+
+  it('point heavy users to the free library download on the page too', () => {
+    mount('developer');
+    const note = developerPanel().querySelector('.devPocExportNote');
+    expect(note.textContent).toContain('The whole library is free to download');
+    expect(note.querySelector('a').getAttribute('href')).toBe('https://github.com/Sefaria/Sefaria-Export');
   });
 });
 

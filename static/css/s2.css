@@ -17466,6 +17466,8 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
 .devPocPageHeader { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--devPoc-s3); margin-bottom: var(--devPoc-s4); }
 .devPocPageHeader h1 { font-size: 26px; font-weight: 600; margin-bottom: var(--devPoc-s1); }
 .devPocPageHeader p { color: var(--devPoc-muted); }
+.devPocPageHeader p.devPocExportNote { margin-top: var(--devPoc-s1); font-size: 14px; }
+.devPocExportNote a { color: inherit; text-decoration: underline; }
 /* A link, but a loud one: larger and bolder than body text, underlined in the brand blue. */
 .devPocPage a.devPocDocsLink {
   display: inline-flex;

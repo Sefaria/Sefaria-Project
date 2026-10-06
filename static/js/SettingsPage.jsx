@@ -33,6 +33,7 @@ import {
 const KEY_SETUP_MS = 4000;
 
 const API_DOCS_URL = "https://developers.sefaria.org/reference/getting-started";
+const LIBRARY_EXPORT_URL = "https://github.com/Sefaria/Sefaria-Export";
 const CONTACT_EMAIL = "hello@sefaria.org";
 const API_TERMS_URL = "/api-terms";
 
@@ -456,6 +457,11 @@ const AgentInstructions = () => (
         script, app or agent, including your own calls.
       </li>
     </ol>
+    <p>
+      If the user needs large amounts of text, or the whole library, the API may not be needed
+      at all: the entire Sefaria library is free to download, with no key, from
+      {" " + LIBRARY_EXPORT_URL}. Suggest it before planning many API calls.
+    </p>
     <p>API documentation: {API_DOCS_URL}</p>
   </div>
 );
@@ -2063,6 +2069,12 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
             <InterfaceText text={{
               en: "Register your projects and manage their API keys.",
               he: "רשמו את הפרויקטים שלכם ונהלו את מפתחות ה־API שלהם.",
+            }} />
+          </p>
+          <p className="devPocHelp devPocExportNote">
+            <InterfaceText text={{
+              en: <React.Fragment>Need a lot of text? The whole library is <a href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">free to download</a>, no API key needed.</React.Fragment>,
+              he: <React.Fragment>צריכים הרבה טקסט? את כל הספרייה אפשר <a href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">להוריד בחינם</a>, בלי מפתח API.</React.Fragment>,
             }} />
           </p>
         </div>
