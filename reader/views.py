@@ -5539,6 +5539,10 @@ def application_health_api(request):
         return True
 
     def isNodeJsReachable():
+        # Django depends on the Node server only for its own server rendering. With USE_NODE off (Helm nodejs.mode "reader")
+        # the node pods are the reader client, which sends /healthz back to Django: checking it would wait on ourselves.
+        if not USE_NODE:
+            return True
         url = NODE_HOST + "/healthz"
         try:
             statusCode = urllib.request.urlopen(url).status
