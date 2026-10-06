@@ -1,4 +1,4 @@
-# Local lemma search experiment
+# Lemma search comparison experiment
 
 Open `/experimental/lemma-search/` on your local Django library server. This is a
 standalone comparison page; it does not change the ordinary `/search` UI or call
@@ -8,7 +8,7 @@ lemma highlights are not reconstructed. Links open the corresponding reader ref
 and Hebrew version. Missing sheets/entity indexes mean the normal search page is
 not a supported entry point with these local settings.
 
-## Run
+## Local development
 
 Start Docker Desktop, then in Sefaria-Data:
 
@@ -221,10 +221,10 @@ index. Live capacity, import, and HTTPS tester access still require validation.
 - Cold queue-to-result time was 20.31 seconds; a cached repeat was 0.02 seconds on
   Docker Desktop. These are smoke-test timings, not cluster capacity measurements.
 
-The temporary Redis/worker smoke-test containers are removed after validation. The
-image and ignored frozen bundle remain locally; nothing has been uploaded to a
-registry or deployed. Real Sentinel failover and full browser access on a Cauldron
-remain untested.
+The temporary Redis/worker smoke-test containers were removed after validation.
+The image and ignored frozen bundle remain locally. This initial local check
+preceded registry publication and the Cauldron installation described below. Real
+Sentinel failover remains untested.
 
 ## Automatic updates for the dev POC
 
@@ -270,3 +270,24 @@ The chart prerelease stays explicitly pinned. The creator/repoint scripts do not
 yet understand this optional worker: re-running either for this POC requires
 reapplying/reviewing these extra values and policies. Changing the tracked branch
 also requires updating the workflow opt-in and the worker registry/policy names.
+
+### Published POC artifacts
+
+- Application PR: https://github.com/Sefaria/Sefaria-Project/pull/3787 (draft; the
+  experiment branch is not merged into master).
+- Cauldron configuration: https://github.com/Sefaria/cauldrons/pull/166 (merged).
+- Pinned chart: `0.91.0-codexlemma-search-experiment.2`.
+- Endpoint after installation: https://lemma-search.cauldron.sefaria.org/experimental/lemma-search/
+  (authenticated staff only).
+- The dev index `lemma-poc-lemma-search-tanakh-rashi-mishnah-v1` contains all 55,589
+  documents. A Linux CPU query against this index reproduced baseline 0 / expanded
+  2, including both Jeremiah 31:15 and Rashi on Jeremiah 31:15:2.
+- The initial worker CI run stopped because its frozen base was still uploading.
+  The subsequent run succeeded after publication; the registry digest matches
+  `bundle-image.txt`. The published worker uses the normal branch registry, and
+  Flux resolves its image policy successfully.
+
+The initial Cauldron installation performs its normal database restore before
+starting application pods. Code-only updates do not repeat this restore. Check
+HelmRelease and pod readiness rather than treating successful image publication
+as evidence that the website is ready.
