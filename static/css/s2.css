@@ -17871,7 +17871,6 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocChoice a { text-decoration: underline; }
 .devPocBadgePending { background: #fcf6e9; border-color: #e8d5a6; color: #69501e; }
 .devPocListingPending p { margin: 0; }
-.devPocBadgeRecommended { margin-inline-start: 4px; background: #edf5f0; border-color: #c9dfd1; color: #305840; }
 .devPocCount { margin: 4px 0 0; font-size: 12px; color: var(--devPoc-muted); text-align: end; max-width: 520px; }
 .devPocCountFull { color: #69501e; }
 .devPocMatch { margin-top: var(--devPoc-s2); padding: var(--devPoc-s2) var(--devPoc-s3); background: #eef3f8; border: 1px solid #d4dfea; border-radius: 6px; font-size: 14px; max-width: 520px; }
@@ -17939,7 +17938,6 @@ input.devPocSwitch:checked::after { transform: translateX(16px); }
 .devPocPreviewRow { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: var(--devPoc-s2); padding: 4px 0; font-size: 14px; }
 .devPocPreviewRow dt { color: var(--devPoc-muted); }
 .devPocPreviewRow dd { margin: 0; overflow-wrap: anywhere; }
-.devPocDialog a.devPocExternalLink { display: inline-flex; align-items: center; gap: 4px; color: var(--devPoc-blue); text-decoration: underline; }
 
 @media (max-width: 760px) {
   .settingsShell { display: block; max-width: none; }

@@ -31,7 +31,6 @@ import {
 const KEY_SETUP_MS = 4000;
 
 const API_DOCS_URL = "https://developers.sefaria.org/reference/getting-started";
-const POWERED_BY_URL = "https://developers.sefaria.org/docs/powered-by-sefaria";
 const CONTACT_EMAIL = "hello@sefaria.org";
 const API_TERMS_URL = "/api-terms";
 
@@ -405,8 +404,9 @@ const AgentInstructions = () => (
         Under "Projects", press "Create your first project" or "New project" (new-project).
         Enter a project name and a short description of at most 150 characters (both
         required). Organization, website and "Built with help from AI tools" are optional.
-        Choose a visibility, which is required: Public (recommended) or Private. Ask the user
-        which they want; choosing Public shows what would be public and asks for confirmation.
+        Choose a visibility, which is required: Public or Private. Ask the user which they
+        want; "Show me what will be public" (show-public-preview) lists exactly what a public
+        project shows.
         If a Powered by Sefaria listing matches the account email or the website, the form
         offers to link it (link-listing) or to request a link (request-listing-link); ask the
         user before either. Press "Create project" (create-project). If there is no website, a
@@ -853,11 +853,7 @@ const LinkedListingNote = ({listing}) => (
 );
 
 
-const RecommendedTag = () => (
-  <span className="devPocBadge devPocBadgeRecommended"><InterfaceText text={{en: "Recommended", he: "מומלץ"}} /></span>
-);
-
-const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, emailNotice, websiteNotice, linkedNote}) => (
+const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPublic, emailNotice, websiteNotice, linkedNote}) => (
   <React.Fragment>
     {emailNotice}
     {linkedNote}
@@ -929,7 +925,7 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, emailNotic
       <label className="devPocChoice">
         <input type="radio" name="devPocVisibility" value="public" checked={fields.visibility === "public"} onChange={onChoosePublic} />
         <span>
-          <InterfaceText text={{en: "Public", he: "ציבורי"}} /> <RecommendedTag />
+          <InterfaceText text={{en: "Public", he: "ציבורי"}} />
           <InfoTip label={Sefaria._v({en: "Who sees a public project", he: "מי רואה פרויקט ציבורי"})} wide>
             <InterfaceText text={{
               en: "Sefaria may show this project on Powered by Sefaria, our gallery of projects built with Sefaria. We choose what to feature, so it may not appear.",
@@ -947,6 +943,9 @@ const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, emailNotic
           </InfoTip>
         </span>
       </label>
+      <button type="button" className="devPocTextButton" data-agent-action="show-public-preview" onClick={onShowPublic}>
+        <InterfaceText text={{en: "Show me what will be public", he: "הראו לי מה יהיה ציבורי"}} />
+      </button>
     </fieldset>
   </React.Fragment>
 );
@@ -1070,11 +1069,10 @@ const MakePrivateDialog = ({onConfirm, onCancel}) => {
 };
 
 
-/* Asked when a project is switched to Public, not when the form opens, so the extra step
-   never puts anyone off choosing Public in the first place. */
-const PublicPreviewDialog = ({fields, authorName, onConfirm, onCancel}) => {
-  const confirmRef = useRef(null);
-  useDialogKeys(confirmRef, onCancel);
+/* What a public project shows, for the developer to look at before or after choosing. */
+const PublicPreviewDialog = ({fields, authorName, onClose}) => {
+  const closeRef = useRef(null);
+  useDialogKeys(closeRef, onClose);
   const notYet = <span className="devPocMuted"><InterfaceText text={{en: "Not filled in yet", he: "עדיין לא מולא"}} /></span>;
   const rows = [
     {label: {en: "Project name", he: "שם הפרויקט"}, value: fields.name.trim(), dir: "auto"},
@@ -1087,7 +1085,7 @@ const PublicPreviewDialog = ({fields, authorName, onConfirm, onCancel}) => {
   return (
     <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocPublicTitle">
       <section className="devPocDialog">
-        <h2 id="devPocPublicTitle"><InterfaceText text={{en: "Make this project public?", he: "להפוך את הפרויקט לציבורי?"}} /></h2>
+        <h2 id="devPocPublicTitle"><InterfaceText text={{en: "What will be public", he: "מה יהיה ציבורי"}} /></h2>
         <p>
           <InterfaceText text={{
             en: "If Sefaria features it on Powered by Sefaria, anyone will be able to see:",
@@ -1108,18 +1106,9 @@ const PublicPreviewDialog = ({fields, authorName, onConfirm, onCancel}) => {
             he: "מפתחות ה־API והשימוש בהם לעולם לא מוצגים. אפשר לשנות את הפרטים האלה, או להחזיר את הפרויקט למצב פרטי, דרך עריכת הפרויקט.",
           }} />
         </p>
-        <p>
-          <a className="devPocExternalLink" href={POWERED_BY_URL} target="_blank" rel="noopener noreferrer">
-            <InterfaceText text={{en: "See the projects on Powered by Sefaria", he: "לפרויקטים ב־Powered by Sefaria"}} />
-            <ExternalIcon />
-          </a>
-        </p>
         <div className="devPocActions">
-          <button type="button" className="button small white" onClick={onCancel}>
-            <InterfaceText text={{en: "Keep private", he: "להשאיר פרטי"}} />
-          </button>
-          <button type="button" className="button small blue" ref={confirmRef} data-agent-action="confirm-public" onClick={onConfirm}>
-            <InterfaceText text={{en: "Make public", he: "להפוך לציבורי"}} />
+          <button type="button" className="button small white" ref={closeRef} onClick={onClose}>
+            <InterfaceText text={{en: "Close", he: "סגירה"}} />
           </button>
         </div>
       </section>
@@ -1234,11 +1223,6 @@ const ProjectForm = ({initial, savedVisibility, authorName, submitLabel, listing
     if (input) { input.focus(); }
   };
 
-  const closePreview = (makePublic) => {
-    setPreviewPublic(false);
-    if (makePublic) { set("visibility", "public"); }
-  };
-
   const choosePrivate = () => {
     if (fields.visibility === "private") { return; }
     if (savedVisibility === "public") { setAskPrivate(true); } else { set("visibility", "private"); }
@@ -1250,8 +1234,9 @@ const ProjectForm = ({initial, savedVisibility, authorName, submitLabel, listing
         <ProjectFields
           fields={fields}
           set={set}
-          onChoosePublic={() => { if (fields.visibility !== "public") { setPreviewPublic(true); } }}
+          onChoosePublic={() => set("visibility", "public")}
           onChoosePrivate={choosePrivate}
+          onShowPublic={() => setPreviewPublic(true)}
           emailNotice={showEmailMatch ?
             <EmailMatchNotice
               listing={publicListing(emailMatch)}
@@ -1294,12 +1279,7 @@ const ProjectForm = ({initial, savedVisibility, authorName, submitLabel, listing
       {askWebsite ?
         <NoWebsiteDialog onAddWebsite={addWebsite} onSaveAnyway={() => { setAskWebsite(false); save(); }} /> : null}
       {previewPublic ?
-        <PublicPreviewDialog
-          fields={fields}
-          authorName={authorName}
-          onConfirm={() => closePreview(true)}
-          onCancel={() => closePreview(false)}
-        /> : null}
+        <PublicPreviewDialog fields={fields} authorName={authorName} onClose={() => setPreviewPublic(false)} /> : null}
       {askPrivate ?
         <MakePrivateDialog
           onConfirm={() => { setAskPrivate(false); set("visibility", "private"); }}

@@ -141,11 +141,10 @@ const visibilityRadio = (value) => container.querySelector(`input[name="devPocVi
 const submitProject = () => act(() => { container.querySelector('[data-agent-action="create-project"]').click(); });
 
 describe('project visibility', () => {
-  it('has nothing preselected, and marks Public as recommended', () => {
+  it('has nothing preselected, and recommends neither option', () => {
     openNewProject();
     expect(container.querySelector('input[name="devPocVisibility"]:checked')).toBeNull();
-    expect(visibilityRadio('public').parentElement.textContent).toContain('Recommended');
-    expect(visibilityRadio('private').parentElement.textContent).not.toContain('Recommended');
+    expect(container.querySelector('.devPocFieldset').textContent).not.toContain('Recommended');
   });
 
   it("won't save until a visibility is chosen", () => {
@@ -157,26 +156,24 @@ describe('project visibility', () => {
     expect(container.querySelector('.devPocNewProject')).toBeTruthy();
   });
 
-  it('previews what becomes public before switching', () => {
+  it('chooses Public without a confirmation', () => {
     openNewProject();
     act(() => { visibilityRadio('public').click(); });
+    expect(visibilityRadio('public').checked).toBe(true);
+    expect(container.querySelector('[role="dialog"]')).toBeNull();
+  });
 
+  it('shows what will be public on request, with only a Close button', () => {
+    openNewProject();
+    act(() => { buttonNamed(container, 'Show me what will be public').click(); });
     const dialog = container.querySelector('[aria-labelledby="devPocPublicTitle"]');
     expect(dialog.textContent).toContain('Daf Tracker');
     expect(dialog.textContent).toContain('Tova Levi');
-    expect(dialog.querySelector('a[href="https://developers.sefaria.org/docs/powered-by-sefaria"]')).toBeTruthy();
-    expect(container.querySelector('input[name="devPocVisibility"]:checked')).toBeNull();
+    expect(Array.from(dialog.querySelectorAll('button')).map(b => b.textContent.trim())).toEqual(['Close']);
+    expect(dialog.querySelector('a')).toBeNull();
 
-    act(() => { buttonNamed(dialog, 'Make public').click(); });
-
+    act(() => { buttonNamed(dialog, 'Close').click(); });
     expect(container.querySelector('[aria-labelledby="devPocPublicTitle"]')).toBeNull();
-    expect(visibilityRadio('public').checked).toBe(true);
-  });
-
-  it('stays unchosen when the preview is dismissed', () => {
-    openNewProject();
-    act(() => { visibilityRadio('public').click(); });
-    act(() => { buttonNamed(container, 'Keep private').click(); });
     expect(container.querySelector('input[name="devPocVisibility"]:checked')).toBeNull();
   });
 });
@@ -295,7 +292,6 @@ describe('saving a project', () => {
     typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
     typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
     act(() => { visibilityRadio(visibility).click(); });
-    if (visibility === 'public') { act(() => { buttonNamed(container, 'Make public').click(); }); }
     submitProject();
   };
 
@@ -389,7 +385,7 @@ describe('Hebrew interface', () => {
     Sefaria.interfaceLang = 'hebrew';
     openNewProject({ submitterEmailListingId: 'pb03' });
     expect(container.querySelector('.devPocMatch').textContent).toContain('מצאנו רישום ב־Powered by Sefaria שהגשת');
-    expect(visibilityRadio('public').parentElement.textContent).toContain('מומלץ');
+    expect(visibilityRadio('public').parentElement.textContent).toContain('ציבורי');
   });
 });
 
