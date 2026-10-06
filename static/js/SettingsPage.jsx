@@ -2,15 +2,21 @@ import React, { useEffect, useRef, useState } from 'react';
 import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
+import PoweredByForm from './poweredBy/PoweredByForm';
 import {
   MAX_DESCRIPTION_LENGTH,
   MAX_KEYS_PER_PROJECT,
   POWERED_BY_LISTINGS,
+  applyPoweredByValues,
   canLinkByEmail,
   emailMatchedListing,
   emptyState,
+  fillRequiredAnswers,
   listingConflicts,
   listingForWebsite,
+  listingIncomplete,
+  listingMissingFields,
+  poweredByValues,
   poweredByListings,
   publicListing,
   makeKey,
@@ -72,6 +78,12 @@ const copyToClipboard = (text, node, onDone) => {
 /* The name and email the account itself carries, which the developer profile shows locked. */
 const accountName = () => (Sefaria.full_name || "").trim();
 const accountEmail = () => (Sefaria._email && Sefaria._email !== "null" ? Sefaria._email : "");
+
+/* Who the Powered by answers are prefilled from. */
+const pocAccount = (state) => ({
+  name: accountName() || (state.profile ? state.profile.developerName : ""),
+  email: accountEmail(),
+});
 
 
 const CopyIcon = () => (
@@ -188,11 +200,12 @@ const accountStatus = (state, realProviders) => {
 };
 
 /* Mock Powered by data the walkthrough needs: a listing submitted with this account's email,
-   and whether the open project's listing has every required field. */
-const PocListingControls = ({state, update}) => {
+   and a way to fill a public project's required Powered by answers. */
+const PocListingControls = ({state, update, listingProject, onFillAnswers}) => {
   const email = accountEmail();
   const linkable = POWERED_BY_LISTINGS.filter(l => !l.ownedByAnotherAccount);
-  const expanded = state.projects.find(p => p.id === state.expandedProjectId);
+  const missing = listingProject && listingProject.visibility === "public"
+    ? listingMissingFields(listingProject, pocAccount(state)) : [];
   return (
     <div className="devPocPanelGroup">
       <div className="devPocPanelGroupLabel">Powered by listings</div>
@@ -211,25 +224,20 @@ const PocListingControls = ({state, update}) => {
         Taken by another account: {POWERED_BY_LISTINGS.filter(l => l.ownedByAnotherAccount).map(l => l.url).join(", ")}.
         Any other listed website asks to request a link.
       </p>
-      {expanded && expanded.visibility === "public" ?
-        <label className="devPocPanelChoice">
-          <input
-            type="checkbox"
-            className="devPocSwitch"
-            data-poc-control="listing-complete"
-            checked={!!expanded.listingComplete}
-            onChange={e => update(s => ({
-              ...s,
-              projects: s.projects.map(p => p.id === expanded.id ? {...p, listingComplete: e.target.checked} : p),
-            }))}
-          />
-          <span>{expanded.name}: listing {expanded.listingComplete ? "complete" : "incomplete"}</span>
-        </label> : null}
+      {missing.length ?
+        <div className="devPocPanelRow">
+          <button
+            type="button"
+            className="devPocPanelButton"
+            data-poc-control="fill-answers"
+            onClick={() => onFillAnswers(listingProject.id)}
+          >Fill {listingProject.name}'s {missing.length} missing answers</button>
+        </div> : null}
     </div>
   );
 };
 
-const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpenMockEmail}) => {
+const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpenMockEmail, listingProject, onFillAnswers}) => {
   const [open, setOpen] = useState(false);
 
   useEffect(() => { setOpen(readPanelOpen()); }, []);
@@ -323,7 +331,7 @@ const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpen
           </p>
         </div>
 
-        <PocListingControls state={state} update={update} />
+        <PocListingControls state={state} update={update} listingProject={listingProject} onFillAnswers={onFillAnswers} />
 
         <div className="devPocPanelGroup">
           <div className="devPocPanelGroupLabel">Mock data</div>
@@ -1233,7 +1241,7 @@ const ProjectForm = ({initial, savedVisibility, authorName, submitLabel, listing
     setLinking(null);
     setFields(f => ({
       ...f, ...kept, linkedListingId: listing.id, listingRequest: null,
-      visibility: "public", listingComplete: true,
+      visibility: "public",
     }));
     setError("");
   };
@@ -1745,7 +1753,7 @@ const listingStatus = (project) => {
   return {en: "Visibility not chosen yet.", he: "עדיין לא נבחרה נראוּת."};
 };
 
-const listingIncomplete = (project) => project.visibility === "public" && !project.listingComplete;
+
 
 
 const CHART_WIDTH = 320;
@@ -1897,7 +1905,7 @@ const UsageSection = ({project}) => {
 };
 
 
-const ProjectCard = ({project, expanded, authorName, listingContext, update, setConfirm, onToggleExpand, onOpenPoweredBy, notice}) => {
+const ProjectCard = ({project, expanded, authorName, account, listingContext, update, setConfirm, onToggleExpand, onOpenPoweredBy, notice}) => {
   const [editing, setEditing] = useState(false);
   const cardRef = useRef(null);
 
@@ -1927,7 +1935,10 @@ const ProjectCard = ({project, expanded, authorName, listingContext, update, set
       }),
     }));
     setEditing(false);
-    if (fields.visibility === "public") { onOpenPoweredBy(project.id); }
+    const missing = listingMissingFields({...project, ...fields}, account);
+    if (fields.visibility === "public" && (project.visibility !== "public" || missing.length)) {
+      onOpenPoweredBy(project.id);
+    }
     if (losingUrl && restrictedKeys.length) {
       notice(Sefaria._v({
         en: restrictedKeys.join(", ") + " now works anywhere again, because the project no longer has a website.",
@@ -1987,11 +1998,11 @@ const ProjectCard = ({project, expanded, authorName, listingContext, update, set
             </span>
             {project.aiAssisted ?
               <span className="devPocBadge"><InterfaceText text={{en: "Built with AI tools", he: "נבנה בעזרת בינה מלאכותית"}} /></span> : null}
-            {listingIncomplete(project) ?
+            {listingIncomplete(project, account) ?
               <span className="devPocBadge devPocBadgePending" data-badge="listing-incomplete">
                 <InterfaceText text={{en: "Listing incomplete", he: "הרישום לא הושלם"}} />
               </span> : null}
-            {listingIncomplete(project) && expanded ?
+            {listingIncomplete(project, account) && expanded ?
               <button type="button" className="devPocTextButton" data-agent-action="open-powered-by" onClick={() => onOpenPoweredBy(project.id)}>
                 <InterfaceText text={{en: "Finish the listing", he: "השלמת הרישום"}} />
               </button> : null}
@@ -2032,19 +2043,82 @@ const ProjectCard = ({project, expanded, authorName, listingContext, update, set
 };
 
 
-/* The page a public project's Powered by details live on. */
-const PoweredByDetailsPage = ({project, onBack}) => (
-  <section className="devPocCard devPocPoweredBy" aria-labelledby="devPocPoweredByTitle">
-    <button type="button" className="devPocTextButton" data-agent-action="back-to-project" onClick={onBack}>
-      <InterfaceText text={{en: "← Back to " + project.name, he: "→ חזרה אל " + project.name}} />
-    </button>
-    <h2 id="devPocPoweredByTitle"><InterfaceText text={{en: "Powered by details", he: "פרטים ל־Powered by"}} /></h2>
-    <p className="devPocHelp" dir="auto">{project.name}</p>
-    {listingIncomplete(project) ?
-      <p><span className="devPocBadge devPocBadgePending"><InterfaceText text={{en: "Listing incomplete", he: "הרישום לא הושלם"}} /></span></p> : null}
-    <p><InterfaceText text={{en: "Powered by details — coming next.", he: "פרטים ל־Powered by — בקרוב."}} /></p>
-  </section>
-);
+const AUTOSAVE_MS = 800;
+
+/* A public project's Powered by details: the Powered by form, prefilled and saved as it
+   changes. Only fields changed here are written, so an edit made elsewhere in the meantime
+   isn't overwritten. */
+const PoweredByDetailsPage = ({project, account, update, onBack}) => {
+  const [initialValues] = useState(() => poweredByValues(project, account));
+  const [missing, setMissing] = useState(() => listingMissingFields(project, account));
+  const [saveStatus, setSaveStatus] = useState("");   // "" | saving | saved
+  const savedValues = useRef(initialValues);
+  const pendingValues = useRef(null);
+  const timer = useRef(null);
+  const mounted = useRef(true);
+
+  const flush = () => {
+    clearTimeout(timer.current);
+    const values = pendingValues.current;
+    if (!values) { return; }
+    pendingValues.current = null;
+    const changed = Object.fromEntries(Object.entries(values)
+      .filter(([name, value]) => JSON.stringify(value) !== JSON.stringify(savedValues.current[name])));
+    savedValues.current = values;
+    update(s => ({
+      ...s,
+      projects: s.projects.map(p => p.id !== project.id ? p :
+        applyPoweredByValues(p, {...poweredByValues(p, account), ...changed})),
+    }));
+    if (mounted.current) { setSaveStatus("saved"); }
+  };
+
+  useEffect(() => () => { mounted.current = false; flush(); }, []);
+
+  const onChange = (values) => {
+    pendingValues.current = values;
+    setSaveStatus("saving");
+    clearTimeout(timer.current);
+    timer.current = setTimeout(flush, AUTOSAVE_MS);
+  };
+
+  return (
+    <section className="devPocCard devPocPoweredBy" aria-labelledby="devPocPoweredByTitle">
+      <button type="button" className="devPocTextButton" data-agent-action="back-to-project" onClick={() => { flush(); onBack(); }}>
+        <InterfaceText text={{en: "← Back to " + project.name, he: "→ חזרה אל " + project.name}} />
+      </button>
+      <div className="devPocHeading">
+        <div>
+          <h2 id="devPocPoweredByTitle"><InterfaceText text={{en: "Powered by details", he: "פרטים ל־Powered by"}} /></h2>
+          <p className="devPocHelp">
+            <InterfaceText text={{
+              en: "What Powered by Sefaria shows about your project. Changes save as you type.",
+              he: "מה ש־Powered by Sefaria מציג על הפרויקט שלך. השינויים נשמרים תוך כדי הקלדה.",
+            }} />
+          </p>
+        </div>
+        <span className="devPocSaveStatus" role="status" data-save-status={saveStatus}>
+          {saveStatus === "saving" ? <InterfaceText text={{en: "Saving…", he: "שומר…"}} /> :
+            saveStatus === "saved" ? <InterfaceText text={{en: "Saved", he: "נשמר"}} /> : null}
+        </span>
+      </div>
+      {missing.length ?
+        <p className="devPocNotice" data-badge="listing-incomplete">
+          <span className="devPocBadge devPocBadgePending"><InterfaceText text={{en: "Listing incomplete", he: "הרישום לא הושלם"}} /></span>{" "}
+          <InterfaceText text={{
+            en: "Fill in the fields marked * to complete the listing. Your project stays public in the meantime.",
+            he: "מלאו את השדות המסומנים ב־* כדי להשלים את הרישום. בינתיים הפרויקט נשאר ציבורי.",
+          }} />
+        </p> : null}
+      <PoweredByForm
+        mode="project"
+        initialValues={initialValues}
+        onChange={onChange}
+        onMissingRequiredChange={setMissing}
+      />
+    </section>
+  );
+};
 
 
 const ConfirmDialog = ({confirm, onClose}) => {
@@ -2070,8 +2144,9 @@ const ConfirmDialog = ({confirm, onClose}) => {
 const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, setConfirm, notice, setNotice,
                        connectedMessage, editingProfile, setEditingProfile, showNewProject,
                        setShowNewProject, onCreateProject, setProjectId, onStart,
-                       onConnectSso, settingUp, poweredByProjectId, onOpenPoweredBy, onClosePoweredBy}) => {
+                       onConnectSso, settingUp, poweredByProjectId, poweredByFormVersion, onOpenPoweredBy, onClosePoweredBy}) => {
   const authorName = accountName() || (state.profile ? state.profile.developerName : "");
+  const account = pocAccount(state);
   const listingContext = {
     listings: poweredByListings(state, accountEmail()),
     email: accountEmail(),
@@ -2129,7 +2204,13 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
         !state.profile ?
         <ProfileOnboarding onSave={profile => update(s => ({...s, profile}))} /> :
         poweredByProject ?
-        <PoweredByDetailsPage project={poweredByProject} onBack={onClosePoweredBy} /> :
+        <PoweredByDetailsPage
+          key={poweredByProject.id + "-" + poweredByFormVersion}
+          project={poweredByProject}
+          account={account}
+          update={update}
+          onBack={onClosePoweredBy}
+        /> :
         <React.Fragment>
           {notice ?
             <div className="devPocNotice" role="status">
@@ -2196,6 +2277,7 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
               project={p}
               expanded={state.expandedProjectId === p.id}
               authorName={authorName}
+              account={account}
               listingContext={listingContext}
               update={update}
               setConfirm={setConfirm}
@@ -2693,6 +2775,7 @@ const SettingsPage = ({tab, projectId, projectSection, accountSettings, initialD
     return loaded;
   });
   const [showNewProject, setShowNewProject] = useState(false);
+  const [poweredByFormVersion, setPoweredByFormVersion] = useState(0);
   const [poweredByProjectId, setPoweredByProjectId] = useState(projectSection === POWERED_BY_SECTION ? projectId : null);
   const [editingProfile, setEditingProfile] = useState(false);
   const [confirm, setConfirm] = useState(null);
@@ -2734,7 +2817,13 @@ const SettingsPage = ({tab, projectId, projectSection, accountSettings, initialD
     writeState(next).catch(() => setNotice(Sefaria._v(SAVE_FAILED)));
     return next;
   };
-  const update = (fn) => setPocState(persist(fn(stateRef.current)));
+  /* A details page leaving with the settings page still saves its last changes. */
+  const pageMounted = useRef(true);
+  useEffect(() => () => { pageMounted.current = false; }, []);
+  const update = (fn) => {
+    const next = persist(fn(stateRef.current));
+    if (pageMounted.current) { setPocState(next); }
+  };
   const [resetCount, setResetCount] = useState(0);
   const reset = (next) => {
     setPocState(persist(next));
@@ -2760,6 +2849,16 @@ const SettingsPage = ({tab, projectId, projectSection, accountSettings, initialD
     update(s => ({...s, expandedProjectId: id}));
     setProjectId(id);
   };
+
+  const fillAnswers = (id) => {
+    update(s => ({
+      ...s,
+      projects: s.projects.map(p => p.id !== id ? p :
+        applyPoweredByValues(p, fillRequiredAnswers(poweredByValues(p, pocAccount(s)), pocAccount(s)))),
+    }));
+    setPoweredByFormVersion(v => v + 1);
+  };
+  const listingProject = pocState.projects.find(p => p.id === (poweredByProjectId || pocState.expandedProjectId));
 
   const createProject = (fields) => {
     const project = makeProject(fields);
@@ -2836,6 +2935,7 @@ const SettingsPage = ({tab, projectId, projectSection, accountSettings, initialD
         onConnectSso={setMockSso}
         settingUp={settingUp}
         poweredByProjectId={poweredByProjectId}
+        poweredByFormVersion={poweredByFormVersion}
         onOpenPoweredBy={openPoweredBy}
         onClosePoweredBy={closePoweredBy}
       />
@@ -2870,6 +2970,8 @@ const SettingsPage = ({tab, projectId, projectSection, accountSettings, initialD
           reset={reset}
           showSimulate={true}
           onOpenMockEmail={() => setMockEmailOpen(true)}
+          listingProject={listingProject}
+          onFillAnswers={fillAnswers}
         />
       </div>
     </div>

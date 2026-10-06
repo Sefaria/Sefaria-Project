@@ -32,6 +32,9 @@ import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import Sefaria from '../sefaria/sefaria';
 import SettingsPage from '../SettingsPage.jsx';
+import {
+  applyPoweredByValues, fillRequiredAnswers, listingIncomplete, poweredByValues,
+} from '../developerPocStore';
 
 let container = null;
 
@@ -81,6 +84,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  if (!container) { return; }
   ReactDOM.unmountComponentAtNode(container);
   container.remove();
   container = null;
@@ -290,21 +294,33 @@ describe('linking a listing', () => {
   });
 });
 
+const ACCOUNT = { name: 'Tova Levi', email: 'tova@example.org' };
+const detailsForm = () => container.querySelector('.pbfMode-project');
+const formField = (name) => container.querySelector('#pbf-' + name);
+
 describe('saving a public project', () => {
-  it('opens the Powered by details page at its own address', () => {
+  it('opens the Powered by form at its own address, prefilled from the account and project', () => {
     const setProjectId = jest.fn();
     openNewProject({}, { setProjectId });
     typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
     typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
+    act(() => { container.querySelector('input[type="checkbox"]').click(); });
     act(() => { visibilityRadio('public').click(); });
     act(() => { buttonNamed(container, 'Make public').click(); });
     submitProject();
 
     const saved = lastSavedState().projects[0];
     expect(saved.visibility).toBe('public');
-    expect(saved.listingComplete).toBe(false);
     expect(setProjectId).toHaveBeenLastCalledWith(saved.id, 'powered-by');
-    expect(developerPanel().textContent).toContain('Powered by details — coming next');
+    expect(detailsForm()).toBeTruthy();
+    expect(formField('firstName').value).toBe('Tova');
+    expect(formField('lastName').value).toBe('Levi');
+    expect(formField('email').value).toBe('tova@example.org');
+    expect(formField('projectName').value).toBe('Daf Tracker');
+    expect(formField('projectLink').value).toBe('daftracker.org');
+    expect(formField('description').value).toBe('A tracker');
+    expect(container.querySelector('#pbf-vibeCoded input[value="Yes"]').checked).toBe(true);
+    expect(container.querySelector('#pbf-endpointCategories')).toBeNull();
 
     act(() => { container.querySelector('[data-agent-action="back-to-project"]').click(); });
     expect(setProjectId).toHaveBeenLastCalledWith(saved.id);
@@ -319,34 +335,109 @@ describe('saving a public project', () => {
     act(() => { visibilityRadio('private').click(); });
     submitProject();
     expect(setProjectId).toHaveBeenLastCalledWith(lastSavedState().projects[0].id);
-    expect(developerPanel().textContent).not.toContain('coming next');
+    expect(detailsForm()).toBeNull();
   });
 });
 
 const publicProject = (extra = {}) => ({
   id: 'proj01', name: 'Daf Tracker', description: 'A tracker', visibility: 'public', organization: '',
   websiteUrl: 'https://daftracker.org', aiAssisted: false, listingRequest: null, linkedListingId: null,
-  listingComplete: false, consentWithdrawnAt: null, usage: { requests30: 0, lastUsed: null }, keys: [], ...extra,
+  poweredByAnswers: null, consentWithdrawnAt: null, usage: { requests30: 0, lastUsed: null }, keys: [], ...extra,
 });
 
+const completeProject = (extra = {}) => {
+  const project = publicProject(extra);
+  return applyPoweredByValues(project, fillRequiredAnswers(poweredByValues(project, ACCOUNT), ACCOUNT));
+};
+
 describe('the Powered by details page', () => {
-  it('renders from its address', () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject()] },
-      { projectId: 'proj01', projectSection: 'powered-by' });
-    expect(developerPanel().textContent).toContain('Powered by details — coming next');
-    expect(developerPanel().textContent).toContain('Listing incomplete');
+  const openDetails = (project = publicProject()) => mount(
+    'developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [project], expandedProjectId: project.id },
+    { projectId: project.id, projectSection: 'powered-by' },
+  );
+
+  it('renders from its address and says the listing is incomplete', () => {
+    openDetails();
+    expect(detailsForm()).toBeTruthy();
+    expect(container.querySelector('[data-badge="listing-incomplete"]')).toBeTruthy();
   });
 
-  it("isn't a listing-incomplete project once the listing is complete", () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject({ listingComplete: true })],
-      expandedProjectId: 'proj01' });
+  it('autosaves after a pause, and shared fields change the project', () => {
+    jest.useFakeTimers();
+    openDetails();
+    typeInto(formField('projectName'), 'Daf Tracker Pro');
+    expect(container.querySelector('.devPocSaveStatus').textContent).toBe('Saving…');
+    const writesBefore = global.fetch.mock.calls.length;
+    act(() => { jest.advanceTimersByTime(800); });
+    expect(global.fetch.mock.calls.length).toBe(writesBefore + 1);
+    expect(container.querySelector('.devPocSaveStatus').textContent).toBe('Saved');
+    const saved = lastSavedState().projects[0];
+    expect(saved.name).toBe('Daf Tracker Pro');
+    expect(saved.poweredByAnswers.firstName).toBe('Tova');
+    expect(saved.poweredByAnswers.projectName).toBeUndefined();
+    act(() => { jest.runOnlyPendingTimers(); });
+    jest.useRealTimers();
+  });
+
+  it('saves pending changes when leaving', () => {
+    openDetails();
+    typeInto(formField('lastName'), 'Levi-Cohen');
+    act(() => { container.querySelector('[data-agent-action="back-to-project"]').click(); });
+    expect(lastSavedState().projects[0].poweredByAnswers.lastName).toBe('Levi-Cohen');
+  });
+
+  it('shows stored answers rather than the prefill', () => {
+    openDetails(publicProject({ poweredByAnswers: { firstName: 'Tovah', lastName: 'L', email: 'work@example.org' } }));
+    expect(formField('firstName').value).toBe('Tovah');
+    expect(formField('email').value).toBe('work@example.org');
+    expect(formField('projectName').value).toBe('Daf Tracker');
+  });
+
+  it('drops the incomplete notice once every required field is filled', () => {
+    openDetails(completeProject());
     expect(container.querySelector('[data-badge="listing-incomplete"]')).toBeNull();
+  });
+
+  it('can be filled from the POC test panel', () => {
+    openDetails();
+    act(() => { container.querySelector('[data-poc-control="fill-answers"]').click(); });
+    expect(container.querySelector('[data-badge="listing-incomplete"]')).toBeNull();
+    expect(lastSavedState().projects[0].poweredByAnswers.consent).toBeTruthy();
+  });
+});
+
+describe('listing completeness', () => {
+  it('comes from the required Powered by fields, not from linking', () => {
+    expect(listingIncomplete(publicProject({ linkedListingId: 'pb03' }), ACCOUNT)).toBe(true);
+    expect(listingIncomplete(completeProject(), ACCOUNT)).toBe(false);
+    expect(listingIncomplete(publicProject({ visibility: 'private' }), ACCOUNT)).toBe(false);
+  });
+
+  it('badges only incomplete public projects', () => {
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [completeProject()], expandedProjectId: 'proj01' });
+    expect(container.querySelector('[data-badge="listing-incomplete"]')).toBeNull();
+  });
+
+  it("doesn't reopen the form when a complete public project is saved", () => {
+    const setProjectId = jest.fn();
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [completeProject()], expandedProjectId: 'proj01' },
+      { setProjectId });
+    act(() => { buttonNamed(container, 'Edit project').click(); });
+    act(() => { container.querySelector('[data-agent-action="save-project"]').click(); });
+    expect(detailsForm()).toBeNull();
+  });
+
+  it('reopens the form when a public project with missing answers is saved', () => {
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject()], expandedProjectId: 'proj01' });
+    act(() => { buttonNamed(container, 'Edit project').click(); });
+    act(() => { container.querySelector('[data-agent-action="save-project"]').click(); });
+    expect(detailsForm()).toBeTruthy();
   });
 });
 
 describe('making a public project private', () => {
   const editPublicProject = () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject({ listingComplete: true })],
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [completeProject()],
       expandedProjectId: 'proj01' });
     act(() => { buttonNamed(container, 'Edit project').click(); });
     act(() => { visibilityRadio('private').click(); });
