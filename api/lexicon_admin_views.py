@@ -9,6 +9,7 @@ from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
 from sefaria.client.util import jsonResponse
 from sefaria.model.lexicon import LexiconEntry, LexiconEntrySet, Lexicon, LexiconEntrySubClassMapping, WordForm, WordFormSet
+from sefaria.model import log_update, diff_strings
 from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.helper.schema import change_lexicon_headword, get_available_lexicon_headword
@@ -65,19 +66,26 @@ class LexiconEntryView(View):
             return _ambiguous()
         if not entry:
             return _not_found()
+        old_dict = entry.contents()
+        old_body = "\n".join(entry.as_strings(with_headword=False))
         try:
             entry.replace_content_attrs(body.get("content", {}))
             entry.save()
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
+        new_body = "\n".join(entry.as_strings(with_headword=False))
+        diff_html, revert_patch = diff_strings(old_body, new_body)
         # DictionaryEntryNode embeds the loaded entry inside itself, so a cached Ref for it
         # would otherwise keep serving pre-edit content until the process restarts. This
         # process's own cache is cleared directly; other pods behind the same deployment
         # each carry their own copy of the same cache and only hear about the edit via
-        # the multiserver event.
+        # the multiserver event. The same lookup also gives us the ref for history logging.
         lex = Lexicon().load({"name": lexicon})
-        if lex and getattr(lex, "index_title", None):
-            tref = f"{lex.index_title}, {entry.headword}"
+        tref = f"{lex.index_title}, {entry.headword}" if lex and getattr(lex, "index_title", None) else None
+        log_update(request.user.id, LexiconEntry, old_dict, entry.contents(),
+                   ref=tref, diff_html=diff_html, revert_patch=revert_patch,
+                   version=getattr(lex, "version_title", None), language=getattr(lex, "version_lang", None))
+        if tref:
             Ref.remove_ref_from_cache(lex.index_title, tref)
             if MULTISERVER_ENABLED:
                 server_coordinator.publish_event("Ref", "remove_ref_from_cache", [lex.index_title, tref])
@@ -114,6 +122,8 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
             # don't silently 200 as if nothing was asked for.
             return jsonResponse({"error": f"'{new_headword}' collides with this entry's own "
                                            f"current headword after disambiguation; no change made."}, status=409)
+        old_dict = entry.contents()
+        old_headword = entry.headword
         try:
             actual_headword = change_lexicon_headword(lexicon, entry.headword, resolved)
         except ValueError as e:
@@ -134,6 +144,14 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
             return jsonResponse({"error": str(e)}, status=400)
         # actual_headword rather than resolved: entry.save() inside change_lexicon_headword
         # can still transform it (NFC-normalize), so resolved is only the pre-save candidate.
+        # change_lexicon_headword only ever touches this entry's headword field, so patching
+        # that one field onto old_dict avoids a second DB read just to log history.
+        diff_html, revert_patch = diff_strings(old_headword, actual_headword)
+        lex = Lexicon().load({"name": lexicon})
+        tref = f"{lex.index_title}, {actual_headword}" if lex and getattr(lex, "index_title", None) else None
+        log_update(request.user.id, LexiconEntry, old_dict, {**old_dict, "headword": actual_headword},
+                   ref=tref, diff_html=diff_html, revert_patch=revert_patch,
+                   version=getattr(lex, "version_title", None), language=getattr(lex, "version_lang", None))
         return jsonResponse({"status": "ok", "headword": actual_headword})
 
 
