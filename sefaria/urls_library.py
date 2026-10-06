@@ -49,6 +49,8 @@ urlpatterns = [
     re_path(r'^settings/profile/?$', reader_views.settings_profile_redirect),
     re_path(r'^settings/developer/?$', partial(reader_views.settings_page, tab="developer")),
     path('settings/developer/projects/<str:project_id>', partial(reader_views.settings_page, tab="developer")),
+    path('settings/developer/confirm-email/<str:token>', reader_views.developer_poc_confirm_email),
+    path('settings/developer/email-confirmed', reader_views.developer_poc_email_confirmed),
     path('api/developer-poc/state', reader_views.developer_poc_state_api),
     re_path(r'^powered-by/form/?$', powered_by_poc_views.powered_by_form_page),
     path('api/developer-poc/powered-by-submissions', powered_by_poc_views.powered_by_poc_submissions_api),

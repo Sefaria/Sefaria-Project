@@ -69,6 +69,7 @@ export const emptyState = () => ({
   ssoOverride: null,   // null: use the account's real providers. true/false: pretend.
   emailVerified: false,       // confirmed through the emailed link
   confirmationSentAt: null,   // when a confirmation link was last "sent"
+  confirmationToken: null,    // the token in that link
   failNextKey: false,
   submitterEmailListingId: null,   // the listing whose submitter email is the account email
   profile: null,
@@ -181,6 +182,27 @@ export const sampleState = () => {
     expandedProjectId: project.id,
   };
 };
+
+/* The emailed link. Opening it needs no login and works in any browser: the server records
+   the token, and the settings page notices on its next read of the state. */
+export const makeConfirmationToken = () => {
+  let token = "";
+  while (token.length < 16) { token += Math.random().toString(36).slice(2); }
+  return token.slice(0, 16);
+};
+export const confirmationLink = (token) => "/settings/developer/confirm-email/" + token;
+
+/* The confirmation page sets this, so a settings tab in the same browser checks at once
+   rather than at its next poll. */
+export const CONFIRMATION_SIGNAL_KEY = "sefariaDeveloperPocEmailConfirmed";
+
+export const readState = () => fetch(DEVELOPER_POC_STATE_URL, {
+  mode: "same-origin",
+  credentials: "same-origin",
+}).then(response => {
+  if (!response.ok) { throw new Error("Could not read the POC state"); }
+  return response.json();
+});
 
 /* The UI updates optimistically and the write is fire and forget; the returned promise
    rejects so the caller can show a notice. */

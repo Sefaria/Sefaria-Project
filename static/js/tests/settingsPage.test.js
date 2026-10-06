@@ -31,7 +31,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import Sefaria from '../sefaria/sefaria';
-import SettingsPage from '../SettingsPage.jsx';
+import SettingsPage, { EmailConfirmedPage } from '../SettingsPage.jsx';
 import { parseWebsite } from '../developerPocStore';
 
 let container = null;
@@ -552,6 +552,71 @@ describe('confirming the email', () => {
     act(() => { jest.runAllTimers(); });
     expect(developerPanel().textContent).toContain('About you');
     jest.useRealTimers();
+  });
+});
+
+describe('the confirmation link', () => {
+  const unverified = { developerEnabled: false, ssoOverride: false };
+  const flush = async () => { for (let i = 0; i < 5; i++) { await Promise.resolve(); } };
+  const serverSays = (state) => {
+    global.fetch = jest.fn((url, options) => (options && options.method === 'POST')
+      ? Promise.resolve({ ok: true })
+      : Promise.resolve({ ok: true, json: () => Promise.resolve(state) }));
+  };
+  const sendLink = () => {
+    mount('developer', unverified);
+    act(() => { buttonNamed(developerPanel(), 'Get started').click(); });
+    act(() => { buttonNamed(developerPanel(), 'Email me a confirmation link').click(); });
+  };
+
+  it('opens its own page in a new tab from the mock email', () => {
+    sendLink();
+    const token = lastSavedState().confirmationToken;
+    expect(token).toMatch(/^[a-z0-9]{16}$/);
+    act(() => { container.querySelector('[data-agent-action="mock-open-email"]').click(); });
+    const link = container.querySelector('[data-agent-action="mock-confirm-email"]');
+    expect(link.getAttribute('href')).toBe('/settings/developer/confirm-email/' + token);
+    expect(link.getAttribute('target')).toBe('_blank');
+  });
+
+  it('is noticed by the waiting tab within a few seconds', async () => {
+    jest.useFakeTimers();
+    sendLink();
+    serverSays({ emailVerified: false });
+    await act(async () => { jest.advanceTimersByTime(3000); await flush(); });
+    expect(developerPanel().textContent).toContain('Check your email');
+
+    serverSays({ emailVerified: true });
+    await act(async () => { jest.advanceTimersByTime(3000); await flush(); });
+    act(() => { jest.runOnlyPendingTimers(); });
+    expect(developerPanel().textContent).toContain('Your email is confirmed.');
+    expect(developerPanel().textContent).toContain('About you');
+    expect(lastSavedState().emailVerified).toBe(true);
+    jest.useRealTimers();
+  });
+
+  it('is checked at once when another tab in this browser signals it', async () => {
+    sendLink();
+    serverSays({ emailVerified: true });
+    await act(async () => {
+      window.dispatchEvent(new StorageEvent('storage', { key: 'sefariaDeveloperPocEmailConfirmed', newValue: '1' }));
+      await flush();
+    });
+    expect(global.fetch.mock.calls.some(([url, options]) => url === '/api/developer-poc/state' && !options.method)).toBe(true);
+    expect(developerPanel().textContent).toContain('Setting up developer settings');
+  });
+
+  it('lands on a thank-you page that signals other tabs', () => {
+    window.localStorage.removeItem('sefariaDeveloperPocEmailConfirmed');
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    act(() => { ReactDOM.render(<EmailConfirmedPage />, container); });
+    expect(container.textContent).toContain('Thank you for confirming your email');
+    expect(container.textContent).toContain('You can close this tab');
+    const next = container.querySelector('[data-agent-action="continue-to-developer-settings"]');
+    expect(next.textContent).toBe('Continue to developer settings');
+    expect(next.getAttribute('href')).toBe('/settings/developer');
+    expect(window.localStorage.getItem('sefariaDeveloperPocEmailConfirmed')).toBeTruthy();
   });
 });
 

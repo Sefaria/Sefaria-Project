@@ -17490,6 +17490,9 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   background: #fff;
 }
 .devPocCard > h2, .devPocEmpty h2 { margin: 0 0 var(--devPoc-s1); }
+.devPocEmailConfirmed { max-width: 560px; margin: var(--devPoc-s4) auto; }
+.devPocEmailConfirmed h1 { font-size: 24px; font-weight: 600; margin: 0 0 var(--devPoc-s3); }
+.devPocEmailConfirmed .devPocHelp { margin: var(--devPoc-s3) 0 0; }
 .devPocLead { margin: 0 0 var(--devPoc-s3); font-size: 14px; }
 
 .devPocHelp { display: block; font-size: 13px; color: #626971; line-height: 1.5; margin-top: var(--devPoc-s1); }

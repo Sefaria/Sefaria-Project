@@ -80,6 +80,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
+from django.core.cache import cache
 from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
@@ -4555,6 +4556,28 @@ def edit_profile(request):
 
 DEVELOPER_POC_SESSION_KEY = "developer_poc_state"
 DEVELOPER_POC_MAX_BYTES = 64 * 1024
+DEVELOPER_POC_CONFIRMED_CACHE_PREFIX = "developer_poc_email_confirmed:"
+DEVELOPER_POC_CONFIRMATION_TTL_SECONDS = 3 * 24 * 60 * 60
+DEVELOPER_POC_TOKEN_RE = re.compile(r"^[a-z0-9]{8,64}$")
+
+
+def _developer_poc_state(request):
+    """
+    The session's mock developer state, with a confirmation link opened anywhere (any
+    browser, device or login) applied: the link is recorded in the shared cache by token.
+    Confirming carries on the setup that asked for it, so developer settings turn on.
+    """
+    state = request.session.get(DEVELOPER_POC_SESSION_KEY)
+    if not isinstance(state, dict) or state.get("emailVerified"):
+        return state
+    token = state.get("confirmationToken")
+    if not isinstance(token, str) or not cache.get(DEVELOPER_POC_CONFIRMED_CACHE_PREFIX + token):
+        return state
+    state = {**state, "emailVerified": True, "confirmationSentAt": None, "confirmationToken": None,
+             "developerEnabled": True}
+    request.session[DEVELOPER_POC_SESSION_KEY] = state
+    request.session.modified = True
+    return state
 
 
 def _account_settings_props(request, profile):
@@ -4599,7 +4622,7 @@ def settings_page(request, tab="account", project_id=None):
         "initialSettingsTab": tab,
         "initialDeveloperProjectId": project_id,
         "initialAccountSettings": _account_settings_props(request, profile),
-        "initialDeveloperPoc": request.session.get(DEVELOPER_POC_SESSION_KEY),
+        "initialDeveloperPoc": _developer_poc_state(request),
     }
     titles = {
         "account": "Account Settings",
@@ -4620,7 +4643,7 @@ def developer_poc_state_api(request):
     in the session so the page can be rendered server-side.
     """
     if request.method == "GET":
-        return JsonResponse(request.session.get(DEVELOPER_POC_SESSION_KEY), safe=False)
+        return JsonResponse(_developer_poc_state(request), safe=False)
 
     if request.method == "POST":
         body = request.body
@@ -4642,6 +4665,23 @@ def developer_poc_state_api(request):
         return jsonResponse({"ok": True})
 
     return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+
+
+def developer_poc_confirm_email(request, token):
+    """
+    The mock emailed confirmation link. It needs no login and no particular browser: it
+    records the token, and the account's settings page picks that up wherever it is open.
+    """
+    if not DEVELOPER_POC_TOKEN_RE.match(token):
+        raise Http404
+    cache.set(DEVELOPER_POC_CONFIRMED_CACHE_PREFIX + token, True, DEVELOPER_POC_CONFIRMATION_TTL_SECONDS)
+    _developer_poc_state(request)
+    return redirect("/settings/developer/email-confirmed")
+
+
+def developer_poc_email_confirmed(request):
+    return menu_page(request, page="developerEmailConfirmed", title="Email confirmed",
+                     desc="Your email is confirmed for Sefaria developer settings.")
 
 
 @ensure_csrf_cookie

@@ -24,7 +24,7 @@ import { NotificationsPanel } from './NotificationsPanel';
 import { UserProfile }  from './UserProfile';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
-import SettingsPage from './SettingsPage';
+import SettingsPage, { EmailConfirmedPage } from './SettingsPage';
 import PoweredByFormPage from './poweredBy/PoweredByFormPage';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
 import LinkerEditorPage from './LinkerEditorPage';
@@ -1101,6 +1101,9 @@ class ReaderPanel extends Component {
           initialData={this.state.collectionData}
         />
       );
+    }
+    else if (this.state.menuOpen === "developerEmailConfirmed") {
+      menu = (<EmailConfirmedPage />);
     }
     else if (this.state.menuOpen === "poweredByForm") {
       menu = (<PoweredByFormPage />);

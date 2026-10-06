@@ -3,16 +3,20 @@ import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
 import {
+  CONFIRMATION_SIGNAL_KEY,
   MAX_DESCRIPTION_LENGTH,
   MAX_KEYS_PER_PROJECT,
   POWERED_BY_LISTINGS,
   canLinkByEmail,
+  confirmationLink,
   emailMatchedListing,
   emptyState,
   listingConflicts,
   listingForWebsite,
   poweredByListings,
   publicListing,
+  readState,
+  makeConfirmationToken,
   makeKey,
   parseWebsite,
   removeProject,
@@ -200,6 +204,7 @@ const scenarioState = (sc) => ({
   ssoOverride: sc.ssoOverride,
   emailVerified: !!sc.emailVerified,
   confirmationSentAt: sc.linkSent ? new Date().toISOString() : null,
+  confirmationToken: sc.linkSent ? makeConfirmationToken() : null,
 });
 
 const accountStatus = (state, realProviders) => {
@@ -303,7 +308,7 @@ const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpen
               type="checkbox"
               className="devPocSwitch"
               checked={!!state.emailVerified}
-              onChange={e => update(s => ({...s, emailVerified: e.target.checked, confirmationSentAt: null}))}
+              onChange={e => update(s => ({...s, emailVerified: e.target.checked, confirmationSentAt: null, confirmationToken: null}))}
               aria-label="Simulate email confirmed"
             />
             <span>Email {state.emailVerified ? "confirmed by link" : "not confirmed by link"}</span>
@@ -319,14 +324,14 @@ const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpen
             <button
               type="button"
               className="devPocPanelButton"
-              disabled={!state.confirmationSentAt}
+              disabled={!state.confirmationSentAt || !state.confirmationToken}
               data-agent-action="mock-open-email"
               onClick={onOpenMockEmail}
             >Open the confirmation email</button>
           </div>
           <p className="devPocPanelNote">
             {state.confirmationSentAt
-              ? "A link was \"sent\". Open the email and press its button to act as clicking the link."
+              ? "A link was \"sent\". Open the email: its button opens the confirmation page in a new tab, like the real link, and this tab moves on within a few seconds."
               : "Enabled after \"Email me a confirmation link\"."}
           </p>
         </div>
@@ -415,9 +420,10 @@ const AgentInstructions = () => (
         If developer settings are not set up yet, press "Get started" (get-started). An
         account whose email is not yet confirmed is asked to confirm it first: press "Email
         me a confirmation link" (send-confirmation). The user then opens the link from their
-        inbox (or you do, if you have access to it), on any device, and setup continues on
-        this page within a few seconds. Accounts that sign in with Google or Apple skip this
-        step.
+        inbox (or you do, if you have access to it), on any device and without signing in.
+        The link opens a "Thank you for confirming your email" page; this page notices within
+        a few seconds and setup continues here. Accounts that sign in with Google or Apple
+        skip this step.
       </li>
       <li>
         Fill in the "About you" form. Name and account email come from the Sefaria account
@@ -2094,8 +2100,10 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
           settingUp={settingUp}
           highlight={highlight}
           onStart={onStart}
-          onSendConfirmation={() => update(s => ({...s, confirmationSentAt: new Date().toISOString()}))}
-          onCancelConfirmation={() => update(s => ({...s, confirmationSentAt: null}))}
+          onSendConfirmation={() => update(s => ({
+            ...s, confirmationSentAt: new Date().toISOString(), confirmationToken: s.confirmationToken || makeConfirmationToken(),
+          }))}
+          onCancelConfirmation={() => update(s => ({...s, confirmationSentAt: null, confirmationToken: null}))}
         /> :
         !state.profile ?
         <ProfileOnboarding onSave={profile => update(s => ({...s, profile}))} /> :
@@ -2179,8 +2187,8 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
 
 
 /* The confirmation email as the user would get it, in the interface language, for copy
-   review. Its button stands in for the emailed link. */
-const MockEmailDialog = ({onCancel, onConfirm}) => {
+   review. Its button is the emailed link, and opens in a new tab as a mail client would. */
+const MockEmailDialog = ({token, onCancel}) => {
   const confirmRef = useRef(null);
   const email = accountEmail() || "you@example.org";
   useDialogKeys(confirmRef, onCancel);
@@ -2200,9 +2208,17 @@ const MockEmailDialog = ({onCancel, onConfirm}) => {
           </p>
           <div className="devPocMockSsoActions">
             <button type="button" className="devPocMockSsoCancel" onClick={onCancel}>Close</button>
-            <button type="button" className="devPocMockSsoContinue" ref={confirmRef} data-agent-action="mock-confirm-email" onClick={onConfirm}>
+            <a
+              className="devPocMockSsoContinue"
+              href={confirmationLink(token)}
+              target="_blank"
+              rel="noopener"
+              ref={confirmRef}
+              data-agent-action="mock-confirm-email"
+              onClick={onCancel}
+            >
               <InterfaceText text={{en: "Confirm my email", he: "אישור כתובת הדוא״ל"}} />
-            </button>
+            </a>
           </div>
           <p className="devPocMockEmailFoot">
             <InterfaceText text={{
@@ -2608,6 +2624,7 @@ const SAVE_FAILED = {
   he: "לא הצלחנו לשמור את מצב ה־POC. השינויים נשמרו רק בלשונית הדפדפן הזו.",
 };
 const CONNECTED_MS = 8000;
+const CONFIRMATION_POLL_MS = 3000;
 const SETUP_MS = 1200;
 const ARRIVAL_HIGHLIGHT_MS = 2400;
 
@@ -2700,11 +2717,32 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     setConfirm(null);
   };
 
-  /* Stands in for opening the emailed link: the real link confirms the address and lands
-     on the Developer tab, which carries on with setup. */
-  const finishEmailConfirmation = () => {
+  /* The confirmation link may be opened anywhere, so a page waiting for it checks the
+     stored state every few seconds, and at once when a tab in this browser signals it. */
+  const awaitingConfirmation = !accountVerified(pocState, socialProviders) && !!pocState.confirmationSentAt
+    && !!pocState.confirmationToken;
+  useEffect(() => {
+    if (!awaitingConfirmation) { return undefined; }
+    let active = true;
+    const check = () => readState().then(server => {
+      if (active && server && server.emailVerified && !stateRef.current.emailVerified) {
+        active = false;
+        emailConfirmed();
+      }
+    }).catch(() => {});
+    const timer = setInterval(check, CONFIRMATION_POLL_MS);
+    const onStorage = (e) => { if (e.key === CONFIRMATION_SIGNAL_KEY) { check(); } };
+    window.addEventListener("storage", onStorage);
+    return () => {
+      active = false;
+      clearInterval(timer);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [awaitingConfirmation, pocState.confirmationToken]);
+
+  const emailConfirmed = () => {
     setMockEmailOpen(false);
-    update(s => ({...s, emailVerified: true, confirmationSentAt: null}));
+    update(s => ({...s, emailVerified: true, confirmationSentAt: null, confirmationToken: null}));
     startDeveloper(() => {
       setConnectedMessage(Sefaria._v({en: "Your email is confirmed.", he: "כתובת הדוא״ל שלך אושרה."}));
       clearTimeout(connectedTimer.current);
@@ -2756,7 +2794,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
       <div className="devPocPage">
         {confirm ? <ConfirmDialog confirm={confirm} onClose={closeConfirm} /> : null}
         {mockEmailOpen ?
-          <MockEmailDialog onCancel={() => setMockEmailOpen(false)} onConfirm={finishEmailConfirmation} /> : null}
+          <MockEmailDialog token={pocState.confirmationToken} onCancel={() => setMockEmailOpen(false)} /> : null}
         <PocTestPanel
           state={pocState}
           realProviders={socialProviders}
@@ -2765,6 +2803,39 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
           showSimulate={true}
           onOpenMockEmail={() => setMockEmailOpen(true)}
         />
+      </div>
+    </div>
+  );
+};
+
+
+/* Where the emailed confirmation link lands. It needs no login: confirming is a fact about
+   the account, and the settings page carries on by itself wherever it is open. */
+export const EmailConfirmedPage = () => {
+  useEffect(() => {
+    try { window.localStorage.setItem(CONFIRMATION_SIGNAL_KEY, String(Date.now())); } catch (e) { /* ignore */ }
+  }, []);
+  return (
+    <div className="readerNavMenu settingsPage" key="emailConfirmed">
+      <div className="content">
+        <div className="contentInner">
+          <div className="devPocPage devPocEmailConfirmed">
+            <div className="devPocCard">
+              <h1><InterfaceText text={{en: "Thank you for confirming your email", he: "תודה שאישרת את כתובת הדוא״ל"}} /></h1>
+              <div className="devPocActions">
+                <a className="button small blue" href="/settings/developer" data-agent-action="continue-to-developer-settings">
+                  <InterfaceText text={{en: "Continue to developer settings", he: "המשך להגדרות המפתחים"}} />
+                </a>
+              </div>
+              <p className="devPocHelp">
+                <InterfaceText text={{
+                  en: "You can close this tab. If developer settings are open in another tab, they carry on there.",
+                  he: "אפשר לסגור את הלשונית הזו. אם הגדרות המפתחים פתוחות בלשונית אחרת, הן ימשיכו שם.",
+                }} />
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
