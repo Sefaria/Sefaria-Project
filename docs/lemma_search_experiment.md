@@ -197,14 +197,13 @@ loader; its explicit allowlist transport is scoped to this process, leaving the
 original local-only CLI unchanged. Run the importer as an intentional one-time job,
 not on web or worker startup. Partial imports require investigation/a fresh name.
 
-### Remaining deployment gates
+### Deployment status
 
-Publish the application branch image and worker image, publish/pin the changed Helm
-chart, and prepare a reviewed Cauldron release. Verify Sentinel connectivity, shared
-Elasticsearch permissions/plugins, memory limits and latency in the actual cluster.
-Google Cloud authentication was restored on 2026-10-06. Read-only checks confirm
-dev ES 8.8.0, the required ICU/Sefaria analyzers, and permissions on the dedicated
-index. Live capacity, import, and HTTPS tester access still require validation.
+The branch images and Helm chart are published, and the Cauldron release is
+installed. Google Cloud authentication was restored on 2026-10-06. Dev ES 8.8.0
+has the required ICU/Sefaria analyzers; the dedicated index is imported and ready.
+Live Redis/Sentinel inference and the web container's actual Celery client both
+pass. Capacity under concurrent users and Sentinel failover remain untested.
 
 ### Local deployment verification (2026-10-06)
 
@@ -291,3 +290,22 @@ The initial Cauldron installation performs its normal database restore before
 starting application pods. Code-only updates do not repeat this restore. Check
 HelmRelease and pod readiness rather than treating successful image publication
 as evidence that the website is ready.
+
+### Live verification (2026-10-06)
+
+Helm reports `Ready` after installation and an automatic image update. Flux
+advanced the worker from `sha-415d8ea-20261006110908` to
+`sha-623750c-20261006112012` after a subsequent branch push, exercising the actual
+CI → registry → GitOps → deployment path. The initial database restore completed;
+the upgrade did not repeat it.
+
+A real task on `lemma-search-lemma-search`, using the cluster Redis/Sentinel and
+dev Elasticsearch, returned baseline 0 / enhanced 2 for the expanded test query.
+The cold round trip was 26.06 seconds. The same task sent by the web container's
+actual Sefaria Celery app returned successfully in 0.13 seconds with the model and
+query cached. These are smoke-test timings, not load-test results.
+
+The public HTTPS page and API return 403 to anonymous requests as intended. Staff
+page rendering and job ownership are covered by the isolated endpoint tests; an
+interactive staff login/browser session has not been exercised by this deployment
+check. Sign in with a staff account before visiting the comparison page.
