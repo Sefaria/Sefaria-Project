@@ -1098,7 +1098,7 @@ def change_lexicon_headword(parent_lexicon, old_headword, new_headword, rebuild_
         old_ref_reg = fr'^{re.escape(ref)} ?\d*$'
         rewriter = lambda x: x.replace(old_headword, new_headword)
         needs_rewrite = lambda x, *args: bool(re.search(old_ref_reg, x))
-        cascade(index.title, rewriter, needs_rewrite, True)
+        cascade(index.title, rewriter, needs_rewrite)
 
     # word forms
     print('Updating word forms')

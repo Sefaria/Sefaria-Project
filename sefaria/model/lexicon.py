@@ -86,6 +86,7 @@ class Dictionary(Lexicon):
 
 class LexiconEntry(abst.AbstractMongoRecord):
     collection   = 'lexicon_entry'
+    history_noun = 'lexicon_entry'
 
     required_attrs = [
         "headword",
