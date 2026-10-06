@@ -153,6 +153,31 @@ const writePanelOpen = (open) => {
 /* The POC test controls. Deliberately unlike the product: a floating panel pinned to the
    corner of the viewport, in colours the site never uses, and English only. Nothing in it
    is product UI. */
+/* Starting points for a walkthrough; each one is a fresh account at "Get started". */
+const ACCOUNT_SCENARIOS = [
+  {id: "sso", label: "Google or Apple account", ssoOverride: true},
+  {id: "email", label: "Email account, unconfirmed", ssoOverride: false},
+  {id: "email-sent", label: "Email account, link sent", ssoOverride: false, linkSent: true},
+  {id: "email-confirmed", label: "Email account, confirmed", ssoOverride: false, emailVerified: true},
+];
+
+const scenarioState = (sc) => ({
+  ...emptyState(),
+  ssoOverride: sc.ssoOverride,
+  emailVerified: !!sc.emailVerified,
+  confirmationSentAt: sc.linkSent ? new Date().toISOString() : null,
+});
+
+const accountStatus = (state, realProviders) => {
+  const sso = ssoConnected(state, realProviders);
+  const kind = sso ? "Google or Apple account" : "Email account";
+  const email = sso || state.emailVerified ? "email verified"
+    : state.confirmationSentAt ? "confirmation link sent" : "email not verified";
+  const dev = !state.developerEnabled ? "developer settings not started"
+    : !state.profile ? "at About you" : state.projects.length + " project" + (state.projects.length === 1 ? "" : "s");
+  return "Now: " + kind + " · " + email + " · " + dev;
+};
+
 const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpenMockEmail}) => {
   const [open, setOpen] = useState(false);
 
@@ -189,24 +214,30 @@ const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpen
         </div>
 
         <div className="devPocPanelGroup">
-          <div className="devPocPanelGroupLabel">Account state</div>
+          <div className="devPocPanelGroupLabel">Start over as</div>
+          <div className="devPocPanelRow devPocPanelScenarios">
+            {ACCOUNT_SCENARIOS.map(sc => (
+              <button key={sc.id} type="button" className="devPocPanelButton" data-scenario={sc.id} onClick={() => reset(scenarioState(sc))}>
+                {sc.label}
+              </button>
+            ))}
+          </div>
+          <p className="devPocPanelNote">Each clears developer data and starts at "Get started".</p>
+        </div>
+
+        <div className="devPocPanelGroup">
+          <div className="devPocPanelGroupLabel">Account state now</div>
+          <p className="devPocPanelNote devPocPanelStatus" role="status">{accountStatus(state, realProviders)}</p>
           <label className="devPocPanelChoice">
             <input
               type="checkbox"
               className="devPocSwitch"
               checked={connected}
               onChange={e => update(s => ({...s, ssoOverride: e.target.checked}))}
-              aria-label="Simulate SSO connected"
+              aria-label="Simulate Google or Apple connected"
             />
-            <span>Simulate: SSO {connected ? "connected" : "not connected"}</span>
+            <span>Google or Apple {connected ? "connected" : "not connected"}</span>
           </label>
-          <p className="devPocPanelNote">{realLabel}{pretending ? " (simulated value in use)" : ""}</p>
-          {pretending ?
-            <div className="devPocPanelRow">
-              <button type="button" className="devPocPanelButton" onClick={() => update(s => ({...s, ssoOverride: null}))}>
-                Use real status
-              </button>
-            </div> : null}
           <label className="devPocPanelChoice">
             <input
               type="checkbox"
@@ -215,8 +246,15 @@ const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpen
               onChange={e => update(s => ({...s, emailVerified: e.target.checked, confirmationSentAt: null}))}
               aria-label="Simulate email confirmed"
             />
-            <span>Simulate: email {state.emailVerified ? "confirmed" : "not confirmed"}</span>
+            <span>Email {state.emailVerified ? "confirmed by link" : "not confirmed by link"}</span>
           </label>
+          <p className="devPocPanelNote">{realLabel}{pretending ? " (simulated value in use)" : ""}</p>
+          {pretending ?
+            <div className="devPocPanelRow">
+              <button type="button" className="devPocPanelButton" onClick={() => update(s => ({...s, ssoOverride: null}))}>
+                Use real Google or Apple status
+              </button>
+            </div> : null}
           <div className="devPocPanelRow">
             <button
               type="button"
@@ -228,11 +266,9 @@ const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpen
           </div>
           <p className="devPocPanelNote">
             {state.confirmationSentAt
-              ? "A confirmation link was \"sent\". Open the email to click it."
-              : "Available after \"Email me a confirmation link\"."}
-          </p>
-          <p className="devPocPanelNote">
-            Connecting Google or Apple in this POC is auto-approved: no sign-in happens and no account changes.
+              ? "A link was \"sent\". Open the email and press its button to act as clicking the link."
+              : "Enabled after \"Email me a confirmation link\"."}
+            {" "}Google or Apple sign-in is auto-approved: no real sign-in happens.
           </p>
         </div>
 
@@ -240,10 +276,14 @@ const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpen
           <div className="devPocPanelGroupLabel">Mock data</div>
           <div className="devPocPanelRow">
             <button type="button" className="devPocPanelButton" onClick={() => reset(sampleState())}>Reset to sample data</button>
-            <button type="button" className="devPocPanelButton" onClick={() => reset(emptyState())}>Reset to empty</button>
+            <button
+              type="button"
+              className="devPocPanelButton"
+              onClick={() => reset({...emptyState(), ssoOverride: state.ssoOverride, emailVerified: !!state.emailVerified})}
+            >Reset to empty</button>
           </div>
+          <p className="devPocPanelNote">Sample data is a Google account with one project. Reset to empty keeps the account state.</p>
         </div>
-
         {showSimulate ?
           <div className="devPocPanelGroup">
             <div className="devPocPanelGroupLabel">Simulate</div>
@@ -2338,8 +2378,10 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     return next;
   };
   const update = (fn) => setPocState(persist(fn(stateRef.current)));
+  const [resetCount, setResetCount] = useState(0);
   const reset = (next) => {
     setPocState(persist(next));
+    setResetCount(c => c + 1);
     setShowNewProject(false);
     setEditingProfile(false);
     setConfirm(null);
@@ -2403,6 +2445,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     account: <AccountTab settings={settings} socialProviders={socialProviders} />,
     developer: (
       <DeveloperTab
+        key={resetCount}
         state={pocState}
         socialProviders={socialProviders}
         developerOn={developerOn}

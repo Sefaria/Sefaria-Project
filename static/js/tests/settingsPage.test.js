@@ -207,3 +207,12 @@ describe('confirming the email', () => {
     jest.useRealTimers();
   });
 });
+
+describe('POC test panel', () => {
+  it('starts over as an email account with the link already sent', () => {
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE });
+    act(() => { container.querySelector('[data-scenario="email-sent"]').click(); });
+    expect(developerPanel().textContent).toContain('Check your email');
+    expect(container.querySelector('.devPocPanelStatus').textContent).toContain('Email account · confirmation link sent');
+  });
+});
