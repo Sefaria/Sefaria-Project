@@ -375,6 +375,43 @@ class KovetzYesodotEntry(DictionaryEntry):
         return ['<br>'.join(strings)]
 
 
+class BenYehudaDictionaryEntry(DictionaryEntry):
+    """Eliezer Ben-Yehuda's מילון הלשון העברית.
+
+    Each entry is a single vocalized headword with an HTML definition (already
+    carrying inlined footnotes, styled source citations, and internal
+    cross-reference links, produced by the import pipeline). ``content`` is
+    ``{"definition": [<p>…</p>, …]}`` — one HTML paragraph per list element.
+    """
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
+    optional_attrs = DictionaryEntry.optional_attrs + ["page_num"]
+
+    def headword_string(self):
+        return f'<big><strong dir="rtl">{self.headword}</strong></big>'
+
+    def as_strings(self, with_headword=True):
+        """One string per definition paragraph so each becomes its own segment.
+
+        Segment 1 is the bold headword spliced into the first paragraph;
+        any further paragraphs become their own segments. Cross-reference
+        links therefore resolve to segment 1 of their target entry.
+        """
+        paras = self.content.get("definition", []) or []
+        head = self.headword_string() if with_headword else ""
+
+        if not paras:
+            return [head] if head else [""]
+
+        segments = list(paras)
+        if head:
+            first = segments[0]
+            if first.startswith("<p>"):
+                segments[0] = "<p>" + head + " " + first[3:]
+            else:
+                segments[0] = head + " " + first
+        return segments
+
+
 class KrupnikEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
     optional_attrs = DictionaryEntry.optional_attrs + ['biblical', 'no_binyan_kal', 'emendation', 'used_in', 'equals', 'pos_list']
@@ -525,6 +562,7 @@ class LexiconEntrySubClassMapping(object):
         'BDB Aramaic Dictionary': BDBEntry,
         'Kovetz Yesodot VaChakirot': KovetzYesodotEntry,
         'Krupnik Dictionary': KrupnikEntry,
+        'Ben Yehuda Dictionary': BenYehudaDictionaryEntry,
     }
 
     @classmethod
@@ -555,10 +593,10 @@ class LexiconEntrySet(abst.AbstractMongoSet):
             return not (entry.headword, entry.parent_lexicon) in self._primary_tuples
 
         if self.records is None:
-            self.records = []
-            for rec in self.raw_records:
-                self.records.append(LexiconEntrySubClassMapping.instance_from_record_factory(rec))
-            self.max = len(self.records)
+            # The entry class depends on the document's lexicon, so this set cannot use
+            # `recordClass`. Instantiating through _build_records() rather than looping here
+            # is what keeps with_skip_guard() working — see AbstractMongoSet._build_records.
+            self._build_records(LexiconEntrySubClassMapping.instance_from_record_factory)
             if self._primary_tuples:
                 self.records.sort(key=is_primary)
 

@@ -16,6 +16,7 @@ from sefaria.system.exceptions import InputError
 # from sefaria.export import import_versions_from_stream
 from sefaria.tracker import modify_text
 from sefaria.model import *
+from sefaria.constants.http import SEFARIA_USER_AGENT
 
 
 def version_url(server: str, book_title: str, version_title: str, lang: str) -> str:
@@ -24,7 +25,7 @@ def version_url(server: str, book_title: str, version_title: str, lang: str) -> 
 
 def version_url_generator(server, book_title):
     version_list_url = '{}/api/texts/versions/{}'.format(server, book_title)
-    version_list = requests.get(version_list_url).json()
+    version_list = requests.get(version_list_url, headers={"User-Agent": SEFARIA_USER_AGENT}).json()
     for v in version_list:
         yield version_url(server, book_title, v['versionTitle'], v['language'])
 
@@ -34,7 +35,7 @@ class JsonPullError(Exception):
 
 
 def pull_text_from_server(url):
-    response = requests.get(url)
+    response = requests.get(url, headers={"User-Agent": SEFARIA_USER_AGENT})
     if not response.ok:
         print(f'Received {response.status_code} from {url}')
         raise JsonPullError
