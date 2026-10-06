@@ -50,3 +50,7 @@
 .menuWrap {
   display: contents;
 }
+/* signed in: the profile picture opens the account menu */
+.pictureButton { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+.menuName { cursor: default; }
+.menuName:hover { background: none; }

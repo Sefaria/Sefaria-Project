@@ -5,7 +5,7 @@ import type { LinkProps } from "~/lib/ui-link";
 const isExternal = (href: string) => /^(?:[a-z][a-z0-9+.-]*:)?\/\//i.test(href) || href.startsWith("mailto:");
 
 /** Static app routes; every other path is a ref and goes to the reader's splat route. */
-const STATIC_ROUTES = new Set(["/"]);
+const STATIC_ROUTES = new Set(["/", "/login", "/register"]);
 
 /** Split an internal href ("/Genesis.1.1?with=all") into what the typed router needs. */
 export function toRouterLocation(href: string): { to: string; params?: { _splat: string }; search?: Record<string, string> } {

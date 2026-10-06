@@ -24,7 +24,7 @@ export function CookieNotice({ privacyHref = `${SITE_ORIGIN}/privacy-policy` }: 
     setShow(false);
   };
   return (
-    <div className={styles.notice} role="region" aria-label={lang === "hebrew" ? "הודעה על עוגיות" : "Cookie notice"}>
+    <div className={styles.notice} data-interruptive-ui="" role="region" aria-label={lang === "hebrew" ? "הודעה על עוגיות" : "Cookie notice"}>
       <p className={styles.text}>
         <InterfaceText
           en={<>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <Link href={privacyHref}>Learn More</Link>.</>}

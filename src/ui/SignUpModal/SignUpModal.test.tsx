@@ -15,8 +15,8 @@ describe("SignUpModal", () => {
     expect(dialog).toHaveTextContent("Don’t lose that thought!");
     expect(dialog).toHaveTextContent("Create a free account to do more on Sefaria");
     for (const b of ["Take notes on this text", "Build & create source sheets", "Connect with other users", "Get updates on new features"]) expect(dialog).toHaveTextContent(b);
-    expect(screen.getByRole("link", { name: "Sign Up" })).toHaveAttribute("href", "https://www.sefaria.org/register?next=%2FGenesis.1.1%3Fwith%3Dall");
-    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "https://www.sefaria.org/login?next=%2FGenesis.1.1%3Fwith%3Dall");
+    expect(screen.getByRole("link", { name: "Sign Up" })).toHaveAttribute("href", "/register?next=%2FGenesis.1.1%3Fwith%3Dall");
+    expect(screen.getByRole("link", { name: "Sign in" })).toHaveAttribute("href", "/login?next=%2FGenesis.1.1%3Fwith%3Dall");
     expect(screen.getByRole("link", { name: "Sign Up" })).toHaveAttribute("data-signup-source", "signup_modal_notes");
   });
   it("Add to Sheet words", () => {

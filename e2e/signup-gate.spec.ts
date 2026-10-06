@@ -8,7 +8,7 @@ test.describe("tools that need an account (verified against sefaria.org, signed 
     await page.getByRole("complementary").getByRole("link", { name: "Notes" }).click();
     const dialog = page.getByRole("dialog");
     await expect(dialog).toContainText("Don’t lose that thought!");
-    await expect(dialog.getByRole("link", { name: "Sign Up" })).toHaveAttribute("href", /^https:\/\/www\.sefaria\.org\/register\?next=/);
+    await expect(dialog.getByRole("link", { name: "Sign Up" })).toHaveAttribute("href", /^\/register\?next=/);
     await dialog.getByRole("button", { name: "Close" }).click();
     await expect(dialog).toBeHidden();
     await expect(page).toHaveURL(/with=all/);
