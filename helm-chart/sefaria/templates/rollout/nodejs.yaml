@@ -81,6 +81,21 @@ spec:
           - name: DD_LOGS_INJECTION
             value: "true"
           {{- end }}
+          {{- if eq .Values.nodejs.mode "reader" }}
+          # reader-next/src/lib/config.ts: the API through this release's Varnish, with the public Host Django routes by
+          - name: SEFARIA_API_ORIGIN
+            value: "http://varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}:8040"
+          - name: SEFARIA_API_HOST
+            value: {{ printf "www.%s" (tpl (index .Values.domains.root 0).url .) | quote }}
+          - name: PUBLIC_API_ORIGIN
+            value: ""
+          - name: PUBLIC_SITE_ORIGIN
+            value: ""
+          - name: SEFARIA_PASS_THROUGH
+            value: "1"
+          - name: PORT
+            value: "3000"
+          {{- end }}
           {{- if .Values.mongo.enabled }}
           - name: MONGO_HOST
             value: {{ .Values.deployEnv }}-mongo
@@ -94,4 +109,19 @@ spec:
               optional: true
         ports:
         - containerPort: 3000
+        {{- if eq .Values.nodejs.mode "reader" }}
+        readinessProbe:
+          httpGet:
+            path: /healthz-reader
+            port: 3000
+          periodSeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /healthz-reader
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+        {{- end }}
         resources: {{ toYaml .Values.nodejs.resources | nindent 10 }}

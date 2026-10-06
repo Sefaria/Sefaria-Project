@@ -199,7 +199,8 @@ data:
     SEARCH_INDEX_NAME_BOOK = os.getenv("SEARCH_INDEX_NAME_BOOK", "book")
     SEARCH_INDEX_NAME_CATEGORY = os.getenv("SEARCH_INDEX_NAME_CATEGORY", "category")
     
-    USE_NODE = True
+    {{- /* nodejs.mode "reader": the node pods are the new client, which sends requests to Django rather than rendering for it */}}
+    USE_NODE = {{ if eq .Values.nodejs.mode "reader" }}False{{ else }}True{{ end }}
     NODE_HOST = "http://{}:3000".format(nodejsHost)
     NODE_TIMEOUT = 5
     FAIL_IF_NODE_SSR_UNAVAILABLE = False   # set to True for debugging purposes only if USE_NODE

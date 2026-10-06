@@ -199,6 +199,12 @@ redis:
   pdb: false
 
 nodejs:
+  # What the node pods run; it must match the image.
+  #  legacy: the old SSR server (build/node/Dockerfile.legacy) that Django calls for its first paint (USE_NODE).
+  #  reader: the new reader client (reader-next/, build/node/Dockerfile). nginx sends page requests to it first; it renders the
+  #          reader and library pages, reads the API through Varnish, and hands Django's pages, our 404s and every write to Varnish.
+  #          Django's own SSR is switched off (USE_NODE = False).
+  mode: reader
   containerImage:
     # Full path of the image registry inclusive of the image name
     imageRegistry: us-east1-docker.pkg.dev/production-deployment/containers/sefaria-node
