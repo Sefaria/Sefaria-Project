@@ -51,6 +51,7 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
         purge_url("{}/api/related/{}?with_sheet_links=0".format(FRONT_END_URL, oref.url()))
 
     # Ban anything underneath this section
+    ban_url("/api/texts/{}".format(url_regex(oref)))
     ban_url("/api/v3/texts/{}".format(url_regex(oref)))
     ban_url("/api/links/{}".format(url_regex(oref)))
     ban_url("/api/related/{}".format(url_regex(oref)))
