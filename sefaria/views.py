@@ -46,7 +46,7 @@ from sefaria.helper.crm.salesforce import SalesforceNewsletterListRetrievalError
 from sefaria.system.cache import get_shared_cache_elem, in_memory_cache, set_shared_cache_elem, get_cache_elem, set_cache_elem, get_cache_factory, invalidate_cache_by_pattern
 from sefaria.client.util import jsonResponse, send_email, read_webpack_bundle, read_webpack_bundle_map, celeryResponse
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI, SefariaDeleteUserForm, SefariaDeleteSheet
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, CELERY_ENABLED, SEARCH_INDEX_ON_SAVE
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sso.adapters import import_gravatar
@@ -477,6 +477,9 @@ def find_refs_report_api(request):
     return jsonResponse({'ok': True})
 
 
+FIND_REFS_TASK_EXPIRES_SECONDS = 60
+
+
 @cors_allow_all
 @api_view(["POST", "OPTIONS"])
 def find_refs_api(request):
@@ -486,7 +489,10 @@ def find_refs_api(request):
     find_refs_input = FindRefsInput(request_text, options, metadata)
     async_result = find_refs_api_task.apply_async(
         args=(asdict(find_refs_input),),
-        queue=CeleryQueue.TASKS.value
+        queue=CeleryQueue.FIND_REFS.value,
+        # The linker client gives up polling after ~60s (its 15 retries, in static/js/linker.v3/main.js, run out
+        # before maxRetryTime). Past that nobody is waiting for the result, so workers should skip the task.
+        expires=FIND_REFS_TASK_EXPIRES_SECONDS,
     )
     logger.info(
         "find_refs_api:enqueued",
@@ -1360,13 +1366,13 @@ def delete_sheet_by_id(request):
             process_sheet_deletion_in_collections(id)
             process_sheet_deletion_in_notifications(id)
 
-            try:
-                es_index_name = search.get_new_and_current_index_names("sheet")['current']
-                search.delete_sheet(es_index_name, id)
-            except NewConnectionError as e:
-                logger.warn("Failed to connect to elastic search server on sheet delete.")
-            except AuthorizationException as e:
-                logger.warn("Failed to connect to elastic search server on sheet delete.")
+            # Queued rather than deleted directly: web pods only have read access to ES. The
+            # sheet is already gone from Mongo, so the queue consumer removes its search doc.
+            if SEARCH_INDEX_ON_SAVE:
+                try:
+                    search.queue_sheet_sync(id)
+                except Exception as e:
+                    logger.error(f"Failed to queue deleted sheet {id} for search removal: {type(e).__name__}: {e}")
 
 
             return jsonResponse({"success": f"deleted sheet {sheet_id}"})
@@ -1393,12 +1399,21 @@ def purge_spammer_account_data(spammer_id, delete_from_crm=True):
         except Exception as e:
             logger.error(f'Failed to mark user as spam: {e}')
     sheets = db.sheets.find({"owner": spammer_id})
+    quarantined_sheet_ids = []
     for sheet in sheets:
         sheet["spam_sheet_quarantine"] = datetime.now()
         sheet["datePublished"] = None
         sheet["status"] = "unlisted"
         sheet["displayedCollection"] = None
         db.sheets.replace_one({"_id":sheet["_id"]}, sheet, upsert=True)
+        quarantined_sheet_ids.append(sheet["id"])
+    # Unlisted sheets must leave search; the queue consumer removes them (web cannot write to ES).
+    if SEARCH_INDEX_ON_SAVE and quarantined_sheet_ids:
+        from sefaria.search import queue_sheets_sync
+        try:
+            queue_sheets_sync(quarantined_sheet_ids)
+        except Exception as e:
+            logger.error(f"Failed to queue quarantined sheets of spammer {spammer_id} for search removal: {type(e).__name__}: {e}")
     # Delete Notes
     db.notes.delete_many({"owner": spammer_id})
     # Delete Notifcations
@@ -1425,6 +1440,12 @@ def spam_dashboard(request):
             db.sheets.update_many({"id": {"$in": reviewed_sheet_ids}}, {"$set": {"reviewed": True}})
             spammers = db.sheets.find({"id": {"$in": spam_sheet_ids}}, {"owner": 1}).distinct("owner")
             db.sheets.delete_many({"id": {"$in": spam_sheet_ids}})
+            if SEARCH_INDEX_ON_SAVE:
+                from sefaria.search import queue_sheets_sync
+                try:
+                    queue_sheets_sync(spam_sheet_ids)
+                except Exception as e:
+                    logger.error(f"Failed to queue spam sheets {spam_sheet_ids} for search removal: {type(e).__name__}: {e}")
 
             for spammer in spammers:
                 try:

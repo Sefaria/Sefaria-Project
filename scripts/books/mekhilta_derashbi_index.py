@@ -8,6 +8,7 @@ import json
 
 sys.path.append("C:\\Users\\Izzy\\git\\Sefaria-Project")
 from sefaria.model import *
+from sefaria.constants.http import SEFARIA_USER_AGENT
 
 apikey = ''
 server = 'dev.sefaria.org'
@@ -20,7 +21,7 @@ def post_texts_api(text_obj, ref):
         'apikey': apikey
     }
     data = urllib.parse.urlencode(values)
-    req = urllib.request.Request(url, data)
+    req = urllib.request.Request(url, data, headers={"User-Agent": SEFARIA_USER_AGENT})
     try:
         response = urllib.request.urlopen(req)
         print(response.read())
