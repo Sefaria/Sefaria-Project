@@ -32,6 +32,7 @@ import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import Sefaria from '../sefaria/sefaria';
 import SettingsPage from '../SettingsPage.jsx';
+import { parseWebsite } from '../developerPocStore';
 
 let container = null;
 
@@ -213,6 +214,40 @@ describe('short description', () => {
     expect(description.maxLength).toBe(150);
     typeInto(description, 'A daily tracker');
     expect(container.querySelector('#devPocProjectDescriptionCount').textContent).toBe('15/150');
+  });
+});
+
+describe('project website', () => {
+  it('accepts a bare domain and adds https://', () => {
+    expect(parseWebsite('example.com')).toEqual({ valid: true, url: 'https://example.com' });
+    expect(parseWebsite('  www.example.co.il/app ')).toEqual({ valid: true, url: 'https://www.example.co.il/app' });
+    expect(parseWebsite('http://example.org')).toEqual({ valid: true, url: 'http://example.org' });
+    expect(parseWebsite('')).toEqual({ valid: true, url: '' });
+  });
+
+  it('rejects input that is not a plausible address', () => {
+    ['example', 'localhost', 'my site.com', 'ftp://example.com', 'https://', 'example.c', 'exa_mple.com'].forEach(input => {
+      expect(parseWebsite(input).valid).toBe(false);
+    });
+  });
+
+  it('saves a bare domain as an https address', () => {
+    openNewProject();
+    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
+    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
+    act(() => { visibilityRadio('private').click(); });
+    submitProject();
+    expect(lastSavedState().projects[0].websiteUrl).toBe('https://daftracker.org');
+  });
+
+  it("won't save a website without a dot", () => {
+    openNewProject();
+    typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
+    typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker');
+    act(() => { visibilityRadio('private').click(); });
+    submitProject();
+    expect(container.querySelector('[role="alert"]').textContent).toContain('Enter a website address like example.com');
+    expect(container.querySelector('.devPocNewProject')).toBeTruthy();
   });
 });
 

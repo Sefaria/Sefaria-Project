@@ -217,6 +217,24 @@ export const websiteHost = (url) => {
   }
 };
 
+const WEBSITE_HOST = /^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+(?:[a-z]{2,63}|xn--[a-z0-9-]{2,59})$/i;
+
+/* A project website as typed: a bare domain gets https://, and anything that isn't an
+   http(s) address on a dotted host name is invalid. Empty is valid: the field is optional. */
+export const parseWebsite = (input) => {
+  const raw = (input || "").trim();
+  if (!raw) { return {valid: true, url: ""}; }
+  if (/\s/.test(raw)) { return {valid: false, url: raw}; }
+  const url = /^[a-z][a-z0-9+.-]*:\/\//i.test(raw) ? raw : "https://" + raw;
+  try {
+    const parsed = new URL(url);
+    const valid = /^https?:$/.test(parsed.protocol) && WEBSITE_HOST.test(parsed.hostname);
+    return {valid, url: valid ? url : raw};
+  } catch (e) {
+    return {valid: false, url: raw};
+  }
+};
+
 /* Listing links compare as host and path, ignoring scheme, "www." and a trailing slash. */
 export const normalizeWebsite = (url) => (
   (url || "").trim().toLowerCase()

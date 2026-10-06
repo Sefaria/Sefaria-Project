@@ -14,6 +14,7 @@ import {
   poweredByListings,
   publicListing,
   makeKey,
+  parseWebsite,
   removeProject,
   makeProject,
   sampleState,
@@ -1225,7 +1226,7 @@ const ProjectForm = ({initial, savedVisibility, authorName, submitLabel, listing
 
   const save = () => onSave({
     ...fields, name: fields.name.trim(), description: fields.description.trim(),
-    organization: fields.organization.trim(), websiteUrl: fields.websiteUrl.trim(),
+    organization: fields.organization.trim(), websiteUrl: parseWebsite(fields.websiteUrl).url,
   });
 
   const submit = (e) => {
@@ -1236,6 +1237,13 @@ const ProjectForm = ({initial, savedVisibility, authorName, submitLabel, listing
       setError(Sefaria._v({
         en: "Keep the description to " + MAX_DESCRIPTION_LENGTH + " characters.",
         he: "התיאור יכול להכיל עד " + MAX_DESCRIPTION_LENGTH + " תווים.",
+      }));
+      return;
+    }
+    if (!parseWebsite(fields.websiteUrl).valid) {
+      setError(Sefaria._v({
+        en: "Enter a website address like example.com, or leave it empty.",
+        he: "נא להזין כתובת אתר כמו example.com, או להשאיר את השדה ריק.",
       }));
       return;
     }
