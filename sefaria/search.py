@@ -2624,49 +2624,21 @@ def _assert_not_shared_index(alias, type):
         )
 
 
-def _index_has_managed_settings(index_name):
-    """True if `index_name` was built by create_index (it carries our analysis settings),
-    False if it lacks them, i.e. Elasticsearch auto-created it with a dynamic mapping."""
-    settings = index_client.get_settings(
-        index=index_name, filter_path="*.settings.index.analysis.analyzer.exact_english"
-    )
-    settings = getattr(settings, "body", settings) or {}
-    return bool(settings.get(index_name, {}).get("settings", {}).get("index", {}).get("analysis"))
-
-
 def reindex_init(type, debug=False):
     """
     Phase 1: Create the new index with bulk-load settings.
-    Safe to call multiple times: reuses a partially-filled new index instead of wiping it.
+    Any existing in-progress index is deleted and recreated, never reused.
     Returns the names dict from get_new_and_current_index_names.
     """
     names = get_new_and_current_index_names(type=type, debug=debug)
     _assert_not_shared_index(names['alias'], type)
     new_index = names['new']
     if index_client.exists(index=new_index):
-        doc_count = _index_doc_count(new_index)
-        if doc_count is None:
-            raise ValueError(
-                f"reindex_init failed for {type}: could not read doc count for in-progress index {new_index}"
-            )
-        if doc_count > 0:
-            if _index_has_managed_settings(new_index):
-                logger.info(
-                    f"reindex_init reusing in-progress index - type: {type}, new_index: {new_index}, doc_count: {doc_count}"
-                )
-                set_index_bulk_load_settings(new_index)
-                return names
-            else:
-                # Not created by create_index: Elasticsearch auto-created it when something wrote
-                # to the name after finalize deleted it. Its dynamic mapping has no analyzers and
-                # maps `path` as text, so it can never serve search; in prod (2026-09-11) reusing
-                # one grew it to 39 GB on a single node and filled the disk.
-                logger.error(
-                    f"reindex_init discarding auto-created index with dynamic mapping - type: {type}, "
-                    f"new_index: {new_index}, doc_count: {doc_count}"
-                )
-        else:
-            logger.info(f"reindex_init recreating empty index - type: {type}, new_index: {new_index}")
+        # Shards re-index their whole slice, so reusing a partial index doubles it on disk (prod 2026-09-24: 24 GB, disk full).
+        logger.warning(
+            f"reindex_init recreating existing in-progress index - type: {type}, new_index: {new_index}, "
+            f"doc_count: {_index_doc_count(new_index)}"
+        )
         create_index(new_index, type, force=True)
     else:
         create_index(new_index, type, force=False)

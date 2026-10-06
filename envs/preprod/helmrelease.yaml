@@ -141,6 +141,9 @@ spec:
           ref: sentinel-password
       queues:
         llm: llm-llm
+      findRefs:
+        enabled: true
+        replicaCount: 1
     domains:
       root:
         - url: "sefariapreprod.org"
