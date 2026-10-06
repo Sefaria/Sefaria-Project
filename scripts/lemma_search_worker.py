@@ -39,6 +39,12 @@ def folded(lemma):
     return lemma.translate(str.maketrans("", "", "יו")) or lemma
 
 
+def final_he_variant(original, alternative):
+    """One optional final ה after י/ו folding; never change internal ה."""
+    a, b = folded(original), folded(alternative)
+    return a != b and (a + "ה" == b or b + "ה" == a)
+
+
 MAX_EXPANDED_PHRASES = 256
 
 
@@ -57,7 +63,7 @@ def edit_distance(left, right):
 def ranked_phrases(groups, frequencies=None, limit=MAX_EXPANDED_PHRASES):
     """Exact top-k under additive costs, without enumerating the full product.
 
-    Prefer fewer changed words, then fewer edits, then greater corpus frequency
+    Prefer fewer final-ה changes, then fewer changed words, fewer edits, and greater corpus frequency
     (sum of log1p counts for changed words). Lexical order makes ties stable.
     Keeping k prefixes is exact: a discarded prefix has k better prefixes that
     can all take the same remaining suffix. Memory stays bounded by k prefixes.
@@ -66,25 +72,26 @@ def ranked_phrases(groups, frequencies=None, limit=MAX_EXPANDED_PHRASES):
     if limit < 1:
         raise ValueError("The phrase limit must be positive")
     frequencies = frequencies or {}
-    prefixes = [(0, 0, 0.0, ())]
+    prefixes = [(0, 0, 0, 0.0, ())]
     for group in groups:
         original = group[0]
-        options = [(int(word != original), edit_distance(original, word),
+        options = [(int(final_he_variant(original, word)), int(word != original), edit_distance(original, word),
                     -math.log1p(frequencies.get(word, 0)) if word != original else 0.0, word)
                    for word in dict.fromkeys(group)]
-        candidates = ((changed + dc, edits + de, frequency + df, words + (word,))
-                      for changed, edits, frequency, words in prefixes
-                      for dc, de, df, word in options)
+        candidates = ((he + dh, changed + dc, edits + de, frequency + df, words + (word,))
+                      for he, changed, edits, frequency, words in prefixes
+                      for dh, dc, de, df, word in options)
         prefixes = heapq.nsmallest(limit, candidates)
-    return [item[3] for item in prefixes] if groups else []
+    return [item[4] for item in prefixes] if groups else []
 
 
 def expanded_clause(groups, weight, slop, frequencies=None):
     """Bound phrase alternatives while preserving Elasticsearch phrase slop."""
-    phrases = [" ".join(words) for words in ranked_phrases(groups, frequencies)]
+    phrases = ranked_phrases(groups, frequencies)
     return {"dis_max": {"queries": [
-        {"match_phrase": {"shoshan_lemma": {"query": phrase, "slop": slop}}}
-        for phrase in phrases], "tie_breaker": 0, "boost": weight, "_name": "lemma_expanded"}}
+        {"match_phrase": {"shoshan_lemma": {"query": " ".join(words), "slop": slop,
+            "boost": 0.5 if any(final_he_variant(g[0], w) for g, w in zip(groups, words)) else 1.0}}}
+        for words in phrases], "tie_breaker": 0, "boost": weight, "_name": "lemma_expanded"}}
 
 
 def token_parts(text, tokens):
@@ -132,7 +139,12 @@ class Annotations:
             raise ValueError("Annotations differ from those used to build the index")
 
     def alternatives(self, lemma):
-        return [lemma] + sorted(self.groups.get(folded(lemma), set()) - {lemma})
+        key = folded(lemma)
+        keys = {key, key + "ה"}
+        if key.endswith("ה") and len(key) > 1:
+            keys.add(key[:-1])
+        candidates = set().union(*(self.groups.get(k, set()) for k in keys))
+        return [lemma] + sorted(candidates - {lemma})
 
     @lru_cache(maxsize=256)
     def get(self, doc_id):
@@ -208,8 +220,8 @@ class Engine:
                     for item in expansion["dis_max"]["queries"]] if expansion else []
         if selected and combination_count > len(selected):
             warnings.append(
-                f"Ignore י / ו: using the top {len(selected):,} of {combination_count:,} "
-                "phrase combinations, prioritizing original lemmas, fewer changed words, "
+                f"Lemma variants: using the top {len(selected):,} of {combination_count:,} "
+                "phrase combinations, prioritizing original lemmas, fewer final-ה changes, fewer changed words, "
                 "fewer letter changes, then corpus frequency."
             )
         word_parts = [p for p in annotation["parts"] if "lemma" in p]
@@ -235,7 +247,7 @@ class Engine:
                 "index": self.index, "documents": self.documents, "results": results,
                 "expansion_requested": expansion_requested, "warnings": warnings,
                 "expansion_selection": {"available": combination_count, "selected": len(selected),
-                                        "limit": MAX_EXPANDED_PHRASES, "ranking": "changed_words,edits,-sum_log1p_frequency,lexical"},
+                                        "limit": MAX_EXPANDED_PHRASES, "ranking": "final_he_changes,changed_words,edits,-sum_log1p_frequency,lexical"},
                 "seconds": round(time.monotonic() - started, 3)}
 
 

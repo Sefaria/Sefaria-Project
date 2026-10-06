@@ -149,22 +149,23 @@ lower-weight alternatives from the corpus's surface-form-to-lemma associations,
 with explicit controls and relevance judgments. No alternative expansion is
 enabled by this change.
 
-## Optional י / ו expansion
+## Optional spelling expansion
 
-The checkbox (off by default) groups existing corpus lemmas by removing י and ו.
-Each query word searches its original lemma plus all corpus lemmas in that group.
-Empty reductions retain their original string. Displayed lemmas and indexed
-documents do not change. Query cards show additional searched forms. This is
-spelling-based expansion, not an assertion that these words have the same meaning.
+The “Include spelling variants” checkbox is on by default (the API retains the
+`expand_yod_vav` name and its false default). It searches existing corpus lemmas
+with the same י/ו-folded spelling, and forms differing by one final ה after folding.
+Original lemmas remain available; internal ה is unchanged. This is a spelling
+heuristic, not a claim of semantic equivalence. Query cards show selected forms.
 
-The enhanced lemma clause is a dis_max of expanded match_phrase queries, all
-using the shared slop. Only the best matching phrase contributes its lemma score
-(tie_breaker=0), with the selected lemma weight. Baseline is unchanged, and weight
-0 still disables the entire lemma route. At most 256 combinations are allowed;
-queries exceeding that limit receive an explicit error, never silent truncation.
-This preserves phrase slop, including transpositions and repeated-term semantics.
-The alternatives are loaded from the verified corpus annotation export at worker
-startup. No reindexing or new model inference on documents is required.
+Expanded match_phrase queries retain the shared slop and use dis_max with
+tie_breaker=0. Phrases needing a final-ה change receive half the lemma weight;
+other phrases retain full weight. This reduces their score contribution, but is
+not an absolute ordering guarantee. Baseline and weight-zero behavior are unchanged.
+
+At most 256 combinations are selected, preferring fewer final-ה changes, then
+fewer changed words, fewer edits, higher corpus frequency, and lexical ties.
+Truncation is shown to the user. Alternatives come from the verified annotation
+export; no reindexing or corpus/model changes are required.
 
 ## Cluster deployment implementation
 
@@ -341,12 +342,12 @@ sharing a single anonymous user ID. CSRF protection and signed job handles remai
 
 ### Ranked expansion limit
 
-The page enables “Include י/ו lemma variants” by default; testers can uncheck it
+The page enables “Include spelling variants” by default; testers can uncheck it
 to compare ordinary lemma matching. The explanatory text describes corpus-derived
-alternatives and the 256-combination limit. API defaults and ranking are unchanged.
+alternatives and the 256-combination limit. The API flag retains its original name and false default.
 
 The worker keeps the best 256 complete phrase combinations, always including the
-original lemma sequence. Ranking prefers fewer changed query words, then fewer
+original lemma sequence. Ranking prefers fewer final-ה changes, then fewer changed query words, then fewer
 character edits, then larger summed log(1 + corpus count) for altered forms.
 Lexical order breaks ties reproducibly. Frequencies come from the same frozen
 annotation export as the index. A bounded prefix selection finds the exact top
@@ -354,6 +355,6 @@ annotation export as the index. A bounded prefix selection finds the exact top
 
 Truncation is shown in a visible notice; query details record available/selected
 counts and the actual ES clauses. Word cards show only forms used by retained
-combinations. All retained phrases keep the existing boost and phrase slop; this
-change ranks candidates for inclusion, not their relevance scores. No reindexing
+combinations. All retained phrases keep the existing phrase slop. Phrases with
+a final-ה change use half the lemma boost; other phrases retain full weight. No reindexing
 is needed, and weight zero still returns the baseline in both lists.

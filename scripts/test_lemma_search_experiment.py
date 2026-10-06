@@ -24,7 +24,7 @@ from django.test import RequestFactory, override_settings, SimpleTestCase
 from django.http import Http404
 from django.core import signing
 from reader.lemma_search import page, jobs, SALT
-from lemma_search_worker import Engine, Jobs, validate, Annotations, token_parts, folded, expanded_clause, ranked_phrases, edit_distance
+from lemma_search_worker import Engine, Jobs, validate, Annotations, token_parts, folded, expanded_clause, ranked_phrases, edit_distance, final_he_variant
 
 
 from lemma_search_transport import validate_target, transport
@@ -122,11 +122,11 @@ class ExperimentTests(unittest.TestCase):
     def test_ranked_phrases_match_exhaustive_oracle(self):
         import itertools
         import math
-        groups=[["קרא","קורא","קריא"],["שמע","שומע","שמוע"],["ערב","עורב","עירוב"]]
+        groups=[["קרא","קורא","קריא","קראה"],["שמע","שומע","שמוע"],["ערב","עורב","עירוב","ערבה"]]
         counts={"קורא":40,"קריא":5,"שומע":50,"שמוע":6,"עורב":32,"עירוב":1}
         def key(words):
             changed=[(group[0], word) for group,word in zip(groups,words) if group[0]!=word]
-            return (len(changed),sum(edit_distance(a,b) for a,b in changed),
+            return (sum(final_he_variant(a,b) for a,b in changed),len(changed),sum(edit_distance(a,b) for a,b in changed),
                     -sum(math.log1p(counts.get(b,0)) for a,b in changed),words)
         expected=sorted(itertools.product(*groups),key=key)
         for limit in (1,4,10,27,40):
@@ -190,6 +190,23 @@ class ExperimentTests(unittest.TestCase):
         self.assertEqual(clause["boost"],.5)
         self.assertEqual(clause["tie_breaker"],0)
         self.assertEqual(len(expanded_clause([[str(i) for i in range(17)]]*2,1,10)["dis_max"]["queries"]),256)
+
+    def test_final_he_fallback_bridges_makkot_and_is_discounted(self):
+        store=Annotations.__new__(Annotations)
+        store.groups={"כתב":{"כתוב","כתב"}, "כתבה":{"כתבה"}, "כהתב":{"כהתב"}}
+        self.assertIn("כתבה",store.alternatives("כתוב"))
+        self.assertIn("כתוב",store.alternatives("כתבה"))
+        self.assertNotIn("כהתב",store.alternatives("כתוב"))
+        self.assertEqual(store.alternatives("ה"),["ה"])
+        groups=[["העיד"],store.alternatives("כתוב")]
+        phrases=expanded_clause(groups,2,10,{"כתבה":100000})["dis_max"]["queries"]
+        rows=[p["match_phrase"]["shoshan_lemma"] for p in phrases]
+        self.assertEqual(rows[0]["query"],"העיד כתוב")
+        self.assertEqual(rows[-1]["query"],"העיד כתבה")
+        self.assertEqual(rows[-1]["boost"],0.5)
+        self.assertTrue(all(r["boost"]==1 for r in rows[:-1]))
+        self.assertTrue(all(r["slop"]==10 for r in rows))
+        self.assertNotIn(("העיד","כתבה"),ranked_phrases(groups,{"כתבה":100000},2))
 
     def test_worker_failure_is_returned_to_browser(self):
         engine = Mock()
