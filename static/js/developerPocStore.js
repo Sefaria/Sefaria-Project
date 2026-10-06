@@ -266,6 +266,11 @@ export const listingConflicts = (fields, listing) => [
     same: normalizeWebsite(fields.websiteUrl) === normalizeWebsite(listing.url)},
 ].filter(c => !(c.same !== undefined ? c.same : c.project === c.listing));
 
+/* Choosing Public is consent to a possible listing, so a public project's consent answer
+   starts as yes; answering no makes the project private. */
+export const CONSENT_YES = "Yes";
+export const CONSENT_NO = "No";
+
 /* Name, link and description are one value each, held on the project; the Powered by
    form reads and writes them there. */
 export const SHARED_LISTING_FIELDS = {projectName: "name", projectLink: "websiteUrl", description: "description"};
@@ -286,7 +291,8 @@ export const poweredByValues = (project, account) => {
   };
   const shared = {};
   Object.entries(SHARED_LISTING_FIELDS).forEach(([field, key]) => { shared[field] = project[key] || ""; });
-  return {...emptyValues(), ...answers, ...shared};
+  const consent = answers.consent || (project.visibility === "public" ? CONSENT_YES : "");
+  return {...emptyValues(), ...answers, ...shared, consent};
 };
 
 const LISTING_OPTIONS = {hideEndpointSections: true};
@@ -328,3 +334,11 @@ export const fillRequiredAnswers = (values, account) => {
   });
   return filled;
 };
+
+/* Making a public project private withdraws consent; a later Public starts at yes again. */
+export const withdrawConsent = (project) => ({
+  ...project,
+  visibility: "private",
+  consentWithdrawnAt: new Date().toISOString(),
+  poweredByAnswers: project.poweredByAnswers ? {...project.poweredByAnswers, consent: ""} : null,
+});

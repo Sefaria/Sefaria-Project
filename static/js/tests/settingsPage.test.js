@@ -33,7 +33,7 @@ import { act } from 'react-dom/test-utils';
 import Sefaria from '../sefaria/sefaria';
 import SettingsPage from '../SettingsPage.jsx';
 import {
-  applyPoweredByValues, fillRequiredAnswers, listingIncomplete, poweredByValues,
+  applyPoweredByValues, fillRequiredAnswers, listingIncomplete, listingMissingFields, poweredByValues,
 } from '../developerPocStore';
 
 let container = null;
@@ -403,6 +403,48 @@ describe('the Powered by details page', () => {
     act(() => { container.querySelector('[data-poc-control="fill-answers"]').click(); });
     expect(container.querySelector('[data-badge="listing-incomplete"]')).toBeNull();
     expect(lastSavedState().projects[0].poweredByAnswers.consent).toBeTruthy();
+  });
+});
+
+describe('consent on the Powered by details page', () => {
+  const openDetails = (project = publicProject()) => mount(
+    'developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [project], expandedProjectId: project.id },
+    { projectId: project.id, projectSection: 'powered-by' },
+  );
+  const consentOption = (value) => container.querySelector(`#pbf-consent input[value="${value}"]`);
+
+  it('starts as yes for a public project and is not missing', () => {
+    openDetails();
+    expect(consentOption('Yes').checked).toBe(true);
+    expect(listingMissingFields(publicProject(), ACCOUNT)).not.toContain('consent');
+  });
+
+  it('makes a public project with everything else filled in complete', () => {
+    const values = fillRequiredAnswers({ ...poweredByValues(publicProject(), ACCOUNT), consent: '' }, ACCOUNT);
+    const project = applyPoweredByValues(publicProject(), { ...values, consent: '' });
+    expect(listingIncomplete(project, ACCOUNT)).toBe(false);
+  });
+
+  it('asks before treating no as making the project private, and keeps yes if dismissed', () => {
+    openDetails();
+    act(() => { consentOption('No').click(); });
+    const dialog = container.querySelector('[aria-labelledby="devPocPrivateTitle"]');
+    expect(dialog).toBeTruthy();
+    act(() => { buttonNamed(dialog, 'Keep public').click(); });
+    expect(container.querySelector('[aria-labelledby="devPocPrivateTitle"]')).toBeNull();
+    expect(consentOption('Yes').checked).toBe(true);
+  });
+
+  it('makes the project private when confirmed', () => {
+    openDetails();
+    act(() => { consentOption('No').click(); });
+    act(() => { buttonNamed(container, 'Make private').click(); });
+    const saved = lastSavedState().projects[0];
+    expect(saved.visibility).toBe('private');
+    expect(saved.consentWithdrawnAt).toBeTruthy();
+    expect(saved.poweredByAnswers.consent).toBe('');
+    expect(detailsForm()).toBeNull();
+    expect(developerPanel().textContent).toContain('taken down from Powered by Sefaria');
   });
 });
 

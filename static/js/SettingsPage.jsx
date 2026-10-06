@@ -7,6 +7,8 @@ import {
   MAX_DESCRIPTION_LENGTH,
   MAX_KEYS_PER_PROJECT,
   POWERED_BY_LISTINGS,
+  CONSENT_NO,
+  CONSENT_YES,
   applyPoweredByValues,
   canLinkByEmail,
   emailMatchedListing,
@@ -26,6 +28,7 @@ import {
   accountVerified,
   usageSeries,
   websiteHost,
+  withdrawConsent,
   writeState,
 } from './developerPocStore';
 
@@ -1925,13 +1928,16 @@ const ProjectCard = ({project, expanded, authorName, account, listingContext, up
     const withdrawing = project.visibility === "public" && fields.visibility === "private";
     update(s => ({
       ...s,
-      projects: s.projects.map(p => p.id !== project.id ? p : {
-        ...p,
-        ...fields,
-        websiteUrl: fields.websiteUrl.trim(),
-        keys: losingUrl ? p.keys.map(k => ({...k, restrictToWebsite: false})) : p.keys,
-        consentWithdrawnAt: withdrawing ? new Date().toISOString()
-          : fields.visibility === "public" ? null : p.consentWithdrawnAt,
+      projects: s.projects.map(p => {
+        if (p.id !== project.id) { return p; }
+        const saved = {
+          ...p,
+          ...fields,
+          websiteUrl: fields.websiteUrl.trim(),
+          keys: losingUrl ? p.keys.map(k => ({...k, restrictToWebsite: false})) : p.keys,
+          consentWithdrawnAt: fields.visibility === "public" ? null : p.consentWithdrawnAt,
+        };
+        return withdrawing ? withdrawConsent(saved) : saved;
       }),
     }));
     setEditing(false);
@@ -2049,7 +2055,9 @@ const AUTOSAVE_MS = 800;
    changes. Only fields changed here are written, so an edit made elsewhere in the meantime
    isn't overwritten. */
 const PoweredByDetailsPage = ({project, account, update, onBack}) => {
-  const [initialValues] = useState(() => poweredByValues(project, account));
+  const [initialValues, setInitialValues] = useState(() => poweredByValues(project, account));
+  const [formVersion, setFormVersion] = useState(0);
+  const [askPrivate, setAskPrivate] = useState(false);
   const [missing, setMissing] = useState(() => listingMissingFields(project, account));
   const [saveStatus, setSaveStatus] = useState("");   // "" | saving | saved
   const savedValues = useRef(initialValues);
@@ -2075,7 +2083,13 @@ const PoweredByDetailsPage = ({project, account, update, onBack}) => {
 
   useEffect(() => () => { mounted.current = false; flush(); }, []);
 
+  /* Answering no to consent is the same as making the project private, so it asks first
+     and the answer itself stays yes. */
   const onChange = (values) => {
+    if (values.consent === CONSENT_NO) {
+      values = {...values, consent: CONSENT_YES};
+      setAskPrivate(true);
+    }
     pendingValues.current = values;
     setSaveStatus("saving");
     clearTimeout(timer.current);
@@ -2115,7 +2129,22 @@ const PoweredByDetailsPage = ({project, account, update, onBack}) => {
         initialValues={initialValues}
         onChange={onChange}
         onMissingRequiredChange={setMissing}
+        key={formVersion}
       />
+      {askPrivate ?
+        <MakePrivateDialog
+          onConfirm={() => {
+            setAskPrivate(false);
+            flush();
+            update(s => ({...s, projects: s.projects.map(p => p.id === project.id ? withdrawConsent(p) : p)}));
+            onBack();
+          }}
+          onCancel={() => {
+            setAskPrivate(false);
+            setInitialValues(pendingValues.current || savedValues.current);
+            setFormVersion(v => v + 1);
+          }}
+        /> : null}
     </section>
   );
 };
