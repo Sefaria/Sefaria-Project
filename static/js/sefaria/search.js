@@ -248,6 +248,7 @@ class Search {
         // set by the server on the raw Sefaria response (see search_wrapper_api) has to be
         // carried over explicitly or it's silently dropped for Dicta-federated queries.
         result.corrected_query = this.sefariaQueryQueue.corrected_query;
+        result.suggested_queries = this.sefariaQueryQueue.suggested_queries;
         result.original_query = this.sefariaQueryQueue.original_query;
         if(addAggregations) {
 

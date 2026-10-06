@@ -35,12 +35,23 @@ persisted to Mongo) index of Book/Author/Topic alternate titles built by
 from either source is ranked by the same damped popularity tie-break (`_tie_break_score`),
 so the two can be compared on one scale even though their raw weights (corpus doc counts vs.
 a topic's `numSources`) are nothing alike.
+
+When more than one candidate is close in that score (see `AMBIGUITY_LOG_GAP`), picking the
+single highest-scoring one would be a guess, not a correction -- two terms close in weight are
+genuinely competing for the user's attention (e.g. "mari" vs "maariv"), and silently choosing
+between them is as likely to be wrong as right. In that case `autocorrect_query` does not
+correct the query at all; it returns the competing terms instead (sorted A-Z), so the caller
+can show them as suggestions while the original, uncorrected query is what actually runs. A
+large gap between the top two candidates means they are not really competing -- one is so much
+more attested than the other that picking it is a correction, not a guess -- so that case still
+auto-corrects exactly as before.
 """
 import math
 import re
 import time
 from collections import Counter
-from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Tuple, Union
 
 import structlog
 from pymongo import UpdateOne
@@ -65,6 +76,15 @@ _BULK_WRITE_CHUNK_SIZE = 5000
 # single word -- see the module docstring -- while keeping the build tractable: a segment of
 # length L contributes O(L * MAX_PHRASE_WORDS) phrases rather than O(L^2).
 MAX_PHRASE_WORDS = 3
+
+# How close (on the log-damped tie-break scale) the top two candidates have to be before
+# they're treated as genuinely competing rather than one being a clear winner. Candidate
+# scores are already log10 of a raw weight (doc count / numSources -- see _tie_break_score /
+# entity_alt_index's _entity_tie_break_score), so a gap of 1.0 means the leader's underlying
+# weight is roughly 10x the runner-up's or more: at that point they are not really competing
+# for the user's attention (see the module docstring's "mari" vs "maariv" example), and the
+# correction is confident enough to apply automatically, same as a single-candidate fix.
+AMBIGUITY_LOG_GAP = 1.0
 
 # Strip every leading/trailing non-word character (regular punctuation, ASCII/Hebrew quote
 # marks, etc) but leave the interior of the word untouched -- this is what keeps an
@@ -264,64 +284,121 @@ def _tie_break_score(count: int) -> float:
     return math.log10(1 + max(count, 0))
 
 
+def _ranked_candidates(phrase: str, top_n_grams: Dict[str, int],
+                        entity_alt_index: Optional[Dict[str, float]] = None) -> List[Tuple[str, float]]:
+    """
+    Every one-edit-distance candidate for `phrase`, found in either source, paired with its
+    tie-break score -- the higher of the two sources' scores when a candidate is found in
+    both. Sorted by score descending; ties broken by the candidate string itself, so the
+    order (and so `autocorrect_query`'s choice among equally-scored candidates) is
+    deterministic rather than dependent on set iteration order.
+    """
+    scores: Dict[str, float] = {}
+    for c in _one_edit_candidates(phrase):
+        if c in top_n_grams:
+            score = _tie_break_score(top_n_grams[c])
+            if c not in scores or score > scores[c]:
+                scores[c] = score
+        if entity_alt_index and c in entity_alt_index:
+            score = entity_alt_index[c]  # already precomputed on the same comparable scale
+            if c not in scores or score > scores[c]:
+                scores[c] = score
+    return sorted(scores.items(), key=lambda pair: (-pair[1], pair[0]))
+
+
 def _best_match(phrase: str, top_n_grams: Dict[str, int],
                  entity_alt_index: Optional[Dict[str, float]] = None) -> Optional[str]:
     """
     One-edit-distance correction for a phrase (one or more words), chosen from both the
-    top-n-grams table and the optional runtime entity-alt index. A candidate found in both is
-    scored by whichever source ranks it higher. Ties (including a tie between the two
-    sources) are broken by `_tie_break_score`/`entity_alt_index`'s own precomputed score --
-    never by raw magnitude, since the two sources' raw weights aren't comparable.
+    top-n-grams table and the optional runtime entity-alt index: the single
+    highest-scoring candidate, with no regard for how close the runner-up is (contrast
+    `_try_window`, which uses `_ranked_candidates` directly so it can tell a confident
+    winner apart from genuinely competing candidates -- see AMBIGUITY_LOG_GAP). Kept as a
+    thin convenience wrapper for callers that only ever want a single best guess.
     """
-    best, best_score = None, None
-    for c in _one_edit_candidates(phrase):
-        if c in top_n_grams:
-            score = _tie_break_score(top_n_grams[c])
-            if best_score is None or score > best_score:
-                best, best_score = c, score
-        if entity_alt_index and c in entity_alt_index:
-            score = entity_alt_index[c]  # already precomputed on the same comparable scale
-            if best_score is None or score > best_score:
-                best, best_score = c, score
-    return best
+    ranked = _ranked_candidates(phrase, top_n_grams, entity_alt_index)
+    return ranked[0][0] if ranked else None
 
 
-def _try_window(words: List[str], normalized: List[str], start: int, end: int,
-                 top_n_grams: Dict[str, int],
-                 entity_alt_index: Optional[Dict[str, float]] = None) -> Optional[str]:
+def _substitute_window(words: List[str], normalized: List[str], start: int, end: int, candidate: str) -> str:
     """
-    Try to correct `normalized[start:end]` (a contiguous run of query words) as a single
-    phrase. Returns the full corrected query (all of `words`, with just this window fixed
-    up) if the window's phrase is exactly one edit from some *other* phrase in either source;
-    None if the window is already a known phrase in either source (nothing to fix) or isn't a
-    1-edit match for anything.
+    Build the full query (all of `words`) with just `[start:end)` replaced by `candidate`.
+    Same word count as the window: swap in only the word(s) that actually changed, so a word
+    the user already typed correctly keeps its original casing instead of being flattened to
+    the table's lowercase form. A one-character edit that crossed a word boundary (deleted a
+    space, merging two words) leaves old and new words not lined up position-by-position, so
+    the whole window is replaced verbatim instead.
     """
-    phrase = " ".join(normalized[start:end])
-    if phrase in top_n_grams or (entity_alt_index and phrase in entity_alt_index):
-        return None  # already an attested phrase/title -- nothing to correct here
-    candidate = _best_match(phrase, top_n_grams, entity_alt_index)
-    if candidate is None:
-        return None
-
     corrected_words = list(words)
     candidate_words = candidate.split()
     if len(candidate_words) == end - start:
-        # Same word count as the window: swap in only the word(s) that actually changed, so
-        # a word the user already typed correctly keeps its original casing instead of being
-        # flattened to the table's lowercase form.
         for offset, (orig, corr) in enumerate(zip(normalized[start:end], candidate_words)):
             if orig != corr:
                 corrected_words[start + offset] = corr
     else:
-        # The one-character edit crossed a word boundary (deleted a space, merging two
-        # words) -- old and new words no longer line up position-by-position, so replace
-        # the whole window verbatim.
         corrected_words[start:end] = candidate_words
     return " ".join(corrected_words)
 
 
+@dataclass(frozen=True)
+class AmbiguousCandidates:
+    """
+    Signals that a window had more than one candidate correction close enough in score
+    (within AMBIGUITY_LOG_GAP of the top one) that picking a single winner would be a guess.
+    `queries` holds one full, ready-to-search query per competing candidate -- the same
+    window substituted with each candidate in turn -- sorted A-Z.
+    """
+    queries: List[str] = field(default_factory=list)
+
+
+def _try_window(words: List[str], normalized: List[str], start: int, end: int,
+                 top_n_grams: Dict[str, int],
+                 entity_alt_index: Optional[Dict[str, float]] = None) -> Union[str, AmbiguousCandidates, None]:
+    """
+    Try to correct `normalized[start:end]` (a contiguous run of query words) as a single
+    phrase. Returns:
+    - None if the window is already a known phrase in either source (nothing to fix), or
+      isn't a 1-edit match for anything;
+    - an `AmbiguousCandidates` if more than one candidate is close enough in score that none
+      of them is a confident winner (see AMBIGUITY_LOG_GAP) -- no correction is applied;
+    - otherwise the full corrected query (all of `words`, with just this window fixed up).
+    """
+    phrase = " ".join(normalized[start:end])
+    if phrase in top_n_grams or (entity_alt_index and phrase in entity_alt_index):
+        return None  # already an attested phrase/title -- nothing to correct here
+
+    ranked = _ranked_candidates(phrase, top_n_grams, entity_alt_index)
+    if not ranked:
+        return None
+
+    top_score = ranked[0][1]
+    if len(ranked) > 1 and (top_score - ranked[1][1]) < AMBIGUITY_LOG_GAP:
+        # More than one candidate is still in play this close to the top score -- every one
+        # of them, not just the top two (a third could be just as close), is a genuine
+        # competitor. Surface them all rather than guess among them.
+        competing = {c for c, score in ranked if top_score - score < AMBIGUITY_LOG_GAP}
+        queries = sorted(_substitute_window(words, normalized, start, end, c) for c in competing)
+        return AmbiguousCandidates(queries=queries)
+
+    return _substitute_window(words, normalized, start, end, ranked[0][0])
+
+
+@dataclass(frozen=True)
+class AutocorrectResult:
+    """
+    - `corrected_query` set, `suggested_queries` None: a confident correction -- search
+      `corrected_query` instead of what was typed.
+    - `corrected_query` None, `suggested_queries` set: too ambiguous to correct -- search
+      `original_query` as typed (the "bad"/uncorrected result), but offer `suggested_queries`
+      (sorted A-Z) as alternatives the reader can pick instead of guessing for them.
+    """
+    original_query: str
+    corrected_query: Optional[str] = None
+    suggested_queries: Optional[List[str]] = None
+
+
 def autocorrect_query(query: str, top_n_grams: Dict[str, int],
-                       entity_alt_index: Optional[Dict[str, float]] = None) -> Optional[Tuple[str, str]]:
+                       entity_alt_index: Optional[Dict[str, float]] = None) -> Optional[AutocorrectResult]:
     """
     Product spec sc-47189. Corrects a *phrase*, never a lone word in isolation, so a fix is
     only ever offered when the resulting phrase is itself something the corpus contains, or a
@@ -331,24 +408,28 @@ def autocorrect_query(query: str, top_n_grams: Dict[str, int],
     - A query of up to MAX_PHRASE_WORDS words is treated as a single phrase: if it already
       matches a top-n-grams or entity-alt entry, it's searched normally, uncorrected (returns
       None). Otherwise, if the whole phrase is exactly one edit away from some phrase in
-      either source, that's the correction.
+      either source, that's the correction -- unless more than one candidate is competing for
+      it (see AMBIGUITY_LOG_GAP and the module docstring), in which case nothing is corrected
+      and the competing candidates come back as `suggested_queries` instead.
     - A longer query first gets one extra, entity-alt-only chance to be corrected *in its
       entirety*: an entity title/name is a single curated unit, not generated as a sliding
       window over corpus text, so unlike the top-n-grams table it is never capped at
       MAX_PHRASE_WORDS -- explaining the WHOLE query this way beats any partial fix below.
-      Failing that, the query is corrected at most once, in its longest fixable contiguous
-      run of words: window sizes MAX_PHRASE_WORDS down to 1 are tried (against both sources),
-      left to right within each size, and the first window that is both not already a known
-      phrase and one edit from one is corrected; every other word in the query is left
-      exactly as typed. A query with no such window anywhere (every window already attested,
-      or too far off to fix within a 1-edit budget) also returns None.
+      Failing that, the query is corrected (or found ambiguous) at most once, in its longest
+      fixable contiguous run of words: window sizes MAX_PHRASE_WORDS down to 1 are tried
+      (against both sources), left to right within each size, and the first window that is
+      both not already a known phrase and one edit from one wins -- confidently or
+      ambiguously; every other word in the query is left exactly as typed either way. A query
+      with no such window anywhere (every window already attested, or too far off to fix
+      within a 1-edit budget) also returns None.
 
     :param query: the raw query text as typed/submitted.
     :param top_n_grams: {normalized_phrase: doc_count}, e.g. `library._top_n_grams_for_search_autocorrect`.
     :param entity_alt_index: {normalized_phrase: tie_break_score}, e.g.
         `library._entity_alt_index` -- see sefaria/helper/entity_alt_index.py. Optional: a
         query corrects against the top-n-grams table alone when omitted.
-    :return: (corrected_query, original_query) if a correction applies, else None.
+    :return: an AutocorrectResult if a correction or an ambiguous-suggestions result applies,
+        else None (search `query` as typed, with nothing to show about it).
     """
     if not query or (not top_n_grams and not entity_alt_index):
         return None
@@ -358,18 +439,24 @@ def autocorrect_query(query: str, top_n_grams: Dict[str, int],
     normalized = [normalize_word(w) for w in words]
     n = len(normalized)
 
+    def finish(result: Union[str, AmbiguousCandidates, None]) -> Optional[AutocorrectResult]:
+        if result is None:
+            return None
+        if isinstance(result, AmbiguousCandidates):
+            return AutocorrectResult(original_query=query, suggested_queries=result.queries)
+        return AutocorrectResult(original_query=query, corrected_query=result)
+
     if n <= MAX_PHRASE_WORDS:
-        corrected = _try_window(words, normalized, 0, n, top_n_grams, entity_alt_index)
-        return (corrected, query) if corrected else None
+        return finish(_try_window(words, normalized, 0, n, top_n_grams, entity_alt_index))
 
     if entity_alt_index:
-        whole = _try_window(words, normalized, 0, n, {}, entity_alt_index)
+        whole = finish(_try_window(words, normalized, 0, n, {}, entity_alt_index))
         if whole:
-            return whole, query
+            return whole
 
     for size in range(MAX_PHRASE_WORDS, 0, -1):
         for start in range(0, n - size + 1):
-            corrected = _try_window(words, normalized, start, start + size, top_n_grams, entity_alt_index)
-            if corrected:
-                return corrected, query
+            result = finish(_try_window(words, normalized, start, start + size, top_n_grams, entity_alt_index))
+            if result:
+                return result
     return None

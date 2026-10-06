@@ -106,10 +106,16 @@ class ElasticSearchQuerier extends Component {
         topics:         [],
         // Fuzzy-search POC (sc-47189): correctedQuery is set from the server's response
         // when the typed query was auto-corrected against the top-n-grams table.
+        // suggestedQueries is set instead when multiple candidate corrections were too
+        // close in popularity to pick one with confidence -- see AMBIGUITY_LOG_GAP in
+        // sefaria/helper/top_n_grams_for_search_autocorrect.py -- so the query runs
+        // uncorrected but the banner can still offer alternatives. The two are mutually
+        // exclusive: the server only ever sends one or the other.
         // disableAutoCorrect is flipped on by the user clicking "Search instead for
         // <original query>" in the resulting banner, and reset whenever the query text
         // itself changes (see componentWillReceiveProps).
         correctedQuery: null,
+        suggestedQueries: null,
         disableAutoCorrect: false,
       }
 
@@ -229,6 +235,7 @@ class ElasticSearchQuerier extends Component {
             // Fuzzy-search POC (sc-47189): a genuinely new query re-enables
             // auto-correction; "disable" only ever applies to the query it was set for.
             state.correctedQuery = null;
+            state.suggestedQueries = null;
             state.disableAutoCorrect = false;
             this.setState(state, () => {
                 this._executeAllQueries(newProps);
@@ -338,8 +345,10 @@ class ElasticSearchQuerier extends Component {
                   moreToLoad: currTotal.getValue() > this.querySize[this.props.searchState.type],
                   // Fuzzy-search POC (sc-47189): present only when the server substituted
                   // a top-n-grams match for the query it was actually sent (see
-                  // search_wrapper_api / library.autocorrect_query).
+                  // search_wrapper_api / library.autocorrect_query). suggested_queries is
+                  // the ambiguous-correction counterpart -- the two never both come back set.
                   correctedQuery: data.corrected_query || null,
+                  suggestedQueries: data.suggested_queries || null,
                 };
                 this.setState(state);
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
@@ -473,6 +482,7 @@ class ElasticSearchQuerier extends Component {
                     searchTopMsg={isVoices && "search_page.results_for"}
                     query={this.props.query}
                     correctedQuery={this.state.correctedQuery}
+                    suggestedQueries={this.state.suggestedQueries}
                     disableAutoCorrect={this.state.disableAutoCorrect}
                     onDisableAutoCorrect={this.disableAutoCorrect}
                     tab={this.props.tab}

@@ -36,66 +36,114 @@ import SearchAnalytics, { tabLabel } from './sefaria/searchAnalytics';
  * only place `correctedQuery` vs `originalQuery` is surfaced. The first line's term is
  * inert (you're already looking at those results); clicking the second line's term re-runs
  * every tab with auto-correction disabled, searching `originalQuery` exactly as typed.
+ *
+ * `suggestedQueries` is the ambiguous-correction counterpart: when multiple candidates were
+ * too close in popularity to pick one with confidence (AMBIGUITY_LOG_GAP in
+ * sefaria/helper/top_n_grams_for_search_autocorrect.py), the server leaves the query
+ * uncorrected and sends these instead -- a "did you mean" prompt rather than a silent guess.
+ * `correctedQuery` and `suggestedQueries` are mutually exclusive; the server only ever sends
+ * one or the other.
  */
-const SearchAutocorrectBanner = ({correctedQuery, originalQuery, onSearchOriginal}) => {
-  // The status region is always rendered (empty when there's no correction) so screen readers
-  // announce the banner when it appears -- a live region mounted together with its content isn't
-  // reliably announced (WCAG 4.1.3).
+const SearchAutocorrectBanner = ({correctedQuery, originalQuery, onSearchOriginal, suggestedQueries, onSearchSuggestion}) => {
+  // The status region is always rendered (empty when there's nothing to show) so screen
+  // readers announce the banner when it appears -- a live region mounted together with its
+  // content isn't reliably announced (WCAG 4.1.3).
   return (
     <div role="status">
       {correctedQuery ?
         <SearchAutocorrectBannerContent
             correctedQuery={correctedQuery}
             originalQuery={originalQuery}
-            onSearchOriginal={onSearchOriginal}/> : null}
+            onSearchOriginal={onSearchOriginal}/>
+      : (suggestedQueries && suggestedQueries.length > 0) ?
+        <SearchSuggestedQueriesBannerContent
+            suggestedQueries={suggestedQueries}
+            onSearchSuggestion={onSearchSuggestion}/>
+      : null}
     </div>
   );
 };
 SearchAutocorrectBanner.propTypes = {
+  correctedQuery:      PropTypes.string,
+  originalQuery:       PropTypes.string,
+  onSearchOriginal:    PropTypes.func,
+  suggestedQueries:    PropTypes.arrayOf(PropTypes.string),
+  onSearchSuggestion:  PropTypes.func,
+};
+
+// The query's script is independent of the interface language (a Hebrew query on the English
+// interface, or vice versa), so mark each term's own direction and language: `dir` isolates it
+// so the label and query don't reorder each other, and `lang` lets screen readers switch voice.
+const _queryLangProps = query => Sefaria.hebrew.isHebrew(query) ? {dir: "rtl", lang: "he"} : {dir: "ltr", lang: "en"};
+
+// Shared by both banner states: a clickable query term that, for keyboard users, hands focus
+// to the search box (which now holds that query) once clicked, instead of letting it drop to
+// <body> as the term itself unmounts. Not done for clicks/taps, where focusing the input would
+// pop up the mobile keyboard.
+const _AutocorrectTerm = ({query, onClick, className}) => {
+  const handle = e => {
+    const searchInput = e.type === "keydown" && e.currentTarget.closest(".searchContent")?.querySelector(".searchPageSearchBar input");
+    onClick(query);
+    searchInput && searchInput.focus();
+  };
+  return (
+    <span
+        className={className}
+        {..._queryLangProps(query)}
+        role="button"
+        tabIndex="0"
+        onClick={handle}
+        onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handle(e); } }}
+    >
+      {query}
+    </span>
+  );
+};
+
+const SearchAutocorrectBannerContent = ({correctedQuery, originalQuery, onSearchOriginal}) => (
+  <div className="searchAutocorrectBanner">
+    <div className="searchAutocorrectBanner-line">
+      <InterfaceText text={{en: "These are results for ", he: "מוצגות תוצאות עבור "}}/>
+      <span className="searchAutocorrectBanner-corrected" {..._queryLangProps(correctedQuery)}>{correctedQuery}</span>
+    </div>
+    <div className="searchAutocorrectBanner-line searchAutocorrectBanner-secondary">
+      <InterfaceText text={{en: "Search instead for ", he: "חיפוש של "}}/>
+      <_AutocorrectTerm query={originalQuery} onClick={() => onSearchOriginal && onSearchOriginal()}
+                        className="searchAutocorrectBanner-original"/>
+    </div>
+  </div>
+);
+SearchAutocorrectBannerContent.propTypes = {
   correctedQuery:   PropTypes.string,
   originalQuery:    PropTypes.string,
   onSearchOriginal: PropTypes.func,
 };
 
-const SearchAutocorrectBannerContent = ({correctedQuery, originalQuery, onSearchOriginal}) => {
-  const searchOriginal = e => {
-    // This button unmounts once the original query runs; for keyboard users, hand focus to the
-    // search box (which now holds that query) instead of letting it drop to <body>. Not done for
-    // clicks/taps, where focusing the input would pop up the mobile keyboard.
-    const searchInput = e.type === "keydown" && e.currentTarget.closest(".searchContent")?.querySelector(".searchPageSearchBar input");
-    onSearchOriginal && onSearchOriginal();
-    searchInput && searchInput.focus();
-  };
-  // The query's script is independent of the interface language (a Hebrew query on the English
-  // interface, or vice versa), so mark each term's own direction and language: `dir` isolates it
-  // so the label and query don't reorder each other, and `lang` lets screen readers switch voice.
-  const queryLangProps = query => Sefaria.hebrew.isHebrew(query) ? {dir: "rtl", lang: "he"} : {dir: "ltr", lang: "en"};
-  return (
-    <div className="searchAutocorrectBanner">
-      <div className="searchAutocorrectBanner-line">
-        <InterfaceText text={{en: "These are results for ", he: "מוצגות תוצאות עבור "}}/>
-        <span className="searchAutocorrectBanner-corrected" {...queryLangProps(correctedQuery)}>{correctedQuery}</span>
-      </div>
-      <div className="searchAutocorrectBanner-line searchAutocorrectBanner-secondary">
-        <InterfaceText text={{en: "Search instead for ", he: "חיפוש של "}}/>
-        <span
-            className="searchAutocorrectBanner-original"
-            {...queryLangProps(originalQuery)}
-            role="button"
-            tabIndex="0"
-            onClick={searchOriginal}
-            onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); searchOriginal(e); } }}
-        >
-          {originalQuery}
-        </span>
-      </div>
+/**
+ * The "did you mean" state (sc-47189): rendered instead of SearchAutocorrectBannerContent when
+ * the query was too ambiguous to correct with confidence. Each suggestion is a full,
+ * ready-to-search query (not just the differing word) sorted A-Z by the server; clicking one
+ * searches it directly, exactly like clicking the corrected term in the confident-correction
+ * banner.
+ */
+const SearchSuggestedQueriesBannerContent = ({suggestedQueries, onSearchSuggestion}) => (
+  <div className="searchAutocorrectBanner">
+    <div className="searchAutocorrectBanner-line">
+      <InterfaceText text={{en: "Did you mean: ", he: "התכוונת ל: "}}/>
+      {suggestedQueries.map((query, i) => (
+        <React.Fragment key={query}>
+          {i > 0 && <span className="searchAutocorrectBanner-separator">{", "}</span>}
+          <_AutocorrectTerm query={query} onClick={q => onSearchSuggestion && onSearchSuggestion(q)}
+                            className="searchAutocorrectBanner-original"/>
+        </React.Fragment>
+      ))}
+      <InterfaceText text={{en: "?", he: "?"}}/>
     </div>
-  );
-};
-SearchAutocorrectBannerContent.propTypes = {
-  correctedQuery:   PropTypes.string,
-  originalQuery:    PropTypes.string,
-  onSearchOriginal: PropTypes.func,
+  </div>
+);
+SearchSuggestedQueriesBannerContent.propTypes = {
+  suggestedQueries:   PropTypes.arrayOf(PropTypes.string),
+  onSearchSuggestion: PropTypes.func,
 };
 
 const SearchPageSearchBar = ({query, onQueryChange}) => {
@@ -924,6 +972,8 @@ class SearchPage extends Component {
                     correctedQuery={this.props.correctedQuery}
                     originalQuery={this.props.query}
                     onSearchOriginal={this.props.onDisableAutoCorrect}
+                    suggestedQueries={this.props.suggestedQueries}
+                    onSearchSuggestion={this.props.onQueryChange}
                 />
 
                 {this.props.isQueryRunning && !this.props.hits.length
@@ -967,6 +1017,7 @@ class SearchPage extends Component {
 SearchPage.propTypes = {
   query:                    PropTypes.string,
   correctedQuery:           PropTypes.string,
+  suggestedQueries:         PropTypes.arrayOf(PropTypes.string),
   disableAutoCorrect:       PropTypes.bool,
   onDisableAutoCorrect:     PropTypes.func,
   tab:                      PropTypes.string,

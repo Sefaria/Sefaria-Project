@@ -16,13 +16,17 @@ import pytest
 
 from sefaria.helper.top_n_grams_for_search_autocorrect import (
     MAX_PHRASE_WORDS,
+    AMBIGUITY_LOG_GAP,
     _META_ID,
     normalize_word,
     _segment_phrases,
     _one_edit_candidates,
+    _ranked_candidates,
     _best_match,
     _tie_break_score,
     _try_window,
+    AmbiguousCandidates,
+    AutocorrectResult,
     autocorrect_query,
     save_top_n_grams,
     load_top_n_grams,
@@ -126,6 +130,35 @@ def test_best_match_prefers_the_higher_scoring_source_when_a_candidate_is_in_bot
 
 
 # --------------------------------------------------------------------------- #
+#  _ranked_candidates                                                        #
+# --------------------------------------------------------------------------- #
+
+def test_ranked_candidates_sorted_by_score_descending():
+    top_n_grams = {"cap": 5, "cot": 50}
+    ranked = _ranked_candidates("cat", top_n_grams)
+    assert [c for c, _ in ranked] == ["cot", "cap"]
+    assert ranked[0][1] > ranked[1][1]
+
+
+def test_ranked_candidates_breaks_score_ties_alphabetically():
+    # Same raw count -> same score; order must be deterministic, not set-iteration-order luck.
+    top_n_grams = {"cap": 10, "cot": 10}
+    ranked = _ranked_candidates("cat", top_n_grams)
+    assert [c for c, _ in ranked] == ["cap", "cot"]
+
+
+def test_ranked_candidates_merges_a_candidate_found_in_both_sources_at_its_higher_score():
+    top_n_grams = {"cot": 5}
+    entity_alt_index = {"cot": 100.0}
+    ranked = _ranked_candidates("cat", top_n_grams, entity_alt_index)
+    assert dict(ranked)["cot"] == 100.0
+
+
+def test_ranked_candidates_empty_when_nothing_matches():
+    assert _ranked_candidates("cat", {"elephant": 10}) == []
+
+
+# --------------------------------------------------------------------------- #
 #  _try_window                                                                #
 # --------------------------------------------------------------------------- #
 
@@ -171,13 +204,53 @@ def test_try_window_already_attested_in_entity_alt_index_is_noop():
     assert _try_window(words, normalized, 0, 1, {}, {"rashi": 4.0}) is None
 
 
+def test_try_window_returns_ambiguous_candidates_when_scores_are_close():
+    # "cot" (log10(51)=1.71) and "cap" (log10(41)=1.61): gap 0.1, well under AMBIGUITY_LOG_GAP
+    # -- neither is a confident winner, so both come back rather than a guessed single fix.
+    top_n_grams = {"cot": 50, "cap": 40}
+    words = ["Cat"]
+    normalized = [normalize_word(w) for w in words]
+    result = _try_window(words, normalized, 0, 1, top_n_grams)
+    assert isinstance(result, AmbiguousCandidates)
+    assert result.queries == ["cap", "cot"]  # sorted A-Z
+
+
+def test_try_window_confident_when_disparity_is_large():
+    # Same candidate pair, but now "cot" dominates by many orders of magnitude -- a clear
+    # winner, not a guess, so the single-candidate fix applies as it always did.
+    top_n_grams = {"cot": 100000, "cap": 2}
+    words = ["Cat"]
+    normalized = [normalize_word(w) for w in words]
+    assert _try_window(words, normalized, 0, 1, top_n_grams) == "cot"
+
+
+def test_try_window_ambiguous_includes_every_candidate_within_the_gap_not_just_top_two():
+    # A third candidate equally close to the top must also be offered, not silently dropped.
+    top_n_grams = {"cot": 50, "cap": 48, "cut": 45}
+    words = ["Cat"]
+    normalized = [normalize_word(w) for w in words]
+    result = _try_window(words, normalized, 0, 1, top_n_grams)
+    assert isinstance(result, AmbiguousCandidates)
+    assert result.queries == ["cap", "cot", "cut"]
+
+
+def test_try_window_ambiguous_preserves_surrounding_words_per_suggestion():
+    top_n_grams = {"cot": 50, "cap": 40}
+    words = ["The", "Cat", "sat"]
+    normalized = [normalize_word(w) for w in words]
+    result = _try_window(words, normalized, 1, 2, top_n_grams)
+    assert isinstance(result, AmbiguousCandidates)
+    assert result.queries == ["The cap sat", "The cot sat"]
+
+
 # --------------------------------------------------------------------------- #
 #  autocorrect_query                                                          #
 # --------------------------------------------------------------------------- #
 
 def test_autocorrect_query_short_phrase_one_off_match():
     top_n_grams = {"bereishit rabbah": 10}
-    assert autocorrect_query("bereshit rabbah", top_n_grams) == ("bereishit rabbah", "bereshit rabbah")
+    assert autocorrect_query("bereshit rabbah", top_n_grams) == AutocorrectResult(
+        original_query="bereshit rabbah", corrected_query="bereishit rabbah")
 
 
 def test_autocorrect_query_short_phrase_already_attested_is_noop():
@@ -196,8 +269,8 @@ def test_autocorrect_query_does_not_correct_a_lone_word_into_an_unattested_phras
 
 def test_autocorrect_query_three_word_phrase():
     top_n_grams = {"shir hashirim rabbah": 8}
-    assert autocorrect_query("shir hashirim rabah", top_n_grams) == (
-        "shir hashirim rabbah", "shir hashirim rabah")
+    assert autocorrect_query("shir hashirim rabah", top_n_grams) == AutocorrectResult(
+        original_query="shir hashirim rabah", corrected_query="shir hashirim rabbah")
 
 
 def test_autocorrect_query_long_query_fixes_longest_window_first():
@@ -206,21 +279,26 @@ def test_autocorrect_query_long_query_fixes_longest_window_first():
     # must win, and every other word in the query is left exactly as typed.
     top_n_grams = {"bereishit rabbah": 10}
     result = autocorrect_query("The quick bereshit rabbah fox jumps", top_n_grams)
-    assert result == ("The quick bereishit rabbah fox jumps", "The quick bereshit rabbah fox jumps")
+    assert result == AutocorrectResult(
+        original_query="The quick bereshit rabbah fox jumps",
+        corrected_query="The quick bereishit rabbah fox jumps")
 
 
 def test_autocorrect_query_long_query_falls_back_to_single_word_window():
     # No 3- or 2-word window is fixable here; only the lone word "teh" needs a fix.
     top_n_grams = {"the": 100}
     result = autocorrect_query("in teh beginning of everything", top_n_grams)
-    assert result == ("in the beginning of everything", "in teh beginning of everything")
+    assert result == AutocorrectResult(
+        original_query="in teh beginning of everything",
+        corrected_query="in the beginning of everything")
 
 
 def test_autocorrect_query_long_query_prefers_leftmost_window_of_the_same_size():
     top_n_grams = {"aaa bbb": 10, "xxx yyy": 10}
     result = autocorrect_query("aab bbb ccc xxy yyy", top_n_grams)
     # Both "aab bbb" and "xxy yyy" are one-edit 2-word fixes; the leftmost one wins.
-    assert result == ("aaa bbb ccc xxy yyy", "aab bbb ccc xxy yyy")
+    assert result == AutocorrectResult(
+        original_query="aab bbb ccc xxy yyy", corrected_query="aaa bbb ccc xxy yyy")
 
 
 def test_autocorrect_query_long_query_unfixable_returns_none():
@@ -245,7 +323,8 @@ def test_max_phrase_words_is_three():
 # --------------------------------------------------------------------------- #
 
 def test_autocorrect_query_short_query_corrects_from_entity_alt_index():
-    assert autocorrect_query("rasih", {}, {"rashi": 4.0}) == ("rashi", "rasih")
+    assert autocorrect_query("rasih", {}, {"rashi": 4.0}) == AutocorrectResult(
+        original_query="rasih", corrected_query="rashi")
 
 
 def test_autocorrect_query_short_query_already_attested_in_entity_alt_index_is_noop():
@@ -256,7 +335,8 @@ def test_autocorrect_query_short_query_picks_higher_scoring_source():
     # Both sources offer a fix; the entity-alt index's precomputed score wins here.
     top_n_grams = {"cap": 1}
     entity_alt_index = {"cot": 100.0}
-    assert autocorrect_query("cat", top_n_grams, entity_alt_index) == ("cot", "cat")
+    assert autocorrect_query("cat", top_n_grams, entity_alt_index) == AutocorrectResult(
+        original_query="cat", corrected_query="cot")
 
 
 def test_autocorrect_query_long_query_whole_phrase_entity_match_beats_windowed_top_n_grams():
@@ -266,21 +346,67 @@ def test_autocorrect_query_long_query_whole_phrase_entity_match_beats_windowed_t
     # whole-query entity pass must fire and win outright.
     entity_alt_index = {"the mishneh torah book": 0.0}
     result = autocorrect_query("the mishne torah book", {}, entity_alt_index)
-    assert result == ("the mishneh torah book", "the mishne torah book")
+    assert result == AutocorrectResult(
+        original_query="the mishne torah book", corrected_query="the mishneh torah book")
 
 
 def test_autocorrect_query_long_query_falls_through_to_windowed_scan_when_no_whole_match():
     top_n_grams = {"quick brown fox": 10}
     entity_alt_index = {"some unrelated title": 5.0}
     result = autocorrect_query("a quick brown fax jumps", top_n_grams, entity_alt_index)
-    assert result == ("a quick brown fox jumps", "a quick brown fax jumps")
+    assert result == AutocorrectResult(
+        original_query="a quick brown fax jumps", corrected_query="a quick brown fox jumps")
 
 
 def test_autocorrect_query_entity_alt_index_is_optional():
     # Omitting entity_alt_index entirely (e.g. DISABLE_ENTITY_ALT_INDEX) must behave exactly
     # like the top-n-grams-only signature this replaced.
     top_n_grams = {"bereishit rabbah": 10}
-    assert autocorrect_query("bereshit rabbah", top_n_grams) == ("bereishit rabbah", "bereshit rabbah")
+    assert autocorrect_query("bereshit rabbah", top_n_grams) == AutocorrectResult(
+        original_query="bereshit rabbah", corrected_query="bereishit rabbah")
+
+
+# --------------------------------------------------------------------------- #
+#  autocorrect_query + ambiguity (AMBIGUITY_LOG_GAP)                          #
+# --------------------------------------------------------------------------- #
+
+def test_autocorrect_query_ambiguous_returns_suggestions_not_a_correction():
+    top_n_grams = {"cot": 50, "cap": 40}
+    result = autocorrect_query("cat", top_n_grams)
+    assert result == AutocorrectResult(
+        original_query="cat", corrected_query=None, suggested_queries=["cap", "cot"])
+
+
+def test_autocorrect_query_confident_when_disparity_is_large():
+    # Same pair, but now one dominates by orders of magnitude -- the mari/maariv example in
+    # the module docstring: not really competing, so the dominant one still auto-corrects.
+    top_n_grams = {"cot": 100000, "cap": 2}
+    assert autocorrect_query("cat", top_n_grams) == AutocorrectResult(
+        original_query="cat", corrected_query="cot")
+
+
+def test_autocorrect_query_ambiguous_in_a_long_query_keeps_surrounding_words():
+    top_n_grams = {"cot": 50, "cap": 40}
+    result = autocorrect_query("The cat sat down", top_n_grams)
+    assert result == AutocorrectResult(
+        original_query="The cat sat down",
+        corrected_query=None,
+        suggested_queries=["The cap sat down", "The cot sat down"])
+
+
+def test_autocorrect_query_ambiguous_between_top_n_grams_and_entity_alt_candidates():
+    # entity_alt_index scores are already final (pre-damped) scores, not raw counts -- pick
+    # one close to top_n_grams' log-damped score for "cap" (log10(41)=1.61), not a raw count.
+    top_n_grams = {"cap": 40}
+    entity_alt_index = {"cot": 1.7}
+    result = autocorrect_query("cat", top_n_grams, entity_alt_index)
+    assert result == AutocorrectResult(
+        original_query="cat", corrected_query=None, suggested_queries=["cap", "cot"])
+
+
+def test_ambiguity_log_gap_is_one_order_of_magnitude():
+    # Documents the threshold the tests above assume: roughly a 10x raw-weight gap.
+    assert AMBIGUITY_LOG_GAP == 1.0
 
 
 # --------------------------------------------------------------------------- #
