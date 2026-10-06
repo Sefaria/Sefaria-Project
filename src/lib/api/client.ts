@@ -12,8 +12,22 @@ export const SEFARIA_API_ORIGIN: string = API_ORIGIN;
 
 let client: SefariaClient | undefined;
 
+/**
+ * The site itself is down or starting (Varnish has no backend: 502/503/504) — not a broken contract. Said plainly, so the page
+ * offers "Try again" with a message a reader understands instead of a validation report.
+ */
+const UNAVAILABLE = new Set([502, 503, 504]);
+const unavailableAware: typeof fetch = async (input, init) => {
+  // globalThis.fetch at call time: on the server it is the internal-origin fetch (src/server/internal-fetch.ts)
+  const res = await globalThis.fetch(input, init);
+  if (UNAVAILABLE.has(res.status)) {
+    throw new SefariaApiError(`Sefaria is temporarily unavailable (HTTP ${res.status}). Please try again in a moment.`, res.status);
+  }
+  return res;
+};
+
 export function getSefariaClient(): SefariaClient {
-  client ??= createSefariaClient({ baseUrl: SEFARIA_API_ORIGIN, cache: false });
+  client ??= createSefariaClient({ baseUrl: SEFARIA_API_ORIGIN, cache: false, fetch: unavailableAware });
   return client;
 }
 
