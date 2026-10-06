@@ -41,7 +41,7 @@ spec:
             command: ["bash"]
             args: [
               "-c",
-              "/app/run /app/scripts/build_top_n_grams_for_search_autocorrect.py"
+              "/app/run /app/scripts/build_top_n_grams_for_search_autocorrect.py --min-doc-count 100"
             ]
           restartPolicy: OnFailure
           volumes:

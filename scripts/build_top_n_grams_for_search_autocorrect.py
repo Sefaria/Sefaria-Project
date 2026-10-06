@@ -26,8 +26,8 @@ from sefaria.helper.top_n_grams_for_search_autocorrect import build_top_n_grams,
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--min-doc-count", type=int, default=3,
-                         help="Keep only phrases appearing in more than this many documents (segments). Default: 3")
+    parser.add_argument("--min-doc-count", type=int, default=100,
+                         help="Keep only phrases appearing in more than this many documents (segments). Default: 100")
     parser.add_argument("--langs", nargs="+", default=["he", "en"], choices=["he", "en"],
                          help="Languages to pull segment text in. Default: he en")
     parser.add_argument("--categories", nargs="+", default=None,
