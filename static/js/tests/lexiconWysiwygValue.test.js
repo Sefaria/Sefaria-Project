@@ -73,14 +73,24 @@ describe('sanitizeLexiconHtml', () => {
 
 describe('WysiwygValueNode', () => {
   let container = null;
+  let commitDraft = null;
+  let handleEdit = null;
+  const NODE_PATH = ['content', 'senses', 0, 'definition'];
+  const node = (props) => React.createElement(WysiwygValueNode,
+    { nodeData: { path: NODE_PATH }, customNodeProps: { commitDraft }, handleEdit, ...props });
 
   const render = (props) => {
+    commitDraft = jest.fn();
+    handleEdit = jest.fn();
     container = document.createElement('div');
     document.body.appendChild(container);
     act(() => {
-      ReactDOM.render(React.createElement(WysiwygValueNode, props), container);
+      ReactDOM.render(node(props), container);
     });
   };
+  const type = () => act(() => {
+    container.querySelector('.fakeEditorType').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  });
   afterEach(() => {
     if (container) {
       act(() => { ReactDOM.unmountComponentAtNode(container); });
@@ -119,22 +129,44 @@ describe('WysiwygValueNode', () => {
   });
 
   test('edit mode seeds the editor from the sanitized current value', () => {
-    render({ value: '<b onclick="x()">bold</b>', isEditing: true, setValue: jest.fn() });
+    render({ value: '<b onclick="x()">bold</b>', isEditing: true });
     expect(container.querySelector('.fakeEditor b').textContent).toBe('bold');
     expect(container.querySelector('.fakeEditor b').getAttribute('onclick')).toBeNull();
   });
 
-  test('a change updates both the field being edited and json-edit-react\'s own tracked value', () => {
-    // json-edit-react always overlays its own confirm/cancel icons in edit mode (there's no way to
-    // turn them off), and they commit via `setValue`, not this component's own state -- if a
-    // change only updated the editor's own display and not `setValue` too, confirming via the
-    // library's icons would silently revert to the pre-edit content instead of saving the change.
-    const setValue = jest.fn();
-    render({ value: 'text', isEditing: true, setValue });
-    act(() => {
-      container.querySelector('.fakeEditorType').dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    });
-    expect(setValue).toHaveBeenCalledWith('text<i>typed</i>');
+  test('a change goes into the panel draft as it is typed, keyed by this node\'s path', () => {
+    // Not waiting on any per-field confirm: that's what keeps the text when the field is closed
+    // by clicking elsewhere, and what lets Save send it without the field being committed first.
+    render({ value: 'text', isEditing: true });
+
+    type();
+
+    expect(commitDraft).toHaveBeenCalledWith(NODE_PATH, 'text<i>typed</i>');
     expect(container.querySelector('.fakeEditor i').textContent).toBe('typed');
+  });
+
+  test('Cancel puts back the value from when editing started, and closes the field', () => {
+    render({ value: 'original', isEditing: true });
+    type();
+
+    act(() => {
+      container.querySelector('.lexiconWysiwygCancel').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    // handleEdit writes the value and leaves edit mode in one step.
+    expect(handleEdit).toHaveBeenCalledWith('original');
+  });
+
+  test('Cancel reverts to the stored value even after several changes', () => {
+    render({ value: 'original', isEditing: true });
+    type();
+    type();
+
+    act(() => {
+      container.querySelector('.lexiconWysiwygCancel').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    });
+
+    expect(commitDraft).toHaveBeenCalledTimes(2);
+    expect(handleEdit).toHaveBeenCalledWith('original');
   });
 });

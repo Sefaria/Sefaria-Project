@@ -99,4 +99,11 @@
   gap: 6px;
 }
 
+/* json-edit-react's own confirm/cancel icon pair. Confirm is redundant (typing already updates
+   the draft, and Save sends it); its cancel can't undo those updates, so the field renders its
+   own Cancel instead. */
+.lexiconEditBox .jer-confirm-buttons {
+  display: none;
+}
+
 /*# sourceMappingURL=lexicon-edit.css.map */
