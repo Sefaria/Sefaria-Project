@@ -1,12 +1,27 @@
 # Lemma search comparison experiment
 
 Open `/experimental/lemma-search/` on your local Django library server. This is a
-standalone comparison page; it does not change the ordinary `/search` UI or call
-external Dicta search. Both lists query the same 55,589-passage Hebrew corpus:
+standalone comparison page; it does not change the ordinary `/search` UI.
+The Elasticsearch baseline and enhanced lists query the same 55,589-passage Hebrew corpus:
 Tanakh, Rashi on Tanakh, and Mishnah. The original cleaned passage is displayed;
 lemma highlights are not reconstructed. Links open the corresponding reader ref
 and Hebrew version. Missing sheets/entity indexes mean the normal search page is
 not a supported entry point with these local settings.
+
+## Dicta comparison
+
+A third, source-labeled list calls the same external Dicta `/search` service as
+ordinary Hebrew search, directly from the browser. It sends the original query,
+limits results to Tanakh, requests small units, and preserves Dicta's pagerank
+order. Non-Hebrew queries skip Dicta. Requests time out after 20 seconds; failure
+does not prevent Elasticsearch results. Upstream snippets render as text only.
+
+This is a reference for the standard site's Tanakh search, not a reproduction of
+its complete mixed ranking. Dicta has its own text version and retrieval rules;
+Rashi and Mishnah remain in the two Elasticsearch lists. Experiment controls
+(weight, slop, lemma alternatives) apply only to those two lists. Dicta's live
+results are not part of the frozen offline evaluation or Shoshan annotations.
+No Elasticsearch reindexing or model-worker changes are needed.
 
 ## Local development
 

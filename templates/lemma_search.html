@@ -1,30 +1,31 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Local lemma search comparison</title>
+<title>Lemma search comparison</title>
 <style>
-body{font:16px system-ui,sans-serif;max-width:1400px;margin:32px auto;padding:0 24px;color:#202b36;background:#f6f7f9}h1{font-size:26px}form{display:flex;gap:16px;align-items:end;flex-wrap:wrap;background:white;padding:20px;border-radius:8px}label{display:grid;gap:6px}input,select,button{font:inherit;padding:9px;border:1px solid #abb5c1;border-radius:4px}#q{min-width:320px}button{background:#234c75;color:white;cursor:pointer}button:disabled{opacity:.5}.columns{display:grid;grid-template-columns:1fr 1fr;gap:24px}.result{background:white;border:1px solid #dce1e7;padding:16px;margin:12px 0;border-radius:6px}.passage{font-size:20px;line-height:1.7;white-space:pre-wrap;max-height:240px;overflow:auto}.meta{font-size:13px;color:#526171}.badge{color:#216438}#status{min-height:24px}pre{white-space:pre-wrap;overflow-wrap:anywhere}a{color:#234c75}@media(max-width:800px){.columns{grid-template-columns:1fr}#q{min-width:200px}}
+body{font:16px system-ui,sans-serif;max-width:1800px;margin:32px auto;padding:0 24px;color:#202b36;background:#f6f7f9}h1{font-size:26px}form{display:flex;gap:16px;align-items:end;flex-wrap:wrap;background:white;padding:20px;border-radius:8px}label{display:grid;gap:6px}input,select,button{font:inherit;padding:9px;border:1px solid #abb5c1;border-radius:4px}#q{min-width:320px}button{background:#234c75;color:white;cursor:pointer}button:disabled{opacity:.5}.columns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}.result{background:white;border:1px solid #dce1e7;padding:16px;margin:12px 0;border-radius:6px}.passage{font-size:20px;line-height:1.7;white-space:pre-wrap;max-height:240px;overflow:auto}.meta{font-size:13px;color:#526171}.badge{color:#216438}#status{min-height:24px}pre{white-space:pre-wrap;overflow-wrap:anywhere}a{color:#234c75}@media(max-width:1100px){.columns{grid-template-columns:1fr}#q{min-width:200px}}
 
 .query-words{display:flex;flex-wrap:wrap;gap:10px;direction:rtl;justify-content:flex-start}.query-word{display:grid;gap:5px;padding:10px 16px;border:1px solid #d6e0e9;border-radius:8px;background:white;text-align:center;min-width:65px}.query-form{font-size:22px}.query-lemma{font-size:20px;color:#21577e}.query-label{font:12px system-ui;color:#657483}.word{border-bottom:1px dotted #8295a6;cursor:help;border-radius:3px}.word:hover,.word:focus{background:#dcecf8;outline:2px solid #a4c5e0}.word.fallback{border-color:#aa7225}.lemma-tip{position:fixed;z-index:10;background:#183249;color:white;padding:10px 14px;border-radius:8px;box-shadow:0 4px 18px #0003;pointer-events:none;max-width:280px;font-size:16px;white-space:pre-line}.lemma-tip[hidden]{display:none}#query-analysis{margin:22px 0}#query-analysis h2{font-size:18px}
 </style></head><body>
-<h1>Local lemma search comparison</h1>
+<h1>Lemma search comparison</h1>
 <p>Hebrew Tanakh, Rashi on Tanakh, and Mishnah • One version per work</p>
-<p>Baseline uses the existing stemming search. Enhanced adds Shoshan lemma matches. Both use the same passage-ranking factor.</p>
+<p>Elasticsearch baseline uses the existing stemming search. Enhanced adds Shoshan lemma matches. These two lists use the same corpus and passage-ranking factor. Dicta supplies a separate Tanakh comparison, using the service called by ordinary Hebrew search.</p>
 <form id="search">{% csrf_token %}<label>Search<input id="q" dir="auto" required maxlength="500" placeholder="בני ישראל"></label>
 <label>Lemma weight<input id="weight" type="number" min="0" max="10" step="0.1" value="1"></label>
 <label>Phrase flexibility<input id="slop" type="number" min="0" max="50" step="1" value="10"></label>
 <label><span>Lemma alternatives</span><span><input id="expand" type="checkbox"> Ignore י / ו</span></label>
 <label>Results per list<select id="depth"><option>10</option><option selected>20</option><option>50</option></select></label>
-<label>Display<select id="display"><option value="both">Side by side</option><option value="baseline">Baseline only</option><option value="enhanced">Enhanced only</option></select></label>
+<label>Display<select id="display"><option value="both">Side by side</option><option value="baseline">Elasticsearch only</option><option value="enhanced">Enhanced only</option><option value="dicta">Dicta only</option></select></label>
 <button id="submit">Compare</button></form>
-<p class="meta">Weight 0 gives the baseline in both lists. At weight 1, both search routes have a multiplier of 1; their raw scores can differ. Phrase flexibility applies equally to both lists: 0 requires an exact sequence; 10 allows gaps and some reordering, like ordinary search. Ignore י / ו adds corpus lemma alternatives to enhanced search only; original lemmas stay visible. First search takes longer while the model loads.</p>
+<p class="meta">Weight 0 gives the baseline in both lists. At weight 1, both search routes have a multiplier of 1; their raw scores can differ. Phrase flexibility applies equally to the two Elasticsearch lists: 0 requires an exact sequence; 10 allows gaps and some reordering, like ordinary search. Ignore י / ו adds corpus lemma alternatives to enhanced search only; original lemmas stay visible. First search takes longer while the model loads.</p>
+<p class="meta">Dicta receives the original Hebrew query and uses its own Tanakh text and ranking. Lemma weight, phrase flexibility, and י / ו alternatives do not change Dicta’s search. Its results have no Shoshan hover annotations. Queries are sent directly to Dicta, as in ordinary search.</p>
 <p id="status" role="status" aria-live="polite"></p><section id="query-analysis" hidden><h2>Query words → lemmas</h2><div id="lemmas" class="query-words"></div><p class="meta">Hover, focus, or tap a result word to see its saved lemma. “Original word used” means the model supplied no usable lemma.</p></section><div id="lemma-tip" class="lemma-tip" role="tooltip" hidden></div>
-<div class="columns" id="columns"><section id="baseline"></section><section id="enhanced"></section></div>
+<div class="columns" id="columns"><section id="baseline"></section><section id="enhanced"></section><section id="dicta" aria-live="polite"></section></div>
 <details id="debug" hidden><summary>Query details and token lemmas</summary><pre id="details"></pre></details>
 <script>
 const el=id=>document.getElementById(id);
 const endpoint='/api/experimental/lemma-search';
 function node(tag,text,cls){const n=document.createElement(tag);n.textContent=text;if(cls)n.className=cls;return n;}
-function display(){const choice=el('display').value;for(const mode of ['baseline','enhanced'])el(mode).hidden=choice!=='both'&&choice!==mode;el('columns').style.gridTemplateColumns=choice==='both'?'':'1fr';}
+function display(){const choice=el('display').value;for(const mode of ['baseline','enhanced','dicta'])el(mode).hidden=choice!=='both'&&choice!==mode;el('columns').style.gridTemplateColumns=choice==='both'?'':'1fr';}
 el('display').onchange=display;
 function tipText(part){return `Lemma: ${part.lemma}${part.pos ? '\nPart of speech: '+part.pos : ''}${part.status !== 'ok' ? '\nOriginal word used (fallback)' : ''}`;}
 function word(part){
@@ -38,7 +39,7 @@ function results(data){
  for(const mode of ['baseline','enhanced']){
   const result=data.results[mode],other=data.results[mode==='baseline'?'enhanced':'baseline'];
   const otherIDs=new Set(other.hits.map(h=>h._id));const box=el(mode);box.replaceChildren();
-  box.append(node('h2',`${mode==='baseline'?'Baseline':'Enhanced'} · ${result.total.toLocaleString()} matches`));
+  box.append(node('h2',`${mode==='baseline'?'Elasticsearch baseline':'Enhanced'} · ${result.total.toLocaleString()} matches`));
   if(!result.hits.length)box.append(node('p','No matches.'));
   result.hits.forEach((hit,i)=>{const s=hit._source,card=node('article','','result');const a=node('a',`${i+1}. ${s.ref}`);a.href='/'+encodeURIComponent(s.ref.replaceAll(' ','_'))+'?lang=he&vhe='+encodeURIComponent(s.version);a.target='_blank';a.rel='noopener';card.append(a);
    card.append(node('p',`${s.version} · Score ${hit._score.toFixed(3)} · ${(hit.matched_queries||[]).join(', ')}`,'meta'));
@@ -49,13 +50,44 @@ function results(data){
  el('details').textContent=JSON.stringify({index:data.index,weight:data.weight,slop:data.slop,expand_yod_vav:data.expand_yod_vav,alternatives:data.annotation.parts,tokens:data.annotation.tokens,baseline:data.results.baseline.request,enhanced:data.results.enhanced.request},null,2);
  el('debug').hidden=false;el('status').textContent=`Searched ${data.documents.toLocaleString()} passages in ${data.seconds}s. Showing up to ${data.depth} results per list.`;display();
 }
+// Match static/js/sefaria/search.js's Dicta payload and reference mapping.
+// Keep the provider's order separate from Elasticsearch scores.
+async function dictaResults(query, depth){
+ const box=el('dicta');box.replaceChildren(node('h2','Dicta · Tanakh'));
+ if(!/[\u0590-\u05ff]/.test(query)){box.append(node('p','Dicta is used for Hebrew queries only.'));return;}
+ const status=node('p','Searching Dicta…');box.append(status);
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+ try{
+  const data=await json(await fetch('https://sefaria.loadbalancer.dicta.org.il/search',{
+   method:'POST',credentials:'omit',signal:controller.signal,headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({query,from:0,size:depth,limitedToBooks:['Tanakh'],sort:'pagerank',smallUnitsOnly:true})
+  }));
+  if(!Number.isFinite(data.total)||!Array.isArray(data.hits))throw Error('Unexpected response');
+  box.replaceChildren(node('h2',`Dicta · Tanakh · ${data.total.toLocaleString()} matches`));
+  if(!data.hits.length)box.append(node('p','No matches.'));
+  data.hits.forEach((hit,i)=>{
+   const parts=String(hit.xmlId||'').split('.');
+   if(parts.length!==5||parts[0]!=='Tanakh')throw Error('Unexpected reference');
+   const ref=parts[2].replaceAll('_',' ')+' '+parts.slice(3,5).join(':');
+   const version="Tanach with Ta'amei Hamikra",card=node('article','','result');
+   const a=node('a',`${i+1}. ${ref}`);a.href='/'+encodeURIComponent(ref.replaceAll(' ','_'))+'?lang=he&vhe='+encodeURIComponent(version);a.target='_blank';a.rel='noopener';card.append(a);
+   card.append(node('p','Source: Dicta · '+version,'meta badge'));
+   // Parse in an inert template; render text only, never third-party HTML.
+   const inert=document.createElement('template');inert.innerHTML=(hit.highlight||[]).map(h=>h.text||'').join(' ');
+   inert.content.querySelectorAll('script,style').forEach(n=>n.remove());
+   const text=node('div',inert.content.textContent,'passage');text.dir='rtl';text.lang='he';card.append(text);box.append(card);
+  });
+ }catch(error){box.replaceChildren(node('h2','Dicta · Tanakh'),node('p',error.name==='AbortError'?'Dicta timed out. Try again.':'Dicta is unavailable. The Elasticsearch comparison can still run.'));}
+ finally{clearTimeout(timer);}
+}
 async function json(response){const body=await response.json();if(!response.ok)throw Error(body.error||'Search failed');return body;}
 el('search').onsubmit=async event=>{
  event.preventDefault();el('submit').disabled=true;el('status').textContent='Searching… (the first query also loads Shoshan)';el('lemmas').textContent='';el('query-analysis').hidden=true;el('lemma-tip').hidden=true;el('debug').hidden=true;el('baseline').replaceChildren();el('enhanced').replaceChildren();
+ const dictaPending=dictaResults(el('q').value,Number(el('depth').value));
  try{
   const job=await json(await fetch(endpoint,{method:'POST',headers:{'Content-Type':'application/json','X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value},body:JSON.stringify({query:el('q').value,weight:Number(el('weight').value),depth:Number(el('depth').value),slop:Number(el('slop').value),expand_yod_vav:el('expand').checked})}));
   const deadline=Date.now()+300000;
   while(true){if(Date.now()>deadline)throw Error('The search is taking too long. Check the worker terminal.');await new Promise(r=>setTimeout(r,500));const state=await json(await fetch(endpoint+'?job='+encodeURIComponent(job.job)));if(state.status==='error')throw Error(state.error);if(state.status==='complete'){results(state.data);break;}}
- }catch(error){el('status').textContent=error.message;}finally{el('submit').disabled=false;}
+ }catch(error){el('status').textContent=error.message;}finally{await dictaPending;el('submit').disabled=false;}
 };
 </script></body></html>
