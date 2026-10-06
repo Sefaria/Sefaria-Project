@@ -55,6 +55,11 @@ restore:
   bucket: sefaria-mongo-backup
   # tarball:
   serviceAccount: database-backup-read
+  # Collections to skip, excluded at extraction time so they never hit disk.
+  # `sheets` alone is ~14GB of the ~27GB dump.
+  excludeCollections: []
+  # Fail the job if mongo is missing any collection that was extracted.
+  verify: true
 # config to backup environment DB
 backup:
   mongo:
@@ -205,12 +210,18 @@ nodejs:
   replicaCount: 1
   resources:
     requests:
-      memory: "100Mi"
+      memory: "256Mi"
       cpu: "100m"
     limits:
-      memory: "200Mi"
+      memory: "512Mi"
       cpu: "400m"
-  heapSize: 150
+  # V8 old-space cap in MB (--max-old-space-size). server.js installs source-map-support, which
+  # parses server-bundle.js.map (~6MB) the first time an error stack is formatted: a ~100MB
+  # transient spike and ~75MB retained for the life of the process. At 150 the process aborts
+  # mid-parse ("Reached heap limit", forever restarts it in-container, restartCount stays 0).
+  # Node's non-heap overhead is ~75-100MB, so keep limits.memory >= heapSize + ~200Mi or the
+  # container is OOMKilled before V8 reports anything. prod/preprod override this (1250/1500Mi).
+  heapSize: 300
 
 varnish:
   containerImage:

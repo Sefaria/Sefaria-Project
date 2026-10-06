@@ -58,7 +58,7 @@ jobs:
           while IFS= read -r file; do
             if [[ "$file" == helm-chart/* ]]; then
               chart_changed=true
-            elif [[ "$file" != envs/* ]]; then
+            elif [[ "$file" != envs/* && "$file" != docs/* ]]; then
               app_changed=true
             fi
           done <<< "$changed"

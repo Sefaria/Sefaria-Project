@@ -2,6 +2,8 @@
 import pytest
 
 from sefaria.model import *
+from sefaria.model.legacy_text import LegacyTextChunk, TextFamily
+from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 import re
 from sefaria.model.text import AbstractTextRecord
@@ -10,7 +12,7 @@ from sefaria.utils.util import list_depth
 
 def test_text_index_map():
     r = Ref("Shabbat 8b")
-    tc = TextChunk(r,"he")
+    tc = LegacyTextChunk(r,"he")
 
     def tokenizer(str):
         return re.split(r"\s+",str)
@@ -18,7 +20,7 @@ def test_text_index_map():
     ind_list,ref_list, total_len = tc.text_index_map(tokenizer)
     #print len(ind_list), len(ref_list)
     #make sure the last element in ind_last (start index of last segment) + the last of the last segment == len of the whole string
-    assert ind_list[-1]+len(tokenizer(TextChunk(r.all_subrefs()[-1],"he").as_string())) == len(tokenizer(tc.as_string()))
+    assert ind_list[-1]+len(tokenizer(LegacyTextChunk(r.all_subrefs()[-1],"he").as_string())) == len(tokenizer(tc.as_string()))
 
     # Test Range
     g = Ref('Genesis 1:31-2:2')
@@ -28,7 +30,7 @@ def test_text_index_map():
 
     #test depth 3 with empty sections
     r = Ref("Rashi on Joshua")
-    tc = TextChunk(r,"he")
+    tc = LegacyTextChunk(r,"he")
     ind_list, ref_list, total_len = tc.text_index_map()
     for sub_ref in ref_list:
         assert sub_ref.is_segment_level()
@@ -37,13 +39,13 @@ def test_text_index_map():
 
     #test depth 2 range
     r = Ref("Rashi on Joshua 1:4-1:7")
-    tc = TextChunk(r,"he")
+    tc = LegacyTextChunk(r,"he")
     ind_list, ref_list, total_len = tc.text_index_map()
     assert ref_list[5] == Ref('Rashi on Joshua 1:7:1')
 
     #test depth 3 range with missing super-section (Ramban Chapter 50 is missing)
     r = Ref("Ramban on Genesis 48-50")
-    tc = TextChunk(r,"he")
+    tc = LegacyTextChunk(r,"he")
     ind_list, ref_list, total_len = tc.text_index_map()
     assert ref_list[-1] == Ref('Ramban on Genesis 49:33:3')
 
@@ -53,10 +55,10 @@ def test_text_index_map():
 
 def test_verse_chunk():
     chunks = [
-        TextChunk(Ref("Daniel 2:3"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
-        TextChunk(Ref("Daniel 2:3"), "he", "Tanach with Nikkud"),
-        TextChunk(Ref("Daniel 2:3"), "en"),
-        TextChunk(Ref("Daniel 2:3"), "he")
+        LegacyTextChunk(Ref("Daniel 2:3"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
+        LegacyTextChunk(Ref("Daniel 2:3"), "he", "Tanach with Nikkud"),
+        LegacyTextChunk(Ref("Daniel 2:3"), "en"),
+        LegacyTextChunk(Ref("Daniel 2:3"), "he")
     ]
     for c in chunks:
         assert isinstance(c.text, str)
@@ -65,10 +67,10 @@ def test_verse_chunk():
 
 def test_chapter_chunk():
     chunks = [
-        TextChunk(Ref("Daniel 2"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
-        TextChunk(Ref("Daniel 2"), "he", "Tanach with Nikkud"),
-        TextChunk(Ref("Daniel 2"), "en"),
-        TextChunk(Ref("Daniel 2"), "he")
+        LegacyTextChunk(Ref("Daniel 2"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
+        LegacyTextChunk(Ref("Daniel 2"), "he", "Tanach with Nikkud"),
+        LegacyTextChunk(Ref("Daniel 2"), "en"),
+        LegacyTextChunk(Ref("Daniel 2"), "he")
     ]
     for c in chunks:
         assert isinstance(c.text, list)
@@ -76,27 +78,27 @@ def test_chapter_chunk():
 
 
 def test_depth_1_chunk():
-    c = TextChunk(Ref("Hadran"), "he")
+    c = LegacyTextChunk(Ref("Hadran"), "he")
     assert isinstance(c.text, list)
-    c = TextChunk(Ref("Hadran 3"), "he")
+    c = LegacyTextChunk(Ref("Hadran 3"), "he")
     assert isinstance(c.text, str)
 
 
 def test_out_of_range_chunks():
     # test out of range where text has length
     with pytest.raises(InputError):
-        TextChunk(Ref("Job 80"), "he")
+        LegacyTextChunk(Ref("Job 80"), "he")
 
     with pytest.raises(InputError):
-        TextChunk(Ref("Shabbat 180"), "he")
+        LegacyTextChunk(Ref("Shabbat 180"), "he")
 
 
 def test_range_chunk():
     chunks = [
-        TextChunk(Ref("Daniel 2:3-5"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
-        TextChunk(Ref("Daniel 2:3-5"), "he", "Tanach with Nikkud"),
-        TextChunk(Ref("Daniel 2:3-5"), "en"),
-        TextChunk(Ref("Daniel 2:3-5"), "he"),
+        LegacyTextChunk(Ref("Daniel 2:3-5"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
+        LegacyTextChunk(Ref("Daniel 2:3-5"), "he", "Tanach with Nikkud"),
+        LegacyTextChunk(Ref("Daniel 2:3-5"), "en"),
+        LegacyTextChunk(Ref("Daniel 2:3-5"), "he"),
     ]
 
     for c in chunks:
@@ -106,10 +108,10 @@ def test_range_chunk():
 
 def test_spanning_chunk():
     chunks = [
-        TextChunk(Ref("Daniel 2:3-4:5"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
-        TextChunk(Ref("Daniel 2:3-4:5"), "he", "Tanach with Nikkud"),
-        TextChunk(Ref("Daniel 2:3-4:5"), "en"),
-        TextChunk(Ref("Daniel 2:3-4:5"), "he")
+        LegacyTextChunk(Ref("Daniel 2:3-4:5"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
+        LegacyTextChunk(Ref("Daniel 2:3-4:5"), "he", "Tanach with Nikkud"),
+        LegacyTextChunk(Ref("Daniel 2:3-4:5"), "en"),
+        LegacyTextChunk(Ref("Daniel 2:3-4:5"), "he")
     ]
 
     for c in chunks:
@@ -120,14 +122,14 @@ def test_spanning_chunk():
 
 
 def test_commentary_chunks():
-    verse = TextChunk(Ref("Rashi on Exodus 3:1"), lang="he")
-    rang = TextChunk(Ref("Rashi on Exodus 3:1-10"), lang="he")
-    span = TextChunk(Ref("Rashi on Exodus 3:1-4:10"), lang="he")
+    verse = LegacyTextChunk(Ref("Rashi on Exodus 3:1"), lang="he")
+    rang = LegacyTextChunk(Ref("Rashi on Exodus 3:1-10"), lang="he")
+    span = LegacyTextChunk(Ref("Rashi on Exodus 3:1-4:10"), lang="he")
     assert verse.text == rang.text[0]
     assert verse.text == span.text[0][0]
 
-    verse = TextChunk(Ref("Rashi on Exodus 4:10"), lang="he")
-    rang = TextChunk(Ref("Rashi on Exodus 4:1-10"), lang="he")
+    verse = LegacyTextChunk(Ref("Rashi on Exodus 4:10"), lang="he")
+    rang = LegacyTextChunk(Ref("Rashi on Exodus 4:1-10"), lang="he")
     assert rang.text[-1] == verse.text
     assert span.text[-1][-1] == verse.text
 
@@ -191,6 +193,398 @@ def test_chapter_result_merge():
         assert key in c
 
 
+def test_sources_scoped_and_no_fake_attribution_for_depth_gt_2():
+    """
+    TextChunk.sources used to lose positional correspondence for depth>2 texts (merge_texts
+    flattened across the whole node before any per-ref scoping) and attributed empty positions
+    to an arbitrary candidate instead of leaving them unattributed. Two versions of a depth-3
+    book (chapter > verse > comment), each contributing at a different comment within the same
+    verse and neither at a third, reproduce both bugs. Uses a throwaway synthetic index so real
+    books' existing content can't interfere.
+    """
+    title = "Chunk Sources Test Book"
+    try:
+        Index().load({"title": title}).delete()
+    except Exception:
+        pass
+
+    idx = Index({
+        "title": title,
+        "categories": ["Liturgy"],
+        "schema": {
+            "titles": [
+                {"lang": "en", "text": title, "primary": True},
+                {"lang": "he", "text": "ספר בדיקה", "primary": True},
+            ],
+            "nodeType": "JaggedArrayNode",
+            "depth": 3,
+            "sectionNames": ["Chapter", "Verse", "Comment"],
+            "addressTypes": ["Integer", "Integer", "Integer"],
+            "key": title,
+        },
+    })
+    idx.save()
+
+    vt_a, vt_b = "Sources Test A", "Sources Test B"
+    va = Version({"language": "en", "title": title, "versionSource": "http://foobar.com",
+                 "versionTitle": vt_a, "chapter": []}).save()
+    vb = Version({"language": "en", "title": title, "versionSource": "http://foobar.com",
+                 "versionTitle": vt_b, "chapter": []}).save()
+
+    try:
+        c = LegacyTextChunk(Ref(f"{title} 1:1"), "en", vt_a)
+        c.text = ["Only in A", "", ""]
+        c.save()
+
+        c = LegacyTextChunk(Ref(f"{title} 1:1"), "en", vt_b)
+        c.text = ["", "", "Only in B"]
+        c.save()
+
+        tc = Ref(f"{title} 1").text(direction="ltr")
+        flat_text = tc.ja().flatten_to_array()
+
+        assert flat_text == ["Only in A", "", "Only in B"]
+        assert tc.sources is not None
+        assert len(tc.sources) == 3
+        assert tc.sources[0] == vt_a
+        assert tc.sources[1] == ""  # no fake attribution where neither version has content
+        assert tc.sources[2] == vt_b
+    finally:
+        va.delete()
+        vb.delete()
+        idx.delete()
+
+
+def test_normalize_does_not_suffix_existing_unsuffixed_version_on_unrelated_resave():
+    """
+    Version._normalize() runs on every save, not just on creation. Its "[xx]" auto-suffix for
+    non-en/he versions (see test_save_reuses_existing_version_despite_stale_unsuffixed_vtitle)
+    must only apply on creation -- versionTitle is part of the primary key, so suffixing it on an
+    unrelated resave of a pre-existing, already-unsuffixed version (e.g. real data saved before
+    this suffix logic existed, or any legacy version reached via a metadata-only edit) would be a
+    silent rename, firing the full pkey-change cascade for a field nobody touched.
+    """
+    title = "Normalize Resave Suffix Test Book"
+    try:
+        Index().load({"title": title}).delete()
+    except Exception:
+        pass
+
+    idx = Index({
+        "title": title,
+        "categories": ["Liturgy"],
+        "schema": {
+            "titles": [
+                {"lang": "en", "text": title, "primary": True},
+                {"lang": "he", "text": "ספר בדיקת שמירה חוזרת", "primary": True},
+            ],
+            "nodeType": "JaggedArrayNode",
+            "depth": 2,
+            "sectionNames": ["Chapter", "Verse"],
+            "addressTypes": ["Integer", "Integer"],
+            "key": title,
+        },
+    })
+    idx.save()
+
+    try:
+        # Simulate pre-existing legacy data: a non-en/he version saved without the "[xx]" suffix
+        # (bypassing Version.save()/_normalize() entirely, as real such data would predate it).
+        db.texts.insert_one({
+            "title": title,
+            "versionTitle": "Bare Title",
+            "versionSource": "http://example.com",
+            "language": "he",
+            "actualLanguage": "yi",
+            "languageFamilyName": "yiddish",
+            "isSource": False,
+            "isPrimary": True,
+            "direction": "rtl",
+            "chapter": [["First segment"]],
+        })
+
+        version = Version().load({"title": title, "versionTitle": "Bare Title"})
+        assert version is not None
+        version.versionSource = "http://example.org"  # unrelated metadata-only change
+        version.save()
+
+        assert version.versionTitle == "Bare Title"
+        reloaded = Version().load({"title": title, "versionTitle": "Bare Title"})
+        assert reloaded is not None
+        assert reloaded.versionSource == "http://example.org"
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
+
+
+def test_save_reuses_existing_version_despite_stale_unsuffixed_vtitle():
+    """
+    Saving a new non-en/he version auto-suffixes its versionTitle with "[xx]"
+    (Version._normalize()). TextChunk.save() must update self.vtitle to the real, saved title
+    afterward -- callers (e.g. the save API response) rely on reading it back from there rather
+    than re-deriving it. A second, independent TextChunk built using that corrected title (as a
+    caller who read it back would) must land on the same version, not create a duplicate.
+    """
+    title = "Chunk Save Suffix Test Book"
+    try:
+        Index().load({"title": title}).delete()
+    except Exception:
+        pass
+
+    idx = Index({
+        "title": title,
+        "categories": ["Liturgy"],
+        "schema": {
+            "titles": [
+                {"lang": "en", "text": title, "primary": True},
+                {"lang": "he", "text": "ספר בדיקת גרסה", "primary": True},
+            ],
+            "nodeType": "JaggedArrayNode",
+            "depth": 2,
+            "sectionNames": ["Chapter", "Verse"],
+            "addressTypes": ["Integer", "Integer"],
+            "key": title,
+        },
+    })
+    idx.save()
+
+    vtitle = "Suffix Test Version"
+    try:
+        chunk1 = TextChunk(Ref(f"{title} 1:1"), vtitle=vtitle, direction="rtl", actual_lang="yi")
+        chunk1.text = "First segment"
+        chunk1.save()
+        assert chunk1.vtitle == f"{vtitle} [yi]"
+
+        versions = VersionSet({"title": title, "direction": "rtl"})
+        assert len(versions) == 1
+        assert versions[0].versionTitle == f"{vtitle} [yi]"
+
+        # Second, independent TextChunk built using the corrected title chunk1.save() reported --
+        # must land on the same version, not create a duplicate.
+        chunk2 = TextChunk(Ref(f"{title} 1:2"), vtitle=chunk1.vtitle, direction="rtl", actual_lang="yi")
+        chunk2.text = "Second segment"
+        chunk2.save()
+        assert chunk2.vtitle == f"{vtitle} [yi]"
+
+        versions = VersionSet({"title": title, "direction": "rtl"})
+        assert len(versions) == 1, "Reusing the corrected title must not create a duplicate Version"
+
+        tc = Ref(f"{title} 1").text(direction="rtl")
+        assert tc.ja().flatten_to_array() == ["First segment", "Second segment"]
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
+
+
+def _make_synthetic_index(title, he_title, depth, section_names):
+    try:
+        Index().load({"title": title}).delete()
+    except Exception:
+        pass
+    idx = Index({
+        "title": title,
+        "categories": ["Liturgy"],
+        "schema": {
+            "titles": [
+                {"lang": "en", "text": title, "primary": True},
+                {"lang": "he", "text": he_title, "primary": True},
+            ],
+            "nodeType": "JaggedArrayNode",
+            "depth": depth,
+            "sectionNames": section_names,
+            "addressTypes": ["Integer"] * depth,
+            "key": title,
+        },
+    })
+    idx.save()
+    return idx
+
+
+def test_new_chunk_verse_chapter_range_spanning_reads():
+    """
+    Read-path coverage for the new (real-language) TextChunk, mirroring the old
+    LegacyTextChunk verse/chapter/range/spanning tests -- segment reads return a string,
+    section reads return a list, ranges return a list of the right length, and refs spanning
+    multiple sections return a nested list. Synthetic depth-2 book, so this doesn't depend on
+    any real book's content.
+    """
+    title = "New Chunk Read Test Book"
+    idx = _make_synthetic_index(title, "ספר בדיקת קריאה", 2, ["Chapter", "Verse"])
+    try:
+        chapter1 = ["Alpha", "Beta", "Gamma"]
+        chapter2 = ["Delta", "Epsilon"]
+        for i, val in enumerate(chapter1, start=1):
+            c = Ref(f"{title} 1:{i}").text(direction="ltr", lang="en", vtitle="Read Test Version")
+            c.text = val
+            c.save()
+        for i, val in enumerate(chapter2, start=1):
+            c = Ref(f"{title} 2:{i}").text(direction="ltr", lang="en", vtitle="Read Test Version")
+            c.text = val
+            c.save()
+
+        verse = Ref(f"{title} 1:2").text(direction="ltr")
+        assert isinstance(verse.text, str)
+        assert verse.text == "Beta"
+
+        chapter = Ref(f"{title} 1").text(direction="ltr")
+        assert isinstance(chapter.text, list)
+        assert chapter.text == chapter1
+
+        rng = Ref(f"{title} 1:1-3").text(direction="ltr")
+        assert isinstance(rng.text, list)
+        assert rng.text == chapter1
+
+        span = Ref(f"{title} 1:2-2:2").text(direction="ltr")
+        assert isinstance(span.text, list)
+        assert len(span.text) == 2
+        assert span.text[0] == ["Beta", "Gamma"]
+        assert span.text[1] == ["Delta", "Epsilon"]
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
+
+
+def test_new_chunk_depth_1_read():
+    """Depth-1 books address individual segments directly at the top numeric level."""
+    title = "New Chunk Depth1 Test Book"
+    idx = _make_synthetic_index(title, "ספר בדיקת עומק אחד", 1, ["Line"])
+    try:
+        lines = ["First line", "Second line", "Third line"]
+        c = Ref(title).text(direction="ltr", lang="en", vtitle="Depth1 Test Version")
+        c.text = lines
+        c.save()
+
+        whole = Ref(title).text(direction="ltr")
+        assert isinstance(whole.text, list)
+        assert whole.text == lines
+
+        single = Ref(f"{title} 3").text(direction="ltr")
+        assert isinstance(single.text, str)
+        assert single.text == "Third line"
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
+
+
+def test_new_chunk_commentary_style_depth_3_read():
+    """
+    Nested (chapter>verse>comment) addressing consistency, mirroring the old
+    LegacyTextChunk commentary test: a single-comment read must equal the corresponding
+    position within a wider range read of the same content.
+    """
+    title = "New Chunk Depth3 Test Book"
+    idx = _make_synthetic_index(title, "ספר בדיקת עומק שלוש", 3, ["Chapter", "Verse", "Comment"])
+    try:
+        c = Ref(f"{title} 1:1:1").text(direction="ltr", lang="en", vtitle="Depth3 Test Version")
+        c.text = "First comment"
+        c.save()
+        c = Ref(f"{title} 1:1:2").text(direction="ltr", lang="en", vtitle="Depth3 Test Version")
+        c.text = "Second comment"
+        c.save()
+
+        verse = Ref(f"{title} 1:1:1").text(direction="ltr")
+        rng = Ref(f"{title} 1:1:1-2").text(direction="ltr")
+        assert verse.text == rng.text[0]
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
+
+
+def test_new_chunk_save_write_blank_extend_and_within_extent():
+    """
+    Save-path coverage for the new TextChunk, mirroring LegacyTextChunk's test_save: writing
+    to a blank version, writing beyond the current extent (implicitly padding), and writing
+    within the current extent, all correctly reflected on read-back.
+    """
+    title = "New Chunk Save Test Book"
+    idx = _make_synthetic_index(title, "ספר בדיקת שמירה", 2, ["Chapter", "Verse"])
+    vtitle = "Save Test Version"
+    try:
+        c = TextChunk(Ref(f"{title} 3:1"), vtitle=vtitle, direction="ltr", actual_lang="en")
+        c.text = "Here's a translation for the eras"
+        c.save()
+
+        # write beyond current extent
+        c = TextChunk(Ref(f"{title} 5:1"), vtitle=vtitle, direction="ltr", actual_lang="en")
+        c.text = "Here's another translation for the eras"
+        c.save()
+
+        # write within current extent
+        c = TextChunk(Ref(f"{title} 4:1"), vtitle=vtitle, direction="ltr", actual_lang="en")
+        c.text = "Here's yet another translation for the eras"
+        c.save()
+
+        whole = Ref(title).text(direction="ltr")
+        assert whole.text[2] == ["Here's a translation for the eras"]
+        assert whole.text[3] == ["Here's yet another translation for the eras"]
+        assert whole.text[4] == ["Here's another translation for the eras"]
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
+
+
+def test_new_chunk_save_sanitizes_html_and_trims_blank_overwrite():
+    """
+    Save-path coverage: dangerous HTML is stripped on save (matching LegacyTextChunk's
+    sanitization), and overwriting a whole chapter drops blank trailing entries rather than
+    saving them.
+    """
+    title = "New Chunk Sanitize Test Book"
+    idx = _make_synthetic_index(title, "ספר בדיקת חיטוי", 2, ["Chapter", "Verse"])
+    vtitle = "Sanitize Test Version"
+    try:
+        c = TextChunk(Ref(f"{title} 1:1"), vtitle=vtitle, direction="ltr", actual_lang="en")
+        c.text = 'Here\'s some text <a href="javascript:alert(8007)">Click me</a>'
+        c.save()
+
+        read_back = Ref(f"{title} 1:1").text(direction="ltr")
+        assert read_back.text == "Here's some text <a>Click me</a>"
+
+        # Overwrite whole chapter; blank trailing entries should not be saved.
+        c = Ref(f"{title} 1").text(direction="ltr", vtitle=vtitle)
+        c.text = ["Fee", "", "Fi", ""]
+        c.save()
+
+        whole = Ref(f"{title} 1").text(direction="ltr")
+        assert whole.text == ["Fee", "", "Fi"]
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
+
+
+def test_new_chunk_save_depth_3_commentary_style():
+    """Save-path coverage for a depth-3 (chapter>verse>comment) structure, matching
+    LegacyTextChunk's Rashi-on-Exodus-style save test."""
+    title = "New Chunk Save Depth3 Test Book"
+    idx = _make_synthetic_index(title, "ספר בדיקת שמירה עומק שלוש", 3, ["Chapter", "Verse", "Comment"])
+    vtitle = "Save Depth3 Test Version"
+    try:
+        c = TextChunk(Ref(f"{title} 2:3:1"), vtitle=vtitle, direction="ltr", actual_lang="en")
+        c.text = "Text for 2:3:1"
+        c.save()
+        c = TextChunk(Ref(f"{title} 2:3:2"), vtitle=vtitle, direction="ltr", actual_lang="en")
+        c.text = "Text for 2:3:2"
+        c.save()
+        c = TextChunk(Ref(f"{title} 3:4:3"), vtitle=vtitle, direction="ltr", actual_lang="en")
+        c.text = "Text for 3:4:3"
+        c.save()
+
+        whole = Ref(title).text(direction="ltr")
+        assert whole.text[1][2] == ["Text for 2:3:1", "Text for 2:3:2"]
+        assert whole.text[2][3] == ["", "", "Text for 3:4:3"]
+    finally:
+        for v in VersionSet({"title": title}):
+            v.delete()
+        idx.delete()
+
+
 def test_text_family_alts():
     tf = TextFamily(Ref("Exodus 6"), commentary=False, alts=True)
     c = tf.contents()
@@ -238,7 +632,7 @@ def test_validate():
         Ref("Rashi on Shabbat 7a:2-7b:3")
     ]
     for ref in passing_refs:
-        TextChunk(ref, lang="he")._validate()
+        LegacyTextChunk(ref, lang="he")._validate()
 
 
 def test_save():
@@ -259,27 +653,27 @@ def test_save():
         "chapter": []
     }).save()
     # write to blank version
-    c = TextChunk(Ref("Hadran 3"), "en", "Hadran Test")
+    c = LegacyTextChunk(Ref("Hadran 3"), "en", "Hadran Test")
     c.text = "Here's a translation for the eras"
     c.save()
 
     # write beyond current extent
-    c = TextChunk(Ref("Hadran 5"), "en", "Hadran Test")
+    c = LegacyTextChunk(Ref("Hadran 5"), "en", "Hadran Test")
     c.text = "Here's another translation for the eras"
     c.save()
 
     # write within current extent
-    c = TextChunk(Ref("Hadran 4"), "en", "Hadran Test")
+    c = LegacyTextChunk(Ref("Hadran 4"), "en", "Hadran Test")
     c.text = "Here's yet another translation for the eras"
     c.save()
 
     # insert some nefarious code
-    c = TextChunk(Ref("Hadran 6"), "en", "Hadran Test")
+    c = LegacyTextChunk(Ref("Hadran 6"), "en", "Hadran Test")
     c.text = 'Here\'s yet another translation for the eras <a href="javascript:alert(8007)">Click me</a>'
     c.save()
 
     # verify
-    c = TextChunk(Ref("Hadran"), "en", "Hadran Test")
+    c = LegacyTextChunk(Ref("Hadran"), "en", "Hadran Test")
     assert c.text[2] == "Here's a translation for the eras"
     assert c.text[3] == "Here's yet another translation for the eras"
     assert c.text[4] == "Here's another translation for the eras"
@@ -298,46 +692,46 @@ def test_save():
     }).save()
 
     # write to new verse of new chapter
-    c = TextChunk(Ref("Pirkei Avot 2:3"), "en", "Pirkei Avot Test")
+    c = LegacyTextChunk(Ref("Pirkei Avot 2:3"), "en", "Pirkei Avot Test")
     c.text = "Text for 2:3"
     c.save()
 
     # extend to new verse of later chapter
-    c = TextChunk(Ref("Pirkei Avot 3:4"), "en", "Pirkei Avot Test")
+    c = LegacyTextChunk(Ref("Pirkei Avot 3:4"), "en", "Pirkei Avot Test")
     c.text = "Text for 3:4"
     c.save()
 
     # write new chapter beyond created range
     # also test that blank space isn't saved
-    c = TextChunk(Ref("Pirkei Avot 5"), "en", "Pirkei Avot Test")
+    c = LegacyTextChunk(Ref("Pirkei Avot 5"), "en", "Pirkei Avot Test")
     c.text = ["Text for 5:1", "Text for 5:2", "Text for 5:3", "Text for 5:4", "", " "]
     c.save()
 
     # write new chapter within created range
-    c = TextChunk(Ref("Pirkei Avot 4"), "en", "Pirkei Avot Test")
+    c = LegacyTextChunk(Ref("Pirkei Avot 4"), "en", "Pirkei Avot Test")
     c.text = ["Text for 4:1", "Text for 4:2", "Text for 4:3", "Text for 4:4"]
     c.save()
 
     # write within explicitly created chapter
-    c = TextChunk(Ref("Pirkei Avot 3:5"), "en", "Pirkei Avot Test")
+    c = LegacyTextChunk(Ref("Pirkei Avot 3:5"), "en", "Pirkei Avot Test")
     c.text = "Text for 3:5"
     c.save()
-    c = TextChunk(Ref("Pirkei Avot 3:3"), "en", "Pirkei Avot Test")
+    c = LegacyTextChunk(Ref("Pirkei Avot 3:3"), "en", "Pirkei Avot Test")
     c.text = "Text for 3:3"
     c.save()
 
     # write within implicitly created chapter
-    c = TextChunk(Ref("Pirkei Avot 1:5"), "en", "Pirkei Avot Test")
+    c = LegacyTextChunk(Ref("Pirkei Avot 1:5"), "en", "Pirkei Avot Test")
     c.text = "Text for 1:5"
     c.save()
 
     # Rewrite
-    c = TextChunk(Ref("Pirkei Avot 4:2"), "en", "Pirkei Avot Test")
+    c = LegacyTextChunk(Ref("Pirkei Avot 4:2"), "en", "Pirkei Avot Test")
     c.text = "New Text for 4:2"
     c.save()
 
     # verify
-    c = TextChunk(Ref("Pirkei Avot"), "en", "Pirkei Avot Test")
+    c = LegacyTextChunk(Ref("Pirkei Avot"), "en", "Pirkei Avot Test")
     assert c.text == [
         ["", "", "", "", "Text for 1:5"],
         ["", "", "Text for 2:3"],
@@ -355,7 +749,7 @@ def test_save():
         ["Text for 4:1", "New Text for 4:2","", "Text for 4:4",""]
     ]
     c.save()
-    c = TextChunk(Ref("Pirkei Avot"), "en", "Pirkei Avot Test")
+    c = LegacyTextChunk(Ref("Pirkei Avot"), "en", "Pirkei Avot Test")
     assert c.text == [
         ["Fee", "", "Fi"],
         ["", "", "Fo"],
@@ -383,46 +777,46 @@ def test_save():
         "chapter": []
     }).save()
     # write to new verse of new chapter
-    c = TextChunk(Ref("Rashi on Exodus 2:3"), "en", "Rashi on Exodus Test")
+    c = LegacyTextChunk(Ref("Rashi on Exodus 2:3"), "en", "Rashi on Exodus Test")
     c.text = ["Text for 2:3:1", "Text for 2:3:2"]
     c.save()
 
     # extend to new verse of later chapter
-    c = TextChunk(Ref("Rashi on Exodus 3:4:3"), "en", "Rashi on Exodus Test")
+    c = LegacyTextChunk(Ref("Rashi on Exodus 3:4:3"), "en", "Rashi on Exodus Test")
     c.text = "Text for 3:4:3"
     c.save()
 
     # write new chapter beyond created range
     # test that blank space isn't saved
-    c = TextChunk(Ref("Rashi on Exodus 5"), "en", "Rashi on Exodus Test")
+    c = LegacyTextChunk(Ref("Rashi on Exodus 5"), "en", "Rashi on Exodus Test")
     c.text = [["Text for 5:1:1"], ["Text for 5:2:1", "", ""], ["Text for 5:3:1","Text for 5:3:2", "     ", "", " "],["Text for 5:4:1", "", "  "]]
     c.save()
 
     # write new chapter within created range
-    c = TextChunk(Ref("Rashi on Exodus 4"), "en", "Rashi on Exodus Test")
+    c = LegacyTextChunk(Ref("Rashi on Exodus 4"), "en", "Rashi on Exodus Test")
     c.text = [["Text for 4:1:1", "Text for 4:1:2", "Text for 4:1:3", "Text for 4:1:4"]]
     c.save()
 
     # write within explicitly created chapter
-    c = TextChunk(Ref("Rashi on Exodus 3:5:1"), "en", "Rashi on Exodus Test")
+    c = LegacyTextChunk(Ref("Rashi on Exodus 3:5:1"), "en", "Rashi on Exodus Test")
     c.text = "Text for 3:5:1"
     c.save()
-    c = TextChunk(Ref("Rashi on Exodus 3:3:3"), "en", "Rashi on Exodus Test")
+    c = LegacyTextChunk(Ref("Rashi on Exodus 3:3:3"), "en", "Rashi on Exodus Test")
     c.text = "Text for 3:3:3"
     c.save()
 
     # write within implicitly created chapter
-    c = TextChunk(Ref("Rashi on Exodus 1:5"), "en", "Rashi on Exodus Test")
+    c = LegacyTextChunk(Ref("Rashi on Exodus 1:5"), "en", "Rashi on Exodus Test")
     c.text = ["Text for 1:5", "Text for 1:5:2"]
     c.save()
 
     # Rewrite
-    c = TextChunk(Ref("Rashi on Exodus 4:1:2"), "en", "Rashi on Exodus Test")
+    c = LegacyTextChunk(Ref("Rashi on Exodus 4:1:2"), "en", "Rashi on Exodus Test")
     c.text = "New Text for 4:1:2"
     c.save()
 
     # verify
-    c = TextChunk(Ref("Rashi on Exodus"), "en", "Rashi on Exodus Test")
+    c = LegacyTextChunk(Ref("Rashi on Exodus"), "en", "Rashi on Exodus Test")
     assert c.text == [
         [[], [], [], [], ["Text for 1:5", "Text for 1:5:2"]],
         [[], [], ["Text for 2:3:1", "Text for 2:3:2"]],
@@ -439,15 +833,15 @@ def test_save():
 def test_complex_with_depth_1():
     # There was a bug that chunks of complex texts always returned the first element of the array, even for deeper chunks
     r = Ref('Pesach Haggadah, Kadesh 1')
-    c = TextChunk(r, "he")
+    c = LegacyTextChunk(r, "he")
     assert "כוס ראשון" in c.text
 
     r = Ref('Pesach Haggadah, Kadesh 2')
-    c = TextChunk(r, "he")
+    c = LegacyTextChunk(r, "he")
     assert "קַדֵּשׁ" in c.text
 
     r = Ref('Pesach Haggadah, Kadesh 2-4')
-    c = TextChunk(r, "he")
+    c = LegacyTextChunk(r, "he")
     assert len(c.text) == 3
     assert "קַדֵּשׁ" in c.text[0]
 
@@ -455,7 +849,7 @@ def test_complex_with_depth_1():
     #assert u"בְּשַׁבָּת מַתְחִילִין" in c.text[1]
     #assert u"וַיִּשְׁבֹּת" in c.text[2]
 
-    c = TextChunk(r, "en")
+    c = LegacyTextChunk(r, "en")
     assert len(c.text) == 3
     assert "kiddush" in c.text[0].lower()
     assert "seventh day" in c.text[2]
@@ -481,14 +875,14 @@ def test_strip_itags():
             pass
 
     r = Ref("Genesis 1:1")
-    c = TextChunk(r, "he")
+    c = LegacyTextChunk(r, "he")
     text = c._get_text_after_modifications([c.strip_itags])
-    assert text == TextChunk(r, "he").text
+    assert text == LegacyTextChunk(r, "he").text
 
     r = Ref("Genesis 1")
-    c = TextChunk(r, "he")
+    c = LegacyTextChunk(r, "he")
     modified_text = c._get_text_after_modifications([c.strip_itags])
-    original_text = TextChunk(r, "he").text
+    original_text = LegacyTextChunk(r, "he").text
     for mod, ori in zip(modified_text, original_text):
         assert mod == ori
 
@@ -505,7 +899,7 @@ def test_strip_itags():
                     'Obscure thing<sup class="endFootnote">1</sup> that nobody cares about except Noah.']
     }).save()
     modified_text = ['Cool text', 'Silly text', 'More text and yet more', 'Where the #$%^&*', 'Obscure thing that nobody cares about except Noah.']
-    c = TextChunk(Ref("Hadran"), "en", "Hadran Test")
+    c = LegacyTextChunk(Ref("Hadran"), "en", "Hadran Test")
     test_modified_text = c._get_text_after_modifications([c.strip_itags, lambda x, _: ' '.join(x.split()).strip()])
     for m, t in zip(modified_text, test_modified_text):
         assert m == t
@@ -524,5 +918,5 @@ def test_strip_itags():
         assert m == t
 
     text = '<i></i>Lo, his spirit.'
-    assert TextChunk.strip_itags(text) == text
+    assert LegacyTextChunk.strip_itags(text) == text
 

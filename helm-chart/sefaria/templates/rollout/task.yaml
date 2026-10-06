@@ -154,6 +154,7 @@ spec:
           - secretRef:
               name: local-settings-tasks-secrets-{{ .Values.deployEnv }}
               optional: true
+        # Prod sizes these in envs/prod/helmrelease.yaml; chart defaults are not what prod runs.
         resources: {{ toYaml .Values.tasks.resources | nindent 10 }}
         livenessProbe:
           exec:

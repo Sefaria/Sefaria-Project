@@ -1048,9 +1048,9 @@ const AdvancedToolsList = ({srefs, currentlyVisibleRef, canEditText, currVersion
     const editText = canEditText && textsData && !isDictionaryBook ? function () {
       const isTranslation = masterPanelLanguage === 'english';
       const versionType = isTranslation ? 'translation' : 'primary';
-      const langCode = textsData[`${versionType}Direction`] === 'ltr' ? 'en': 'he';
+      const langFamily = textsData[`${versionType}Lang`];
       const versionTitle = isTranslation ? textsData.versionTitle : textsData.heVersionTitle;
-      const refString = `${srefs[0]}/${encodeURIComponent(langCode)}/${encodeURIComponent(versionTitle)}`;
+      const refString = `${srefs[0]}/${encodeURIComponent(langFamily)}/${encodeURIComponent(versionTitle)}`;
 
       let path = "/edit/" + refString;
       let currentPath = Sefaria.util.currentPath();
@@ -1629,10 +1629,16 @@ function ManuscriptImage(props) {
             </div>
             : ''
         }
-        <InterfaceText text={{ en: 'Source: ', he: 'מקור: ' }} />
-        <a className="versionDetailsLink" href={manuscript.manuscript['source']} target="_blank">
-          { Sefaria.util.parseUrl(manuscript.manuscript['source']).host.replace("www.", "") }
-        </a>
+        {
+          manuscript.manuscript['source']
+            ? <span>
+              <InterfaceText text={{ en: 'Source: ', he: 'מקור: ' }} />
+              <a className="versionDetailsLink" href={manuscript.manuscript['source']} target="_blank">
+                { Sefaria.util.parseUrl(manuscript.manuscript['source']).host.replace("www.", "") }
+              </a>
+            </span>
+            : ''
+        }
       </div>
 
 

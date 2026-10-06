@@ -4390,6 +4390,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .navSidebar {
   min-height: 100vh;
 }
+@media (max-width: 700px) {
+  .sidebarLayout {
+    flex-direction: column;
+  }
+  .navSidebar {
+    width: 100%;
+    margin-top: 0;
+    border-top: none;
+  }
+}
 .searchContent .navSidebar .searchFilters {
   /* Align the sidebar heading underline with the tab group underline:
      search bar (45px) + its margin (20px) + tab row height above the shared line */
