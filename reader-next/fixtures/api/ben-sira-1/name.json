@@ -1,0 +1,168 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Ben Sira",
+    "Rav Aha ben Ya'akov",
+    "Rabbi Elazar ben Pedat",
+    "Rabbi Yose ben Yehudah",
+    "Rabbi Yehudah ben Batera",
+    "Rabban Shimon ben Gamliel (II)",
+    "Rabbi Yehudah ben Betera (I)",
+    "Ben Gross",
+    "Ben Einsidler",
+    "Benjamin Miller"
+  ],
+  "completion_objects": [
+    {
+      "title": "Ben Sira",
+      "key": "Ben Sira",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Ben Sira",
+      "type": "AuthorTopic",
+      "key": "ben-sira",
+      "is_primary": true,
+      "order": 4999847,
+      "topic_pools": [
+        "library",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Rav Aha ben Ya'akov",
+      "type": "PersonTopic",
+      "key": "rav-aha-b-yaakov",
+      "is_primary": false,
+      "order": 4999300,
+      "topic_pools": [
+        "library"
+      ]
+    },
+    {
+      "title": "Rabbi Elazar ben Pedat",
+      "type": "PersonTopic",
+      "key": "rabbi-elazar-b-pedat",
+      "is_primary": false,
+      "order": 4999926,
+      "topic_pools": [
+        "library",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Rabbi Yose ben Yehudah",
+      "type": "PersonTopic",
+      "key": "rabbi-yose-b-yehudah",
+      "is_primary": false,
+      "order": 4998448,
+      "topic_pools": [
+        "library"
+      ]
+    },
+    {
+      "title": "Rabbi Yehudah ben Batera",
+      "type": "PersonTopic",
+      "key": "rabbi-yehudah-b-betera-(ii)",
+      "is_primary": false,
+      "order": 4999981,
+      "topic_pools": [
+        "library"
+      ]
+    },
+    {
+      "title": "Rabban Shimon ben Gamliel (II)",
+      "type": "PersonTopic",
+      "key": "rabban-shimon-b-gamliel-(ii)",
+      "is_primary": false,
+      "order": 4999985,
+      "topic_pools": [
+        "library"
+      ]
+    },
+    {
+      "title": "Rabbi Yehudah ben Betera (I)",
+      "type": "PersonTopic",
+      "key": "rabbi-yehudah-b-betera-(i)",
+      "is_primary": false,
+      "order": 4999813,
+      "topic_pools": [
+        "library"
+      ]
+    },
+    {
+      "title": "Ben Gross",
+      "type": "User",
+      "key": "ben-gross",
+      "pic": "",
+      "order": 6999993,
+      "is_primary": true
+    },
+    {
+      "title": "Ben Gross",
+      "type": "User",
+      "key": "ben-gross1",
+      "pic": "",
+      "order": 6999999,
+      "is_primary": true
+    },
+    {
+      "title": "Ben Einsidler",
+      "type": "User",
+      "key": "ben-einsidler",
+      "pic": "",
+      "order": 6999985,
+      "is_primary": true
+    },
+    {
+      "title": "Ben Einsidler",
+      "type": "User",
+      "key": "ben-einsidler1",
+      "pic": "",
+      "order": 6999988,
+      "is_primary": true
+    },
+    {
+      "title": "Benjamin Miller",
+      "type": "User",
+      "key": "benjamin-miller",
+      "pic": "https://storage.googleapis.com/sefaria-profile-pictures/benjamin-miller-1626716708-small.png",
+      "order": 6999993,
+      "is_primary": true
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Ben Sira",
+  "url": "Ben_Sira",
+  "index": "Ben Sira",
+  "book": "Ben Sira",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": [],
+  "sectionNames": [
+    "Chapter",
+    "Verse"
+  ],
+  "heSectionNames": [
+    "פרק",
+    "פסוק"
+  ],
+  "addressExamples": [
+    "3",
+    "6"
+  ],
+  "heAddressExamples": [
+    "ג׳",
+    "ו׳"
+  ]
+}

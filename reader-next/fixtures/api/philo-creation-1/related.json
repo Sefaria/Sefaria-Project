@@ -1,0 +1,31 @@
+{
+  "links": [
+    {
+      "_id": "6487129407a03caa9fb7e06d",
+      "index_title": "On the Account of the World's Creation",
+      "category": "Second Temple",
+      "type": "commentary",
+      "ref": "On the Account of the World's Creation, Appendix 3",
+      "anchorRef": "On the Account of the World's Creation 1:3",
+      "anchorRefExpanded": [
+        "On the Account of the World's Creation 1:3"
+      ],
+      "sourceRef": "On the Account of the World's Creation, Appendix 3",
+      "sourceHeRef": "על בריאת העולם, הערות ג׳",
+      "anchorVerse": 3,
+      "sourceHasEn": true,
+      "commentaryNum": 3,
+      "collectiveTitle": {
+        "en": "On the Account of the World's Creation",
+        "he": "על בריאת העולם"
+      },
+      "heTitle": "הערות"
+    }
+  ],
+  "sheets": [],
+  "notes": [],
+  "topics": [],
+  "manuscripts": [],
+  "media": [],
+  "guides": []
+}

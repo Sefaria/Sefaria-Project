@@ -1,0 +1,37 @@
+.view { padding-block-end: var(--sefaria-space-6); }
+.heading { margin: var(--sefaria-space-4) 0 var(--sefaria-space-2); font-family: var(--sefaria-font-ui-en); font-weight: 400; font-size: var(--sefaria-text-sans-large, 1.375rem); color: var(--sefaria-color-text-secondary); }
+.intro { margin: 0 0 var(--sefaria-space-4); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); color: var(--sefaria-color-text-secondary); }
+.intro a { color: inherit; text-decoration: underline; }
+.count { color: var(--sefaria-color-text-muted); }
+.language { margin-block-end: var(--sefaria-space-4); }
+.version { padding-block: var(--sefaria-space-3); }
+/* A preview of the passage, cut off after a few lines (old VersionBlockHeader truncation). */
+.previewBox { position: relative; }
+.previewHit { position: absolute; inset: 0; }
+.previewHit:focus-visible { outline: 2px solid var(--sefaria-color-focus, #4b71b7); }
+.preview { font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); line-height: 1.5; color: var(--sefaria-color-text); max-height: 7.5em; overflow: hidden; position: relative; }
+.preview[dir="rtl"] { font-family: var(--sefaria-font-text-he); }
+.row { display: flex; align-items: flex-start; gap: var(--sefaria-space-2); margin-block-start: var(--sefaria-space-1); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); }
+.row > .selected, .row > .select { flex: none; line-height: 1.5; }
+.details { flex: 1; min-width: 0; font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); }
+.summary { cursor: pointer; color: var(--sefaria-color-text-secondary); display: flex; flex-wrap: wrap; gap: 0 var(--sefaria-space-2); align-items: baseline; }
+.title { font-style: italic; }
+.selected { color: var(--sefaria-color-text-muted); }
+.select { color: var(--sefaria-color-link, #4b71b7); text-decoration: none; }
+.select:hover { text-decoration: underline; }
+.meta { padding: var(--sefaria-space-2) 0 var(--sefaria-space-1) var(--sefaria-space-4); }
+.fullTitle { margin-block-end: var(--sefaria-space-1); color: var(--sefaria-color-text); }
+.open { display: inline-block; padding: 4px 12px; border: 1px solid var(--sefaria-color-border); border-radius: var(--sefaria-radius-sm, 6px); color: var(--sefaria-color-text); text-decoration: none; }
+
+/* VERIFIED on sefaria.org: intro 16px; preview 18px/22px black; one 14px line under it: ⌄ Title • Select (or Currently Selected) */
+.intro { font-size: 16px; line-height: 1.2; color: #666; }
+.count { font-weight: 300; }
+.preview { font-size: 18px; line-height: 22px; color: #000; }
+.row { justify-content: flex-start; gap: 0; margin-block-start: 14px; font-size: 14px; color: #6f6f6f; align-items: baseline; }
+.row > .details { flex: 0 1 auto; }
+.row > .selected::before, .row > .select::before { content: "•"; margin-inline: 6px; color: #6f6f6f; }
+.select { color: #4b71b7; }
+.summary { list-style: none; gap: 0; }
+.summary::-webkit-details-marker { display: none; }
+.summary::before { content: ""; width: 5px; height: 5px; margin-inline-end: 8px; border-inline-end: 1.5px solid #999; border-block-end: 1.5px solid #999; transform: translateY(-2px) rotate(45deg); flex: none; align-self: center; }
+.details[open] > .summary::before { transform: translateY(1px) rotate(-135deg); }

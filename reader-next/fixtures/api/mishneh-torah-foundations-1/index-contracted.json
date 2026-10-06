@@ -1,0 +1,423 @@
+{
+  "title": "Mishneh Torah, Foundations of the Torah",
+  "categories": [
+    "Halakhah",
+    "Mishneh Torah",
+    "Sefer Madda"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Halakhah"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Halakhah"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "mishneh-torah",
+          "hilchot",
+          "foundations-of-the-torah"
+        ]
+      },
+      {
+        "term_slugs": [
+          "mishneh-torah",
+          "foundations-of-the-torah"
+        ]
+      },
+      {
+        "term_slugs": [
+          "rambam",
+          "hilchot",
+          "foundations-of-the-torah"
+        ]
+      },
+      {
+        "term_slugs": [
+          "rambam",
+          "foundations-of-the-torah"
+        ]
+      },
+      {
+        "term_slugs": [
+          "hilchot",
+          "foundations-of-the-torah"
+        ]
+      }
+    ],
+    "lengths": [
+      10,
+      88
+    ],
+    "titles": [
+      {
+        "text": "Rambam, Hilchot Yesodey haTorah",
+        "lang": "en"
+      },
+      {
+        "text": "Rambam, Laws of Foundations of the Torah",
+        "lang": "en"
+      },
+      {
+        "text": "Rambam, Foundations of the Torah",
+        "lang": "en"
+      },
+      {
+        "text": "Mishneh Torah, Laws of Foundations of the Torah",
+        "lang": "en"
+      },
+      {
+        "text": "Rambam, Yesodey haTorah",
+        "lang": "en"
+      },
+      {
+        "text": "Mishneh Torah, Hilchot Yesodey haTorah",
+        "lang": "en"
+      },
+      {
+        "text": "Mishneh Torah, Yesodey haTorah",
+        "lang": "en"
+      },
+      {
+        "text": "Rambam, Hilkhot Yesodey haTorah",
+        "lang": "en"
+      },
+      {
+        "text": "Mishneh Torah, Hilkhot Yesodey haTorah",
+        "lang": "en"
+      },
+      {
+        "text": "Rambam, <i>Hilkhot Yesodei ha-Torah</i>",
+        "lang": "en"
+      },
+      {
+        "text": "Rambam, Hilkhot Yesodei ha-Torah",
+        "lang": "en"
+      },
+      {
+        "text": "Rambam, Yesodei haTorah",
+        "lang": "en"
+      },
+      {
+        "text": "רמב\"ם, הלכות יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "משנה תורה, הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ם, הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ם הלכות יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב\"ם הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "משנה תורה, הלכות יסודי תורה",
+        "lang": "he"
+      },
+      {
+        "text": "משנה תורה, הלכות ייסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ם, הלכות יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ם, הלכות יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ם, הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ם, הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ם הלכות יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ם הלכות יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב״ם הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "רמב”ם הל' יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "הלכות יסודי התורה",
+        "lang": "he"
+      },
+      {
+        "text": "משנה תורה, הלכות יסודי התורה",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Mishneh Torah, Foundations of the Torah",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Mishneh Torah, Foundations of the Torah",
+    "heTitle": "משנה תורה, הלכות יסודי התורה",
+    "heSectionNames": [
+      "פרק",
+      "הלכה"
+    ],
+    "key": "Mishneh Torah, Foundations of the Torah",
+    "content_counts": [
+      12,
+      12,
+      11,
+      13,
+      11,
+      9,
+      7,
+      3,
+      5,
+      5
+    ]
+  },
+  "order": [
+    5,
+    1
+  ],
+  "authors": [
+    {
+      "en": "Moses ben Maimon (Rambam)",
+      "he": "רמב\"ם",
+      "slug": "rambam"
+    }
+  ],
+  "enDesc": "The Mishneh Torah (“Repetition of the Torah”), also referred to as Yad HaChazakah (“The Strong Hand”), is a monumental legal code and one of the most organized, comprehensive, and influential works of Jewish law. Written over a period of ten years, the work systematically categorizes and clearly explains all aspects of Jewish observance, including those applicable only in Temple times.",
+  "heDesc": "",
+  "enShortDesc": "",
+  "heShortDesc": "",
+  "pubDate": [
+    1474
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    1176,
+    1178
+  ],
+  "compPlace": "Middle-Age Egypt",
+  "pubPlace": "Rome",
+  "era": "RI",
+  "is_cited": true,
+  "heTitle": "משנה תורה, הלכות יסודי התורה",
+  "titleVariants": [
+    "Rambam, Hilchot Yesodey haTorah",
+    "Rambam, Laws of Foundations of the Torah",
+    "Rambam, Foundations of the Torah",
+    "Mishneh Torah, Laws of Foundations of the Torah",
+    "Rambam, Yesodey haTorah",
+    "Mishneh Torah, Hilchot Yesodey haTorah",
+    "Mishneh Torah, Yesodey haTorah",
+    "Rambam, Hilkhot Yesodey haTorah",
+    "Mishneh Torah, Hilkhot Yesodey haTorah",
+    "Rambam, <i>Hilkhot Yesodei ha-Torah</i>",
+    "Rambam, Hilkhot Yesodei ha-Torah",
+    "Rambam, Yesodei haTorah",
+    "Mishneh Torah, Foundations of the Torah"
+  ],
+  "heTitleVariants": [
+    "רמב\"ם, הלכות יסודי התורה",
+    "משנה תורה, הל' יסודי התורה",
+    "רמב\"ם, הל' יסודי התורה",
+    "רמב\"ם הלכות יסודי התורה",
+    "רמב\"ם הל' יסודי התורה",
+    "הל' יסודי התורה",
+    "משנה תורה, הלכות יסודי תורה",
+    "משנה תורה, הלכות ייסודי התורה",
+    "רמב״ם, הלכות יסודי התורה",
+    "רמב”ם, הלכות יסודי התורה",
+    "רמב״ם, הל' יסודי התורה",
+    "רמב”ם, הל' יסודי התורה",
+    "רמב״ם הלכות יסודי התורה",
+    "רמב”ם הלכות יסודי התורה",
+    "רמב״ם הל' יסודי התורה",
+    "רמב”ם הל' יסודי התורה",
+    "הלכות יסודי התורה",
+    "משנה תורה, הלכות יסודי התורה"
+  ],
+  "sectionNames": [
+    "Chapter",
+    "Halakhah"
+  ],
+  "depth": 2,
+  "firstSectionRef": "Mishneh Torah, Foundations of the Torah 1",
+  "heCategories": [
+    "הלכה",
+    "משנה תורה",
+    "ספר מדע"
+  ],
+  "compDateString": {
+    "en": " (c.1176  – c.1178 CE)",
+    "he": " (1176 – 1178 לספירה בקירוב)"
+  },
+  "pubDateString": {
+    "en": " (1474 CE)",
+    "he": " (1474 לספירה)"
+  },
+  "compPlaceString": {
+    "en": "Middle-Age Egypt",
+    "he": "מצרים של ימי הביניים"
+  },
+  "pubPlaceString": {
+    "en": "Rome",
+    "he": "רומא"
+  },
+  "relatedTopics": [
+    {
+      "slug": "ethics",
+      "title": {
+        "en": "Ethics",
+        "he": "אתיקה"
+      }
+    },
+    {
+      "slug": "rambam",
+      "title": {
+        "en": "Moses ben Maimon (Rambam)",
+        "he": "רמב\"ם"
+      }
+    },
+    {
+      "slug": "prophecy",
+      "title": {
+        "en": "Prophecy",
+        "he": "נבואה"
+      }
+    },
+    {
+      "slug": "kiddush-hashem",
+      "title": {
+        "en": "Kiddush Hashem",
+        "he": "קידוש השם"
+      }
+    },
+    {
+      "slug": "heavenly-spheres",
+      "title": {
+        "en": "Heavenly Spheres",
+        "he": "גלגלים"
+      }
+    },
+    {
+      "slug": "god",
+      "title": {
+        "en": "God",
+        "he": "אלוהים"
+      }
+    },
+    {
+      "slug": "angels",
+      "title": {
+        "en": "Angels",
+        "he": "מלאכים"
+      }
+    },
+    {
+      "slug": "prophets",
+      "title": {
+        "en": "Prophets",
+        "he": "נביאים"
+      }
+    },
+    {
+      "slug": "faith",
+      "title": {
+        "en": "Faith",
+        "he": "אמונה"
+      }
+    },
+    {
+      "slug": "love",
+      "title": {
+        "en": "Love",
+        "he": "אהבה"
+      }
+    },
+    {
+      "slug": "joy",
+      "title": {
+        "en": "Joy",
+        "he": "שמחה"
+      }
+    },
+    {
+      "slug": "miracles",
+      "title": {
+        "en": "Miracles",
+        "he": "נס"
+      }
+    },
+    {
+      "slug": "science",
+      "title": {
+        "en": "Science",
+        "he": "מדע"
+      }
+    },
+    {
+      "slug": "fear-(פחד)",
+      "title": {
+        "en": "Fear (פחד)",
+        "he": "פחד"
+      }
+    },
+    {
+      "slug": "actuality",
+      "title": {
+        "en": "Reality",
+        "he": "מציאות"
+      }
+    },
+    {
+      "slug": "physicality",
+      "title": {
+        "en": "Incorporeality of God",
+        "he": "שלילת גשמות האל"
+      }
+    },
+    {
+      "slug": "moses-prophecy",
+      "title": {
+        "en": "Moses's Prophecy",
+        "he": "נבואת משה"
+      }
+    },
+    {
+      "slug": "dreams",
+      "title": {
+        "en": "Dreams",
+        "he": "חלום"
+      }
+    }
+  ]
+}

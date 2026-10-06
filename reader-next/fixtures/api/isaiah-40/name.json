@@ -1,0 +1,144 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Isaiah",
+    "Isaiah Berlin",
+    "Isaiah Horowitz (Shelah)",
+    "Isaiah d'Trani",
+    "isaiah rothstein",
+    "Malbim on Isaiah",
+    "Rashi on Isaiah",
+    "Radak on Isaiah",
+    "Abarbanel on Isaiah",
+    "Shadal on Isaiah"
+  ],
+  "completion_objects": [
+    {
+      "title": "Isaiah",
+      "key": "Isaiah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Isaiah",
+      "type": "PersonTopic",
+      "key": "isaiah",
+      "is_primary": true,
+      "order": 4999571,
+      "topic_pools": [
+        "torah_tab",
+        "library",
+        "general_en",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Isaiah Berlin",
+      "type": "AuthorTopic",
+      "key": "isaiah-berlin",
+      "is_primary": true,
+      "order": 4999897,
+      "topic_pools": [
+        "library",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Isaiah Horowitz (Shelah)",
+      "type": "AuthorTopic",
+      "key": "isaiah-halevi-horovitz",
+      "is_primary": true,
+      "order": 4999898,
+      "topic_pools": [
+        "library",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Isaiah d'Trani",
+      "type": "AuthorTopic",
+      "key": "isaiah-dtrani",
+      "is_primary": true,
+      "order": 4999899,
+      "topic_pools": [
+        "library"
+      ]
+    },
+    {
+      "title": "isaiah rothstein",
+      "type": "User",
+      "key": "isaiah-rothstein",
+      "pic": "",
+      "order": 6999998,
+      "is_primary": true
+    },
+    {
+      "title": "Malbim on Isaiah",
+      "key": "Malbim on Isaiah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Rashi on Isaiah",
+      "key": "Rashi on Isaiah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Radak on Isaiah",
+      "key": "Radak on Isaiah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Abarbanel on Isaiah",
+      "key": "Abarbanel on Isaiah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Shadal on Isaiah",
+      "key": "Shadal on Isaiah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Isaiah",
+  "url": "Isaiah",
+  "index": "Isaiah",
+  "book": "Isaiah",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": [],
+  "sectionNames": [
+    "Chapter",
+    "Verse"
+  ],
+  "heSectionNames": [
+    "פרק",
+    "פסוק"
+  ],
+  "addressExamples": [
+    "3",
+    "6"
+  ],
+  "heAddressExamples": [
+    "ג׳",
+    "ו׳"
+  ]
+}

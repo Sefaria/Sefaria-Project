@@ -1,0 +1,172 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Tosafot on Berakhot",
+    "Onkelos",
+    "Tosafot",
+    "Berakhot",
+    "Piskei Tosafot on Berakhot",
+    "Tosafot HaRosh on Berakhot",
+    "Tosafot Yom Tov on Mishnah Berakhot",
+    "Tosafot HaRid on Jerusalem Talmud Berakhot",
+    "Tosafot on Arachin",
+    "Tosafot on Beiah"
+  ],
+  "completion_objects": [
+    {
+      "title": "Tosafot on Berakhot",
+      "key": "Tosafot on Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Onkelos",
+      "type": "TocCategory",
+      "key": [
+        "Tanakh",
+        "Targum",
+        "Onkelos"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Onkelos",
+      "type": "AuthorTopic",
+      "key": "onkelos",
+      "is_primary": true,
+      "order": 4999815,
+      "topic_pools": [
+        "library",
+        "sheets",
+        "general_en"
+      ]
+    },
+    {
+      "title": "Tosafot",
+      "type": "TocCategory",
+      "key": [
+        "Talmud",
+        "Bavli",
+        "Rishonim on Talmud",
+        "Tosafot"
+      ],
+      "is_primary": true,
+      "order": 2000000,
+      "topic_pools": []
+    },
+    {
+      "title": "Tosafot",
+      "type": "AuthorTopic",
+      "key": "tosafot",
+      "is_primary": true,
+      "order": 4999841,
+      "topic_pools": [
+        "torah_tab",
+        "library",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Berakhot",
+      "key": "Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Berakhot",
+      "type": "Topic",
+      "key": "blessings-(halakhah)",
+      "is_primary": false,
+      "order": 4999651,
+      "topic_pools": [
+        "torah_tab",
+        "library",
+        "general_he",
+        "general_en",
+        "sheets"
+      ]
+    },
+    {
+      "title": "Piskei Tosafot on Berakhot",
+      "key": "Piskei Tosafot on Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Tosafot HaRosh on Berakhot",
+      "key": "Tosafot HaRosh on Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Tosafot Yom Tov on Mishnah Berakhot",
+      "key": "Tosafot Yom Tov on Mishnah Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Tosafot HaRid on Jerusalem Talmud Berakhot",
+      "key": "Tosafot HaRid on Jerusalem Talmud Berakhot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Tosafot on Arachin",
+      "key": "Tosafot on Arakhin",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    },
+    {
+      "title": "Tosafot on Beiah",
+      "key": "Tosafot on Beitzah",
+      "type": "ref",
+      "is_primary": false,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Tosafot on Berakhot",
+  "url": "Tosafot_on_Berakhot",
+  "index": "Tosafot on Berakhot",
+  "book": "Tosafot on Berakhot",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": [],
+  "sectionNames": [
+    "Daf",
+    "Line",
+    "Comment"
+  ],
+  "heSectionNames": [
+    "דף",
+    "שורה",
+    "פירוש"
+  ],
+  "addressExamples": [
+    "2a",
+    "6",
+    "9"
+  ],
+  "heAddressExamples": [
+    "ב׳ א",
+    "ו׳",
+    "ט׳"
+  ]
+}

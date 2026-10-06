@@ -1,0 +1,11 @@
+.info { color: var(--sefaria-color-text-muted); display: flex; justify-content: space-between; align-items: flex-end; gap: var(--sefaria-space-3); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-small); }
+.text { min-width: 0; }
+.facts { margin: 0; }
+.facts > div { display: flex; gap: var(--sefaria-space-1); }
+.facts dt { color: inherit; }
+.facts dd { margin: 0; }
+.facts a, .links a { color: inherit; }
+.links { display: flex; flex-wrap: wrap; gap: 0 var(--sefaria-space-3); margin: var(--sefaria-space-1) 0 0; }
+.image { flex: none; }
+.image img { display: block; width: 80px; height: auto; border: 1px solid var(--sefaria-color-border); }
+.buy { color: var(--sefaria-color-link, #4b71b7) !important; }

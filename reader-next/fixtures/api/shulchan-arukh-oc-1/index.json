@@ -1,0 +1,770 @@
+{
+  "title": "Shulchan Arukh, Orach Chayim",
+  "categories": [
+    "Halakhah",
+    "Shulchan Arukh"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Siman",
+      "Seif"
+    ],
+    "sectionNames": [
+      "Siman",
+      "Seif"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "shulchan-arukh",
+          "orach-chayim"
+        ]
+      },
+      {
+        "term_slugs": [
+          "ramah",
+          "orach-chayim"
+        ]
+      },
+      {
+        "term_slugs": [
+          "orach-chayim"
+        ]
+      }
+    ],
+    "lengths": [
+      697,
+      4171
+    ],
+    "titles": [
+      {
+        "text": "O.Ch.",
+        "lang": "en"
+      },
+      {
+        "text": "Orach Chaim",
+        "lang": "en"
+      },
+      {
+        "text": "Orach Chayyim",
+        "lang": "en"
+      },
+      {
+        "text": "Orah Hayyim",
+        "lang": "en"
+      },
+      {
+        "text": "shulchan aruch orach chaim",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Aruch, Orach Chaim",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Arukh, Orach Chayyim",
+        "lang": "en"
+      },
+      {
+        "text": "Shulḥan Arukh, Oraḥ Hayyim",
+        "lang": "en"
+      },
+      {
+        "text": "<i>Shulḥan Arukh, Oraḥ Ḥayyim</i>",
+        "lang": "en"
+      },
+      {
+        "text": "<i>Shulḥan Arukh, Oraḥ Hayyim</i>",
+        "lang": "en"
+      },
+      {
+        "text": "Oraḥ Hayyim",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Aruch, Orach Chayim",
+        "lang": "en"
+      },
+      {
+        "text": "Shulhan Arukh OH",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Aruch O.C.",
+        "lang": "en"
+      },
+      {
+        "text": "S.A. O.C.",
+        "lang": "en"
+      },
+      {
+        "text": "SA OC",
+        "lang": "en"
+      },
+      {
+        "text": "OC",
+        "lang": "en"
+      },
+      {
+        "text": "O.C.",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Aruch Orach Chaim",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Aruch OC",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Arukh Orach Chaim",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Arukh OC",
+        "lang": "en"
+      },
+      {
+        "text": "Shulhan Arukh, Orah Haim",
+        "lang": "en"
+      },
+      {
+        "text": "Orakh Hayim",
+        "lang": "en"
+      },
+      {
+        "text": "OH",
+        "lang": "en"
+      },
+      {
+        "text": "Orach Hayim",
+        "lang": "en"
+      },
+      {
+        "text": "Orah Hayim",
+        "lang": "en"
+      },
+      {
+        "text": "Orach Haim",
+        "lang": "en"
+      },
+      {
+        "text": "שולחן ערוך אורח חיים",
+        "lang": "he"
+      },
+      {
+        "text": "שו\"ע או\"ח",
+        "lang": "he"
+      },
+      {
+        "text": "שלחן ערוך או\"ח",
+        "lang": "he"
+      },
+      {
+        "text": "שולחן ערוך או\"ח",
+        "lang": "he"
+      },
+      {
+        "text": "או\"ח",
+        "lang": "he"
+      },
+      {
+        "text": "שו״ע או״ח",
+        "lang": "he"
+      },
+      {
+        "text": "שו”ע או”ח",
+        "lang": "he"
+      },
+      {
+        "text": "שלחן ערוך או״ח",
+        "lang": "he"
+      },
+      {
+        "text": "שלחן ערוך או”ח",
+        "lang": "he"
+      },
+      {
+        "text": "שולחן ערוך או״ח",
+        "lang": "he"
+      },
+      {
+        "text": "שולחן ערוך או”ח",
+        "lang": "he"
+      },
+      {
+        "text": "או״ח",
+        "lang": "he"
+      },
+      {
+        "text": "או”ח",
+        "lang": "he"
+      },
+      {
+        "text": "אורח חיים",
+        "lang": "he"
+      },
+      {
+        "text": "שולחן ערוך, אורח חיים",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Shulchan Arukh, Orach Chayim",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Shulchan Arukh, Orach Chayim"
+  },
+  "alt_structs": {
+    "Topic": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 1-7",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws Upon Awakening in the Morning",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות הנהגת האדם בבוקר",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 8-24",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Tzitzit",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות ציצית",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 25-46",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Tefillin",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות תפילין",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 47-57",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Morning Blessings",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות ברכות השחר ושאר ברכות",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 58-88",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Reciting Shema",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות קריאת שמע",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 89-127",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Prayer",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות תפילה",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 128-135",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of the Priestly Blessing",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות נשיאת כפים",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 136-149",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Reading the Torah",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות קריאת התורה",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 150-156",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of the Synagogue",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות בית הכנסת",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 157-165",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Washing One's Hands for a Meal",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות נטילת ידים",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 166-201",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of the Meal",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות סעודה",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 202-214",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Blessings on Fruit",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות ברכת הפירות",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 215-241",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Other Blessings",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות שאר ברכות",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 242-344",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Shabbat",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות שבת",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 345-395",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Eruvin",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות ערובין",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 396-407",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Techumin",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות תחומין",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 408-416",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Eruv Techumin",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות עירובי תחומין",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 417-428",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Rosh Chodesh",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות ראש חודש",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 429-494",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Passover",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות פסח",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 495-529",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of the Festivals",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות יום טוב",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 530-548",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Chol HaMoed",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות חול המועד",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 549-561",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of the Ninth of Av",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות תשעה באב",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 562-580",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Fast Days",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות תענית",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 581-603",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Rosh Hashanah",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות ראש השנה",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 604-624",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Yom Kippur",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות יום הכיפורים",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 625-644",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Sukkot",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות סוכה",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 645-669",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of the Four Species",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות לולב",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 670-685",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Chanukah",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות חנוכה",
+              "lang": "he"
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 0,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 686-697",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Purim",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות מגילה",
+              "lang": "he"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "order": [
+    10
+  ],
+  "authors": [
+    "joseph-karo"
+  ],
+  "enDesc": "The Shulchan Arukh (“Set Table”) is the most widely accepted code of Jewish law ever written. Compiled in the 16th century by Rabbi Yosef Karo, it is a condensed and simplified version of the Beit Yosef, a commentary that Karo wrote on the Tur. Karo’s rulings are in accordance with Sephardic traditions; the text of the Shulchan Arukh also includes the glosses of Rabbi Moshe Isserles, which cite Ashkenazic traditions. Orach Chaim (“Way of Life,” a reference to Psalms 16:11) is the first of four sections. It discusses daily ritual observance, like prayer, Tefillin, Tzitzit, Shabbat, and holidays.",
+  "enShortDesc": "Daily ritual observance: prayer, Tefillin, Tzitzit, Shabbat, and holidays.",
+  "heShortDesc": "הלכות הקשורות לסדר היום: תפילה, ברכות, תפילין, שבת, עירובין, ומועדים.",
+  "pubDate": [
+    1564
+  ],
+  "compDate": [
+    1563
+  ],
+  "compPlace": "Safed",
+  "pubPlace": "Venice",
+  "era": "AH",
+  "is_cited": true
+}

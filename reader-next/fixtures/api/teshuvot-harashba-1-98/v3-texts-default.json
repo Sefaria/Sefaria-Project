@@ -1,0 +1,131 @@
+{
+  "versions": [
+    {
+      "status": "",
+      "priority": "",
+      "license": "CC0",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "versionSource": "http://sefaria.org",
+      "versionTitle": "Sefaria Community Translation",
+      "actualLanguage": "en",
+      "languageFamilyName": "english",
+      "isSource": false,
+      "isPrimary": false,
+      "direction": "ltr",
+      "text": [
+        "...Regarding the question of an animal which suffers a wound which would be considered a treifa, and behold, it lives more than 12 months, should we say that since it lived more than a year, the wound was not in fact a treifa - and thus the animal should be considered kosher? My answer is, if you have seen or heard of someone who is lenient in such a case, do not listen to them! Anyone who is would claim that this animal is kosher is, in my eyes, as one who is insulting the words of the Sages.... everyone who is truly God-fearing must be as a firm wall against this, and not to make the words of the Sages like a broken and pierced wall, through which the fox enters...",
+        "..And if you will reply, \"what can we do? We have seen with our own eyes a wounded animal in this manner who nevertheless lived 12 months?!\" We consider this as one who testifies on the impossible. We would ask them, \"how do you know for certain that this is the same animal? Perhaps you forgot or made a mistake?\" For it is impossible that the same animal would live for 12 months with a treifa. "
+      ]
+    }
+  ],
+  "available_versions": [
+    {
+      "status": "",
+      "priority": "",
+      "license": "CC0",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "title": "Teshuvot haRashba part I",
+      "versionSource": "http://sefaria.org",
+      "versionTitle": "Sefaria Community Translation",
+      "actualLanguage": "en",
+      "languageFamilyName": "english",
+      "isSource": false,
+      "isPrimary": false,
+      "direction": "ltr"
+    }
+  ],
+  "ref": "Teshuvot haRashba part I 98",
+  "heRef": "שו\"ת הרשב\"א חלק א צ״ח",
+  "sections": [
+    "98"
+  ],
+  "toSections": [
+    "98"
+  ],
+  "sectionRef": "Teshuvot haRashba part I 98",
+  "heSectionRef": "שו\"ת הרשב\"א חלק א צ״ח",
+  "firstAvailableSectionRef": "Teshuvot haRashba part I 98",
+  "isSpanning": false,
+  "next": "Teshuvot haRashba part I 150",
+  "prev": null,
+  "title": "Teshuvot haRashba part I 98",
+  "book": "Teshuvot haRashba part I",
+  "heTitle": "שו\"ת הרשב\"א חלק א",
+  "primary_category": "Responsa",
+  "type": "Responsa",
+  "indexTitle": "Teshuvot haRashba part I",
+  "categories": [
+    "Responsa",
+    "Rishonim",
+    "Rashba"
+  ],
+  "heIndexTitle": "שו\"ת הרשב\"א חלק א",
+  "isComplex": false,
+  "isDependant": false,
+  "order": [
+    1
+  ],
+  "collectiveTitle": "",
+  "heCollectiveTitle": "",
+  "alts": [],
+  "lengths": [
+    413,
+    11
+  ],
+  "length": 413,
+  "textDepth": 2,
+  "sectionNames": [
+    "Teshuva",
+    "Paragraph"
+  ],
+  "addressTypes": [
+    "Siman",
+    "Seif"
+  ],
+  "titleVariants": [
+    "Teshuvot HaRashba part I",
+    "Teshuvot haRashba part I"
+  ],
+  "heTitleVariants": [
+    "שו\"ת הרשב\"א חלק א"
+  ],
+  "index_offsets_by_depth": {},
+  "warnings": [
+    {
+      "primary": {
+        "warning_code": 102,
+        "message": "We do not have the language you asked for Teshuvot haRashba part I 98. Available languages are ['english']"
+      }
+    }
+  ]
+}

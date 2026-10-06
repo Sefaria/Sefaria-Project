@@ -1,0 +1,19 @@
+.entry { padding-block: var(--sefaria-space-4); cursor: default; }
+.headline { font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-large, 1.25rem); color: var(--sefaria-color-text); margin-block-end: var(--sefaria-space-2); }
+.headlineLink { color: inherit; text-decoration: none; }
+.headlineLink:hover { text-decoration: underline; }
+.headword { font-family: var(--sefaria-font-text-he); }
+.morphology, .lang { font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); }
+.langRef { font-style: italic; }
+.definition { font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); line-height: 1.5; color: var(--sefaria-color-text); }
+.senses { margin: 0; padding-inline-start: 1.4em; }
+.senses .senses { margin-block-start: var(--sefaria-space-1); }
+.sense { margin-block-end: var(--sefaria-space-1); }
+.def :global(i), .alternative { font-style: italic; }
+.notes, .endNotes { display: block; font-size: 0.9em; color: var(--sefaria-color-text-secondary); }
+.bdbSense .bdbSense { margin-inline-start: 1em; }
+.definition a { color: inherit; font-weight: 600; text-decoration: none; }
+.definition a:hover { text-decoration: underline; }
+.attribution { margin-block-start: var(--sefaria-space-2); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-caption); font-weight: 600; color: var(--sefaria-color-text-muted); line-height: 1.5; }
+.attribution a { color: inherit; text-decoration: none; display: block; }
+.attribution a:hover { text-decoration: underline; }

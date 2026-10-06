@@ -1,0 +1,268 @@
+{
+  "versions": [
+    {
+      "status": "locked",
+      "priority": 5,
+      "license": "unknown",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "ספר הזהר מנקד, ישראל תשע\"ג",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "he",
+      "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH990035741170205171/NLI",
+      "versionTitle": "Vocalized Zohar, Israel 2013",
+      "actualLanguage": "he",
+      "languageFamilyName": "hebrew",
+      "isSource": true,
+      "isPrimary": true,
+      "direction": "rtl",
+      "text": [
+        "<i data-overlay=\"Vilna Pages\" data-value=\"15a\"></i>(נ\"א בראשית בחכמתא דמלכא גליף וכו) בְּרֵישׁ הוּרְמְנוּתָא דְמַלְכָּא, גָּלִיף גְּלוּפֵי (נ\"א גליפו) בִּטְהִירוּ עִלָּאָה בּוּצִינָא דְּקַרְדִינוּתָא, וְנָפִיק גּוֹ סָתִים דִּסְתִימוּ מֵרִישָׁא (נ\"א מרזא) דְּאֵי\"ן סוֹ\"ף קוּטְרָא (פירוש עשן) בְּגוּלְמָא, נָעִיץ בְּעִזְקָא לָא חִוָּור וְלָא אוּכָם וְלָא סוּמָק וְלָא יָרוֹק ולָא גּוָֹון כְּלָל, כַּד (נ\"א הדר) מָדִיד מְשִׁיחָא עָבִיד גּוָֹונִין לְאַנְהָרָא, לְגוֹ בְּגוֹ בּוֹצִינָא נָפִיק (נ\"א ונפיק) חַד נְבִיעוּ דְּמִנֵּיהּ אִצְטַבְּעוּ גּוָֹונִין לְתַתָּא.",
+        "סָתִים גּוֹ סְתִימִין דְרָזָא דְּאֵי\"ן סוֹ\"ף בָּקַע וְלָא בָּקַע אֲוִירָא דִּילֵיהּ לָא אִתְיְידַע כְּלָל, עַד דְּמִגּוֹ דְּחִיקוּ דִּבְקִיעוּתֵיהּ נָהִיר (כ' א) נְקוּדָה חָדָא סְתִימָא עִלָּאָה, בָּתַר הַהִיא נְקוּדָה לָא אִתְיְידַע כְּלָל, וּבְגִין כָּךְ אִקְרֵי רֵאשִׁית מַאֲמַר קַדְמָאָה דְּכֹלָּא:<a></a>"
+      ]
+    },
+    {
+      "status": "locked",
+      "priority": "",
+      "license": "unknown",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "זוהר בתרגום עברי",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "he",
+      "versionSource": "http://www.toratemetfreeware.com/online/d_root__106_kabala.html",
+      "versionTitle": "Hebrew Translation",
+      "actualLanguage": "he",
+      "languageFamilyName": "hebrew",
+      "isSource": false,
+      "isPrimary": false,
+      "direction": "rtl",
+      "text": [
+        "בְּרֹאשׁ (נ\"א: בראשית בחכמת המלך חקק) רְצוֹן הַמֶּלֶךְ חָקַק חֲקִיקוֹת בְּאוֹר עֶלְיוֹן נִיצוֹץ חָזָק, וְיָצָא תּוֹךְ נִסְתַּר הַנִּסְתָּרִים מֵרֹאשׁ (נ\"א: מסוד) הָאֵי\"ן סוֹ\"ף עָשָׁן בְּגֹלֶם נָעוּץ בְּטַבַּעַת, לֹא לָבָן וְלֹא שָׁחֹר וְלֹא אָדם וְלֹא יָרֹק וְלֹא גָוֶן כְּלָל. כְּשֶׁמָּדַד מְדִידָה, עָשָׂה צוּרוֹת לְהָאִיר. לִפְנִים בְּתוֹךְ הַמָּאוֹר יָצָא מַעְיָן אֶחָד שֶׁמִּמֶּנּוּ נִצְבְּעוּ הַצּוּרוֹת לְמַטָּה.",
+        "נִסְתָּר תּוֹךְ הַנִּסְתָּרִים שֶׁל סוֹד הָאֵי\"ן סוֹ\"ף בָּקַע וְלֹא בָקַע אֶת הָאֲוִיר שֶׁלּוֹ לֹא נוֹדַע כְּלָל, עַד שֶׁמִּתּוֹךְ דֹּחַק הַבְּקִיעָה שֶׁלּוֹ מְאִירָה נְקֻדָּה אַחַת נִסְתֶּרֶת עֶלְיוֹנָה אַחַר אוֹתָהּ נְקֻדָּה לֹא נוֹדַע כְּלָל, וְלָכֵן נִקְרֵאת רֵאשִׁית, הַמַּאֲמָר הָרִאשׁוֹן שֶׁל הַכֹּל."
+      ]
+    }
+  ],
+  "available_versions": [
+    {
+      "status": "locked",
+      "priority": 5,
+      "license": "unknown",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "ספר הזהר מנקד, ישראל תשע\"ג",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "he",
+      "title": "Zohar",
+      "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH990035741170205171/NLI",
+      "versionTitle": "Vocalized Zohar, Israel 2013",
+      "actualLanguage": "he",
+      "languageFamilyName": "hebrew",
+      "isSource": true,
+      "isPrimary": true,
+      "direction": "rtl"
+    },
+    {
+      "status": "locked",
+      "priority": 3,
+      "license": "unknown",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "מהדורת הסולם, ירושלים תשמ\"ה",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "he",
+      "title": "Zohar",
+      "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH001329911/NLI",
+      "versionTitle": "Sulam Edition, Jerusalem 1945",
+      "actualLanguage": "he",
+      "languageFamilyName": "hebrew",
+      "isSource": true,
+      "isPrimary": true,
+      "direction": "rtl"
+    },
+    {
+      "status": "locked",
+      "priority": "",
+      "license": "unknown",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "זוהר בתרגום עברי",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "he",
+      "title": "Zohar",
+      "versionSource": "http://www.toratemetfreeware.com/online/d_root__106_kabala.html",
+      "versionTitle": "Hebrew Translation",
+      "actualLanguage": "he",
+      "languageFamilyName": "hebrew",
+      "isSource": false,
+      "isPrimary": false,
+      "direction": "rtl"
+    },
+    {
+      "status": "",
+      "priority": "",
+      "license": "CC0",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "title": "Zohar",
+      "versionSource": "https://www.sefaria.org",
+      "versionTitle": "Sefaria Community Translation",
+      "actualLanguage": "en",
+      "languageFamilyName": "english",
+      "isSource": false,
+      "isPrimary": false,
+      "direction": "ltr"
+    }
+  ],
+  "ref": "Zohar, Bereshit 1",
+  "heRef": "ספר הזהר, בראשית א׳",
+  "sections": [
+    "1"
+  ],
+  "toSections": [
+    "1"
+  ],
+  "sectionRef": "Zohar, Bereshit 1",
+  "heSectionRef": "ספר הזהר, בראשית א׳",
+  "firstAvailableSectionRef": "Zohar, Bereshit 1",
+  "isSpanning": false,
+  "next": "Zohar, Bereshit 2",
+  "prev": "Zohar, Introduction 34",
+  "title": "Zohar, Bereshit 1",
+  "book": "Zohar, Bereshit",
+  "heTitle": "ספר הזהר, בראשית",
+  "primary_category": "Kabbalah",
+  "type": "Kabbalah",
+  "indexTitle": "Zohar",
+  "categories": [
+    "Kabbalah",
+    "Zohar"
+  ],
+  "heIndexTitle": "ספר הזהר",
+  "isComplex": true,
+  "isDependant": false,
+  "order": [
+    5
+  ],
+  "collectiveTitle": "",
+  "heCollectiveTitle": "",
+  "alts": [
+    {
+      "en": [
+        "",
+        "1"
+      ],
+      "he": [
+        "",
+        " גליף גלופי בטהירו עילאה"
+      ],
+      "whole": true,
+      "aliyah_en": "1",
+      "aliyah_he": "א׳",
+      "parasha_en": "1",
+      "parasha_he": " גליף גלופי בטהירו עילאה"
+    },
+    {
+      "en": [
+        "2"
+      ],
+      "he": [
+        "ב׳"
+      ],
+      "aliyah_en": "2",
+      "aliyah_he": "ב׳",
+      "parasha_en": "1",
+      "parasha_he": " גליף גלופי בטהירו עילאה"
+    }
+  ],
+  "textDepth": 2,
+  "sectionNames": [
+    "Chapter",
+    "Paragraph"
+  ],
+  "addressTypes": [
+    "Integer",
+    "Integer"
+  ],
+  "titleVariants": [
+    "Bereshit"
+  ],
+  "heTitleVariants": [
+    "בראשית"
+  ],
+  "index_offsets_by_depth": {
+    "2": [
+      0
+    ]
+  },
+  "warnings": []
+}

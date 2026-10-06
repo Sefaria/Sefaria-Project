@@ -1,0 +1,6778 @@
+{
+  "links": [
+    {
+      "_id": "604a5c6e0acabd099ce079a5",
+      "index_title": "Tosefta Berakhot",
+      "category": "Tosefta",
+      "type": "",
+      "ref": "Tosefta Berakhot 3:7",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Tosefta Berakhot 3:7",
+      "sourceHeRef": "תוספתא ברכות ג׳:ז׳",
+      "anchorVerse": 11,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 3.0007,
+      "collectiveTitle": {
+        "en": "Tosefta Berakhot",
+        "he": "תוספתא ברכות"
+      },
+      "heTitle": "תוספתא ברכות"
+    },
+    {
+      "_id": "6a1f4424a0fdcd9b056dc269",
+      "index_title": "Tosefta Kifshutah on Berakhot",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Tosefta Kifshutah on Berakhot 1:9:4",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Tosefta Kifshutah on Berakhot 1:9:4",
+      "sourceHeRef": "תוספתא כפשוטה על ברכות א׳:ט׳:ד׳",
+      "anchorVerse": 11,
+      "sourceHasEn": false,
+      "compDate": [
+        1936,
+        1954
+      ],
+      "commentaryNum": 9.0004,
+      "collectiveTitle": {
+        "en": "Tosefta Kifshutah on Berakhot",
+        "he": "תוספתא כפשוטה על ברכות"
+      },
+      "heTitle": "תוספתא כפשוטה על ברכות"
+    },
+    {
+      "_id": "60ad0fde34562eca13bb5e2b",
+      "index_title": "Tosefta Sotah (Lieberman)",
+      "category": "Tosefta",
+      "type": "related",
+      "ref": "Tosefta Sotah (Lieberman) 15:7",
+      "anchorRef": "Tosefta Berakhot 1:13",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:13"
+      ],
+      "sourceRef": "Tosefta Sotah (Lieberman) 15:7",
+      "sourceHeRef": "תוספתא סוטה (ליברמן) ט״ו:ז׳",
+      "anchorVerse": 13,
+      "sourceHasEn": false,
+      "commentaryNum": 15.0007,
+      "collectiveTitle": {
+        "en": "Tosefta Sotah (Lieberman)",
+        "he": "תוספתא סוטה (ליברמן)"
+      },
+      "heTitle": "תוספתא סוטה (ליברמן)"
+    },
+    {
+      "_id": "604a52cfcf437ea9ee83afdb",
+      "index_title": "Tosefta Berakhot",
+      "category": "Tosefta",
+      "type": "related",
+      "ref": "Tosefta Berakhot 2:6",
+      "anchorRef": "Tosefta Berakhot 1:4",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:4"
+      ],
+      "sourceRef": "Tosefta Berakhot 2:6",
+      "sourceHeRef": "תוספתא ברכות ב׳:ו׳",
+      "anchorVerse": 4,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 2.0006,
+      "collectiveTitle": {
+        "en": "Tosefta Berakhot",
+        "he": "תוספתא ברכות"
+      },
+      "heTitle": "תוספתא ברכות"
+    },
+    {
+      "_id": "6a18333196f628367c69466c",
+      "index_title": "Tziunei Maharan on Mishneh Torah, Reading the Shema",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Tziunei Maharan on Mishneh Torah, Reading the Shema 2:5:1",
+      "anchorRef": "Tosefta Berakhot 1:4",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:4"
+      ],
+      "sourceRef": "Tziunei Maharan on Mishneh Torah, Reading the Shema 2:5:1",
+      "sourceHeRef": "ציוני מהר\"ן על משנה תורה, הלכות קריאת שמע ב׳:ה׳:א׳",
+      "anchorVerse": 4,
+      "sourceHasEn": false,
+      "compDate": [
+        1875,
+        1881
+      ],
+      "commentaryNum": 5.0001,
+      "collectiveTitle": {
+        "en": "Tziunei Maharan on Mishneh Torah, Reading the Shema",
+        "he": "ציוני מהר\"ן על משנה תורה, הלכות קריאת שמע"
+      },
+      "heTitle": "ציוני מהר\"ן על משנה תורה, הלכות קריאת שמע"
+    },
+    {
+      "_id": "604a57c7620be18e8252927d",
+      "index_title": "Tosefta Berakhot",
+      "category": "Tosefta",
+      "type": "related",
+      "ref": "Tosefta Berakhot 2:9",
+      "anchorRef": "Tosefta Berakhot 1:5",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:5"
+      ],
+      "sourceRef": "Tosefta Berakhot 2:9",
+      "sourceHeRef": "תוספתא ברכות ב׳:ט׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 2.0009,
+      "collectiveTitle": {
+        "en": "Tosefta Berakhot",
+        "he": "תוספתא ברכות"
+      },
+      "heTitle": "תוספתא ברכות"
+    },
+    {
+      "_id": "60ad0fd834562eca13bb5e15",
+      "index_title": "Tosefta Demai (Lieberman)",
+      "category": "Tosefta",
+      "type": "related",
+      "ref": "Tosefta Demai (Lieberman) 5:24",
+      "anchorRef": "Tosefta Berakhot 1:6",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:6"
+      ],
+      "sourceRef": "Tosefta Demai (Lieberman) 5:24",
+      "sourceHeRef": "תוספתא דמאי (ליברמן) ה׳:כ״ד",
+      "anchorVerse": 6,
+      "sourceHasEn": false,
+      "commentaryNum": 5.0024,
+      "collectiveTitle": {
+        "en": "Tosefta Demai (Lieberman)",
+        "he": "תוספתא דמאי (ליברמן)"
+      },
+      "heTitle": "תוספתא דמאי (ליברמן)"
+    },
+    {
+      "_id": "5b225f903322c50016000e1d",
+      "index_title": "Tosefta Berakhot",
+      "category": "Tosefta",
+      "type": "mesorat hashas",
+      "ref": "Tosefta Berakhot 1:9",
+      "anchorRef": "Tosefta Berakhot 1:8",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:8"
+      ],
+      "sourceRef": "Tosefta Berakhot 1:9",
+      "sourceHeRef": "תוספתא ברכות א׳:ט׳",
+      "anchorVerse": 8,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 1.0009,
+      "collectiveTitle": {
+        "en": "Tosefta Berakhot",
+        "he": "תוספתא ברכות"
+      },
+      "heTitle": "תוספתא ברכות"
+    },
+    {
+      "_id": "6a1f083abb11c92d71f45552",
+      "index_title": "Tosefta Kifshutah on Berakhot",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Tosefta Kifshutah on Berakhot 1:6:1",
+      "anchorRef": "Tosefta Berakhot 1:9",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:9"
+      ],
+      "sourceRef": "Tosefta Kifshutah on Berakhot 1:6:1",
+      "sourceHeRef": "תוספתא כפשוטה על ברכות א׳:ו׳:א׳",
+      "anchorVerse": 9,
+      "sourceHasEn": false,
+      "compDate": [
+        1936,
+        1954
+      ],
+      "commentaryNum": 6.0001,
+      "collectiveTitle": {
+        "en": "Tosefta Kifshutah on Berakhot",
+        "he": "תוספתא כפשוטה על ברכות"
+      },
+      "heTitle": "תוספתא כפשוטה על ברכות"
+    },
+    {
+      "_id": "5b2265bdc1b907001a7586eb",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "mesorat hashas",
+      "ref": "Berakhot 2b:8",
+      "anchorRef": "Tosefta Berakhot 1:1-2",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1",
+        "Tosefta Berakhot 1:2"
+      ],
+      "sourceRef": "Berakhot 2b:8",
+      "sourceHeRef": "ברכות ב׳ ב:ח׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 4.0008,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "5c46923508d98a02694dce09",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, מִשְׁמָר 1",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "sourceRef": "Jastrow, מִשְׁמָר 1",
+      "sourceHeRef": "מילון יסטרוב, מִשְׁמָר א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "מִשְׁמָר"
+    },
+    {
+      "_id": "5c469df008d98a02694e413c",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, עֵת 1",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "sourceRef": "Jastrow, עֵת 1",
+      "sourceHeRef": "מילון יסטרוב, עֵת א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "עֵת"
+    },
+    {
+      "_id": "5c46abfa08d98a02694ec0db",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, רֶגַע 1",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "sourceRef": "Jastrow, רֶגַע 1",
+      "sourceHeRef": "מילון יסטרוב, רֶגַע א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "רֶגַע"
+    },
+    {
+      "_id": "5c46b2fb08d98a02694f02bb",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, שָׁעָה II 1",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "sourceRef": "Jastrow, שָׁעָה II 1",
+      "sourceHeRef": "מילון יסטרוב, שָׁעָה II א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "שָׁעָה II"
+    },
+    {
+      "_id": "5e1173e02649edba9b7404ec",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "",
+      "ref": "Berakhot 2b:4",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "sourceRef": "Berakhot 2b:4",
+      "sourceHeRef": "ברכות ב׳ ב:ד׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 4.0004,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "604a46b8f26e3841c14dd81e",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 1:1",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "sourceRef": "Mishnah Berakhot 1:1",
+      "sourceHeRef": "משנה ברכות א׳:א׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 1.0001,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "60ad0fd534562eca13bb5e09",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "related",
+      "ref": "Berakhot 2b:8",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "sourceRef": "Berakhot 2b:8",
+      "sourceHeRef": "ברכות ב׳ ב:ח׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 4.0008,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "695ea3cd043803e6c918c47a",
+      "index_title": "Nehemiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Nehemiah 4",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "sourceRef": "Nehemiah 4",
+      "sourceHeRef": "נחמיה ד׳",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        -450,
+        -350
+      ],
+      "commentaryNum": 4,
+      "collectiveTitle": {
+        "en": "Nehemiah",
+        "he": "נחמיה"
+      },
+      "heTitle": "נחמיה"
+    },
+    {
+      "_id": "695eaf8d21229ba95ae8685a",
+      "index_title": "Nehemiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Nehemiah 4:15",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "sourceRef": "Nehemiah 4:15",
+      "sourceHeRef": "נחמיה ד׳:ט״ו",
+      "anchorVerse": 1,
+      "sourceHasEn": true,
+      "compDate": [
+        -450,
+        -350
+      ],
+      "commentaryNum": 4.0015,
+      "collectiveTitle": {
+        "en": "Nehemiah",
+        "he": "נחמיה"
+      },
+      "heTitle": "נחמיה"
+    },
+    {
+      "_id": "6a0f1e1b41035c70dfb1855c",
+      "index_title": "Mishnat Eretz Yisrael on Mishnah Niddah",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Mishnat Eretz Yisrael on Mishnah Niddah 10:6:12",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "sourceRef": "Mishnat Eretz Yisrael on Mishnah Niddah 10:6:12",
+      "sourceHeRef": "משנת ארץ ישראל על משנה נדה י׳:ו׳:י״ב",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "commentaryNum": 6.0012,
+      "collectiveTitle": {
+        "en": "Mishnat Eretz Yisrael on Mishnah Niddah",
+        "he": "משנת ארץ ישראל על משנה נדה"
+      }
+    },
+    {
+      "_id": "6a0f728ace752ab40c8c36aa",
+      "index_title": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:1:2",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "sourceRef": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:1:2",
+      "sourceHeRef": "אור לישרים על תלמוד ירושלמי ברכות א׳:א׳:ב׳",
+      "anchorVerse": 1,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0002,
+      "collectiveTitle": {
+        "en": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+        "he": "אור לישרים על תלמוד ירושלמי ברכות"
+      }
+    },
+    {
+      "_id": "5b226185c1b907001a75792d",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "mesorat hashas",
+      "ref": "Berakhot 34a:14",
+      "anchorRef": "Tosefta Berakhot 1:10-11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:10",
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Berakhot 34a:14",
+      "sourceHeRef": "ברכות ל״ד א:י״ד",
+      "anchorVerse": 10,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 67.0014,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "604a4ae54b0b83e0a3b97b08",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 1:4",
+      "anchorRef": "Tosefta Berakhot 1:10",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:10"
+      ],
+      "sourceRef": "Mishnah Berakhot 1:4",
+      "sourceHeRef": "משנה ברכות א׳:ד׳",
+      "anchorVerse": 10,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 1.0004,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "60ad0fda34562eca13bb5e1d",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "related",
+      "ref": "Berakhot 34a:14",
+      "anchorRef": "Tosefta Berakhot 1:10",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:10"
+      ],
+      "sourceRef": "Berakhot 34a:14",
+      "sourceHeRef": "ברכות ל״ד א:י״ד",
+      "anchorVerse": 10,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 67.0014,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "60ad0fdb34562eca13bb5e1f",
+      "index_title": "Bereshit Rabbah",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Bereshit Rabbah 39:12",
+      "anchorRef": "Tosefta Berakhot 1:10",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:10"
+      ],
+      "sourceRef": "Bereshit Rabbah 39:12",
+      "sourceHeRef": "בראשית רבה ל״ט:י״ב",
+      "anchorVerse": 10,
+      "sourceHasEn": true,
+      "compDate": [
+        400
+      ],
+      "commentaryNum": 39.0012,
+      "collectiveTitle": {
+        "en": "Bereshit Rabbah",
+        "he": "בראשית רבה"
+      },
+      "heTitle": "בראשית רבה"
+    },
+    {
+      "_id": "6a1fac87ab43367e85c27bf6",
+      "index_title": "Penei Moshe on Jerusalem Talmud Berakhot",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Penei Moshe on Jerusalem Talmud Berakhot 1:5:17:1",
+      "anchorRef": "Tosefta Berakhot 1:10",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:10"
+      ],
+      "sourceRef": "Penei Moshe on Jerusalem Talmud Berakhot 1:5:17:1",
+      "sourceHeRef": "פני משה על תלמוד ירושלמי ברכות א׳:ה׳:י״ז:א׳",
+      "anchorVerse": 10,
+      "sourceHasEn": false,
+      "commentaryNum": 17.0001,
+      "collectiveTitle": {
+        "en": "Penei Moshe on Jerusalem Talmud Berakhot",
+        "he": "פני משה על תלמוד ירושלמי ברכות"
+      },
+      "heTitle": "פני משה על תלמוד ירושלמי ברכות"
+    },
+    {
+      "_id": "5b225c5987ca670017e79f12",
+      "index_title": "Otzar Midrashim",
+      "category": "Midrash",
+      "type": "mesorat hashas",
+      "ref": "Otzar Midrashim, Shiur Komah 1:6",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Otzar Midrashim, Shiur Komah 1:6",
+      "sourceHeRef": "אוצר מדרשים, שעור קומה א׳:ו׳",
+      "anchorVerse": 11,
+      "sourceHasEn": true,
+      "compDate": [
+        1915
+      ],
+      "commentaryNum": 1.0006,
+      "collectiveTitle": {
+        "en": "Otzar Midrashim",
+        "he": "אוצר מדרשים"
+      }
+    },
+    {
+      "_id": "5b225c9787ca670017e7a7fe",
+      "index_title": "Otzar Midrashim",
+      "category": "Midrash",
+      "type": "mesorat hashas",
+      "ref": "Otzar Midrashim, Hekhalot, Chapter from the Chapters of Hekhalot 3",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Otzar Midrashim, Hekhalot, Chapter from the Chapters of Hekhalot 3",
+      "sourceHeRef": "אוצר מדרשים, היכלות, פרק מפרקי היכלות ג׳",
+      "anchorVerse": 11,
+      "sourceHasEn": false,
+      "compDate": [
+        1915
+      ],
+      "commentaryNum": 3,
+      "collectiveTitle": {
+        "en": "Otzar Midrashim",
+        "he": "אוצר מדרשים"
+      },
+      "heTitle": "פרק מפרקי היכלות"
+    },
+    {
+      "_id": "5b226ad3c1b907001a75af0f",
+      "index_title": "Bereshit Rabbah",
+      "category": "Midrash",
+      "type": "mesorat hashas",
+      "ref": "Bereshit Rabbah 39:12",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Bereshit Rabbah 39:12",
+      "sourceHeRef": "בראשית רבה ל״ט:י״ב",
+      "anchorVerse": 11,
+      "sourceHasEn": true,
+      "compDate": [
+        400
+      ],
+      "commentaryNum": 39.0012,
+      "collectiveTitle": {
+        "en": "Bereshit Rabbah",
+        "he": "בראשית רבה"
+      },
+      "heTitle": "בראשית רבה"
+    },
+    {
+      "_id": "5c46922e08d98a02694dcd99",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, מָשַׁל II 1",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Jastrow, מָשַׁל II 1",
+      "sourceHeRef": "מילון יסטרוב, מָשַׁל II א׳",
+      "anchorVerse": 11,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "מָשַׁל II"
+    },
+    {
+      "_id": "695ea3cace06144202d8170a",
+      "index_title": "Ezekiel",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Ezekiel 3",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Ezekiel 3",
+      "sourceHeRef": "יחזקאל ג׳",
+      "anchorVerse": 11,
+      "sourceHasEn": true,
+      "compDate": [
+        -550,
+        -450
+      ],
+      "commentaryNum": 3,
+      "collectiveTitle": {
+        "en": "Ezekiel",
+        "he": "יחזקאל"
+      },
+      "heTitle": "יחזקאל"
+    },
+    {
+      "_id": "695ea3cbce06144202d8170c",
+      "index_title": "Isaiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Isaiah 6",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Isaiah 6",
+      "sourceHeRef": "ישעיהו ו׳",
+      "anchorVerse": 11,
+      "sourceHasEn": true,
+      "compDate": [
+        -750,
+        -450
+      ],
+      "commentaryNum": 6,
+      "collectiveTitle": {
+        "en": "Isaiah",
+        "he": "ישעיהו"
+      },
+      "heTitle": "ישעיהו"
+    },
+    {
+      "_id": "695eaf8c435133f528b5d865",
+      "index_title": "Ezekiel",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Ezekiel 3:12",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Ezekiel 3:12",
+      "sourceHeRef": "יחזקאל ג׳:י״ב",
+      "anchorVerse": 11,
+      "sourceHasEn": true,
+      "compDate": [
+        -550,
+        -450
+      ],
+      "commentaryNum": 3.0012,
+      "collectiveTitle": {
+        "en": "Ezekiel",
+        "he": "יחזקאל"
+      },
+      "heTitle": "יחזקאל"
+    },
+    {
+      "_id": "695eaf8c435133f528b5d867",
+      "index_title": "Isaiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Isaiah 6:3",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Isaiah 6:3",
+      "sourceHeRef": "ישעיהו ו׳:ג׳",
+      "anchorVerse": 11,
+      "sourceHasEn": true,
+      "compDate": [
+        -750,
+        -450
+      ],
+      "commentaryNum": 6.0003,
+      "collectiveTitle": {
+        "en": "Isaiah",
+        "he": "ישעיהו"
+      },
+      "heTitle": "ישעיהו"
+    },
+    {
+      "_id": "6a04d9a4fbb1a5d0489be1e9",
+      "index_title": "Magen Avraham",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Magen Avraham 66:6",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Magen Avraham 66:6",
+      "sourceHeRef": "מגן אברהם ס״ו:ו׳",
+      "anchorVerse": 11,
+      "sourceHasEn": false,
+      "compDate": [
+        1665,
+        1671
+      ],
+      "commentaryNum": 66.0006,
+      "collectiveTitle": {
+        "en": "Magen Avraham",
+        "he": "מגן אברהם"
+      }
+    },
+    {
+      "_id": "6a0e208d6a2edf04ad588a96",
+      "index_title": "Meiri on Berakhot",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Meiri on Berakhot 34a:6",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Meiri on Berakhot 34a:6",
+      "sourceHeRef": "מאירי על ברכות ל״ד א:ו׳",
+      "anchorVerse": 11,
+      "sourceHasEn": false,
+      "compDate": [
+        1280,
+        1310
+      ],
+      "commentaryNum": 67.0006,
+      "collectiveTitle": {
+        "en": "Meiri on Berakhot",
+        "he": "מאירי על ברכות"
+      }
+    },
+    {
+      "_id": "6a17c3856acd658dcc1dae4b",
+      "index_title": "Ba'er Hetev on Shulchan Arukh, Orach Chayim",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Ba'er Hetev on Shulchan Arukh, Orach Chayim 66:7",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Ba'er Hetev on Shulchan Arukh, Orach Chayim 66:7",
+      "sourceHeRef": "באר היטב אורח חיים ס״ו:ז׳",
+      "anchorVerse": 11,
+      "sourceHasEn": false,
+      "compDate": [
+        1665,
+        1705
+      ],
+      "commentaryNum": 66.0007,
+      "collectiveTitle": {
+        "en": "Ba'er Hetev on Shulchan Arukh, Orach Chayim",
+        "he": "באר היטב אורח חיים"
+      },
+      "heTitle": "באר היטב אורח חיים"
+    },
+    {
+      "_id": "6a1d795963b95705f7b433f1",
+      "index_title": "Kaf HaChayim on Shulchan Arukh, Orach Chayim",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Kaf HaChayim on Shulchan Arukh, Orach Chayim 66:18:1",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "sourceRef": "Kaf HaChayim on Shulchan Arukh, Orach Chayim 66:18:1",
+      "sourceHeRef": "כף החיים על שולחן ערוך אורח חיים ס״ו:י״ח:א׳",
+      "anchorVerse": 11,
+      "sourceHasEn": false,
+      "compDate": [
+        1900,
+        1940
+      ],
+      "commentaryNum": 18.0001,
+      "collectiveTitle": {
+        "en": "Kaf HaChayim on Shulchan Arukh, Orach Chayim",
+        "he": "כף החיים על שולחן ערוך אורח חיים"
+      },
+      "heTitle": "כף החיים על שולחן ערוך אורח חיים"
+    },
+    {
+      "_id": "5b225ce887ca670017e7b6be",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "mesorat hashas",
+      "ref": "Berakhot 12b:23-25",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Berakhot 12b:23-25",
+      "sourceHeRef": "ברכות י״ב ב:כ״ג-כ״ה",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 24.0023,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "5b225d82fdb7300016c3c797",
+      "index_title": "Shemot Rabbah",
+      "category": "Midrash",
+      "type": "mesorat hashas",
+      "ref": "Shemot Rabbah 22:3",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Shemot Rabbah 22:3",
+      "sourceHeRef": "שמות רבה כ״ב:ג׳",
+      "anchorVerse": 12,
+      "sourceHasEn": false,
+      "compDate": [
+        1200
+      ],
+      "commentaryNum": 22.0003,
+      "collectiveTitle": {
+        "en": "Shemot Rabbah",
+        "he": "שמות רבה"
+      },
+      "heTitle": "שמות רבה"
+    },
+    {
+      "_id": "5b226aaac1b907001a75ac81",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "mesorat hashas",
+      "ref": "Mishnah Berakhot 1:5",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Mishnah Berakhot 1:5",
+      "sourceHeRef": "משנה ברכות א׳:ה׳",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 1.0005,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "5c46b3c308d98a02694f09c9",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, שַׂר 1",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Jastrow, שַׂר 1",
+      "sourceHeRef": "מילון יסטרוב, שַׂר א׳",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "שַׂר"
+    },
+    {
+      "_id": "60ad0fdc34562eca13bb5e23",
+      "index_title": "Sifrei Devarim",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Sifrei Devarim 130:7",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Sifrei Devarim 130:7",
+      "sourceHeRef": "ספרי דברים ק״ל:ז׳",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        200
+      ],
+      "commentaryNum": 130.0007,
+      "collectiveTitle": {
+        "en": "Sifrei Devarim",
+        "he": "ספרי דברים"
+      },
+      "heTitle": "ספרי דברים"
+    },
+    {
+      "_id": "60ad0fdc34562eca13bb5e25",
+      "index_title": "Bereshit Rabbah",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Bereshit Rabbah 91:10",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Bereshit Rabbah 91:10",
+      "sourceHeRef": "בראשית רבה צ״א:י׳",
+      "anchorVerse": 12,
+      "sourceHasEn": false,
+      "compDate": [
+        400
+      ],
+      "commentaryNum": 91.001,
+      "collectiveTitle": {
+        "en": "Bereshit Rabbah",
+        "he": "בראשית רבה"
+      },
+      "heTitle": "בראשית רבה"
+    },
+    {
+      "_id": "60ad0fdd34562eca13bb5e29",
+      "index_title": "Isaiah",
+      "category": "Tanakh",
+      "type": "related",
+      "ref": "Isaiah 43:18",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Isaiah 43:18",
+      "sourceHeRef": "ישעיהו מ״ג:י״ח",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        -750,
+        -450
+      ],
+      "commentaryNum": 43.0018,
+      "collectiveTitle": {
+        "en": "Isaiah",
+        "he": "ישעיהו"
+      },
+      "heTitle": "ישעיהו"
+    },
+    {
+      "_id": "60ad0fe134562eca13bb5e37",
+      "index_title": "I Samuel",
+      "category": "Tanakh",
+      "type": "related",
+      "ref": "I Samuel 3:10",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "I Samuel 3:10",
+      "sourceHeRef": "שמואל א ג׳:י׳",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        -500
+      ],
+      "commentaryNum": 3.001,
+      "collectiveTitle": {
+        "en": "I Samuel",
+        "he": "שמואל א"
+      },
+      "heTitle": "שמואל א"
+    },
+    {
+      "_id": "60ad0fe234562eca13bb5e3a",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "related",
+      "ref": "Genesis 22:11",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Genesis 22:11",
+      "sourceHeRef": "בראשית כ״ב:י״א",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 22.0011,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "60ad0fe234562eca13bb5e3c",
+      "index_title": "Exodus",
+      "category": "Tanakh",
+      "type": "related",
+      "ref": "Exodus 3:4",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Exodus 3:4",
+      "sourceHeRef": "שמות ג׳:ד׳",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 3.0004,
+      "collectiveTitle": {
+        "en": "Exodus",
+        "he": "שמות"
+      },
+      "heTitle": "שמות"
+    },
+    {
+      "_id": "60ad0fe334562eca13bb5e3e",
+      "index_title": "Bereshit Rabbah",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Bereshit Rabbah 56:7",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Bereshit Rabbah 56:7",
+      "sourceHeRef": "בראשית רבה נ״ו:ז׳",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        400
+      ],
+      "commentaryNum": 56.0007,
+      "collectiveTitle": {
+        "en": "Bereshit Rabbah",
+        "he": "בראשית רבה"
+      },
+      "heTitle": "בראשית רבה"
+    },
+    {
+      "_id": "60ad0fe434562eca13bb5e40",
+      "index_title": "Shemot Rabbah",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Shemot Rabbah 2:6",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Shemot Rabbah 2:6",
+      "sourceHeRef": "שמות רבה ב׳:ו׳",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        1200
+      ],
+      "commentaryNum": 2.0006,
+      "collectiveTitle": {
+        "en": "Shemot Rabbah",
+        "he": "שמות רבה"
+      },
+      "heTitle": "שמות רבה"
+    },
+    {
+      "_id": "60ad0fe434562eca13bb5e42",
+      "index_title": "Bamidbar Rabbah",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Bamidbar Rabbah 14:21",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Bamidbar Rabbah 14:21",
+      "sourceHeRef": "במדבר רבה י״ד:כ״א",
+      "anchorVerse": 12,
+      "sourceHasEn": false,
+      "compDate": [
+        1200
+      ],
+      "commentaryNum": 14.0021,
+      "collectiveTitle": {
+        "en": "Bamidbar Rabbah",
+        "he": "במדבר רבה"
+      },
+      "heTitle": "במדבר רבה"
+    },
+    {
+      "_id": "60ad0fe534562eca13bb5e44",
+      "index_title": "Jeremiah",
+      "category": "Tanakh",
+      "type": "related",
+      "ref": "Jeremiah 32:31",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Jeremiah 32:31",
+      "sourceHeRef": "ירמיהו ל״ב:ל״א",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        -600,
+        -500
+      ],
+      "commentaryNum": 32.0031,
+      "collectiveTitle": {
+        "en": "Jeremiah",
+        "he": "ירמיהו"
+      },
+      "heTitle": "ירמיהו"
+    },
+    {
+      "_id": "675c2e310c5e9a711819da78",
+      "index_title": "Tosefta Berakhot (Lieberman)",
+      "category": "Tosefta",
+      "type": "",
+      "ref": "Tosefta Berakhot (Lieberman) 1:10",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Tosefta Berakhot (Lieberman) 1:10",
+      "sourceHeRef": "תוספתא ברכות (ליברמן) א׳:י׳",
+      "anchorVerse": 12,
+      "sourceHasEn": false,
+      "commentaryNum": 1.001,
+      "collectiveTitle": {
+        "en": "Tosefta Berakhot (Lieberman)",
+        "he": "תוספתא ברכות (ליברמן)"
+      },
+      "heTitle": "תוספתא ברכות (ליברמן)"
+    },
+    {
+      "_id": "695ea3cc3b5def7673a79a62",
+      "index_title": "Jeremiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Jeremiah 23:7",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Jeremiah 23:7",
+      "sourceHeRef": "ירמיהו כ״ג:ז׳",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        -600,
+        -500
+      ],
+      "commentaryNum": 23.0007,
+      "collectiveTitle": {
+        "en": "Jeremiah",
+        "he": "ירמיהו"
+      },
+      "heTitle": "ירמיהו"
+    },
+    {
+      "_id": "695ea3cc3b5def7673a79a64",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 35",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Genesis 35",
+      "sourceHeRef": "בראשית ל״ה",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 35,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "695ea3cd3b5def7673a79a66",
+      "index_title": "Deuteronomy",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Deuteronomy 16",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Deuteronomy 16",
+      "sourceHeRef": "דברים ט״ז",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 16,
+      "collectiveTitle": {
+        "en": "Deuteronomy",
+        "he": "דברים"
+      },
+      "heTitle": "דברים"
+    },
+    {
+      "_id": "695eaf8e043803e6c918e244",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 35:10",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Genesis 35:10",
+      "sourceHeRef": "בראשית ל״ה:י׳",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 35.001,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "695eaf8e043803e6c918e246",
+      "index_title": "Deuteronomy",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Deuteronomy 16:3",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Deuteronomy 16:3",
+      "sourceHeRef": "דברים ט״ז:ג׳",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 16.0003,
+      "collectiveTitle": {
+        "en": "Deuteronomy",
+        "he": "דברים"
+      },
+      "heTitle": "דברים"
+    },
+    {
+      "_id": "695eaf8f043803e6c918e248",
+      "index_title": "Jeremiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Jeremiah 23:7-8",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Jeremiah 23:7-8",
+      "sourceHeRef": "ירמיהו כ״ג:ז׳-ח׳",
+      "anchorVerse": 12,
+      "sourceHasEn": true,
+      "compDate": [
+        -600,
+        -500
+      ],
+      "commentaryNum": 23.0007,
+      "collectiveTitle": {
+        "en": "Jeremiah",
+        "he": "ירמיהו"
+      },
+      "heTitle": "ירמיהו"
+    },
+    {
+      "_id": "6a078a257fe3ab2738be5e8d",
+      "index_title": "Torah Temimah on Torah",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Torah Temimah on Torah, Genesis 17:5:2",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Torah Temimah on Torah, Genesis 17:5:2",
+      "sourceHeRef": "תורה תמימה על התורה, בראשית י״ז:ה׳:ב׳",
+      "anchorVerse": 12,
+      "sourceHasEn": false,
+      "compDate": [
+        1898,
+        1902
+      ],
+      "commentaryNum": 5.0002,
+      "collectiveTitle": {
+        "en": "Torah Temimah on Torah",
+        "he": "תורה תמימה על התורה"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "6a0f76212dcb37f789c48fd5",
+      "index_title": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:6:11",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "sourceRef": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:6:11",
+      "sourceHeRef": "אור לישרים על תלמוד ירושלמי ברכות א׳:ו׳:י״א",
+      "anchorVerse": 12,
+      "sourceHasEn": false,
+      "commentaryNum": 6.0011,
+      "collectiveTitle": {
+        "en": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+        "he": "אור לישרים על תלמוד ירושלמי ברכות"
+      }
+    },
+    {
+      "_id": "60ad0fe534562eca13bb5e46",
+      "index_title": "Bereshit Rabbah",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Bereshit Rabbah 56:10",
+      "anchorRef": "Tosefta Berakhot 1:13",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:13"
+      ],
+      "sourceRef": "Bereshit Rabbah 56:10",
+      "sourceHeRef": "בראשית רבה נ״ו:י׳",
+      "anchorVerse": 13,
+      "sourceHasEn": true,
+      "compDate": [
+        400
+      ],
+      "commentaryNum": 56.001,
+      "collectiveTitle": {
+        "en": "Bereshit Rabbah",
+        "he": "בראשית רבה"
+      },
+      "heTitle": "בראשית רבה"
+    },
+    {
+      "_id": "60ad0fe634562eca13bb5e48",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "related",
+      "ref": "Genesis 22:14",
+      "anchorRef": "Tosefta Berakhot 1:13",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:13"
+      ],
+      "sourceRef": "Genesis 22:14",
+      "sourceHeRef": "בראשית כ״ב:י״ד",
+      "anchorVerse": 13,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 22.0014,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "675c2e4e0c5e9a711819dbe3",
+      "index_title": "Tosefta Berakhot (Lieberman)",
+      "category": "Tosefta",
+      "type": "",
+      "ref": "Tosefta Berakhot (Lieberman) 1:11",
+      "anchorRef": "Tosefta Berakhot 1:13",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:13"
+      ],
+      "sourceRef": "Tosefta Berakhot (Lieberman) 1:11",
+      "sourceHeRef": "תוספתא ברכות (ליברמן) א׳:י״א",
+      "anchorVerse": 13,
+      "sourceHasEn": false,
+      "commentaryNum": 1.0011,
+      "collectiveTitle": {
+        "en": "Tosefta Berakhot (Lieberman)",
+        "he": "תוספתא ברכות (ליברמן)"
+      },
+      "heTitle": "תוספתא ברכות (ליברמן)"
+    },
+    {
+      "_id": "695ea3ce435133f528b5b9a1",
+      "index_title": "Isaiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Isaiah 43:18",
+      "anchorRef": "Tosefta Berakhot 1:13",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:13"
+      ],
+      "sourceRef": "Isaiah 43:18",
+      "sourceHeRef": "ישעיהו מ״ג:י״ח",
+      "anchorVerse": 13,
+      "sourceHasEn": true,
+      "compDate": [
+        -750,
+        -450
+      ],
+      "commentaryNum": 43.0018,
+      "collectiveTitle": {
+        "en": "Isaiah",
+        "he": "ישעיהו"
+      },
+      "heTitle": "ישעיהו"
+    },
+    {
+      "_id": "695eaf8d9a61cf7b5ae8b9e0",
+      "index_title": "Isaiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Isaiah 43:18-19",
+      "anchorRef": "Tosefta Berakhot 1:13",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:13"
+      ],
+      "sourceRef": "Isaiah 43:18-19",
+      "sourceHeRef": "ישעיהו מ״ג:י״ח-י״ט",
+      "anchorVerse": 13,
+      "sourceHasEn": true,
+      "compDate": [
+        -750,
+        -450
+      ],
+      "commentaryNum": 43.0018,
+      "collectiveTitle": {
+        "en": "Isaiah",
+        "he": "ישעיהו"
+      },
+      "heTitle": "ישעיהו"
+    },
+    {
+      "_id": "5b225dc1fdb7300016c3cfef",
+      "index_title": "Otzar Midrashim",
+      "category": "Midrash",
+      "type": "mesorat hashas",
+      "ref": "Otzar Midrashim, Chuppah of Eliyahu, Chuppat Eliyahu Rabbah 173",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Otzar Midrashim, Chuppah of Eliyahu, Chuppat Eliyahu Rabbah 173",
+      "sourceHeRef": "אוצר מדרשים, חופת אליהו, חופת אליהו רבה קע״ג",
+      "anchorVerse": 14,
+      "sourceHasEn": false,
+      "compDate": [
+        1915
+      ],
+      "commentaryNum": 173,
+      "collectiveTitle": {
+        "en": "Otzar Midrashim",
+        "he": "אוצר מדרשים"
+      },
+      "heTitle": "חופת אליהו רבה"
+    },
+    {
+      "_id": "5b225ee887ca670017e7d310",
+      "index_title": "Otzar Midrashim",
+      "category": "Midrash",
+      "type": "mesorat hashas",
+      "ref": "Otzar Midrashim, Pesikta, Pesikta Chadata 39",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Otzar Midrashim, Pesikta, Pesikta Chadata 39",
+      "sourceHeRef": "אוצר מדרשים, פסיקתא, פסיקתא חדתא ל״ט",
+      "anchorVerse": 14,
+      "sourceHasEn": false,
+      "compDate": [
+        1915
+      ],
+      "commentaryNum": 39,
+      "collectiveTitle": {
+        "en": "Otzar Midrashim",
+        "he": "אוצר מדרשים"
+      },
+      "heTitle": "פסיקתא חדתא"
+    },
+    {
+      "_id": "60ad0fdf34562eca13bb5e2d",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "related",
+      "ref": "Berakhot 13a",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Berakhot 13a",
+      "sourceHeRef": "ברכות י״ג א",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 25,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "60ad0fdf34562eca13bb5e2f",
+      "index_title": "Shabbat",
+      "category": "Talmud",
+      "type": "related",
+      "ref": "Shabbat 105a",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Shabbat 105a",
+      "sourceHeRef": "שבת ק״ה א",
+      "anchorVerse": 14,
+      "sourceHasEn": false,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 209,
+      "collectiveTitle": {
+        "en": "Shabbat",
+        "he": "שבת"
+      },
+      "heTitle": "שבת"
+    },
+    {
+      "_id": "60ad0fe034562eca13bb5e31",
+      "index_title": "Bereshit Rabbah",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Bereshit Rabbah 46:7",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Bereshit Rabbah 46:7",
+      "sourceHeRef": "בראשית רבה מ״ו:ז׳",
+      "anchorVerse": 14,
+      "sourceHasEn": false,
+      "compDate": [
+        400
+      ],
+      "commentaryNum": 46.0007,
+      "collectiveTitle": {
+        "en": "Bereshit Rabbah",
+        "he": "בראשית רבה"
+      },
+      "heTitle": "בראשית רבה"
+    },
+    {
+      "_id": "60ad0fe034562eca13bb5e33",
+      "index_title": "Bereshit Rabbah",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Bereshit Rabbah 47:1",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Bereshit Rabbah 47:1",
+      "sourceHeRef": "בראשית רבה מ״ז:א׳",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        400
+      ],
+      "commentaryNum": 47.0001,
+      "collectiveTitle": {
+        "en": "Bereshit Rabbah",
+        "he": "בראשית רבה"
+      },
+      "heTitle": "בראשית רבה"
+    },
+    {
+      "_id": "60ad0fe134562eca13bb5e35",
+      "index_title": "Sifrei Devarim",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Sifrei Devarim 334:3",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Sifrei Devarim 334:3",
+      "sourceHeRef": "ספרי דברים של״ד:ג׳",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        200
+      ],
+      "commentaryNum": 334.0003,
+      "collectiveTitle": {
+        "en": "Sifrei Devarim",
+        "he": "ספרי דברים"
+      },
+      "heTitle": "ספרי דברים"
+    },
+    {
+      "_id": "60ad111234562eca13bb6212",
+      "index_title": "I Samuel",
+      "category": "Tanakh",
+      "type": "related",
+      "ref": "I Samuel 3:10",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "I Samuel 3:10",
+      "sourceHeRef": "שמואל א ג׳:י׳",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        -500
+      ],
+      "commentaryNum": 3.001,
+      "collectiveTitle": {
+        "en": "I Samuel",
+        "he": "שמואל א"
+      },
+      "heTitle": "שמואל א"
+    },
+    {
+      "_id": "60ad111334562eca13bb6214",
+      "index_title": "Exodus",
+      "category": "Tanakh",
+      "type": "related",
+      "ref": "Exodus 3:4",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Exodus 3:4",
+      "sourceHeRef": "שמות ג׳:ד׳",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 3.0004,
+      "collectiveTitle": {
+        "en": "Exodus",
+        "he": "שמות"
+      },
+      "heTitle": "שמות"
+    },
+    {
+      "_id": "60ad111334562eca13bb6216",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "related",
+      "ref": "Genesis 22:11",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Genesis 22:11",
+      "sourceHeRef": "בראשית כ״ב:י״א",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 22.0011,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "60ad111434562eca13bb6218",
+      "index_title": "Bereshit Rabbah",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Bereshit Rabbah 56:7",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Bereshit Rabbah 56:7",
+      "sourceHeRef": "בראשית רבה נ״ו:ז׳",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        400
+      ],
+      "commentaryNum": 56.0007,
+      "collectiveTitle": {
+        "en": "Bereshit Rabbah",
+        "he": "בראשית רבה"
+      },
+      "heTitle": "בראשית רבה"
+    },
+    {
+      "_id": "60ad111434562eca13bb621a",
+      "index_title": "Shemot Rabbah",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Shemot Rabbah 2:6",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Shemot Rabbah 2:6",
+      "sourceHeRef": "שמות רבה ב׳:ו׳",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        1200
+      ],
+      "commentaryNum": 2.0006,
+      "collectiveTitle": {
+        "en": "Shemot Rabbah",
+        "he": "שמות רבה"
+      },
+      "heTitle": "שמות רבה"
+    },
+    {
+      "_id": "60ad111534562eca13bb621c",
+      "index_title": "Bamidbar Rabbah",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Bamidbar Rabbah 14:21",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Bamidbar Rabbah 14:21",
+      "sourceHeRef": "במדבר רבה י״ד:כ״א",
+      "anchorVerse": 14,
+      "sourceHasEn": false,
+      "compDate": [
+        1200
+      ],
+      "commentaryNum": 14.0021,
+      "collectiveTitle": {
+        "en": "Bamidbar Rabbah",
+        "he": "במדבר רבה"
+      },
+      "heTitle": "במדבר רבה"
+    },
+    {
+      "_id": "60ad111534562eca13bb621e",
+      "index_title": "Jeremiah",
+      "category": "Tanakh",
+      "type": "related",
+      "ref": "Jeremiah 32:31",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Jeremiah 32:31",
+      "sourceHeRef": "ירמיהו ל״ב:ל״א",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        -600,
+        -500
+      ],
+      "commentaryNum": 32.0031,
+      "collectiveTitle": {
+        "en": "Jeremiah",
+        "he": "ירמיהו"
+      },
+      "heTitle": "ירמיהו"
+    },
+    {
+      "_id": "60ad111634562eca13bb6220",
+      "index_title": "Bereshit Rabbah",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Bereshit Rabbah 56:10",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Bereshit Rabbah 56:10",
+      "sourceHeRef": "בראשית רבה נ״ו:י׳",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        400
+      ],
+      "commentaryNum": 56.001,
+      "collectiveTitle": {
+        "en": "Bereshit Rabbah",
+        "he": "בראשית רבה"
+      },
+      "heTitle": "בראשית רבה"
+    },
+    {
+      "_id": "60ad111734562eca13bb6222",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "related",
+      "ref": "Genesis 22:14",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Genesis 22:14",
+      "sourceHeRef": "בראשית כ״ב:י״ד",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 22.0014,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "68702d62224caac3025f4854",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "",
+      "ref": "Berakhot 13a:4-7",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Berakhot 13a:4-7",
+      "sourceHeRef": "ברכות י״ג א:ד׳-ז׳",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 25.0004,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "695ea3cc3300e5c5f3801868",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 17",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Genesis 17",
+      "sourceHeRef": "בראשית י״ז",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 17,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "695eaf8d7412435fbe33f6b1",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 17:15",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Genesis 17:15",
+      "sourceHeRef": "בראשית י״ז:ט״ו",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 17.0015,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "695eaf8d7412435fbe33f6b3",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 17:5",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Genesis 17:5",
+      "sourceHeRef": "בראשית י״ז:ה׳",
+      "anchorVerse": 14,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 17.0005,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "6a06d33803a90b6a2d654424",
+      "index_title": "The Midrash of Philo",
+      "category": "Second Temple",
+      "type": "",
+      "ref": "The Midrash of Philo 17:15:5",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "The Midrash of Philo 17:15:5",
+      "sourceHeRef": "מדרשי פילון י״ז:ט״ו:ה׳",
+      "anchorVerse": 14,
+      "sourceHasEn": false,
+      "compDate": [
+        10,
+        50
+      ],
+      "commentaryNum": 15.0005,
+      "collectiveTitle": {
+        "en": "The Midrash of Philo",
+        "he": "מדרשי פילון"
+      },
+      "heTitle": "מדרשי פילון"
+    },
+    {
+      "_id": "6a06d4e0abd61af88771a175",
+      "index_title": "The Midrash of Philo",
+      "category": "Second Temple",
+      "type": "",
+      "ref": "The Midrash of Philo 17:5:3",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "The Midrash of Philo 17:5:3",
+      "sourceHeRef": "מדרשי פילון י״ז:ה׳:ג׳",
+      "anchorVerse": 14,
+      "sourceHasEn": false,
+      "compDate": [
+        10,
+        50
+      ],
+      "commentaryNum": 5.0003,
+      "collectiveTitle": {
+        "en": "The Midrash of Philo",
+        "he": "מדרשי פילון"
+      },
+      "heTitle": "מדרשי פילון"
+    },
+    {
+      "_id": "6a0b250b5a0609aba6786fed",
+      "index_title": "Torah Temimah on Torah",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Torah Temimah on Torah, Genesis 17:5:2",
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ],
+      "sourceRef": "Torah Temimah on Torah, Genesis 17:5:2",
+      "sourceHeRef": "תורה תמימה על התורה, בראשית י״ז:ה׳:ב׳",
+      "anchorVerse": 14,
+      "sourceHasEn": false,
+      "compDate": [
+        1898,
+        1902
+      ],
+      "commentaryNum": 5.0002,
+      "collectiveTitle": {
+        "en": "Torah Temimah on Torah",
+        "he": "תורה תמימה על התורה"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "5b226680c1b907001a7595eb",
+      "index_title": "Bamidbar Rabbah",
+      "category": "Midrash",
+      "type": "mesorat hashas",
+      "ref": "Bamidbar Rabbah 14:21",
+      "anchorRef": "Tosefta Berakhot 1:15",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15"
+      ],
+      "sourceRef": "Bamidbar Rabbah 14:21",
+      "sourceHeRef": "במדבר רבה י״ד:כ״א",
+      "anchorVerse": 15,
+      "sourceHasEn": false,
+      "compDate": [
+        1200
+      ],
+      "commentaryNum": 14.0021,
+      "collectiveTitle": {
+        "en": "Bamidbar Rabbah",
+        "he": "במדבר רבה"
+      },
+      "heTitle": "במדבר רבה"
+    },
+    {
+      "_id": "695eaf8cce06144202d83654",
+      "index_title": "Exodus",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Exodus 2:3",
+      "anchorRef": "Tosefta Berakhot 1:15",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15"
+      ],
+      "sourceRef": "Exodus 2:3",
+      "sourceHeRef": "שמות ב׳:ג׳",
+      "anchorVerse": 15,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 2.0003,
+      "collectiveTitle": {
+        "en": "Exodus",
+        "he": "שמות"
+      },
+      "heTitle": "שמות"
+    },
+    {
+      "_id": "695eaf8dce06144202d83656",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 22:11",
+      "anchorRef": "Tosefta Berakhot 1:15",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15"
+      ],
+      "sourceRef": "Genesis 22:11",
+      "sourceHeRef": "בראשית כ״ב:י״א",
+      "anchorVerse": 15,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 22.0011,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "695eaf8dce06144202d83658",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 17:5",
+      "anchorRef": "Tosefta Berakhot 1:15",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15"
+      ],
+      "sourceRef": "Genesis 17:5",
+      "sourceHeRef": "בראשית י״ז:ה׳",
+      "anchorVerse": 15,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 17.0005,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "695eaf8ece06144202d8365a",
+      "index_title": "I Chronicles",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "I Chronicles 1:27",
+      "anchorRef": "Tosefta Berakhot 1:15",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15"
+      ],
+      "sourceRef": "I Chronicles 1:27",
+      "sourceHeRef": "דברי הימים א א׳:כ״ז",
+      "anchorVerse": 15,
+      "sourceHasEn": true,
+      "compDate": [
+        -450,
+        -350
+      ],
+      "commentaryNum": 1.0027,
+      "collectiveTitle": {
+        "en": "I Chronicles",
+        "he": "דברי הימים א"
+      },
+      "heTitle": "דברי הימים א"
+    },
+    {
+      "_id": "695eaf8ece06144202d8365c",
+      "index_title": "Numbers",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Numbers 13:16",
+      "anchorRef": "Tosefta Berakhot 1:15",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15"
+      ],
+      "sourceRef": "Numbers 13:16",
+      "sourceHeRef": "במדבר י״ג:ט״ז",
+      "anchorVerse": 15,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 13.0016,
+      "collectiveTitle": {
+        "en": "Numbers",
+        "he": "במדבר"
+      },
+      "heTitle": "במדבר"
+    },
+    {
+      "_id": "695eaf8ece06144202d8365e",
+      "index_title": "Deuteronomy",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Deuteronomy 32:44",
+      "anchorRef": "Tosefta Berakhot 1:15",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15"
+      ],
+      "sourceRef": "Deuteronomy 32:44",
+      "sourceHeRef": "דברים ל״ב:מ״ד",
+      "anchorVerse": 15,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 32.0044,
+      "collectiveTitle": {
+        "en": "Deuteronomy",
+        "he": "דברים"
+      },
+      "heTitle": "דברים"
+    },
+    {
+      "_id": "695eaf8fce06144202d83660",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 46:2",
+      "anchorRef": "Tosefta Berakhot 1:15",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15"
+      ],
+      "sourceRef": "Genesis 46:2",
+      "sourceHeRef": "בראשית מ״ו:ב׳",
+      "anchorVerse": 15,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 46.0002,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "695eaf8fce06144202d83662",
+      "index_title": "Nehemiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Nehemiah 9:7",
+      "anchorRef": "Tosefta Berakhot 1:15",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15"
+      ],
+      "sourceRef": "Nehemiah 9:7",
+      "sourceHeRef": "נחמיה ט׳:ז׳",
+      "anchorVerse": 15,
+      "sourceHasEn": true,
+      "compDate": [
+        -450,
+        -350
+      ],
+      "commentaryNum": 9.0007,
+      "collectiveTitle": {
+        "en": "Nehemiah",
+        "he": "נחמיה"
+      },
+      "heTitle": "נחמיה"
+    },
+    {
+      "_id": "695eaf90ce06144202d83664",
+      "index_title": "I Samuel",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "I Samuel 3:10",
+      "anchorRef": "Tosefta Berakhot 1:15",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15"
+      ],
+      "sourceRef": "I Samuel 3:10",
+      "sourceHeRef": "שמואל א ג׳:י׳",
+      "anchorVerse": 15,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        -500
+      ],
+      "commentaryNum": 3.001,
+      "collectiveTitle": {
+        "en": "I Samuel",
+        "he": "שמואל א"
+      },
+      "heTitle": "שמואל א"
+    },
+    {
+      "_id": "6a0c2780cc24b74c6c250b6c",
+      "index_title": "Malbim on Leviticus",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Malbim on Leviticus, Vayikra 3:3",
+      "anchorRef": "Tosefta Berakhot 1:15",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15"
+      ],
+      "sourceRef": "Malbim on Leviticus, Vayikra 3:3",
+      "sourceHeRef": "מלבי\"ם על ויקרא, ויקרא ג׳:ג׳",
+      "anchorVerse": 15,
+      "sourceHasEn": false,
+      "compDate": [
+        1844,
+        1874
+      ],
+      "commentaryNum": 3.0003,
+      "collectiveTitle": {
+        "en": "Malbim on Leviticus",
+        "he": "מלבי\"ם על ויקרא"
+      },
+      "heTitle": "ויקרא"
+    },
+    {
+      "_id": "6a1df2e492c678b85839f03f",
+      "index_title": "Notes and Corrections on Midrash Lekach Tov",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Notes and Corrections on Midrash Lekach Tov, Exodus 3:21",
+      "anchorRef": "Tosefta Berakhot 1:15",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15"
+      ],
+      "sourceRef": "Notes and Corrections on Midrash Lekach Tov, Exodus 3:21",
+      "sourceHeRef": "הערות ותיקונים על מדרש לקח טוב, שמות ג׳:כ״א",
+      "anchorVerse": 15,
+      "sourceHasEn": false,
+      "compDate": [
+        1880,
+        1884
+      ],
+      "commentaryNum": 3.0021,
+      "collectiveTitle": {
+        "en": "Notes and Corrections on Midrash Lekach Tov",
+        "he": "הערות ותיקונים על מדרש לקח טוב"
+      },
+      "heTitle": "שמות"
+    },
+    {
+      "_id": "54b1d9a5fbfba21603f577e4",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 139",
+      "anchorRef": "Tosefta Berakhot 1:16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:16"
+      ],
+      "sourceRef": "Psalms 139",
+      "sourceHeRef": "תהילים קל״ט",
+      "anchorVerse": 16,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 139,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "54b1d9a5fbfba21603f577e6",
+      "index_title": "Deuteronomy",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Deuteronomy 9",
+      "anchorRef": "Tosefta Berakhot 1:16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:16"
+      ],
+      "sourceRef": "Deuteronomy 9",
+      "sourceHeRef": "דברים ט׳",
+      "anchorVerse": 16,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 9,
+      "collectiveTitle": {
+        "en": "Deuteronomy",
+        "he": "דברים"
+      },
+      "heTitle": "דברים"
+    },
+    {
+      "_id": "695ea3cd66640df63e4e71b5",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 76",
+      "anchorRef": "Tosefta Berakhot 1:16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:16"
+      ],
+      "sourceRef": "Psalms 76",
+      "sourceHeRef": "תהילים ע״ו",
+      "anchorVerse": 16,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 76,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "695ea3cd66640df63e4e71b7",
+      "index_title": "Jeremiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Jeremiah 32",
+      "anchorRef": "Tosefta Berakhot 1:16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:16"
+      ],
+      "sourceRef": "Jeremiah 32",
+      "sourceHeRef": "ירמיהו ל״ב",
+      "anchorVerse": 16,
+      "sourceHasEn": true,
+      "compDate": [
+        -600,
+        -500
+      ],
+      "commentaryNum": 32,
+      "collectiveTitle": {
+        "en": "Jeremiah",
+        "he": "ירמיהו"
+      },
+      "heTitle": "ירמיהו"
+    },
+    {
+      "_id": "695ea3cd66640df63e4e71b9",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 68",
+      "anchorRef": "Tosefta Berakhot 1:16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:16"
+      ],
+      "sourceRef": "Psalms 68",
+      "sourceHeRef": "תהילים ס״ח",
+      "anchorVerse": 16,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 68,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "695ea3ce66640df63e4e71bb",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 22",
+      "anchorRef": "Tosefta Berakhot 1:16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:16"
+      ],
+      "sourceRef": "Genesis 22",
+      "sourceHeRef": "בראשית כ״ב",
+      "anchorVerse": 16,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 22,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "695eaf8c3300e5c5f3803747",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Genesis 22:14",
+      "anchorRef": "Tosefta Berakhot 1:16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:16"
+      ],
+      "sourceRef": "Genesis 22:14",
+      "sourceHeRef": "בראשית כ״ב:י״ד",
+      "anchorVerse": 16,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 22.0014,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "695eaf8d3300e5c5f3803749",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 137:7",
+      "anchorRef": "Tosefta Berakhot 1:16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:16"
+      ],
+      "sourceRef": "Psalms 137:7",
+      "sourceHeRef": "תהילים קל״ז:ז׳",
+      "anchorVerse": 16,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 137.0007,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "695eaf8d3300e5c5f380374b",
+      "index_title": "Jeremiah",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Jeremiah 32:31",
+      "anchorRef": "Tosefta Berakhot 1:16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:16"
+      ],
+      "sourceRef": "Jeremiah 32:31",
+      "sourceHeRef": "ירמיהו ל״ב:ל״א",
+      "anchorVerse": 16,
+      "sourceHasEn": true,
+      "compDate": [
+        -600,
+        -500
+      ],
+      "commentaryNum": 32.0031,
+      "collectiveTitle": {
+        "en": "Jeremiah",
+        "he": "ירמיהו"
+      },
+      "heTitle": "ירמיהו"
+    },
+    {
+      "_id": "695eaf8d3300e5c5f380374d",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 68:17",
+      "anchorRef": "Tosefta Berakhot 1:16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:16"
+      ],
+      "sourceRef": "Psalms 68:17",
+      "sourceHeRef": "תהילים ס״ח:י״ז",
+      "anchorVerse": 16,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 68.0017,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "695eaf8e3300e5c5f380374f",
+      "index_title": "Psalms",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Psalms 76:3",
+      "anchorRef": "Tosefta Berakhot 1:16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:16"
+      ],
+      "sourceRef": "Psalms 76:3",
+      "sourceHeRef": "תהילים ע״ו:ג׳",
+      "anchorVerse": 16,
+      "sourceHasEn": true,
+      "compDate": [
+        -1000,
+        0
+      ],
+      "commentaryNum": 76.0003,
+      "collectiveTitle": {
+        "en": "Psalms",
+        "he": "תהילים"
+      },
+      "heTitle": "תהילים"
+    },
+    {
+      "_id": "6a0c6743016d24e40e1eacc7",
+      "index_title": "Rosh David",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Rosh David, Vayetzei 22",
+      "anchorRef": "Tosefta Berakhot 1:16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:16"
+      ],
+      "sourceRef": "Rosh David, Vayetzei 22",
+      "sourceHeRef": "ראש דוד, ויצא כ״ב",
+      "anchorVerse": 16,
+      "sourceHasEn": false,
+      "compDate": [
+        1768,
+        1792
+      ],
+      "commentaryNum": 22,
+      "collectiveTitle": {
+        "en": "Rosh David",
+        "he": "ראש דוד"
+      },
+      "heTitle": "ויצא"
+    },
+    {
+      "_id": "5b225d50fdb7300016c3c153",
+      "index_title": "Rosh Hashanah",
+      "category": "Talmud",
+      "type": "mesorat hashas",
+      "ref": "Rosh Hashanah 28a:1",
+      "anchorRef": "Tosefta Berakhot 1:2",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:2"
+      ],
+      "sourceRef": "Rosh Hashanah 28a:1",
+      "sourceHeRef": "ראש השנה כ״ח א:א׳",
+      "anchorVerse": 2,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 55.0001,
+      "collectiveTitle": {
+        "en": "Rosh Hashanah",
+        "he": "ראש השנה"
+      },
+      "heTitle": "ראש השנה"
+    },
+    {
+      "_id": "5b225e2387ca670017e7ce4a",
+      "index_title": "Avot DeRabbi Natan",
+      "category": "Talmud",
+      "type": "mesorat hashas",
+      "ref": "Avot DeRabbi Natan 2:8",
+      "anchorRef": "Tosefta Berakhot 1:2",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:2"
+      ],
+      "sourceRef": "Avot DeRabbi Natan 2:8",
+      "sourceHeRef": "אבות דרבי נתן ב׳:ח׳",
+      "anchorVerse": 2,
+      "sourceHasEn": true,
+      "compDate": [
+        650,
+        950
+      ],
+      "commentaryNum": 2.0008,
+      "collectiveTitle": {
+        "en": "Avot DeRabbi Natan",
+        "he": "אבות דרבי נתן"
+      },
+      "heTitle": "אבות דרבי נתן"
+    },
+    {
+      "_id": "5b225fecfdb7300016c3f9af",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "mesorat hashas",
+      "ref": "Berakhot 8b:18",
+      "anchorRef": "Tosefta Berakhot 1:2",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:2"
+      ],
+      "sourceRef": "Berakhot 8b:18",
+      "sourceHeRef": "ברכות ח׳ ב:י״ח",
+      "anchorVerse": 2,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 16.0018,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "5c467ef808d98a02694cf997",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, וָתִיק 1",
+      "anchorRef": "Tosefta Berakhot 1:2",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:2"
+      ],
+      "sourceRef": "Jastrow, וָתִיק 1",
+      "sourceHeRef": "מילון יסטרוב, וָתִיק א׳",
+      "anchorVerse": 2,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "וָתִיק"
+    },
+    {
+      "_id": "604a4879271f901c9267a26a",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 1:1",
+      "anchorRef": "Tosefta Berakhot 1:2",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:2"
+      ],
+      "sourceRef": "Mishnah Berakhot 1:1",
+      "sourceHeRef": "משנה ברכות א׳:א׳",
+      "anchorVerse": 2,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 1.0001,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "604a4881645e9753ec870849",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 1:2",
+      "anchorRef": "Tosefta Berakhot 1:2",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:2"
+      ],
+      "sourceRef": "Mishnah Berakhot 1:2",
+      "sourceHeRef": "משנה ברכות א׳:ב׳",
+      "anchorVerse": 2,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 1.0002,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "5b22627cfdb7300016c408e1",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "mesorat hashas",
+      "ref": "Berakhot 3b:11",
+      "anchorRef": "Tosefta Berakhot 1:3",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:3"
+      ],
+      "sourceRef": "Berakhot 3b:11",
+      "sourceHeRef": "ברכות ג׳ ב:י״א",
+      "anchorVerse": 3,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 6.0011,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "5c469ae508d98a02694e225d",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, עוֹנָה I 1",
+      "anchorRef": "Tosefta Berakhot 1:3",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:3"
+      ],
+      "sourceRef": "Jastrow, עוֹנָה I 1",
+      "sourceHeRef": "מילון יסטרוב, עוֹנָה I א׳",
+      "anchorVerse": 3,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "עוֹנָה I"
+    },
+    {
+      "_id": "604a48a07346add344919c57",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 1:1",
+      "anchorRef": "Tosefta Berakhot 1:3",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:3"
+      ],
+      "sourceRef": "Mishnah Berakhot 1:1",
+      "sourceHeRef": "משנה ברכות א׳:א׳",
+      "anchorVerse": 3,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 1.0001,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "54b1d9a5fbfba21603f577cc",
+      "index_title": "Judges",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Judges 4",
+      "anchorRef": "Tosefta Berakhot 1:3",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:3"
+      ],
+      "sourceRef": "Judges 4",
+      "sourceHeRef": "שופטים ד׳",
+      "anchorVerse": 3,
+      "sourceHasEn": true,
+      "compDate": [
+        -1300,
+        -500
+      ],
+      "commentaryNum": 4,
+      "collectiveTitle": {
+        "en": "Judges",
+        "he": "שופטים"
+      },
+      "heTitle": "שופטים"
+    },
+    {
+      "_id": "695eaf8c66640df63e4e8f2c",
+      "index_title": "Judges",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Judges 7:19",
+      "anchorRef": "Tosefta Berakhot 1:3",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:3"
+      ],
+      "sourceRef": "Judges 7:19",
+      "sourceHeRef": "שופטים ז׳:י״ט",
+      "anchorVerse": 3,
+      "sourceHasEn": true,
+      "compDate": [
+        -1300,
+        -500
+      ],
+      "commentaryNum": 7.0019,
+      "collectiveTitle": {
+        "en": "Judges",
+        "he": "שופטים"
+      },
+      "heTitle": "שופטים"
+    },
+    {
+      "_id": "6a14bfa96831c113db5ff108",
+      "index_title": "Teshuvot Maharsham Volume I",
+      "category": "Responsa",
+      "type": "",
+      "ref": "Teshuvot Maharsham Volume I 11:5",
+      "anchorRef": "Tosefta Berakhot 1:3",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:3"
+      ],
+      "sourceRef": "Teshuvot Maharsham Volume I 11:5",
+      "sourceHeRef": "שו\"ת מהרש\"ם חלק א י״א:ה׳",
+      "anchorVerse": 3,
+      "sourceHasEn": false,
+      "compDate": [
+        1892
+      ],
+      "commentaryNum": 11.0005,
+      "collectiveTitle": {
+        "en": "Teshuvot Maharsham Volume I",
+        "he": "שו\"ת מהרש\"ם חלק א"
+      },
+      "heTitle": "שו\"ת מהרש\"ם חלק א"
+    },
+    {
+      "_id": "6a14e9d3adc5179dbfa70098",
+      "index_title": "Pardes Yosef",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Pardes Yosef, Exodus 33:5:1",
+      "anchorRef": "Tosefta Berakhot 1:3",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:3"
+      ],
+      "sourceRef": "Pardes Yosef, Exodus 33:5:1",
+      "sourceHeRef": "פרדס יוסף, ספר שמות ל״ג:ה׳:א׳",
+      "anchorVerse": 3,
+      "sourceHasEn": false,
+      "commentaryNum": 5.0001,
+      "collectiveTitle": {
+        "en": "Pardes Yosef",
+        "he": "פרדס יוסף"
+      },
+      "heTitle": "ספר שמות"
+    },
+    {
+      "_id": "6a16a668a2d1c86ecdc8d7d0",
+      "index_title": "Benayahu on Megillah",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Benayahu on Megillah 6b:1",
+      "anchorRef": "Tosefta Berakhot 1:3",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:3"
+      ],
+      "sourceRef": "Benayahu on Megillah 6b:1",
+      "sourceHeRef": "בניהו על מגילה ו׳ ב:א׳",
+      "anchorVerse": 3,
+      "sourceHasEn": false,
+      "compDate": [
+        1855,
+        1895
+      ],
+      "commentaryNum": 12.0001,
+      "collectiveTitle": {
+        "en": "Benayahu on Megillah",
+        "he": "בניהו על מגילה"
+      },
+      "heTitle": "בניהו על מגילה"
+    },
+    {
+      "_id": "5b225e67fdb7300016c3e61f",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "mesorat hashas",
+      "ref": "Berakhot 9b:14",
+      "anchorRef": "Tosefta Berakhot 1:4",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:4"
+      ],
+      "sourceRef": "Berakhot 9b:14",
+      "sourceHeRef": "ברכות ט׳ ב:י״ד",
+      "anchorVerse": 4,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 18.0014,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "5b226ad4c1b907001a75af13",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "mesorat hashas",
+      "ref": "Berakhot 26a:13",
+      "anchorRef": "Tosefta Berakhot 1:4",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:4"
+      ],
+      "sourceRef": "Berakhot 26a:13",
+      "sourceHeRef": "ברכות כ״ו א:י״ג",
+      "anchorVerse": 4,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 51.0013,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "604a48b6197fbf0b2eb8e9dc",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 1:2",
+      "anchorRef": "Tosefta Berakhot 1:4",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:4"
+      ],
+      "sourceRef": "Mishnah Berakhot 1:2",
+      "sourceHeRef": "משנה ברכות א׳:ב׳",
+      "anchorVerse": 4,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 1.0002,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "60ad0fd534562eca13bb5e0b",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "related",
+      "ref": "Berakhot 9b:12",
+      "anchorRef": "Tosefta Berakhot 1:4",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:4"
+      ],
+      "sourceRef": "Berakhot 9b:12",
+      "sourceHeRef": "ברכות ט׳ ב:י״ב",
+      "anchorVerse": 4,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 18.0012,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "6a1832f8ddb943ab60a7cb0f",
+      "index_title": "Divrei Yirmiyahu on Mishneh Torah, Reading the Shema",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Divrei Yirmiyahu on Mishneh Torah, Reading the Shema 2:5:1",
+      "anchorRef": "Tosefta Berakhot 1:4",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:4"
+      ],
+      "sourceRef": "Divrei Yirmiyahu on Mishneh Torah, Reading the Shema 2:5:1",
+      "sourceHeRef": "דברי ירמיהו על משנה תורה, הלכות קריאת שמע ב׳:ה׳:א׳",
+      "anchorVerse": 4,
+      "sourceHasEn": false,
+      "compDate": [
+        1834,
+        1874
+      ],
+      "commentaryNum": 5.0001,
+      "collectiveTitle": {
+        "en": "Divrei Yirmiyahu on Mishneh Torah, Reading the Shema",
+        "he": "דברי ירמיהו על משנה תורה, הלכות קריאת שמע"
+      },
+      "heTitle": "דברי ירמיהו על משנה תורה, הלכות קריאת שמע"
+    },
+    {
+      "_id": "604a48f56b7242d9777abdf6",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 2:5",
+      "anchorRef": "Tosefta Berakhot 1:5",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:5"
+      ],
+      "sourceRef": "Mishnah Berakhot 2:5",
+      "sourceHeRef": "משנה ברכות ב׳:ה׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 2.0005,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "604a4909271f901c9267a26c",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 3:1",
+      "anchorRef": "Tosefta Berakhot 1:5",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:5"
+      ],
+      "sourceRef": "Mishnah Berakhot 3:1",
+      "sourceHeRef": "משנה ברכות ג׳:א׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 3.0001,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "604a4914cc518b28ef5f929c",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 3:2",
+      "anchorRef": "Tosefta Berakhot 1:5",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:5"
+      ],
+      "sourceRef": "Mishnah Berakhot 3:2",
+      "sourceHeRef": "משנה ברכות ג׳:ב׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 3.0002,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "604a57f7d2eb607d91c6c2fc",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 2:8",
+      "anchorRef": "Tosefta Berakhot 1:5",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:5"
+      ],
+      "sourceRef": "Mishnah Berakhot 2:8",
+      "sourceHeRef": "משנה ברכות ב׳:ח׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 2.0008,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "60ad0fd634562eca13bb5e0d",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "related",
+      "ref": "Berakhot 11a",
+      "anchorRef": "Tosefta Berakhot 1:5",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:5"
+      ],
+      "sourceRef": "Berakhot 11a",
+      "sourceHeRef": "ברכות י״א א",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 21,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "60ad0fd634562eca13bb5e0f",
+      "index_title": "Sukkah",
+      "category": "Talmud",
+      "type": "related",
+      "ref": "Sukkah 25a",
+      "anchorRef": "Tosefta Berakhot 1:5",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:5"
+      ],
+      "sourceRef": "Sukkah 25a",
+      "sourceHeRef": "סוכה כ״ה א",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 49,
+      "collectiveTitle": {
+        "en": "Sukkah",
+        "he": "סוכה"
+      },
+      "heTitle": "סוכה"
+    },
+    {
+      "_id": "695ea3cb3300e5c5f3801862",
+      "index_title": "Deuteronomy",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Deuteronomy 6",
+      "anchorRef": "Tosefta Berakhot 1:5",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:5"
+      ],
+      "sourceRef": "Deuteronomy 6",
+      "sourceHeRef": "דברים ו׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 6,
+      "collectiveTitle": {
+        "en": "Deuteronomy",
+        "he": "דברים"
+      },
+      "heTitle": "דברים"
+    },
+    {
+      "_id": "695ea9d17412435fbe33e7dc",
+      "index_title": "Deuteronomy",
+      "category": "Tanakh",
+      "type": "",
+      "ref": "Deuteronomy 6:7",
+      "anchorRef": "Tosefta Berakhot 1:5",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:5"
+      ],
+      "sourceRef": "Deuteronomy 6:7",
+      "sourceHeRef": "דברים ו׳:ז׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 6.0007,
+      "collectiveTitle": {
+        "en": "Deuteronomy",
+        "he": "דברים"
+      },
+      "heTitle": "דברים"
+    },
+    {
+      "_id": "69fa45d9338c75c50decd698",
+      "index_title": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:3:2",
+      "anchorRef": "Tosefta Berakhot 1:5",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:5"
+      ],
+      "sourceRef": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:3:2",
+      "sourceHeRef": "אור לישרים על תלמוד ירושלמי ברכות א׳:ג׳:ב׳",
+      "anchorVerse": 5,
+      "sourceHasEn": false,
+      "commentaryNum": 3.0002,
+      "collectiveTitle": {
+        "en": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+        "he": "אור לישרים על תלמוד ירושלמי ברכות"
+      }
+    },
+    {
+      "_id": "6a05191d3ff9e110f26d90f6",
+      "index_title": "Haamek Davar on Deuteronomy",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Haamek Davar on Deuteronomy 10:12:1",
+      "anchorRef": "Tosefta Berakhot 1:5",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:5"
+      ],
+      "sourceRef": "Haamek Davar on Deuteronomy 10:12:1",
+      "sourceHeRef": "העמק דבר על דברים י׳:י״ב:א׳",
+      "anchorVerse": 5,
+      "sourceHasEn": true,
+      "compDate": [
+        1849,
+        1879
+      ],
+      "commentaryNum": 12.0001,
+      "collectiveTitle": {
+        "en": "Haamek Davar on Deuteronomy",
+        "he": "העמק דבר על דברים"
+      }
+    },
+    {
+      "_id": "5b226ad7c1b907001a75af51",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "mesorat hashas",
+      "ref": "Berakhot 11a:15",
+      "anchorRef": "Tosefta Berakhot 1:6",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:6"
+      ],
+      "sourceRef": "Berakhot 11a:15",
+      "sourceHeRef": "ברכות י״א א:ט״ו",
+      "anchorVerse": 6,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 21.0015,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "604a4959c043533b479ab5dd",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 1:3",
+      "anchorRef": "Tosefta Berakhot 1:6",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:6"
+      ],
+      "sourceRef": "Mishnah Berakhot 1:3",
+      "sourceHeRef": "משנה ברכות א׳:ג׳",
+      "anchorVerse": 6,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 1.0003,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "60ad0fd734562eca13bb5e11",
+      "index_title": "Sifrei Devarim",
+      "category": "Midrash",
+      "type": "related",
+      "ref": "Sifrei Devarim 34",
+      "anchorRef": "Tosefta Berakhot 1:6",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:6"
+      ],
+      "sourceRef": "Sifrei Devarim 34",
+      "sourceHeRef": "ספרי דברים ל״ד",
+      "anchorVerse": 6,
+      "sourceHasEn": true,
+      "compDate": [
+        200
+      ],
+      "commentaryNum": 34,
+      "collectiveTitle": {
+        "en": "Sifrei Devarim",
+        "he": "ספרי דברים"
+      },
+      "heTitle": "ספרי דברים"
+    },
+    {
+      "_id": "60ad0fd734562eca13bb5e13",
+      "index_title": "Tosefta Berakhot (Lieberman)",
+      "category": "Tosefta",
+      "type": "related",
+      "ref": "Tosefta Berakhot (Lieberman) 5:2",
+      "anchorRef": "Tosefta Berakhot 1:6",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:6"
+      ],
+      "sourceRef": "Tosefta Berakhot (Lieberman) 5:2",
+      "sourceHeRef": "תוספתא ברכות (ליברמן) ה׳:ב׳",
+      "anchorVerse": 6,
+      "sourceHasEn": false,
+      "commentaryNum": 5.0002,
+      "collectiveTitle": {
+        "en": "Tosefta Berakhot (Lieberman)",
+        "he": "תוספתא ברכות (ליברמן)"
+      },
+      "heTitle": "תוספתא ברכות (ליברמן)"
+    },
+    {
+      "_id": "60ad0fd834562eca13bb5e17",
+      "index_title": "Ketubot",
+      "category": "Talmud",
+      "type": "related",
+      "ref": "Ketubot 50b:9",
+      "anchorRef": "Tosefta Berakhot 1:6",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:6"
+      ],
+      "sourceRef": "Ketubot 50b:9",
+      "sourceHeRef": "כתובות נ׳ ב:ט׳",
+      "anchorVerse": 6,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 100.0009,
+      "collectiveTitle": {
+        "en": "Ketubot",
+        "he": "כתובות"
+      },
+      "heTitle": "כתובות"
+    },
+    {
+      "_id": "6a0f7363e7f9e5c76640f73a",
+      "index_title": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:3:3",
+      "anchorRef": "Tosefta Berakhot 1:6",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:6"
+      ],
+      "sourceRef": "Ohr LaYesharim on Jerusalem Talmud Berakhot 1:3:3",
+      "sourceHeRef": "אור לישרים על תלמוד ירושלמי ברכות א׳:ג׳:ג׳",
+      "anchorVerse": 6,
+      "sourceHasEn": false,
+      "commentaryNum": 3.0003,
+      "collectiveTitle": {
+        "en": "Ohr LaYesharim on Jerusalem Talmud Berakhot",
+        "he": "אור לישרים על תלמוד ירושלמי ברכות"
+      }
+    },
+    {
+      "_id": "6a1f955b2cd220e71388237b",
+      "index_title": "Mareh HaPanim on Jerusalem Talmud Berakhot",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Mareh HaPanim on Jerusalem Talmud Berakhot 1:3:3:1",
+      "anchorRef": "Tosefta Berakhot 1:6",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:6"
+      ],
+      "sourceRef": "Mareh HaPanim on Jerusalem Talmud Berakhot 1:3:3:1",
+      "sourceHeRef": "מראה הפנים על תלמוד ירושלמי ברכות א׳:ג׳:ג׳:א׳",
+      "anchorVerse": 6,
+      "sourceHasEn": false,
+      "commentaryNum": 3.0001,
+      "collectiveTitle": {
+        "en": "Mareh HaPanim on Jerusalem Talmud Berakhot",
+        "he": "מראה הפנים על תלמוד ירושלמי ברכות"
+      },
+      "heTitle": "מראה הפנים על תלמוד ירושלמי ברכות"
+    },
+    {
+      "_id": "5b226115fdb7300016c3fe55",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "mesorat hashas",
+      "ref": "Mishnah Berakhot 1:4",
+      "anchorRef": "Tosefta Berakhot 1:7",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:7"
+      ],
+      "sourceRef": "Mishnah Berakhot 1:4",
+      "sourceHeRef": "משנה ברכות א׳:ד׳",
+      "anchorVerse": 7,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 1.0004,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "5b226538c1b907001a75855f",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "mesorat hashas",
+      "ref": "Berakhot 11a:24-25",
+      "anchorRef": "Tosefta Berakhot 1:7",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:7"
+      ],
+      "sourceRef": "Berakhot 11a:24-25",
+      "sourceHeRef": "ברכות י״א א:כ״ד-כ״ה",
+      "anchorVerse": 7,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 21.0024,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "60ad0fdb34562eca13bb5e21",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "related",
+      "ref": "Berakhot 34a:14",
+      "anchorRef": "Tosefta Berakhot 1:7",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:7"
+      ],
+      "sourceRef": "Berakhot 34a:14",
+      "sourceHeRef": "ברכות ל״ד א:י״ד",
+      "anchorVerse": 7,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 67.0014,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "60ad0fdd34562eca13bb5e27",
+      "index_title": "Genesis",
+      "category": "Tanakh",
+      "type": "related",
+      "ref": "Genesis 35:10",
+      "anchorRef": "Tosefta Berakhot 1:7",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:7"
+      ],
+      "sourceRef": "Genesis 35:10",
+      "sourceHeRef": "בראשית ל״ה:י׳",
+      "anchorVerse": 7,
+      "sourceHasEn": true,
+      "compDate": [
+        -1400,
+        -400
+      ],
+      "commentaryNum": 35.001,
+      "collectiveTitle": {
+        "en": "Genesis",
+        "he": "בראשית"
+      },
+      "heTitle": "בראשית"
+    },
+    {
+      "_id": "6a0b649ad214d17adf3ac2a6",
+      "index_title": "Machzor Vitry",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Machzor Vitry, Laws of Rosh HaShanah 325:3",
+      "anchorRef": "Tosefta Berakhot 1:7",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:7"
+      ],
+      "sourceRef": "Machzor Vitry, Laws of Rosh HaShanah 325:3",
+      "sourceHeRef": "מחזור ויטרי, הלכות ראש השנה שכ״ה:ג׳",
+      "anchorVerse": 7,
+      "sourceHasEn": false,
+      "compDate": [
+        1055,
+        1105
+      ],
+      "commentaryNum": 325.0003,
+      "collectiveTitle": {
+        "en": "Machzor Vitry",
+        "he": "מחזור ויטרי"
+      },
+      "heTitle": "הלכות ראש השנה"
+    },
+    {
+      "_id": "6a0ce93c4e56c16ae7add4bd",
+      "index_title": "Chiddushei HaRa'ah on Berakhot",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Chiddushei HaRa'ah on Berakhot 11a:4",
+      "anchorRef": "Tosefta Berakhot 1:7",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:7"
+      ],
+      "sourceRef": "Chiddushei HaRa'ah on Berakhot 11a:4",
+      "sourceHeRef": "רא\"ה על ברכות י״א א:ד׳",
+      "anchorVerse": 7,
+      "sourceHasEn": false,
+      "compDate": [
+        1255,
+        1285
+      ],
+      "commentaryNum": 21.0004,
+      "collectiveTitle": {
+        "en": "Chiddushei HaRa'ah on Berakhot",
+        "he": "רא\"ה על ברכות"
+      }
+    },
+    {
+      "_id": "6a1832b96a9084df60166270",
+      "index_title": "Kessef Mishneh on Mishneh Torah, Reading the Shema",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Kessef Mishneh on Mishneh Torah, Reading the Shema 1:7:2",
+      "anchorRef": "Tosefta Berakhot 1:7",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:7"
+      ],
+      "sourceRef": "Kessef Mishneh on Mishneh Torah, Reading the Shema 1:7:2",
+      "sourceHeRef": "כסף משנה על משנה תורה, הלכות קריאת שמע א׳:ז׳:ב׳",
+      "anchorVerse": 7,
+      "sourceHasEn": false,
+      "compDate": [
+        1545,
+        1575
+      ],
+      "commentaryNum": 7.0002,
+      "collectiveTitle": {
+        "en": "Kessef Mishneh on Mishneh Torah, Reading the Shema",
+        "he": "כסף משנה על משנה תורה, הלכות קריאת שמע"
+      },
+      "heTitle": "כסף משנה על משנה תורה, הלכות קריאת שמע"
+    },
+    {
+      "_id": "5b22635e3322c50016001f3d",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "mesorat hashas",
+      "ref": "Berakhot 50a:3",
+      "anchorRef": "Tosefta Berakhot 1:8",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:8"
+      ],
+      "sourceRef": "Berakhot 50a:3",
+      "sourceHeRef": "ברכות נ׳ א:ג׳",
+      "anchorVerse": 8,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 99.0003,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "604a49b586d7d5d4410a6b2a",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 1:4",
+      "anchorRef": "Tosefta Berakhot 1:8",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:8"
+      ],
+      "sourceRef": "Mishnah Berakhot 1:4",
+      "sourceHeRef": "משנה ברכות א׳:ד׳",
+      "anchorVerse": 8,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 1.0004,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "604a49e6ab0215d092853dd5",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 6:1",
+      "anchorRef": "Tosefta Berakhot 1:8",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:8"
+      ],
+      "sourceRef": "Mishnah Berakhot 6:1",
+      "sourceHeRef": "משנה ברכות ו׳:א׳",
+      "anchorVerse": 8,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 6.0001,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "604a49fcab0215d092853dda",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 6:8",
+      "anchorRef": "Tosefta Berakhot 1:8",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:8"
+      ],
+      "sourceRef": "Mishnah Berakhot 6:8",
+      "sourceHeRef": "משנה ברכות ו׳:ח׳",
+      "anchorVerse": 8,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 6.0008,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "6a0ce7eed214d17adf3adb8e",
+      "index_title": "Chiddushei HaRa'ah on Berakhot",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Chiddushei HaRa'ah on Berakhot 46a:10",
+      "anchorRef": "Tosefta Berakhot 1:8",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:8"
+      ],
+      "sourceRef": "Chiddushei HaRa'ah on Berakhot 46a:10",
+      "sourceHeRef": "רא\"ה על ברכות מ״ו א:י׳",
+      "anchorVerse": 8,
+      "sourceHasEn": false,
+      "compDate": [
+        1255,
+        1285
+      ],
+      "commentaryNum": 91.001,
+      "collectiveTitle": {
+        "en": "Chiddushei HaRa'ah on Berakhot",
+        "he": "רא\"ה על ברכות"
+      }
+    },
+    {
+      "_id": "6a10da471c1f53432af14946",
+      "index_title": "Shibbolei HaLeket",
+      "category": "Halakhah",
+      "type": "",
+      "ref": "Shibbolei HaLeket 28:11",
+      "anchorRef": "Tosefta Berakhot 1:8",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:8"
+      ],
+      "sourceRef": "Shibbolei HaLeket 28:11",
+      "sourceHeRef": "שבלי הלקט כ״ח:י״א",
+      "anchorVerse": 8,
+      "sourceHasEn": false,
+      "commentaryNum": 28.0011,
+      "collectiveTitle": {
+        "en": "Shibbolei HaLeket",
+        "he": "שבלי הלקט"
+      }
+    },
+    {
+      "_id": "5c46b04308d98a02694ee8d0",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, שָׁחַח 1",
+      "anchorRef": "Tosefta Berakhot 1:9",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:9"
+      ],
+      "sourceRef": "Jastrow, שָׁחַח 1",
+      "sourceHeRef": "מילון יסטרוב, שָׁחַח א׳",
+      "anchorVerse": 9,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "שָׁחַח"
+    },
+    {
+      "_id": "5c46b04908d98a02694ee8fe",
+      "index_title": "Jastrow",
+      "category": "Reference",
+      "type": "reference",
+      "ref": "Jastrow, שחי 1",
+      "anchorRef": "Tosefta Berakhot 1:9",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:9"
+      ],
+      "sourceRef": "Jastrow, שחי 1",
+      "sourceHeRef": "מילון יסטרוב, שחי א׳",
+      "anchorVerse": 9,
+      "sourceHasEn": true,
+      "compDate": [
+        1883,
+        1903
+      ],
+      "commentaryNum": 1,
+      "collectiveTitle": {
+        "en": "Jastrow",
+        "he": "מילון יסטרוב"
+      },
+      "heTitle": "שחי"
+    },
+    {
+      "_id": "604a4aadeebfadf0c979b611",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 6:1",
+      "anchorRef": "Tosefta Berakhot 1:9",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:9"
+      ],
+      "sourceRef": "Mishnah Berakhot 6:1",
+      "sourceHeRef": "משנה ברכות ו׳:א׳",
+      "anchorVerse": 9,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 6.0001,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "604a4ac94c7e740968f0e819",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 6:8",
+      "anchorRef": "Tosefta Berakhot 1:9",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:9"
+      ],
+      "sourceRef": "Mishnah Berakhot 6:8",
+      "sourceHeRef": "משנה ברכות ו׳:ח׳",
+      "anchorVerse": 9,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 6.0008,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "604a4ad4645e9753ec870852",
+      "index_title": "Mishnah Berakhot",
+      "category": "Mishnah",
+      "type": "related",
+      "ref": "Mishnah Berakhot 7:3",
+      "anchorRef": "Tosefta Berakhot 1:9",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:9"
+      ],
+      "sourceRef": "Mishnah Berakhot 7:3",
+      "sourceHeRef": "משנה ברכות ז׳:ג׳",
+      "anchorVerse": 9,
+      "sourceHasEn": true,
+      "compDate": [
+        190,
+        230
+      ],
+      "commentaryNum": 7.0003,
+      "collectiveTitle": {
+        "en": "Mishnah Berakhot",
+        "he": "משנה ברכות"
+      },
+      "heTitle": "משנה ברכות"
+    },
+    {
+      "_id": "60ad0fd934562eca13bb5e19",
+      "index_title": "Berakhot",
+      "category": "Talmud",
+      "type": "related",
+      "ref": "Berakhot 46a",
+      "anchorRef": "Tosefta Berakhot 1:9",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:9"
+      ],
+      "sourceRef": "Berakhot 46a",
+      "sourceHeRef": "ברכות מ״ו א",
+      "anchorVerse": 9,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 91,
+      "collectiveTitle": {
+        "en": "Berakhot",
+        "he": "ברכות"
+      },
+      "heTitle": "ברכות"
+    },
+    {
+      "_id": "60ad0fd934562eca13bb5e1b",
+      "index_title": "Pesachim",
+      "category": "Talmud",
+      "type": "related",
+      "ref": "Pesachim 104b",
+      "anchorRef": "Tosefta Berakhot 1:9",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:9"
+      ],
+      "sourceRef": "Pesachim 104b",
+      "sourceHeRef": "פסחים ק״ד ב",
+      "anchorVerse": 9,
+      "sourceHasEn": true,
+      "compDate": [
+        450,
+        550
+      ],
+      "commentaryNum": 208,
+      "collectiveTitle": {
+        "en": "Pesachim",
+        "he": "פסחים"
+      },
+      "heTitle": "פסחים"
+    },
+    {
+      "_id": "6a19a116f63d1d1168b47ca3",
+      "index_title": "Tosafot HaRosh on Berakhot",
+      "category": "Quoting Commentary",
+      "type": "",
+      "ref": "Tosafot HaRosh on Berakhot 46b:2",
+      "anchorRef": "Tosefta Berakhot 1:9",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:9"
+      ],
+      "sourceRef": "Tosafot HaRosh on Berakhot 46b:2",
+      "sourceHeRef": "תוספות הרא\"ש על ברכות מ״ו ב:ב׳",
+      "anchorVerse": 9,
+      "sourceHasEn": false,
+      "commentaryNum": 92.0002,
+      "collectiveTitle": {
+        "en": "Tosafot HaRosh on Berakhot",
+        "he": "תוספות הרא\"ש על ברכות"
+      },
+      "heTitle": "תוספות הרא\"ש על ברכות"
+    }
+  ],
+  "sheets": [
+    {
+      "owner": 10877,
+      "_id": "55ec9b708d360f8498afaad0",
+      "id": "16094",
+      "public": true,
+      "title": "The Structure of Mishnah",
+      "sheetUrl": "/sheets/16094",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "options": {
+        "layout": "sideBySide",
+        "bsd": 0,
+        "collaboration": "none",
+        "language": "bilingual",
+        "boxed": 1,
+        "langLayout": "heRight",
+        "numbered": 1,
+        "divineNames": "noSub"
+      },
+      "collectionTOC": null,
+      "ownerName": "Shmuel Perl",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/shmuel-perl",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 3477,
+      "topics": [
+        {
+          "slug": "fasting",
+          "asTyped": "Fasting",
+          "en": "Fasting",
+          "he": "תענית"
+        },
+        {
+          "slug": "parashat-shoftim",
+          "asTyped": "Judges",
+          "en": "Judges",
+          "he": "פרשת שופטים"
+        },
+        {
+          "slug": "blessings-(halakhah)",
+          "asTyped": "Berachot",
+          "en": "Berachot",
+          "he": "ברכות"
+        },
+        {
+          "slug": "passover",
+          "asTyped": "Pesach",
+          "en": "Pesach",
+          "he": "פסח"
+        },
+        {
+          "slug": "shabbat",
+          "asTyped": "Shabbat",
+          "en": "Shabbat",
+          "he": "שבת"
+        },
+        {
+          "slug": "yom-tov",
+          "asTyped": "Holidays",
+          "en": "Holidays",
+          "he": "יום טוב"
+        },
+        {
+          "slug": "judgements1",
+          "asTyped": "Judgement",
+          "en": "Judgement",
+          "he": "פסק דין"
+        },
+        {
+          "slug": "passover",
+          "asTyped": "Passover",
+          "en": "Passover",
+          "he": "פסח"
+        },
+        {
+          "slug": "mishnah",
+          "asTyped": "Mishnah",
+          "en": "Mishnah",
+          "he": "משנה"
+        },
+        {
+          "slug": "blessings-(halakhah)",
+          "asTyped": "Blessings",
+          "en": "Blessings",
+          "he": "ברכות"
+        },
+        {
+          "slug": "rosh-hashanah",
+          "asTyped": "Rosh Hashanah",
+          "en": "Rosh Hashanah",
+          "he": "ראש השנה"
+        },
+        {
+          "slug": "yom-tov",
+          "asTyped": "Yom Tov",
+          "en": "Yom Tov",
+          "he": "יום טוב"
+        },
+        {
+          "slug": "witnesses",
+          "asTyped": "Witnesses",
+          "en": "Witnesses",
+          "he": "עדים"
+        }
+      ],
+      "likes": [],
+      "summary": null,
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2015-09-06T13:00:48.278320",
+      "combined_score": 0.22533994334277618
+    },
+    {
+      "owner": 7603,
+      "_id": "575c3ce9b77993fa7c409175",
+      "id": "37431",
+      "public": true,
+      "title": "How Rabbinic and Aristotelian Purposes Differ",
+      "sheetUrl": "/sheets/37431",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "options": {
+        "layout": "sideBySide",
+        "bsd": 0,
+        "collaboration": "none",
+        "language": "bilingual",
+        "boxed": 0,
+        "langLayout": "heLeft",
+        "assignable": 0,
+        "numbered": 0,
+        "divineNames": "noSub"
+      },
+      "collectionTOC": null,
+      "ownerName": "Joel Baron",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/joel-baron",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/joel-baron-1626300575-small.png",
+      "status": "public",
+      "views": 2032,
+      "topics": [
+        {
+          "slug": "rabbis",
+          "asTyped": "Rabbinics",
+          "en": "Rabbinics",
+          "he": "רבנים"
+        },
+        {
+          "slug": "philosophy",
+          "asTyped": "Philosophy",
+          "en": "Philosophy",
+          "he": "פילוסופיה"
+        }
+      ],
+      "likes": [],
+      "summary": null,
+      "attribution": "<p>Source Sheet by <a class=\"userLink\" href=\"/profile/joel-baron\">Rabbi Joel Baron<br>\nwith thanks to my teacher and friend, Rabbi Ebn Leader</a></p>\n",
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2016-06-11T09:31:37.785946",
+      "combined_score": 0.6131193464472416
+    },
+    {
+      "owner": 215018,
+      "_id": "65a69f7ff79805561655a5af",
+      "id": "537768",
+      "public": true,
+      "title": "Mishnah - Mishnah Berakhot 1:1 - Sheet 4",
+      "sheetUrl": "/sheets/537768",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "options": {
+        "layout": "stacked",
+        "boxed": 0,
+        "language": "bilingual",
+        "numbered": 0,
+        "assignable": 0,
+        "divineNames": "noSub",
+        "collaboration": "none",
+        "highlightMode": 0,
+        "langLayout": "heRight",
+        "bsd": 0
+      },
+      "collectionTOC": null,
+      "ownerName": "Rahel Berkovits",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/rahel-berkovits",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/rahel-berkovits-1728304649-small.png",
+      "status": "public",
+      "views": 4049,
+      "topics": [
+        {
+          "asTyped": "Rabban Gamliel",
+          "slug": "rabban-gamliel",
+          "en": "Rabban Gamliel",
+          "he": "רבן גמליאל דיבנה"
+        },
+        {
+          "asTyped": "Rabban Gamliel's Sons",
+          "slug": "rabban-gamliels-sons",
+          "en": "Rabban Gamliel's Sons",
+          "he": ""
+        },
+        {
+          "asTyped": "ספרי במדבר קטז:ב",
+          "slug": "ספרי-במדבר-קטזב",
+          "he": "ספרי במדבר קטז:ב",
+          "en": ""
+        },
+        {
+          "asTyped": "Amud Hashachar",
+          "slug": "amud-hashachar",
+          "en": "Amud Hashachar",
+          "he": ""
+        },
+        {
+          "asTyped": "אכלת פסחים",
+          "slug": "אכלת-פסחים",
+          "he": "אכלת פסחים",
+          "en": ""
+        },
+        {
+          "asTyped": "תוספתא יומא ד:ז",
+          "slug": "תוספתא-יומא-דז",
+          "he": "תוספתא יומא ד:ז",
+          "en": ""
+        },
+        {
+          "asTyped": "משנה ברכות א:א",
+          "slug": "משנה-ברכות-אא",
+          "he": "משנה ברכות א:א",
+          "en": ""
+        },
+        {
+          "asTyped": "מאימתי קורין",
+          "slug": "מאימתי-קורין",
+          "he": "מאימתי קורין",
+          "en": ""
+        },
+        {
+          "asTyped": "To Distance From Transgression",
+          "slug": "to-distance-from-transgression",
+          "en": "To Distance From Transgression",
+          "he": ""
+        },
+        {
+          "asTyped": "אשמורה הראשונה",
+          "slug": "אשמורה-הראשונה",
+          "he": "אשמורה הראשונה",
+          "en": ""
+        },
+        {
+          "asTyped": "רבי אליעזר",
+          "slug": "rabbi-eliezer-b-hyrcanus",
+          "he": "רבי אליעזר",
+          "en": "Rabbi Eliezer b. Hyrcanus"
+        },
+        {
+          "asTyped": "רבן גמליאל",
+          "slug": "rabban-gamliel-hazaken-(i)",
+          "he": "רבן גמליאל",
+          "en": "Rabban Gamliel haZaken (I)"
+        },
+        {
+          "asTyped": "Mishnah Berakhot 1:1",
+          "slug": "mishnah-berakhot-11",
+          "en": "Mishnah Berakhot 1:1",
+          "he": ""
+        },
+        {
+          "asTyped": "Mishnah Berachot 9:5",
+          "slug": "mishnah-berachot-95",
+          "en": "Mishnah Berachot 9:5",
+          "he": ""
+        },
+        {
+          "asTyped": "Evening Shema",
+          "slug": "evening-shema",
+          "en": "Evening Shema",
+          "he": ""
+        },
+        {
+          "asTyped": "Tosefta Berakhot 1:1",
+          "slug": "tosefta-berakhot-11",
+          "en": "Tosefta Berakhot 1:1",
+          "he": ""
+        },
+        {
+          "asTyped": " Tosefta Berachot 1:1",
+          "slug": "tosefta-berachot-114",
+          "en": " Tosefta Berachot 1:1",
+          "he": ""
+        },
+        {
+          "asTyped": "משנה ברכות ט:ה",
+          "slug": "משנה-ברכות-טה",
+          "he": "משנה ברכות ט:ה",
+          "en": ""
+        },
+        {
+          "asTyped": "קראת שמע של ערבית",
+          "slug": "קראת-שמע-של-ערבית",
+          "he": "קראת שמע של ערבית",
+          "en": ""
+        },
+        {
+          "asTyped": "Temple Watches",
+          "slug": "temple-watches",
+          "en": "Temple Watches",
+          "he": ""
+        },
+        {
+          "asTyped": "Tosefta Yoma 4:7",
+          "slug": "tosefta-yoma-47",
+          "en": "Tosefta Yoma 4:7",
+          "he": ""
+        },
+        {
+          "asTyped": "Kohanim Entering to Eat Trumah",
+          "slug": "kohanim-entering-to-eat-trumah",
+          "en": "Kohanim Entering to Eat Trumah",
+          "he": ""
+        },
+        {
+          "asTyped": "Mishnah Berakhot 9:5",
+          "slug": "mishnah-berakhot-95",
+          "en": "Mishnah Berakhot 9:5",
+          "he": ""
+        },
+        {
+          "asTyped": "Sefrei Bamidbar 116:2",
+          "slug": "sefrei-bamidbar-1162",
+          "en": "Sefrei Bamidbar 116:2",
+          "he": ""
+        },
+        {
+          "asTyped": "Cohanim Entering to Eat Trumah",
+          "slug": "cohanim-entering-to-eat-trumah",
+          "en": "Cohanim Entering to Eat Trumah",
+          "he": ""
+        },
+        {
+          "asTyped": "Amud Hashahar",
+          "slug": "amud-hashahar",
+          "en": "Amud Hashahar",
+          "he": ""
+        },
+        {
+          "asTyped": "Priests Entering to Eat Trumah",
+          "slug": "priests-entering-to-eat-trumah",
+          "en": "Priests Entering to Eat Trumah",
+          "he": ""
+        },
+        {
+          "asTyped": "קריאת שמע",
+          "slug": "shema",
+          "he": "קריאת שמע",
+          "en": "Shema"
+        },
+        {
+          "asTyped": "כהנים נכנסים",
+          "slug": "כהנים-נכנסים",
+          "he": "כהנים נכנסים",
+          "en": ""
+        },
+        {
+          "asTyped": "Everywhere the Sages Say Till Midnight",
+          "slug": "everywhere-the-sages-say-till-midnight",
+          "en": "Everywhere the Sages Say Till Midnight",
+          "he": ""
+        },
+        {
+          "asTyped": "להרחיק מעברה",
+          "slug": "להרחיק-מעברה",
+          "he": "להרחיק מעברה",
+          "en": ""
+        },
+        {
+          "asTyped": "תוספתא ברכות א:א",
+          "slug": "תוספתא-ברכות-אא",
+          "he": "תוספתא ברכות א:א",
+          "en": ""
+        },
+        {
+          "asTyped": "Deuteronomy 6:7",
+          "slug": "deuteronomy-67",
+          "en": "Deuteronomy 6:7",
+          "he": ""
+        },
+        {
+          "asTyped": "Mishnah Berachot 1:1",
+          "slug": "mishnah-berachot-11",
+          "en": "Mishnah Berachot 1:1",
+          "he": ""
+        },
+        {
+          "asTyped": "R. Eliezer",
+          "slug": "r-eliezer",
+          "en": "R. Eliezer",
+          "he": ""
+        },
+        {
+          "asTyped": "דברים ו:ז",
+          "slug": "דברים-וז",
+          "he": "דברים ו:ז",
+          "en": ""
+        },
+        {
+          "asTyped": "Sefrei Zuta 18:7",
+          "slug": "sefrei-zuta-187",
+          "en": "Sefrei Zuta 18:7",
+          "he": ""
+        },
+        {
+          "asTyped": "Times for Reading Shema",
+          "slug": "times-for-reading-shema",
+          "en": "Times for Reading Shema",
+          "he": ""
+        },
+        {
+          "asTyped": "Shema",
+          "slug": "shema",
+          "en": "Shema",
+          "he": "קריאת שמע"
+        }
+      ],
+      "likes": [],
+      "summary": "Analyze the first mishnah of Tractate Berakhot, which opens the discussion of when the Shema may be read in the evening. Delve into the relationship between the reading of the Shema and the cycles of day and night",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2024-01-16T11:23:43.358841",
+      "combined_score": 0.8609918929554937
+    },
+    {
+      "owner": 215018,
+      "_id": "65a69f7ff79805561655a5af",
+      "id": "537768",
+      "public": true,
+      "title": "Mishnah - Mishnah Berakhot 1:1 - Sheet 4",
+      "sheetUrl": "/sheets/537768",
+      "anchorRef": "Tosefta Berakhot 1:1",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:1"
+      ],
+      "options": {
+        "layout": "stacked",
+        "boxed": 0,
+        "language": "bilingual",
+        "numbered": 0,
+        "assignable": 0,
+        "divineNames": "noSub",
+        "collaboration": "none",
+        "highlightMode": 0,
+        "langLayout": "heRight",
+        "bsd": 0
+      },
+      "collectionTOC": null,
+      "ownerName": "Rahel Berkovits",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/rahel-berkovits",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/rahel-berkovits-1728304649-small.png",
+      "status": "public",
+      "views": 4049,
+      "topics": [
+        {
+          "asTyped": "Rabban Gamliel",
+          "slug": "rabban-gamliel",
+          "en": "Rabban Gamliel",
+          "he": "רבן גמליאל דיבנה"
+        },
+        {
+          "asTyped": "Rabban Gamliel's Sons",
+          "slug": "rabban-gamliels-sons",
+          "en": "Rabban Gamliel's Sons",
+          "he": ""
+        },
+        {
+          "asTyped": "ספרי במדבר קטז:ב",
+          "slug": "ספרי-במדבר-קטזב",
+          "he": "ספרי במדבר קטז:ב",
+          "en": ""
+        },
+        {
+          "asTyped": "Amud Hashachar",
+          "slug": "amud-hashachar",
+          "en": "Amud Hashachar",
+          "he": ""
+        },
+        {
+          "asTyped": "אכלת פסחים",
+          "slug": "אכלת-פסחים",
+          "he": "אכלת פסחים",
+          "en": ""
+        },
+        {
+          "asTyped": "תוספתא יומא ד:ז",
+          "slug": "תוספתא-יומא-דז",
+          "he": "תוספתא יומא ד:ז",
+          "en": ""
+        },
+        {
+          "asTyped": "משנה ברכות א:א",
+          "slug": "משנה-ברכות-אא",
+          "he": "משנה ברכות א:א",
+          "en": ""
+        },
+        {
+          "asTyped": "מאימתי קורין",
+          "slug": "מאימתי-קורין",
+          "he": "מאימתי קורין",
+          "en": ""
+        },
+        {
+          "asTyped": "To Distance From Transgression",
+          "slug": "to-distance-from-transgression",
+          "en": "To Distance From Transgression",
+          "he": ""
+        },
+        {
+          "asTyped": "אשמורה הראשונה",
+          "slug": "אשמורה-הראשונה",
+          "he": "אשמורה הראשונה",
+          "en": ""
+        },
+        {
+          "asTyped": "רבי אליעזר",
+          "slug": "rabbi-eliezer-b-hyrcanus",
+          "he": "רבי אליעזר",
+          "en": "Rabbi Eliezer b. Hyrcanus"
+        },
+        {
+          "asTyped": "רבן גמליאל",
+          "slug": "rabban-gamliel-hazaken-(i)",
+          "he": "רבן גמליאל",
+          "en": "Rabban Gamliel haZaken (I)"
+        },
+        {
+          "asTyped": "Mishnah Berakhot 1:1",
+          "slug": "mishnah-berakhot-11",
+          "en": "Mishnah Berakhot 1:1",
+          "he": ""
+        },
+        {
+          "asTyped": "Mishnah Berachot 9:5",
+          "slug": "mishnah-berachot-95",
+          "en": "Mishnah Berachot 9:5",
+          "he": ""
+        },
+        {
+          "asTyped": "Evening Shema",
+          "slug": "evening-shema",
+          "en": "Evening Shema",
+          "he": ""
+        },
+        {
+          "asTyped": "Tosefta Berakhot 1:1",
+          "slug": "tosefta-berakhot-11",
+          "en": "Tosefta Berakhot 1:1",
+          "he": ""
+        },
+        {
+          "asTyped": " Tosefta Berachot 1:1",
+          "slug": "tosefta-berachot-114",
+          "en": " Tosefta Berachot 1:1",
+          "he": ""
+        },
+        {
+          "asTyped": "משנה ברכות ט:ה",
+          "slug": "משנה-ברכות-טה",
+          "he": "משנה ברכות ט:ה",
+          "en": ""
+        },
+        {
+          "asTyped": "קראת שמע של ערבית",
+          "slug": "קראת-שמע-של-ערבית",
+          "he": "קראת שמע של ערבית",
+          "en": ""
+        },
+        {
+          "asTyped": "Temple Watches",
+          "slug": "temple-watches",
+          "en": "Temple Watches",
+          "he": ""
+        },
+        {
+          "asTyped": "Tosefta Yoma 4:7",
+          "slug": "tosefta-yoma-47",
+          "en": "Tosefta Yoma 4:7",
+          "he": ""
+        },
+        {
+          "asTyped": "Kohanim Entering to Eat Trumah",
+          "slug": "kohanim-entering-to-eat-trumah",
+          "en": "Kohanim Entering to Eat Trumah",
+          "he": ""
+        },
+        {
+          "asTyped": "Mishnah Berakhot 9:5",
+          "slug": "mishnah-berakhot-95",
+          "en": "Mishnah Berakhot 9:5",
+          "he": ""
+        },
+        {
+          "asTyped": "Sefrei Bamidbar 116:2",
+          "slug": "sefrei-bamidbar-1162",
+          "en": "Sefrei Bamidbar 116:2",
+          "he": ""
+        },
+        {
+          "asTyped": "Cohanim Entering to Eat Trumah",
+          "slug": "cohanim-entering-to-eat-trumah",
+          "en": "Cohanim Entering to Eat Trumah",
+          "he": ""
+        },
+        {
+          "asTyped": "Amud Hashahar",
+          "slug": "amud-hashahar",
+          "en": "Amud Hashahar",
+          "he": ""
+        },
+        {
+          "asTyped": "Priests Entering to Eat Trumah",
+          "slug": "priests-entering-to-eat-trumah",
+          "en": "Priests Entering to Eat Trumah",
+          "he": ""
+        },
+        {
+          "asTyped": "קריאת שמע",
+          "slug": "shema",
+          "he": "קריאת שמע",
+          "en": "Shema"
+        },
+        {
+          "asTyped": "כהנים נכנסים",
+          "slug": "כהנים-נכנסים",
+          "he": "כהנים נכנסים",
+          "en": ""
+        },
+        {
+          "asTyped": "Everywhere the Sages Say Till Midnight",
+          "slug": "everywhere-the-sages-say-till-midnight",
+          "en": "Everywhere the Sages Say Till Midnight",
+          "he": ""
+        },
+        {
+          "asTyped": "להרחיק מעברה",
+          "slug": "להרחיק-מעברה",
+          "he": "להרחיק מעברה",
+          "en": ""
+        },
+        {
+          "asTyped": "תוספתא ברכות א:א",
+          "slug": "תוספתא-ברכות-אא",
+          "he": "תוספתא ברכות א:א",
+          "en": ""
+        },
+        {
+          "asTyped": "Deuteronomy 6:7",
+          "slug": "deuteronomy-67",
+          "en": "Deuteronomy 6:7",
+          "he": ""
+        },
+        {
+          "asTyped": "Mishnah Berachot 1:1",
+          "slug": "mishnah-berachot-11",
+          "en": "Mishnah Berachot 1:1",
+          "he": ""
+        },
+        {
+          "asTyped": "R. Eliezer",
+          "slug": "r-eliezer",
+          "en": "R. Eliezer",
+          "he": ""
+        },
+        {
+          "asTyped": "דברים ו:ז",
+          "slug": "דברים-וז",
+          "he": "דברים ו:ז",
+          "en": ""
+        },
+        {
+          "asTyped": "Sefrei Zuta 18:7",
+          "slug": "sefrei-zuta-187",
+          "en": "Sefrei Zuta 18:7",
+          "he": ""
+        },
+        {
+          "asTyped": "Times for Reading Shema",
+          "slug": "times-for-reading-shema",
+          "en": "Times for Reading Shema",
+          "he": ""
+        },
+        {
+          "asTyped": "Shema",
+          "slug": "shema",
+          "en": "Shema",
+          "he": "קריאת שמע"
+        }
+      ],
+      "likes": [],
+      "summary": "Analyze the first mishnah of Tractate Berakhot, which opens the discussion of when the Shema may be read in the evening. Delve into the relationship between the reading of the Shema and the cycles of day and night",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2024-01-16T11:23:43.358841",
+      "combined_score": 0.8609918929554937
+    },
+    {
+      "owner": 10877,
+      "_id": "556620d88d360f8498af9aa4",
+      "id": "12066",
+      "public": true,
+      "title": "Halachos of Kedushah and Bircas Kohanim",
+      "sheetUrl": "/sheets/12066",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "options": {
+        "layout": "sideBySide",
+        "bsd": 0,
+        "collaboration": "none",
+        "language": "bilingual",
+        "boxed": 0,
+        "langLayout": "heRight",
+        "numbered": 1,
+        "divineNames": "noSub"
+      },
+      "collectionTOC": null,
+      "ownerName": "Shmuel Perl",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/shmuel-perl",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 3416,
+      "topics": [
+        {
+          "slug": "holiness",
+          "asTyped": "Holiness",
+          "en": "Holiness",
+          "he": "קדושה"
+        },
+        {
+          "slug": "priesthood",
+          "asTyped": "Priesthood",
+          "en": "Priesthood",
+          "he": "כהונה"
+        },
+        {
+          "slug": "laws",
+          "asTyped": "Law",
+          "en": "Law",
+          "he": "הלכה"
+        },
+        {
+          "slug": "holiness",
+          "asTyped": "Kedushah",
+          "en": "Kedushah",
+          "he": "קדושה"
+        },
+        {
+          "slug": "blessings-(halakhah)",
+          "asTyped": "Blessings",
+          "en": "Blessings",
+          "he": "ברכות"
+        },
+        {
+          "slug": "prayer",
+          "asTyped": "Tefilla",
+          "en": "Tefilla",
+          "he": "תפילה"
+        },
+        {
+          "slug": "prayer",
+          "asTyped": "Prayer",
+          "en": "Prayer",
+          "he": "תפילה"
+        }
+      ],
+      "likes": [],
+      "summary": null,
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2015-05-27T12:54:00.186064",
+      "combined_score": 0.33317006933831284
+    },
+    {
+      "owner": 18727,
+      "_id": "56b1353bb77993fa7c406499",
+      "id": "26104",
+      "public": true,
+      "title": "The Kedushah",
+      "sheetUrl": "/sheets/26104",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "options": {
+        "layout": "sideBySide",
+        "bsd": 0,
+        "collaboration": "none",
+        "language": "bilingual",
+        "boxed": 0,
+        "langLayout": "heRight",
+        "assignable": 0,
+        "numbered": 1,
+        "divineNames": "h"
+      },
+      "collectionTOC": null,
+      "ownerName": "Tamar Grimm",
+      "via": 12066,
+      "viaOwnerName": "Shmuel Perl",
+      "assignerName": null,
+      "viaOwnerProfileUrl": "/profile/shmuel-perl",
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/tamar-grimm1",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 4684,
+      "topics": [
+        {
+          "slug": "holiness",
+          "asTyped": "Holiness",
+          "en": "Holiness",
+          "he": "קדושה"
+        },
+        {
+          "slug": "priesthood",
+          "asTyped": "Priesthood",
+          "en": "Priesthood",
+          "he": "כהונה"
+        },
+        {
+          "slug": "laws",
+          "asTyped": "Law",
+          "en": "Law",
+          "he": "הלכה"
+        },
+        {
+          "slug": "holiness",
+          "asTyped": "Kedushah",
+          "en": "Kedushah",
+          "he": "קדושה"
+        },
+        {
+          "slug": "blessings-(halakhah)",
+          "asTyped": "Blessings",
+          "en": "Blessings",
+          "he": "ברכות"
+        },
+        {
+          "slug": "prayer",
+          "asTyped": "Tefilla",
+          "en": "Tefilla",
+          "he": "תפילה"
+        },
+        {
+          "slug": "prayer",
+          "asTyped": "Prayer",
+          "en": "Prayer",
+          "he": "תפילה"
+        }
+      ],
+      "likes": [],
+      "summary": null,
+      "attribution": "<p>Source Sheet by <a class=\"userLink\" href=\"/profile/tamar-grimm1\">Tamar Grimm</a></p>\n",
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2016-02-02T15:01:15.700874",
+      "combined_score": 0.5854327716241903
+    },
+    {
+      "owner": 14968,
+      "_id": "58b5e8921905c62b2678e2c9",
+      "id": "58465",
+      "public": true,
+      "title": "Standing in Tefillah",
+      "sheetUrl": "/sheets/58465",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "options": {
+        "layout": "sideBySide",
+        "bsd": 0,
+        "collaboration": "none",
+        "language": "bilingual",
+        "boxed": 0,
+        "langLayout": "heLeft",
+        "assignable": 0,
+        "numbered": 0,
+        "divineNames": "noSub"
+      },
+      "collectionTOC": null,
+      "ownerName": "Robyn Fryer Bodzin",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/robyn-fryer-bodzin",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/robyn-fryer-bodzin-1614802367-small.png",
+      "status": "public",
+      "views": 1714,
+      "topics": [],
+      "likes": [],
+      "summary": null,
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2017-02-28T13:16:02.474803",
+      "combined_score": 0.22681983621474064
+    },
+    {
+      "owner": 11532,
+      "_id": "5a280872f0864d4914ac0c9e",
+      "id": "90674",
+      "public": true,
+      "title": "Holy Holy Holy!",
+      "sheetUrl": "/sheets/90674",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "options": {
+        "layout": "sideBySide",
+        "bsd": 0,
+        "collaboration": "none",
+        "language": "bilingual",
+        "highlightMode": 0,
+        "boxed": 0,
+        "langLayout": "heRight",
+        "assignable": 0,
+        "numbered": 1,
+        "divineNames": "ykvk"
+      },
+      "collectionTOC": null,
+      "ownerName": "Getzel Davis",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/getzel-davis",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/getzel-davis-1626301166-small.png",
+      "status": "public",
+      "views": 4055,
+      "topics": [
+        {
+          "slug": "hechalot",
+          "asTyped": "Hechalot",
+          "en": "Hechalot",
+          "he": "היכלות"
+        },
+        {
+          "slug": "holiness",
+          "asTyped": "Holiness",
+          "en": "Holiness",
+          "he": "קדושה"
+        },
+        {
+          "slug": "prayer",
+          "asTyped": "Prayer",
+          "en": "Prayer",
+          "he": "תפילה"
+        },
+        {
+          "slug": "blessings-(halakhah)",
+          "asTyped": "Blessings",
+          "en": "Blessings",
+          "he": "ברכות"
+        },
+        {
+          "slug": "holiness",
+          "asTyped": "Kedushah",
+          "en": "Kedushah",
+          "he": "קדושה"
+        },
+        {
+          "slug": "isaiah",
+          "asTyped": "Isaiah",
+          "en": "Isaiah",
+          "he": "ישעיהו"
+        },
+        {
+          "slug": "shemoneh-esrei",
+          "asTyped": "Amidah",
+          "en": "Amidah",
+          "he": "עמידה"
+        },
+        {
+          "slug": "jew-curious",
+          "asTyped": "Jew Curious",
+          "en": "Jew Curious",
+          "he": "יהודי סקרן"
+        }
+      ],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2017-12-06T07:10:42.365772",
+      "combined_score": 0.3543406937711482
+    },
+    {
+      "owner": 11512,
+      "_id": "5be2ec288863f5d3370271ea",
+      "id": "140392",
+      "public": true,
+      "title": "The Body in Prayer",
+      "sheetUrl": "/sheets/140392",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "options": {
+        "boxed": 0,
+        "divineNames": "noSub",
+        "assignable": 0,
+        "language": "bilingual",
+        "langLayout": "heRight",
+        "highlightMode": 0,
+        "bsd": 1,
+        "collaboration": "none",
+        "layout": "sideBySide",
+        "numbered": 1
+      },
+      "collectionTOC": null,
+      "ownerName": "Jacob Fine",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/rabbi-jacob-fine",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/rabbi-jacob-fine-1603376313-small.png",
+      "status": "public",
+      "views": 3224,
+      "topics": [
+        {
+          "asTyped": "Kavana",
+          "slug": "kavanah",
+          "en": "Kavana",
+          "he": "כוונה"
+        },
+        {
+          "asTyped": "Amidah",
+          "slug": "shemoneh-esrei",
+          "en": "Amidah",
+          "he": "עמידה"
+        },
+        {
+          "asTyped": "Prayer",
+          "slug": "prayer",
+          "en": "Prayer",
+          "he": "תפילה"
+        },
+        {
+          "asTyped": "Bowing",
+          "slug": "prostration1",
+          "en": "Bowing",
+          "he": "השתחויה"
+        },
+        {
+          "asTyped": "Prostration",
+          "slug": "prostration",
+          "en": "Prostration",
+          "he": "קוד"
+        },
+        {
+          "asTyped": "Shuckling",
+          "slug": "shuckling",
+          "en": "Shuckling",
+          "he": ""
+        },
+        {
+          "asTyped": "Body",
+          "slug": "bodies",
+          "en": "Body",
+          "he": "גוף"
+        }
+      ],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2018-11-07T05:44:08.709148",
+      "combined_score": 0.43957924042627716
+    },
+    {
+      "owner": 14381,
+      "_id": "601609d26ec6b2dc555433f1",
+      "id": "296535",
+      "public": true,
+      "title": "Isaiah Class 3 -  The Vision in the Temple (ch 6)",
+      "sheetUrl": "/sheets/296535",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "options": {
+        "numbered": 1,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "h",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "David M. Rosenberg",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/david-rosenberg",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/david-rosenberg-1626301583-small.png",
+      "status": "public",
+      "views": 6086,
+      "topics": [
+        {
+          "asTyped": "Kings",
+          "slug": "kings",
+          "en": "Kings",
+          "he": "מלך"
+        },
+        {
+          "asTyped": "Kedushah",
+          "slug": "holiness",
+          "en": "Kedushah",
+          "he": "קדושה"
+        },
+        {
+          "asTyped": "Prayer",
+          "slug": "prayer",
+          "en": "Prayer",
+          "he": "תפילה"
+        },
+        {
+          "asTyped": "Repentance",
+          "slug": "teshuvah",
+          "en": "Repentance",
+          "he": "תשובה"
+        },
+        {
+          "asTyped": "Community",
+          "slug": "society",
+          "en": "Community",
+          "he": "חברה (סביבה אנושית)"
+        },
+        {
+          "asTyped": "Seraphim",
+          "slug": "seraphim",
+          "en": "Seraphim",
+          "he": ""
+        },
+        {
+          "asTyped": "Prophecy",
+          "slug": "prophecy",
+          "en": "Prophecy",
+          "he": "נבואה"
+        },
+        {
+          "asTyped": "Commission",
+          "slug": "commission",
+          "en": "Commission",
+          "he": ""
+        },
+        {
+          "asTyped": "Jerusalem",
+          "slug": "jerusalem",
+          "en": "Jerusalem",
+          "he": "ירושלים"
+        },
+        {
+          "asTyped": "Isaiah",
+          "slug": "isaiah",
+          "en": "Isaiah",
+          "he": "ישעיהו"
+        },
+        {
+          "asTyped": "Temple",
+          "slug": "beit-hamikdash",
+          "en": "Temple",
+          "he": "בית המקדש"
+        },
+        {
+          "asTyped": "Angels",
+          "slug": "angels",
+          "en": "Angels",
+          "he": "מלאכים"
+        },
+        {
+          "asTyped": "Vision",
+          "slug": "mental-pictures",
+          "en": "Vision",
+          "he": "חזון"
+        },
+        {
+          "asTyped": "Doom",
+          "slug": "doom",
+          "en": "Doom",
+          "he": ""
+        },
+        {
+          "asTyped": "God",
+          "slug": "god",
+          "en": "God",
+          "he": "אלוהים"
+        },
+        {
+          "asTyped": "Judah",
+          "slug": "judah",
+          "en": "Judah",
+          "he": "יהודה"
+        }
+      ],
+      "likes": [],
+      "summary": "Isaiah's vision and prophetic commission",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2021-01-30T21:37:22.567353",
+      "combined_score": 0.39433467851554715
+    },
+    {
+      "owner": 94339,
+      "_id": "61b0adc1301ce0bb4e0bbd73",
+      "id": "367714",
+      "public": true,
+      "title": "תפילת קדושה Kedushah",
+      "sheetUrl": "/sheets/367714",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "options": {
+        "numbered": 1,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "stacked",
+        "langLayout": "heRight",
+        "divineNames": "ykvk",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "אמירית רוזן",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/-6409",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/-6409-1633202992-small.png",
+      "status": "public",
+      "views": 2440,
+      "topics": [
+        {
+          "asTyped": "קדושה",
+          "slug": "holiness",
+          "he": "קדושה",
+          "en": "Holiness"
+        }
+      ],
+      "likes": [],
+      "summary": "תפילת קדושה ",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2021-12-08T09:06:09.832451",
+      "combined_score": 0.4622785514914517
+    },
+    {
+      "owner": 46327,
+      "_id": "6541ae56b2574da91d99532c",
+      "id": "521743",
+      "public": true,
+      "title": "929/Jer. 51-Ezekiel 3: Eavesdropping on Angels",
+      "sheetUrl": "/sheets/521743",
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ],
+      "options": {
+        "numbered": 1,
+        "boxed": 1,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "ykvk",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Israel Friedman",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/israel-friedman",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 606,
+      "topics": [
+        {
+          "asTyped": "Kedusha",
+          "slug": "holiness",
+          "en": "Kedusha",
+          "he": "קדושה"
+        },
+        {
+          "asTyped": "Ezekiel's Vision",
+          "slug": "ezekiels-vision",
+          "en": "Ezekiel's Vision",
+          "he": ""
+        },
+        {
+          "asTyped": "929",
+          "slug": "929",
+          "en": "929",
+          "he": ""
+        },
+        {
+          "asTyped": "Merkava",
+          "slug": "merkava",
+          "en": "Merkava",
+          "he": ""
+        }
+      ],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2023-10-31T22:48:06.514966",
+      "combined_score": 0.22849344978165936
+    },
+    {
+      "owner": 7982,
+      "_id": "5f5152efcac7ecfd08af78dc",
+      "id": "260212",
+      "public": true,
+      "title": "Eleh Ezkerah, Class 3: Approaches to Redemption",
+      "sheetUrl": "/sheets/260212",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Josh Pernick",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/josh-pernick",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/josh-pernick-1578888555-small.png",
+      "status": "public",
+      "views": 1391,
+      "topics": [
+        {
+          "asTyped": "Rabbi Akiva",
+          "slug": "rabbi-akiva",
+          "en": "Rabbi Akiva",
+          "he": "רבי עקיבא"
+        },
+        {
+          "asTyped": "Haggadah",
+          "slug": "haggadah",
+          "en": "Haggadah",
+          "he": "הגדה"
+        },
+        {
+          "asTyped": "Passover",
+          "slug": "passover",
+          "en": "Passover",
+          "he": "פסח"
+        },
+        {
+          "asTyped": "Chachamim",
+          "slug": "chachamim",
+          "en": "Chachamim",
+          "he": "חכמים"
+        }
+      ],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2020-09-03T17:32:47.721237",
+      "combined_score": 0.2263942680092951
+    },
+    {
+      "owner": 7982,
+      "_id": "6053d57f670d5bcfc2499993",
+      "id": "309027",
+      "public": true,
+      "title": "Midrashim on the Haggadah",
+      "sheetUrl": "/sheets/309027",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "options": {
+        "numbered": 0,
+        "boxed": 0,
+        "assignable": 0,
+        "bsd": 0,
+        "language": "bilingual",
+        "layout": "sideBySide",
+        "langLayout": "heRight",
+        "divineNames": "noSub",
+        "highlightMode": 0,
+        "collaboration": "none"
+      },
+      "collectionTOC": null,
+      "ownerName": "Josh Pernick",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/josh-pernick",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/josh-pernick-1578888555-small.png",
+      "status": "public",
+      "views": 370,
+      "topics": [
+        {
+          "slug": "chachamim",
+          "asTyped": "Chachamim",
+          "en": "Chachamim",
+          "he": "חכמים"
+        },
+        {
+          "slug": "passover",
+          "asTyped": "Passover",
+          "en": "Passover",
+          "he": "פסח"
+        },
+        {
+          "slug": "haggadah",
+          "asTyped": "Haggadah",
+          "en": "Haggadah",
+          "he": "הגדה"
+        },
+        {
+          "slug": "rabbi-akiva",
+          "asTyped": "Rabbi Akiva",
+          "en": "Rabbi Akiva",
+          "he": "רבי עקיבא"
+        }
+      ],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2021-03-18T19:34:39.099430",
+      "combined_score": 0.22698019801980196
+    },
+    {
+      "owner": 215018,
+      "_id": "65a78c286646097cf94b938b",
+      "id": "537988",
+      "public": true,
+      "title": "Mishnah - Mishnah Berakhot 1:5 -  Sheet 8",
+      "sheetUrl": "/sheets/537988",
+      "anchorRef": "Tosefta Berakhot 1:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12"
+      ],
+      "options": {
+        "layout": "stacked",
+        "boxed": 0,
+        "language": "bilingual",
+        "numbered": 0,
+        "assignable": 0,
+        "divineNames": "noSub",
+        "collaboration": "none",
+        "highlightMode": 0,
+        "langLayout": "heRight",
+        "bsd": 0
+      },
+      "collectionTOC": null,
+      "ownerName": "Rahel Berkovits",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/rahel-berkovits",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/rahel-berkovits-1728304649-small.png",
+      "status": "public",
+      "views": 1644,
+      "topics": [
+        {
+          "asTyped": "דברים טז:ג",
+          "slug": "דברים-טזג",
+          "he": "דברים טז:ג",
+          "en": ""
+        },
+        {
+          "asTyped": "Rabbi Elazar Ben Azaryah",
+          "slug": "rabbi-elazar-ben-azaryah",
+          "en": "Rabbi Elazar Ben Azaryah",
+          "he": ""
+        },
+        {
+          "asTyped": "To Bring to the Days of Mashiach",
+          "slug": "to-bring-to-the-days-of-mashiach",
+          "en": "To Bring to the Days of Mashiach",
+          "he": ""
+        },
+        {
+          "asTyped": " Mishnah Berachot 1:5",
+          "slug": "mishnah-berachot-1528",
+          "en": " Mishnah Berachot 1:5",
+          "he": ""
+        },
+        {
+          "asTyped": "Mention the Exodus at Night",
+          "slug": "mention-the-exodus-at-night",
+          "en": "Mention the Exodus at Night",
+          "he": ""
+        },
+        {
+          "asTyped": "ימי חייך הימים",
+          "slug": "ימי-חייך-הימים",
+          "he": "ימי חייך הימים",
+          "en": ""
+        },
+        {
+          "asTyped": "Mishnah Berakhot 1:5",
+          "slug": "mishnah-berakhot-15",
+          "en": "Mishnah Berakhot 1:5",
+          "he": ""
+        },
+        {
+          "asTyped": "Deuteronomy 16:3",
+          "slug": "deuteronomy-163",
+          "en": "Deuteronomy 16:3",
+          "he": ""
+        },
+        {
+          "asTyped": "תוספתא ברכות ב:א",
+          "slug": "תוספתא-ברכות-בא",
+          "he": "תוספתא ברכות ב:א",
+          "en": ""
+        },
+        {
+          "asTyped": "בן זומה",
+          "slug": "בן-זומה",
+          "he": "בן זומה",
+          "en": ""
+        },
+        {
+          "asTyped": "Rabbinic Blessings",
+          "slug": "rabbinic-blessings",
+          "en": "Rabbinic Blessings",
+          "he": ""
+        },
+        {
+          "asTyped": "Ben Zoma",
+          "slug": "ben-zoma",
+          "en": "Ben Zoma",
+          "he": ""
+        },
+        {
+          "asTyped": "Emmet VeEmunah",
+          "slug": "emmet-veemunah",
+          "en": "Emmet VeEmunah",
+          "he": ""
+        },
+        {
+          "asTyped": "Shema Blessings",
+          "slug": "shema-blessings",
+          "en": "Shema Blessings",
+          "he": ""
+        },
+        {
+          "asTyped": "כל ימי חייך הלילות",
+          "slug": "כל-ימי-חייך-הלילות",
+          "he": "כל ימי חייך הלילות",
+          "en": ""
+        },
+        {
+          "asTyped": "Shema",
+          "slug": "shema",
+          "en": "Shema",
+          "he": "קריאת שמע"
+        },
+        {
+          "asTyped": "הרי אני כבן שבעים שנה",
+          "slug": "הרי-אני-כבן-שבעים-שנה",
+          "he": "הרי אני כבן שבעים שנה",
+          "en": ""
+        },
+        {
+          "asTyped": "Evening Shema",
+          "slug": "evening-shema",
+          "en": "Evening Shema",
+          "he": ""
+        },
+        {
+          "asTyped": "רבי אלעזר בן עזריה",
+          "slug": "rabbi-elazar-b-azaryah",
+          "he": "רבי אלעזר בן עזריה",
+          "en": "Rabbi Elazar b. Azaryah"
+        },
+        {
+          "asTyped": "Behold I Am Like a Seventy Year Old",
+          "slug": "behold-i-am-like-a-seventy-year-old",
+          "en": "Behold I Am Like a Seventy Year Old",
+          "he": ""
+        },
+        {
+          "asTyped": "Mentioning Egypt in Shema",
+          "slug": "mentioning-egypt-in-shema",
+          "en": "Mentioning Egypt in Shema",
+          "he": ""
+        },
+        {
+          "asTyped": "Tosefta Berakhot 2:1",
+          "slug": "tosefta-berakhot-21",
+          "en": "Tosefta Berakhot 2:1",
+          "he": ""
+        },
+        {
+          "asTyped": "משנה ברכות א:ד",
+          "slug": "משנה-ברכות-אד",
+          "he": "משנה ברכות א:ד",
+          "en": ""
+        },
+        {
+          "asTyped": "Blessings After the Shema",
+          "slug": "blessings-after-the-shema",
+          "en": "Blessings After the Shema",
+          "he": ""
+        },
+        {
+          "asTyped": "אמת ואמונה",
+          "slug": "אמת-ואמונה",
+          "he": "אמת ואמונה",
+          "en": ""
+        },
+        {
+          "asTyped": "Behold I Am Like Seventy Years Old",
+          "slug": "behold-i-am-like-seventy-years-old",
+          "en": "Behold I Am Like Seventy Years Old",
+          "he": ""
+        },
+        {
+          "asTyped": "ברכות קריאת שמע",
+          "slug": "ברכות-קריאת-שמע",
+          "he": "ברכות קריאת שמע",
+          "en": ""
+        },
+        {
+          "asTyped": "מזכירין יציאת מצרים בלילות",
+          "slug": "מזכירין-יציאת-מצרים-בלילות",
+          "he": "מזכירין יציאת מצרים בלילות",
+          "en": ""
+        },
+        {
+          "asTyped": "להביא לימות המשיח",
+          "slug": "להביא-לימות-המשיח",
+          "he": "להביא לימות המשיח",
+          "en": ""
+        },
+        {
+          "asTyped": "To Bring to the Days of Mashiah",
+          "slug": "to-bring-to-the-days-of-mashiah",
+          "en": "To Bring to the Days of Mashiah",
+          "he": ""
+        }
+      ],
+      "likes": [],
+      "summary": "Analyze the fifth mishnah of Tractate Berakhot, which discusses the obligation to mention the exodus from Egypt at night. Delve into the Rabbis understanding of historical time.",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2024-01-17T04:13:28.347839",
+      "combined_score": 0.966696750902527
+    },
+    {
+      "owner": 10307,
+      "_id": "56746768b77993fa7c4058e5",
+      "id": "23151",
+      "public": true,
+      "title": "That's Not My Name",
+      "sheetUrl": "/sheets/23151",
+      "anchorRef": "Tosefta Berakhot 1:15",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15"
+      ],
+      "options": {
+        "layout": "sideBySide",
+        "bsd": 0,
+        "collaboration": "none",
+        "language": "bilingual",
+        "boxed": 1,
+        "langLayout": "heRight",
+        "numbered": 1,
+        "divineNames": "noSub"
+      },
+      "collectionTOC": null,
+      "ownerName": "Sari Laufer",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/sari-laufer",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/sari-laufer-1576946137-small.png",
+      "status": "public",
+      "views": 2404,
+      "topics": [
+        {
+          "slug": "jacob",
+          "asTyped": "Jacob",
+          "en": "Jacob",
+          "he": "יעקב"
+        },
+        {
+          "slug": "parashat-shemot",
+          "asTyped": "Names",
+          "en": "Names",
+          "he": "פרשת שמות"
+        }
+      ],
+      "likes": [],
+      "summary": null,
+      "attribution": "<p>Rabbi&nbsp;<a data-cke-saved-href=\"/profile/sari-laufer\" href=\"/profile/sari-laufer\" class=\"userLink\">Sari Laufer</a></p><p>Congregation Rodeph Sholom</p><p>December 19, 2015/7 Tevet 5776</p><p>Parashat VaYigash</p>",
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2015-12-18T12:07:04.901436",
+      "combined_score": 0.6303560559820719
+    },
+    {
+      "owner": 15872,
+      "_id": "574e8fb9b77993fa7c408af5",
+      "id": "35784",
+      "public": true,
+      "title": "Jerusalem Anthology - Hashem Yireh",
+      "sheetUrl": "/sheets/35784",
+      "anchorRef": "Tosefta Berakhot 1:16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:16"
+      ],
+      "options": {
+        "numbered": 0,
+        "divineNames": "noSub"
+      },
+      "collectionTOC": null,
+      "ownerName": "Michael Feuer",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/michael-feuer",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/michael-feuer-1620135945-small.png",
+      "status": "public",
+      "views": 7991,
+      "topics": [
+        {
+          "slug": "jerusalem",
+          "asTyped": "Jerusalem",
+          "en": "Jerusalem",
+          "he": "ירושלים"
+        }
+      ],
+      "likes": [],
+      "summary": null,
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2016-06-01T00:33:13.740214",
+      "combined_score": 0.40781927778344496
+    },
+    {
+      "owner": 15872,
+      "_id": "574e8fb9b77993fa7c408af3",
+      "id": "35782",
+      "public": true,
+      "title": "Jerusalem Anthology - Shalem",
+      "sheetUrl": "/sheets/35782",
+      "anchorRef": "Tosefta Berakhot 1:16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:16"
+      ],
+      "options": {
+        "layout": "sideBySide",
+        "bsd": 0,
+        "collaboration": "none",
+        "language": "bilingual",
+        "highlightMode": 0,
+        "boxed": 0,
+        "langLayout": "heRight",
+        "assignable": 0,
+        "numbered": 0,
+        "divineNames": "noSub"
+      },
+      "collectionTOC": null,
+      "ownerName": "Michael Feuer",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/michael-feuer",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/michael-feuer-1620135945-small.png",
+      "status": "public",
+      "views": 6117,
+      "topics": [
+        {
+          "slug": "jerusalem",
+          "asTyped": "Jerusalem",
+          "en": "Jerusalem",
+          "he": "ירושלים"
+        }
+      ],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2016-06-01T00:33:13.505984",
+      "combined_score": 0.5791039711805883
+    },
+    {
+      "owner": 47373,
+      "_id": "5b0c31ade2b193250947ba1e",
+      "id": "118236",
+      "public": true,
+      "title": "עוסק במצוה פטור מן המצוה",
+      "sheetUrl": "/sheets/118236",
+      "anchorRef": "Tosefta Berakhot 1:5",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:5"
+      ],
+      "options": {
+        "boxed": 0,
+        "numbered": 0,
+        "assignable": 0,
+        "language": "bilingual",
+        "highlightMode": 0,
+        "divineNames": "noSub",
+        "bsd": 0,
+        "collaboration": "none",
+        "langLayout": "heRight",
+        "layout": "sideBySide"
+      },
+      "collectionTOC": null,
+      "ownerName": "Yaakov Bechhofer",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/yaakov-bechhofer",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 5354,
+      "topics": [],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2018-05-28T09:43:25.551480",
+      "combined_score": 0.47548853157163473
+    },
+    {
+      "owner": 19374,
+      "_id": "5b745ba25bce1cb77ddcd9ce",
+      "id": "127122",
+      "public": true,
+      "title": "עוסק במצוה פטור מן המצוה",
+      "sheetUrl": "/sheets/127122",
+      "anchorRef": "Tosefta Berakhot 1:5",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:5"
+      ],
+      "options": {
+        "layout": "sideBySide",
+        "boxed": 0,
+        "numbered": 0,
+        "assignable": 0,
+        "language": "bilingual",
+        "highlightMode": 0,
+        "bsd": 0,
+        "collaboration": "none",
+        "langLayout": "heRight",
+        "divineNames": "noSub"
+      },
+      "collectionTOC": null,
+      "ownerName": "dovid roberts",
+      "via": "118236",
+      "viaOwnerName": "Yaakov Bechhofer",
+      "assignerName": null,
+      "viaOwnerProfileUrl": "/profile/yaakov-bechhofer",
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/dovid-roberts",
+      "ownerImageUrl": "",
+      "status": "public",
+      "views": 1148,
+      "topics": [],
+      "likes": [],
+      "summary": "",
+      "attribution": "<p><br></p>",
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2018-08-15T09:58:09.998365",
+      "combined_score": 0.43467246557332395
+    },
+    {
+      "owner": 118595,
+      "_id": "61084724343ac4e156ce4571",
+      "id": "339271",
+      "public": true,
+      "title": "Episode 22 - Can You Lead Prayers on a Fast if You're Not Fasting? (Transcript)",
+      "sheetUrl": "/sheets/339271",
+      "anchorRef": "Tosefta Berakhot 1:8",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:8"
+      ],
+      "options": {
+        "numbered": false
+      },
+      "collectionTOC": null,
+      "ownerName": "Hadar Institute",
+      "via": null,
+      "viaOwnerName": null,
+      "assignerName": null,
+      "viaOwnerProfileUrl": null,
+      "assignerProfileUrl": null,
+      "ownerProfileUrl": "/profile/hadar",
+      "ownerImageUrl": "https://storage.googleapis.com/sefaria-profile-pictures/hadar-1611181647-small.png",
+      "status": "public",
+      "views": 4422,
+      "topics": [
+        {
+          "asTyped": "Fast Days",
+          "slug": "fasting",
+          "en": "Fast Days",
+          "he": "תענית"
+        },
+        {
+          "asTyped": "Shivah Asar B'Tammuz",
+          "slug": "shivah-asar-btammuz",
+          "en": "Shivah Asar B'Tammuz",
+          "he": ""
+        },
+        {
+          "asTyped": "Davening",
+          "slug": "davening",
+          "en": "Davening",
+          "he": ""
+        },
+        {
+          "asTyped": "Pregnancy",
+          "slug": "pregnancy",
+          "en": "Pregnancy",
+          "he": "הריון (תהליך)"
+        },
+        {
+          "asTyped": "Tzom Gedaliah",
+          "slug": "fast-of-gedaliah",
+          "en": "Tzom Gedaliah",
+          "he": "צום גדליה"
+        },
+        {
+          "asTyped": "Asarah B'Tevet",
+          "slug": "asarah-btevet",
+          "en": "Asarah B'Tevet",
+          "he": ""
+        },
+        {
+          "asTyped": "Shaliach Tzibbur",
+          "slug": "shaliach-tzibbur",
+          "en": "Shaliach Tzibbur",
+          "he": ""
+        },
+        {
+          "asTyped": "Yom Kippur",
+          "slug": "yom-kippur",
+          "en": "Yom Kippur",
+          "he": "יום כיפור"
+        },
+        {
+          "asTyped": "Amidah",
+          "slug": "shemoneh-esrei",
+          "en": "Amidah",
+          "he": "עמידה"
+        },
+        {
+          "asTyped": "Minhah",
+          "slug": "minhah",
+          "en": "Minhah",
+          "he": ""
+        },
+        {
+          "asTyped": "Tefillah",
+          "slug": "prayer",
+          "en": "Tefillah",
+          "he": "תפילה"
+        },
+        {
+          "asTyped": "Fasting",
+          "slug": "fasting",
+          "en": "Fasting",
+          "he": "תענית"
+        },
+        {
+          "asTyped": "Prayer",
+          "slug": "prayer",
+          "en": "Prayer",
+          "he": "תפילה"
+        },
+        {
+          "asTyped": "Tisha B'Av",
+          "slug": "tisha-bav",
+          "en": "Tisha B'Av",
+          "he": "תשעה באב"
+        },
+        {
+          "asTyped": "9 Av",
+          "slug": "9-av",
+          "en": "9 Av",
+          "he": ""
+        }
+      ],
+      "likes": [],
+      "summary": "",
+      "attribution": null,
+      "is_featured": false,
+      "category": "Sheets",
+      "type": "sheet",
+      "dateCreated": "2021-08-02T16:27:32.658923",
+      "combined_score": 0.7681992659385082
+    }
+  ],
+  "notes": [],
+  "topics": [
+    {
+      "linkType": "about",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Curation of the Sefaria Learning Team",
+        "he": "איסוף ועריכה של צוות החינוך בספריא",
+        "slug": "learning-team"
+      },
+      "is_sheet": false,
+      "order": {
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "curatedPrimacy": {
+          "he": 699
+        },
+        "tfidf": 514.1159899484089,
+        "numDatasource": 1,
+        "comp_date": 190,
+        "order_id": "A00800100000000010014",
+        "pr": 2.8991448729531615,
+        "numSources": 2625
+      },
+      "descriptions": {
+        "he": {
+          "title": "מאברם לאברהם",
+          "prompt": "מה משמעות שינוי שמותיהם של אברם ושרי לאברהם ושרה? על פי התוספתא הוספת האות ה' לשמם מסמנת את השפעתם הטובה של על העולם כולו (ארץ ישראל, המאה ה-3).\n",
+          "ai_context": ""
+        }
+      },
+      "topic": "abraham",
+      "title": {
+        "en": "Abraham",
+        "he": "אברהם"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {
+        "en": "Abraham is the father of the Jewish people and husband to Sarah. God sent him from his homeland to the land of Canaan and promised to make him a great nation, through whom the nations would be blessed. Once in Canaan, he built up a large household. The covenant that would lead to the birth of the Jewish people continued through his younger son, Isaac. \n\n ",
+        "he": "אברהם הוא אבי העם היהודי ובעלה של שרה. הוא נשלח על ידי האל ממולדתו לארץ כנען עם הבטחה שיהפוך לגוי גדול. בכנען הוא גדל ברכוש ובקניין. בנו הצעיר יצחק היה יורשו וממשיך דרכו."
+      },
+      "shouldDisplay": true,
+      "pools": [
+        "torah_tab",
+        "library",
+        "general_en",
+        "general_he",
+        "sheets"
+      ],
+      "anchorRef": "Tosefta Berakhot 1:14",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:14"
+      ]
+    },
+    {
+      "linkType": "about",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Curation of the Sefaria Learning Team",
+        "he": "איסוף ועריכה של צוות החינוך בספריא",
+        "slug": "learning-team"
+      },
+      "is_sheet": false,
+      "generatedBy": "auto-curator",
+      "order": {
+        "curatedPrimacy": {
+          "en": 6
+        },
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "tfidf": 33.13927957350167,
+        "numDatasource": 1,
+        "comp_date": 190,
+        "order_id": "A00800100000000010003",
+        "pr": 1.8500288632072202,
+        "numSources": 114
+      },
+      "descriptions": {
+        "en": {
+          "ai_context": "N/A",
+          "published": true,
+          "review_state": "reviewed",
+          "title": "The Watches of the Night",
+          "ai_title": "The Watches of the Night",
+          "prompt": "The division of the night into specific time units is significant for understanding the timing of certain prayers and rituals in Jewish tradition. The Tosefta, an ancient collection of rabbinic laws and teachings, discusses the debate over the number of watches in a night.",
+          "ai_prompt": "The division of the night into specific time units is crucial for understanding the timing of certain prayers and rituals in Jewish tradition. The Tosefta, a late 2nd-century compilation of Jewish oral law, discusses the debate over the number of watches in a night."
+        }
+      },
+      "topic": "night",
+      "title": {
+        "en": "Night",
+        "he": "לילה"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {
+        "en": "Nighttime serves as the setting for pivotal moments in biblical history, including God’s [covenant of the pieces](https://www.sefaria.org/Genesis.15.12?ven=hebrew|Tanach_with_Ta%27amei_Hamikra&amp;lang=bi&amp;with=all&amp;lang2=en) with Abraham, Jacob’s [wrestling](https://www.sefaria.org/Genesis.32.23?ven=hebrew|Tanach_with_Ta%27amei_Hamikra&amp;lang=bi&amp;with=all&amp;lang2=en) with the angel, the [plague](https://www.sefaria.org/Exodus.12.29?lang=bi&amp;with=all&amp;lang2=en) of the firstborn, and the [splitting of the sea](https://www.sefaria.org/Exodus.14.20?ven=hebrew|Tanach_with_Ta%27amei_Hamikra&amp;lang=bi&amp;with=all&amp;lang2=en). Rabbinic sources emphasize the special value of Torah study at night, teaching that a “[thread of kindness](https://www.sefaria.org/Chagigah.12b.8?lang=bi&amp;with=all&amp;lang2=en)” accompanies those who engage in it, and many communities observe the custom of studying Torah throughout the night of Shavuot. Sources of Jewish thought and liturgy also portray the night as a particularly fitting time for introspection, devotion, prayer, and revelation.",
+        "he": ""
+      },
+      "shouldDisplay": true,
+      "pools": [
+        "torah_tab",
+        "library",
+        "sheets",
+        "general_en"
+      ],
+      "anchorRef": "Tosefta Berakhot 1:3",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:3"
+      ]
+    },
+    {
+      "linkType": "about",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Aspaklaria",
+        "he": "אספקלריא",
+        "slug": "aspaklaria"
+      },
+      "is_sheet": false,
+      "order": {
+        "tfidf": 31.828781044831146,
+        "numDatasource": 1,
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "comp_date": 190,
+        "order_id": "A00800100000000010003",
+        "pr": 1.8499767384278714,
+        "numSources": 327
+      },
+      "topic": "time",
+      "title": {
+        "en": "Time",
+        "he": "זמן"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {
+        "en": "Time is a concept that appears from the very beginning of the Torah, as the world's creation unfolds over seven days, each of which is divided into evening and morning. Sources throughout the Jewish textual tradition discuss how God and people sanctify time, different ways of relating to the passing of time, how time governs the performance of commandments, and how to make the most of one's time.",
+        "he": ""
+      },
+      "shouldDisplay": true,
+      "pools": [
+        "torah_tab",
+        "library",
+        "sheets",
+        "general_en"
+      ],
+      "anchorRef": "Tosefta Berakhot 1:3",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:3"
+      ]
+    },
+    {
+      "linkType": "about",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Sheets by Sefaria users",
+        "he": "דפי מקורות ממשתמשי ספריא",
+        "slug": "sefaria-users"
+      },
+      "is_sheet": false,
+      "generatedBy": "sheet-topic-aggregator",
+      "order": {
+        "user_votes": 4,
+        "tfidf": 220.13761944350213,
+        "numDatasource": 1,
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "comp_date": 190,
+        "order_id": "A00800100000000010011",
+        "pr": 1.4249761436643138,
+        "numSources": 2128
+      },
+      "topic": "prayer",
+      "title": {
+        "en": "Prayer",
+        "he": "תפילה"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {
+        "en": "Prayer is a central aspect of Jewish life and features prominently throughout the Jewish textual tradition. Biblical characters commune with God, expressing their gratitude, distress, and desires. [Liturgical works](https://www.sefaria.org/texts/Liturgy) contain set prayers to be recited at regular schedules, while works of Jewish thought stress the importance of integrating personal connection into prayer.\n",
+        "he": "על פי המסורת, תפילה היא חלק מרכזי בעבודת ה' ומלווה את היהודי באופן יומיומי, בתפילות ציבור ובתפילות יחיד, בשבת ומועד וגם בימי חול. אנשי כנסת הגדולה קבעו את החובה להתפלל שלוש פעמים ביום. תפילות קבועות אלה הפכו להיות בין השאר, תחליף לקורבנות המקדש. נוסחי התפילות המרכזיות נקבעו על ידי חכמי המשנה ובכל דור נוספו עוד תפילות לסדר התפילה הקבוע.  "
+      },
+      "shouldDisplay": true,
+      "pools": [
+        "torah_tab",
+        "library",
+        "sheets",
+        "general_he",
+        "general_en"
+      ],
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ]
+    },
+    {
+      "linkType": "about",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Sheets by Sefaria users",
+        "he": "דפי מקורות ממשתמשי ספריא",
+        "slug": "sefaria-users"
+      },
+      "is_sheet": false,
+      "generatedBy": "sheet-topic-aggregator",
+      "order": {
+        "user_votes": 5,
+        "tfidf": 101.05251495052009,
+        "numDatasource": 1,
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "comp_date": 190,
+        "order_id": "A00800100000000010011",
+        "pr": 1,
+        "numSources": 464
+      },
+      "topic": "holiness",
+      "title": {
+        "en": "Holiness",
+        "he": "קדושה"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {},
+      "shouldDisplay": true,
+      "pools": [
+        "torah_tab",
+        "library",
+        "general_en",
+        "sheets"
+      ],
+      "anchorRef": "Tosefta Berakhot 1:11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:11"
+      ]
+    },
+    {
+      "linkType": "about",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Aspaklaria",
+        "he": "אספקלריא",
+        "slug": "aspaklaria"
+      },
+      "is_sheet": false,
+      "order": {
+        "tfidf": 57.025591414201116,
+        "numDatasource": 1,
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "comp_date": 190,
+        "order_id": "A00800100000000010004",
+        "pr": 0,
+        "numSources": 434
+      },
+      "topic": "shema",
+      "title": {
+        "en": "Shema",
+        "he": "קריאת שמע"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {
+        "en": "[The Shema](https://www.sefaria.org/Siddur_Ashkenaz%2C_Weekday%2C_Shacharit%2C_Blessings_of_the_Shema%2C_Shema?lang=bi), Judaism's most famous prayer, is actually not a prayer at all. Rather it is a declaration of God's unity and other central doctrines of Judaism. It involves reciting three passages from the Torah, one of which is interrupted by another ancient phrase, the origins of which are outside the Bible. ",
+        "he": "קריאת שמע היא תפילה ידועה השגורה בפי עם ישראל והיא כוללת שלושה קטעים מפסוקי התורה ומשפט אחד שאינו מן התנ\"ך. המילים של קריאת שמע הן הצהרה על ייחוד האל, אהבתו וקבלת עול מצוות. קריאת שמע היא מצווה מהתורה הנאמרת פעמיים ביום, בתפילת שחרית ובתפילת ערבית. רבים שמתו על קידוש השם קראו את קריאת שמע לפני מותם כהצהרה על אמונתם.\n"
+      },
+      "shouldDisplay": true,
+      "pools": [
+        "torah_tab",
+        "library",
+        "general_he",
+        "sheets",
+        "general_en"
+      ],
+      "anchorRef": "Tosefta Berakhot 1:4",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:4"
+      ]
+    },
+    {
+      "linkType": "about",
+      "class": "refTopic",
+      "dataSource": {
+        "en": "Aspaklaria",
+        "he": "אספקלריא",
+        "slug": "aspaklaria"
+      },
+      "is_sheet": false,
+      "order": {
+        "tfidf": 2.6813542947434903,
+        "numDatasource": 1,
+        "availableLangs": [
+          "en",
+          "he"
+        ],
+        "comp_date": 190,
+        "order_id": "A00800100000000010004",
+        "pr": 0,
+        "numSources": 40
+      },
+      "topic": "communal-needs",
+      "title": {
+        "en": "Communal Needs",
+        "he": "צורכי ציבור"
+      },
+      "titleIsTransliteration": {
+        "en": false,
+        "he": false
+      },
+      "description": {},
+      "shouldDisplay": true,
+      "pools": [
+        "library",
+        "sheets"
+      ],
+      "anchorRef": "Tosefta Berakhot 1:4",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:4"
+      ]
+    }
+  ],
+  "manuscripts": [
+    {
+      "manuscript_slug": "erfurt-manuscript",
+      "page_id": "2v",
+      "image_url": "https://manuscripts.sefaria.org/erfurt-tosefta/6_erfurt.jpg",
+      "thumbnail_url": "https://manuscripts.sefaria.org/erfurt-tosefta/6_erfurt_thumbnail.jpg",
+      "anchorRef": "Tosefta Berakhot 1:1-11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:8",
+        "Tosefta Berakhot 1:11",
+        "Tosefta Berakhot 1:3",
+        "Tosefta Berakhot 1:9",
+        "Tosefta Berakhot 1:4",
+        "Tosefta Berakhot 1:1",
+        "Tosefta Berakhot 1:7",
+        "Tosefta Berakhot 1:10",
+        "Tosefta Berakhot 1:5",
+        "Tosefta Berakhot 1:2",
+        "Tosefta Berakhot 1:6"
+      ],
+      "manuscript": {
+        "slug": "erfurt-manuscript",
+        "title": "Erfurt Manuscript",
+        "he_title": "כתב יד ארפורט",
+        "source": "",
+        "description": "",
+        "he_description": ""
+      }
+    },
+    {
+      "manuscript_slug": "vienna-manuscript",
+      "page_id": "2r",
+      "image_url": "https://manuscripts.sefaria.org/vienna-tosefta/Tosefta Berakhot 1:1 - Tosefta Berakhot 1:8.jpg",
+      "thumbnail_url": "https://manuscripts.sefaria.org/vienna-tosefta/Tosefta Berakhot 1:1 - Tosefta Berakhot 1:8_thumbnail.jpg",
+      "anchorRef": "Tosefta Berakhot 1:1-11",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:8",
+        "Tosefta Berakhot 1:11",
+        "Tosefta Berakhot 1:3",
+        "Tosefta Berakhot 1:9",
+        "Tosefta Berakhot 1:4",
+        "Tosefta Berakhot 1:1",
+        "Tosefta Berakhot 1:7",
+        "Tosefta Berakhot 1:10",
+        "Tosefta Berakhot 1:5",
+        "Tosefta Berakhot 1:2",
+        "Tosefta Berakhot 1:6"
+      ],
+      "manuscript": {
+        "slug": "vienna-manuscript",
+        "title": "Vienna Manuscript",
+        "he_title": "כתב יד וינה",
+        "source": "",
+        "description": "",
+        "he_description": ""
+      }
+    },
+    {
+      "manuscript_slug": "erfurt-manuscript",
+      "page_id": "3r",
+      "image_url": "https://manuscripts.sefaria.org/erfurt-tosefta/7_erfurt.jpg",
+      "thumbnail_url": "https://manuscripts.sefaria.org/erfurt-tosefta/7_erfurt_thumbnail.jpg",
+      "anchorRef": "Tosefta Berakhot 1:10-16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12",
+        "Tosefta Berakhot 1:14",
+        "Tosefta Berakhot 1:11",
+        "Tosefta Berakhot 1:13",
+        "Tosefta Berakhot 1:16",
+        "Tosefta Berakhot 1:15",
+        "Tosefta Berakhot 1:10"
+      ],
+      "manuscript": {
+        "slug": "erfurt-manuscript",
+        "title": "Erfurt Manuscript",
+        "he_title": "כתב יד ארפורט",
+        "source": "",
+        "description": "",
+        "he_description": ""
+      }
+    },
+    {
+      "manuscript_slug": "vienna-manuscript",
+      "page_id": "2v",
+      "image_url": "https://manuscripts.sefaria.org/vienna-tosefta/Tosefta Berakhot 1:8 - Tosefta Berakhot 1:15.jpg",
+      "thumbnail_url": "https://manuscripts.sefaria.org/vienna-tosefta/Tosefta Berakhot 1:8 - Tosefta Berakhot 1:15_thumbnail.jpg",
+      "anchorRef": "Tosefta Berakhot 1:10-16",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:12",
+        "Tosefta Berakhot 1:14",
+        "Tosefta Berakhot 1:11",
+        "Tosefta Berakhot 1:13",
+        "Tosefta Berakhot 1:16",
+        "Tosefta Berakhot 1:15",
+        "Tosefta Berakhot 1:10"
+      ],
+      "manuscript": {
+        "slug": "vienna-manuscript",
+        "title": "Vienna Manuscript",
+        "he_title": "כתב יד וינה",
+        "source": "",
+        "description": "",
+        "he_description": ""
+      }
+    },
+    {
+      "manuscript_slug": "erfurt-manuscript",
+      "page_id": "3v",
+      "image_url": "https://manuscripts.sefaria.org/erfurt-tosefta/8_erfurt.jpg",
+      "thumbnail_url": "https://manuscripts.sefaria.org/erfurt-tosefta/8_erfurt_thumbnail.jpg",
+      "anchorRef": "Tosefta Berakhot 1:13-2:13",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15",
+        "Tosefta Berakhot 1:13",
+        "Tosefta Berakhot 1:16",
+        "Tosefta Berakhot 1:14"
+      ],
+      "manuscript": {
+        "slug": "erfurt-manuscript",
+        "title": "Erfurt Manuscript",
+        "he_title": "כתב יד ארפורט",
+        "source": "",
+        "description": "",
+        "he_description": ""
+      }
+    },
+    {
+      "manuscript_slug": "vienna-manuscript",
+      "page_id": "3r",
+      "image_url": "https://manuscripts.sefaria.org/vienna-tosefta/Tosefta Berakhot 1:15 - Tosefta Berakhot 2:13.jpg",
+      "thumbnail_url": "https://manuscripts.sefaria.org/vienna-tosefta/Tosefta Berakhot 1:15 - Tosefta Berakhot 2:13_thumbnail.jpg",
+      "anchorRef": "Tosefta Berakhot 1:13-2:12",
+      "anchorRefExpanded": [
+        "Tosefta Berakhot 1:15",
+        "Tosefta Berakhot 1:13",
+        "Tosefta Berakhot 1:16",
+        "Tosefta Berakhot 1:14"
+      ],
+      "manuscript": {
+        "slug": "vienna-manuscript",
+        "title": "Vienna Manuscript",
+        "he_title": "כתב יד וינה",
+        "source": "",
+        "description": "",
+        "he_description": ""
+      }
+    }
+  ],
+  "media": [],
+  "guides": []
+}

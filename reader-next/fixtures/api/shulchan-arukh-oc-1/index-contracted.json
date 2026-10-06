@@ -1,0 +1,2880 @@
+{
+  "title": "Shulchan Arukh, Orach Chayim",
+  "categories": [
+    "Halakhah",
+    "Shulchan Arukh"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Siman",
+      "Seif"
+    ],
+    "sectionNames": [
+      "Siman",
+      "Seif"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "shulchan-arukh",
+          "orach-chayim"
+        ]
+      },
+      {
+        "term_slugs": [
+          "ramah",
+          "orach-chayim"
+        ]
+      },
+      {
+        "term_slugs": [
+          "orach-chayim"
+        ]
+      }
+    ],
+    "lengths": [
+      697,
+      4171
+    ],
+    "titles": [
+      {
+        "text": "O.Ch.",
+        "lang": "en"
+      },
+      {
+        "text": "Orach Chaim",
+        "lang": "en"
+      },
+      {
+        "text": "Orach Chayyim",
+        "lang": "en"
+      },
+      {
+        "text": "Orah Hayyim",
+        "lang": "en"
+      },
+      {
+        "text": "shulchan aruch orach chaim",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Aruch, Orach Chaim",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Arukh, Orach Chayyim",
+        "lang": "en"
+      },
+      {
+        "text": "Shulḥan Arukh, Oraḥ Hayyim",
+        "lang": "en"
+      },
+      {
+        "text": "<i>Shulḥan Arukh, Oraḥ Ḥayyim</i>",
+        "lang": "en"
+      },
+      {
+        "text": "<i>Shulḥan Arukh, Oraḥ Hayyim</i>",
+        "lang": "en"
+      },
+      {
+        "text": "Oraḥ Hayyim",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Aruch, Orach Chayim",
+        "lang": "en"
+      },
+      {
+        "text": "Shulhan Arukh OH",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Aruch O.C.",
+        "lang": "en"
+      },
+      {
+        "text": "S.A. O.C.",
+        "lang": "en"
+      },
+      {
+        "text": "SA OC",
+        "lang": "en"
+      },
+      {
+        "text": "OC",
+        "lang": "en"
+      },
+      {
+        "text": "O.C.",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Aruch Orach Chaim",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Aruch OC",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Arukh Orach Chaim",
+        "lang": "en"
+      },
+      {
+        "text": "Shulchan Arukh OC",
+        "lang": "en"
+      },
+      {
+        "text": "Shulhan Arukh, Orah Haim",
+        "lang": "en"
+      },
+      {
+        "text": "Orakh Hayim",
+        "lang": "en"
+      },
+      {
+        "text": "OH",
+        "lang": "en"
+      },
+      {
+        "text": "Orach Hayim",
+        "lang": "en"
+      },
+      {
+        "text": "Orah Hayim",
+        "lang": "en"
+      },
+      {
+        "text": "Orach Haim",
+        "lang": "en"
+      },
+      {
+        "text": "שולחן ערוך אורח חיים",
+        "lang": "he"
+      },
+      {
+        "text": "שו\"ע או\"ח",
+        "lang": "he"
+      },
+      {
+        "text": "שלחן ערוך או\"ח",
+        "lang": "he"
+      },
+      {
+        "text": "שולחן ערוך או\"ח",
+        "lang": "he"
+      },
+      {
+        "text": "או\"ח",
+        "lang": "he"
+      },
+      {
+        "text": "שו״ע או״ח",
+        "lang": "he"
+      },
+      {
+        "text": "שו”ע או”ח",
+        "lang": "he"
+      },
+      {
+        "text": "שלחן ערוך או״ח",
+        "lang": "he"
+      },
+      {
+        "text": "שלחן ערוך או”ח",
+        "lang": "he"
+      },
+      {
+        "text": "שולחן ערוך או״ח",
+        "lang": "he"
+      },
+      {
+        "text": "שולחן ערוך או”ח",
+        "lang": "he"
+      },
+      {
+        "text": "או״ח",
+        "lang": "he"
+      },
+      {
+        "text": "או”ח",
+        "lang": "he"
+      },
+      {
+        "text": "אורח חיים",
+        "lang": "he"
+      },
+      {
+        "text": "שולחן ערוך, אורח חיים",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Shulchan Arukh, Orach Chayim",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Shulchan Arukh, Orach Chayim",
+    "heTitle": "שולחן ערוך, אורח חיים",
+    "heSectionNames": [
+      "סימן",
+      "סעיף"
+    ],
+    "key": "Shulchan Arukh, Orach Chayim",
+    "content_counts": [
+      9,
+      6,
+      17,
+      23,
+      1,
+      4,
+      4,
+      17,
+      6,
+      12,
+      15,
+      3,
+      3,
+      5,
+      6,
+      1,
+      3,
+      3,
+      2,
+      2,
+      4,
+      1,
+      4,
+      6,
+      13,
+      2,
+      11,
+      3,
+      1,
+      5,
+      2,
+      52,
+      5,
+      4,
+      1,
+      3,
+      3,
+      13,
+      10,
+      8,
+      1,
+      3,
+      9,
+      1,
+      2,
+      9,
+      14,
+      1,
+      1,
+      1,
+      9,
+      1,
+      26,
+      3,
+      22,
+      5,
+      2,
+      7,
+      5,
+      5,
+      26,
+      5,
+      9,
+      4,
+      3,
+      10,
+      1,
+      1,
+      2,
+      5,
+      7,
+      5,
+      4,
+      6,
+      6,
+      8,
+      2,
+      1,
+      9,
+      1,
+      2,
+      2,
+      5,
+      1,
+      2,
+      1,
+      3,
+      1,
+      8,
+      27,
+      6,
+      10,
+      4,
+      9,
+      4,
+      2,
+      5,
+      5,
+      3,
+      1,
+      4,
+      5,
+      3,
+      8,
+      1,
+      3,
+      4,
+      12,
+      3,
+      8,
+      3,
+      2,
+      9,
+      9,
+      1,
+      1,
+      5,
+      1,
+      4,
+      1,
+      3,
+      3,
+      6,
+      12,
+      2,
+      4,
+      2,
+      45,
+      2,
+      1,
+      8,
+      2,
+      1,
+      2,
+      14,
+      1,
+      6,
+      1,
+      11,
+      3,
+      8,
+      2,
+      5,
+      4,
+      3,
+      4,
+      8,
+      1,
+      1,
+      5,
+      12,
+      1,
+      22,
+      15,
+      2,
+      1,
+      1,
+      13,
+      20,
+      15,
+      4,
+      10,
+      2,
+      2,
+      2,
+      1,
+      20,
+      17,
+      3,
+      22,
+      5,
+      2,
+      3,
+      8,
+      6,
+      1,
+      5,
+      7,
+      6,
+      5,
+      10,
+      7,
+      12,
+      6,
+      5,
+      2,
+      4,
+      10,
+      2,
+      5,
+      3,
+      2,
+      6,
+      3,
+      3,
+      4,
+      4,
+      1,
+      11,
+      2,
+      4,
+      18,
+      8,
+      13,
+      5,
+      6,
+      1,
+      18,
+      3,
+      2,
+      6,
+      2,
+      3,
+      1,
+      4,
+      14,
+      8,
+      9,
+      10,
+      2,
+      2,
+      4,
+      6,
+      13,
+      10,
+      1,
+      3,
+      3,
+      2,
+      5,
+      1,
+      3,
+      2,
+      2,
+      4,
+      4,
+      1,
+      2,
+      2,
+      17,
+      1,
+      1,
+      2,
+      6,
+      6,
+      5,
+      6,
+      4,
+      4,
+      2,
+      2,
+      7,
+      5,
+      9,
+      3,
+      1,
+      8,
+      1,
+      7,
+      2,
+      4,
+      3,
+      17,
+      10,
+      4,
+      13,
+      3,
+      13,
+      2,
+      2,
+      17,
+      10,
+      7,
+      4,
+      12,
+      5,
+      5,
+      1,
+      7,
+      2,
+      1,
+      7,
+      1,
+      7,
+      7,
+      5,
+      1,
+      10,
+      2,
+      2,
+      6,
+      2,
+      3,
+      5,
+      1,
+      8,
+      5,
+      15,
+      10,
+      1,
+      51,
+      13,
+      27,
+      3,
+      23,
+      14,
+      22,
+      52,
+      5,
+      9,
+      9,
+      10,
+      10,
+      12,
+      13,
+      12,
+      7,
+      19,
+      17,
+      20,
+      19,
+      6,
+      10,
+      15,
+      16,
+      13,
+      4,
+      49,
+      9,
+      11,
+      10,
+      4,
+      3,
+      27,
+      5,
+      13,
+      4,
+      8,
+      7,
+      14,
+      3,
+      1,
+      1,
+      2,
+      19,
+      3,
+      1,
+      1,
+      5,
+      3,
+      1,
+      2,
+      3,
+      2,
+      5,
+      2,
+      3,
+      14,
+      1,
+      3,
+      2,
+      12,
+      36,
+      5,
+      8,
+      15,
+      1,
+      5,
+      1,
+      8,
+      6,
+      19,
+      1,
+      4,
+      4,
+      4,
+      1,
+      5,
+      2,
+      4,
+      7,
+      20,
+      1,
+      2,
+      4,
+      9,
+      1,
+      1,
+      1,
+      2,
+      2,
+      8,
+      3,
+      3,
+      1,
+      2,
+      18,
+      11,
+      11,
+      1,
+      1,
+      1,
+      1,
+      1,
+      9,
+      1,
+      3,
+      4,
+      13,
+      3,
+      1,
+      1,
+      1,
+      2,
+      4,
+      5,
+      1,
+      5,
+      1,
+      2,
+      1,
+      7,
+      4,
+      1,
+      3,
+      4,
+      1,
+      8,
+      2,
+      1,
+      2,
+      2,
+      11,
+      4,
+      1,
+      3,
+      4,
+      2,
+      10,
+      4,
+      4,
+      11,
+      3,
+      8,
+      3,
+      4,
+      12,
+      7,
+      1,
+      7,
+      27,
+      7,
+      9,
+      4,
+      6,
+      3,
+      2,
+      1,
+      6,
+      7,
+      5,
+      7,
+      3,
+      1,
+      3,
+      6,
+      16,
+      10,
+      1,
+      3,
+      3,
+      16,
+      7,
+      1,
+      7,
+      2,
+      2,
+      2,
+      1,
+      1,
+      2,
+      1,
+      1,
+      1,
+      2,
+      2,
+      4,
+      3,
+      10,
+      9,
+      2,
+      1,
+      4,
+      3,
+      4,
+      3,
+      17,
+      20,
+      5,
+      6,
+      7,
+      4,
+      2,
+      4,
+      1,
+      9,
+      7,
+      2,
+      7,
+      11,
+      4,
+      3,
+      8,
+      11,
+      9,
+      3,
+      4,
+      9,
+      5,
+      1,
+      3,
+      4,
+      4,
+      2,
+      2,
+      12,
+      24,
+      2,
+      4,
+      1,
+      8,
+      2,
+      5,
+      3,
+      3,
+      4,
+      16,
+      6,
+      14,
+      8,
+      5,
+      2,
+      3,
+      2,
+      11,
+      5,
+      12,
+      20,
+      2,
+      4,
+      18,
+      12,
+      2,
+      25,
+      2,
+      1,
+      1,
+      1,
+      10,
+      5,
+      5,
+      13,
+      1,
+      1,
+      6,
+      8,
+      3,
+      12,
+      2,
+      3,
+      3,
+      3,
+      1,
+      5,
+      13,
+      16,
+      1,
+      2,
+      3,
+      3,
+      4,
+      9,
+      2,
+      4,
+      5,
+      23,
+      3,
+      5,
+      9,
+      9,
+      8,
+      4,
+      2,
+      1,
+      1,
+      1,
+      3,
+      1,
+      1,
+      3,
+      2,
+      1,
+      1,
+      2,
+      1,
+      4,
+      6,
+      4,
+      1,
+      4,
+      2,
+      10,
+      12,
+      4,
+      2,
+      2,
+      4,
+      10,
+      6,
+      1,
+      6,
+      4,
+      6,
+      5,
+      1,
+      3,
+      4,
+      3,
+      19,
+      13,
+      10,
+      4,
+      10,
+      4,
+      1,
+      2,
+      3,
+      2,
+      8,
+      10,
+      1,
+      1,
+      3,
+      2,
+      9,
+      11,
+      2,
+      22,
+      6,
+      2,
+      15,
+      2,
+      2,
+      1,
+      1,
+      1,
+      1,
+      9,
+      1,
+      3,
+      1,
+      3,
+      3,
+      11,
+      2,
+      1,
+      1,
+      2,
+      1,
+      3,
+      8,
+      2,
+      4,
+      2,
+      3,
+      5,
+      4,
+      1,
+      1,
+      2,
+      2,
+      3,
+      1,
+      3,
+      7,
+      3,
+      2,
+      8,
+      6,
+      18,
+      11,
+      4,
+      4,
+      4,
+      4,
+      8,
+      1
+    ]
+  },
+  "order": [
+    10
+  ],
+  "authors": [
+    {
+      "en": "Joseph Karo",
+      "he": "יוסף קארו",
+      "slug": "joseph-karo"
+    }
+  ],
+  "enDesc": "The Shulchan Arukh (“Set Table”) is the most widely accepted code of Jewish law ever written. Compiled in the 16th century by Rabbi Yosef Karo, it is a condensed and simplified version of the Beit Yosef, a commentary that Karo wrote on the Tur. Karo’s rulings are in accordance with Sephardic traditions; the text of the Shulchan Arukh also includes the glosses of Rabbi Moshe Isserles, which cite Ashkenazic traditions. Orach Chaim (“Way of Life,” a reference to Psalms 16:11) is the first of four sections. It discusses daily ritual observance, like prayer, Tefillin, Tzitzit, Shabbat, and holidays.",
+  "enShortDesc": "Daily ritual observance: prayer, Tefillin, Tzitzit, Shabbat, and holidays.",
+  "heShortDesc": "הלכות הקשורות לסדר היום: תפילה, ברכות, תפילין, שבת, עירובין, ומועדים.",
+  "pubDate": [
+    1564
+  ],
+  "compDate": [
+    1563
+  ],
+  "compPlace": "Safed",
+  "pubPlace": "Venice",
+  "era": "AH",
+  "is_cited": true,
+  "heTitle": "שולחן ערוך, אורח חיים",
+  "titleVariants": [
+    "O.Ch.",
+    "Orach Chaim",
+    "Orach Chayyim",
+    "Orah Hayyim",
+    "shulchan aruch orach chaim",
+    "Shulchan Aruch, Orach Chaim",
+    "Shulchan Arukh, Orach Chayyim",
+    "Shulḥan Arukh, Oraḥ Hayyim",
+    "<i>Shulḥan Arukh, Oraḥ Ḥayyim</i>",
+    "<i>Shulḥan Arukh, Oraḥ Hayyim</i>",
+    "Oraḥ Hayyim",
+    "Shulchan Aruch, Orach Chayim",
+    "Shulhan Arukh OH",
+    "Shulchan Aruch O.C.",
+    "S.A. O.C.",
+    "SA OC",
+    "OC",
+    "O.C.",
+    "Shulchan Aruch Orach Chaim",
+    "Shulchan Aruch OC",
+    "Shulchan Arukh Orach Chaim",
+    "Shulchan Arukh OC",
+    "Shulhan Arukh, Orah Haim",
+    "Orakh Hayim",
+    "OH",
+    "Orach Hayim",
+    "Orah Hayim",
+    "Orach Haim",
+    "Shulchan Arukh, Orach Chayim"
+  ],
+  "heTitleVariants": [
+    "שולחן ערוך אורח חיים",
+    "שו\"ע או\"ח",
+    "שלחן ערוך או\"ח",
+    "שולחן ערוך או\"ח",
+    "או\"ח",
+    "שו״ע או״ח",
+    "שו”ע או”ח",
+    "שלחן ערוך או״ח",
+    "שלחן ערוך או”ח",
+    "שולחן ערוך או״ח",
+    "שולחן ערוך או”ח",
+    "או״ח",
+    "או”ח",
+    "אורח חיים",
+    "שולחן ערוך, אורח חיים"
+  ],
+  "alts": {
+    "Topic": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 1-7",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws Upon Awakening in the Morning",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות הנהגת האדם בבוקר",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws Upon Awakening in the Morning",
+          "heTitle": "הלכות הנהגת האדם בבוקר",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 1",
+            "Shulchan Arukh, Orach Chayim 2",
+            "Shulchan Arukh, Orach Chayim 3",
+            "Shulchan Arukh, Orach Chayim 4",
+            "Shulchan Arukh, Orach Chayim 5",
+            "Shulchan Arukh, Orach Chayim 6",
+            "Shulchan Arukh, Orach Chayim 7"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 0
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 8-24",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Tzitzit",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות ציצית",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Tzitzit",
+          "heTitle": "הלכות ציצית",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 8",
+            "Shulchan Arukh, Orach Chayim 9",
+            "Shulchan Arukh, Orach Chayim 10",
+            "Shulchan Arukh, Orach Chayim 11",
+            "Shulchan Arukh, Orach Chayim 12",
+            "Shulchan Arukh, Orach Chayim 13",
+            "Shulchan Arukh, Orach Chayim 14",
+            "Shulchan Arukh, Orach Chayim 15",
+            "Shulchan Arukh, Orach Chayim 16",
+            "Shulchan Arukh, Orach Chayim 17",
+            "Shulchan Arukh, Orach Chayim 18",
+            "Shulchan Arukh, Orach Chayim 19",
+            "Shulchan Arukh, Orach Chayim 20",
+            "Shulchan Arukh, Orach Chayim 21",
+            "Shulchan Arukh, Orach Chayim 22",
+            "Shulchan Arukh, Orach Chayim 23",
+            "Shulchan Arukh, Orach Chayim 24"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 7
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 25-46",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Tefillin",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות תפילין",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Tefillin",
+          "heTitle": "הלכות תפילין",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 25",
+            "Shulchan Arukh, Orach Chayim 26",
+            "Shulchan Arukh, Orach Chayim 27",
+            "Shulchan Arukh, Orach Chayim 28",
+            "Shulchan Arukh, Orach Chayim 29",
+            "Shulchan Arukh, Orach Chayim 30",
+            "Shulchan Arukh, Orach Chayim 31",
+            "Shulchan Arukh, Orach Chayim 32",
+            "Shulchan Arukh, Orach Chayim 33",
+            "Shulchan Arukh, Orach Chayim 34",
+            "Shulchan Arukh, Orach Chayim 35",
+            "Shulchan Arukh, Orach Chayim 36",
+            "Shulchan Arukh, Orach Chayim 37",
+            "Shulchan Arukh, Orach Chayim 38",
+            "Shulchan Arukh, Orach Chayim 39",
+            "Shulchan Arukh, Orach Chayim 40",
+            "Shulchan Arukh, Orach Chayim 41",
+            "Shulchan Arukh, Orach Chayim 42",
+            "Shulchan Arukh, Orach Chayim 43",
+            "Shulchan Arukh, Orach Chayim 44",
+            "Shulchan Arukh, Orach Chayim 45",
+            "Shulchan Arukh, Orach Chayim 46"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 24
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 47-57",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Morning Blessings",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות ברכות השחר ושאר ברכות",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Morning Blessings",
+          "heTitle": "הלכות ברכות השחר ושאר ברכות",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 47",
+            "Shulchan Arukh, Orach Chayim 48",
+            "Shulchan Arukh, Orach Chayim 49",
+            "Shulchan Arukh, Orach Chayim 50",
+            "Shulchan Arukh, Orach Chayim 51",
+            "Shulchan Arukh, Orach Chayim 52",
+            "Shulchan Arukh, Orach Chayim 53",
+            "Shulchan Arukh, Orach Chayim 54",
+            "Shulchan Arukh, Orach Chayim 55",
+            "Shulchan Arukh, Orach Chayim 56",
+            "Shulchan Arukh, Orach Chayim 57"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 46
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 58-88",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Reciting Shema",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות קריאת שמע",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Reciting Shema",
+          "heTitle": "הלכות קריאת שמע",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 58",
+            "Shulchan Arukh, Orach Chayim 59",
+            "Shulchan Arukh, Orach Chayim 60",
+            "Shulchan Arukh, Orach Chayim 61",
+            "Shulchan Arukh, Orach Chayim 62",
+            "Shulchan Arukh, Orach Chayim 63",
+            "Shulchan Arukh, Orach Chayim 64",
+            "Shulchan Arukh, Orach Chayim 65",
+            "Shulchan Arukh, Orach Chayim 66",
+            "Shulchan Arukh, Orach Chayim 67",
+            "Shulchan Arukh, Orach Chayim 68",
+            "Shulchan Arukh, Orach Chayim 69",
+            "Shulchan Arukh, Orach Chayim 70",
+            "Shulchan Arukh, Orach Chayim 71",
+            "Shulchan Arukh, Orach Chayim 72",
+            "Shulchan Arukh, Orach Chayim 73",
+            "Shulchan Arukh, Orach Chayim 74",
+            "Shulchan Arukh, Orach Chayim 75",
+            "Shulchan Arukh, Orach Chayim 76",
+            "Shulchan Arukh, Orach Chayim 77",
+            "Shulchan Arukh, Orach Chayim 78",
+            "Shulchan Arukh, Orach Chayim 79",
+            "Shulchan Arukh, Orach Chayim 80",
+            "Shulchan Arukh, Orach Chayim 81",
+            "Shulchan Arukh, Orach Chayim 82",
+            "Shulchan Arukh, Orach Chayim 83",
+            "Shulchan Arukh, Orach Chayim 84",
+            "Shulchan Arukh, Orach Chayim 85",
+            "Shulchan Arukh, Orach Chayim 86",
+            "Shulchan Arukh, Orach Chayim 87",
+            "Shulchan Arukh, Orach Chayim 88"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 57
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 89-127",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Prayer",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות תפילה",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Prayer",
+          "heTitle": "הלכות תפילה",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 89",
+            "Shulchan Arukh, Orach Chayim 90",
+            "Shulchan Arukh, Orach Chayim 91",
+            "Shulchan Arukh, Orach Chayim 92",
+            "Shulchan Arukh, Orach Chayim 93",
+            "Shulchan Arukh, Orach Chayim 94",
+            "Shulchan Arukh, Orach Chayim 95",
+            "Shulchan Arukh, Orach Chayim 96",
+            "Shulchan Arukh, Orach Chayim 97",
+            "Shulchan Arukh, Orach Chayim 98",
+            "Shulchan Arukh, Orach Chayim 99",
+            "Shulchan Arukh, Orach Chayim 100",
+            "Shulchan Arukh, Orach Chayim 101",
+            "Shulchan Arukh, Orach Chayim 102",
+            "Shulchan Arukh, Orach Chayim 103",
+            "Shulchan Arukh, Orach Chayim 104",
+            "Shulchan Arukh, Orach Chayim 105",
+            "Shulchan Arukh, Orach Chayim 106",
+            "Shulchan Arukh, Orach Chayim 107",
+            "Shulchan Arukh, Orach Chayim 108",
+            "Shulchan Arukh, Orach Chayim 109",
+            "Shulchan Arukh, Orach Chayim 110",
+            "Shulchan Arukh, Orach Chayim 111",
+            "Shulchan Arukh, Orach Chayim 112",
+            "Shulchan Arukh, Orach Chayim 113",
+            "Shulchan Arukh, Orach Chayim 114",
+            "Shulchan Arukh, Orach Chayim 115",
+            "Shulchan Arukh, Orach Chayim 116",
+            "Shulchan Arukh, Orach Chayim 117",
+            "Shulchan Arukh, Orach Chayim 118",
+            "Shulchan Arukh, Orach Chayim 119",
+            "Shulchan Arukh, Orach Chayim 120",
+            "Shulchan Arukh, Orach Chayim 121",
+            "Shulchan Arukh, Orach Chayim 122",
+            "Shulchan Arukh, Orach Chayim 123",
+            "Shulchan Arukh, Orach Chayim 124",
+            "Shulchan Arukh, Orach Chayim 125",
+            "Shulchan Arukh, Orach Chayim 126",
+            "Shulchan Arukh, Orach Chayim 127"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 88
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 128-135",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of the Priestly Blessing",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות נשיאת כפים",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of the Priestly Blessing",
+          "heTitle": "הלכות נשיאת כפים",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 128",
+            "Shulchan Arukh, Orach Chayim 129",
+            "Shulchan Arukh, Orach Chayim 130",
+            "Shulchan Arukh, Orach Chayim 131",
+            "Shulchan Arukh, Orach Chayim 132",
+            "Shulchan Arukh, Orach Chayim 133",
+            "Shulchan Arukh, Orach Chayim 134",
+            "Shulchan Arukh, Orach Chayim 135"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 127
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 136-149",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Reading the Torah",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות קריאת התורה",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Reading the Torah",
+          "heTitle": "הלכות קריאת התורה",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 136",
+            "Shulchan Arukh, Orach Chayim 137",
+            "Shulchan Arukh, Orach Chayim 138",
+            "Shulchan Arukh, Orach Chayim 139",
+            "Shulchan Arukh, Orach Chayim 140",
+            "Shulchan Arukh, Orach Chayim 141",
+            "Shulchan Arukh, Orach Chayim 142",
+            "Shulchan Arukh, Orach Chayim 143",
+            "Shulchan Arukh, Orach Chayim 144",
+            "Shulchan Arukh, Orach Chayim 145",
+            "Shulchan Arukh, Orach Chayim 146",
+            "Shulchan Arukh, Orach Chayim 147",
+            "Shulchan Arukh, Orach Chayim 148",
+            "Shulchan Arukh, Orach Chayim 149"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 135
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 150-156",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of the Synagogue",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות בית הכנסת",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of the Synagogue",
+          "heTitle": "הלכות בית הכנסת",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 150",
+            "Shulchan Arukh, Orach Chayim 151",
+            "Shulchan Arukh, Orach Chayim 152",
+            "Shulchan Arukh, Orach Chayim 153",
+            "Shulchan Arukh, Orach Chayim 154",
+            "Shulchan Arukh, Orach Chayim 155",
+            "Shulchan Arukh, Orach Chayim 156"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 149
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 157-165",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Washing One's Hands for a Meal",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות נטילת ידים",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Washing One's Hands for a Meal",
+          "heTitle": "הלכות נטילת ידים",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 157",
+            "Shulchan Arukh, Orach Chayim 158",
+            "Shulchan Arukh, Orach Chayim 159",
+            "Shulchan Arukh, Orach Chayim 160",
+            "Shulchan Arukh, Orach Chayim 161",
+            "Shulchan Arukh, Orach Chayim 162",
+            "Shulchan Arukh, Orach Chayim 163",
+            "Shulchan Arukh, Orach Chayim 164",
+            "Shulchan Arukh, Orach Chayim 165"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 156
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 166-201",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of the Meal",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות סעודה",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of the Meal",
+          "heTitle": "הלכות סעודה",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 166",
+            "Shulchan Arukh, Orach Chayim 167",
+            "Shulchan Arukh, Orach Chayim 168",
+            "Shulchan Arukh, Orach Chayim 169",
+            "Shulchan Arukh, Orach Chayim 170",
+            "Shulchan Arukh, Orach Chayim 171",
+            "Shulchan Arukh, Orach Chayim 172",
+            "Shulchan Arukh, Orach Chayim 173",
+            "Shulchan Arukh, Orach Chayim 174",
+            "Shulchan Arukh, Orach Chayim 175",
+            "Shulchan Arukh, Orach Chayim 176",
+            "Shulchan Arukh, Orach Chayim 177",
+            "Shulchan Arukh, Orach Chayim 178",
+            "Shulchan Arukh, Orach Chayim 179",
+            "Shulchan Arukh, Orach Chayim 180",
+            "Shulchan Arukh, Orach Chayim 181",
+            "Shulchan Arukh, Orach Chayim 182",
+            "Shulchan Arukh, Orach Chayim 183",
+            "Shulchan Arukh, Orach Chayim 184",
+            "Shulchan Arukh, Orach Chayim 185",
+            "Shulchan Arukh, Orach Chayim 186",
+            "Shulchan Arukh, Orach Chayim 187",
+            "Shulchan Arukh, Orach Chayim 188",
+            "Shulchan Arukh, Orach Chayim 189",
+            "Shulchan Arukh, Orach Chayim 190",
+            "Shulchan Arukh, Orach Chayim 191",
+            "Shulchan Arukh, Orach Chayim 192",
+            "Shulchan Arukh, Orach Chayim 193",
+            "Shulchan Arukh, Orach Chayim 194",
+            "Shulchan Arukh, Orach Chayim 195",
+            "Shulchan Arukh, Orach Chayim 196",
+            "Shulchan Arukh, Orach Chayim 197",
+            "Shulchan Arukh, Orach Chayim 198",
+            "Shulchan Arukh, Orach Chayim 199",
+            "Shulchan Arukh, Orach Chayim 200",
+            "Shulchan Arukh, Orach Chayim 201"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 165
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 202-214",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Blessings on Fruit",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות ברכת הפירות",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Blessings on Fruit",
+          "heTitle": "הלכות ברכת הפירות",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 202",
+            "Shulchan Arukh, Orach Chayim 203",
+            "Shulchan Arukh, Orach Chayim 204",
+            "Shulchan Arukh, Orach Chayim 205",
+            "Shulchan Arukh, Orach Chayim 206",
+            "Shulchan Arukh, Orach Chayim 207",
+            "Shulchan Arukh, Orach Chayim 208",
+            "Shulchan Arukh, Orach Chayim 209",
+            "Shulchan Arukh, Orach Chayim 210",
+            "Shulchan Arukh, Orach Chayim 211",
+            "Shulchan Arukh, Orach Chayim 212",
+            "Shulchan Arukh, Orach Chayim 213",
+            "Shulchan Arukh, Orach Chayim 214"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 201
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 215-241",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Other Blessings",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות שאר ברכות",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Other Blessings",
+          "heTitle": "הלכות שאר ברכות",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 215",
+            "Shulchan Arukh, Orach Chayim 216",
+            "Shulchan Arukh, Orach Chayim 217",
+            "Shulchan Arukh, Orach Chayim 218",
+            "Shulchan Arukh, Orach Chayim 219",
+            "Shulchan Arukh, Orach Chayim 220",
+            "Shulchan Arukh, Orach Chayim 221",
+            "Shulchan Arukh, Orach Chayim 222",
+            "Shulchan Arukh, Orach Chayim 223",
+            "Shulchan Arukh, Orach Chayim 224",
+            "Shulchan Arukh, Orach Chayim 225",
+            "Shulchan Arukh, Orach Chayim 226",
+            "Shulchan Arukh, Orach Chayim 227",
+            "Shulchan Arukh, Orach Chayim 228",
+            "Shulchan Arukh, Orach Chayim 229",
+            "Shulchan Arukh, Orach Chayim 230",
+            "Shulchan Arukh, Orach Chayim 231",
+            "Shulchan Arukh, Orach Chayim 232",
+            "Shulchan Arukh, Orach Chayim 233",
+            "Shulchan Arukh, Orach Chayim 234",
+            "Shulchan Arukh, Orach Chayim 235",
+            "Shulchan Arukh, Orach Chayim 236",
+            "Shulchan Arukh, Orach Chayim 237",
+            "Shulchan Arukh, Orach Chayim 238",
+            "Shulchan Arukh, Orach Chayim 239",
+            "Shulchan Arukh, Orach Chayim 240",
+            "Shulchan Arukh, Orach Chayim 241"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 214
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 242-344",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Shabbat",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות שבת",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Shabbat",
+          "heTitle": "הלכות שבת",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 242",
+            "Shulchan Arukh, Orach Chayim 243",
+            "Shulchan Arukh, Orach Chayim 244",
+            "Shulchan Arukh, Orach Chayim 245",
+            "Shulchan Arukh, Orach Chayim 246",
+            "Shulchan Arukh, Orach Chayim 247",
+            "Shulchan Arukh, Orach Chayim 248",
+            "Shulchan Arukh, Orach Chayim 249",
+            "Shulchan Arukh, Orach Chayim 250",
+            "Shulchan Arukh, Orach Chayim 251",
+            "Shulchan Arukh, Orach Chayim 252",
+            "Shulchan Arukh, Orach Chayim 253",
+            "Shulchan Arukh, Orach Chayim 254",
+            "Shulchan Arukh, Orach Chayim 255",
+            "Shulchan Arukh, Orach Chayim 256",
+            "Shulchan Arukh, Orach Chayim 257",
+            "Shulchan Arukh, Orach Chayim 258",
+            "Shulchan Arukh, Orach Chayim 259",
+            "Shulchan Arukh, Orach Chayim 260",
+            "Shulchan Arukh, Orach Chayim 261",
+            "Shulchan Arukh, Orach Chayim 262",
+            "Shulchan Arukh, Orach Chayim 263",
+            "Shulchan Arukh, Orach Chayim 264",
+            "Shulchan Arukh, Orach Chayim 265",
+            "Shulchan Arukh, Orach Chayim 266",
+            "Shulchan Arukh, Orach Chayim 267",
+            "Shulchan Arukh, Orach Chayim 268",
+            "Shulchan Arukh, Orach Chayim 269",
+            "Shulchan Arukh, Orach Chayim 270",
+            "Shulchan Arukh, Orach Chayim 271",
+            "Shulchan Arukh, Orach Chayim 272",
+            "Shulchan Arukh, Orach Chayim 273",
+            "Shulchan Arukh, Orach Chayim 274",
+            "Shulchan Arukh, Orach Chayim 275",
+            "Shulchan Arukh, Orach Chayim 276",
+            "Shulchan Arukh, Orach Chayim 277",
+            "Shulchan Arukh, Orach Chayim 278",
+            "Shulchan Arukh, Orach Chayim 279",
+            "Shulchan Arukh, Orach Chayim 280",
+            "Shulchan Arukh, Orach Chayim 281",
+            "Shulchan Arukh, Orach Chayim 282",
+            "Shulchan Arukh, Orach Chayim 283",
+            "Shulchan Arukh, Orach Chayim 284",
+            "Shulchan Arukh, Orach Chayim 285",
+            "Shulchan Arukh, Orach Chayim 286",
+            "Shulchan Arukh, Orach Chayim 287",
+            "Shulchan Arukh, Orach Chayim 288",
+            "Shulchan Arukh, Orach Chayim 289",
+            "Shulchan Arukh, Orach Chayim 290",
+            "Shulchan Arukh, Orach Chayim 291",
+            "Shulchan Arukh, Orach Chayim 292",
+            "Shulchan Arukh, Orach Chayim 293",
+            "Shulchan Arukh, Orach Chayim 294",
+            "Shulchan Arukh, Orach Chayim 295",
+            "Shulchan Arukh, Orach Chayim 296",
+            "Shulchan Arukh, Orach Chayim 297",
+            "Shulchan Arukh, Orach Chayim 298",
+            "Shulchan Arukh, Orach Chayim 299",
+            "Shulchan Arukh, Orach Chayim 300",
+            "Shulchan Arukh, Orach Chayim 301",
+            "Shulchan Arukh, Orach Chayim 302",
+            "Shulchan Arukh, Orach Chayim 303",
+            "Shulchan Arukh, Orach Chayim 304",
+            "Shulchan Arukh, Orach Chayim 305",
+            "Shulchan Arukh, Orach Chayim 306",
+            "Shulchan Arukh, Orach Chayim 307",
+            "Shulchan Arukh, Orach Chayim 308",
+            "Shulchan Arukh, Orach Chayim 309",
+            "Shulchan Arukh, Orach Chayim 310",
+            "Shulchan Arukh, Orach Chayim 311",
+            "Shulchan Arukh, Orach Chayim 312",
+            "Shulchan Arukh, Orach Chayim 313",
+            "Shulchan Arukh, Orach Chayim 314",
+            "Shulchan Arukh, Orach Chayim 315",
+            "Shulchan Arukh, Orach Chayim 316",
+            "Shulchan Arukh, Orach Chayim 317",
+            "Shulchan Arukh, Orach Chayim 318",
+            "Shulchan Arukh, Orach Chayim 319",
+            "Shulchan Arukh, Orach Chayim 320",
+            "Shulchan Arukh, Orach Chayim 321",
+            "Shulchan Arukh, Orach Chayim 322",
+            "Shulchan Arukh, Orach Chayim 323",
+            "Shulchan Arukh, Orach Chayim 324",
+            "Shulchan Arukh, Orach Chayim 325",
+            "Shulchan Arukh, Orach Chayim 326",
+            "Shulchan Arukh, Orach Chayim 327",
+            "Shulchan Arukh, Orach Chayim 328",
+            "Shulchan Arukh, Orach Chayim 329",
+            "Shulchan Arukh, Orach Chayim 330",
+            "Shulchan Arukh, Orach Chayim 331",
+            "Shulchan Arukh, Orach Chayim 332",
+            "Shulchan Arukh, Orach Chayim 333",
+            "Shulchan Arukh, Orach Chayim 334",
+            "Shulchan Arukh, Orach Chayim 335",
+            "Shulchan Arukh, Orach Chayim 336",
+            "Shulchan Arukh, Orach Chayim 337",
+            "Shulchan Arukh, Orach Chayim 338",
+            "Shulchan Arukh, Orach Chayim 339",
+            "Shulchan Arukh, Orach Chayim 340",
+            "Shulchan Arukh, Orach Chayim 341",
+            "Shulchan Arukh, Orach Chayim 342",
+            "Shulchan Arukh, Orach Chayim 343",
+            "Shulchan Arukh, Orach Chayim 344"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 241
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 345-395",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Eruvin",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות ערובין",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Eruvin",
+          "heTitle": "הלכות ערובין",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 345",
+            "Shulchan Arukh, Orach Chayim 346",
+            "Shulchan Arukh, Orach Chayim 347",
+            "Shulchan Arukh, Orach Chayim 348",
+            "Shulchan Arukh, Orach Chayim 349",
+            "Shulchan Arukh, Orach Chayim 350",
+            "Shulchan Arukh, Orach Chayim 351",
+            "Shulchan Arukh, Orach Chayim 352",
+            "Shulchan Arukh, Orach Chayim 353",
+            "Shulchan Arukh, Orach Chayim 354",
+            "Shulchan Arukh, Orach Chayim 355",
+            "Shulchan Arukh, Orach Chayim 356",
+            "Shulchan Arukh, Orach Chayim 357",
+            "Shulchan Arukh, Orach Chayim 358",
+            "Shulchan Arukh, Orach Chayim 359",
+            "Shulchan Arukh, Orach Chayim 360",
+            "Shulchan Arukh, Orach Chayim 361",
+            "Shulchan Arukh, Orach Chayim 362",
+            "Shulchan Arukh, Orach Chayim 363",
+            "Shulchan Arukh, Orach Chayim 364",
+            "Shulchan Arukh, Orach Chayim 365",
+            "Shulchan Arukh, Orach Chayim 366",
+            "Shulchan Arukh, Orach Chayim 367",
+            "Shulchan Arukh, Orach Chayim 368",
+            "Shulchan Arukh, Orach Chayim 369",
+            "Shulchan Arukh, Orach Chayim 370",
+            "Shulchan Arukh, Orach Chayim 371",
+            "Shulchan Arukh, Orach Chayim 372",
+            "Shulchan Arukh, Orach Chayim 373",
+            "Shulchan Arukh, Orach Chayim 374",
+            "Shulchan Arukh, Orach Chayim 375",
+            "Shulchan Arukh, Orach Chayim 376",
+            "Shulchan Arukh, Orach Chayim 377",
+            "Shulchan Arukh, Orach Chayim 378",
+            "Shulchan Arukh, Orach Chayim 379",
+            "Shulchan Arukh, Orach Chayim 380",
+            "Shulchan Arukh, Orach Chayim 381",
+            "Shulchan Arukh, Orach Chayim 382",
+            "Shulchan Arukh, Orach Chayim 383",
+            "Shulchan Arukh, Orach Chayim 384",
+            "Shulchan Arukh, Orach Chayim 385",
+            "Shulchan Arukh, Orach Chayim 386",
+            "Shulchan Arukh, Orach Chayim 387",
+            "Shulchan Arukh, Orach Chayim 388",
+            "Shulchan Arukh, Orach Chayim 389",
+            "Shulchan Arukh, Orach Chayim 390",
+            "Shulchan Arukh, Orach Chayim 391",
+            "Shulchan Arukh, Orach Chayim 392",
+            "Shulchan Arukh, Orach Chayim 393",
+            "Shulchan Arukh, Orach Chayim 394",
+            "Shulchan Arukh, Orach Chayim 395"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 344
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 396-407",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Techumin",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות תחומין",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Techumin",
+          "heTitle": "הלכות תחומין",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 396",
+            "Shulchan Arukh, Orach Chayim 397",
+            "Shulchan Arukh, Orach Chayim 398",
+            "Shulchan Arukh, Orach Chayim 399",
+            "Shulchan Arukh, Orach Chayim 400",
+            "Shulchan Arukh, Orach Chayim 401",
+            "Shulchan Arukh, Orach Chayim 402",
+            "Shulchan Arukh, Orach Chayim 403",
+            "Shulchan Arukh, Orach Chayim 404",
+            "Shulchan Arukh, Orach Chayim 405",
+            "Shulchan Arukh, Orach Chayim 406",
+            "Shulchan Arukh, Orach Chayim 407"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 395
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 408-416",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Eruv Techumin",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות עירובי תחומין",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Eruv Techumin",
+          "heTitle": "הלכות עירובי תחומין",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 408",
+            "Shulchan Arukh, Orach Chayim 409",
+            "Shulchan Arukh, Orach Chayim 410",
+            "Shulchan Arukh, Orach Chayim 411",
+            "Shulchan Arukh, Orach Chayim 412",
+            "Shulchan Arukh, Orach Chayim 413",
+            "Shulchan Arukh, Orach Chayim 414",
+            "Shulchan Arukh, Orach Chayim 415",
+            "Shulchan Arukh, Orach Chayim 416"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 407
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 417-428",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Rosh Chodesh",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות ראש חודש",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Rosh Chodesh",
+          "heTitle": "הלכות ראש חודש",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 417",
+            "Shulchan Arukh, Orach Chayim 418",
+            "Shulchan Arukh, Orach Chayim 419",
+            "Shulchan Arukh, Orach Chayim 420",
+            "Shulchan Arukh, Orach Chayim 421",
+            "Shulchan Arukh, Orach Chayim 422",
+            "Shulchan Arukh, Orach Chayim 423",
+            "Shulchan Arukh, Orach Chayim 424",
+            "Shulchan Arukh, Orach Chayim 425",
+            "Shulchan Arukh, Orach Chayim 426",
+            "Shulchan Arukh, Orach Chayim 427",
+            "Shulchan Arukh, Orach Chayim 428"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 416
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 429-494",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Passover",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות פסח",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Passover",
+          "heTitle": "הלכות פסח",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 429",
+            "Shulchan Arukh, Orach Chayim 430",
+            "Shulchan Arukh, Orach Chayim 431",
+            "Shulchan Arukh, Orach Chayim 432",
+            "Shulchan Arukh, Orach Chayim 433",
+            "Shulchan Arukh, Orach Chayim 434",
+            "Shulchan Arukh, Orach Chayim 435",
+            "Shulchan Arukh, Orach Chayim 436",
+            "Shulchan Arukh, Orach Chayim 437",
+            "Shulchan Arukh, Orach Chayim 438",
+            "Shulchan Arukh, Orach Chayim 439",
+            "Shulchan Arukh, Orach Chayim 440",
+            "Shulchan Arukh, Orach Chayim 441",
+            "Shulchan Arukh, Orach Chayim 442",
+            "Shulchan Arukh, Orach Chayim 443",
+            "Shulchan Arukh, Orach Chayim 444",
+            "Shulchan Arukh, Orach Chayim 445",
+            "Shulchan Arukh, Orach Chayim 446",
+            "Shulchan Arukh, Orach Chayim 447",
+            "Shulchan Arukh, Orach Chayim 448",
+            "Shulchan Arukh, Orach Chayim 449",
+            "Shulchan Arukh, Orach Chayim 450",
+            "Shulchan Arukh, Orach Chayim 451",
+            "Shulchan Arukh, Orach Chayim 452",
+            "Shulchan Arukh, Orach Chayim 453",
+            "Shulchan Arukh, Orach Chayim 454",
+            "Shulchan Arukh, Orach Chayim 455",
+            "Shulchan Arukh, Orach Chayim 456",
+            "Shulchan Arukh, Orach Chayim 457",
+            "Shulchan Arukh, Orach Chayim 458",
+            "Shulchan Arukh, Orach Chayim 459",
+            "Shulchan Arukh, Orach Chayim 460",
+            "Shulchan Arukh, Orach Chayim 461",
+            "Shulchan Arukh, Orach Chayim 462",
+            "Shulchan Arukh, Orach Chayim 463",
+            "Shulchan Arukh, Orach Chayim 464",
+            "Shulchan Arukh, Orach Chayim 465",
+            "Shulchan Arukh, Orach Chayim 466",
+            "Shulchan Arukh, Orach Chayim 467",
+            "Shulchan Arukh, Orach Chayim 468",
+            "Shulchan Arukh, Orach Chayim 469",
+            "Shulchan Arukh, Orach Chayim 470",
+            "Shulchan Arukh, Orach Chayim 471",
+            "Shulchan Arukh, Orach Chayim 472",
+            "Shulchan Arukh, Orach Chayim 473",
+            "Shulchan Arukh, Orach Chayim 474",
+            "Shulchan Arukh, Orach Chayim 475",
+            "Shulchan Arukh, Orach Chayim 476",
+            "Shulchan Arukh, Orach Chayim 477",
+            "Shulchan Arukh, Orach Chayim 478",
+            "Shulchan Arukh, Orach Chayim 479",
+            "Shulchan Arukh, Orach Chayim 480",
+            "Shulchan Arukh, Orach Chayim 481",
+            "Shulchan Arukh, Orach Chayim 482",
+            "Shulchan Arukh, Orach Chayim 483",
+            "Shulchan Arukh, Orach Chayim 484",
+            "Shulchan Arukh, Orach Chayim 485",
+            "Shulchan Arukh, Orach Chayim 486",
+            "Shulchan Arukh, Orach Chayim 487",
+            "Shulchan Arukh, Orach Chayim 488",
+            "Shulchan Arukh, Orach Chayim 489",
+            "Shulchan Arukh, Orach Chayim 490",
+            "Shulchan Arukh, Orach Chayim 491",
+            "Shulchan Arukh, Orach Chayim 492",
+            "Shulchan Arukh, Orach Chayim 493",
+            "Shulchan Arukh, Orach Chayim 494"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 428
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 495-529",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of the Festivals",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות יום טוב",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of the Festivals",
+          "heTitle": "הלכות יום טוב",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 495",
+            "Shulchan Arukh, Orach Chayim 496",
+            "Shulchan Arukh, Orach Chayim 497",
+            "Shulchan Arukh, Orach Chayim 498",
+            "Shulchan Arukh, Orach Chayim 499",
+            "Shulchan Arukh, Orach Chayim 500",
+            "Shulchan Arukh, Orach Chayim 501",
+            "Shulchan Arukh, Orach Chayim 502",
+            "Shulchan Arukh, Orach Chayim 503",
+            "Shulchan Arukh, Orach Chayim 504",
+            "Shulchan Arukh, Orach Chayim 505",
+            "Shulchan Arukh, Orach Chayim 506",
+            "Shulchan Arukh, Orach Chayim 507",
+            "Shulchan Arukh, Orach Chayim 508",
+            "Shulchan Arukh, Orach Chayim 509",
+            "Shulchan Arukh, Orach Chayim 510",
+            "Shulchan Arukh, Orach Chayim 511",
+            "Shulchan Arukh, Orach Chayim 512",
+            "Shulchan Arukh, Orach Chayim 513",
+            "Shulchan Arukh, Orach Chayim 514",
+            "Shulchan Arukh, Orach Chayim 515",
+            "Shulchan Arukh, Orach Chayim 516",
+            "Shulchan Arukh, Orach Chayim 517",
+            "Shulchan Arukh, Orach Chayim 518",
+            "Shulchan Arukh, Orach Chayim 519",
+            "Shulchan Arukh, Orach Chayim 520",
+            "Shulchan Arukh, Orach Chayim 521",
+            "Shulchan Arukh, Orach Chayim 522",
+            "Shulchan Arukh, Orach Chayim 523",
+            "Shulchan Arukh, Orach Chayim 524",
+            "Shulchan Arukh, Orach Chayim 525",
+            "Shulchan Arukh, Orach Chayim 526",
+            "Shulchan Arukh, Orach Chayim 527",
+            "Shulchan Arukh, Orach Chayim 528",
+            "Shulchan Arukh, Orach Chayim 529"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 494
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 530-548",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Chol HaMoed",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות חול המועד",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Chol HaMoed",
+          "heTitle": "הלכות חול המועד",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 530",
+            "Shulchan Arukh, Orach Chayim 531",
+            "Shulchan Arukh, Orach Chayim 532",
+            "Shulchan Arukh, Orach Chayim 533",
+            "Shulchan Arukh, Orach Chayim 534",
+            "Shulchan Arukh, Orach Chayim 535",
+            "Shulchan Arukh, Orach Chayim 536",
+            "Shulchan Arukh, Orach Chayim 537",
+            "Shulchan Arukh, Orach Chayim 538",
+            "Shulchan Arukh, Orach Chayim 539",
+            "Shulchan Arukh, Orach Chayim 540",
+            "Shulchan Arukh, Orach Chayim 541",
+            "Shulchan Arukh, Orach Chayim 542",
+            "Shulchan Arukh, Orach Chayim 543",
+            "Shulchan Arukh, Orach Chayim 544",
+            "Shulchan Arukh, Orach Chayim 545",
+            "Shulchan Arukh, Orach Chayim 546",
+            "Shulchan Arukh, Orach Chayim 547",
+            "Shulchan Arukh, Orach Chayim 548"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 529
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 549-561",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of the Ninth of Av",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות תשעה באב",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of the Ninth of Av",
+          "heTitle": "הלכות תשעה באב",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 549",
+            "Shulchan Arukh, Orach Chayim 550",
+            "Shulchan Arukh, Orach Chayim 551",
+            "Shulchan Arukh, Orach Chayim 552",
+            "Shulchan Arukh, Orach Chayim 553",
+            "Shulchan Arukh, Orach Chayim 554",
+            "Shulchan Arukh, Orach Chayim 555",
+            "Shulchan Arukh, Orach Chayim 556",
+            "Shulchan Arukh, Orach Chayim 557",
+            "Shulchan Arukh, Orach Chayim 558",
+            "Shulchan Arukh, Orach Chayim 559",
+            "Shulchan Arukh, Orach Chayim 560",
+            "Shulchan Arukh, Orach Chayim 561"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 548
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 562-580",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Fast Days",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות תענית",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Fast Days",
+          "heTitle": "הלכות תענית",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 562",
+            "Shulchan Arukh, Orach Chayim 563",
+            "Shulchan Arukh, Orach Chayim 564",
+            "Shulchan Arukh, Orach Chayim 565",
+            "Shulchan Arukh, Orach Chayim 566",
+            "Shulchan Arukh, Orach Chayim 567",
+            "Shulchan Arukh, Orach Chayim 568",
+            "Shulchan Arukh, Orach Chayim 569",
+            "Shulchan Arukh, Orach Chayim 570",
+            "Shulchan Arukh, Orach Chayim 571",
+            "Shulchan Arukh, Orach Chayim 572",
+            "Shulchan Arukh, Orach Chayim 573",
+            "Shulchan Arukh, Orach Chayim 574",
+            "Shulchan Arukh, Orach Chayim 575",
+            "Shulchan Arukh, Orach Chayim 576",
+            "Shulchan Arukh, Orach Chayim 577",
+            "Shulchan Arukh, Orach Chayim 578",
+            "Shulchan Arukh, Orach Chayim 579",
+            "Shulchan Arukh, Orach Chayim 580"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 561
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 581-603",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Rosh Hashanah",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות ראש השנה",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Rosh Hashanah",
+          "heTitle": "הלכות ראש השנה",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 581",
+            "Shulchan Arukh, Orach Chayim 582",
+            "Shulchan Arukh, Orach Chayim 583",
+            "Shulchan Arukh, Orach Chayim 584",
+            "Shulchan Arukh, Orach Chayim 585",
+            "Shulchan Arukh, Orach Chayim 586",
+            "Shulchan Arukh, Orach Chayim 587",
+            "Shulchan Arukh, Orach Chayim 588",
+            "Shulchan Arukh, Orach Chayim 589",
+            "Shulchan Arukh, Orach Chayim 590",
+            "Shulchan Arukh, Orach Chayim 591",
+            "Shulchan Arukh, Orach Chayim 592",
+            "Shulchan Arukh, Orach Chayim 593",
+            "Shulchan Arukh, Orach Chayim 594",
+            "Shulchan Arukh, Orach Chayim 595",
+            "Shulchan Arukh, Orach Chayim 596",
+            "Shulchan Arukh, Orach Chayim 597",
+            "Shulchan Arukh, Orach Chayim 598",
+            "Shulchan Arukh, Orach Chayim 599",
+            "Shulchan Arukh, Orach Chayim 600",
+            "Shulchan Arukh, Orach Chayim 601",
+            "Shulchan Arukh, Orach Chayim 602",
+            "Shulchan Arukh, Orach Chayim 603"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 580
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 604-624",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Yom Kippur",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות יום הכיפורים",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Yom Kippur",
+          "heTitle": "הלכות יום הכיפורים",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 604",
+            "Shulchan Arukh, Orach Chayim 605",
+            "Shulchan Arukh, Orach Chayim 606",
+            "Shulchan Arukh, Orach Chayim 607",
+            "Shulchan Arukh, Orach Chayim 608",
+            "Shulchan Arukh, Orach Chayim 609",
+            "Shulchan Arukh, Orach Chayim 610",
+            "Shulchan Arukh, Orach Chayim 611",
+            "Shulchan Arukh, Orach Chayim 612",
+            "Shulchan Arukh, Orach Chayim 613",
+            "Shulchan Arukh, Orach Chayim 614",
+            "Shulchan Arukh, Orach Chayim 615",
+            "Shulchan Arukh, Orach Chayim 616",
+            "Shulchan Arukh, Orach Chayim 617",
+            "Shulchan Arukh, Orach Chayim 618",
+            "Shulchan Arukh, Orach Chayim 619",
+            "Shulchan Arukh, Orach Chayim 620",
+            "Shulchan Arukh, Orach Chayim 621",
+            "Shulchan Arukh, Orach Chayim 622",
+            "Shulchan Arukh, Orach Chayim 623",
+            "Shulchan Arukh, Orach Chayim 624"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 603
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 625-644",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Sukkot",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות סוכה",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Sukkot",
+          "heTitle": "הלכות סוכה",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 625",
+            "Shulchan Arukh, Orach Chayim 626",
+            "Shulchan Arukh, Orach Chayim 627",
+            "Shulchan Arukh, Orach Chayim 628",
+            "Shulchan Arukh, Orach Chayim 629",
+            "Shulchan Arukh, Orach Chayim 630",
+            "Shulchan Arukh, Orach Chayim 631",
+            "Shulchan Arukh, Orach Chayim 632",
+            "Shulchan Arukh, Orach Chayim 633",
+            "Shulchan Arukh, Orach Chayim 634",
+            "Shulchan Arukh, Orach Chayim 635",
+            "Shulchan Arukh, Orach Chayim 636",
+            "Shulchan Arukh, Orach Chayim 637",
+            "Shulchan Arukh, Orach Chayim 638",
+            "Shulchan Arukh, Orach Chayim 639",
+            "Shulchan Arukh, Orach Chayim 640",
+            "Shulchan Arukh, Orach Chayim 641",
+            "Shulchan Arukh, Orach Chayim 642",
+            "Shulchan Arukh, Orach Chayim 643",
+            "Shulchan Arukh, Orach Chayim 644"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 624
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 645-669",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of the Four Species",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות לולב",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of the Four Species",
+          "heTitle": "הלכות לולב",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 645",
+            "Shulchan Arukh, Orach Chayim 646",
+            "Shulchan Arukh, Orach Chayim 647",
+            "Shulchan Arukh, Orach Chayim 648",
+            "Shulchan Arukh, Orach Chayim 649",
+            "Shulchan Arukh, Orach Chayim 650",
+            "Shulchan Arukh, Orach Chayim 651",
+            "Shulchan Arukh, Orach Chayim 652",
+            "Shulchan Arukh, Orach Chayim 653",
+            "Shulchan Arukh, Orach Chayim 654",
+            "Shulchan Arukh, Orach Chayim 655",
+            "Shulchan Arukh, Orach Chayim 656",
+            "Shulchan Arukh, Orach Chayim 657",
+            "Shulchan Arukh, Orach Chayim 658",
+            "Shulchan Arukh, Orach Chayim 659",
+            "Shulchan Arukh, Orach Chayim 660",
+            "Shulchan Arukh, Orach Chayim 661",
+            "Shulchan Arukh, Orach Chayim 662",
+            "Shulchan Arukh, Orach Chayim 663",
+            "Shulchan Arukh, Orach Chayim 664",
+            "Shulchan Arukh, Orach Chayim 665",
+            "Shulchan Arukh, Orach Chayim 666",
+            "Shulchan Arukh, Orach Chayim 667",
+            "Shulchan Arukh, Orach Chayim 668",
+            "Shulchan Arukh, Orach Chayim 669"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 644
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 670-685",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Chanukah",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות חנוכה",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Chanukah",
+          "heTitle": "הלכות חנוכה",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 670",
+            "Shulchan Arukh, Orach Chayim 671",
+            "Shulchan Arukh, Orach Chayim 672",
+            "Shulchan Arukh, Orach Chayim 673",
+            "Shulchan Arukh, Orach Chayim 674",
+            "Shulchan Arukh, Orach Chayim 675",
+            "Shulchan Arukh, Orach Chayim 676",
+            "Shulchan Arukh, Orach Chayim 677",
+            "Shulchan Arukh, Orach Chayim 678",
+            "Shulchan Arukh, Orach Chayim 679",
+            "Shulchan Arukh, Orach Chayim 680",
+            "Shulchan Arukh, Orach Chayim 681",
+            "Shulchan Arukh, Orach Chayim 682",
+            "Shulchan Arukh, Orach Chayim 683",
+            "Shulchan Arukh, Orach Chayim 684",
+            "Shulchan Arukh, Orach Chayim 685"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 669
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Shulchan Arukh, Orach Chayim 686-697",
+          "includeSections": true,
+          "titles": [
+            {
+              "primary": true,
+              "text": "Laws of Purim",
+              "lang": "en"
+            },
+            {
+              "primary": true,
+              "text": "הלכות מגילה",
+              "lang": "he"
+            }
+          ],
+          "title": "Laws of Purim",
+          "heTitle": "הלכות מגילה",
+          "refs": [
+            "Shulchan Arukh, Orach Chayim 686",
+            "Shulchan Arukh, Orach Chayim 687",
+            "Shulchan Arukh, Orach Chayim 688",
+            "Shulchan Arukh, Orach Chayim 689",
+            "Shulchan Arukh, Orach Chayim 690",
+            "Shulchan Arukh, Orach Chayim 691",
+            "Shulchan Arukh, Orach Chayim 692",
+            "Shulchan Arukh, Orach Chayim 693",
+            "Shulchan Arukh, Orach Chayim 694",
+            "Shulchan Arukh, Orach Chayim 695",
+            "Shulchan Arukh, Orach Chayim 696",
+            "Shulchan Arukh, Orach Chayim 697"
+          ],
+          "addressTypes": [
+            "Siman"
+          ],
+          "sectionNames": [
+            "Siman"
+          ],
+          "offset": 685
+        }
+      ],
+      "titles": [
+        {
+          "text": "O.Ch.",
+          "lang": "en"
+        },
+        {
+          "text": "Orach Chaim",
+          "lang": "en"
+        },
+        {
+          "text": "Orach Chayyim",
+          "lang": "en"
+        },
+        {
+          "text": "Orah Hayyim",
+          "lang": "en"
+        },
+        {
+          "text": "shulchan aruch orach chaim",
+          "lang": "en"
+        },
+        {
+          "text": "Shulchan Aruch, Orach Chaim",
+          "lang": "en"
+        },
+        {
+          "text": "Shulchan Arukh, Orach Chayyim",
+          "lang": "en"
+        },
+        {
+          "text": "Shulḥan Arukh, Oraḥ Hayyim",
+          "lang": "en"
+        },
+        {
+          "text": "<i>Shulḥan Arukh, Oraḥ Ḥayyim</i>",
+          "lang": "en"
+        },
+        {
+          "text": "<i>Shulḥan Arukh, Oraḥ Hayyim</i>",
+          "lang": "en"
+        },
+        {
+          "text": "Oraḥ Hayyim",
+          "lang": "en"
+        },
+        {
+          "text": "Shulchan Aruch, Orach Chayim",
+          "lang": "en"
+        },
+        {
+          "text": "Shulhan Arukh OH",
+          "lang": "en"
+        },
+        {
+          "text": "Shulchan Aruch O.C.",
+          "lang": "en"
+        },
+        {
+          "text": "S.A. O.C.",
+          "lang": "en"
+        },
+        {
+          "text": "SA OC",
+          "lang": "en"
+        },
+        {
+          "text": "OC",
+          "lang": "en"
+        },
+        {
+          "text": "O.C.",
+          "lang": "en"
+        },
+        {
+          "text": "Shulchan Aruch Orach Chaim",
+          "lang": "en"
+        },
+        {
+          "text": "Shulchan Aruch OC",
+          "lang": "en"
+        },
+        {
+          "text": "Shulchan Arukh Orach Chaim",
+          "lang": "en"
+        },
+        {
+          "text": "Shulchan Arukh OC",
+          "lang": "en"
+        },
+        {
+          "text": "Shulhan Arukh, Orah Haim",
+          "lang": "en"
+        },
+        {
+          "text": "Orakh Hayim",
+          "lang": "en"
+        },
+        {
+          "text": "OH",
+          "lang": "en"
+        },
+        {
+          "text": "Orach Hayim",
+          "lang": "en"
+        },
+        {
+          "text": "Orah Hayim",
+          "lang": "en"
+        },
+        {
+          "text": "Orach Haim",
+          "lang": "en"
+        },
+        {
+          "text": "שולחן ערוך אורח חיים",
+          "lang": "he"
+        },
+        {
+          "text": "שו\"ע או\"ח",
+          "lang": "he"
+        },
+        {
+          "text": "שלחן ערוך או\"ח",
+          "lang": "he"
+        },
+        {
+          "text": "שולחן ערוך או\"ח",
+          "lang": "he"
+        },
+        {
+          "text": "או\"ח",
+          "lang": "he"
+        },
+        {
+          "text": "שו״ע או״ח",
+          "lang": "he"
+        },
+        {
+          "text": "שו”ע או”ח",
+          "lang": "he"
+        },
+        {
+          "text": "שלחן ערוך או״ח",
+          "lang": "he"
+        },
+        {
+          "text": "שלחן ערוך או”ח",
+          "lang": "he"
+        },
+        {
+          "text": "שולחן ערוך או״ח",
+          "lang": "he"
+        },
+        {
+          "text": "שולחן ערוך או”ח",
+          "lang": "he"
+        },
+        {
+          "text": "או״ח",
+          "lang": "he"
+        },
+        {
+          "text": "או”ח",
+          "lang": "he"
+        },
+        {
+          "text": "אורח חיים",
+          "lang": "he"
+        },
+        {
+          "text": "שולחן ערוך, אורח חיים",
+          "lang": "he",
+          "primary": true
+        },
+        {
+          "text": "Shulchan Arukh, Orach Chayim",
+          "lang": "en",
+          "primary": true
+        }
+      ],
+      "title": "Shulchan Arukh, Orach Chayim",
+      "heTitle": "שולחן ערוך, אורח חיים"
+    }
+  },
+  "sectionNames": [
+    "Siman",
+    "Seif"
+  ],
+  "depth": 2,
+  "firstSectionRef": "Shulchan Arukh, Orach Chayim 1",
+  "heCategories": [
+    "הלכה",
+    "שולחן ערוך"
+  ],
+  "compDateString": {
+    "en": " (1563 CE)",
+    "he": " (1563 לספירה)"
+  },
+  "pubDateString": {
+    "en": " (1564 CE)",
+    "he": " (1564 לספירה)"
+  },
+  "compPlaceString": {
+    "en": "Safed",
+    "he": "צפת"
+  },
+  "pubPlaceString": {
+    "en": "Venice",
+    "he": "ונציה"
+  },
+  "relatedTopics": [
+    {
+      "slug": "prayer",
+      "title": {
+        "en": "Prayer",
+        "he": "תפילה"
+      }
+    },
+    {
+      "slug": "shabbat",
+      "title": {
+        "en": "Shabbat",
+        "he": "שבת"
+      }
+    },
+    {
+      "slug": "joseph-karo",
+      "title": {
+        "en": "Joseph Karo",
+        "he": "יוסף קארו"
+      }
+    },
+    {
+      "slug": "women",
+      "title": {
+        "en": "Women",
+        "he": "נשים"
+      }
+    },
+    {
+      "slug": "laws-of-prayer",
+      "title": {
+        "en": "Laws of Prayer",
+        "he": "הלכות תפילה"
+      }
+    },
+    {
+      "slug": "laws-of-shabbat",
+      "title": {
+        "en": "Laws of Shabbat",
+        "he": "הלכות שבת"
+      }
+    },
+    {
+      "slug": "rosh-hashanah",
+      "title": {
+        "en": "Rosh Hashanah",
+        "he": "ראש השנה"
+      }
+    },
+    {
+      "slug": "purim",
+      "title": {
+        "en": "Purim",
+        "he": "פורים"
+      }
+    },
+    {
+      "slug": "passover",
+      "title": {
+        "en": "Passover",
+        "he": "פסח"
+      }
+    },
+    {
+      "slug": "chanukkah",
+      "title": {
+        "en": "Chanukkah",
+        "he": "חנוכה"
+      }
+    },
+    {
+      "slug": "sukkot",
+      "title": {
+        "en": "Sukkot",
+        "he": "סוכות"
+      }
+    },
+    {
+      "slug": "shavuot",
+      "title": {
+        "en": "Shavuot",
+        "he": "שבועות"
+      }
+    },
+    {
+      "slug": "coronavirus",
+      "title": {
+        "en": "Coronavirus",
+        "he": "נגיף הקורונה"
+      }
+    },
+    {
+      "slug": "minyan",
+      "title": {
+        "en": "Minyan",
+        "he": "מניין (מושג הלכתי)"
+      }
+    },
+    {
+      "slug": "tefillin",
+      "title": {
+        "en": "Tefillin",
+        "he": "תפילין"
+      }
+    },
+    {
+      "slug": "order-and-practice-of-prayer",
+      "title": {
+        "en": "Order and Practice of Prayer",
+        "he": "סדר התפילה למעשה"
+      }
+    },
+    {
+      "slug": "tisha-bav",
+      "title": {
+        "en": "Tisha B'Av",
+        "he": "תשעה באב"
+      }
+    },
+    {
+      "slug": "omer-offering",
+      "title": {
+        "en": "Omer Offering",
+        "he": "קרבן העומר"
+      }
+    }
+  ]
+}

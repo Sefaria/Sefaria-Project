@@ -1,0 +1,672 @@
+{
+  "versions": [
+    {
+      "status": "locked",
+      "priority": 4,
+      "license": "Public Domain",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": true,
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "M. Rosenbaum and A.M. Silbermann, London, 1929-1934",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "he",
+      "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH001969084",
+      "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+      "actualLanguage": "he",
+      "languageFamilyName": "hebrew",
+      "isSource": true,
+      "isPrimary": true,
+      "direction": "rtl",
+      "text": [
+        [
+          "<b>בראשית.</b> אָמַר רַבִּי יִצְחָק לֹֹֹֹֹא הָיָה צָרִיךְ לְהַתְחִיל אֶת הַתּוֹרָה אֶלָּא מֵהַחֹדֶשׁ הַזֶּה לָכֶם, שֶׁהִיא מִצְוָה רִאשׁוֹנָה שֶׁנִּצְטַוּוּ בָּהּ יִשׂרָאֵל, וּמַה טַּעַם פָּתַח בִּבְרֵאשִׁית? מִשׁוּם כֹּחַ מַעֲשָׂיו הִגִּיד לְעַמּוֹ לָתֵת לָהֶם נַחֲלַת גּוֹיִם (תהילים קי\"א), שֶׁאִם יֹאמְרוּ אֻמּוֹת הָעוֹלָם לְיִשְׁרָאֵל לִסְטִים אַתֶּם, שֶׁכְּבַשְׁתֶּם אַרְצוֹת שִׁבְעָה גוֹיִם, הֵם אוֹמְרִים לָהֶם כָּל הָאָרֶץ שֶׁל הַקָּבָּ\"ה הִיא, הוּא בְרָאָהּ וּנְתָנָהּ לַאֲשֶׁר יָשַׁר בְּעֵינָיו, בִּרְצוֹנוֹ נְתָנָהּ לָהֶם, וּבִרְצוֹנוֹ נְטָלָהּ מֵהֶם וּנְתָנָהּ לָנוּ:",
+          "<b>בראשית ברא</b> אֵין הַמִּקְרָא הַזֶּה אוֹמֵר אֶלָּא דָּרְשֵׁנִי, כְּמוֹ שֶׁדְּרָשׁוּהוּ רַבּוֹתֵינוּ בִּשְׁבִיל הַתּוֹרָה שֶׁנִקְרֵאת רֵאשִׁית דַּרְכּוֹ (משלי ח'), וּבִשְׁבִיל יִשְׂרָאֵל שֶׁנִקְרְאוּ רֵאשִׁית תְּבוּאָתוֹ (ירמיה ב'); וְאִם בָּאתָ לְפָרְשׁוֹ כִּפְשׁוּטוֹ, כָּךְ פָּרְשֵׁהוּ בְּרֵאשִׁית בְּרִיאַת שָׁמַיִם וָאָרֶץ, וְהָאָרֶץ הָיְתָה תֹהוּ וָבֹהוּ וְחֹשֶׁךְ וַיֹּאמֶר אֱלֹהִים יְהִי אוֹר וְלֹא בָא הַמִּקְרָא לְהוֹרוֹת סֵדֶר הַבְּרִיאָה לוֹמַר שֶׁאֵלּוּ קָדְמוּ, שֶׁאִם בָּא לְהוֹרוֹת כָּךְ, הָיָה לוֹ לִכְתֹּב בָּרִאשׁוֹנָה בָּרָא אֶת הַשָּׁמַיִם וְגוֹ' שֶׁאֵין לְךָ רֵאשִׁית בַּמִּקְרָא שֶׁאֵינוֹ דָבוּק לַתֵּבָה שֶׁלְּאַחֲרָיו, כְּמוֹ בְּרֵאשִׁית מַמְלֶכֶת יְהוֹיָקִים (שׁם כ\"ז), רֵאשִׁית מַמְלַכְתּוֹ (בראשית י'), רֵאשִׁית דְּגָנְךָ (דברים י\"ח, ד'), – אַף כָּאן אַתָּה אוֹמֵר בְּרֵאשִׁית בָּרָא אֱלֹהִים וְגוֹ', כְּמוֹ בְּרֵאשִׁית בְּרֹא; וְדוֹמֶה לוֹ תְּחִלַּת דִּבֶּר ה' בְּהוֹשֵׁעַ (הושע א'), כְּלוֹמַר תְּחִלַת דִּבּוּרוֹ שֶׁל הַקָּבָּ\"ה בְּהוֹשֵׁעַ, וַיֹּאמֶר ה' אֶל הוֹשֵׁעַ וְגוֹ'. וְאִ\"תֹּ לְהוֹרוֹת בָּא שֶׁאֵלּוּ תְּחִלָּה נִבְרְאוּ, וּפֵרוּשׁוֹ בְּרֵאשִׁית הַכֹּל בָּרָא אֵלוּ – וְֵישׁ לְךָ מִקְרָאוֹת שֶׁמְּקַצְּרִים לְשׁוֹנָם וּמְמַעֲטִים תֵּבָה אַחַת, כְּמוֹ כִּי לֹא סָגַר דַּלְתֵי בִטְנִי (איוב ג'), וְלֹא פֵּרֵשׁ מִי הַסּוֹגֵר וּכְמוֹ יִשָּׂא אֶת חֵיל דַּמֶּשֶׂק (ישעיהו ח'), וְלֹא פֵּרֵשׁ מִי יִשָּׂאֶנּוּ; וּכְמוֹ אִם יַחֲרוֹשׁ בַּבְּקָרִים (עמוס ו'), וְלֹא פֵּרֵשׁ אִם יַחֲרוֹשׁ אָדָם בַּבְּקָרִים, וּכְמוֹ מַגִּיד מֵרֵאשִׁית אַחֲרִית (ישעיהו מ\"ו), וְלֹא פֵּרֵשׁ מַגִּיד מֵרֵאשִׁית דָּבָר אַחֲרִית דָּבָר – אִ\"כֵּ, תְּמַהּ עַל עַצְמְךָ, שֶׁהֲרֵי הַמַּיִם קָדְמוּ, שֶׁהֲרֵי כְתִיב וְרוּחַ אֱלֹהִים מְרַחֶפֶת עַל פְּנֵי הַמָּיִם, וְעַדַיִין לֹא גִלָּה הַמִּקְרָא, בְּרִיאַת הַמַּיִם מָתַי הָיְתָה, הָא לָמַדְתָּ, שֶׁקָּדְמוּ הַמַּיִם לָאָרֶץ, וְעוֹד, שֶׁהַשָּׁמַיִם מֵאֵשׁ וּמַיִם נִבְרְאוּ, עַל כָּרְחֲךָ לֹא לִמֵּד הַמִּקְרָא סֵדֶר הַמֻּקְדָמִים וְהַמְאֻחָרִים כְּלוּם:",
+          "<b>ברא אלהים</b> וְלֹא נֶאֱמַר בָּרָא ה', שֶׁבַּתְּחִלָּה עָלָה בְמַחֲשָׁבָה לִבְרֹאתוֹ בְּמִדַּת הַדִּין, רָאָה שֶׁאֵין הָעוֹלָם מִתְקַיֵּם, הִקְדִּים מִדַּת רַחֲמִים וְשִׁתְּפָהּ לְמִהַ\"דִּ, וְהַיְינוּ דִּכְתִיב בְּיוֹם עֲשׂוֹת ה' אֱלֹהִים אֶרֶץ וְשָׁמָיִם:"
+        ],
+        [
+          "<b>תהו ובהו.</b> תֹּהוּ לְשׁוֹן תֵּמַהּ וְשִׁמָּמוֹן, שֶׁאָדָם תּוֹהֵא וּמִשְׁתּוֹמֵם עַל בֹּהוּ שֶׁבָּהּ:",
+          "<b>תהו.</b> אשטורדי\"שון בְּלַעַ\"ז:",
+          "<b>בהו.</b> לְשׁוֹן רֵקוּת וְצָדוּ:",
+          "<b>על פני תהום.</b> עַל פְּנֵי הַמַּיִם שֶׁעַל הָאָרֶץ:",
+          "<b>ורוח אלהים מרחפת.</b> כִּסֵא הַכָּבוֹד עוֹמֵד בָּאֲוִיר וּמְרַחֵף עַל פְּנֵי הַמַּיִם בְּרוּחַ פִּיו שֶׁל הַקָּבָּ\"ה וּבְמַאֲמָרוֹ, כְּיוֹנָה הַמְרַחֶפֶת עַל הַקֵּן, אקוב\"טיר בְּלַעַ\"ז:"
+        ],
+        [],
+        [
+          "<b>וירא אלהים את האור כי טוב ויבדל.</b> אַף בָּזֶה אָנוּ צְרִיכִין לְדִבְרֵי אַגַּדָה, רָאָהוּ שֶׁאֵינוֹ כְדַאי לְהִשְׁתַּמֵשׁ בּוֹ רְשָׁעִים, וְהִבְדִּילוֹ לַצַּדִּיקִים לֶעָתִיד לָבֹא. וּלְפִי פְּשׁוּטוֹ כָּךְ פָּרְשֵׁהוּ, רָאָהוּ כִּי טוֹב, וְאֵין נָאֶה לוֹ וְלַחֹשֶׁךְ שֶׁיִּהְיוּ מִשְׁתַּמְּשִׁים בְּעִרְבּוּבְיָא, וְקָבַע לָזֶה תְחוּמוֹ בַּיּוֹם, וְלָזֶה תְחוּמוֹ בַּלַּיְלָה:"
+        ],
+        [
+          "<b>יום אחד.</b> לְפִי סֵדֶר לְשׁוֹן הַפָּרָשָׁה הָיָה לוֹ לִכְתֹּב יוֹם רִאשׁוֹן, כְּמוֹ שֶׁכָּתוּב בִּשְׁאָר הַיָּמִים שֵׁנִי, שְׁלִישִׁי, רְבִיעִי, לָמָּה כָתַב אֶחָד? לְפִי שֶׁהָיָה הַקָּבָּ\"ה יָחִיד בְּעוֹלָמוֹ, שֶׁלֹא נִבְרְאוּ הַמַּלְאָכִים עַד יוֹם שֵׁנִי, כָּךְ מְפֹרָשׁ בּבְ\"רַ:"
+        ],
+        [
+          "<b>יהי רקיע.</b> יֶחֱזַק הָרָקִיעַ, שֶׁאַף עַל פִּי שֶׁנִּבְרְאוּ שָׁמַיִם בְּיוֹם א' עֲדַיִן לַחִים הָיוּ וְקָרְשׁוּ בַשֵּׁנִי מִגַּעֲרַת הַקָּבָּ\"ה בְּאָמְרוֹ יְהִי רָקִיעַ, וְזֶהוּ שֶׁכָּתַב (איוב כ\"ו) עַמּוּדֵי שָׁמַיִם יְרוֹפָפוּ – כָּל יוֹם רִאשׁוֹן, וּבַשֵּׁנִי יִתְמְהוּ מִגַּעֲרָתוֹ, כְּאָדָם שֶׁמִּשְׁתּוֹמֵם וְעוֹמֵד מִגַּעֲרַת הַמְאַיֵּם עָלָיו:",
+          "<b>בתוך המים.</b> בְּאֶמְצַע הַמַּיִם, שֶׁיֵּש הֶפְרֵשׁ בֵּין מַיִם הָעֶליוֹנִים לָרָקִיעַ כְּמוֹ בֵין הָרָקִיעַ לַמַּיִם שֶׁעַל הָאָרֶץ, הָא לָמַדְתָּ, שֶׁהֵם תְּלוּיִים בְּמַאֲמָרוֹ שֶׁל מֶלֶךְ:"
+        ],
+        [
+          "<b>ויעש אלהים את הרקיע.</b> תִּקְּנוֹ עַל עָמְדוֹ, וְהִיא עֲשִׂיָּתוֹ, כְּמוֹ וְעָשְׂתָה אֶת צִפָּרְנֶיהָ (דברים כ\"א):",
+          "<b>מעל לרקיע.</b> עַל הָרָקִיעַ לֹא נֶאֱמַר אֶלָּא מֵעַל לָרָקִיעַ, לְפִי שֶׁהֵן תְּלוּיִין בָּאֲוִיר. וּמִפְּנֵי מָה לֹא נֶאֱמַר כִּי טוֹב בְּיוֹם שֵׁנִי? לְפִי שֶׁלֹא הָיָה נִגְמָר מְלֶאכֶת הַמַּיִם עַד יוֹם שְׁלִישִׁי, וַהֲרֵי הִתְחִיל בָּהּ בְּשֵׁנִי, וְדָבָר שֶׁלֹּא נִגְמַר אֵינוֹ בִּמְלוֹאוֹ וְטוּבוֹ; וּבַשְּׁלִישִׁי שֶׁנִּגְמַר מְלֶאכֶת הַמַּיִם וְהִתְחִיל וְגָמַר מְלָאכָה אֲחֶרֶת, כָּפַל בּוֹ כִּי טוֹב שְׁתֵּי פְּעָמִים, אַחַת לִגְמַר מְלֶאכֶת הַשֵּׁנִי וְאַחַת לִגְמַר מְלֶאכֶת הַיּוֹם:"
+        ],
+        [
+          "<b>ויקרא אלהים לרקיע שמים.</b> שָׂא מַיִם, שָׁם מַיִם, אֵשׁ וּמַיִם, שֶׁעֵרְבָן זֶה בָזֶה וְעָשָׂה מֵהֶם שָׁמַיִם:"
+        ],
+        [
+          "<b>יקוו המים.</b> שֶׁהָיוּ שְׁטוּחִין עַל פְּנֵי כָל הָאָרֶץ וְהִקְוָם בָּאוֹקְיָנוֹס הוּא הַיָּם הַגָּדוֹל שֶׁבְּכָל הַיַּמִּים:"
+        ],
+        [
+          "<b>קרא ימים.</b> וַהֲלֹא יָם אֶחָד הוּא? אֶלָּא אֵינוֹ דוֹמֶה טַעַם דָּג הָעוֹלֶה מִן הַיָּם בְּעַכּוֹ לְטַעַם דָּג הָעוֹלֶה מִן הַיָּם בְּאַסְפַּמְיָא:"
+        ],
+        [
+          "<b>תדשא הארץ דשא עשב.</b> לֹא דֶּשֶׁא לְשׁוֹן עֵשֶׂב וְלֹא עֵשֶׂב לְשׁוֹן דֶּשֶׁא, וְלֹא הָיָה לְשׁוֹן הַמִּקְרָא לוֹמַר תַּעֲשִׂיב הָאָרֶץ, שֶׁמִינֵי דְּשָׁאִים מְחֻלָּקִין, כָּל אֶחָד לְעַצְמוֹ נִקְרָא עֵשֶׂב פְּלוֹנִי, וְאֵין לָשׁוֹן לַמְדַבֵּר לוֹמַר דֶּשֶׁא פְּלוֹנִי, שֶׁלְּשׁוֹן דֶּשֶׁא הוּא לְבִישַׁת הָאָרֶץ כְּשֶׁהִיא מִתְמַלֵּאת בִּדְשָׁאִים:",
+          "<b>תדשא הארץ.</b> תִּתְמַלֵּא וְתִתְכַּסֶּה לְבוּשׁ עֲשָׂבִים. בִּלְשׁוֹן לַעַז נִקְרָא דֶּשֶׁא ארבריץ, כֻּלָן בְּעִרְבּוּבְיָא, וְכָל שֹׁרֶשׁ לְעַצְמוֹ נִקְרָא עֵשֶׂב:",
+          "<b>מזריע זרע.</b> שֶׁיְּגַדֵּל בּוֹ זַרְעוֹ לִזְרֹעַ מִמֶּנוּ בְּמָקוֹם אַחֵר:",
+          "<b>עץ פרי.</b> שֶׁיְּהֵא טַעַם הָעֵץ כְּטַעַם הַפְּרִי, וְהִיא לֹא עָשְׂתָה כֵן, אֶלָּא וַתּוֹצֵא הָאָרֶץ עֵץ עוֹשֶׂה פְּרִי וְלֹא הָעֵץ פְּרִי, לְפִיכָךְ כְּשֶׁנִּתְקַלֵּל אָדָם עַל עֲוֹנוֹ נִפְקְדָה גַם הִיא עַל עֲוֹנָהּ וְנִתְקַלְּלָה:",
+          "<b>אשר זרעו בו.</b> הֵן גַרְעִינֵי כָל פְּרִי שֶׁמֵּהֶן הָאִילָן צוֹמֵחַ כְּשֶׁנּוֹטְעִין אוֹתוֹ:"
+        ],
+        [
+          "<b>ותוצא הארץ וגו'.</b> אַעַ\"פִּ שֶׁלֹּא נֶאֱמַר לְמִינֵהוּ בַּדְּשָׁאִין בְּצִוּוּיֵיהֶן, שָׁמְעוּ שֶׁנִּצְטַוּוּ הָאִילָנוֹת עַל כָּךְ, נָשְׂאוּ קַ\"וָ בְּעַצְמָן, כַּמְּפֹרָשׁ בָּאַגָּדָה בִּשְׁחִיטַת חֻלִּין:"
+        ],
+        [],
+        [
+          "<b>יהי מארת וגו'.</b> מִיֹּום רִאשׁוֹן נִבְרְאוּ וּבָרְבִיעִי צִוָּה עֲלֵיהֶם לְהִתָּלוֹת בָּרָקִיעַ, וְכֵן כָּל תּוֹלְדוֹת שָׁמַיִם וָאָרֶץ נִבְרְאוּ מִיּוֹם רִאשׁוֹן, וְכָל אֶחָד וְאֶחָד נִקְבַּע בַּיוֹם שֶׁנִּגְזַר עָלָיו, הוּא שֶׁכָּתוּב אֵת הַשָּׁמַיִם, לְרַבּוֹת תּוֹלְדוֹתֵיהֶם, וְאֵת הָאָרֶץ, לְרַבּוֹת תּוֹלְדוֹתֶיהָ:",
+          "<b>יהי מארת.</b> חָסֵר וָי\"ו כְּתִיב, עַל שֶׁהוּא יוֹם מְאֵרָה לִפֹּל אַסְכָּרָה בַּתִּינוֹקוֹת, הוּא שֶׁשָּׁנִינוּ בְּד' הָיוּ מִתְעַנִּים עַל אַסְכָּרָה שֶׁלֹּא תִפֹּל בַּתִּינוֹקוֹת:",
+          "<b>להבדיל בין היום ובין הלילה.</b> מִשֶּׁנִּגְנַז הָאוֹר הָרִאשׁוֹן, אֲבָל בְּשִׁבְעַת יְמֵי בְרֵאשִׁית שִׁמְּשׁוּ הָאוֹר וְהַחֹשֶׁךְ הָרִאשׁוֹנִים יַחַד בֵּין בַּיּוֹם וּבֵין בַּלַּיְלָה:",
+          "<b>והיו לאותות.</b> כְּשֶׁהַמְּאוֹרוֹת לוֹקִין, סִימָן רַע הוּא לָעוֹלָם, שֶׁנֶּאֱמַר מֵאֹתוֹת הַשָּׁמַיִם אַל תֵּחָתּוּ (ירמיה י'), בַּעֲשׂוֹתְכֶם רְצוֹן הַקָּבָּ\"ה אֵין אַתֶּם צְרִיכִין לִדְאֹג מִן הַפֻּרְעָנוּת:",
+          "<b>ולמועדים.</b> עַל שֵׁם הֶעָתִיד, שֶׁעֲתִידִים יִשְׂרָאֵל לְהִצְטַוּוֹת עַל הַמּוֹעֲדוֹת וְהֵם נִמְנִים לְמוֹלַד הַלְּבָנָה:",
+          "<b>ולימים.</b> שִׁמּוּשׁ הַחַמָּה חֲצִי יוֹם וְשִׁמּוּשׁ הַלְּבָנָה חֶצְיוֹ, הֲרֵי יוֹם שָׁלֵם:",
+          "<b>ושנים.</b> לְסוֹף שס\"ה יָמִים (ס\"א וּרְבִיעַ יוֹם), יִגְמְרוּ מַהֲלָכָתָם בְּי\"ב מַזָּלוֹת הַמְשָׁרְתִים אוֹתָם, וְהִיא שָׁנָה, וְחוֹזְרִים וּמַתְחִילִים פַּעַם שְׁנִיָּה לְסַבֵּב בַּגַּלְגַּל כְּמַהֲלָכָן הָרִאשׁוֹן:"
+        ],
+        [
+          "<b>והיו למאורת.</b> עוֹד זֹאת יְשַׁמְּשׁוּ, שֶׁיָּאִירוּ לָעוֹלָם:"
+        ],
+        [
+          "<b>המארת הגדולים.</b> שָׁוִים נִבְרְאוּ וְנִתְמַעֲטָה הַלְּבָנָה עַל שֶׁקִּטְרְגָה וְאָמְרָה אִ\"אֶ לִשְׁנֵי מְלָכִים שֶׁיִשְׁתַּמְּשׁוּ בְכֶתֶר אֶחָד:",
+          "<b>ואת הכוכבים.</b> עַל יְדֵי שֶׁמִּעֵט אֶת הַלְּבָנָה הִרְבָּה צְבָאָיהָ לְהָפִיס דַּעְתָּהּ:"
+        ],
+        [],
+        [],
+        [],
+        [
+          "<b>נפש חיה.</b> שֶׁיְּהֵא בָהּ חַיּוּת:",
+          "<b>שרץ.</b> כָּל דָּבָר חַי שֶׁאֵינוֹ גָבוֹהַּ מִן הָאָרֶץ קָרוּי שֶׁרֶץ: בָּעוֹף, כְּגוֹן זְבוּבִים, בַּשְּׁקָצִים, כְּגוֹן נְמָלִים וְחִפּוּשִׁים וְתוֹלָעִים, בַּבְּרִיּוֹת, כְּגוֹן חֹלֶד וְעַכְבָּר וְחֹמֶט וְכַיּוֹצֵא בָהֶם, וְכָל הַדָּגִים:"
+        ],
+        [
+          "<b>התנינם.</b> דָּגִים גְּדוֹלִים שֶׁבַּיָּם, וּבְדִבְרֵי אַגָּדָה הוּא לִוְיָתָן וּבֶן זוּגוֹ שֶׁבְּרָאָם זָכָר וּנְקֵבָה וְהָרַג אֶת הַנְּקֵבָה וּמְלָחָהּ לַצַּדִּיקִים לֶעָתִיד לָבֹא, שֶׁאִם יִפְרוּ וְיִרְבּוּ לֹא יִתְקַיֵּם הָעוֹלָם בִּפְנֵיהֶם:",
+          "<b>נפש החיה.</b> שֶׁיֵּש בָּהּ חַיּוּת:"
+        ],
+        [
+          "<b>ויברך אותם.</b> לְפִי שֶׁמְּחַסְּרִים אוֹתָם וְצָדִין מֵהֶם וְאוֹכְלִין אוֹתָם, הֻצְרְכוּ לִבְרָכָה, וְאַף הַחַיּוֹת הֻצְרְכוּ לִבְרָכָה, אֶלָּא מִפְּנֵי הַנָּחָשׁ שֶׁעָתִיד לִקְלָלָה, לְכָךְ לֹא בֵרְכָן, שֶׁלֹּא יְהֵא הוּא בִכְלָל:",
+          "<b>פרו.</b> לְ' פְּרִי כְּלוֹ' עֲשׁוּ פֵּרוֹת:",
+          "<b>ורבו.</b> אִם לֹא אָמַר אֶלָּא פְּרוּ, הָיָה אֶחָד מוֹלִיד אֶחָד וְלֹא יוֹתֵר, וּבָא וּרְבוּ שֶׁאֶחָד מוֹלִיד הַרְבֵּה:"
+        ],
+        [],
+        [
+          "<b>תוצא הארץ.</b> הוּא שֶׁפֵּרַשְׁתִּי שֶׁהַכֹּל נִבְרָא מִיּוֹם רִאשׁוֹן, וְלֹא הֻצְרְכוּ אֶלָּא לְהוֹצִיאָם:",
+          "<b>נפש חיה.</b> שֶׁיֵּשׁ בָּהּ חַיּוּת:",
+          "<b>ורמש.</b> הֵם שְׁרָצִים, שֶׁהֵם נְמוּכִים וְרוֹמְשִׂים עַל הָאָרֶץ וְנִרְאִים כְּאִלּוּ נִגְרָרִים שֶׁאֵין הִלוּכָן נִכָּר. כָּל לְשׁוֹן רֶמֶשׂ וְשֶׁרֶץ בִּלְשׁוֹנֵנוּ קונמו\"בריש בלע\"ז:"
+        ],
+        [
+          "<b>ויעש.</b> תִּקְּנָם בְּצִבְיוֹנָם וּבְקוֹמָתָן:"
+        ],
+        [
+          "<b>נעשה אדם.</b> עַנְוְתָנוּתוֹ שֶׁל הַקָּבָּ\"ה לָמַדְנוּ מִכָּאן, לְפִי שֶׁאָדָם הוּא בִּדְמוּת הַמַּלְאָכִים וְיִתְקַנְּאוּ בוֹ, לְפִיכָךְ נִמְלַךְ בָּהֶם, וּכְשֶׁהוּא דָן אֶת הַמְּלָכִים הוּא נִמְלָךְ בְּפָמַלְיָא שֶׁלּוֹ, שֶׁכֵּן מָצִינוּ בְאַחְאָב, שֶׁאָמַר לוֹ מִיכָה רָאִיתִי אֶת ה' יֹשֵׁב עַל כִּסְאוֹ וְכָל צְבָא הַשָּׁמַיִם עוֹמְדִים עָלָיו מִימִינוֹ וּמִשְּׂמֹאלוֹ (מלכים א כ\"ב), וְכִי יֵש יָמִין וּשְׂמֹאל לְפָנָיו? אֶלָּא אֵלּוּ מַיְמִינִים לִזְכוּת וְאֵלוּ מַשְׂמְאִילִים לְחוֹבָה, וְכֵן בִּגְזֵרַת עִירִין פִּתְגָמָא וּבְמֵאמַר קַדִּישִׁין שְׁאֵלְתָא (דניאל ד'), אַף כָּאן בְּפָמַלְיָא שֶׁלוֹ נָטַל רְשׁוּת, אָמַר לָהֶם יֵשׁ בָּעֶלְיוֹנִים כִּדְמוּתִי; אִם אֵין כִּדְמוּתִי בַתַּחְתּוֹנִים הֲרֵי יֵשׁ קִנְאָה בְמַעֲשֵׂה בְרֵאשִׁית:",
+          "<b>נעשה אדם.</b> אַעַ\"פִּ שֶׁלֹּא סִיְּעוּהוּ בִיצִירָתוֹ וְיֵשׁ מָקוֹם לַמִּינִים לִרְדּוֹת, לֹא נִמְנַע הַכָּתוּב מִלְּלַמֵּד דֶרֶך אֶרֶץ וּמִדַּת עֲנָוָה שֶׁיְּהֵא הַגָּדוֹל נִמְלָךְ וְנוֹטֵל רְשׁוּת מִן הַקָּטָן; וְאִם כָּתַב אֶעֱשֶׂה אָדָם, לֹא לָמַדְנוּ שֶׁיְּהֵא מְדַבֵּר עִם בֵּית דִינוֹ, אֶלָּא עִם עַצְמוֹ, וּתְשׁוּבַת הַמִּינִים כָּתַב בְּצִדּוֹ, וַיִּבְרָא אֶת הָאָדָם, וְלֹא כָתַב וַיִּבְרְאוּ:",
+          "<b>בצלמנו.</b> בִּדְפוּס שֶׁלָּנוּ:",
+          "<b>כדמותנו.</b> לְהָבִין וּלְהַשְׂכִּיל:",
+          "<b>וירדו בדגת הים.</b> יֵשׁ בַּלָּשׁוֹן הַזֶּה לְשׁוֹן רִדּוּי וּלְשׁוֹן יְרִידָה; זָכָה, רוֹדֶה בַחַיּוֹת וּבַבְּהֵמוֹת, לֹא זָכָה, נַעֲשֶׂה יָרוּד לִפְנֵיהֶם וְהַחַיָּה מוֹשֶׁלֶת בּוֹ:"
+        ],
+        [
+          "<b>ויברא אלהים את האדם בצלמו.</b> בִּדְפוּס הֶעָשׂוּי לוֹ, שֶׁהַכֹּל נִבְרָא בְּמַאֲמָר וְהוּא נִבְרָא בַּיָּדַיִם, שֶׁנֶּאֱמַר וַתָּשֶׁת עָלַי כַּפֶּכָה (תהילים קל\"ט); נַעֲשָׂה בְחוֹתָם כְּמַטְבֵּעַ הָעֲשׂוּיָה עַל יְדֵי רֹשֶׁם שֶׁקּוֹרִין קוי\"ן בלע\"ז וְכֵן הוּא אוֹמֵר תִּתְהַפֵּךְ כְּחֹמֶר חוֹתָם (איוב ל\"ח):",
+          "<b>בצלם אלהים ברא אותו.</b> פֵּרֵשׁ לְךָ שֶׁאוֹתוֹ צֶלֶם הַמְתֻקָּן לוֹ, צֶלֶם דְּיוֹקַן יוֹצְרוֹ הוּא:",
+          "<b>זכר ונקבה ברא אותם.</b> וּלְהַלָּן הוּא אוֹמֵר וַיִּקַּח אַחַת מִצַּלְעֹתָיו וגו' (בראשית ב')? מִדְרַשׁ אַגָּדָה שֶׁבְּרָאוֹ שְׁנֵי פַרְצוּפִים בִּבְרִיאָה רִאשׁוֹנָה, וְאַחַר כָּךְ חֲלָקוֹ. וּפְשׁוּטוֹ שֶׁל מִקְרָא, כָּאן הוֹדִיעֲךָ שֶׁנִּבְרְאוּ שְׁנֵיהֶם בַּשִּׁשִּׁי וְלֹא פֵי' לְךָ כֵּיצַד בְּרִיָּתָן, וּפֵרֵשׁ לְךָ בְּמָקוֹם אַחֵר:"
+        ],
+        [
+          "<b>וכבשה.</b> חָסֵר וָי\"ו לְלַמֶּדְךָ שֶׁהַזָּכָר כּוֹבֵשׁ אֶת הַנְּקֵבָה, שֶׁלֹּא תְהֵא יַצְאָנִית, וְעוֹד לְלַמֶּדְךָ שֶׁהָאִישׁ שֶׁדַּרְכּוֹ לִכְבֹּשׁ מְצֻוֶּה עַל פְּרִיָּה וּרְבִיָּה וְלֹא הָאִשָּׁה:"
+        ],
+        [
+          "<b>לכם יהיה לאכלה ולכל חית הארץ.</b> הִשְׁוָה לָהֶם בְּהֵמוֹת וְחַיּוֹת לְמַאֲכָל, וְלֹא הִרְשָׁה לְאָדָם וּלְאִשְׁתּוֹ לְהָמִית בְּרִיָּה וְלֶאֱכֹל בָּשָׂר, אַךְ כָּל יֶרֶק עֵשֶׂב יֹאכְלוּ יַחַד כֻּלָם, וּכְשֶׁבָּאוּ בְנֵי נֹחַ הִתִּיר לָהֶם בָּשָׂר, שֶׁנֶאֱמַר כָּל רֶמֶשׂ אֲשֶׁר הוּא חַי וְגוֹ' כְּיֶרֶק עֵשֶׂב שֶׁהִתַּרְתִּי לְאָדָם הָרִאשׁוֹן נָתַתִּי לָכֶם אֶת כֹּל:"
+        ],
+        [],
+        [
+          "<b>יום הששי.</b> הוֹסִיף ה' בַּשִּׁשִּׁי בִגְמַר מַעֲשֵׂה בְרֵאשִׁית, לוֹמַר שֶׁהִתְנָה עִמָּהֶם, עַל מְנָת שֶׁיְּקַבְּלוּ עֲלֵיהֶם יִשְׂרָאֵל חֲמִשָּׁה חֻמְּשֵׁי תוֹרָה. דָּבָר אַחֵר יוֹם הַשִּׁשִּׁי, כֻּלָּם תְּלוּיִם וְעוֹמְדִים עַד יוֹם הַשִּׁשִּׁי, הוּא ו' בְּסִיוָן הַמּוּכָן לְמַתַּן תּוֹרָה:"
+        ]
+      ]
+    },
+    {
+      "status": "locked",
+      "priority": 5,
+      "license": "Public Domain",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": true,
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "חמישה חומשי תורה עם פירוש רש״י, מ. רוזנבאום וא.מ. סילברמן",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "M. Rosenbaum and A.M. Silbermann, London, 1929-1934",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "https://storage.googleapis.com/sefaria-physical-editions/5ea273ca604bf02f59229a3843fdcb3f.png",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH001969084",
+      "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+      "actualLanguage": "en",
+      "languageFamilyName": "english",
+      "isSource": false,
+      "isPrimary": false,
+      "direction": "ltr",
+      "text": [
+        [
+          "בראשית IN THE BEGINNING — Rabbi Isaac said: The Torah <i>which is the Law book of Israel</i> should have commenced with the verse (Exodus 12:2) “This month shall be unto you the first of the months” which is the first commandment given to Israel. What is the reason, then, that it commences with the account of the Creation? Because of the thought expressed in the text (Psalms 111:6) “He declared to His people the strength of His works (i.e. He gave an account of the work of Creation), in order that He might give them the heritage of the nations.” For should the peoples of the world say to Israel, “You are robbers, because you took by force the lands of the seven nations of Canaan”, Israel may reply to them, “All the earth belongs to the Holy One, blessed be He; He created it and gave it to whom He pleased. When He willed He gave it to them, and when He willed He took it from them and gave it to us” (Yalkut Shimoni on Torah 187).",
+          "בראשית ברא IN THE BEGINNING GOD CREATED — This verse calls aloud for explanation in the manner that our Rabbis explained it: God created the world for the sake of the Torah which is called (Proverbs 8:22) “The beginning (ראשית) of His (God’s) way”, and for the sake of Israel who are called (Jeremiah 2:3) “The beginning (ראשית) of His (God’s) increase’’. If, however, you wish to explain it in its plain sense, explain it thus: At the beginning of the Creation of heaven and earth when the earth was without form and void and there was darkness, God said, “Let there be light”.  The text does not intend to point out the order of the acts of Creation — to state that these (heaven and earth) were created first; for if it intended to point this out, it should have written 'בראשונה ברא את השמים וגו “At first God created etc.” And for this reason: Because, wherever the word ראשית occurs in Scripture, it is in the construct state. E. g., (Jeremiah 26:1) “In the beginning of (בראשית) the reign of Jehoiakim”; (Genesis 10:10) “The beginning of (ראשית) his kingdom”; (Deuteronomy 18:4) “The first fruit of (ראשית) thy corn.” Similarly here you must translate בראשית ברא אלהים as though it read בראשית ברוא, at the beginning of God’s creating. A similar grammatical construction (of a noun in construct followed by a verb) is: (Hosea 1:2) תחלת דבר ה' בהושע, which is as much as to say, “At the beginning of God’s speaking through Hosea, the Lord said to Hosea.” Should you, however, insist that it does actually intend to point out that these (heaven and earth) were created first, and that the meaning is, “At the beginning of everything He created these, admitting therefore that the word בראשית is in the construct state and explaining the omission of a word signifying “everything” by saying that you have texts which are elliptical, omitting a word, as for example (Job 3:10) “Because it shut not up the doors of my mother’s womb” where it does not explicitly explain who it was that closed the womb; and (Isaiah 8:4) “He shall take away the spoil of Samaria” without explaining who shall take it away; and (Amos 6:12) “Doth he plough with oxen,\" and it does not explicitly state, “Doth a man plough with oxen”; (Isaiah 46:10) “Declaring from the beginning the end,” and it does not explicitly state, “Declaring from the beginning of a thing the end of a thing’ — if it is so (that you assert that this verse intends to point out that heaven and earth were created first), you should be astonished at yourself, because as a matter of fact the waters were created before heaven and earth, for, lo, it is written, (v. 2) “The Spirit of God was hovering on the face of the waters,” and Scripture had not yet disclosed when the creation of the waters took place — consequently you must learn from this that the creation of the waters preceded that of the earth. And a further proof that the heavens and earth were not the first thing created is that the heavens were created from fire (אש) and water (מים), from which it follows that fire and water were in existence before the heavens. Therefore you must admit that the text teaches nothing about the earlier or later sequence of the acts of Creation.",
+          "ברא אלהים GOD [AS JUDGE] CREATED — It does not state 'ברא ה “The Lord (the Merciful One) created, because at first God intended to create it (the world) to be placed under the attribute (rule) of strict justice, but He realised that the world could not thus endure and therefore gave precedence to Divine Mercy allying it with Divine Justice. It is to this that what is written in (Genesis 2:4) alludes — “In the day that the Lord God made earth and heaven”."
+        ],
+        [
+          "תהו ובהו DESOLATE AND VOID — The word תהו signifies astonishment and amazement, for a person would have been astonished and amazed at its emptiness.",
+          "תהו is estordison in old French.",
+          "בהו VOID — The word signifies emptiness and empty space.",
+          "על פני תהום ON THE FACE OF THE DEEP — i. e. the waters which were upon the earth.",
+          "ורוח אלהים מרחפת AND THE SPIRIT OF GOD WAS HOVERING — The throne of Divine Glory was standing in space, hovering over the face of the waters by the breath of the mouth of the Holy One, blessed be He, and by His command, even as a dove hovers over its nest. In old French acoveter."
+        ],
+        [],
+        [
+          "וירא אלהים את האור כי טוב ויבדל AND GOD SAW THE LIGHT THAT IT WAS GOOD, AND GOD CAUSED A DIVISION — Here, also, we must depend upon the statement of the Agada: He saw that the wicked were unworthy of using it (the light); He, therefore, set it apart (ויבדל), reserving it for the righteous in the world to come (Chagigah 12a). But according to the plain sense explain it thus: He saw that it was good, and that it was not seemly that light and darkness should function together in a confused manner. He therefore limited this one’s sphere of activity to the daytime, and this one’s sphere of activity to the nighttime (see Genesis Rabbah 3:6)."
+        ],
+        [
+          "יום אחד THE FIRST DAY (literally, one day) — According to the regular mode of expression used in this chapter it should be written here “first day”, just as it is written with regard to the other days “the second”, “the third”, “the fourth”. Why, then, does it write אחד “one”? Because the Holy One, blessed be He, was then the Only One (Sole Being) in His Universe, since the angels were not created until the second day. Thus it is explained in Genesis Rabbah (Genesis Rabbah 3:8)."
+        ],
+        [
+          "יהי רקיע BE THERE AN EXPANSE — Let the expansion become fixed; for although the heavens were created on the first day, they were still in a fluid form, and they became solidified only on the second day at the dread command (literally, rebuke) of the Holy One, blessed be He, when he said “Let the firmament be stable” (Genesis Rabbah 4:2). It is to this that allusion is made in what is written in (Job 26:11): “The pillars of heaven were trembling” (i. e. they were unstable) — this was during the whole of the first day — and on the second (Job 26:11): “they were astonished at His rebuke”, like a man who stands immovable, amazed at the rebuke of one who terrifies him.",
+          "בתוך המים IN THE MIDST OF THE WATERS — In the exact centre of the waters; because there is the same distance between the upper waters and the firmament as there is between the firmament and the waters that are upon the earth. Thus you may infer that they (the upper waters) are suspended in space by the command of the King (Genesis Rabbah 4:3). "
+        ],
+        [
+          "ויעש אלהים את הרקיע AND GOD MADE THE EXPANSE — He put it in proper condition in its place: this is the meaning of “making” it. Similarly (Deuteronomy 21:12) ועשתה את צפרניה “And she shall let grow (literally, make) her nails”.",
+          "מעל לרקיע ABOVE THE EXPANSE — It is not said here על הרקיע “upon the firmament״, but מעל “hanging from above”, because they (the waters) were suspended in space (Genesis Rabbah 4:3). Why is it not stated in reference to the work of the second day “that it was good”? Because the work associated with water was not completed until the third day — He only began it on the second — and anything that is not completed is not in a state of perfection and at its best (and so cannot be termed “good”). Therefore on the third day when He completed the work associated with water and another work was commenced and finished, the words כי טוב are repeated, once in reference to the completion of the work of the second day, and again in reference to the completion of the work of that day (Genesis Rabbah 4:10)."
+        ],
+        [
+          "ויקרא אלהים לרקיע שמים AND GOD CALLED THE EXPANSE HEAVEN — The word “שמים”, Heaven, may be regarded as made up of שא מים “Carry water”, or שם מים “There is water”, or אש ומים “Fire and water”. He mingled fire with water and of them He made the heavens (Chagigah 12a). "
+        ],
+        [
+          "יקוו המים THE WATERS SHALL BE DRAWN TOGETHER — For they were then spread over the surface of the whole earth, and He now gathered them together into what now constitutes the Ocean, which is the largest of all seas (Genesis Rabbah 5:2). "
+        ],
+        [
+          "קרא ימים CALLED HE SEAS — But does it not form one great sea? But it speaks of seas because the taste of fish which comes up from the sea at Acco is not the same as the taste of fish which comes up from the sea at Aspamia (Genesis Rabbah 5:8). "
+        ],
+        [
+          "תדשא הארץ דשא עשב THE EARTH SHALL SPROUT FORTH SPROUTS, HERB — דשא does not mean the same as עשב nor does עשב mean the same as דשא so that it is not a correct expression in Biblical Hebrew to say תעשיב הארץ, for the species of דשא are all different, each by itself being called this or that עשב, and it would not be linguistically correct for a speaker to say this or that דשא, for by דשא is meant that which forms the covering of the ground when it is filled with herbage.",
+          "תדשא הארץ THE EARTH SHALL SPROUT FORTH [SPROUTS] — Let it be filled and covered with a garment of different grasses. In old French דשא is called herbaries; English herbage, meaning all species of herbs growing together collectively whilst each root by itself is called an עשב.",
+          "— מזריע זרע YIELDING SEED — that its seed should grow within itself, so that some of it may be sown in another spot.",
+          "עץ פרי FRUIT TREE — that the taste of the tree be exactly the same as that of the fruit. It did not, however, do this, but (v. 12) “the earth brought forth a tree yielding fruit” and the tree itself was not a fruit; therefore when Adam was cursed on account of his sin, it (the earth) was also visited (because of its sin) and was cursed also (Genesis Rabbah 5:9).",
+          "אשר זרעו בו WHOSE SEED IS IN ITSELF — This refers to the kernels of each kind of fruit from which the tree grows when they are planted. "
+        ],
+        [
+          "ותוצא הארץ וגו AND THE EARTH BROUGHT FORTH etc. — Although the expression למינהו according to its kind, was not used when the various kinds of herbage were bidden to come forth, they heard that the trees were so commanded and they applied to themselves the argument à fortiore (ק\"ו), as it is explained in an Aggadic passage in (Chullin 60a). "
+        ],
+        [],
+        [
+          "יהי מארת BE THERE LUMINARIES — They had been created on the first day, but on the fourth He commanded them to be suspended in the firmament (Chagigah 12a). Indeed, all the productions of heaven and earth were created on the first day, but each of them was put in its place on that day when it was so commanded. In reference to this it is written את השמים (v. 1) In the beginning God created that which was את with the heavens etc., in order to include all the productions of heaven, ואת הארץ to include all its (the earth’s) productions (Genesis Rabbah 12:4).",
+          "יהי מארת The word is written without the ו after the א (so that it may be read מארת, cursed), because it is a cursed day when children are liable to suffer from croup. In reference to this we read (in Taanit 27b): On the fourth day of the week they used to fast to avert croup from the children (Yerushalmi Taanit 4:3).",
+          "להבדיל בין היום ובין הלילה TO CAUSE A DIVISION BETWEEN THE DAY AND THE NIGHT — This took place after the primeval (divine) light was conserved for the righteous; but during the first seven [another reading is “three”] days of Creation the primeval light and darkness functioned together both by day and by night.",
+          "והיו לאותות AND THEY SHALL BE FOR SIGNS — When the heavenly luminaries are eclipsed it is a sign of ill-omen for the world, as it is written, (Jeremiah 10:2) “Be not dismayed at the signs of heaven” — when you carry out the will of the Holy One, blessed be He, you need apprehend no calamity (Sukkah 29a).",
+          "ולמועדים AND FOR SEASONS (FESTIVALS) — This is written with a view to the future when Israel would receive command regarding the festivals which would be calculated from the time of the lunar conjunction (Genesis Rabbah 6:1).",
+          "ולימים AND FOR DAYS — The sun functions half a day and the moon the other half — together a full day.",
+          "ושנים AND FOR YEARS — At the end of three hundred and sixty five days [another version: 365¼] they complete their course through the twelve signs of the Zodiac that attend them, and that is one year [another version: and this makes 365¼ days]; they then begin to revolve a second time in a circle similar to their first cycle. "
+        ],
+        [
+          "והיו למאורות AND LET THEM BE FOR LIGHTS — They shall serve also this purpose, namely, to give light to the world. "
+        ],
+        [
+          "המאורות הגדולים THE GREAT LUMINARIES — They were created of equal size, but that of the moon was diminished because she complained and said, “It is impossible for two kings to make use of one crown” (Chullin 60b).",
+          "ואת הכוכבים AND THE STARS — Because He diminished the moon, He increased its attendant hosts to mollify it (Genesis Rabbah 6:4). "
+        ],
+        [],
+        [],
+        [],
+        [
+          "נפש חיה LIVING CREATURES — Creatures that shall have vitality.",
+          "שרץ Every living creature that does not rise much above the ground is called שרץ, e. g., of winged creatures — flies; of abominable creatures — ants, beetles and worms; of larger creatures — the mole, snail and others of the same kind, and all fishes."
+        ],
+        [
+          "התנינים THE HUGE CREATURES — the large fishes that are in the sea; and according to the statement of the Agada (Bava Batra 74b) it means here the Leviathan and its consort which He created male and female. He, however, killed the female and preserved it in salt for the benefit of the righteous in the time to come, for had they been permitted to be fruitful and to multiply the world could not have endured because of them.",
+          "נפש חיה — that have vitality. "
+        ],
+        [
+          "ויברך אותם AND HE BLESSED THEM — Because people decreased their number, hunting them and eating them, they needed a blessing (Genesis Rabbah 11:2); it is true that beasts also were in need of a blessing, but on account of the serpent that was to be cursed in the future, He did not bless them, in order that it might not be included in the blessing.",
+          "פרו BE FRUITFUL — פרו is of the same root as פרי, and means bring forth fruit.",
+          "ורבו AND MULTIPLY — Had He said “Be fruitful” only, one creature might have brought forth a single one, and no more, therefore He added ורבו “and multiply”, implying that one should bring forth many. "
+        ],
+        [],
+        [
+          "תוצא הארץ THE EARTH SHALL BRING FORTH — That is what I have explained (v. 14) that all things were created on the first day, and it was only necessary to bring them forth from the ground.",
+          "נפש חיה — that have vitality.",
+          "ורמש — It means creeping swarms that creep low upon the ground; they appear as though they are dragged along, for how they move is not discernible. What we call רמש and שרץ in our (Hebrew) language, they call in old French mouvoir; English to move. "
+        ],
+        [
+          "ויעש AND HE MADE — He formed them with their full volition and in their full stature (Chullin 60a). "
+        ],
+        [
+          "נעשה אדם WE WILL MAKE MAN — The meekness of the Holy One, blessed be He, they (the Rabbis) learned from here: because the man is in the likeness of the angels and they might envy him, therefore He took counsel with them (Midrash Tanchuma, Shemot 18 and see Genesis Rabbah 8). And when He judges the kings He likewise consults His heavenly council, for thus we find in the case of Ahab to whom Micha said, (1 Kings 22:19) “I saw the Lord sitting on His throne, and all the host of heaven standing by Him on His right hand and on His left.” Has God, then, a right hand and a left hand? But it means that some stood on the right side to plead in favour of the accused and others stood on the left side to accuse; and similarly we read (Daniel 4:14), “the matter is by the decree of the watchers, and the sentence by the word of the holy ones”, — here, also, He consulted His heavenly council and asked permission of them, saying to them: “There are in the heavens beings after My likeness; if there will not be on earth also beings after My likeness, there will be envy among the beings that I have created” (Sanhedrin 38b).",
+          "נעשה אדם WE WILL MAKE MAN — Although they did not assist Him in forming him (the man) and although this use of the plural may give the heretics an occasion to rebel (i. e. to argue in favour of their own views), yet the verse does not refrain from teaching proper conduct and the virtue of humbleness, namely, that the greater should consult, and take permission from the smaller; for had it been written, “I shall make man”, we could not, then, have learned that He spoke to His judicial council but to Himself. And as a refutation of the heretics it is written immediately after this verse “And God created the man”, and it is not written “and they created” (Genesis Rabbah 8:9)",
+          "בצלמנו IN OUR IMAGE — in our type.",
+          "כדמתנו AFTER OUR LIKENESS — with the power to comprehend and to discern.",
+          "וירדו בדגת הים AND THEY SHALL HAVE DOMINION OVER THE FISH … [AND OVER THE BEASTS] — The expression וירדו may imply dominion as well as descending — if he is worthy he dominates over the beasts and cattle, if he is not worthy he will sink lower than them, and the beast will rule over him (Genesis Rabbah 8:12)."
+        ],
+        [
+          "ויברא אלהים את האדם בצלמו SO GOD CREATED THE MAN IN HIS IMAGE —in the type that was specially made for him, for everything else was created by a creative fiat, whilst he was brought into existence by a creative act (literally, by hand), as it is said (Psalms 139:5) “And Thou hast laid thy hand upon me.” He was made by a seal as a coin that is made by a die that is called in old French coin. It is similarly said, (Job 38:14) “it is changed as clay under the seal” (Sanhedrin 38a).",
+          "בצלם אלהים ברא אותו IN THE IMAGE OF GOD CREATED HE HIM — It explains to you that the form prepared for him was the form of the image of his Creator.",
+          "זכר ונקבה ברא אותם MALE AND FEMALE CREATED HE THEM — And further on (Genesis 2:21) it is said: “and He took one of his ribs etc.” (The two passages appear to be contradictory.) But according to a Midrashic explanation,  He created him at first with two faces, and afterwards He divided him. But the real sense of the verse is: here it tells you that both of them were created on the sixth day, but it does not explain to you how their creation took place; this it explains to you in another place (Genesis Rabbah 8:1 and see Eruvin 18a) . "
+        ],
+        [
+          "וכבשה AND SUBDUE IT — The word lacks a ו after the ש so that it may be read as meaning: and subdue her (i. e. the woman), thereby teaching you that the male controls the female in order that she may not become a gad-about; teaching you also that to the man, whose nature is to master, was given the Divine command to have issue, and not to the woman (Yevamot 65b). "
+        ],
+        [
+          "ולכל חית הארץ AND TO EVERY BEAST OF THE EARTH — Scripture places cattle and beasts on a level with them (human beings: that is, it places all alike in the same category) with regard to food, and did not permit Adam to kill any creature and eat its flesh, but all alike were to eat herbs. But when the era of the “Sons of Noah” began He permitted them to eat meat, for it is said, (Genesis 9:3) “every moving thing that lives should be for food for yourselves … “even as the herb” that I permitted to the first man, so do “I give to you everything” (Sanhedrin 59b). "
+        ],
+        [],
+        [
+          "יום הששי THE SIXTH DAY — The letter ה, the numerical value of which is 5, is added to the word ששי when the work of Creation was complete, to imply that He made a stipulation with them that it endures only upon condition that Israel should accept the five books of the Torah (Shabbat 88a). Another interpretation of יום הששי THE SIXTH DAY — The whole Creation (the Universe) stood in a state of suspense (moral imperfection) until the sixth day — that is, the sixth day of Sivan which was destined to be the day when the Torah would be given to Israel (Avodah Zara 3a)."
+        ]
+      ]
+    }
+  ],
+  "available_versions": [
+    {
+      "status": "locked",
+      "priority": 5,
+      "license": "Public Domain",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": true,
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "חמישה חומשי תורה עם פירוש רש״י, מ. רוזנבאום וא.מ. סילברמן",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "M. Rosenbaum and A.M. Silbermann, London, 1929-1934",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "https://storage.googleapis.com/sefaria-physical-editions/5ea273ca604bf02f59229a3843fdcb3f.png",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "title": "Rashi on Genesis",
+      "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH001969084",
+      "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+      "actualLanguage": "en",
+      "languageFamilyName": "english",
+      "isSource": false,
+      "isPrimary": false,
+      "direction": "ltr"
+    },
+    {
+      "status": "locked",
+      "priority": 4,
+      "license": "Public Domain",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": true,
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "M. Rosenbaum and A.M. Silbermann, London, 1929-1934",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "he",
+      "title": "Rashi on Genesis",
+      "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH001969084",
+      "versionTitle": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934",
+      "actualLanguage": "he",
+      "languageFamilyName": "hebrew",
+      "isSource": true,
+      "isPrimary": true,
+      "direction": "rtl"
+    },
+    {
+      "status": "locked",
+      "priority": 3,
+      "license": "CC-BY",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "חמשה חומשי תורה; הוצאת מצודה, ליקווד, נ.ג'., תש\"ע",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "Metsudah Publications, 2009",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "title": "Rashi on Genesis",
+      "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH002691623",
+      "versionTitle": "Rashi Chumash, Metsudah Publications, 2009",
+      "actualLanguage": "en",
+      "languageFamilyName": "english",
+      "isSource": false,
+      "isPrimary": false,
+      "direction": "ltr"
+    },
+    {
+      "status": "locked",
+      "priority": 1,
+      "license": "CC-BY",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "חמשה חומשי תורה; הוצאת מצודה, ליקווד, נ.ג'., תש\"ע",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "Metsudah Publications, 2009",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "he",
+      "title": "Rashi on Genesis",
+      "versionSource": "https://www.nli.org.il/he/books/NNL_ALEPH002691623",
+      "versionTitle": "Rashi Chumash, Metsudah Publications, 2009",
+      "actualLanguage": "he",
+      "languageFamilyName": "hebrew",
+      "isSource": true,
+      "isPrimary": true,
+      "direction": "rtl"
+    },
+    {
+      "status": "locked",
+      "priority": 0.5,
+      "license": "Public Domain",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "ובלכתך בדרך",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "he",
+      "title": "Rashi on Genesis",
+      "versionSource": "http://mobile.tora.ws/",
+      "versionTitle": "On Your Way",
+      "actualLanguage": "he",
+      "languageFamilyName": "hebrew",
+      "isSource": true,
+      "isPrimary": true,
+      "direction": "rtl"
+    },
+    {
+      "status": "",
+      "priority": "",
+      "license": "CC-BY-SA",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "מקראות גדולות (ויקיטקסט)",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "title": "Rashi on Genesis",
+      "versionSource": "http://en.wikisource.org/wiki/Mikraot_Gedolot",
+      "versionTitle": "Wikisource Mikraot Gedolot",
+      "actualLanguage": "en",
+      "languageFamilyName": "english",
+      "isSource": false,
+      "isPrimary": false,
+      "direction": "ltr"
+    },
+    {
+      "status": "",
+      "priority": "",
+      "license": "CC0",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "תרגום קהילת ספריא",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "title": "Rashi on Genesis",
+      "versionSource": "https://www.sefaria.org",
+      "versionTitle": "Sefaria Community Translation",
+      "actualLanguage": "en",
+      "languageFamilyName": "english",
+      "isSource": false,
+      "isPrimary": false,
+      "direction": "ltr"
+    },
+    {
+      "status": "",
+      "priority": "",
+      "license": "unknown",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "title": "Rashi on Genesis",
+      "versionSource": "http://www.sefaria.org/Rashi_on_Genesis.1.1.1?lang=en",
+      "versionTitle": "Portuguese Version [pt]",
+      "actualLanguage": "pt",
+      "languageFamilyName": "portuguese",
+      "isSource": false,
+      "isPrimary": false,
+      "direction": "ltr"
+    },
+    {
+      "status": "locked",
+      "priority": "",
+      "license": "Public Domain",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "title": "Rashi on Genesis",
+      "versionSource": "http://sammlungen.ub.uni-frankfurt.de/freimann/content/titleinfo/7716358",
+      "versionTitle": "Raschis Pentateuchkommentar, trans. Rabb. Dr. Selig Bamberger, Hamburg, 1922. Edited by Igor Itkin [de]",
+      "actualLanguage": "de",
+      "languageFamilyName": "german",
+      "isSource": false,
+      "isPrimary": false,
+      "direction": "ltr"
+    },
+    {
+      "status": "",
+      "priority": "",
+      "license": "unknown",
+      "versionNotes": "",
+      "formatAsPoetry": "",
+      "digitizedBySefaria": "",
+      "method": "",
+      "heversionSource": "",
+      "versionUrl": "",
+      "versionTitleInHebrew": "",
+      "versionNotesInHebrew": "",
+      "shortVersionTitle": "",
+      "shortVersionTitleInHebrew": "",
+      "extendedNotes": "",
+      "extendedNotesHebrew": "",
+      "purchaseInformationImage": "",
+      "purchaseInformationURL": "",
+      "hasManuallyWrappedRefs": "",
+      "language": "en",
+      "title": "Rashi on Genesis",
+      "versionSource": "Chavruta Chats Traduções",
+      "versionTitle": "Publicado em 5784, Saymon Pires da Silva [pt]",
+      "actualLanguage": "pt",
+      "languageFamilyName": "portuguese",
+      "isSource": false,
+      "isPrimary": false,
+      "direction": "ltr"
+    }
+  ],
+  "ref": "Rashi on Genesis 1",
+  "heRef": "רש\"י על בראשית א׳",
+  "sections": [
+    "1"
+  ],
+  "toSections": [
+    "1"
+  ],
+  "sectionRef": "Rashi on Genesis 1",
+  "heSectionRef": "רש\"י על בראשית א׳",
+  "firstAvailableSectionRef": "Rashi on Genesis 1:1",
+  "isSpanning": false,
+  "next": "Rashi on Genesis 2:2",
+  "prev": null,
+  "title": "Rashi on Genesis 1",
+  "book": "Rashi on Genesis",
+  "heTitle": "רש\"י על בראשית",
+  "primary_category": "Commentary",
+  "type": "Commentary",
+  "indexTitle": "Rashi on Genesis",
+  "categories": [
+    "Tanakh",
+    "Rishonim on Tanakh",
+    "Rashi",
+    "Torah"
+  ],
+  "heIndexTitle": "רש\"י על בראשית",
+  "isComplex": false,
+  "isDependant": true,
+  "order": "",
+  "collectiveTitle": "Rashi",
+  "heCollectiveTitle": "רש\"י",
+  "alts": [
+    [
+      {
+        "en": [
+          "Bereshit"
+        ],
+        "he": [
+          "בראשית"
+        ],
+        "whole": true
+      }
+    ]
+  ],
+  "lengths": [
+    50,
+    1072,
+    2017
+  ],
+  "length": 50,
+  "textDepth": 3,
+  "sectionNames": [
+    "Chapter",
+    "Verse",
+    "Comment"
+  ],
+  "addressTypes": [
+    "Perek",
+    "Pasuk",
+    "Integer"
+  ],
+  "titleVariants": [
+    "Rashi on Bereshit",
+    "Rashi on Gen",
+    "Rashi on Gen.",
+    "Rashi on Breishit",
+    "Rashi on Ber",
+    "Rashi on Bereishit",
+    "Rashi on Ber.",
+    "Rashi on Beresheet",
+    "Rashi on Bereshith",
+    "Rashi on Genesis"
+  ],
+  "heTitleVariants": [
+    "רש\"י על ברא'",
+    "רש\"י על בר'",
+    "רש\"י על בר׳",
+    "רש\"י על ברא׳",
+    "רש\"י על בְּרֵאשִׁית",
+    "רש״י על בראשית",
+    "רש”י על בראשית",
+    "רש״י על ברא'",
+    "רש”י על ברא'",
+    "רש״י על בר'",
+    "רש”י על בר'",
+    "רש״י על בר׳",
+    "רש”י על בר׳",
+    "רש״י על ברא׳",
+    "רש”י על ברא׳",
+    "רש״י על בְּרֵאשִׁית",
+    "רש”י על בְּרֵאשִׁית",
+    "רש\"י על בראשית"
+  ],
+  "index_offsets_by_depth": {},
+  "warnings": []
+}
