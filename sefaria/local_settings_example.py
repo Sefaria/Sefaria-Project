@@ -235,18 +235,6 @@ DISABLE_AUTOCOMPLETER = False
 # that run with DISABLE_AUTOCOMPLETER = True.
 NAME_SERVICE = False
 
-# When True this process skips loading the top-n-grams table (search-query auto-correction,
-# sc-47189, sefaria/helper/top_n_grams_for_search_autocorrect.py) at startup -- e.g. on
-# task/Celery pods, which never serve search_wrapper_api and so have no use for it in memory.
-DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT = False
-
-# When True this process skips building the runtime Book/Author/Topic alt-title index (same
-# feature, sc-47189, sefaria/helper/entity_alt_index.py) at startup -- same rationale as
-# DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT above. Unlike the top-n-grams table this index is
-# never persisted to Mongo, so there is no artifact to load either way -- disabling it just
-# means auto-correct only ever consults the top-n-grams table.
-DISABLE_ENTITY_ALT_INDEX = False
-
 # Turns on loading of machine learning models to run linker
 ENABLE_LINKER = False
 

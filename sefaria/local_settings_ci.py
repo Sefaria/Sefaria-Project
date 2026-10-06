@@ -126,16 +126,6 @@ USE_VARNISH_ESI = False
 # Prevent modification of Index records
 DISABLE_INDEX_SAVE = False
 
-# Top-n-grams table (search-query auto-correction, sc-47189) isn't built in CI -- skip trying
-# to load it at startup.
-DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT = True
-
-# Same feature's runtime entity alt-title index (sefaria/helper/entity_alt_index.py) would
-# build fine in CI (it's an in-process construction, not a Mongo-persisted artifact to skip
-# loading) but there's no reason to spend the IndexSet()/TopicSet()/AuthorTopicSet() walk on
-# every CI run either.
-DISABLE_ENTITY_ALT_INDEX = True
-
 # Caching with Cloudflare
 CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""

@@ -43,15 +43,13 @@ def init_library_cache():
         logger.info("Initializing Shared Cache")
         library.init_shared_cache()
 
-        if not settings.DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT:
+        if not settings.DISABLE_AUTOCOMPLETER:
             logger.info("Loading Top N-Grams For Search Autocorrect")
             library.build_top_n_grams_for_search_autocorrect()
 
-        if not settings.DISABLE_ENTITY_ALT_INDEX:
             logger.info("Building Entity Alt Index")
             library.build_entity_alt_index()
 
-        if not settings.DISABLE_AUTOCOMPLETER:
             logger.info("Initializing Full Auto Completer")
             library.build_full_auto_completer()
 

@@ -36,7 +36,7 @@ skip_bad_record = bad_record_guard(logger)
 from sefaria.utils.hebrew import has_hebrew, is_all_hebrew, hebrew_term
 from sefaria.utils.util import list_depth, truncate_string, flatten_jagged_array
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
-from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER, DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT, DISABLE_ENTITY_ALT_INDEX
+from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED, DISABLE_AUTOCOMPLETER
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.constants import model as constants
 from sefaria.helper.normalization import NormalizerFactory
@@ -5035,11 +5035,12 @@ class Library(object):
         `scripts/build_top_n_grams_for_search_autocorrect.py` CronJob -- this is a read of a
         precomputed artifact, not a build, so unlike the autocompleters above there's no
         expensive in-process construction here. No-op when
-        DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT is set. Missing/not-yet-built data just
+        DISABLE_AUTOCOMPLETER is set: like the autocompleters, this table is held only by the
+        name service when deployed. Missing/not-yet-built data just
         leaves the table empty, silently disabling auto-correction rather than failing startup.
         """
-        if DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT:
-            logger.warning("DISABLE_TOP_N_GRAMS_FOR_SEARCH_AUTOCORRECT is set; skipping top-n-grams table load.")
+        if DISABLE_AUTOCOMPLETER:
+            logger.warning("DISABLE_AUTOCOMPLETER is set; skipping top-n-grams table load.")
             return
         from sefaria.helper.top_n_grams_for_search_autocorrect import load_top_n_grams
         with build_pathway("build_top_n_grams_for_search_autocorrect"):
@@ -5052,11 +5053,11 @@ class Library(object):
         construction from already-loaded collections, like the autocompleters above, not a
         read of a precomputed artifact (contrast build_top_n_grams_for_search_autocorrect()
         above: this index is never persisted to Mongo, so there is nothing to load). No-op
-        when DISABLE_ENTITY_ALT_INDEX is set; an empty index just leaves auto-correction
+        when DISABLE_AUTOCOMPLETER is set (name service only, like the autocompleters); an empty index just leaves auto-correction
         without entity-alt matches, it does not fail startup.
         """
-        if DISABLE_ENTITY_ALT_INDEX:
-            logger.warning("DISABLE_ENTITY_ALT_INDEX is set; skipping entity alt index build.")
+        if DISABLE_AUTOCOMPLETER:
+            logger.warning("DISABLE_AUTOCOMPLETER is set; skipping entity alt index build.")
             return
         from sefaria.helper.entity_alt_index import build_entity_alt_trie
         with build_pathway("build_entity_alt_index"):
