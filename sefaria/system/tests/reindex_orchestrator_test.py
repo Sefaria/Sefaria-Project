@@ -3,6 +3,8 @@ Uses importlib to exec_module so heavy imports (kubernetes, django) are never tr
 — they live inside main() only."""
 import importlib.util
 import pathlib
+import sys
+import types
 
 import pytest
 
@@ -554,6 +556,80 @@ def test_cleanup_failed_reindex_targets_never_deletes_shared_text_or_sheet_alias
 
     assert deleted == []
     assert search.deleted == []
+
+
+def test_main_cleans_partial_init_failure_without_deleting_current(monkeypatch):
+    spec.loader.exec_module(orch)
+
+    class FakeApiException(Exception):
+        def __init__(self, status, reason=""):
+            super().__init__(status)
+            self.status = status
+            self.reason = reason
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            raise FakeApiException(404, "not found")
+
+    class FakeVersionApi:
+        def get_code(self):
+            return types.SimpleNamespace(git_version="v1.28.0")
+
+    search = _FakeSearchModule(
+        {
+            "text": {
+                "new": "sefariastaging_text-target",
+                "current": "sefariastaging_text-current",
+                "alias": "sefariastaging_text",
+            },
+            "sheet": {
+                "new": "sefariastaging_sheet-current",
+                "current": "sefariastaging_sheet-current",
+                "alias": "sefariastaging_sheet",
+            },
+        },
+        live_alias_pairs={("sefariastaging_sheet-current", "sefariastaging_sheet")},
+    )
+    pipeline = types.ModuleType("scripts.scheduled.reindex_pipeline")
+    pipeline.REINDEX_TYPES = ("text", "sheet")
+    pipeline.run_reindex_entities = lambda debug=False: None
+    pipeline.run_reindex_finalize_all = lambda **kwargs: None
+
+    def raise_after_text_target_created(debug=False):
+        raise RuntimeError("sheet init failed")
+
+    pipeline.run_reindex_init_all = raise_after_text_target_created
+
+    monkeypatch.setitem(sys.modules, "django", types.SimpleNamespace(setup=lambda: None))
+    monkeypatch.setitem(
+        sys.modules,
+        "kubernetes",
+        types.SimpleNamespace(
+            client=types.SimpleNamespace(
+                BatchV1Api=lambda: FakeBatch(),
+                VersionApi=lambda: FakeVersionApi(),
+                exceptions=types.SimpleNamespace(ApiException=FakeApiException),
+            ),
+            config=types.SimpleNamespace(load_incluster_config=lambda: None),
+        ),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "sefaria.pagesheetrank",
+        types.SimpleNamespace(update_pagesheetrank=lambda: None),
+    )
+    monkeypatch.setitem(sys.modules, "scripts.scheduled.reindex_pipeline", pipeline)
+    monkeypatch.setitem(sys.modules, "sefaria.search", search)
+    monkeypatch.setenv("K8S_NAMESPACE", "default")
+    monkeypatch.setenv("SHARD_JOB_IMAGE", "sefaria:test")
+    monkeypatch.setenv("SHARD_RESOURCES", '{"requests": {"memory": "4Gi"}, "limits": {"memory": "8Gi"}}')
+
+    with pytest.raises(RuntimeError, match="sheet init failed"):
+        orch.main()
+
+    assert search.deleted == ["sefariastaging_text-target"]
+    assert "sefariastaging_text-current" not in search.deleted
+    assert "sefariastaging_sheet-current" not in search.deleted
 
 
 class _FakeApiException(Exception):

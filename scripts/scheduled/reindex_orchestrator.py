@@ -471,19 +471,19 @@ def main():
         logger.error(f"Failed to clear stale shard job - status: {exc.status}, reason: {exc.reason}")
         sys.exit(1)
 
-    init_complete = False
+    init_started = False
     finalized = False
 
     def cleanup_after_init_failure():
-        if not init_complete or finalized:
+        if not init_started or finalized:
             return
         cleanup_failed_reindex_targets(index_types=REINDEX_TYPES, debug=debug)
 
     try:
         logger.info("Orchestrator: running init (pagesheetrank + create indexes)")
         update_pagesheetrank()
+        init_started = True
         run_reindex_init_all(debug=debug)
-        init_complete = True
 
         try:
             batch.create_namespaced_job(namespace, manifest)
