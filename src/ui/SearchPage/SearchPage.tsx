@@ -2,6 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState, type MouseEvent, t
 import { sanitizeHtml } from "~/lib/html/sanitize";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
 import { entityHref, type EntityHit, type EntityType } from "~/lib/search/entity-search";
+import type { TopicCategory } from "~/lib/topics/topic-toc";
 import { authorLifespan, formatYear, SOURCE_SORTS, selectionOf, matchesFilterText, type FilterNode, type SearchSort, type SearchTab, type SortOption } from "~/lib/search/search-page";
 import { snippetOf, type MergedHit, type SearchHit } from "~/lib/search/text-search";
 import { Icon } from "../Icon/Icon";
@@ -334,7 +335,7 @@ function Crumbs({ items }: { items: { label: string; href?: string }[] }) {
 }
 
 /** One Books / Authors / Topics result: a round icon, the crumbs above the name, a date or author line, the description. */
-export function EntityCard({ type, hit }: { type: EntityType; hit: EntityHit }) {
+export function EntityCard({ type, hit, topicParent }: { type: EntityType; hit: EntityHit; topicParent?: TopicCategory }) {
   const he = useInterfaceLang() === "hebrew";
   const name = he ? hit.title_he || hit.title_en : hit.title_en || hit.title_he;
   const desc = he ? hit.description_he || hit.description_en : hit.description_en || hit.description_he;
@@ -347,7 +348,8 @@ export function EntityCard({ type, hit }: { type: EntityType; hit: EntityHit }) 
   const cats = hit.categories ?? [];
   const crumbs = cats.length
     ? cats.map((c, i) => ({ label: c, href: `/texts/${cats.slice(0, i + 1).join("/")}` }))
-    : hit.categoryLabel_en ? [{ label: he ? hit.categoryLabel_he ?? hit.categoryLabel_en : hit.categoryLabel_en }] : [];
+    : hit.categoryLabel_en ? [{ label: he ? hit.categoryLabel_he ?? hit.categoryLabel_en : hit.categoryLabel_en }]
+    : topicParent ? [{ label: he ? topicParent.he : topicParent.en, href: `${SITE_ORIGIN}/topics/category/${topicParent.slug}` }] : [];
   const accent = type === "book" ? categoryColor(cats[0] ?? "") : "#000";
   const href = hit.url ?? entityHref(type, hit);
   const icon = type === "book" ? (hit.isCategory ? "layers" : "book") : type === "author" ? "pen" : "hash";
@@ -372,11 +374,12 @@ export function EntityCard({ type, hit }: { type: EntityType; hit: EntityHit }) 
   );
 }
 
-export function EntityResults({ type, hits, empty }: { type: EntityType; hits: readonly EntityHit[]; empty: ReactNode }) {
+/** `topicParents`: slug → the topic category above it (the topic TOC), for the crumb on Author and Topic cards. */
+export function EntityResults({ type, hits, empty, topicParents }: { type: EntityType; hits: readonly EntityHit[]; empty: ReactNode; topicParents?: Record<string, TopicCategory> }) {
   if (!hits.length) return <>{empty}</>;
   return (
     <ul className={styles.list}>
-      {hits.map((h, i) => <EntityCard key={`${h.url ?? h.slug ?? h.path}-${i}`} type={type} hit={h} />)}
+      {hits.map((h, i) => <EntityCard key={`${h.url ?? h.slug ?? h.path}-${i}`} type={type} hit={h} topicParent={type !== "book" && h.slug ? topicParents?.[h.slug] : undefined} />)}
     </ul>
   );
 }

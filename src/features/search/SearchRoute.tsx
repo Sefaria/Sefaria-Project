@@ -6,6 +6,7 @@ import { hebrewCategoryNames } from "~/lib/library/category-model";
 import { refToUrl } from "~/lib/ref/url";
 import { versionApiToParam } from "~/lib/workspace/url";
 import { useMediaQuery } from "~/lib/ui/use-media-query";
+import { topicTocQueryOptions } from "~/lib/topics/topic-toc";
 import { entitySearchInfiniteOptions, entitySearchQueryOptions, formatEntityCount, type EntityType } from "~/lib/search/entity-search";
 import { buildBookFilterTree, buildFilterTree, SOURCE_SORTS, catalogOrder, countLabel, ENTITY_SORTS, type EntitySort, parseSearchParams, searchHref, searchResultsQueryOptions, searchTreeQueryOptions, toggleFilter, type FilterNode, type SearchParams, type SearchTab } from "~/lib/search/search-page";
 import { filteredTotal, mergeHits, scoreSefariaHits } from "~/lib/search/dicta";
@@ -61,6 +62,7 @@ export function SearchRoute() {
   const [entitySort, setEntitySort] = useState<Record<EntityType, EntitySort>>({ book: "relevance", author: "relevance", topic: "relevance" });
   const [bookFilters, setBookFilters] = useState<string[]>([]);
   useEffect(() => { setEntitySort({ book: "relevance", author: "relevance", topic: "relevance" }); setBookFilters([]); }, [params.q]);
+  const topicParents = useQuery({ ...topicTocQueryOptions(), enabled: entityType === "author" || entityType === "topic" }).data;
   const entities = useInfiniteQuery({ ...entitySearchInfiniteOptions(params.q, entityType ?? "book", entityType ? entitySort[entityType] : "relevance", entityType === "book" ? bookFilters : []), enabled: hasQuery && !!entityType });
   const bookTree = useMemo(() => (catalog ? buildBookFilterTree(catalog.tree, entityCounts[0]?.data?.categoryCounts, bookFilters) : []), [catalog, entityCounts[0]?.data, bookFilters]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -112,7 +114,7 @@ export function SearchRoute() {
   if (!hasQuery) body = null;
   else if (entityType) {
     const list = entities.data?.pages.flatMap((p) => p.hits);
-    body = entities.isError && !list ? <SearchError onRetry={() => void entities.refetch()} /> : !list ? <p role="status" style={{ textAlign: "center" }}><InterfaceText en="Searching..." he="מבצע חיפוש..." /></p> : <EntityResults type={entityType} hits={list} empty={<NoResults tab={params.tab} query={params.q} />} />;
+    body = entities.isError && !list ? <SearchError onRetry={() => void entities.refetch()} /> : !list ? <p role="status" style={{ textAlign: "center" }}><InterfaceText en="Searching..." he="מבצע חיפוש..." /></p> : <EntityResults type={entityType} hits={list} topicParents={topicParents} empty={<NoResults tab={params.tab} query={params.q} />} />;
   } else if (sources.isError && !hits) body = <SearchError onRetry={() => void sources.refetch()} />;
   else if (!hits) body = null; // the skeleton below stands in while the first query runs
   else if (!hits.length) body = <NoResults tab="sources" query={params.q} />;

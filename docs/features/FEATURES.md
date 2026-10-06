@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**945 features**, 3584 documented behaviors. Proposed tiers: core 320, standard 412, optional 153, retire 60.
+**945 features**, 3585 documented behaviors. Proposed tiers: core 320, standard 412, optional 153, retire 60.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 284 · partial 38 · todo 488 · replaced 18 · deferred 30 · n/a 87; 281 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 285 · partial 37 · todo 488 · replaced 18 · deferred 30 · n/a 87; 281 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -6582,7 +6582,7 @@ Code: [`static/js/SearchPage.jsx:290`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_06_search.md#5.8`
 
 #### SRC-070 · Topic result card
-`standard` `live` · rebuild: **partial** — Card built; the parent-topic crumb needs the topic TOC (topics pages, Phase 7). · *tested*
+`standard` `live` · rebuild: **done** — Parent-category crumb from /api/topics-toc (cauldron reader-next; absent where the endpoint is not deployed) · *tested*
 
 Topic results show name, description, parent category crumb and topic icon.
 
@@ -6590,6 +6590,7 @@ Topic results show name, description, parent category crumb and topic icon.
 - Crumb = parent topic TOC category (displayTopicTocCategory) -> /topics/category/<slug>; icon topic.svg; black accent bar.
 - Cards navigate via openURL(href) else window.location.href; breadcrumb/author sub-links stop propagation.
 - VERIFIED: topic card = round # icon, black accent bar, parent-category crumb above the name (e.g. 'Nature' above 'Light'; none for 'Lighting'), name, description. Rebuild: crumb NOT built (needs the topic TOC, with the topics pages — Phase 7).
+- OWNER DECISION 2026-10-06: add a public endpoint. BUILT: Sefaria-Project GET /api/topics-toc (reader/views.py topics_toc_api → library.get_topic_toc_json(); branch reader-next) and src/lib/topics/topic-toc.ts (topicParents = the old displayTopicTocCategory: the category directly above a topic, none for top-level ones); Author and Topic cards show it as a crumb linking to /topics/category/<slug>. Until the endpoint reaches sefaria.org the request 404s and the crumb is simply absent.
 
 Code: [`static/js/SearchPage.jsx:137`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SearchPage.jsx#L137), [`static/js/SearchResultCard.jsx:167`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/SearchResultCard.jsx#L167)
 
