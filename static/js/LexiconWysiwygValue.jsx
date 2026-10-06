@@ -90,10 +90,17 @@ export const WysiwygValueNode = ({ value, isEditing, canEdit, setIsEditing, hand
   const { commitDraft } = customNodeProps;
   const valueBeforeEdit = useRef(null);
 
+  // Seeded with the stored value exactly as it is, deliberately unsanitized: DOMPurify rebuilds
+  // every element it passes, which reverses attribute order and drops tags outside the display
+  // allowlist below, so sanitizing here would rewrite untouched markup the moment a field is
+  // edited -- noise in every saved diff, and silent loss of anything the narrower list omits.
+  // Sanitizing content on its way in is LexiconEntry._sanitize()'s job on save, which is the
+  // boundary that protects readers too (an entry renders as live HTML in the reader panel, with
+  // no client-side pass at all).
   useEffect(() => {
     if (!isEditing) { return; }
     valueBeforeEdit.current = value;
-    setDraftHtml(sanitizeLexiconHtml(value));
+    setDraftHtml(value);
   }, [isEditing]);
 
   // Every keystroke goes straight into the panel's draft rather than waiting on json-edit-react's

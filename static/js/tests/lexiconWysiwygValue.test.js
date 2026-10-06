@@ -128,10 +128,18 @@ describe('WysiwygValueNode', () => {
     expect(setIsEditing).not.toHaveBeenCalled();
   });
 
-  test('edit mode seeds the editor from the sanitized current value', () => {
-    render({ value: '<b onclick="x()">bold</b>', isEditing: true });
-    expect(container.querySelector('.fakeEditor b').textContent).toBe('bold');
-    expect(container.querySelector('.fakeEditor b').getAttribute('onclick')).toBeNull();
+  test('edit mode seeds the editor with the stored value byte for byte', () => {
+    // Not sanitized on the way in: DOMPurify reverses attribute order and drops tags outside the
+    // display allowlist, which would rewrite untouched markup as soon as a field is edited.
+    const stored = '<a class="refLink" data-ref="Shabbat 3a:3" href="/Shabbat.3a.3" data-scroll-link="true">x</a>';
+    render({ value: stored, isEditing: true });
+    expect(container.querySelector('.fakeEditorContent').innerHTML).toBe(stored);
+  });
+
+  test('a tag the display allowlist omits survives being edited', () => {
+    const stored = 'see <small>fine print</small>';
+    render({ value: stored, isEditing: true });
+    expect(container.querySelector('.fakeEditorContent').innerHTML).toBe(stored);
   });
 
   test('a change goes into the panel draft as it is typed, keyed by this node\'s path', () => {
