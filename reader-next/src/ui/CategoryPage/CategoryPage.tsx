@@ -1,3 +1,4 @@
+import { VOICES } from "~/lib/shell/links";
 import type { ReactNode } from "react";
 import { isCategory, type TocBook, type TocNode } from "~/lib/catalog/toc";
 import { useInterfaceLang } from "~/lib/i18n/interface-lang";
@@ -123,7 +124,7 @@ function Contents({ contents, cats, category, nest, he, hebrewContent, hebrewUi 
         );
       }
     } else if (item.isCollection) {
-      run.push(<Block key={`col.${item.slug}`} href={`https://voices.sefaria.org/collections/${item.slug}`} title={{ en: item.title, he: item.heTitle }} desc={{ en: item.enShortDesc ?? "", he: item.heShortDesc ?? "" }} hebrewUi={hebrewUi} />);
+      run.push(<Block key={`col.${item.slug}`} href={`${VOICES}/collections/${item.slug}`} title={{ en: item.title, he: item.heTitle }} desc={{ en: item.enShortDesc ?? "", he: item.heShortDesc ?? "" }} hebrewUi={hebrewUi} />);
     } else if (!item.hidden) {
       textBlock(item, `t.${item.title}`);
     }

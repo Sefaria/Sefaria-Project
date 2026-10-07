@@ -612,6 +612,7 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
                 onSelectTranslation={onSelectTranslation}
                 onOpenTranslation={onOpenTranslation}
                 onOpenSource={onOpenSource}
+                allOpenRefs={panelOrder(nav.current()).map((pid) => nav.current().panels[pid]?.ref).filter((r): r is string => !!r)}
                 onClose={closeSidebar}
                 // a bilingual sidebar (an old link's lang2=bi) shows as the text's language for now
                 lang={aside?.lang === "bi" ? undefined : aside?.lang}

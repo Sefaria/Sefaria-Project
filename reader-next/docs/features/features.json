@@ -5469,7 +5469,8 @@
    "Moderators only: Topics add, link delete, version edit/delete, Linker Admin, always-visible Topics button.",
    "VERIFIED 2026-10-05 (signed out): Notes -> sign-up modal (kind Notes); Add to Sheet -> modal (AddToSheet); Advanced shows exactly two rows, 'Add Translation' / 'הוספת תרגום' and 'Add Connection' / 'הוספת קישור לטקסט אחר'; those open the AddTranslation / AddConnection modals (strings in signupModalContent.js). Compare Text shows in the Tools list on a desktop-width panel. Feedback and Share need no account.",
    "Rebuild: Notes, Add to Sheet and Add Connection views show Resources with the modal over it (URL briefly with=Notes etc.; closing returns to with=all).",
-   "2026-10-06: the client now knows who is signed in (viewer query); the signed-in tools themselves (notes, add to sheet …) are still to build — signed-in readers still get the sign-up modal for them."
+   "2026-10-06: the client now knows who is signed in (viewer query); the signed-in tools themselves (notes, add to sheet …) are still to build — signed-in readers still get the sign-up modal for them.",
+   "2026-10-07: only a signed-out reader is gated; a signed-in reader gets Notes, Add to Sheet, Add Connection and Add Translation themselves."
   ],
   "audience": "all",
   "platform": "all",
@@ -5963,7 +5964,8 @@
   "name": "Add connection to sheet button",
   "summary": "Signed-in users can add a connected passage straight to a source sheet.",
   "details": [
-   "Visible logged-in only; setConnectionsMode('Add To Sheet',{addSource:'connectionsPanel', connectionRefs:[sourceRef], versions:{en:null,he:null}})."
+   "Visible logged-in only; setConnectionsMode('Add To Sheet',{addSource:'connectionsPanel', connectionRefs:[sourceRef], versions:{en:null,he:null}}).",
+   "BUILT 2026-10-07 (src/ui/AddToSheetView, src/lib/user/sheets.ts): signed in, Add to Sheet shows the selected citation, the reader's sheets (GET /api/sheets/user/<uid>/date/0/0, newest chosen; 'Create a New Sheet' with a name box when none, POST /api/sheets/), Add to Sheet (POST /api/sheets/<id>/add, source={refs, version-he/en by direction; two same-direction versions as two sources}) and the confirmation linking the citation and the sheet (on this deployment's Voices, PUBLIC_VOICES_ORIGIN). Not yet: trimming a partial word selection (CON-056), the Google Docs promo (CON-057)."
   ],
   "audience": "signed-in",
   "platform": "all",
@@ -6003,7 +6005,8 @@
   "details": [
    "In TextList mode scrolling .connectionsPanel .texts (debounced 100ms) finds visible .textRange (100px threshold); checkIntentTimer starts 3s timer (ReaderApp.jsx:960-964).",
    "If still visible with unchanged filter/refs: Sefaria.saveUserHistory({ref, versions:{en:null,he:null}, book, language, secondary:true}); a Set prevents duplicate saves.",
-   "Also runs right after link texts load."
+   "Also runs right after link texts load.",
+   "BUILT 2026-10-07: signed in, a connected text shown in the sidebar list (more than 100px inside its view) for 3 s is recorded once as secondary history: POST /api/profile/sync user_history=[{ref, versions:{en:null,he:null}, book, language, secondary:true}] (TextList onDwell). Signed out nothing (the cookie keeps no secondary items)."
   ],
   "audience": "signed-in",
   "platform": "all",
@@ -6043,7 +6046,8 @@
   "details": [
    "ReaderApp.handleCitationClick closes the connections panel to the right (or replaces it) and opens the cited ref as a new panel.",
    "Mobile: runs showBaseText (replaces base text).",
-   "VERIFIED 2026-10-06 on sefaria.org (scripts/probes/multipanel-probe*.mjs, scripts/parity-panels.mjs): a citation inside a dictionary entry opens after the sidebar, which stays: …&with=Lexicon&lang2=bi&p3=Genesis.1.1&lang3=bi&aliyot3=0. A click on the entry itself does nothing."
+   "VERIFIED 2026-10-06 on sefaria.org (scripts/probes/multipanel-probe*.mjs, scripts/parity-panels.mjs): a citation inside a dictionary entry opens after the sidebar, which stays: …&with=Lexicon&lang2=bi&p3=Genesis.1.1&lang3=bi&aliyot3=0. A click on the entry itself does nothing.",
+   "BUILT 2026-10-07: a citation inside a connected text in the sidebar opens the cited text after the reader's panel and the sidebar stays (as a dictionary entry's citation, VERIFIED: parity lexicon-citation equal)."
   ],
   "audience": "all",
   "platform": "all",
@@ -6322,7 +6326,8 @@
   "summary": "Shows the user's existing notes on the selected passage with a link to all notes.",
   "details": [
    "Sefaria.privateNotes(srefs,cb) GET /api/notes/<ref>?private=1 per unloaded ref; each rendered as Note (linkified, newlines -> <br>) with edit pencil.",
-   "'Go to My Notes' links to /texts/notes; note count on Notes button = notesTotalCount (public not mine + mine)."
+   "'Go to My Notes' links to /texts/notes; note count on Notes button = notesTotalCount (public not mine + mine).",
+   "BUILT 2026-10-07 (src/ui/NotesView, src/lib/user/notes.ts): signed in, the Notes tool shows a box (Add Note), Go to My Notes (Django's /texts/notes) and the reader's notes on the selected verses — GET /api/notes/<ref>?private=1 per verse, combined — each with a pencil to edit (Save / Cancel / Delete Note); POST /api/notes/ json={text, refs, type:'note', public:false[, _id]}; DELETE /api/notes/<id>. Notes are private (public notes are off on sefaria.org). The Tools row counts them. Note: the server's DELETE has no ownership check and no CSRF (legacy security issue, reader/views.py notes_api, sefaria/tracker.py:301-319) — reported, not changed here."
   ],
   "audience": "signed-in",
   "platform": "all",
@@ -6600,7 +6605,8 @@
   "summary": "Starts the flow to contribute a translation for the selected text.",
   "details": [
    "Logged out: SignUp modal AddTranslation; logged in: tracks 'Add Translation Click' then navigates to /translate/<ref>?next=<path> (edit_text view).",
-   "Signed-out behaviour verified: Advanced > Add Translation opens the AddTranslation modal ('Have your own translation of this text?')."
+   "Signed-out behaviour verified: Advanced > Add Translation opens the AddTranslation modal ('Have your own translation of this text?').",
+   "BUILT 2026-10-07: signed in, Add Translation goes to Django's /translate/<ref>?next=<this page>, as the old addTranslation. Edit Text and Linker Admin Tools need editor/moderator rights the client does not know yet: not shown."
   ],
   "audience": "signed-in",
   "platform": "all",
@@ -6661,7 +6667,8 @@
    "2 refs: summary 'A & B' en/he (Hebrew refs from cache or getRef, '...' meanwhile); type dropdown: None, commentary, quotation, midrash, ein mishpat (Ein Mishpat / Ner Mitsvah), mesorat hashas, reference, related (passage).",
    "POST /api/links/ {json:{refs,type}}; success: track 'Add Connection', clearLinks, onSave, flash message; errors via alert.",
    "Server: login or API key; saved async via save_changes/LinkChange (reader/views.py:2392-2455).",
-   "Signed-out behaviour verified: Advanced > Add Connection opens the AddConnection modal ('Want to document a connection to another text?')."
+   "Signed-out behaviour verified: Advanced > Add Connection opens the AddConnection modal ('Want to document a connection to another text?').",
+   "BUILT 2026-10-07 (src/ui/AddConnectionView): signed in, Advanced → Add Connection with the texts open in the panels: one → 'Choose a text to connect.' (Browse waits for Compare Text, MULTIPANEL_PLAN Step 4); two → both refs, the type (None, Commentary, Quotation, Midrash, Ein Mishpat / Ner Mitsvah, Mesorat HaShas, Reference, Related Passage), Add Connection → POST /api/links/ json={refs, type}; more → 'We currently only understand connections between two texts.'"
   ],
   "audience": "signed-in",
   "platform": "all",
@@ -6708,7 +6715,8 @@
    "VERIFIED 2026-10-05: text 'Have some feedback? We would love to hear it.' / 'אנחנו מעוניינים במשוב ממך', a type dropdown (placeholder 'Select Type' / 'סוג משוב'), a textarea ('Describe the issue...' / 'טקסט המשוב'), for signed-out readers an 'Email Address' box, and 'Submit' / 'שליחה'. Types: Report an issue with the text (דיווח על בעיה בטקסט), Request translation (בקשה לתרגום), Report a bug (דיווח על תקלה באתר), Get help (עזרה), Request a feature (בקשה להוספת אפשרות באתר), Give thanks (תודה), Other (אחר).",
    "Messages: 'Please select a feedback type' / 'אנא בחרו סוג משוב'; 'Please enter a valid email address' (no Hebrew string exists in the interface file); failure: 'Unfortunately, there was an error sending this feedback. Please try again or try reloading this page.' / 'לצערנו ארעה שגיאה בשליחת המשוב. אנא נסו שוב או רעננו את הדף הנוכחי'.",
    "BUG (old, not ported): the failure handler calls this.setState inside a non-bound callback, so after the alert the box stays on 'Feedback sent!' (or throws). Rebuild: a failed send returns to the form with the error and the typed text.",
-   "Not exercised live (it would send a real report to Sefaria): the request shape (form field json = {refs, type, url, currVersions, email, msg, uid}) is taken from the source and reproduced by the rebuild; its e2e intercepts the request. The response's CORS headers for a cross-origin caller are UNVERIFIED — ask the owner before testing against production."
+   "Not exercised live (it would send a real report to Sefaria): the request shape (form field json = {refs, type, url, currVersions, email, msg, uid}) is taken from the source and reproduced by the rebuild; its e2e intercepts the request. The response's CORS headers for a cross-origin caller are UNVERIFIED — ask the owner before testing against production.",
+   "2026-10-07: a signed-in reader is not asked for an email, and the feedback carries their uid (the sidebar had passed neither)."
   ],
   "audience": "all",
   "platform": "all",
@@ -14571,7 +14579,8 @@
    "Notes tab (Library only, /texts/notes): Sefaria.allPrivateNotes -> /api/notes/all?private=1",
    "NoteListing: ref link (sheet refs to Voices /sheets/<id>.<node>, text refs ?with=Notes), linkified text, delete (confirm, DELETE /api/notes/<id>)",
    "DEAD: Add-to-Sheet modal path in NoteListing has no triggering button",
-   "DEAD: MyNotesPanel.jsx is not imported anywhere; /my/notes redirects to profile ?tab=notes which doesn't exist"
+   "DEAD: MyNotesPanel.jsx is not imported anywhere; /my/notes redirects to profile ?tab=notes which doesn't exist",
+   "BUILT 2026-10-07 (src/ui/NotesView, src/lib/user/notes.ts): signed in, the Notes tool shows a box (Add Note), Go to My Notes (Django's /texts/notes) and the reader's notes on the selected verses — GET /api/notes/<ref>?private=1 per verse, combined — each with a pencil to edit (Save / Cancel / Delete Note); POST /api/notes/ json={text, refs, type:'note', public:false[, _id]}; DELETE /api/notes/<id>. Notes are private (public notes are off on sefaria.org). The Tools row counts them. Note: the server's DELETE has no ownership check and no CSRF (legacy security issue, reader/views.py notes_api, sefaria/tracker.py:301-319) — reported, not changed here."
   ],
   "audience": "signed-in",
   "platform": "all",
@@ -14612,7 +14621,8 @@
   "name": "Note display",
   "summary": "Shows a public or private note on a text, with an edit pencil on the user's own notes.",
   "details": [
-   "Note component: linkified content; edit pencil only if note is mine"
+   "Note component: linkified content; edit pencil only if note is mine",
+   "BUILT 2026-10-07 (src/ui/NotesView, src/lib/user/notes.ts): signed in, the Notes tool shows a box (Add Note), Go to My Notes (Django's /texts/notes) and the reader's notes on the selected verses — GET /api/notes/<ref>?private=1 per verse, combined — each with a pencil to edit (Save / Cancel / Delete Note); POST /api/notes/ json={text, refs, type:'note', public:false[, _id]}; DELETE /api/notes/<id>. Notes are private (public notes are off on sefaria.org). The Tools row counts them. Note: the server's DELETE has no ownership check and no CSRF (legacy security issue, reader/views.py notes_api, sefaria/tracker.py:301-319) — reported, not changed here."
   ],
   "audience": "signed-in",
   "platform": "all",

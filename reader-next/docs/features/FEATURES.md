@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**946 features**, 3656 documented behaviors. Proposed tiers: core 321, standard 412, optional 153, retire 60.
+**946 features**, 3666 documented behaviors. Proposed tiers: core 321, standard 412, optional 153, retire 60.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 323 · partial 42 · todo 452 · replaced 18 · deferred 23 · n/a 88; 314 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 333 · partial 38 · todo 446 · replaced 18 · deferred 23 · n/a 88; 319 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -2635,7 +2635,7 @@ Code: [`static/js/ReaderApp.jsx:500`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_04_connections.md#0`
 
 #### CON-011 · Sign-in gating across sidebar tools
-`core` `live` · rebuild: **partial** — Signed-out gating done; the client knows who is signed in; signed-in tools still to build · *tested*
+`core` `live` · rebuild: **done** — Signed out gated; signed in gets the tools · *tested*
 
 Several sidebar tools require sign-in or moderator rights.
 
@@ -2646,6 +2646,7 @@ Several sidebar tools require sign-in or moderator rights.
 - VERIFIED 2026-10-05 (signed out): Notes -> sign-up modal (kind Notes); Add to Sheet -> modal (AddToSheet); Advanced shows exactly two rows, 'Add Translation' / 'הוספת תרגום' and 'Add Connection' / 'הוספת קישור לטקסט אחר'; those open the AddTranslation / AddConnection modals (strings in signupModalContent.js). Compare Text shows in the Tools list on a desktop-width panel. Feedback and Share need no account.
 - Rebuild: Notes, Add to Sheet and Add Connection views show Resources with the modal over it (URL briefly with=Notes etc.; closing returns to with=all).
 - 2026-10-06: the client now knows who is signed in (viewer query); the signed-in tools themselves (notes, add to sheet …) are still to build — signed-in readers still get the sign-up modal for them.
+- 2026-10-07: only a signed-out reader is gated; a signed-in reader gets Notes, Add to Sheet, Add Connection and Add Translation themselves.
 
 Code: [`static/js/ConnectionsPanel.jsx:687`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L687), [`static/js/ReaderPanel.jsx:550`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L550)
 
@@ -2966,11 +2967,12 @@ Code: [`static/js/TextList.jsx:255`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_04_connections.md#4`
 
 #### CON-034 · Add connection to sheet button
-`standard` `live` · rebuild: **todo** `signed-in`
+`standard` `live` · rebuild: **partial** — Add to Sheet works; partial-selection trimming (CON-056) to do · *tested* `signed-in`
 
 Signed-in users can add a connected passage straight to a source sheet.
 
 - Visible logged-in only; setConnectionsMode('Add To Sheet',{addSource:'connectionsPanel', connectionRefs:[sourceRef], versions:{en:null,he:null}}).
+- BUILT 2026-10-07 (src/ui/AddToSheetView, src/lib/user/sheets.ts): signed in, Add to Sheet shows the selected citation, the reader's sheets (GET /api/sheets/user/<uid>/date/0/0, newest chosen; 'Create a New Sheet' with a name box when none, POST /api/sheets/), Add to Sheet (POST /api/sheets/<id>/add, source={refs, version-he/en by direction; two same-direction versions as two sources}) and the confirmation linking the citation and the sheet (on this deployment's Voices, PUBLIC_VOICES_ORIGIN). Not yet: trimming a partial word selection (CON-056), the Google Docs promo (CON-057).
 
 Code: [`static/js/TextList.jsx:282`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextList.jsx#L282)
 
@@ -2989,13 +2991,14 @@ Code: [`static/js/TextList.jsx:222`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_04_connections.md#4`
 
 #### CON-036 · Sidebar reading history (secondary views)
-`optional` `live` · rebuild: **todo** `signed-in`
+`optional` `live` · rebuild: **done** · *tested* `signed-in`
 
 Passages a user dwells on in the sidebar are recorded in reading history as secondary views.
 
 - In TextList mode scrolling .connectionsPanel .texts (debounced 100ms) finds visible .textRange (100px threshold); checkIntentTimer starts 3s timer (ReaderApp.jsx:960-964).
 - If still visible with unchanged filter/refs: Sefaria.saveUserHistory({ref, versions:{en:null,he:null}, book, language, secondary:true}); a Set prevents duplicate saves.
 - Also runs right after link texts load.
+- BUILT 2026-10-07: signed in, a connected text shown in the sidebar list (more than 100px inside its view) for 3 s is recorded once as secondary history: POST /api/profile/sync user_history=[{ref, versions:{en:null,he:null}, book, language, secondary:true}] (TextList onDwell). Signed out nothing (the cookie keeps no secondary items).
 
 Code: [`static/js/ConnectionsPanel.jsx:131`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L131), [`static/js/ReaderApp.jsx:960`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L960)
 
@@ -3013,13 +3016,14 @@ Code: [`static/js/ConnectionsPanel.jsx:99`](https://github.com/Sefaria/Sefaria-P
 Source: `inv_04_connections.md#4`
 
 #### CON-038 · Citation clicks inside sidebar text
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done**
 
 Clicking a citation inside a sidebar passage opens the cited text as a new panel.
 
 - ReaderApp.handleCitationClick closes the connections panel to the right (or replaces it) and opens the cited ref as a new panel.
 - Mobile: runs showBaseText (replaces base text).
 - VERIFIED 2026-10-06 on sefaria.org (scripts/probes/multipanel-probe*.mjs, scripts/parity-panels.mjs): a citation inside a dictionary entry opens after the sidebar, which stays: …&with=Lexicon&lang2=bi&p3=Genesis.1.1&lang3=bi&aliyot3=0. A click on the entry itself does nothing.
+- BUILT 2026-10-07: a citation inside a connected text in the sidebar opens the cited text after the reader's panel and the sidebar stays (as a dictionary entry's citation, VERIFIED: parity lexicon-citation equal).
 
 Code: [`static/js/ReaderApp.jsx:1077`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1077), [`static/js/ReaderPanel.jsx:187`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L187)
 
@@ -3211,12 +3215,13 @@ Code: [`static/js/ConnectionsPanel.jsx:1258`](https://github.com/Sefaria/Sefaria
 Source: `inv_04_connections.md#11`
 
 #### CON-049 · My notes for these refs
-`standard` `live` · rebuild: **todo** `signed-in`
+`standard` `live` · rebuild: **done** — Signed-in notes on the selection: add, edit, delete · *tested* `signed-in`
 
 Shows the user's existing notes on the selected passage with a link to all notes.
 
 - Sefaria.privateNotes(srefs,cb) GET /api/notes/<ref>?private=1 per unloaded ref; each rendered as Note (linkified, newlines -> <br>) with edit pencil.
 - 'Go to My Notes' links to /texts/notes; note count on Notes button = notesTotalCount (public not mine + mine).
+- BUILT 2026-10-07 (src/ui/NotesView, src/lib/user/notes.ts): signed in, the Notes tool shows a box (Add Note), Go to My Notes (Django's /texts/notes) and the reader's notes on the selected verses — GET /api/notes/<ref>?private=1 per verse, combined — each with a pencil to edit (Save / Cancel / Delete Note); POST /api/notes/ json={text, refs, type:'note', public:false[, _id]}; DELETE /api/notes/<id>. Notes are private (public notes are off on sefaria.org). The Tools row counts them. Note: the server's DELETE has no ownership check and no CSRF (legacy security issue, reader/views.py notes_api, sefaria/tracker.py:301-319) — reported, not changed here.
 
 Code: [`static/js/sefaria/sefaria.js:2054`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2054), [`static/js/sefaria/sefaria.js:2142`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2142)
 
@@ -3402,12 +3407,13 @@ Source: `inv_04_connections.md#15`
 ### Advanced tools
 
 #### CON-062 · Add translation
-`optional` `live` · rebuild: **partial** — Signed-out modal only; the tool itself needs accounts (Phase 7) · *tested* `signed-in`
+`optional` `live` · rebuild: **done** — Signed in → Django's /translate page · *tested* `signed-in`
 
 Starts the flow to contribute a translation for the selected text.
 
 - Logged out: SignUp modal AddTranslation; logged in: tracks 'Add Translation Click' then navigates to /translate/<ref>?next=<path> (edit_text view).
 - Signed-out behaviour verified: Advanced > Add Translation opens the AddTranslation modal ('Have your own translation of this text?').
+- BUILT 2026-10-07: signed in, Add Translation goes to Django's /translate/<ref>?next=<this page>, as the old addTranslation. Edit Text and Linker Admin Tools need editor/moderator rights the client does not know yet: not shown.
 
 Code: [`static/js/ConnectionsPanel.jsx:1036`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L1036)
 
@@ -3440,7 +3446,7 @@ Source: `inv_04_connections.md#16.1`
 ### Add connection
 
 #### CON-065 · Create connection between two texts
-`standard` `live` · rebuild: **partial** — Signed-out modal only; the tool itself needs accounts (Phase 7) · *tested* `signed-in`
+`standard` `live` · rebuild: **partial** — Two texts: done; one text's Browse waits for Compare Text · *tested* `signed-in`
 
 Signed-in users can link two open texts together with a relationship type.
 
@@ -3450,6 +3456,7 @@ Signed-in users can link two open texts together with a relationship type.
 - POST /api/links/ {json:{refs,type}}; success: track 'Add Connection', clearLinks, onSave, flash message; errors via alert.
 - Server: login or API key; saved async via save_changes/LinkChange (reader/views.py:2392-2455).
 - Signed-out behaviour verified: Advanced > Add Connection opens the AddConnection modal ('Want to document a connection to another text?').
+- BUILT 2026-10-07 (src/ui/AddConnectionView): signed in, Advanced → Add Connection with the texts open in the panels: one → 'Choose a text to connect.' (Browse waits for Compare Text, MULTIPANEL_PLAN Step 4); two → both refs, the type (None, Commentary, Quotation, Midrash, Ein Mishpat / Ner Mitsvah, Mesorat HaShas, Reference, Related Passage), Add Connection → POST /api/links/ json={refs, type}; more → 'We currently only understand connections between two texts.'
 
 Code: [`static/js/ConnectionsPanel.jsx:1451`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanel.jsx#L1451), [`reader/views.py:2392`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L2392), [`static/js/ReaderApp.jsx:2438`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2438)
 
@@ -3487,6 +3494,7 @@ Users can report text issues, request translations, report bugs or send thanks f
 - Messages: 'Please select a feedback type' / 'אנא בחרו סוג משוב'; 'Please enter a valid email address' (no Hebrew string exists in the interface file); failure: 'Unfortunately, there was an error sending this feedback. Please try again or try reloading this page.' / 'לצערנו ארעה שגיאה בשליחת המשוב. אנא נסו שוב או רעננו את הדף הנוכחי'.
 - BUG (old, not ported): the failure handler calls this.setState inside a non-bound callback, so after the alert the box stays on 'Feedback sent!' (or throws). Rebuild: a failed send returns to the form with the error and the typed text.
 - Not exercised live (it would send a real report to Sefaria): the request shape (form field json = {refs, type, url, currVersions, email, msg, uid}) is taken from the source and reproduced by the rebuild; its e2e intercepts the request. The response's CORS headers for a cross-origin caller are UNVERIFIED — ask the owner before testing against production.
+- 2026-10-07: a signed-in reader is not asked for an email, and the feedback carries their uid (the sidebar had passed neither).
 
 Code: [`static/js/Misc.jsx:2662`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L2662)
 
@@ -8367,7 +8375,7 @@ Source: `inv_02_reader_shell.md#19`
 ### Reading history
 
 #### USL-002 · Recently viewed / last place tracking
-`standard` `live` · rebuild: **partial** — Primary history (server or cookie) done; sidebar (secondary) history CON-036 to do `signed-in`
+`standard` `live` · rebuild: **done** — Primary and sidebar (secondary) history; signed out in the cookie `signed-in`
 
 The app records what you are reading so it appears in history.
 
@@ -8409,7 +8417,7 @@ Code: [`static/js/NoteListing.jsx`](https://github.com/Sefaria/Sefaria-Project/b
 Source: `inv_04_connections.md#11`
 
 #### USL-005 · Private notes list
-`optional` `live` · rebuild: **todo** `signed-in`
+`optional` `live` · rebuild: **done** — Signed-in notes on the selection: add, edit, delete · *tested* `signed-in`
 
 Library users see their private notes with links back to the text and a delete action.
 
@@ -8417,6 +8425,7 @@ Library users see their private notes with links back to the text and a delete a
 - NoteListing: ref link (sheet refs to Voices /sheets/<id>.<node>, text refs ?with=Notes), linkified text, delete (confirm, DELETE /api/notes/<id>)
 - **DEAD:** Add-to-Sheet modal path in NoteListing has no triggering button
 - **DEAD:** MyNotesPanel.jsx is not imported anywhere; /my/notes redirects to profile ?tab=notes which doesn't exist
+- BUILT 2026-10-07 (src/ui/NotesView, src/lib/user/notes.ts): signed in, the Notes tool shows a box (Add Note), Go to My Notes (Django's /texts/notes) and the reader's notes on the selected verses — GET /api/notes/<ref>?private=1 per verse, combined — each with a pencil to edit (Save / Cancel / Delete Note); POST /api/notes/ json={text, refs, type:'note', public:false[, _id]}; DELETE /api/notes/<id>. Notes are private (public notes are off on sefaria.org). The Tools row counts them. Note: the server's DELETE has no ownership check and no CSRF (legacy security issue, reader/views.py notes_api, sefaria/tracker.py:301-319) — reported, not changed here.
 
 Code: [`static/js/UserHistoryPanel.jsx:44-70`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/UserHistoryPanel.jsx#L44-L70), [`static/js/NoteListing.jsx:9-93`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/NoteListing.jsx#L9-L93), [`static/js/sefaria/sefaria.js:2027-2160`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2027-L2160)
 
@@ -8435,11 +8444,12 @@ Code: [`static/js/MyNotesPanel.jsx`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_07_sheets_users.md#0`
 
 #### USL-007 · Note display
-`standard` `live` · rebuild: **todo** `signed-in`
+`standard` `live` · rebuild: **done** — Signed-in notes on the selection: add, edit, delete · *tested* `signed-in`
 
 Shows a public or private note on a text, with an edit pencil on the user's own notes.
 
 - Note component: linkified content; edit pencil only if note is mine
+- BUILT 2026-10-07 (src/ui/NotesView, src/lib/user/notes.ts): signed in, the Notes tool shows a box (Add Note), Go to My Notes (Django's /texts/notes) and the reader's notes on the selected verses — GET /api/notes/<ref>?private=1 per verse, combined — each with a pencil to edit (Save / Cancel / Delete Note); POST /api/notes/ json={text, refs, type:'note', public:false[, _id]}; DELETE /api/notes/<id>. Notes are private (public notes are off on sefaria.org). The Tools row counts them. Note: the server's DELETE has no ownership check and no CSRF (legacy security issue, reader/views.py notes_api, sefaria/tracker.py:301-319) — reported, not changed here.
 
 Code: [`static/js/Misc.jsx:1918`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L1918)
 
@@ -8480,7 +8490,7 @@ Code: [`static/js/sefaria/sefaria.js:2769-2821`](https://github.com/Sefaria/Sefa
 Source: `inv_07_sheets_users.md#13`
 
 #### USL-010 · Reading history logging
-`standard` `live` · rebuild: **partial** — Primary history (server or cookie) done; sidebar (secondary) history CON-036 to do · *tested*
+`standard` `live` · rebuild: **done** — Primary and sidebar (secondary) history; signed out in the cookie · *tested*
 
 Texts and sheets read are recorded to history for signed-in users and in a cookie for anonymous users.
 
@@ -8515,7 +8525,7 @@ Source: `inv_08_other.md#1.6 and #5.2`
 ### History
 
 #### USL-012 · Reading history and last place
-`core` `live` · rebuild: **partial** — Primary history (server or cookie) done; sidebar (secondary) history CON-036 to do
+`core` `live` · rebuild: **done** — Primary and sidebar (secondary) history; signed out in the cookie
 
 The site remembers what a user read, for signed-in users on the server and for anonymous users in a cookie.
 

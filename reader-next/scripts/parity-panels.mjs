@@ -36,7 +36,7 @@ const L = {
   book: (p, name) => p.locator(".readerPanelBox.sidebar .textFilter", { hasText: name }).first().click(),
   openFirst: (p) => p.locator(".readerPanelBox.sidebar a", { hasText: /^Open$/ }).first().click(),
   citation: (p, panel, ref) => p.locator(".readerPanelBox").nth(panel).locator(`a.refLink[data-ref='${ref}']`).first().click(),
-  sidebarCitation: (p, n = 0) => p.locator(".readerPanelBox.sidebar a.refLink").nth(n).click(),
+  sidebarCitation: (p, ref) => p.locator(`.readerPanelBox.sidebar a.refLink[data-ref='${ref}']`).first().click(),
   previewTranslation: (p, n) => p.locator(".readerPanelBox.sidebar .versionPreviewWithOptionalEllipsis").nth(n).click(),
   openTranslation: (p) => p.locator(".readerPanelBox.sidebar").getByText(/^Open Text$|^Open$/).first().click(),
   tool: (p, name) => p.locator(".readerPanelBox.sidebar .toolsButton", { hasText: name }).first().click(),
@@ -47,7 +47,7 @@ const O = {
   book: (p, name) => p.locator('[data-leaf]:not([data-leaf="main"])').getByRole("link", { name: new RegExp(`^${name}`) }).first().click(),
   openFirst: (p) => p.locator('[data-leaf]:not([data-leaf="main"])').getByRole("link", { name: "Open", exact: true }).first().click(),
   citation: (p, panel, ref) => p.locator("[data-panel-id]").nth(panel).locator(`[data-leaf="main"] a.ref-link[data-sefaria-ref='${ref}']`).first().click(),
-  sidebarCitation: (p, n = 0) => p.locator('[data-leaf]:not([data-leaf="main"]) a.ref-link').nth(n).click(),
+  sidebarCitation: (p, ref) => p.locator(`[data-leaf]:not([data-leaf="main"]) a[data-ref='${ref}'], [data-leaf]:not([data-leaf="main"]) a.ref-link[data-sefaria-ref='${ref}']`).first().click(),
   previewTranslation: (p, n) => p.locator('[data-leaf]:not([data-leaf="main"])').getByRole("link", { name: /^Preview / }).nth(n).click(),
   openTranslation: (p) => p.locator('[data-leaf]:not([data-leaf="main"])').getByRole("link", { name: "Open", exact: true }).first().click(),
   tool: (p, name) => p.locator('[data-leaf]:not([data-leaf="main"])').getByRole("link", { name: new RegExp(`^${name}`) }).first().click(),
@@ -72,7 +72,7 @@ const S = {
     ["preview a translation", (s, p) => s.previewTranslation(p, 1)],
     ["Open Text", (s, p) => s.openTranslation(p)],
   ]],
-  "lexicon-citation": [`/Genesis.1.1?with=Lexicon&lookup=${encodeURIComponent("בראשית")}`, [["citation in an entry", (s, p) => s.sidebarCitation(p, 0)]]],
+  "lexicon-citation": [`/Genesis.1.1?with=Lexicon&lookup=${encodeURIComponent("בראשית")}`, [["citation Genesis 1:1 in an entry", (s, p) => s.sidebarCitation(p, "Genesis 1:1")]]],
   "compare": ["/Genesis.1.1?with=all", [["Compare Text", (s, p) => s.tool(p, "Compare Text")]]],
 };
 
