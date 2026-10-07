@@ -245,6 +245,10 @@ class ElasticSearchQuerier extends Component {
             state.correctedQuery = null;
             state.suggestedQueries = null;
             state.disableAutoCorrect = false;
+            // The previous query's Sources total must not be read as this query's (the tab
+            // auto-switch in SearchPage decides from it): start from an empty total, running.
+            state.totals = new SearchTotal();
+            state.isQueryRunning = !!newProps.query;
             this.setState(state, () => {
                 this._executeAllQueries(newProps);
                 if (!this.props.searchInBook) {

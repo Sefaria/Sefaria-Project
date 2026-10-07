@@ -603,34 +603,38 @@ class SearchPage extends Component {
     this.maybeAutoSwitchTabAfterCorrection();
   }
 
-  // Fuzzy-search query auto-correction (sc-47189): a corrected query that leaves Sources
-  // empty would otherwise strand the reader on a blank Sources tab, so land instead on the
-  // first tab (Books, then Authors, then Topics) that has at least one result. Only ever
-  // moves off of Sources -- the tab every query defaults to -- and only while that default is
-  // still showing: once the reader has clicked a tab by hand for this query, their choice
-  // sticks. If every tab is empty, Sources (already the default) is where it stays.
+  // A query whose current tab comes back empty -- corrected or not -- would otherwise strand
+  // the reader on a blank tab, so land instead on the first tab (Sources, Books, Authors,
+  // then Topics) that has at least one result. This applies to every new search, even when
+  // the reader had picked the tab on screen by hand for an earlier query; only a tab click
+  // made for the query on screen sticks (_userSelectedTab resets when the query changes).
+  // If the current tab has results, or every tab is empty, it stays put.
   //
   // Sources' count and the entity tabs' counts each arrive from their own independent fetch
   // (see the class comment on componentDidMount/fetchEntityResults), so this runs on every
   // update and simply waits (returns without deciding) until the tab it would need to check
   // next has loaded.
   maybeAutoSwitchTabAfterCorrection() {
-    if (this._userSelectedTab || !this.props.correctedQuery) { return; }
-    const decisionKey = `${this.props.query}||${this.props.correctedQuery}`;
+    if (this._userSelectedTab || !this.props.query || this.props.searchInBook) { return; }
+    const decisionKey = `${this.props.query}||${this.props.correctedQuery || ""}`;
     if (this._autoSwitchDecidedFor === decisionKey) { return; }
-    if (this.activeTab() !== "sources") { return; }  // already moved on
+    if (this.props.isQueryRunning) { return; }  // Sources result not in yet
 
-    const sourcesCount = this.props.totalResults?.getValue();
-    if (sourcesCount === undefined) { return; }  // Sources result not in yet
-    if (sourcesCount > 0) {
-      this._autoSwitchDecidedFor = decisionKey;
+    // Sources first, then the entity tabs; null means that tab's count hasn't arrived.
+    const countOf = id => id === "sources"
+      ? this.props.totalResults?.getValue()
+      : this.state.entityData[ENTITY_TABS.find(t => t.id === id).type]?.total ?? null;
+    const current = this.activeTab();
+    const currentCount = countOf(current);
+    if (currentCount === null || currentCount === undefined) { return; }
+    if (currentCount > 0) {
+      this._autoSwitchDecidedFor = decisionKey;  // the tab on screen has results -- stay
       return;
     }
-
-    for (const {id, type} of ENTITY_TABS) {
-      const data = this.state.entityData[type];
-      if (data === null) { return; }  // this tab hasn't loaded yet -- wait for it before deciding
-      if (data.total > 0) {
+    for (const id of ["sources", ...ENTITY_TABS.map(t => t.id)]) {
+      const count = countOf(id);
+      if (count === null || count === undefined) { return; }  // wait for it before deciding
+      if (count > 0) {
         this._autoSwitchDecidedFor = decisionKey;
         this.setTab(id, true);
         return;
