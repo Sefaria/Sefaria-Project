@@ -1,0 +1,102 @@
+name: Merge Conflict Notification
+
+# GitHub does not run `pull_request` workflows (like Continuous) while a PR has
+# a merge conflict, so a push to a conflicted PR builds no images and updates no
+# cauldron, silently. `pull_request_target` still runs, so we use it to flag it.
+#
+# SECURITY: this runs with repo secrets and a write token. Never check out PR
+# code here, and keep untrusted PR fields (title, branch, commit messages) out of
+# `run:` shells and Slack text. Everything below reads from the API in JS.
+on:
+  pull_request_target:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+    branches-ignore:
+      - preprod
+      - prod
+    paths-ignore:
+      - "docs/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  statuses: write
+
+concurrency:
+  group: merge-conflict-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check-mergeable:
+    name: "Merge Conflict Check"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Flag pushes skipped because of a merge conflict
+        uses: actions/github-script@v7
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_TEST_FAILURE_WEBHOOK_URL }}
+          GITUSER_SLACK_MAP: ${{ secrets.GITUSER_SLACK_MAP }}
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const pull_number = context.payload.pull_request.number;
+            const headSha = context.payload.pull_request.head.sha;
+            const pusher = context.payload.sender.login;
+
+            // `mergeable` is computed asynchronously after a push; null means "not yet".
+            let pr;
+            for (let i = 0; i < 12; i++) {
+              ({ data: pr } = await github.rest.pulls.get({ owner, repo, pull_number }));
+              if (pr.mergeable !== null) break;
+              await new Promise(r => setTimeout(r, 5000));
+            }
+            if (pr.head.sha !== headSha) return core.info('Head moved on; a newer run will check it.');
+            if (pr.mergeable === null) return core.info('Mergeability still unknown; giving up quietly.');
+            if (pr.mergeable) return core.info('No merge conflict.');
+
+            const base = pr.base.ref;
+            const shortSha = headSha.slice(0, 7);
+
+            // 1. Red status on the pushed commit.
+            await github.rest.repos.createCommitStatus({
+              owner, repo, sha: headSha, state: 'failure',
+              context: 'Continuous / merge conflict',
+              description: `Merge conflict with ${base}: Continuous (image build, sandbox, cauldron) was skipped. Merge ${base} to rebuild.`.slice(0, 140),
+            });
+
+            // 2. PR comment (GitHub emails it), once per head SHA.
+            const marker = `<!-- merge-conflict-alert:${headSha} -->`;
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number: pull_number });
+            if (comments.some(c => c.body && c.body.includes(marker))) return core.info('Already notified for this SHA.');
+
+            const author = pr.user.login;
+            const mentions = [...new Set([pusher, author])].map(l => `@${l}`).join(' ');
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: pull_number,
+              body: [
+                marker,
+                `:warning: ${mentions} this PR has a merge conflict with \`${base}\`, so GitHub skipped **Continuous** for ${headSha}: no images were built, no sandbox tests ran, and any cauldron using this branch was **not** updated.`,
+                '',
+                `To fix: merge \`${base}\` into this branch (or rebase onto it), resolve the conflicts and push. Continuous will run on that push.`,
+              ].join('\n'),
+            });
+
+            // 3. Slack mention of the pusher, if a webhook is configured.
+            const webhook = process.env.SLACK_WEBHOOK_URL;
+            if (!webhook) return core.info('SLACK_TEST_FAILURE_WEBHOOK_URL not set; skipping Slack.');
+            let slackMap = {};
+            try { slackMap = JSON.parse(process.env.GITUSER_SLACK_MAP || '{}'); } catch (e) { core.warning('GITUSER_SLACK_MAP is not valid JSON'); }
+            const slackUser = slackMap[pusher];
+            const who = !slackUser ? pusher : /^[UW][A-Z0-9]+$/.test(slackUser) ? `<@${slackUser}>` : `@${slackUser}`;
+            const res = await fetch(webhook, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                text: `:warning: ${who} your push <${pr.html_url}/commits/${headSha}|${shortSha}> to <${pr.html_url}|PR #${pull_number}> was not built: the PR has a merge conflict with \`${base}\`. Merge \`${base}\` and push again to rebuild the images and cauldron.`,
+              }),
+            });
+            if (!res.ok) core.warning(`Slack webhook returned ${res.status}`);
