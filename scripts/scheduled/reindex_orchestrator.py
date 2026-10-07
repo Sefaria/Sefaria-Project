@@ -257,7 +257,8 @@ def run_barrier_loop(
 
 
 def delete_stale_shard_job(batch, job_name, namespace, api_exception_cls,
-                           attempts=30, sleep_fn=time.sleep, log_fn=None):
+                           attempts=30, sleep_fn=time.sleep, log_fn=None,
+                           propagation_policy="Background"):
     """Delete a prior shard Job and wait until it is actually gone.
 
     Returns True once the Job is confirmed absent (or never existed), False if it still
@@ -276,7 +277,7 @@ def delete_stale_shard_job(batch, job_name, namespace, api_exception_cls,
     warn = log_fn or (lambda msg: logger.warning(msg))
     note = log_fn or (lambda msg: logger.info(msg))
     try:
-        batch.delete_namespaced_job(job_name, namespace, propagation_policy="Background")
+        batch.delete_namespaced_job(job_name, namespace, propagation_policy=propagation_policy)
     except api_exception_cls as exc:
         if exc.status == 404:
             note(f"No stale shard job to delete; it never existed, or ttlSecondsAfterFinished "
@@ -473,10 +474,25 @@ def main():
 
     init_started = False
     finalized = False
+    job_creation_attempted = False
 
     def cleanup_after_init_failure():
         if not init_started or finalized:
             return
+        if job_creation_attempted:
+            # Foreground deletion keeps the Job around until its dependent pods are gone.
+            # A background delete or an unconfirmed deletion can leave writers running.
+            try:
+                job_stopped = delete_stale_shard_job(
+                    batch, job_name, namespace, client.exceptions.ApiException,
+                    propagation_policy="Foreground",
+                )
+            except Exception:
+                logger.exception("Could not stop shard Job; leaving reindex targets for manual cleanup")
+                return
+            if not job_stopped:
+                logger.error("Shard Job deletion was not confirmed; leaving reindex targets for manual cleanup")
+                return
         cleanup_failed_reindex_targets(index_types=REINDEX_TYPES, debug=debug)
 
     try:
@@ -486,6 +502,7 @@ def main():
         run_reindex_init_all(debug=debug)
 
         try:
+            job_creation_attempted = True
             batch.create_namespaced_job(namespace, manifest)
         except client.exceptions.ApiException as exc:
             logger.error(
@@ -520,9 +537,6 @@ def main():
                 f"indexes still incomplete: {incomplete}; NOT finalizing (alias unchanged); "
                 "cleaning up failed reindex targets"
             )
-            # The shard Job may still be running; stop it first so it cannot write into
-            # (or re-create) the target index while it is being dropped.
-            delete_stale_shard_job(batch, job_name, namespace, client.exceptions.ApiException)
             cleanup_after_init_failure()
             sys.exit(1)
 

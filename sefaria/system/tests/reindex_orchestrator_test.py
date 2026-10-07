@@ -632,6 +632,123 @@ def test_main_cleans_partial_init_failure_without_deleting_current(monkeypatch):
     assert "sefariastaging_sheet-current" not in search.deleted
 
 
+def _mock_main_services(monkeypatch, search, batch, finalize):
+    class FakeApiException(Exception):
+        def __init__(self, status, reason=""):
+            super().__init__(status)
+            self.status = status
+            self.reason = reason
+
+    class FakeVersionApi:
+        def get_code(self):
+            return types.SimpleNamespace(git_version="v1.28.0")
+
+    pipeline = types.ModuleType("scripts.scheduled.reindex_pipeline")
+    pipeline.REINDEX_TYPES = ("text", "sheet")
+    pipeline.run_reindex_init_all = lambda debug=False: None
+    pipeline.run_reindex_finalize_all = finalize
+    pipeline.run_reindex_entities = lambda debug=False: None
+
+    monkeypatch.setitem(sys.modules, "django", types.SimpleNamespace(setup=lambda: None))
+    monkeypatch.setitem(
+        sys.modules,
+        "kubernetes",
+        types.SimpleNamespace(
+            client=types.SimpleNamespace(
+                BatchV1Api=lambda: batch,
+                VersionApi=lambda: FakeVersionApi(),
+                exceptions=types.SimpleNamespace(ApiException=FakeApiException),
+            ),
+            config=types.SimpleNamespace(load_incluster_config=lambda: None),
+        ),
+    )
+    monkeypatch.setitem(sys.modules, "sefaria.pagesheetrank", types.SimpleNamespace(update_pagesheetrank=lambda: None))
+    monkeypatch.setitem(sys.modules, "scripts.scheduled.reindex_pipeline", pipeline)
+    monkeypatch.setitem(sys.modules, "sefaria.search", search)
+    monkeypatch.setenv("K8S_NAMESPACE", "default")
+    monkeypatch.setenv("SHARD_JOB_IMAGE", "sefaria:test")
+    monkeypatch.setenv("SHARD_RESOURCES", '{"requests": {"memory": "4Gi"}, "limits": {"memory": "8Gi"}}')
+    return FakeApiException
+
+
+def test_main_preserves_live_text_when_sheet_finalize_fails(monkeypatch):
+    spec.loader.exec_module(orch)
+    events = []
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            events.append(("delete_job", propagation_policy))
+            raise fake_api_exception(404)
+
+        def create_namespaced_job(self, namespace, manifest):
+            events.append(("create_job",))
+
+    search = _FakeSearchModule({
+        "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+        "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+    })
+
+    def finalize(**kwargs):
+        # Text's alias has moved to its target before sheet finalization raises.
+        search.names_by_type["text"] = {
+            "new": "text-old", "current": "text-target", "alias": "isolated-text",
+        }
+        search.index_client.live_alias_pairs.add(("text-target", "isolated-text"))
+        raise RuntimeError("sheet finalize failed")
+
+    batch = FakeBatch()
+    fake_api_exception = _mock_main_services(monkeypatch, search, batch, finalize)
+    monkeypatch.setattr(orch, "run_barrier_loop", lambda **kwargs: ("complete", []))
+
+    with pytest.raises(RuntimeError, match="sheet finalize failed"):
+        orch.main()
+
+    assert "text-target" not in search.deleted
+    assert "sheet-target" in search.deleted
+    assert events == [("delete_job", "Background"), ("create_job",), ("delete_job", "Foreground")]
+
+
+@pytest.mark.parametrize("job_stopped", [False, True])
+def test_main_timeout_cleans_only_after_confirmed_job_stop(monkeypatch, job_stopped):
+    spec.loader.exec_module(orch)
+    events = []
+
+    class FakeBatch:
+        def delete_namespaced_job(self, name, namespace, propagation_policy=None):
+            events.append(("delete_job", propagation_policy))
+            raise fake_api_exception(404)
+
+        def create_namespaced_job(self, namespace, manifest):
+            events.append(("create_job",))
+
+    class FakeSearch(_FakeSearchModule):
+        def clear_index(self, index_name):
+            events.append(("clear_index", index_name))
+            super().clear_index(index_name)
+
+    search = FakeSearch({
+        "text": {"new": "text-target", "current": "text-old", "alias": "isolated-text"},
+        "sheet": {"new": "sheet-target", "current": "sheet-old", "alias": "isolated-sheet"},
+    })
+    batch = FakeBatch()
+    fake_api_exception = _mock_main_services(monkeypatch, search, batch, lambda **kwargs: None)
+    monkeypatch.setattr(orch, "run_barrier_loop", lambda **kwargs: ("timeout", [0]))
+
+    def stop_job(*args, **kwargs):
+        events.append(("stop_job", kwargs.get("propagation_policy")))
+        return True if kwargs.get("propagation_policy") == "Background" else job_stopped
+
+    monkeypatch.setattr(orch, "delete_stale_shard_job", stop_job)
+
+    with pytest.raises(SystemExit):
+        orch.main()
+
+    assert ("stop_job", "Foreground") in events
+    assert search.deleted == (["text-target", "sheet-target"] if job_stopped else [])
+    if job_stopped:
+        assert events.index(("stop_job", "Foreground")) < events.index(("clear_index", "text-target"))
+
+
 class _FakeApiException(Exception):
     def __init__(self, status):
         super().__init__(status)
