@@ -360,6 +360,16 @@ SEARCH_INDEX_NAME_TOPIC = 'topic'
 SEARCH_INDEX_NAME_BOOK = 'book'
 SEARCH_INDEX_NAME_CATEGORY = 'category'
 
+# Library Next (docs/library-next/PLAN.md): serve the rebuilt Library SPA on library page URLs by
+# default. `?library=classic` (sticky cookie) returns the classic site. Defaulted here so a
+# local_settings.py that predates it still boots; local_settings.py may override it below.
+LIBRARY_NEXT_DEFAULT = True
+# The ai-chatbot pull request whose Coolify preview the Library Next assistant dock uses by default
+# (https://<n>.ai-server.coolifydev.sefaria.org, Sefaria/ai-chatbot#235 carries the `persona`
+# attribute and panel mode). ?chatbot_version=<n> still overrides it, and ?chatbot_version=clear
+# returns to this default. None = the default chat backend.
+LIBRARY_NEXT_CHATBOT_VERSION = "235"
+
 # Grab environment specific settings from a file which
 # is left out of the repo.
 if os.getenv("CI_RUN"):
@@ -395,7 +405,14 @@ WEBPACK_LOADER = {
         'POLL_INTERVAL': 0.1,
         'TIMEOUT': None,
         'CACHE': not DEBUG,
-    }
+    },
+    'LIBRARY_NEXT': {  # Library Next SPA (static/js/library-next/client.jsx), used by templates/library_next/app.html
+        'BUNDLE_DIR_NAME': 'bundles/client-library-next/',  # must end with slash
+        'STATS_FILE': relative_to_abs_path('../node/webpack-stats.client-library-next.json'),
+        'POLL_INTERVAL': 0.1,
+        'TIMEOUT': None,
+        'CACHE': not DEBUG,
+    },
 
 }
 

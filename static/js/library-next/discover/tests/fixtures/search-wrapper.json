@@ -1,0 +1,69 @@
+{
+  "took": 41,
+  "timed_out": false,
+  "_shards": { "total": 1, "successful": 1, "skipped": 0, "failed": 0 },
+  "hits": {
+    "total": { "value": 2873, "relation": "eq" },
+    "max_score": 12.4,
+    "hits": [
+      {
+        "_index": "text", "_id": "Genesis 1:3 (The Contemporary Torah, JPS, 2006 [en])", "_score": 12.4,
+        "_source": { "ref": "Genesis 1:3", "heRef": "בראשית א׳:ג׳", "version": "The Contemporary Torah, JPS, 2006", "lang": "en", "version_priority": 1, "categories": ["Tanakh", "Torah"], "order": "A00000000100010003", "path": "Tanakh/Torah/Genesis", "pagesheetrank": 14.2, "comp_date": -1400, "exact": "God said, “Let there be light”; and there was light.", "languageFamilyName": "english", "isPrimary": false },
+        "highlight": { "naive_lemmatizer": ["God said, “Let there be <b>light</b>”; and there was <b>light</b>."] }
+      },
+      {
+        "_index": "text", "_id": "Genesis 1:3 (Tanakh: The Holy Scriptures, published by JPS [en])", "_score": 12.1,
+        "_source": { "ref": "Genesis 1:3", "heRef": "בראשית א׳:ג׳", "version": "Tanakh: The Holy Scriptures, published by JPS", "lang": "en", "version_priority": 3, "categories": ["Tanakh", "Torah"], "order": "A00000000100010003", "path": "Tanakh/Torah/Genesis", "pagesheetrank": 14.2, "comp_date": -1400, "exact": "God said, \"Let there be light\"; and there was light.", "languageFamilyName": "english", "isPrimary": false },
+        "highlight": { "naive_lemmatizer": ["God said, \"Let there be <b>light</b>\"; and there was <b>light</b>."] }
+      },
+      {
+        "_index": "text", "_id": "Genesis 1:3 (Tanach with Ta'amei Hamikra [he])", "_score": 11.9,
+        "_source": { "ref": "Genesis 1:3", "heRef": "בראשית א׳:ג׳", "version": "Tanach with Ta'amei Hamikra", "lang": "he", "version_priority": 1, "categories": ["Tanakh", "Torah"], "order": "A00000000100010003", "path": "Tanakh/Torah/Genesis", "pagesheetrank": 14.2, "comp_date": -1400, "exact": "וַיֹּאמֶר אֱלֹהִים יְהִי אוֹר וַיְהִי־אוֹר", "languageFamilyName": "hebrew", "isPrimary": true },
+        "highlight": { "naive_lemmatizer": ["וַיֹּאמֶר אֱלֹהִים יְהִי <b>אוֹר</b> וַיְהִי־<b>אוֹר</b>"] }
+      },
+      {
+        "_index": "text", "_id": "Isaiah 60:1 (The Contemporary Torah, JPS, 2006 [en])", "_score": 9.8,
+        "_source": { "ref": "Isaiah 60:1", "heRef": "ישעיהו ס׳:א׳", "version": "Tanakh: The Holy Scriptures, published by JPS", "lang": "en", "version_priority": 1, "categories": ["Tanakh", "Prophets"], "order": "A00000000120600001", "path": "Tanakh/Prophets/Isaiah", "pagesheetrank": 6.1, "comp_date": -700, "exact": "Arise, shine, for your light has dawned; the Presence of the LORD has shone upon you!", "languageFamilyName": "english", "isPrimary": false },
+        "highlight": { "naive_lemmatizer": ["Arise, shine, for your <b>light</b> has dawned; the Presence of the LORD has shone upon you!"] }
+      },
+      {
+        "_index": "text", "_id": "Berakhot 11b:4 (William Davidson Edition - English [en])", "_score": 8.2,
+        "_source": { "ref": "Berakhot 11b:4", "heRef": "ברכות י״א ב:ד׳", "version": "William Davidson Edition - English", "lang": "en", "version_priority": 1, "categories": ["Talmud", "Bavli", "Seder Zeraim"], "order": "A00000000200110204", "path": "Talmud/Bavli/Seder Zeraim/Berakhot", "pagesheetrank": 4.4, "comp_date": 450, "exact": "The Gemara asks: What blessing does one recite? Rav Ya'akov said in the name of Rav Oshaya: Who forms light and creates darkness.", "languageFamilyName": "english", "isPrimary": false },
+        "highlight": { "naive_lemmatizer": ["Rav Ya'akov said in the name of Rav Oshaya: Who forms <b>light</b> and creates darkness."] }
+      },
+      {
+        "_index": "text", "_id": "Rashi on Genesis 1:4:1 (Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934 [en])", "_score": 7.7,
+        "_source": { "ref": "Rashi on Genesis 1:4:1", "heRef": "רש\"י על בראשית א׳:ד׳:א׳", "version": "Pentateuch with Rashi's commentary by M. Rosenbaum and A.M. Silbermann, 1929-1934", "lang": "en", "version_priority": 1, "categories": ["Tanakh", "Rishonim on Tanakh", "Rashi", "Torah"], "order": "A00000000100010004-01", "path": "Tanakh/Rishonim on Tanakh/Rashi/Torah/Rashi on Genesis", "pagesheetrank": 5.3, "comp_date": 1075, "exact": "AND GOD SAW THE LIGHT THAT IT WAS GOOD, AND GOD DIVIDED — Here, too, we must have recourse to the Agada.", "languageFamilyName": "english", "isPrimary": false },
+        "highlight": { "naive_lemmatizer": ["AND GOD SAW THE <b>LIGHT</b> THAT IT WAS GOOD, AND GOD DIVIDED — Here, too, we must have recourse to the Agada."] }
+      },
+      {
+        "_index": "text", "_id": "Zohar 1:15a:3 (Zohar, translated by Daniel C. Matt [en])", "_score": 6.9,
+        "_source": { "ref": "Zohar 1:15a:3", "heRef": "זוהר א׳:ט״ו א:ג׳", "version": "Zohar, translated by Daniel C. Matt", "lang": "en", "version_priority": 1, "categories": ["Kabbalah", "Zohar"], "order": "A00000000300010150-03", "path": "Kabbalah/Zohar", "pagesheetrank": 3.1, "comp_date": 1280, "exact": "Let there be light — a light that already was.", "languageFamilyName": "english", "isPrimary": false },
+        "highlight": { "naive_lemmatizer": ["Let there be <b>light</b> — a <b>light</b> that already was."] }
+      },
+      {
+        "_index": "text", "_id": "Mishneh Torah, Foundations of the Torah 2:1 (Mishneh Torah, trans. by Eliyahu Touger [en])", "_score": 5.5,
+        "_source": { "ref": "Mishneh Torah, Foundations of the Torah 2:1", "heRef": "משנה תורה, הלכות יסודי התורה ב׳:א׳", "version": "Mishneh Torah, trans. by Eliyahu Touger", "lang": "en", "version_priority": 1, "categories": ["Halakhah", "Mishneh Torah", "Sefer Madda"], "order": "A00000000400020001", "path": "Halakhah/Mishneh Torah/Sefer Madda/Mishneh Torah, Foundations of the Torah", "pagesheetrank": 2.9, "comp_date": 1177, "exact": "When a person contemplates His wondrous and great deeds and creations and appreciates His infinite wisdom, he will immediately love, praise, and glorify Him, yearning with tremendous desire to know God's great name, as David stated: My soul thirsts for the Lord, for the living God; a light to his path.", "languageFamilyName": "english", "isPrimary": false },
+        "highlight": { "naive_lemmatizer": ["My soul thirsts for the Lord, for the living God; a <b>light</b> to his path."] }
+      }
+    ]
+  },
+  "aggregations": {
+    "path": {
+      "doc_count_error_upper_bound": 0, "sum_other_doc_count": 0,
+      "buckets": [
+        { "key": "Tanakh/Torah/Genesis", "doc_count": 310 },
+        { "key": "Tanakh/Torah/Exodus", "doc_count": 120 },
+        { "key": "Tanakh/Prophets/Isaiah", "doc_count": 260 },
+        { "key": "Tanakh/Writings/Psalms", "doc_count": 410 },
+        { "key": "Tanakh/Rishonim on Tanakh/Rashi/Torah/Rashi on Genesis", "doc_count": 95 },
+        { "key": "Talmud/Bavli/Seder Zeraim/Berakhot", "doc_count": 180 },
+        { "key": "Talmud/Bavli/Seder Moed/Shabbat", "doc_count": 140 },
+        { "key": "Midrash/Aggadic Midrash/Bereshit Rabbah", "doc_count": 210 },
+        { "key": "Halakhah/Mishneh Torah/Sefer Madda/Mishneh Torah, Foundations of the Torah", "doc_count": 48 },
+        { "key": "Kabbalah/Zohar", "doc_count": 900 },
+        { "key": "Liturgy/Siddur/Siddur Ashkenaz", "doc_count": 200 }
+      ]
+    }
+  }
+}
