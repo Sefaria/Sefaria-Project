@@ -315,6 +315,9 @@ def _powered_by_post(request):
 
     cleaned.setdefault("submission_source", SubmissionSource.FORMSTACK)
     cleaned.setdefault("submission_date", timezone.now())
+    # A submitter who explicitly declines display consent is never auto-published.
+    if cleaned.get("consent_to_display") is False:
+        cleaned["is_published"] = False
 
     # No upsert: project_link is a public field (visible via GET), so keying
     # a write off it would let anyone overwrite an existing project's data by

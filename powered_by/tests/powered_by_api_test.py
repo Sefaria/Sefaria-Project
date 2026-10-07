@@ -611,6 +611,21 @@ def test_post_create_defaults_published(client):
     assert project.is_published is True
 
 
+@pytest.mark.django_db
+def test_post_declined_consent_is_not_published(client):
+    body = {
+        "FormID": "12345",
+        "Field179244711": "Private Project",
+        "Field179244929": "https://private.example.com",
+        "Field179245509": "No",
+    }
+    response = post_powered_by(client, body)
+    assert response.status_code == 201
+    project = Project.objects.get(project_link="https://private.example.com")
+    assert project.consent_to_display is False
+    assert project.is_published is False
+
+
 # --- view: HTTP method restriction --------------------------------------------
 
 @pytest.mark.django_db
