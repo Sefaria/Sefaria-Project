@@ -95,6 +95,16 @@ spec:
       backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /static/
+      timeouts:
+        request: 5m
+        backendRequest: 5m
+      backendRefs:
+        - name: nginx-{{ $.Values.deployEnv }}
+          port: 80
     - backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
