@@ -62,6 +62,12 @@ jest.mock("../Misc", () => new Proxy({}, {
 jest.mock("../ImageCropper", () => new Proxy({}, {
   get: (_t, prop) => (prop === "__esModule" ? true : () => null),
 }));
+// json-edit-react (pulled in via ConnectionsPanel -> LexiconContentEditBox) does DOM feature
+// detection at import time that jsdom doesn't support (insertAdjacentElement); stubbing it
+// avoids ever evaluating the real package, same as the two mocks above.
+jest.mock("json-edit-react", () => new Proxy({}, {
+  get: (_t, prop) => (prop === "__esModule" ? true : () => null),
+}));
 
 import Sefaria from '../sefaria/sefaria';
 import { ReaderApp } from '../ReaderApp.jsx';
