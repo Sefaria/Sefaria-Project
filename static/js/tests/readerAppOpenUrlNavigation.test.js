@@ -162,6 +162,21 @@ describe('real in-app navigation', () => {
     expect(app.showLibrary).toHaveBeenCalled();
     expect(navigated).toBe(true);
   });
+
+  test('a text title with encoded slash and backslash navigates as one ref', () => {
+    Sefaria.isRef = (ref) => decodeURIComponent(ref) === 'Book/Part\\Object';
+    Sefaria.humanRef = (ref) => decodeURIComponent(ref);
+    const app = makeApp();
+    const { handled, navigated } = call(app, '/Book%2FPart%5CObject');
+
+    expect(handled).toBe(true);
+    expect(app.openPanel).toHaveBeenCalledWith(
+      'Book/Part\\Object',
+      { en: null, he: null },
+      { showHighlight: false },
+    );
+    expect(navigated).toBe(true);
+  });
 });
 
 describe('a path openURL does not recognise', () => {

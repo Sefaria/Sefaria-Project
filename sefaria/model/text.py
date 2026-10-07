@@ -4315,7 +4315,7 @@ class Ref(object, metaclass=RefCacheType):
         if not self._url or not encode_html:
             url = self.normal()
 
-            html_encoding_map = {'?': '%3F', '/': '%2F', '\\': '%5C'}
+            html_encoding_map = {'%': '%25', '?': '%3F', '/': '%2F', '\\': '%5C'}
             pretty_url_map = {' ': '_', ':': '.'}
             replace_map = pretty_url_map if not encode_html else pretty_url_map | html_encoding_map
             for key, value in replace_map.items():

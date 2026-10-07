@@ -596,10 +596,10 @@ class Test_normal_forms(object):
         assert Ref("Rashi on Shabbat 12a.10").url() == "Rashi_on_Shabbat.12a.10"
 
     def test_url_form_escapes_title_separators(self):
-        ref = SimpleNamespace(_url=None, sections=[], normal=lambda: "Book, Chapter/Part\\Object")
+        ref = SimpleNamespace(_url=None, sections=[], normal=lambda: "Book, Chapter/Part\\Object%2F")
 
-        assert Ref.url(ref) == "Book,_Chapter%2FPart%5CObject"
-        assert Ref.url(ref, encode_html=False) == "Book,_Chapter/Part\\Object"
+        assert Ref.url(ref) == "Book,_Chapter%2FPart%5CObject%252F"
+        assert Ref.url(ref, encode_html=False) == "Book,_Chapter/Part\\Object%2F"
 
 
     def test_talmud_range_short(self):
