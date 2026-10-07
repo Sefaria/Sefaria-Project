@@ -81,3 +81,33 @@ describe("TextList", () => {
     expect(text).toHaveAttribute("dir", "rtl");
   });
 });
+
+// @feature CON-036 Sidebar reading history (secondary views)
+describe("TextList dwell (the old checkVisibleSegments)", () => {
+  it("reports a connected text shown for 3 s, once; one that leaves the view first is not reported", () => {
+    vi.useFakeTimers();
+    let cb: IntersectionObserverCallback = () => undefined;
+    const observed: Element[] = [];
+    vi.stubGlobal("IntersectionObserver", class {
+      constructor(c: IntersectionObserverCallback) { cb = c; }
+      observe(el: Element) { observed.push(el); }
+      disconnect() {}
+    });
+    const onDwell = vi.fn();
+    render(<TextList {...props} items={[item(1), item(2)]} onDwell={onDwell} />);
+    const [a, b] = observed;
+    const fire = (el: Element, isIntersecting: boolean) => cb([{ target: el, isIntersecting } as IntersectionObserverEntry], {} as IntersectionObserver);
+    fire(a!, true);
+    fire(b!, true);
+    vi.advanceTimersByTime(1000);
+    fire(b!, false);
+    vi.advanceTimersByTime(2500);
+    expect(onDwell.mock.calls).toEqual([["Rashi on Genesis 1:1:1"]]);
+    fire(a!, false);
+    fire(a!, true);
+    vi.advanceTimersByTime(3500);
+    expect(onDwell).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+});

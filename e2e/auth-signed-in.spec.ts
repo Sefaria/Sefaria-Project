@@ -86,5 +86,26 @@ test.describe("signed in on a real deployment", () => {
     await expect(save).toHaveAttribute("aria-pressed", String(before));
     await expect.poll(savedOnServer).toBe(before);
   });
+
+  // @feature CON-049 @feature USL-007
+  test("Notes: add a note on a verse, see it, delete it (cleans up after itself)", async ({ page }) => {
+    await page.goto("/login?next=%2FExodus.3.2%3Fwith%3DNotes");
+    await page.getByRole("button", { name: "Continue with Email" }).click();
+    await page.getByLabel("Email Address").fill(EMAIL!);
+    await page.getByLabel("Password", { exact: true }).fill(PASSWORD!);
+    await page.getByRole("button", { name: /^Log in$/ }).click();
+    await expect(page).toHaveURL(/with=Notes/);
+    const side = page.getByRole("complementary");
+    const text = `e2e note ${Date.now()}`;
+    await side.getByRole("textbox", { name: "Write a note..." }).fill(text);
+    await side.getByRole("button", { name: "Add Note" }).click();
+    const note = side.getByRole("list", { name: "My notes" }).getByText(text);
+    await expect(note).toBeVisible();
+    await note.hover();
+    await side.getByRole("listitem").filter({ hasText: text }).getByRole("button", { name: "Edit Note" }).click();
+    page.once("dialog", (d) => void d.accept());
+    await side.getByRole("button", { name: "Delete Note" }).click();
+    await expect(side.getByText(text)).toHaveCount(0);
+  });
 });
 

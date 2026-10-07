@@ -5,9 +5,10 @@
  * @feature GUI-002 Desktop site header
  * @feature GUI-009 Module switcher
  */
-import { SITE_ORIGIN } from "~/lib/config";
+import { PUBLIC_CONFIG, SITE_ORIGIN } from "~/lib/config";
 export const LIBRARY = SITE_ORIGIN;
-export const VOICES = "https://voices.sefaria.org";
+/** The Voices site of this deployment (src/lib/config.ts: PUBLIC_VOICES_ORIGIN). */
+export const VOICES = PUBLIC_CONFIG.voicesOrigin;
 export const DEVELOPERS = "https://developers.sefaria.org";
 export const DONATE = "https://donate.sefaria.org/give/451346/#!/donation/checkout";
 export const HELP = { english: "https://help.sefaria.org/hc/en-us", hebrew: "https://help.sefaria.org/hc/he" } as const;

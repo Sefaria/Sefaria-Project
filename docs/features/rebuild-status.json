@@ -731,8 +731,8 @@
   "by": "src/ui/SignUpModal, src/ui/Modal"
  },
  "CON-011": {
-  "status": "partial",
-  "note": "Signed-out gating done; the client knows who is signed in; signed-in tools still to build",
+  "status": "done",
+  "note": "Signed out gated; signed in gets the tools",
   "by": "src/features/reader/ConnectionsPane.tsx"
  },
  "CON-048": {
@@ -746,14 +746,14 @@
   "by": "src/features/reader/ConnectionsPane.tsx"
  },
  "CON-062": {
-  "status": "partial",
-  "note": "Signed-out modal only; the tool itself needs accounts (Phase 7)",
+  "status": "done",
+  "note": "Signed in → Django's /translate page",
   "by": "src/features/reader/ConnectionsPane.tsx"
  },
  "CON-065": {
   "status": "partial",
-  "note": "Signed-out modal only; the tool itself needs accounts (Phase 7)",
-  "by": "src/features/reader/ConnectionsPane.tsx"
+  "note": "Two texts: done; one text's Browse waits for Compare Text",
+  "by": "src/ui/AddConnectionView"
  },
  "RTE-046": {
   "status": "done",
@@ -1562,18 +1562,46 @@
   "by": "src/features/reader/use-reader-history.ts"
  },
  "USL-002": {
-  "status": "partial",
-  "note": "Primary history (server or cookie) done; sidebar (secondary) history CON-036 to do",
+  "status": "done",
+  "note": "Primary and sidebar (secondary) history; signed out in the cookie",
   "by": "src/features/reader/use-reader-history.ts"
  },
  "USL-010": {
-  "status": "partial",
-  "note": "Primary history (server or cookie) done; sidebar (secondary) history CON-036 to do",
+  "status": "done",
+  "note": "Primary and sidebar (secondary) history; signed out in the cookie",
   "by": "src/features/reader/use-reader-history.ts"
  },
  "USL-012": {
-  "status": "partial",
-  "note": "Primary history (server or cookie) done; sidebar (secondary) history CON-036 to do",
+  "status": "done",
+  "note": "Primary and sidebar (secondary) history; signed out in the cookie",
   "by": "src/features/reader/use-reader-history.ts"
+ },
+ "CON-049": {
+  "status": "done",
+  "note": "Signed-in notes on the selection: add, edit, delete",
+  "by": "src/ui/NotesView"
+ },
+ "USL-005": {
+  "status": "done",
+  "note": "Signed-in notes on the selection: add, edit, delete",
+  "by": "src/ui/NotesView"
+ },
+ "USL-007": {
+  "status": "done",
+  "note": "Signed-in notes on the selection: add, edit, delete",
+  "by": "src/ui/NotesView"
+ },
+ "CON-034": {
+  "status": "partial",
+  "note": "Add to Sheet works; partial-selection trimming (CON-056) to do",
+  "by": "src/ui/AddToSheetView"
+ },
+ "CON-036": {
+  "status": "done",
+  "by": "src/ui/ConnectionsPanel/TextList.tsx"
+ },
+ "CON-038": {
+  "status": "done",
+  "by": "src/features/reader/ConnectionsPane.tsx"
  }
 }

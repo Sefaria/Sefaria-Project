@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import type { MouseEvent, ReactNode } from "react";
 import type { VocalizationMode } from "@vendor/sefaria-toolkit/text-transform/index";
 import { visibleSides } from "~/lib/reader/labels";
@@ -44,6 +45,9 @@ export interface TextListProps {
   emptyMessage?: ReactNode;
   onRefClick?: SegmentTextProps["onRefClick"];
   onOpen?: (href: string, event: MouseEvent) => void;
+  /** A connected text the reader dwelt on: shown (100px inside the list's view) for 3 s — the old ConnectionsPanel's
+   *  checkVisibleSegments, which records it as secondary reading history (CON-036). Once per ref per list. */
+  onDwell?: (ref: string) => void;
 }
 
 /**
@@ -54,7 +58,42 @@ export interface TextListProps {
  * @feature CON-032 Connection item rendering
  * @feature CON-033 Open connected text in main panel
  */
-export function TextList({ title, color, items, language, vocalization, hideItemTitles, loading, emptyMessage, onRefClick, onOpen }: TextListProps) {
+export function TextList({ title, color, items, language, vocalization, hideItemTitles, loading, emptyMessage, onRefClick, onOpen, onDwell }: TextListProps) {
+  const listRef = useRef<HTMLUListElement>(null);
+  const dwelt = useRef(new Set<string>());
+  const dwellCb = useRef(onDwell);
+  dwellCb.current = onDwell;
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list || !dwellCb.current || typeof IntersectionObserver === "undefined") return;
+    const timers = new Map<Element, ReturnType<typeof setTimeout>>();
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          const ref = (e.target as HTMLElement).dataset.ref;
+          if (!ref || dwelt.current.has(ref)) continue;
+          if (e.isIntersecting && !timers.has(e.target)) {
+            timers.set(e.target, setTimeout(() => {
+              timers.delete(e.target);
+              if (dwelt.current.has(ref)) return;
+              dwelt.current.add(ref);
+              dwellCb.current?.(ref);
+            }, 3000));
+          } else if (!e.isIntersecting && timers.has(e.target)) {
+            clearTimeout(timers.get(e.target));
+            timers.delete(e.target);
+          }
+        }
+      },
+      // more than 100px inside the view, as the old check
+      { rootMargin: "-100px 0px -100px 0px" },
+    );
+    list.querySelectorAll("li[data-ref]").forEach((li) => io.observe(li));
+    return () => {
+      io.disconnect();
+      timers.forEach((t) => clearTimeout(t));
+    };
+  }, [items]);
   return (
     <div>
       <h3 className={styles.title} style={{ ["--_color" as string]: color }}>
@@ -65,7 +104,7 @@ export function TextList({ title, color, items, language, vocalization, hideItem
       {!loading && items.length === 0 ? (
         <p className={styles.notice}>{emptyMessage ?? <InterfaceText en="No connections known." he="אין קישורים ידועים." />}</p>
       ) : null}
-      <ul className={styles.list}>
+      <ul ref={listRef} className={styles.list}>
         {items.map((item) => {
           const sides = visibleSides(language, { primary: Boolean(item.primary?.html.trim()), translation: Boolean(item.translation?.html.trim()) });
           const side = sides.primary ? item.primary : sides.translation ? item.translation : (item.primary ?? item.translation);

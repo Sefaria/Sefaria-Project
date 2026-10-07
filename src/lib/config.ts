@@ -27,12 +27,15 @@ export interface PublicConfig {
   apiOrigin: string;
   siteOrigin: string;
   analytics: AnalyticsConfig;
+  /** The Voices site (sheets, collections, profiles): PUBLIC_VOICES_ORIGIN, "https://voices.<root domain>" in a deployment. */
+  voicesOrigin: string;
   googleClientId: string;
   appleClientId: string;
   recaptchaSiteKey: string;
 }
 
 const DEFAULT_ORIGIN = "https://www.sefaria.org";
+const DEFAULT_VOICES = "https://voices.sefaria.org";
 const isServer = typeof window === "undefined";
 const env = (k: string): string | undefined => (isServer && typeof process !== "undefined" ? process.env[k] : undefined);
 
@@ -49,6 +52,7 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
   ? {
       apiOrigin: env("PUBLIC_API_ORIGIN") ?? DEFAULT_ORIGIN,
       siteOrigin: env("PUBLIC_SITE_ORIGIN") ?? DEFAULT_ORIGIN,
+      voicesOrigin: env("PUBLIC_VOICES_ORIGIN") || DEFAULT_VOICES,
       analytics: {
         gtm: env("GOOGLE_TAG_MANAGER_CODE") || null,
         gtag: env("GOOGLE_GTAG") || null,
@@ -63,6 +67,7 @@ export const PUBLIC_CONFIG: PublicConfig = isServer
   : {
       apiOrigin: window.__SEFARIA_CONFIG__?.apiOrigin ?? DEFAULT_ORIGIN,
       siteOrigin: window.__SEFARIA_CONFIG__?.siteOrigin ?? DEFAULT_ORIGIN,
+      voicesOrigin: window.__SEFARIA_CONFIG__?.voicesOrigin || DEFAULT_VOICES,
       analytics: { ...NO_ANALYTICS, ...window.__SEFARIA_CONFIG__?.analytics },
       googleClientId: window.__SEFARIA_CONFIG__?.googleClientId ?? "",
       appleClientId: window.__SEFARIA_CONFIG__?.appleClientId ?? "",

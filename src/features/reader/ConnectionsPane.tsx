@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useQueries, useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { tocQueryOptions } from "~/lib/catalog/toc";
 import { filterLinks, linksForRefs, makeIndexLookup, sortLinks, withoutEssays, type RelatedLink } from "~/lib/connections/links";
@@ -29,7 +29,15 @@ import { entriesForCategories, lexiconQueryOptions, shouldActivateLookup } from 
 import { useDictionarySearch } from "../shared/useDictionarySearch";
 import { DictionarySearch } from "~/ui/DictionarySearch/DictionarySearch";
 import { LexiconView } from "~/ui/LexiconView/LexiconView";
-import { readerAnalytics } from "~/lib/analytics";
+import { readerAnalytics, uaEvent } from "~/lib/analytics";
+import { useViewer } from "~/features/auth/viewer";
+import { deleteNote, notesQuery, saveNote } from "~/lib/user/notes";
+import { syncHistory } from "~/lib/user/history";
+import { NotesView } from "~/ui/NotesView/NotesView";
+import { AddToSheetView } from "~/ui/AddToSheetView/AddToSheetView";
+import { addConnection, addToSheet, createSheet, sourcesFor, userSheetsQuery, type SheetVersion } from "~/lib/user/sheets";
+import { AddConnectionView } from "~/ui/AddConnectionView/AddConnectionView";
+import { VOICES } from "~/lib/shell/links";
 import { NamedEntityView } from "~/ui/NamedEntityView/NamedEntityView";
 import { entityQueryOptions, entitySourceNote } from "~/lib/connections/entity";
 import { localizedRef, topicsForRefs } from "~/lib/connections/topics";
@@ -102,6 +110,8 @@ export interface ConnectionsPaneProps {
   onOpenTranslation: (v: TranslationVersion) => void;
   /** A source version's Open Text: a new panel in that version (as a translation's). */
   onOpenSource?: (v: VersionMeta) => void;
+  /** The texts open in every panel (each panel's chosen verse or section), for Add Connection (the old allOpenRefs). */
+  allOpenRefs?: string[];
   onClose: () => void;
   /** The sidebar's own language (`lang2`) and changing it (the aleph / ayin button in its header). */
   lang?: "en" | "he";
@@ -124,6 +134,12 @@ const textOf = (segs: Segment[], side: "primary" | "translation") => segs.map((s
  */
 function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: SignUpKind) => void }) {
   const { view, hrefFor, sectionRef, selectedRefs, settings, onNavigate, onOpenText, onClose } = props;
+  // signed in: the reader's notes on the selection (the Notes tool and its count in Tools)
+  const viewer = useViewer();
+  const uid = viewer?.id ?? null;
+  const notesRefs = selectedRefs.length ? selectedRefs : [sectionRef];
+  const notesQ = useQuery(notesQuery(uid, notesRefs));
+  const qcNotes = useQueryClient();
   const interfaceLang = useInterfaceLang();
   const hebrew = interfaceLang === "hebrew";
   const catalogQ = useQuery(tocQueryOptions());
@@ -193,7 +209,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   const verseVersionsQ = useQuery({ ...versionsQueryOptions(selectionRef), enabled: onResources });
   const translations = (verseVersionsQ.data ?? []).filter((v) => !v.isSource).length;
   const counts = resourcesQ.data && verseVersionsQ.data ? resourceCounts(resourcesQ.data, selectedRefs, { webpages: webQ.data ? webQ.data.length : null, translations }) : undefined;
-  const sheetsHref = `${hebrew ? "https://chiburim.sefaria.org.il" : "https://voices.sefaria.org"}/sheets-with-ref/${refToUrl(selectionRef)}`;
+  const sheetsHref = `${hebrew ? "https://chiburim.sefaria.org.il" : VOICES}/sheets-with-ref/${refToUrl(selectionRef)}`;
 
   const onTranslations = view.view === "mode" && view.mode === "Translations";
   const onTranslationOpen = view.view === "mode" && view.mode === "Translation Open";
@@ -368,12 +384,69 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
     );
   }
 
+  if (view.view === "mode" && view.mode === "Notes" && viewer) {
+    const refresh = () => qcNotes.invalidateQueries({ queryKey: ["user", "notes", uid] });
+    return (
+      <ConnectionsPanel label="Notes" back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
+        <NotesView
+          notes={notesQ.data}
+          allNotesHref={`${SITE_ORIGIN}/texts/notes`}
+          onSave={async (text, id) => {
+            await saveNote(text, notesRefs, id);
+            uaEvent("Tools", "Note Save Private", notesRefs.join("/"));
+            await refresh();
+          }}
+          onDelete={async (id) => {
+            await deleteNote(id);
+            uaEvent("Tools", "Delete Note", id);
+            await refresh();
+          }}
+        />
+      </ConnectionsPanel>
+    );
+  }
+
+  if (view.view === "mode" && view.mode === "Add To Sheet" && viewer) {
+    const sv = (v: { versionTitle: string; direction?: string } | undefined): SheetVersion | undefined =>
+      v ? { versionTitle: v.versionTitle, direction: v.direction === "rtl" ? "rtl" : "ltr" } : undefined;
+    const last = notesRefs.at(-1)!;
+    const citationEn = notesRefs.length === 1 ? notesRefs[0]! : `${notesRefs[0]}-${last.slice(last.lastIndexOf(":") + 1)}`;
+    return (
+      <ConnectionsPanel label="Add to Sheet" back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
+        <AddToSheetSection
+          uid={uid}
+          citation={{ en: citationEn, he: notesRefs.length === 1 && props.section?.segments.length === 1 ? props.section.heRef : citationEn }}
+          citationHref={`/${refToUrl(citationEn)}`}
+          refs={notesRefs}
+          primary={sv(props.section?.primaryVersion)}
+          translation={sv(props.section?.translationVersion)}
+        />
+      </ConnectionsPanel>
+    );
+  }
+
+  if (view.view === "mode" && view.mode === "Add Connection" && viewer) {
+    return (
+      <ConnectionsPanel label="Add Connection" back={{ href: hrefFor({ view: "mode", mode: "Advanced Tools" }), label: <InterfaceText en="Advanced" he="כלים מתקדמים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
+        <AddConnectionView
+          refs={props.allOpenRefs?.length ? props.allOpenRefs : notesRefs}
+          onAdd={async (refs, type) => {
+            await addConnection(refs, type);
+            uaEvent("Tools", "Add Connection", refs.join("/"));
+            await qcNotes.invalidateQueries({ queryKey: ["links"] }); // the old Sefaria.clearLinks()
+          }}
+        />
+      </ConnectionsPanel>
+    );
+  }
+
   if (view.view === "mode" && view.mode === "Feedback") {
     return (
       <ConnectionsPanel label="Feedback" back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
         <FeedbackView
+          signedIn={!!viewer}
           onSubmit={(s) =>
-            (readerAnalytics.feedbackSent(window.location.href), sendFeedback({ refs: selectedRefs.length ? selectedRefs : [sectionRef], type: s.type, url: window.location.href, currVersions: currVersionsOf(props.versions?.primary, props.versions?.translation), email: s.email, msg: s.msg, uid: null }))
+            (readerAnalytics.feedbackSent(window.location.href), sendFeedback({ refs: selectedRefs.length ? selectedRefs : [sectionRef], type: s.type, url: window.location.href, currVersions: currVersionsOf(props.versions?.primary, props.versions?.translation), email: s.email, msg: s.msg, uid: viewer?.id ?? null }))
           }
         />
       </ConnectionsPanel>
@@ -475,7 +548,15 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
   if (view.view === "mode" && view.mode === "Advanced Tools") {
     return (
       <ConnectionsPanel label="Advanced" back={{ href: resourcesHref, label: <InterfaceText en="Resources" he="קישורים וכלים" /> }} lang={shownLang} onLang={props.onLang} onClose={onClose}>
-        <AdvancedToolsView onAddTranslation={() => props.onSignUp("add-translation")} onAddConnection={() => props.onSignUp("add-connection")} />
+        <AdvancedToolsView
+          onAddTranslation={() =>
+            viewer
+              ? // the old addTranslation: Django's translation page, coming back here
+                window.location.assign(`${SITE_ORIGIN}/translate/${refToUrl(notesRefs[0]!)}?next=${encodeURIComponent(window.location.pathname + window.location.search)}`)
+              : props.onSignUp("add-translation")
+          }
+          onAddConnection={() => (viewer ? onNavigate(hrefFor({ view: "mode", mode: "Add Connection" })) : props.onSignUp("add-connection"))}
+        />
       </ConnectionsPanel>
     );
   }
@@ -508,6 +589,8 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
             onNavigate={nav}
             counts={counts}
             sheetsHref={sheetsHref}
+            signedIn={!!viewer}
+            notesCount={notesQ.data?.length ?? 0}
           />
         )}
       </ConnectionsPanel>
@@ -551,6 +634,14 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           if (item) onOpenText(item.sourceRef);
           else nav(href);
         }}
+        // a citation inside a connected text opens it after this panel; the sidebar stays (CON-038, the old onCitationClick)
+        onRefClick={(ref) => (readerAnalytics.citationClicked(ref), props.onOpenRef(ref))}
+        // signed in: a connected text dwelt on is recorded as secondary history (CON-036)
+        onDwell={
+          viewer
+            ? (ref) => void syncHistory([{ ref, versions: { en: null, he: null }, book: ref.replace(/[\s,]+[\d:ab.-]+$/, ""), language: language === "hebrew" ? "hebrew" : "english", secondary: true }]).catch(() => undefined)
+            : undefined
+        }
       />
     </ConnectionsPanel>
   );
@@ -567,7 +658,9 @@ const SIGN_IN_TOOLS: Partial<Record<string, SignUpKind>> = { Notes: "notes", "Ad
 export function ConnectionsPane(props: ConnectionsPaneProps) {
   const location = useLocation();
   const [asked, setAsked] = useState<SignUpKind>();
-  const gated = props.view.view === "mode" ? SIGN_IN_TOOLS[props.view.mode] : undefined;
+  const viewer = useViewer();
+  // only a signed-out reader is asked to sign up; a signed-in reader gets the tool itself (CON-011)
+  const gated = props.view.view === "mode" && !viewer ? SIGN_IN_TOOLS[props.view.mode] : undefined;
   const resources: ConnectionsView = { view: "resources" };
   const kind = gated ?? asked;
   const close = () => {
@@ -579,5 +672,30 @@ export function ConnectionsPane(props: ConnectionsPaneProps) {
       <ConnectionsPaneInner {...props} view={gated ? resources : props.view} onSignUp={setAsked} />
       <SignUpModal kind={kind} onClose={close} next={location.href} />
     </>
+  );
+}
+
+/** The Add to Sheet tool's data: the reader's sheets, adding, creating (lib/user/sheets.ts). */
+function AddToSheetSection({ uid, citation, citationHref, refs, primary, translation }: { uid: number | null; citation: { en: string; he: string }; citationHref: string; refs: string[]; primary?: SheetVersion; translation?: SheetVersion }) {
+  const qc = useQueryClient();
+  const sheets = useQuery(userSheetsQuery(uid));
+  return (
+    <AddToSheetView
+      citation={citation}
+      citationHref={citationHref}
+      sheets={sheets.data}
+      sheetHref={(id) => `${VOICES}/sheets/${id}`}
+      onCreate={async (title) => {
+        const sheet = await createSheet(title);
+        qc.setQueryData(userSheetsQuery(uid).queryKey, (list = []) => [sheet, ...list]);
+        return sheet;
+      }}
+      onAdd={async (sheet) => {
+        await addToSheet(sheet.id, sourcesFor(refs, primary, translation));
+        uaEvent("Tools", "Add to Source Sheet Save", refs.join("/"));
+        // the sheet just used moves to the front (updateUserSheets)
+        qc.setQueryData(userSheetsQuery(uid).queryKey, (list = []) => [sheet, ...list.filter((s) => s.id !== sheet.id)]);
+      }}
+    />
   );
 }
