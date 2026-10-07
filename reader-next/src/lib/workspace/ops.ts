@@ -6,7 +6,7 @@
  * @feature SHL-047 Open connections list at panel
  * @feature SHL-048 Close panel
  */
-import { insert, leaf, leaves, move as moveLeaf, remove, replaceLeaf, type Placement } from "~/lib/layout/tree";
+import { insert, leaf, leaves, move as moveLeaf, remove, type LayoutNode, type Placement } from "~/lib/layout/tree";
 import type { AsideId, AsideState, PanelId, PanelState, Workspace } from "./types";
 
 /** A panel as the caller describes it: ids are assigned by the workspace. */
@@ -19,10 +19,34 @@ export const panelAt = (ws: Workspace, index: number): PanelState | undefined =>
   return id ? ws.panels[id] : undefined;
 };
 
-function nextPanelId(ws: Workspace): PanelId {
-  let n = 1;
-  while (ws.panels[`p${n}`]) n++;
-  return `p${n}`;
+/** A layout with its leaf ids renamed. */
+function renameLeaves<Id extends string>(node: LayoutNode<Id>, name: (id: Id) => Id): LayoutNode<Id> {
+  return node.type === "leaf" ? { type: "leaf", id: name(node.id) } : { ...node, children: node.children.map((c) => renameLeaves(c, name)) };
+}
+
+/**
+ * Ids follow position, as the URL does (p1, p2, … in reading order; a panel's side panels p<n>a<m>). Every operation that changes
+ * the order renumbers, so a workspace and the one read back from its URL name the same panel the same way (a navigation that
+ * targets a panel by id reaches the right one).
+ */
+export function renumber(ws: Workspace): Workspace {
+  if (!ws.layout) return ws;
+  const order = panelOrder(ws);
+  const map = new Map(order.map((id, i) => [id, `p${i + 1}` as PanelId]));
+  if (order.every((id) => map.get(id) === id)) return ws;
+  const panels: Record<PanelId, PanelState> = {};
+  for (const id of order) {
+    const p = ws.panels[id]!;
+    const nid = map.get(id)!;
+    const asideMap = new Map(p.asides.map((a) => [a.id, a.id.replace(/^p\d+/, nid) as AsideId]));
+    panels[nid] = {
+      ...p,
+      id: nid,
+      asides: p.asides.map((a) => ({ ...a, id: asideMap.get(a.id)! })),
+      ...(p.asideLayout ? { asideLayout: renameLeaves(p.asideLayout, (x) => asideMap.get(x as AsideId) ?? x) } : {}),
+    } as PanelState;
+  }
+  return { panels, layout: renameLeaves(ws.layout, (id) => map.get(id) ?? id) };
 }
 
 function materialise(id: PanelId, p: NewPanel): PanelState {
@@ -37,13 +61,20 @@ export function openOnly(_ws: Workspace, p: NewPanel): Workspace {
 
 /** Open a panel next to another one (default: after it, in the same row). Opening into an empty workspace opens it alone. */
 export function openNextTo(ws: Workspace, target: PanelId | null, p: NewPanel, placement: Placement = "after"): Workspace {
+  return openNextToWithId(ws, target, p, placement)[0];
+}
+
+/** {@link openNextTo}, also returning the new panel's id (after renumbering). */
+export function openNextToWithId(ws: Workspace, target: PanelId | null, p: NewPanel, placement: Placement = "after"): [Workspace, PanelId] {
   if (!ws.layout || !target || !ws.panels[target]) {
-    if (!ws.layout) return openOnly(ws, p);
+    if (!ws.layout) return [openOnly(ws, p), "p1"];
     const last = panelOrder(ws).at(-1)!;
-    return openNextTo(ws, last, p, placement);
+    return openNextToWithId(ws, last, p, placement);
   }
-  const id = nextPanelId(ws);
-  return { panels: { ...ws.panels, [id]: materialise(id, p) }, layout: insert(ws.layout, target, leaf(id), placement) };
+  const tmp = "p0" as PanelId; // a temporary id no panel has: renumbering gives the new panel its place's id
+  const layout = insert(ws.layout, target, leaf(tmp), placement);
+  const id = `p${leaves(layout).indexOf(tmp) + 1}` as PanelId;
+  return [renumber({ panels: { ...ws.panels, [tmp]: materialise(tmp, p) }, layout }), id];
 }
 
 /** Open a panel after the last one (old `openPanelAtEnd`). */
@@ -52,16 +83,16 @@ export const openAtEnd = (ws: Workspace, p: NewPanel): Workspace => openNextTo(w
 /** Put a different panel in the same place. The new panel gets a new id (it is a different thing). */
 export function replace(ws: Workspace, target: PanelId, p: NewPanel): Workspace {
   if (!ws.layout || !ws.panels[target]) return ws;
-  const id = nextPanelId(ws);
+  // the new panel takes the old one's place, so (ids following position) its id too
   const { [target]: _gone, ...rest } = ws.panels;
-  return { panels: { ...rest, [id]: materialise(id, p) }, layout: replaceLeaf(ws.layout, target, leaf(id)) };
+  return { panels: { ...rest, [target]: materialise(target, p) }, layout: ws.layout };
 }
 
 /** Close a panel; its side panels close with it. Closing the last panel leaves an empty workspace (→ home). */
 export function close(ws: Workspace, target: PanelId): Workspace {
   if (!ws.layout || !ws.panels[target]) return ws;
   const { [target]: _gone, ...rest } = ws.panels;
-  return { panels: rest, layout: remove(ws.layout, target) };
+  return renumber({ panels: rest, layout: remove(ws.layout, target) });
 }
 
 /** Change a panel's own fields (ref, versions, language…). */
@@ -74,7 +105,7 @@ export function updatePanel(ws: Workspace, target: PanelId, patch: Partial<Omit<
 /** Rearrange (future drag and drop): put a panel before/after/above/below another. */
 export function move(ws: Workspace, id: PanelId, target: PanelId, placement: Placement): Workspace {
   if (!ws.layout || !ws.panels[id] || !ws.panels[target]) return ws;
-  return { ...ws, layout: moveLeaf(ws.layout, id, target, placement) };
+  return renumber({ ...ws, layout: moveLeaf(ws.layout, id, target, placement) });
 }
 
 // ── side panels ─────────────────────────────────────────────────────────────────────────────────────────

@@ -72,8 +72,9 @@ export function TextList({ title, color, items, language, vocalization, hideItem
           return (
             <li key={item.id} className={styles.item} data-ref={item.sourceRef} data-lang={side?.dir === "rtl" ? "he" : "en"}>
               {hideItemTitles ? null : (
+                // a title, not a link: on sefaria.org it does nothing; "Open" opens the text (VERIFIED 2026-10-06)
                 <div className={styles.ref}>
-                  <Link href={item.href}><InterfaceText en={item.sourceRef} he={item.sourceHeRef} /></Link>
+                  <InterfaceText en={item.sourceRef} he={item.sourceHeRef} />
                 </div>
               )}
               <p className={styles.text}>

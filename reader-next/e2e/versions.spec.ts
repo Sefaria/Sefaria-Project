@@ -41,12 +41,13 @@ test.describe("choosing a translation from the sidebar", () => {
   });
 
   // @feature VER-011
-  test("Open Text goes to the passage in that translation", async ({ page }) => {
+  test("Open Text opens the passage in that translation in a new panel (VERIFIED on sefaria.org)", async ({ page }) => {
     await open(page, "/Genesis.1.1?lang=en&with=Translations");
     const koren = side(page).getByRole("region", { name: "English" }).getByRole("article").filter({ hasText: "The Koren Jerusalem Bible" });
     await koren.getByText("The Koren Jerusalem Bible").first().click();
     await koren.getByRole("link", { name: "Open Text" }).click();
-    await expect(page).toHaveURL(/\/Genesis\.1\.1\?.*ven=english\|The_Koren_Jerusalem_Bible/);
+    await expect(page).toHaveURL(/\/Genesis\.1\.1\?lang=en&aliyot=0&p2=Genesis\.1\.1&ven2=english\|The_Koren_Jerusalem_Bible&lang2=en&aliyot2=0$/);
+    await expect(page.locator("section[data-panel-id]")).toHaveCount(2);
     await expect(side(page)).toHaveCount(0);
   });
 });
@@ -113,10 +114,11 @@ test.describe("previewing a translation in the sidebar (Translation Open)", () =
     await expect(side(page).getByRole("region", { name: "English" })).toBeVisible();
   });
 
-  test("Open shows the passage in that translation in the main panel", async ({ page }) => {
+  test("Open shows the passage in that translation in a new panel after the reader's", async ({ page }) => {
     await open(page, "/Genesis.1.1?lang=en&with=Translation%20Open&vside=The_Koren_Jerusalem_Bible|en");
     await side(page).getByRole("link", { name: "Open" }).click();
-    await expect(page).toHaveURL(/ven=english\|The_Koren_Jerusalem_Bible/);
+    await expect(page).toHaveURL(/&p2=Genesis\.1\.1&ven2=english\|The_Koren_Jerusalem_Bible&lang2=en&aliyot2=0$/);
+    await expect(page.locator("section[data-panel-id]")).toHaveCount(2);
     await expect(side(page)).toHaveCount(0);
   });
 

@@ -3,7 +3,7 @@ import { notFound, redirect } from "@tanstack/react-router";
 import type { QueryClient } from "@tanstack/react-query";
 import { SefariaApiError } from "~/lib/api/client";
 import { getRefIndex } from "~/lib/cache/ref-index-singleton";
-import { urlToRef } from "~/lib/ref/url";
+import { refToUrl, urlToRef } from "~/lib/ref/url";
 import type { ReaderSearch } from "~/lib/reader/url-state";
 import { indexMetaQueryOptions } from "~/lib/text/commentary";
 import { loadReaderPassage, passageUrl, type VersionSelection } from "~/lib/text/queries";
@@ -11,7 +11,7 @@ import { hasVersionPrefs, resolveTranslation, toApiVersion, type VersionPrefs } 
 import { readVersionPrefs } from "~/lib/versions/prefs-source";
 import { panelOrder, updatePanel } from "~/lib/workspace/ops";
 import type { PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
-import { decodeWorkspace, encodeWorkspace, type RawSearch } from "~/lib/workspace/url";
+import { decodeWorkspace, type RawSearch } from "~/lib/workspace/url";
 
 /** What one text panel needs to render, from the library cache the loader filled. */
 export interface ReaderRouteData {
@@ -106,21 +106,28 @@ export async function loadWorkspaceRoute(args: {
   const panels = Object.fromEntries(ids.map((id, i) => [id, loaded[i]!])) as Record<PanelId, ReaderRouteData>;
   for (const id of ids) ws = updatePanel(ws, id, { ref: panels[id]!.ref });
 
-  const full = decodeWorkspace(urlToRef(args.splat), (args.fullSearch ?? args.search) as RawSearch);
-  let canonicalFull = full;
-  for (const id of ids) canonicalFull = updatePanel(canonicalFull, id, { ref: panels[id]!.ref });
-  const canonical = encodeWorkspace(canonicalFull)!;
-  const requested = encodeWorkspace(full)!;
-  const pathDiffers = canonical.path.slice(1) !== args.splat.replace(/^\/+|\/+$/g, "");
-  const panelsDiffer = ids.slice(1).some((_, i) => canonical.search[`p${i + 2}`] !== requested.search[`p${i + 2}`]);
+  // A ref that is not in canonical form redirects (301) to the canonical ref with the request's own query, as sefaria.org
+  // does (VERIFIED: /Gen.1.1?lang=en → /Genesis.1.1?lang=en). Only the refs change: the path and any p<n> (the old numbering).
+  const query = { ...((args.fullSearch ?? args.search) as Record<string, unknown>) };
+  const extra = Object.keys(query)
+    .map((k) => /^p(\d+)$/.exec(k))
+    .filter((m): m is RegExpExecArray => !!m && Number(m[1]) >= 2 && String(query[m[0]] ?? "") !== "")
+    .map((m) => Number(m[1]))
+    .sort((a, b) => a - b);
+  let panelsDiffer = false;
+  extra.forEach((n, i) => {
+    const id = ids[i + 1];
+    if (!id) return;
+    const canon = refToUrl(panels[id]!.ref);
+    if (urlToRef(String(query[`p${n}`])) !== panels[id]!.ref) {
+      panelsDiffer = true;
+      query[`p${n}`] = canon;
+    }
+  });
+  const canonicalPath = refToUrl(panels[ids[0]!]!.ref);
+  const pathDiffers = canonicalPath !== args.splat.replace(/^\/+|\/+$/g, "");
   if (pathDiffers || panelsDiffer) {
-    throw redirect({
-      to: "/$",
-      params: { _splat: canonical.path.slice(1) },
-      // Everything the reader understands is in the workspace, so its encoding is the whole canonical query.
-      search: canonical.search as never,
-      statusCode: 301,
-    });
+    throw redirect({ to: "/$", params: { _splat: canonicalPath }, search: query as never, statusCode: 301 });
   }
   return { workspace: ws, panels };
 }

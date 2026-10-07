@@ -2,10 +2,10 @@
 
 Master list of every feature in the current Sefaria web client, extracted from a full code read at commit `bb47dd7` (master, 2026-10-04).
 
-**946 features**, 3637 documented behaviors. Proposed tiers: core 321, standard 412, optional 153, retire 60.
+**946 features**, 3656 documented behaviors. Proposed tiers: core 321, standard 412, optional 153, retire 60.
 
 - **Tier** (proposal, for product to confirm): `core` can't launch without it · `standard` parity, can follow core · `optional` niche/rethink · `retire` unused, broken or superseded.
-- **Rebuild status** (new reader): done 319 · partial 39 · todo 459 · replaced 18 · deferred 23 · n/a 88; 311 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
+- **Rebuild status** (new reader): done 323 · partial 42 · todo 452 · replaced 18 · deferred 23 · n/a 88; 314 are covered by tagged tests. Corrections found while rebuilding are logged in [CHANGELOG.md](CHANGELOG.md).
 - **Status**: `live` · `legacy` (old Django/jQuery/CKEditor stack) · `unused` (code, no UI) · `broken` · `branch-only`.
 - Detail bullets prefixed **BUG / DEAD / SECURITY** flag things not to port as-is.
 - `features.json` is the same data, machine-readable. The `inv_*.md` files are the long-form write-ups each item's *Source* points to.
@@ -153,11 +153,12 @@ Code: [`static/js/ReaderPanel.jsx:530`](https://github.com/Sefaria/Sefaria-Proje
 Source: `inv_02_reader_shell.md#6`
 
 #### SHL-010 · New panels inherit display settings
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **done** — New panels take the reader's default language, as sefaria.org
 
 Opening another panel keeps the reader's current display choices.
 
 - When a panel's settings differ from defaults, setPanelState copies them into defaultPanelSettings (ReaderApp.jsx:1559-1561,1564-1578); setDefaultOption updates a single key (1716-1721).
+- VERIFIED 2026-10-06 on sefaria.org (scripts/probes/multipanel-probe*.mjs, scripts/parity-panels.mjs): a new panel takes the reader's default language (the last one set), not the language of the panel it was opened from: the citation's panel is lang2=bi beside a lang=en panel. The rebuild's new panels write the stored setting (UrlDefaults).
 
 Code: [`static/js/ReaderApp.jsx:1559`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1559), [`static/js/ReaderApp.jsx:1716`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1716)
 
@@ -692,12 +693,13 @@ Code: [`static/js/ReaderApp.jsx:1955`](https://github.com/Sefaria/Sefaria-Projec
 Source: `inv_02_reader_shell.md#9`
 
 #### SHL-049 · Citation click opens cited text
-`core` `live` · rebuild: **done** · *tested*
+`core` `live` · rebuild: **done** — Citation closes what is next and opens there, as sefaria.org (owner decision) · *tested*
 
 Clicking a citation opens the cited text in an adjacent panel (or replaces in mobile).
 
 - handleCitationClick(n,citationRef,textRef,replace,currVersions) (1077-1088): closes panel n+1 if replace or if it is Connections; highlights textRef in panel n; opens citation after n with scrollToHighlighted:!!replace.
 - Single-panel mode: ReaderPanel calls showBaseText instead (ReaderPanel.jsx:187-193).
+- VERIFIED 2026-10-06 on sefaria.org (scripts/probes/multipanel-probe*.mjs, scripts/parity-panels.mjs): a citation closes whatever is next to its panel — the panel's sidebar, or else the next panel even when the reader opened it — makes the verse holding the citation current, and opens the cited text right after: [Ramban on Genesis 1:1, Exodus 1] → citation Exodus 12:2 → /Ramban_on_Genesis.1.1.1?lang=bi&p2=Exodus.12.2&lang2=bi&aliyot2=0; a second citation replaces the first. OWNER DECISION: exactly as sefaria.org. BUILT (TextPanel onCitationClick); parity-panels equal.
 
 Code: [`static/js/ReaderApp.jsx:1077`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1077), [`static/js/ReaderPanel.jsx:187`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L187)
 
@@ -912,7 +914,7 @@ Code: [`static/js/ReaderApp.jsx:965`](https://github.com/Sefaria/Sefaria-Project
 Source: `inv_02_reader_shell.md#11`
 
 #### SHL-066 · Panel state to URL serialization (shell-specific rules)
-`core` `live` · rebuild: **done** · *tested*
+`core` `live` · rebuild: **done** — URLs read and written exactly as sefaria.org (owner decision); corpus round-trips · *tested*
 
 Multiple panels are encoded into a single URL, with short forms for the common text+sidebar case.
 
@@ -923,6 +925,8 @@ Multiple panels are encoded into a single URL, with short forms for the common t
 - Titles: '{ref} with {mode}' localized via CONNECTION_MODE_STRING_IDS unless 'all'/ConnectionsList.
 - BUG (VERIFIED 2026-10-04): panel numbers follow the flat panel array, sidebars included, so [Text+Connections, Text] is written as ?with=all&p3=Exodus.1 — and the server stops at the first missing p{i}, so reloading that URL silently drops the third panel. The rebuild numbers logical panels sequentially (p2, w2 for its sidebar), which the old server also reads, and accepts gaps when decoding.
 - BUG (VERIFIED 2026-10-04): `lang2` means both 'panel 2 language' and 'first sidebar language' (/Genesis.1.1?with=all&p2=Exodus.1&lang2=en is rewritten to …&lang2=en&p3=Exodus.1&lang3=en).
+- VERIFIED 2026-10-06 on sefaria.org (scripts/probes/multipanel-probe*.mjs, scripts/parity-panels.mjs): the address is rewritten on arrival with the defaults filled in (/Genesis.1 → /Genesis.1?lang=bi&aliyot=0; a sidebar always has lang2). A sidebar takes a number slot: [A+sidebar, B] → ?lang=bi&with=all&lang2=en&p3=B&lang3=bi&aliyot3=0; [A, B+sidebar] → …&p2=B&lang2=bi&aliyot2=0&w2=all&lang3=en (the sidebar's language is lang<k+1>); panel 1's aliyot is dropped while its sidebar is open; aliyot is written for Torah books only (titleIsTorah). The old server drops p3 on reload (views.py stops at the first missing p<i>).
+- OWNER DECISION 2026-10-06: read and write these URLs exactly. BUILT: encodeWorkspace ports makeHistoryState's URL assembly; defaults from the reader's settings; the arrival rewrite uses history.replaceState (same entry and state) after TanStack's deferred pushState. src/lib/workspace/legacy-urls.ts is the recorded corpus, each URL round-trips byte for byte (legacy-urls.test.ts).
 
 Code: [`static/js/ReaderApp.jsx:515`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L515), [`static/js/ReaderApp.jsx:784`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L784)
 
@@ -1040,6 +1044,7 @@ Each text panel has a header with title, subtitle, save and display settings.
 - VERIFIED: the text header has a Save button (aria-label 'Save "Genesis 1"', a bookmark) before the display-options 'A'. Signed out it opens the 'Want to return to this text?' sign-up modal (Save texts / Take notes / View your reading history / Build & share source sheets; Sign Up, Already have an account? Sign in). Rebuild: built (it was missing); the modal is the existing 'save' kind.
 - VERIFIED geometry (1280px, no sidebar): the text header's controls sit inside the text's own 700px column (Close at x=290, title centred at 640, Save at 932, display 'A' at 969), not at the panel's edges; title 18px Cardo, version line 15px italic #6f6f6f; the bar is 60px under a 4px category colour line. Rebuilt (the bar was full-width with a 13px subtitle).
 - Rebuild guard (found when the 15px version line made two subtitle lines taller than the bar): the text header is ALWAYS 60px — title on a 21px line, version/attribution lines 17px each — so choosing a version (which adds a line) never moves the text below it (e2e/about.spec.ts).
+- 2026-10-07: the Save button now works (USL-011).
 
 Code: [`static/js/ReaderPanel.jsx:1172`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L1172), [`static/js/ReaderPanel.jsx:1423`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L1423)
 
@@ -1904,6 +1909,7 @@ In the rebuild, nothing you are reading ever moves unless you scroll: sections a
 - Pre-hydration inline script positions the linked verse during HTML parsing, keeps it in place every frame until the app takes over, and holds the text invisible (≤600ms) while web fonts arrive.
 - The focus only moves when the reader moves, in the direction of travel (no backwards URL step near the end of a chapter).
 - Tested by e2e/smoothness.spec.ts (per-step jump analysis) and scripts/jank-probe.mjs.
+- FOUND 2026-10-07: scrolling moves in whole device pixels but text heights are fractional (22px at line-height 1.6 is 35.2px a line), so compensating a prepended section (Genesis 1 above Genesis 2:3: 3074.36px) left the verse 0.36px lower, which can paint a pixel off (e2e 'in place from the first visible frame' saw 326 → 327 at 1280px). FIXED: the engine scrolls the whole pixels and puts the remaining fraction in a sub-pixel padding above the content (kept in [0, 1)), so the verse's position is unchanged to the layout unit.
 
 Source: `sefaria-reader: src/features/reader/use-reading-scroll.ts`
 
@@ -2947,11 +2953,13 @@ Code: [`static/js/TextList.jsx:149`](https://github.com/Sefaria/Sefaria-Project/
 Source: `inv_04_connections.md#4`
 
 #### CON-033 · Open connected text in main panel
-`core` `live` · rebuild: **done** — Tagged tests; checked against sefaria.org in the parity runs · *tested*
+`core` `live` · rebuild: **done** — Open replaces the sidebar with a new panel, as sefaria.org (parity equal) · *tested*
 
 Each connection has an Open button that jumps the main panel to that source.
 
 - OpenConnectionTabButton is a link to /<sref>; click calls onTextClick([sourceRef]) (handleTextListClick: opens in main panel without commentary-to-base conversion); tracks 'Click Text from TextList'.
+- CORRECTION 2026-10-06 (VERIFIED 2026-10-06 on sefaria.org (scripts/probes/multipanel-probe*.mjs, scripts/parity-panels.mjs):): 'Open' on a connected text does NOT move the main panel. It replaces the sidebar with a new text panel showing that text as itself (/Genesis.1.1?lang=bi&aliyot=0&p2=Rashi_on_Genesis.1.1.1&lang2=bi, 50/50). The rebuild followed the old atlas text (this panel goes there): wrong, fixed in MULTIPANEL_PLAN Step 2.
+- VERIFIED 2026-10-07 on sefaria.org (scripts/parity-panels.mjs): BUILT (MULTIPANEL_PLAN Step 2): 'Open' replaces the sidebar with a new text panel right after the reader's, the text as itself, bilingual when the reader's panel is (else the sidebar's language); parity equal for open-from-sidebar. A connected text's title is not a link (VERIFIED: on sefaria.org clicking it does nothing; ours was a link that left the workspace).
 
 Code: [`static/js/TextList.jsx:255`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextList.jsx#L255), [`static/js/ReaderPanel.jsx:208`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L208)
 
@@ -3011,6 +3019,7 @@ Clicking a citation inside a sidebar passage opens the cited text as a new panel
 
 - ReaderApp.handleCitationClick closes the connections panel to the right (or replaces it) and opens the cited ref as a new panel.
 - Mobile: runs showBaseText (replaces base text).
+- VERIFIED 2026-10-06 on sefaria.org (scripts/probes/multipanel-probe*.mjs, scripts/parity-panels.mjs): a citation inside a dictionary entry opens after the sidebar, which stays: …&with=Lexicon&lang2=bi&p3=Genesis.1.1&lang3=bi&aliyot3=0. A click on the entry itself does nothing.
 
 Code: [`static/js/ReaderApp.jsx:1077`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1077), [`static/js/ReaderPanel.jsx:187`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderPanel.jsx#L187)
 
@@ -3739,6 +3748,7 @@ Each translation can expand to show metadata, with a button to open the text wit
 - <details> disclosure; summary shows short version title (Hebrew: shortVersionTitleInHebrew then versionTitleInHebrew) and Select / Currently Selected button.
 - Expanded: VersionMetadata (title + VersionInformation + VersionImage) and 'Open Text' button: onRangeClick(sref,false,{[lang]:{versionTitle,languageFamilyName}}).
 - A11y: the old markup puts the Select link inside the <summary> toggle (a control nested in a control; axe nested-interactive). The rebuild places Select beside the disclosure.
+- VERIFIED 2026-10-07 on sefaria.org (scripts/parity-panels.mjs): a translation's 'Open Text' (and a source version's 'Open') also opens a new panel after the reader's, in that version: …&p2=Genesis.1.1&ven2=english|<title>&lang2=bi&aliyot2=0. BUILT; parity equal.
 
 Code: [`static/js/VersionBlock/VersionBlockWithPreview.jsx`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/VersionBlock/VersionBlockWithPreview.jsx)
 
@@ -8342,11 +8352,12 @@ Source: `inv_08_other.md#5.2`
 ### Saved items
 
 #### USL-001 · Save (bookmark) button in text header
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** — Save/remove on the server, state from the saved list; sheets wait for Voices · *tested*
 
 Signed-in readers can save the current text or sheet; anonymous users are invited to sign up.
 
 - SaveButton with history object (ref, versions, language, sheet owner/title): toggles saved item, prompts SignUpModal(Save) if not signed in, prevents double posts, event 'Saved / saving' (Misc.jsx:1352-1396).
+- BUILT 2026-10-07: the header's Save button is filled when the reader's saved items hold this place in these versions (GET /api/profile/user_history?saved=1&secondary=0&annotate=0), and a click sends POST /api/profile/sync?no_return=1 with user_history=[{ref, versions, time_stamp, action: add_saved|delete_saved}] and client=web (X-CSRFToken), as Sefaria.toggleSavedItem; signed out it opens the sign-up modal. The place is the old getHistoryObject's: the chosen verse while the sidebar is open, else the section. src/lib/user/history.ts, src/features/reader/use-reader-history.ts. Found: before this the button always opened the sign-up modal, even for signed-in readers.
 
 Code: [`static/js/Misc.jsx:1352`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L1352)
 
@@ -8356,7 +8367,7 @@ Source: `inv_02_reader_shell.md#19`
 ### Reading history
 
 #### USL-002 · Recently viewed / last place tracking
-`standard` `live` · rebuild: **todo** `signed-in`
+`standard` `live` · rebuild: **partial** — Primary history (server or cookie) done; sidebar (secondary) history CON-036 to do `signed-in`
 
 The app records what you are reading so it appears in history.
 
@@ -8364,6 +8375,7 @@ The app records what you are reading so it appears in history.
 - History object: ref (highlighted range if sidebar open else currentlyVisibleRef), versions, book, language, sheet_owner, sheet_title; sheets use 'Sheet {id}:{node}' (2120-2143).
 - Runs for all initial panels on mount, on open, on sidebar open, and after 3s intent delay when a panel's ref changes (checkPanelScrollIntentAndSaveRecent, 948-959).
 - didPanelRefChange (1579-1604): Connections->Text false (already logged); Text<->Sheet true; version change true; highlight change true; sheet id/node change true.
+- BUILT 2026-10-07: reading history as ReaderApp.saveLastPlace — recorded when a text panel opens and when its sidebar opens (the chosen verse), and after 3 s on the same place when the place or version changes; signed in POST /api/profile/sync?no_return=1&annotate=1 with user_history=[{ref, versions, book, language, time_stamp}]; signed out the user_history cookie, newest first, trimmed to 3000 encoded bytes (MAX_ANON_HISTORY_BYTES), sidebar items not kept. The server itself skips history when the reader turned it off (user_profile.py:657). Found: nothing was recorded before. Not yet: sidebar (secondary) history, CON-036.
 
 Code: [`static/js/ReaderApp.jsx:2161`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L2161), [`static/js/ReaderApp.jsx:1579`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L1579), [`static/js/ReaderApp.jsx:948`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L948)
 
@@ -8453,7 +8465,7 @@ Code: [`static/js/UserHistoryPanel.jsx:44-179`](https://github.com/Sefaria/Sefar
 Source: `inv_07_sheets_users.md#13`
 
 #### USL-009 · Save and unsave texts and sheets
-`core` `live` · rebuild: **todo** `signed-in`
+`core` `live` · rebuild: **done** — Save/remove on the server, state from the saved list; sheets wait for Voices `signed-in`
 
 A bookmark button saves texts and sheets for later.
 
@@ -8461,19 +8473,21 @@ A bookmark button saves texts and sheets for later.
 - Saved matching by version equality across old/new version formats; SaveButton tooltip and bookmark icons
 - Saving works even when history disabled; unsave deletes item (user_profile.py:655-663)
 - /api/user_history/saved?tref= returns saved items for a ref
+- BUILT 2026-10-07: the header's Save button is filled when the reader's saved items hold this place in these versions (GET /api/profile/user_history?saved=1&secondary=0&annotate=0), and a click sends POST /api/profile/sync?no_return=1 with user_history=[{ref, versions, time_stamp, action: add_saved|delete_saved}] and client=web (X-CSRFToken), as Sefaria.toggleSavedItem; signed out it opens the sign-up modal. The place is the old getHistoryObject's: the chosen verse while the sidebar is open, else the section. src/lib/user/history.ts, src/features/reader/use-reader-history.ts. Found: before this the button always opened the sign-up modal, even for signed-in readers.
 
 Code: [`static/js/sefaria/sefaria.js:2769-2821`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2769-L2821), [`static/js/Misc.jsx:1342-1395`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L1342-L1395), [`sefaria/model/user_profile.py:655-663`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/user_profile.py#L655-L663), [`reader/views.py:4483-4494`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4483-L4494)
 
 Source: `inv_07_sheets_users.md#13`
 
 #### USL-010 · Reading history logging
-`standard` `live` · rebuild: **todo**
+`standard` `live` · rebuild: **partial** — Primary history (server or cookie) done; sidebar (secondary) history CON-036 to do · *tested*
 
 Texts and sheets read are recorded to history for signed-in users and in a cookie for anonymous users.
 
 - Sefaria.saveUserHistory only if is_history_enabled; logged in -> /api/profile/sync?no_return=1&annotate=1
 - Anonymous: user_history cookie trimmed to 3000 encoded bytes, newest first, with heRef lookup
 - Profile sync handles timestamped settings + history (max 3000 items) (reader/views.py:4346-4440)
+- BUILT 2026-10-07: reading history as ReaderApp.saveLastPlace — recorded when a text panel opens and when its sidebar opens (the chosen verse), and after 3 s on the same place when the place or version changes; signed in POST /api/profile/sync?no_return=1&annotate=1 with user_history=[{ref, versions, book, language, time_stamp}]; signed out the user_history cookie, newest first, trimmed to 3000 encoded bytes (MAX_ANON_HISTORY_BYTES), sidebar items not kept. The server itself skips history when the reader turned it off (user_profile.py:657). Found: nothing was recorded before. Not yet: sidebar (secondary) history, CON-036.
 
 Code: [`static/js/sefaria/sefaria.js:2880-2950`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2880-L2950), [`reader/views.py:4346-4440`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4346-L4440), [`reader/views.py:4497-4499`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L4497-L4499)
 
@@ -8483,7 +8497,7 @@ Source: `inv_07_sheets_users.md#13`
 ### Saving
 
 #### USL-011 · Save (bookmark) button
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **done** — Save/remove on the server, state from the saved list; sheets wait for Voices · *tested*
 
 Users can save texts and sheets to their saved list with a bookmark button; anonymous users are prompted to sign up.
 
@@ -8491,6 +8505,7 @@ Users can save texts and sheets to their saved list with a bookmark button; anon
 - Tracks Saved/saving; debounces concurrent posts
 - SaveButtonWithText variant for dropdown menu (Save / Remove)
 - toggleSavedItem POSTs /api/profile/sync?no_return=1 with user_history [{ref,versions,time_stamp,action add_saved|delete_saved,sheet_owner,sheet_title}], client web
+- BUILT 2026-10-07: the header's Save button is filled when the reader's saved items hold this place in these versions (GET /api/profile/user_history?saved=1&secondary=0&annotate=0), and a click sends POST /api/profile/sync?no_return=1 with user_history=[{ref, versions, time_stamp, action: add_saved|delete_saved}] and client=web (X-CSRFToken), as Sefaria.toggleSavedItem; signed out it opens the sign-up modal. The place is the old getHistoryObject's: the chosen verse while the sidebar is open, else the section. src/lib/user/history.ts, src/features/reader/use-reader-history.ts. Found: before this the button always opened the sign-up modal, even for signed-in readers.
 
 Code: [`static/js/Misc.jsx:1352`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L1352), [`static/js/Misc.jsx:1347`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/Misc.jsx#L1347), [`static/js/sefaria/sefaria.js:2789`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2789)
 
@@ -8500,7 +8515,7 @@ Source: `inv_08_other.md#1.6 and #5.2`
 ### History
 
 #### USL-012 · Reading history and last place
-`core` `live` · rebuild: **todo**
+`core` `live` · rebuild: **partial** — Primary history (server or cookie) done; sidebar (secondary) history CON-036 to do
 
 The site remembers what a user read, for signed-in users on the server and for anonymous users in a cookie.
 
@@ -8508,6 +8523,7 @@ The site remembers what a user read, for signed-in users on the server and for a
 - saveUserHistory(item): logged-in POST /api/profile/sync?no_return=1&annotate=1; anonymous -> user_history cookie trimmed to 3000 URL-encoded bytes (MAX_ANON_HISTORY_BYTES, _trimUserHistoryForCookie) with he_ref resolution
 - Respects is_history_enabled; maintains last_place / lastPlaceForText(title)
 - getRefSavedHistory(tref) -> /api/user_history/saved
+- BUILT 2026-10-07: reading history as ReaderApp.saveLastPlace — recorded when a text panel opens and when its sidebar opens (the chosen verse), and after 3 s on the same place when the place or version changes; signed in POST /api/profile/sync?no_return=1&annotate=1 with user_history=[{ref, versions, book, language, time_stamp}]; signed out the user_history cookie, newest first, trimmed to 3000 encoded bytes (MAX_ANON_HISTORY_BYTES), sidebar items not kept. The server itself skips history when the reader turned it off (user_profile.py:657). Found: nothing was recorded before. Not yet: sidebar (secondary) history, CON-036.
 
 Code: [`static/js/sefaria/sefaria.js:2861`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2861), [`static/js/sefaria/sefaria.js:2887`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2887), [`static/js/sefaria/sefaria.js:2985`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/sefaria/sefaria.js#L2985)
 
@@ -10886,6 +10902,7 @@ Any variant of a citation (case, alt title, Hebrew title, 'Genesis 1:1', 'Gen.1.
 - Legacy /<tref>/<lang>/<version> -> 301 /<tref>?v<lang>=<version>&<orig params> (old_versions_redirect).
 - Client TextRange replaces history (no new entry) when loaded data's normalized ref differs, ref is spanning (split refs) or super-section (firstAvailableSectionRef).
 - Client-only: commentary refs with a single base text and depth >=3 (Rashi on Genesis 1:1:1) open as base text Genesis 1:1 + sidebar filter Rashi; server does NOT do this for direct URL loads.
+- VERIFIED 2026-10-06 on sefaria.org (scripts/probes/multipanel-probe*.mjs, scripts/parity-panels.mjs): a redirect to the canonical ref keeps the request's query as it was (/Gen.1.1?lang=en → 301 /Genesis.1.1?lang=en; /Gen.1.1 → /Genesis.1.1). The rebuild had re-encoded the query; fixed.
 
 Code: [`reader/views.py:488-531`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L488-L531), [`sefaria/model/text.py:4310-4333`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/text.py#L4310-L4333), [`sefaria/model/text.py:4452-4482`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/sefaria/model/text.py#L4452-L4482), [`static/js/TextRange.jsx:113-130`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/TextRange.jsx#L113-L130)
 
@@ -11143,6 +11160,7 @@ The URL records bilingual/Hebrew/English display for the text panel and a separa
 - lang2: connections panel language when 'with' present; must be en/he else falls back to lang (if en/he) else interface lang; applied to Connections panel only.
 - ConnectionsPanelHeader builds a toggle link via replaceUrlParam('lang2', ...) which is a full navigation link.
 - Content language order: ?lang -> contentLang cookie -> default (hebrew for he interface else bilingual).
+- VERIFIED 2026-10-06 on sefaria.org (scripts/probes/multipanel-probe*.mjs, scripts/parity-panels.mjs): a sidebar opened by the reader has one language (lang2=en, or he when the reader's default is Hebrew — openTextListAt never lets it be bilingual); an old link without lang2 shows and writes lang2=bi.
 
 Code: [`reader/views.py:836`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L836), [`reader/views.py:842-844`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L842-L844), [`static/js/ConnectionsPanelHeader.jsx:52-55`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ConnectionsPanelHeader.jsx#L52-L55), [`static/js/ReaderApp.jsx:765-767`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L765-L767)
 
@@ -11232,6 +11250,7 @@ Side-by-side panels are encoded in the URL as numbered params so a multi-panel s
 - Other panels -> &p<i+1>=... with every '=' in sub-URL suffixed by i+1; titles joined with 'and'.
 - **BUG:** sheet in non-first panel serializes p<N>=sheet&s<N>=... which server cannot parse (Ref('sheet') fails) -> panel dropped.
 - Final step: all '?' in URL -> %3F (refs with question marks), then first '&' -> '?'.
+- See SHL-066: the old numbering (a sidebar takes a slot) is now written as well as read.
 
 Code: [`reader/views.py:859-897`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L859-L897), [`reader/views.py:1054-1087`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/reader/views.py#L1054-L1087), [`static/js/ReaderApp.jsx:784-889`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L784-L889), [`static/js/ReaderApp.jsx:752-762`](https://github.com/Sefaria/Sefaria-Project/blob/bb47dd77a5d92b55814ba221199f1e39ad66d021/static/js/ReaderApp.jsx#L752-L762)
 

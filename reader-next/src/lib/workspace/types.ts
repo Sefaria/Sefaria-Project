@@ -17,7 +17,7 @@ export interface AsideState {
   /** The view, in the `with` grammar (lib/connections/url.ts): "all", "Rashi", "Sheets", "Commentary ConnectionsList"… */
   view: string;
   /** The side panel's own content language (old `lang2`); never bilingual (SHL-014). */
-  lang?: "en" | "he";
+  lang?: "en" | "he" | "bi";
   /** The version a "Translation Open" / "Version Open" view previews, as "<title>|<language>" (old `vside`). */
   vside?: string;
   /** The words a "Lexicon" view looks up (old `lookup`): selected in the text. */

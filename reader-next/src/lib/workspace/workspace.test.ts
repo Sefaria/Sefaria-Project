@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { leaves, type LayoutNode } from "~/lib/layout/tree";
-import { close, closeAside, move, openAside, openAtEnd, openNextTo, openOnly, panelOrder, replace, updateAside, updatePanel, type NewPanel } from "./ops";
+import { openNextToWithId, close, closeAside, move, openAside, openAtEnd, openNextTo, openOnly, panelOrder, replace, updateAside, updatePanel, type NewPanel } from "./ops";
 import { legacyColumnWidths, legacyRowSizes } from "./sizing";
 import { EMPTY_WORKSPACE, type TextPanelState, type Workspace } from "./types";
-import { decodeWorkspace, encodeWorkspace } from "./url";
+import { decodeWorkspace, encodeWorkspace, workspaceUrl } from "./url";
 
 const text = (ref: string, extra: Partial<TextPanelState> = {}): NewPanel => ({ kind: "text", ref, versions: {}, ...extra });
 const refs = (ws: Workspace) => panelOrder(ws).map((id) => (ws.panels[id] as TextPanelState).ref);
@@ -26,11 +26,27 @@ describe("workspace operations", () => {
     expect(refs(ws)).toEqual(["Genesis 1", "Psalms 1", "Exodus 1"]);
   });
 
-  it("replaces a panel in place with a new identity", () => {
+  it("replaces a panel in place (ids follow position, so it keeps the place's id)", () => {
     let ws = openAtEnd(openOnly(EMPTY_WORKSPACE, text("Genesis 1")), text("Exodus 1"));
     ws = replace(ws, "p1", text("Numbers 1"));
     expect(refs(ws)).toEqual(["Numbers 1", "Exodus 1"]);
-    expect(panelOrder(ws)[0]).not.toBe("p1");
+    expect(panelOrder(ws)).toEqual(["p1", "p2"]);
+  });
+
+  // The URL numbers panels by position: ids must too, or a navigation aimed at a panel reaches another (MULTIPANEL_PLAN Step 1)
+  it("ids follow position after every change, so a workspace and its URL name panels the same way", () => {
+    let ws = openAtEnd(openOnly(EMPTY_WORKSPACE, text("Genesis 1")), text("Exodus 1"));
+    const [opened, id] = openNextToWithId(ws, "p1", text("Leviticus 1"));
+    expect(id).toBe("p2");
+    expect(refs(opened)).toEqual(["Genesis 1", "Leviticus 1", "Exodus 1"]);
+    expect(panelOrder(opened)).toEqual(["p1", "p2", "p3"]);
+    expect(opened.panels.p2!.ref).toBe("Leviticus 1");
+    const back = decodeWorkspace("Genesis 1", encodeWorkspace(opened)!.search);
+    expect(panelOrder(back).map((x) => back.panels[x]!.ref)).toEqual(panelOrder(opened).map((x) => opened.panels[x]!.ref));
+    ws = openAside(opened, "p3", { kind: "connections", view: "all" });
+    ws = close(ws, "p1");
+    expect(panelOrder(ws)).toEqual(["p1", "p2"]);
+    expect(ws.panels.p2!.asides.map((a) => a.id)).toEqual(["p2a1"]);
   });
 
   // @feature SHL-048
@@ -80,8 +96,9 @@ describe("workspace operations", () => {
     let ws = openAtEnd(openAtEnd(openOnly(EMPTY_WORKSPACE, text("Genesis 1")), text("Exodus 1")), text("Leviticus 1"));
     ws = move(ws, "p1", "p3", "after");
     expect(refs(ws)).toEqual(["Exodus 1", "Leviticus 1", "Genesis 1"]);
-    ws = move(ws, "p1", "p2", "below");
-    expect(show(ws.layout)).toBe("row(col(p2,p1),p3)");
+    ws = move(ws, "p1", "p2", "below"); // Exodus below Leviticus; ids then follow reading order
+    expect(show(ws.layout)).toBe("row(col(p1,p2),p3)");
+    expect(refs(ws)).toEqual(["Leviticus 1", "Exodus 1", "Genesis 1"]);
   });
 
   it("ignores operations on panels that do not exist", () => {
@@ -140,7 +157,8 @@ describe("URL codec (old grammar)", () => {
     expect(a.panels.p1!.asides[0]).toEqual({ id: "p1a1", kind: "connections", view: "Translation Open", vside: "The Koren Jerusalem Bible|en" });
     const b = decodeWorkspace("Genesis 1:1", { vside: "The_Koren_Jerusalem_Bible", with: "Translation Open" }); // the anchor form, no language
     expect(b.panels.p1!.asides[0]!.vside).toBe("The Koren Jerusalem Bible");
-    expect(encodeWorkspace(a)).toEqual({ path: "/Genesis.1.1", search: { lang: "en", vside: "The_Koren_Jerusalem_Bible|en", with: "Translation Open" } });
+    // written as sefaria.org writes it: the sidebar's language (bilingual when the link did not set one) after `with`
+    expect(workspaceUrl(a)).toBe("/Genesis.1.1?lang=en&vside=The_Koren_Jerusalem_Bible|en&with=Translation Open&lang2=bi");
     // second panel
     const c = decodeWorkspace("Genesis 1", { p2: "Exodus.1", w2: "Translation Open", vside2: "Foo_Bar|en" });
     expect(c.panels.p2!.asides[0]!.vside).toBe("Foo Bar|en");
@@ -152,14 +170,14 @@ describe("URL codec (old grammar)", () => {
   it("reads and writes the sidebar search query (sbsq, sbsq2 for the second panel)", () => {
     const ws = decodeWorkspace("Genesis 1:1", { sbsq: "light", with: "SidebarSearch" });
     expect(ws.panels.p1!.asides[0]).toEqual({ id: "p1a1", kind: "connections", view: "SidebarSearch", sbsq: "light" });
-    expect(encodeWorkspace(ws)).toEqual({ path: "/Genesis.1.1", search: { sbsq: "light", with: "SidebarSearch" } });
+    expect(workspaceUrl(ws)).toBe("/Genesis.1.1?lang=bi&sbsq=light&with=SidebarSearch&lang2=bi");
     expect(decodeWorkspace("Genesis 1", { p2: "Exodus.1", w2: "SidebarSearch", sbsq2: "light" }).panels.p2!.asides[0]!.sbsq).toBe("light");
   });
 
   it("reads and writes the words being looked up (lookup), as the old site does", () => {
     const ws = decodeWorkspace("Genesis 1:1", { lang: "he", lookup: "בְּרֵאשִׁ֖ית", with: "Lexicon" });
     expect(ws.panels.p1!.asides[0]).toEqual({ id: "p1a1", kind: "connections", view: "Lexicon", lookup: "בְּרֵאשִׁ֖ית" });
-    expect(encodeWorkspace(ws)).toEqual({ path: "/Genesis.1.1", search: { lang: "he", lookup: "בְּרֵאשִׁ֖ית", with: "Lexicon" } });
+    expect(encodeWorkspace(ws)).toEqual({ path: "/Genesis.1.1", search: { lang: "he", lookup: "בְּרֵאשִׁ֖ית", with: "Lexicon", lang2: "bi" } });
     expect(decodeWorkspace("Genesis 1", { p2: "Exodus.1", w2: "Lexicon", lookup2: "אבא" }).panels.p2!.asides[0]!.lookup).toBe("אבא");
   });
 
@@ -176,17 +194,22 @@ describe("URL codec (old grammar)", () => {
     expect((ws.panels.p2 as TextPanelState).lang).toBe("en");
   });
 
-  it("writes sequential numbers the old server can read", () => {
+  it("writes the old numbering: a sidebar takes a number slot (owner decision 2026-10-06)", () => {
     const ws = decodeWorkspace("Genesis 1:1", { lang: "en", with: "all", p3: "Exodus.1", lang3: "en" });
-    expect(encodeWorkspace(ws)).toEqual({ path: "/Genesis.1.1", search: { lang: "en", with: "all", p2: "Exodus.1", lang2: "en" } });
+    expect(workspaceUrl(ws)).toBe("/Genesis.1.1?lang=en&with=all&lang2=bi&p3=Exodus.1&lang3=en&aliyot3=0");
   });
 
-  it("round-trips", () => {
+  it("fills what a panel has not set from the reader's settings (language, aliyot for the Torah only)", () => {
+    const ws = decodeWorkspace("Genesis 1", { p2: "Rashi_on_Genesis.1.1.1" });
+    expect(workspaceUrl(ws, { lang: "he", aliyot: 1 })).toBe("/Genesis.1?lang=he&aliyot=1&p2=Rashi_on_Genesis.1.1.1&lang2=he");
+  });
+
+  it("round-trips: what it writes reads back to the same address", () => {
     const search = { lang: "bi", with: "Rashi", p2: "Exodus.1", lang2: "en", aliyot2: "1", p3: "Leviticus.1.3", w3: "Sheets", vhe3: "hebrew|Miqra_according_to_the_Masorah" };
     const ws = decodeWorkspace("Genesis 1:3", search);
     const out = encodeWorkspace(ws)!;
     expect(out.path).toBe("/Genesis.1.3");
-    expect(decodeWorkspace("Genesis 1:3", out.search)).toEqual(ws);
+    expect(workspaceUrl(decodeWorkspace("Genesis 1:3", out.search))).toBe(workspaceUrl(ws));
   });
 
   it("ignores empty or unknown parameters", () => {
