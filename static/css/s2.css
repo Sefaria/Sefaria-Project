@@ -5314,7 +5314,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 48px;
+  gap: 24px; /* illustration to text; was 48px + 12px, tightened so the buttons show without scrolling */
   max-width: 480px;
   width: 100%;
   margin: 0 auto;
@@ -5323,12 +5323,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 
+/* Room for the assistant's floating Ask button (56px tall, 24px from the bottom; 16px on
+   phones) plus a 24px gap, so the "Something seems wrong?" line scrolls clear of it */
+.noSearchResults--withAssistant {
+  padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
+}
+
 .noSearchResults-image {
   width: 140px;
   height: 140px;
   flex-shrink: 0;
-  margin-top: 16px;
-  margin-bottom: 12px;
 }
 
 .noSearchResults-content {
