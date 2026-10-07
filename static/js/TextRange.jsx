@@ -6,10 +6,17 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Util from './sefaria/util';
 import Component from 'react-class';
-import {EnglishText, HebrewText, LoadingMessage} from "./Misc";
+import {EnglishText, HebrewText, InterfaceText, LoadingMessage} from "./Misc";
 import {VersionContent} from "./ContentText";
 import {ContentText} from "./ContentText";
 import {ReaderPanelContext} from "./context";
+import {
+  isAIQAVersion,
+  isChatbotAvailable,
+  isMarkedGood,
+  reportTranslationIssue,
+  setMarkedGood,
+} from "./translationQA";
 
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
@@ -274,6 +281,16 @@ class TextRange extends Component {
       strip_vowels_re = (this.props.settings.vowels == "partial") ? nre : cnre;
     }
 
+    // Community QA (POC): only the basetext column, and only when the English
+    // version actually rendered is the unverified machine translation under review.
+    // `data.versionTitle` is the version the API resolved, which is what the reader
+    // is looking at; `currVersions.en` only holds an explicit selection (and is an
+    // object, not a title), so it is blank on a default view of the same version.
+    const renderedEnVersionTitle = data?.versionTitle;
+    const aiQAVersionTitle = this.props.basetext && isAIQAVersion(renderedEnVersionTitle)
+      ? renderedEnVersionTitle
+      : null;
+
     let segments      = Sefaria.makeSegments(data, this.props.withContext);
     if(segments.length > 0 && strip_vowels_re && !strip_vowels_re.test(segments[0].he)){
       strip_vowels_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
@@ -313,6 +330,7 @@ class TextRange extends Component {
           { parashahHeader }
           <TextSegment
             sref={segment.ref}
+            aiQAVersionTitle={aiQAVersionTitle}
             en={!this.props.useVersionLanguage || this.props.currVersions.en ? segment.en : null}
             he={!this.props.useVersionLanguage || this.props.currVersions.he ? segment.he : null}
             primaryDirection={data.primaryDirection}
@@ -434,6 +452,76 @@ TextRange.propTypes = {
 TextRange.defaultProps = {
   currVersions: {en:null,he:null},
 };
+
+/**
+ * Community QA controls for an unverified machine translation (POC).
+ *
+ * Two affordances per segment: mark it as reading well, or hand the segment to
+ * the Library Assistant to talk it through. "Report a problem" is hidden when
+ * the assistant isn't on the page, since the event would go nowhere.
+ */
+const TranslationQAControls = ({sref, en, he, versionTitle}) => {
+  const [markedGood, setMarkedGoodState] = React.useState(() => isMarkedGood(sref, versionTitle));
+  const chatbotAvailable = isChatbotAvailable();
+
+  const swallow = (e) => { e.stopPropagation(); };  // don't also open the connections panel
+
+  const handleMarkGood = (e) => {
+    e.stopPropagation();
+    const next = !markedGood;
+    setMarkedGoodState(next);
+    setMarkedGood(sref, versionTitle, next);
+    // Only the positive transition is a signal; unchecking is a correction.
+    if (next && typeof gtag === "function") {
+      gtag("event", "translation_marked_good", {
+        content_id: sref,
+        version: versionTitle,
+        ai: true,
+      });
+    }
+  };
+
+  const handleReport = (e) => {
+    e.stopPropagation();
+    const dispatched = reportTranslationIssue({sref, en, he});
+    if (dispatched && typeof gtag === "function") {
+      gtag("event", "translation_issue_reported", {
+        content_id: sref,
+        version: versionTitle,
+        ai: true,
+      });
+    }
+  };
+
+  return (
+    <div className="translationQA sans-serif" onClick={swallow}>
+      <span className="translationQALabel">
+        <InterfaceText text={{en: "AI translation", he: "תרגום מבוסס בינה מלאכותית"}} />
+      </span>
+      <label className="translationQAGood">
+        <input
+          type="checkbox"
+          checked={markedGood}
+          onChange={handleMarkGood}
+          aria-label={`Mark the translation of ${sref} as reading well`}
+        />
+        <InterfaceText text={{en: "Reads well", he: "התרגום תקין"}} />
+      </label>
+      {chatbotAvailable ? (
+        <button type="button" className="translationQAReport" onClick={handleReport}>
+          <InterfaceText text={{en: "Report a problem", he: "דיווח על בעיה"}} />
+        </button>
+      ) : null}
+    </div>
+  );
+};
+TranslationQAControls.propTypes = {
+  sref:         PropTypes.string.isRequired,
+  en:           PropTypes.string,
+  he:           PropTypes.string,
+  versionTitle: PropTypes.string.isRequired,
+};
+
 
 class TextSegment extends Component {
   static contextType = ReaderPanelContext;
@@ -659,6 +747,14 @@ class TextSegment extends Component {
         <p className="segmentText">
           <VersionContent primary={primary} translation={translation} imageLoadCallback={this.props.placeSegmentNumbers}/>
         </p>
+        {this.props.aiQAVersionTitle ? (
+          <TranslationQAControls
+            sref={this.props.sref}
+            en={this.props.en}
+            he={this.props.he}
+            versionTitle={this.props.aiQAVersionTitle}
+          />
+        ) : null}
 
         <div className="clearFix"></div>
       </div>
@@ -669,6 +765,7 @@ TextSegment.propTypes = {
   sref:            PropTypes.string,
   en:              PropTypes.string,
   he:              PropTypes.string,
+  aiQAVersionTitle: PropTypes.string,
   primaryDirection: PropTypes.string,
   translationDirection: PropTypes.string,
   highlight:       PropTypes.bool,

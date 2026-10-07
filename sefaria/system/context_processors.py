@@ -18,6 +18,7 @@ from sefaria.model import library
 import structlog
 
 from sefaria.utils.util import is_int
+from sefaria.utils.chatbot import resolve_chatbot_version
 logger = structlog.get_logger(__name__)
 
 
@@ -147,17 +148,7 @@ def _chatbot_script_url_and_type(chatbot_version):
 
 @user_only
 def chatbot_user_token(request):
-    chatbot_version = request.GET.get("chatbot_version", "").strip()
-    # if chatbot_version add it to cookies so it can be used in subsequent requests
-    if chatbot_version:
-        if chatbot_version == "clear":
-            if "chatbot_version" in request.session:
-                del request.session["chatbot_version"]
-        else:
-            request.session["chatbot_version"] = chatbot_version
-    # if chatbot_version is not in request.GET, check if it's in session (from previous requests)
-    elif "chatbot_version" in request.session:
-        chatbot_version = request.session["chatbot_version"]
+    chatbot_version = resolve_chatbot_version(request)
 
     if not library_assistant.is_enabled_for_user(request.user):
         return {

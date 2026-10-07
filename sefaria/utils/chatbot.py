@@ -76,3 +76,22 @@ def get_user_id_from_chatbot_user_token(token, secret):
         return user_id if user_id > 0 else None
     except (binascii.Error, InvalidTag, KeyError, TypeError, ValueError):
         return None
+
+
+def resolve_chatbot_version(request):
+    """
+    Return the chatbot preview version for this request, persisting it in the session.
+
+    `?chatbot_version=<n>` selects a preview build and is remembered for later requests;
+    `?chatbot_version=clear` forgets it. Both the reader view (API base URL) and the
+    context processor (script URL) call this, so the first request carrying the param
+    gets a matching script and API instead of only the script.
+    """
+    chatbot_version = request.GET.get("chatbot_version", "").strip()
+    if chatbot_version == "clear":
+        request.session.pop("chatbot_version", None)
+        return None
+    if chatbot_version:
+        request.session["chatbot_version"] = chatbot_version
+        return chatbot_version
+    return request.session.get("chatbot_version")
