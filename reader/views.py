@@ -524,6 +524,16 @@ def catchall(request, tref, sheet=None):
 
 @ensure_csrf_cookie
 def old_versions_redirect(request, tref, lang, version):
+    # A title can itself contain segments that resemble the legacy
+    # /<ref>/<lang>/<version> route. Prefer the complete title when it exists.
+    full_tref = f"{tref}/{lang}/{version}"
+    try:
+        Ref.instantiate_ref_with_legacy_parse_fallback(full_tref)
+    except InputError:
+        full_tref = None
+    if full_tref:
+        return catchall(request, full_tref)
+
     url = "/{}?v{}={}".format(tref, lang, version)
     response = redirect(iri_to_uri(url), permanent=True)
     params = request.GET.urlencode()
@@ -2025,6 +2035,16 @@ def social_image_api(request, tref):
 @catch_error_as_json
 @csrf_exempt
 def old_text_versions_api_redirect(request, tref, lang, version):
+    # As with the reader route, don't interpret a valid full title as a
+    # legacy version URL merely because it contains /en/ or /he/.
+    full_tref = f"{tref}/{lang}/{version}"
+    try:
+        Ref.instantiate_ref_with_legacy_parse_fallback(full_tref)
+    except InputError:
+        full_tref = None
+    if full_tref:
+        return texts_api(request, full_tref)
+
     url = "/api/texts/{}?v{}={}".format(tref, lang, version)
     response = redirect(iri_to_uri(url), permanent=True)
     params = request.GET.urlencode()

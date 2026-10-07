@@ -144,6 +144,36 @@ def test_catchall_preserves_escaped_title_separators(client, monkeypatch, encode
     assert response.content.decode() == tref
 
 
+@pytest.mark.django_db
+def test_title_with_legacy_version_route_segments_is_not_redirected(client, monkeypatch):
+    class DummyRef:
+        def url(self, encode_html=False):
+            return "Book/en/Part"
+
+    monkeypatch.setattr("reader.views.Ref.instantiate_ref_with_legacy_parse_fallback", lambda tref: DummyRef())
+    monkeypatch.setattr("reader.views.text_panels", lambda request, ref: HttpResponse(ref))
+
+    response = client.get("/Book/en/Part")
+
+    assert response.status_code == 200
+    assert response.content.decode() == "Book/en/Part"
+
+
+@pytest.mark.django_db
+def test_api_title_with_legacy_version_route_segments_is_not_redirected(client, monkeypatch):
+    class DummyRef:
+        def url(self, encode_html=False):
+            return "Book/en/Part"
+
+    monkeypatch.setattr("reader.views.Ref.instantiate_ref_with_legacy_parse_fallback", lambda tref: DummyRef())
+    monkeypatch.setattr("reader.views.texts_api", lambda request, tref: HttpResponse(tref))
+
+    response = client.get("/api/texts/Book/en/Part")
+
+    assert response.status_code == 200
+    assert response.content.decode() == "Book/en/Part"
+
+
 @pytest.mark.parametrize("prefix", ["/api/ref/", "/api/texts/", "/api/v3/texts/"])
 def test_ref_api_routes_accept_title_slashes(prefix):
     match = resolve(f"{prefix}Book,_Chapter/Part")
