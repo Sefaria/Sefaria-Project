@@ -7118,7 +7118,9 @@ big {
 .heLeft.bilingual .segment > p > .translation,
 .heRight.bilingual .segment > p > .primary,
 .heRight.bilingual .SheetSource .sheetItem.segment > .he,
-.heLeft.bilingual .SheetSource .sheetItem.segment > .en{
+.heLeft.bilingual .SheetSource .sheetItem.segment > .en,
+.heRight.bilingual .SheetOutsideBiText .sheetItem.segment > .he,
+.heLeft.bilingual .SheetOutsideBiText .sheetItem.segment > .en{
   float: right;
   padding-left: 20px;
 }
@@ -7127,7 +7129,9 @@ big {
 .heRight.bilingual .segment > p > .translation,
 .heLeft.bilingual .segment > p > .primary,
 .heRight.bilingual .SheetSource .sheetItem.segment > .en,
-.heLeft.bilingual .SheetSource .sheetItem.segment > .he{
+.heLeft.bilingual .SheetSource .sheetItem.segment > .he,
+.heRight.bilingual .SheetOutsideBiText .sheetItem.segment > .en,
+.heLeft.bilingual .SheetOutsideBiText .sheetItem.segment > .he{
   float: left;
   padding-right: 20px;
 }
