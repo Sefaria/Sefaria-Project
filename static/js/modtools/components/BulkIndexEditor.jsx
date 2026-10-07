@@ -21,7 +21,7 @@
  * - See /docs/modtools/COMPONENT_LOGIC.md for detailed implementation logic
  * - Index fields are defined in ../constants/fieldMetadata.js
  */
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getCsrfToken } from '../../sefaria/csrf';
 import Sefaria from '../../sefaria/sefaria';
 import { INDEX_FIELD_METADATA } from '../constants/fieldMetadata';
