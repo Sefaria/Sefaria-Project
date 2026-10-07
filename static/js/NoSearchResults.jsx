@@ -34,6 +34,10 @@ const nullPrototypeVariant = () => {
   }
 };
 
+// Read the switch as soon as the bundle loads: Sefaria rewrites the search URL on startup,
+// dropping unknown parameters before this page ever renders. Works on any page's URL.
+if (typeof window !== 'undefined') { nullPrototypeVariant(); }
+
 function renderCaption() {
   const reportBugText = Sefaria._('search.null.caption.report_bug');
   const contactUsText = Sefaria._('search.null.caption.contact_us');
