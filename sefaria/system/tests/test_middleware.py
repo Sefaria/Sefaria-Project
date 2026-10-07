@@ -818,6 +818,15 @@ class TestWebSessionRedirectMiddleware:
 
         assert 'no_applink=1' in result['Location']
 
+    @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
+    def test_admin_redirect_with_sefaria_referer_is_not_marked(self):
+        # Redirects to an already AASA-excluded path (the admin save redirect) need no no_applink.
+        request = RequestFactory().post(
+            '/officepowered_by/project/1/change/', HTTP_REFERER='https://www.sefaria.org/officepowered_by/project/1/change/')
+        result = self._middleware().process_response(request, HttpResponseRedirect('/officepowered_by/project/?e=1'))
+
+        assert 'no_applink' not in result['Location']
+
     def test_non_redirect_response_is_untouched(self):
         request = RequestFactory().get('/accounts/google/login/callback/')
         response = HttpResponse('ok')
