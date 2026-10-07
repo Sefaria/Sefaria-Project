@@ -41,7 +41,6 @@ import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
-import { ChatbotExperimentBanner } from './SiteWideBanner';
 import AuthPage from './auth/AuthPage';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
 import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
@@ -2575,8 +2574,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
-    const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
-    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment && !displayChatbot;
     const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
     return (
@@ -2591,12 +2588,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <GoogleOneTap googleClientId={Sefaria.googleClientId} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {showChatbotBanner && (
-                <ChatbotExperimentBanner
-                  promoMaybeLaterJSON={this.props.chatbot_promo_maybe_later_json}
-                  promoSessionLengthSeconds={this.props.chatbot_promo_session_length_seconds}
-                />
-              )}
               <main id="main" role="main">
                 {this.state.showAuth ? (
                   <AuthPage
