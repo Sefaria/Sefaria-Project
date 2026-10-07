@@ -1,0 +1,359 @@
+{
+ "_uid": null,
+ "_email": "",
+ "activeModule": "library",
+ "last_cached": 1790380826.3324425,
+ "initialPath": "/Berakhot.2a",
+ "interfaceLang": "english",
+ "initialSettings": {
+  "language": "bilingual",
+  "layoutDefault": "segmented",
+  "layoutTalmud": "continuous",
+  "layoutTanakh": "segmented",
+  "aliyotTorah": "aliyotOff",
+  "vowels": "all",
+  "punctuationTalmud": "punctuationOn",
+  "biLayout": "stacked",
+  "color": "light",
+  "fontSize": 62.5
+ },
+ "translationLanguagePreference": null,
+ "versionPrefsByCorpus": {},
+ "domainModules": {
+  "en": {
+   "library": "https://www.sefaria.org",
+   "voices": "https://voices.sefaria.org"
+  },
+  "he": {
+   "library": "https://www.sefaria.org.il",
+   "voices": "https://chiburim.sefaria.org.il"
+  }
+ },
+ "_siteSettings": {
+  "TORAH_SPECIFIC": true,
+  "SITE_NAME": {
+   "en": "Sefaria",
+   "he": "ספריא"
+  },
+  "LIBRARY_NAME": {
+   "en": "The Sefaria Library",
+   "he": "האוסף של ספריא"
+  },
+  "SUPPORTED_TRANSLATION_LANGUAGES": [
+   "en",
+   "es",
+   "fr",
+   "de"
+  ],
+  "COLLECTIONS_BUCKET": "sefaria-collection-images",
+  "PROFILES_BUCKET": "sefaria-profile-pictures",
+  "UGC_BUCKET": "sheet-user-uploaded-media",
+  "TOPICS_BUCKET": "img.sefaria.org",
+  "HELP_CENTER_URLS": {
+   "EN_US": "https://help.sefaria.org/hc/en-us",
+   "HE": "https://help.sefaria.org/hc/he",
+   "GETTING_STARTED": "https://help.sefaria.org/hc/en-us/articles/21471911125020-Video-Guide-How-to-Get-Started-Navigating-the-Library",
+   "TRANSLATION_PREFERENCE_EN": "https://help.sefaria.org/hc/en-us/articles/18613593620636-How-to-Choose-a-Preferred-Translation",
+   "TRANSLATION_PREFERENCE_HE": "https://help.sefaria.org/hc/he/articles/18613593620636-%D7%91%D7%97%D7%99%D7%A8%D7%AA-%D7%AA%D7%A8%D7%92%D7%95%D7%9D-%D7%9E%D7%95%D7%A2%D7%93%D7%A3"
+  },
+  "ABOUT_SIDEBAR_PAGES": [
+   {
+    "path": "about",
+    "en": "What is Sefaria?",
+    "he": "מהי ספריא"
+   },
+   {
+    "path": "team",
+    "en": "Team",
+    "he": "צוות ספריא"
+   },
+   {
+    "path": "jobs",
+    "en": "Jobs at Sefaria",
+    "he": "משרות פנויות בספריא"
+   },
+   {
+    "path": "products",
+    "en": "Sefaria's Products",
+    "he": "המוצרים של ספריא"
+   },
+   {
+    "path": "ai",
+    "en": "AI on Sefaria",
+    "he": "השימוש ב-AI בספריא"
+   },
+   {
+    "path": "supporters",
+    "en": "Our Supporters",
+    "he": "התומכים שלנו"
+   },
+   {
+    "path": "testimonials",
+    "en": "Testimonials",
+    "he": "המלצות על ספריא"
+   },
+   {
+    "path": "metrics",
+    "en": "Metrics",
+    "he": "מדדים"
+   },
+   {
+    "path": "updates",
+    "en": "New Additions",
+    "he": "עדכונים"
+   },
+   {
+    "path": "link-to-annual-report",
+    "en": "Annual Report",
+    "he": "דו\"ח שנתי"
+   },
+   {
+    "path": "terms",
+    "en": "Terms of Use",
+    "he": "תנאי שימוש"
+   },
+   {
+    "path": "privacy-policy",
+    "en": "Privacy Policy",
+    "he": "מדיניות פרטיות"
+   }
+  ],
+  "WHAT_ARE_VOICES_PATHS": {
+   "en": "/sheets/674324",
+   "he": "/sheets/674327"
+  },
+  "MODULE_SWITCHER_LEARN_MORE_PATH": {
+   "en": "/sheets/689609",
+   "he": "/sheets/689610"
+  },
+  "HELP_CENTER_REDIRECTS": {
+   "en": {
+    "215584": "https://help.sefaria.org/hc/en-us/sections/12756520483868-Text-Formatting-Accessibility",
+    "218610": "https://help.sefaria.org/hc/en-us/sections/18613320256156-Translations",
+    "231440": "https://help.sefaria.org/hc/en-us/categories/12756350371100-Donations",
+    "210670": "https://help.sefaria.org/hc/en-us/categories/13368526623132-Getting-Started",
+    "213949": "https://help.sefaria.org/hc/en-us/articles/21806344785308-How-to-Contact-Sefaria",
+    "218612": "https://help.sefaria.org/hc/en-us/sections/12756518640668-How-to-Reuse-Download-and-Otherwise-Reproduce-Texts",
+    "225828": "https://help.sefaria.org/hc/en-us/sections/20094783356956-The-Sheet-Editor",
+    "218668": "https://help.sefaria.org/hc/en-us/articles/18613227644316-How-to-Find-Interconnected-Texts",
+    "219447": "https://help.sefaria.org/hc/en-us/articles/18472472138652-Quick-Guide-Meet-the-Resource-Panel",
+    "228381": "https://help.sefaria.org/hc/en-us/sections/12756518640668-How-to-Reuse-Download-and-Otherwise-Reproduce-Texts",
+    "220945": "https://help.sefaria.org/hc/en-us/categories/19814642862876-Sefaria-s-Mobile-Apps",
+    "233647": "https://help.sefaria.org/hc/en-us/sections/12756555356956-Study-and-Reference-Tools",
+    "233017": "https://help.sefaria.org/hc/en-us/articles/20533111968540-How-to-Use-Source-Sheet-Collections",
+    "211565": "https://help.sefaria.org/hc/en-us/sections/12721846793116-How-to-Find-Texts",
+    "393695": "https://help.sefaria.org/hc/en-us/sections/20094783356956-The-Sheet-Editor",
+    "429277": "https://help.sefaria.org/hc/en-us/articles/18472614956956-Quick-Guide-Meet-the-A-%D7%90-menu",
+    "231377": "https://help.sefaria.org/hc/en-us/sections/20094169893276-All-About-Topics-Pages",
+    "519205": "https://help.sefaria.org/hc/en-us/articles/18472576952988-Quick-Guide-Meet-the-Table-of-Contents",
+    "289837": "https://help.sefaria.org/hc/en-us/articles/20533111968540-How-to-Use-Source-Sheet-Collections",
+    "274871": "https://help.sefaria.org/hc/en-us/sections/12756555356956-Study-and-Reference-Tools",
+    "303276": "https://help.sefaria.org/hc/en-us/categories/12756351595932-Your-Account",
+    "379494": "https://help.sefaria.org/hc/en-us/sections/12756538060956-Text-Specific-Special-Features",
+    "303288": "https://help.sefaria.org/hc/en-us/categories/12756351595932-Your-Account",
+    "359083": "https://help.sefaria.org/hc/en-us/sections/17430252462236-Managing-Your-Donation",
+    "330784": "https://help.sefaria.org/hc/en-us/articles/18472380899484-Quick-Guide-Meet-the-Homepage",
+    "483970": "https://help.sefaria.org/hc/en-us/sections/18613320256156-Translations-and-Language-Preferences",
+    "511573": "https://help.sefaria.org/hc/en-us/sections/18613320256156-Translations-and-Language-Preferences",
+    "497893": "https://help.sefaria.org/hc/en-us/sections/12756555356956-Study-and-Reference-Tools",
+    "477118": "https://help.sefaria.org/hc/en-us/sections/18472260943900-Sefaria-101-Quick-Guides-and-Sefaria-Basics",
+    "218839": "https://help.sefaria.org/hc/en-us/sections/20094783356956-The-Sheet-Editor",
+    "212911": "https://help.sefaria.org/hc/en-us/sections/20094783356956-All-About-Source-Sheets",
+    "529099": "https://help.sefaria.org/hc/en-us/sections/20235182393244-Sefaria-for-Google-Docs",
+    "584561": "https://help.sefaria.org/hc/en-us/sections/20235182393244-Sefaria-for-Google-Docs"
+   },
+   "he": {
+    "328503": "https://help.sefaria.org/hc/he/articles/20234245638428-%D7%9B%D7%99%D7%A6%D7%93-%D7%9C%D7%9E%D7%A6%D7%95%D7%90-%D7%9E%D7%99%D7%93%D7%A2-%D7%91%D7%99%D7%95%D7%92%D7%A8%D7%A4%D7%99-%D7%90%D7%95%D7%93%D7%95%D7%AA-%D7%93%D7%9E%D7%95%D7%99%D7%95%D7%AA-%D7%9E%D7%94%D7%AA%D7%9C%D7%9E%D7%95%D7%93",
+    "243658": "https://help.sefaria.org/hc/he/categories/19814642862876-%D7%94%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%91%D7%99%D7%99%D7%A9%D7%95%D7%9E%D7%95%D7%9F-%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "241176": "https://help.sefaria.org/hc/he/sections/12756518640668-%D7%A9%D7%97%D7%96%D7%95%D7%A8-%D7%94%D7%93%D7%A4%D7%A1%D7%94-%D7%95%D7%94%D7%A4%D7%A6%D7%AA-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA",
+    "288330": "https://help.sefaria.org/hc/he/sections/12756518640668-%D7%A9%D7%97%D7%96%D7%95%D7%A8-%D7%94%D7%93%D7%A4%D7%A1%D7%94-%D7%95%D7%94%D7%A4%D7%A6%D7%AA-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA",
+    "399333": "https://help.sefaria.org/hc/he/sections/20094783356956-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%93%D7%A4%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "242573": "https://help.sefaria.org/hc/he/articles/18490652948508-%D7%9B%D7%99%D7%A6%D7%93-%D7%9C%D7%94%D7%93%D7%A4%D7%99%D7%A1-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%94%D7%A1%D7%A4%D7%A8%D7%99%D7%99%D7%94",
+    "244351": "https://help.sefaria.org/hc/he/sections/12721846793116-%D7%92%D7%99%D7%A9%D7%94-%D7%9C%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA",
+    "615752": "https://help.sefaria.org/hc/he/sections/12756520483868-%D7%90%D7%A4%D7%A9%D7%A8%D7%95%D7%99%D7%95%D7%AA-%D7%A4%D7%95%D7%A8%D7%9E%D7%98-%D7%98%D7%A7%D7%A1%D7%98-%D7%95%D7%A0%D7%92%D7%99%D7%A9%D7%95%D7%AA",
+    "239441": "https://help.sefaria.org/hc/he/sections/12756520483868-%D7%90%D7%A4%D7%A9%D7%A8%D7%95%D7%99%D7%95%D7%AA-%D7%A4%D7%95%D7%A8%D7%9E%D7%98-%D7%98%D7%A7%D7%A1%D7%98-%D7%95%D7%A0%D7%92%D7%99%D7%A9%D7%95%D7%AA",
+    "288327": "https://help.sefaria.org/hc/he/articles/18472472138652-%D7%9E%D7%93%D7%A8%D7%99%D7%9A-%D7%9E%D7%94%D7%99%D7%A8-%D7%94%D7%9B%D7%99%D7%A8%D7%95-%D7%90%D7%AA-%D7%A1%D7%A8%D7%92%D7%9C-%D7%94%D7%A7%D7%99%D7%A9%D7%95%D7%A8%D7%99%D7%9D-%D7%95%D7%94%D7%9B%D7%9C%D7%99%D7%9D",
+    "569973": "https://help.sefaria.org/hc/he/categories/20332917021212-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%93%D7%A4%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%95%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%91%D7%AA%D7%95%D7%A1%D7%A4%D7%99%D7%9D-%D7%9C%D7%93%D7%A4%D7%93%D7%A4%D7%9F",
+    "382833": "https://help.sefaria.org/hc/he/sections/12756538060956-%D7%A4%D7%99%D7%A6-%D7%A8%D7%99%D7%9D-%D7%9C%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%A2%D7%9D-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%A1%D7%95%D7%99%D7%9E%D7%99%D7%9D",
+    "332893": "https://help.sefaria.org/hc/he/articles/18472380899484-%D7%9E%D7%93%D7%A8%D7%99%D7%9A-%D7%9E%D7%94%D7%99%D7%A8-%D7%94%D7%9B%D7%99%D7%A8%D7%95-%D7%90%D7%AA-%D7%A2%D7%9E%D7%95%D7%93-%D7%94%D7%91%D7%99%D7%AA",
+    "242826": "https://help.sefaria.org/hc/he/articles/18613227644316-%D7%9B%D7%99%D7%A6%D7%93-%D7%9C%D7%90%D7%AA%D7%A8-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%9E%D7%A7%D7%95%D7%A9%D7%A8%D7%99%D7%9D",
+    "239814": "https://help.sefaria.org/hc/he/categories/12721826687772-%D7%94%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "293375": "https://help.sefaria.org/hc/he/categories/20332917021212-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%93%D7%A4%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%95%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%91%D7%AA%D7%95%D7%A1%D7%A4%D7%99%D7%9D-%D7%9C%D7%93%D7%A4%D7%93%D7%A4%D7%9F",
+    "288326": "https://help.sefaria.org/hc/he/sections/12756555356956-%D7%9B%D7%9C%D7%99%D7%9D-%D7%9C%D7%9C%D7%99%D7%9E%D7%95%D7%93-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "242831": "https://help.sefaria.org/hc/he/sections/17430252462236-%D7%A0%D7%99%D7%94%D7%95%D7%9C-%D7%AA%D7%A8%D7%95%D7%9E%D7%95%D7%AA-%D7%A9%D7%A0%D7%99%D7%AA%D7%A0%D7%95-%D7%9C%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "541372": "https://help.sefaria.org/hc/he/categories/13368526623132-%D7%9E%D7%99%D7%93%D7%A2-%D7%91%D7%A1%D7%99%D7%A1%D7%99-%D7%A2%D7%9C-%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "542809": "https://help.sefaria.org/hc/he/articles/21806344785308-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%A7%D7%A9%D7%A8-%D7%A2%D7%9D-%D7%A1%D7%A4%D7%A8%D7%99%D7%90",
+    "540832": "https://help.sefaria.org/hc/he/sections/20094783356956-%D7%99%D7%A6%D7%99%D7%A8%D7%AA-%D7%93%D7%A4%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90"
+   }
+  }
+ },
+ "_debug": false,
+ "appVersion": "v7.2.3-prod.2",
+ "multiPanel": false,
+ "initialPanel": {
+  "ref": "Berakhot 2a",
+  "refs": [
+   "Berakhot 2a"
+  ],
+  "currVersions": {
+   "en": {
+    "languageFamilyName": "",
+    "versionTitle": ""
+   },
+   "he": {
+    "languageFamilyName": "",
+    "versionTitle": ""
+   }
+  },
+  "filter": null,
+  "text": {
+   "ref": "Berakhot 2a",
+   "heRef": "ברכות ב׳ א",
+   "sectionRef": "Berakhot 2a",
+   "heSectionRef": "ברכות ב׳ א",
+   "firstAvailableSectionRef": "Berakhot 2a",
+   "sections": [
+    "2a"
+   ],
+   "toSections": [
+    "2a"
+   ],
+   "isSpanning": false,
+   "next": "Berakhot 2b",
+   "prev": null,
+   "book": "Berakhot",
+   "title": "Berakhot 2a",
+   "heTitle": "ברכות",
+   "indexTitle": "Berakhot",
+   "heIndexTitle": "ברכות",
+   "primary_category": "Talmud",
+   "type": "Talmud",
+   "categories": [
+    "Talmud",
+    "Bavli",
+    "Seder Zeraim"
+   ],
+   "collectiveTitle": "",
+   "heCollectiveTitle": "",
+   "textDepth": 2,
+   "sectionNames": [
+    "Daf",
+    "Line"
+   ],
+   "addressTypes": [
+    "Talmud",
+    "Integer"
+   ],
+   "index_offsets_by_depth": {},
+   "he": [
+    "<big><strong>מֵאֵימָתַי</strong></big> קוֹרִין אֶת שְׁמַע בָּעֲרָבִין? מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִים לֶאֱכוֹל בִּתְרוּמָתָן. עַד סוֹף הָאַשְׁמוּרָה הָרִאשׁוֹנָה. דִּבְרֵי <a class=\"namedEntityLink \" href=\"/topics/rabbi-eliezer-b-hyrcanus\" data-slug=\"rabbi-eliezer-b-hyrcanus\" data-range=177-194>רַבִּי אֱלִיעֶזֶר</a>.",
+    "וַחֲכָמִים אוֹמְרִים: עַד חֲצוֹת.",
+    "<a class=\"namedEntityLink \" href=\"/topics/רג-(ambiguous)\" data-slug=\"רג-(ambiguous)\" data-range=0-18>רַבָּן גַּמְלִיאֵל</a> אוֹמֵר עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר.",
+    "מַעֲשֶׂה וּבָאוּ בָנָיו מִבֵּית הַמִּשְׁתֶּה, אָמְרוּ לוֹ: לֹא קָרִינוּ אֶת שְׁמַע, אָמַר לָהֶם: אִם לֹא עָלָה עַמּוּד הַשַּׁחַר חַיָּיבִין אַתֶּם לִקְרוֹת. וְלֹא זוֹ בִּלְבַד אָמְרוּ, אֶלָּא כָּל מַה שֶּׁאָמְרוּ חֲכָמִים ״עַד חֲצוֹת״, מִצְוָתָן עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר.",
+    "הֶקְטֵר חֲלָבִים וְאֵבָרִים, מִצְוָתָן עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר וְכָל הַנֶּאֱכָלִים לְיוֹם אֶחָד, מִצְוָתָן עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר. אִם כֵּן, לָמָה אָמְרוּ חֲכָמִים ״עַד חֲצוֹת״ — כְּדֵי לְהַרְחִיק אָדָם מִן הָעֲבֵירָה:",
+    "<big><strong>גְּמָ׳</strong></big> תַּנָּא הֵיכָא קָאֵי דְּקָתָנֵי ״מֵאֵימָתַי״?",
+    "וְתוּ: מַאי שְׁנָא דְּתָנֵי בְּעַרְבִית בְּרֵישָׁא? לִתְנֵי דְּשַׁחֲרִית בְּרֵישָׁא!",
+    "תַּנָּא אַקְּרָא קָאֵי, דִּכְתִיב: ״בְּשָׁכְבְּךָ וּבְקוּמֶךָ״. וְהָכִי קָתָנֵי: זְמַן קְרִיאַת שְׁמַע דִּשְׁכִיבָה אֵימַת? — מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִין לֶאֱכוֹל בִּתְרוּמָתָן.",
+    "וְאִי בָּעֵית אֵימָא: יָלֵיף מִבְּרִיָּיתוֹ שֶׁל עוֹלָם, דִּכְתִיב: ״וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד״.",
+    "אִי הָכִי, סֵיפָא דְּקָתָנֵי ״בַּשַּׁחַר מְבָרֵךְ שְׁתַּיִם לְפָנֶיהָ וְאַחַת לְאַחֲרֶיהָ, בָּעֶרֶב מְבָרֵךְ שְׁתַּיִם לְפָנֶיהָ וּשְׁתַּיִם לְאַחֲרֶיהָ״, לִתְנֵי דְּעַרְבִית בְּרֵישָׁא!",
+    "תַּנָּא פָּתַח בְּעַרְבִית, וַהֲדַר תָּנֵי בְּשַׁחֲרִית, עַד דְּקָאֵי בְּשַׁחֲרִית, פָּרֵישׁ מִילֵּי דְשַׁחֲרִית, וַהֲדַר פָּרֵישׁ מִילֵּי דְעַרְבִית.",
+    "אָמַר מָר מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִים לֶאֱכוֹל בִּתְרוּמָתָן. מִכְּדִי כֹּהֲנִים אֵימַת קָא אָכְלִי תְּרוּמָה? — מִשְּׁעַת צֵאת הַכּוֹכָבִים, לִתְנֵי: ״מִשְּׁעַת צֵאת הַכּוֹכָבִים״!",
+    "מִלְּתָא אַגַּב אוֹרְחֵיהּ קָמַשְׁמַע לַן — כֹּהֲנִים אֵימַת קָא אָכְלִי בִּתְרוּמָה — מִשְּׁעַת צֵאת הַכּוֹכָבִים. וְהָא קָמַשְׁמַע לַן דְּכַפָּרָה לָא מְעַכְּבָא. כִּדְתַנְיָא: ״וּבָא הַשֶּׁמֶשׁ וְטָהֵר״ — בִּיאַת שִׁמְשׁוֹ מְעַכַּבְתּוֹ מִלֶּאֱכוֹל בִּתְרוּמָה, וְאֵין כַּפָּרָתוֹ מְעַכַּבְתּוֹ מִלֶּאֱכוֹל בִּתְרוּמָה.",
+    "וּמִמַּאי דְּהַאי ״וּבָא הַשֶּׁמֶשׁ״ בִּיאַת הַשֶּׁמֶשׁ, וְהַאי ״וְטָהֵר״ — טְהַר יוֹמָא."
+   ],
+   "text": [
+    "The beginning of tractate <i>Berakhot</i>, the first tractate in the first of the six orders of Mishna, opens with a discussion of the recitation of <i>Shema</i>, as the recitation of <i>Shema</i> encompasses an acceptance of the yoke of Heaven and of the mitzvot, and as such, forms the basis for all subsequent teachings. The Mishna opens with the laws regarding the appropriate time to recite <i>Shema</i>: <br><br><strong>MISHNA:</strong> <b>From when,</b> that is, from what time, does <b>one recite <i>Shema</i> in the evening? From the time when the priests enter to partake of their <i>teruma.</i></b> Until when does the time for the recitation of the evening <i>Shema</i> extend? <b>Until the end of the first watch.</b> The term used in the <a class=\"refLink \" href=\"Deuteronomy.6.7\" data-ref=\"Deuteronomy 6:7\" data-range=752-774>Torah (Deuteronomy 6:7</a>) to indicate the time for the recitation of the evening <i>Shema</i> is <i>beshokhbekha</i>, when you lie down, which refers to the time in which individuals go to sleep. Therefore, the time for the recitation of <i>Shema</i> is the first portion of the night, when individuals typically prepare for sleep. <b>That is the statement of <a class=\"namedEntityLink \" href=\"/topics/rabbi-eliezer-b-hyrcanus\" data-slug=\"rabbi-eliezer-b-hyrcanus\" data-range=1110-1123>Rabbi Eliezer</a>.</b>",
+    "<b>The Rabbis say:</b> The time for the recitation of the evening <i>Shema</i> is <b>until midnight.</b>",
+    "<b><a class=\"namedEntityLink \" href=\"/topics/רג-(ambiguous)\" data-slug=\"רג-(ambiguous)\" data-range=3-17>Rabban Gamliel</a> says:</b> One may recite <i>Shema</i> <b>until dawn,</b> indicating that <i>beshokhbekha</i> is to be understood as a reference to the entire time people sleep in their beds, the whole night.",
+    "The mishna relates that <a class=\"namedEntityLink \" href=\"/topics/רג-(ambiguous)\" data-slug=\"רג-(ambiguous)\" data-range=24-38>Rabban Gamliel</a> practiced in accordance with his ruling. There was an <b>incident</b> where <a class=\"namedEntityLink \" href=\"/topics/רג-(ambiguous)\" data-slug=\"רג-(ambiguous)\" data-range=115-129>Rabban Gamliel</a>’s <b>sons returned</b> very late <b>from a wedding hall. They said to him,</b> as they had been preoccupied with celebrating with the groom and bride: <b>We did not recite <i>Shema.</i> He said to them: If the dawn has not</b> yet <b>arrived, you are obligated to recite</b> <i>Shema</i>. Since <a class=\"namedEntityLink \" href=\"/topics/רג-(ambiguous)\" data-slug=\"רג-(ambiguous)\" data-range=425-439>Rabban Gamliel</a>’s opinion disagreed with that of the Rabbis, he explained to his sons that the Rabbis actually agree with him, <b>and</b> that it is <b>not only</b> with regard to the <i>halakha</i> of the recitation of <i>Shema</i>, <b>but rather, wherever the Sages say until midnight, the mitzva</b> may be performed <b>until dawn.</b>",
+    "<a class=\"namedEntityLink \" href=\"/topics/רג-(ambiguous)\" data-slug=\"רג-(ambiguous)\" data-range=0-14>Rabban Gamliel</a> cites several cases in support of his claim, such as <b>the burning of fats and limbs</b> on the altar. Due to the quantity of offerings each day, the priests were often unable to complete the burning of all of the fats and limbs, so they continued to be burned into the night, as it is written: “This is the law of the burnt offering: The burnt offering shall remain upon the pyre on the altar all night until morning, while the fire on the altar burns it” (<a class=\"refLink \" href=\"Leviticus.6.2\" data-ref=\"Leviticus 6:2\" data-range=474-487>Leviticus 6:2</a>). <b>And,</b> with regard to <b>all</b> sacrifices, such as the sin-offerings and the guilt-offerings <b>that are eaten for one day</b> and night; although the Sages state that they may be eaten only until midnight, by Torah law they may be eaten <b>until dawn.</b> This is in accordance with the verse: “On the day on which it is offered must you eat. Do not leave it until the morning” (<a class=\"refLink \" href=\"Leviticus.7.15\" data-ref=\"Leviticus 7:15\" data-range=877-891>Leviticus 7:15</a>). <b>If so, why did the Sages say</b> that they may be eaten only <b>until midnight?</b> This is <b>in order to distance a person from transgression,</b> as if one believes that he has until dawn to perform the mitzva, he might be negligent and postpone it until the opportunity to perform the mitzva has passed.",
+    "<strong>GEMARA:</strong> The Mishna opens with the laws concerning the appropriate time to recite <i>Shema</i> with the question: From when does one recite <i>Shema</i> in the evening? With regard to this question, the Gemara asks: <b>On the basis of what</b> prior knowledge <b>does</b> the <b><i>tanna</i></b> of our mishna ask: <b>From when?</b> It would seem from his question that the obligation to recite <i>Shema</i> in the evening was already established, and that the <i>tanna</i> seeks only to clarify details that relate to it. But our mishna is the very first mishna in the Talmud.",
+    "The Gemara asks: <b>And furthermore, what distinguishes the evening</b> <i>Shema</i>, that it was taught <b>first? Let</b> the <i>tanna</i> <b>teach</b> regarding the recitation of <b>the morning</b> <i>Shema</i> <b>first.</b> Since most mitzvot apply during the day, the <i>tanna</i> should discuss the morning <i>Shema</i> before discussing the evening <i>Shema</i>, just as the daily morning offering is discussed before the evening offering (<i>Tosefot HaRosh</i>).",
+    "The Gemara offers a single response to both questions: <b>The <i>tanna</i> bases himself on the verse as it is written:</b> “You will talk of them when you sit in your home, and when you walk along the way, <b>when you lie down, and when you arise”</b> (<a class=\"refLink \" href=\"Deuteronomy.6.7\" data-ref=\"Deuteronomy 6:7\" data-range=254-269>Deuteronomy 6:7</a>). By teaching the laws of the evening <i>Shema</i> first, the <i>tanna</i> has established that the teachings of the Oral Torah correspond to that which is taught in the Written Torah. <b>And</b> based on the Written Torah, <b>the <i>tanna</i> teaches</b> the oral law: <b>When is the time for the recitation of <i>Shema</i> of lying down</b> as commanded in the Torah? <b>From when the priests enter to partake of their <i>teruma</i>.</b> Just as the Written Torah begins with the evening <i>Shema</i>, so too must the Oral Torah.",
+    "However, there is another possible explanation for why the mishna opens with the evening <i>Shema</i> rather than with the morning <i>Shema</i>. <b>If you wish,</b> you could <b>say</b> instead that the <i>tanna</i> <b>derives</b> the precedence of the evening <i>Shema</i> <b>from the</b> order of the <b>creation of the world. As it is written</b> in the story of creation: <b>“And there was evening, and there was morning, one day”</b> (<a class=\"refLink \" href=\"Genesis.1.5\" data-ref=\"Genesis 1:5\" data-range=440-451>Genesis 1:5</a>). According to this verse, day begins with the evening and not the morning. For both of these reasons it was appropriate to open the discussion of the laws of the recitation of <i>Shema</i> with the evening <i>Shema</i>.",
+    "The Gemara asks: <b>If so,</b> why does the <b>latter clause</b> of the mishna, which appears later in the chapter, <b>teach: In the morning one recites two</b> blessings <b>before</b> <i>Shema</i> <b>and one</b> blessing <b>afterward, and in the evening one recites two</b> blessings <b>before</b> <i>Shema</i> <b>and two afterward?</b> Based upon the above reasoning, the mishna <b>should have taught</b> the blessing recited before and after the <b>evening</b> <i>Shema</i> <b>first.</b>",
+    "The Gemara answers: Indeed, the <b><i>tanna</i> began</b> by discussing the laws regarding the recitation of <b>the evening</b> <i>Shema</i>, <b>and then taught</b> the laws regarding the recitation of <b>the morning</b> <i>Shema</i>. <b>Once</b> he <b>was already dealing with the morning</b> <i>Shema</i>, <b>he explained the matters of the morning</b> <i>Shema</i>, <b>and then explained the matters of the evening</b> <i>Shema</i>.",
+    "The Gemara proceeds to clarify the rest of the mishna. <b>The Master said</b> in the mishna that the beginning of the period when one recites <i>Shema</i> in the evening is <b>when the priests enter to partake of their <i>teruma</i>.</b> However, this does not specify a definitive time. <b>When do the priests enter to partake of their <i>teruma</i>? From the time of the emergence of the stars.</b> If that is the case, then <b>let</b> the <i>tanna</i> <b>teach</b> that the time for the recitation of the evening <i>Shema</i> is <b>from the time of the emergence of the stars.</b>",
+    "The Gemara responds: Indeed it would have been simpler to say that the time for the recitation of the evening <i>Shema</i> begins with the emergence of the stars, but the particular expression used by the <i>tanna</i> <b>teaches us</b> another <b>matter in passing: When do priests partake of their <i>teruma</i>? From the time of the emergence of the stars. And</b> the <i>tanna</i> <b>teaches us</b> a new <i>halakha</i> parenthetically: failure to bring an <b>atonement</b> offering <b>does not prevent</b> a priest from eating <i>teruma</i>. In cases where an impure priest is required to immerse himself in a ritual bath and bring an atonement offering, even if he already immersed himself, he is not completely ritually pure until he brings the atonement offering. Nevertheless, he is still permitted to partake of <i>teruma</i>. Taught in passing in our mishna, this is articulated fully in a <i>baraita</i>, based on a close reading of the biblical passages. <b>As it was taught</b> in a <i>baraita</i> with regard to the laws of ritual impurity, it is said: “One who touches it remains impure until evening. He should not eat of the consecrated items and he must wash his flesh with water. And the sun sets and it is purified. Afterwards, he may eat from the <i>teruma</i>, for it is his bread” (<a class=\"refLink \" href=\"Leviticus.22.6-7\" data-ref=\"Leviticus 22:6-7\" data-range=1305-1321>Leviticus 22:6–7</a>). From the passage: <b>“And the sun sets and it is purified,”</b> that the absence of <b>the setting of his sun prevents him from partaking of <i>teruma</i>, but</b> failure to bring <b>the atonement</b> offering <b>does not prevent him from partaking of <i>teruma</i>,</b> may be inferred.",
+    "The Gemara discusses the proof offered in the <i>baraita</i>: <b>From where</b> do we know <b>that the</b> phrase: <b>“And the sun sets”</b> refers to <b>the</b> complete <b>setting of the sun,</b> and therefore, <b>“and it is purified”</b> refers to the fact that <b>the day is pure,</b> i.e., and the sun sets and it is purified is one phrase meaning that the sun will set, the air will clear, and the stars will emerge (Rav Hai Gaon)?"
+   ],
+   "versions": [
+    {
+     "text": [
+      "<big><strong>מֵאֵימָתַי</strong></big> קוֹרִין אֶת שְׁמַע בָּעֲרָבִין? מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִים לֶאֱכוֹל בִּתְרוּמָתָן. עַד סוֹף הָאַשְׁמוּרָה הָרִאשׁוֹנָה. דִּבְרֵי <a class=\"namedEntityLink \" href=\"/topics/rabbi-eliezer-b-hyrcanus\" data-slug=\"rabbi-eliezer-b-hyrcanus\" data-range=177-194>רַבִּי אֱלִיעֶזֶר</a>.",
+      "וַחֲכָמִים אוֹמְרִים: עַד חֲצוֹת.",
+      "<a class=\"namedEntityLink \" href=\"/topics/רג-(ambiguous)\" data-slug=\"רג-(ambiguous)\" data-range=0-18>רַבָּן גַּמְלִיאֵל</a> אוֹמֵר עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר.",
+      "מַעֲשֶׂה וּבָאוּ בָנָיו מִבֵּית הַמִּשְׁתֶּה, אָמְרוּ לוֹ: לֹא קָרִינוּ אֶת שְׁמַע, אָמַר לָהֶם: אִם לֹא עָלָה עַמּוּד הַשַּׁחַר חַיָּיבִין אַתֶּם לִקְרוֹת. וְלֹא זוֹ בִּלְבַד אָמְרוּ, אֶלָּא כָּל מַה שֶּׁאָמְרוּ חֲכָמִים ״עַד חֲצוֹת״, מִצְוָתָן עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר.",
+      "הֶקְטֵר חֲלָבִים וְאֵבָרִים, מִצְוָתָן עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר וְכָל הַנֶּאֱכָלִים לְיוֹם אֶחָד, מִצְוָתָן עַד שֶׁיַּעֲלֶה עַמּוּד הַשַּׁחַר. אִם כֵּן, לָמָה אָמְרוּ חֲכָמִים ״עַד חֲצוֹת״ — כְּדֵי לְהַרְחִיק אָדָם מִן הָעֲבֵירָה:",
+      "<big><strong>גְּמָ׳</strong></big> תַּנָּא הֵיכָא קָאֵי דְּקָתָנֵי ״מֵאֵימָתַי״?",
+      "וְתוּ: מַאי שְׁנָא דְּתָנֵי בְּעַרְבִית בְּרֵישָׁא? לִתְנֵי דְּשַׁחֲרִית בְּרֵישָׁא!",
+      "תַּנָּא אַקְּרָא קָאֵי, דִּכְתִיב: ״בְּשָׁכְבְּךָ וּבְקוּמֶךָ״. וְהָכִי קָתָנֵי: זְמַן קְרִיאַת שְׁמַע דִּשְׁכִיבָה אֵימַת? — מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִין לֶאֱכוֹל בִּתְרוּמָתָן.",
+      "וְאִי בָּעֵית אֵימָא: יָלֵיף מִבְּרִיָּיתוֹ שֶׁל עוֹלָם, דִּכְתִיב: ״וַיְהִי עֶרֶב וַיְהִי בֹקֶר יוֹם אֶחָד״.",
+      "אִי הָכִי, סֵיפָא דְּקָתָנֵי ״בַּשַּׁחַר מְבָרֵךְ שְׁתַּיִם לְפָנֶיהָ וְאַחַת לְאַחֲרֶיהָ, בָּעֶרֶב מְבָרֵךְ שְׁתַּיִם לְפָנֶיהָ וּשְׁתַּיִם לְאַחֲרֶיהָ״, לִתְנֵי דְּעַרְבִית בְּרֵישָׁא!",
+      "תַּנָּא פָּתַח בְּעַרְבִית, וַהֲדַר תָּנֵי בְּשַׁחֲרִית, עַד דְּקָאֵי בְּשַׁחֲרִית, פָּרֵישׁ מִילֵּי דְשַׁחֲרִית, וַהֲדַר פָּרֵישׁ מִילֵּי דְעַרְבִית.",
+      "אָמַר מָר מִשָּׁעָה שֶׁהַכֹּהֲנִים נִכְנָסִים לֶאֱכוֹל בִּתְרוּמָתָן. מִכְּדִי כֹּהֲנִים אֵימַת קָא אָכְלִי תְּרוּמָה? — מִשְּׁעַת צֵאת הַכּוֹכָבִים, לִתְנֵי: ״מִשְּׁעַת צֵאת הַכּוֹכָבִים״!",
+      "מִלְּתָא אַגַּב אוֹרְחֵיהּ קָמַשְׁמַע לַן — כֹּהֲנִים אֵימַת קָא אָכְלִי בִּתְרוּמָה — מִשְּׁעַת צֵאת הַכּוֹכָבִים. וְהָא קָמַשְׁמַע לַן דְּכַפָּרָה לָא מְעַכְּבָא. כִּדְתַנְיָא: ״וּבָא הַשֶּׁמֶשׁ וְטָהֵר״ — בִּיאַת שִׁמְשׁוֹ מְעַכַּבְתּוֹ מִלֶּאֱכוֹל בִּתְרוּמָה, וְאֵין כַּפָּרָתוֹ מְעַכַּבְתּוֹ מִלֶּאֱכוֹל בִּתְרוּמָה.",
+      "וּמִמַּאי דְּהַאי ״וּבָא הַשֶּׁמֶשׁ״ בִּיאַת הַשֶּׁמֶשׁ, וְהַאי ״וְטָהֵר״ — טְהַר יוֹמָא."
+     ],
+     "versionTitle": "William Davidson Edition - Vocalized Aramaic",
+     "versionTitleInHebrew": "מהדורת וויליאם דייוידסון - ארמית המנוקד",
+     "shortVersionTitle": "",
+     "shortVersionTitleInHebrew": "קורן - שטיינזלץ",
+     "languageFamilyName": "hebrew",
+     "actualLanguage": "he",
+     "language": "he",
+     "direction": "rtl",
+     "isPrimary": true,
+     "isSource": true,
+     "priority": 3.0,
+     "formatAsPoetry": "",
+     "license": "CC-BY-NC",
+     "versionSource": "http://sefaria.org"
+    },
+    {
+     "text": [
+      "The beginning of tractate <i>Berakhot</i>, the first tractate in the first of the six orders of Mishna, opens with a discussion of the recitation of <i>Shema</i>, as the recitation of <i>Shema</i> encompasses an acceptance of the yoke of Heaven and of the mitzvot, and as such, forms the basis for all subsequent teachings. The Mishna opens with the laws regarding the appropriate time to recite <i>Shema</i>: <br><br><strong>MISHNA:</strong> <b>From when,</b> that is, from what time, does <b>one recite <i>Shema</i> in the evening? From the time when the priests enter to partake of their <i>teruma.</i></b> Until when does the time for the recitation of the evening <i>Shema</i> extend? <b>Until the end of the first watch.</b> The term used in the <a class=\"refLink \" href=\"Deuteronomy.6.7\" data-ref=\"Deuteronomy 6:7\" data-range=752-774>Torah (Deuteronomy 6:7</a>) to indicate the time for the recitation of the evening <i>Shema</i> is <i>beshokhbekha</i>, when you lie down, which refers to the time in which individuals go to sleep. Therefore, the time for the recitation of <i>Shema</i> is the first portion of the night, when individuals typically prepare for sleep. <b>That is the statement of <a class=\"namedEntityLink \" href=\"/topics/rabbi-eliezer-b-hyrcanus\" data-slug=\"rabbi-eliezer-b-hyrcanus\" data-range=1110-1123>Rabbi Eliezer</a>.</b>",
+      "<b>The Rabbis say:</b> The time for the recitation of the evening <i>Shema</i> is <b>until midnight.</b>",
+      "<b><a class=\"namedEntityLink \" href=\"/topics/רג-(ambiguous)\" data-slug=\"רג-(ambiguous)\" data-range=3-17>Rabban Gamliel</a> says:</b> One may recite <i>Shema</i> <b>until dawn,</b> indicating that <i>beshokhbekha</i> is to be understood as a reference to the entire time people sleep in their beds, the whole night.",
+      "The mishna relates that <a class=\"namedEntityLink \" href=\"/topics/רג-(ambiguous)\" data-slug=\"רג-(ambiguous)\" data-range=24-38>Rabban Gamliel</a> practiced in accordance with his ruling. There was an <b>incident</b> where <a class=\"namedEntityLink \" href=\"/topics/רג-(ambiguous)\" data-slug=\"רג-(ambiguous)\" data-range=115-129>Rabban Gamliel</a>’s <b>sons returned</b> very late <b>from a wedding hall. They said to him,</b> as they had been preoccupied with celebrating with the groom and bride: <b>We did not recite <i>Shema.</i> He said to them: If the dawn has not</b> yet <b>arrived, you are obligated to recite</b> <i>Shema</i>. Since <a class=\"namedEntityLink \" href=\"/topics/רג-(ambiguous)\" data-slug=\"רג-(ambiguous)\" data-range=425-439>Rabban Gamliel</a>’s opinion disagreed with that of the Rabbis, he explained to his sons that the Rabbis actually agree with him, <b>and</b> that it is <b>not only</b> with regard to the <i>halakha</i> of the recitation of <i>Shema</i>, <b>but rather, wherever the Sages say until midnight, the mitzva</b> may be performed <b>until dawn.</b>",
+      "<a class=\"namedEntityLink \" href=\"/topics/רג-(ambiguous)\" data-slug=\"רג-(ambiguous)\" data-range=0-14>Rabban Gamliel</a> cites several cases in support of his claim, such as <b>the burning of fats and limbs</b> on the altar. Due to the quantity of offerings each day, the priests were often unable to complete the burning of all of the fats and limbs, so they continued to be burned into the night, as it is written: “This is the law of the burnt offering: The burnt offering shall remain upon the pyre on the altar all night until morning, while the fire on the altar burns it” (<a class=\"refLink \" href=\"Leviticus.6.2\" data-ref=\"Leviticus 6:2\" data-range=474-487>Leviticus 6:2</a>). <b>And,</b> with regard to <b>all</b> sacrifices, such as the sin-offerings and the guilt-offerings <b>that are eaten for one day</b> and night; although the Sages state that they may be eaten only until midnight, by Torah law they may be eaten <b>until dawn.</b> This is in accordance with the verse: “On the day on which it is offered must you eat. Do not leave it until the morning” (<a class=\"refLink \" href=\"Leviticus.7.15\" data-ref=\"Leviticus 7:15\" data-range=877-891>Leviticus 7:15</a>). <b>If so, why did the Sages say</b> that they may be eaten only <b>until midnight?</b> This is <b>in order to distance a person from transgression,</b> as if one believes that he has until dawn to perform the mitzva, he might be negligent and postpone it until the opportunity to perform the mitzva has passed.",
+      "<strong>GEMARA:</strong> The Mishna opens with the laws concerning the appropriate time to recite <i>Shema</i> with the question: From when does one recite <i>Shema</i> in the evening? With regard to this question, the Gemara asks: <b>On the basis of what</b> prior knowledge <b>does</b> the <b><i>tanna</i></b> of our mishna ask: <b>From when?</b> It would seem from his question that the obligation to recite <i>Shema</i> in the evening was already established, and that the <i>tanna</i> seeks only to clarify details that relate to it. But our mishna is the very first mishna in the Talmud.",
+      "The Gemara asks: <b>And furthermore, what distinguishes the evening</b> <i>Shema</i>, that it was taught <b>first? Let</b> the <i>tanna</i> <b>teach</b> regarding the recitation of <b>the morning</b> <i>Shema</i> <b>first.</b> Since most mitzvot apply during the day, the <i>tanna</i> should discuss the morning <i>Shema</i> before discussing the evening <i>Shema</i>, just as the daily morning offering is discussed before the evening offering (<i>Tosefot HaRosh</i>).",
+      "The Gemara offers a single response to both questions: <b>The <i>tanna</i> bases himself on the verse as it is written:</b> “You will talk of them when you sit in your home, and when you walk along the way, <b>when you lie down, and when you arise”</b> (<a class=\"refLink \" href=\"Deuteronomy.6.7\" data-ref=\"Deuteronomy 6:7\" data-range=254-269>Deuteronomy 6:7</a>). By teaching the laws of the evening <i>Shema</i> first, the <i>tanna</i> has established that the teachings of the Oral Torah correspond to that which is taught in the Written Torah. <b>And</b> based on the Written Torah, <b>the <i>tanna</i> teaches</b> the oral law: <b>When is the time for the recitation of <i>Shema</i> of lying down</b> as commanded in the Torah? <b>From when the priests enter to partake of their <i>teruma</i>.</b> Just as the Written Torah begins with the evening <i>Shema</i>, so too must the Oral Torah.",
+      "However, there is another possible explanation for why the mishna opens with the evening <i>Shema</i> rather than with the morning <i>Shema</i>. <b>If you wish,</b> you could <b>say</b> instead that the <i>tanna</i> <b>derives</b> the precedence of the evening <i>Shema</i> <b>from the</b> order of the <b>creation of the world. As it is written</b> in the story of creation: <b>“And there was evening, and there was morning, one day”</b> (<a class=\"refLink \" href=\"Genesis.1.5\" data-ref=\"Genesis 1:5\" data-range=440-451>Genesis 1:5</a>). According to this verse, day begins with the evening and not the morning. For both of these reasons it was appropriate to open the discussion of the laws of the recitation of <i>Shema</i> with the evening <i>Shema</i>.",
+      "The Gemara asks: <b>If so,</b> why does the <b>latter clause</b> of the mishna, which appears later in the chapter, <b>teach: In the morning one recites two</b> blessings <b>before</b> <i>Shema</i> <b>and one</b> blessing <b>afterward, and in the evening one recites two</b> blessings <b>before</b> <i>Shema</i> <b>and two afterward?</b> Based upon the above reasoning, the mishna <b>should have taught</b> the blessing recited before and after the <b>evening</b> <i>Shema</i> <b>first.</b>",
+      "The Gemara answers: Indeed, the <b><i>tanna</i> began</b> by discussing the laws regarding the recitation of <b>the evening</b> <i>Shema</i>, <b>and then taught</b> the laws regarding the recitation of <b>the morning</b> <i>Shema</i>. <b>Once</b> he <b>was already dealing with the morning</b> <i>Shema</i>, <b>he explained the matters of the morning</b> <i>Shema</i>, <b>and then explained the matters of the evening</b> <i>Shema</i>.",
+      "The Gemara proceeds to clarify the rest of the mishna. <b>The Master said</b> in the mishna that the beginning of the period when one recites <i>Shema</i> in the evening is <b>when the priests enter to partake of their <i>teruma</i>.</b> However, this does not specify a definitive time. <b>When do the priests enter to partake of their <i>teruma</i>? From the time of the emergence of the stars.</b> If that is the case, then <b>let</b> the <i>tanna</i> <b>teach</b> that the time for the recitation of the evening <i>Shema</i> is <b>from the time of the emergence of the stars.</b>",
+      "The Gemara responds: Indeed it would have been simpler to say that the time for the recitation of the evening <i>Shema</i> begins with the emergence of the stars, but the particular expression used by the <i>tanna</i> <b>teaches us</b> another <b>matter in passing: When do priests partake of their <i>teruma</i>? From the time of the emergence of the stars. And</b> the <i>tanna</i> <b>teaches us</b> a new <i>halakha</i> parenthetically: failure to bring an <b>atonement</b> offering <b>does not prevent</b> a priest from eating <i>teruma</i>. In cases where an impure priest is required to immerse himself in a ritual bath and bring an atonement offering, even if he already immersed himself, he is not completely ritually pure until he brings the atonement offering. Nevertheless, he is still permitted to partake of <i>teruma</i>. Taught in passing in our mishna, this is articulated fully in a <i>baraita</i>, based on a close reading of the biblical passages. <b>As it was taught</b> in a <i>baraita</i> with regard to the laws of ritual impurity, it is said: “One who touches it remains impure until evening. He should not eat of the consecrated items and he must wash his flesh with water. And the sun sets and it is purified. Afterwards, he may eat from the <i>teruma</i>, for it is his bread” (<a class=\"refLink \" href=\"Leviticus.22.6-7\" data-ref=\"Leviticus 22:6-7\" data-range=1305-1321>Leviticus 22:6–7</a>). From the passage: <b>“And the sun sets and it is purified,”</b> that the absence of <b>the setting of his sun prevents him from partaking of <i>teruma</i>, but</b> failure to bring <b>the atonement</b> offering <b>does not prevent him from partaking of <i>teruma</i>,</b> may be inferred.",
+      "The Gemara discusses the proof offered in the <i>baraita</i>: <b>From where</b> do we know <b>that the</b> phrase: <b>“And the sun sets”</b> refers to <b>the</b> complete <b>setting of the sun,</b> and therefore, <b>“and it is purified”</b> refers to the fact that <b>the day is pure,</b> i.e., and the sun sets and it is purified is one phrase meaning that the sun will set, the air will clear, and the stars will emerge (Rav Hai Gaon)?"
+     ],
+     "versionTitle": "William Davidson Edition - English",
+     "versionTitleInHebrew": "מהדורת וויליאם דייוידסון - אנגלית",
+     "shortVersionTitle": "Koren - Steinsaltz",
+     "shortVersionTitleInHebrew": "קורן - שטיינזלץ",
+     "languageFamilyName": "english",
+     "actualLanguage": "en",
+     "language": "en",
+     "direction": "ltr",
+     "isPrimary": false,
+     "isSource": false,
+     "priority": 2.0,
+     "formatAsPoetry": "",
+     "license": "CC-BY-NC",
+     "versionSource": "https://korenpub.com/collections/the-noe-edition-koren-talmud-bavli-1"
+    }
+   ]
+  }
+ },
+ "remoteConfig": {
+  "sentry": {
+   "tracesSampleRate": 0.0,
+   "sampleRate": 1.0,
+   "replaysSessionSampleRate": 0.0,
+   "replaysOnErrorSampleRate": 0.0
+  },
+  "chatbot": {
+   "hide": 0
+  }
+ }
+}
