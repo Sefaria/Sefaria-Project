@@ -91,6 +91,9 @@ spec:
             value: ""
           - name: PUBLIC_SITE_ORIGIN
             value: ""
+          # this deployment's Voices (sheets made here live there)
+          - name: PUBLIC_VOICES_ORIGIN
+            value: {{ printf "https://voices.%s" (tpl (index .Values.domains.root 0).url .) | quote }}
           - name: SEFARIA_PASS_THROUGH
             value: "1"
           - name: PORT
