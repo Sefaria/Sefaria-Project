@@ -426,6 +426,20 @@ def _one_edit_candidates(phrase: str) -> set:
     return _phrase_spell_checker.single_edits(phrase, hold_first_letter=False)
 
 
+def _is_empty(table: Optional[PhraseTable]) -> bool:
+    """
+    Whether `table` (a dict, a trie, or None) has no entries -- in O(1). Never use the table's
+    truthiness / `len()` for this: a `datrie` trie has no stored size, so `len()` (and so
+    `bool()`) walks every key -- about a second for the corpus table, and ~8ms for the entity
+    index, which `_ranked_candidates` used to pay once per candidate.
+    """
+    if table is None:
+        return True
+    if isinstance(table, dict):
+        return not table
+    return next(iter(table), None) is None
+
+
 def _tie_break_score(count: int) -> float:
     """
     Damps a raw doc count onto a log scale: large counts stop mattering in direct proportion
@@ -457,7 +471,7 @@ def _ranked_candidates(phrase: str, top_n_grams: PhraseTable,
             score = _tie_break_score(top_n_grams[c])
             if c not in scores or score > scores[c]:
                 scores[c] = score
-        if entity_alt_index and c in entity_alt_index:
+        if entity_alt_index is not None and c in entity_alt_index:
             score = entity_alt_index[c]  # already precomputed on the same comparable scale
             if c not in scores or score > scores[c]:
                 scores[c] = score
@@ -522,7 +536,7 @@ def _try_window(words: List[str], normalized: List[str], start: int, end: int,
     - otherwise the full corrected query (all of `words`, with just this window fixed up).
     """
     phrase = " ".join(normalized[start:end])
-    if phrase in top_n_grams or (entity_alt_index and phrase in entity_alt_index):
+    if phrase in top_n_grams or (entity_alt_index is not None and phrase in entity_alt_index):
         return None  # already an attested phrase/title -- nothing to correct here
 
     ranked = _ranked_candidates(phrase, top_n_grams, entity_alt_index)
@@ -589,7 +603,9 @@ def autocorrect_query(query: str, top_n_grams: PhraseTable,
     :return: an AutocorrectResult if a correction or an ambiguous-suggestions result applies,
         else None (search `query` as typed, with nothing to show about it).
     """
-    if not query or (not top_n_grams and not entity_alt_index):
+    if entity_alt_index is not None and _is_empty(entity_alt_index):
+        entity_alt_index = None  # decide emptiness once per query, in O(1) -- see _is_empty
+    if not query or (_is_empty(top_n_grams) and entity_alt_index is None):
         return None
     words = query.split()
     if not words:
@@ -607,7 +623,7 @@ def autocorrect_query(query: str, top_n_grams: PhraseTable,
     if n <= MAX_PHRASE_WORDS:
         return finish(_try_window(words, normalized, 0, n, top_n_grams, entity_alt_index))
 
-    if entity_alt_index:
+    if entity_alt_index is not None:
         whole = finish(_try_window(words, normalized, 0, n, {}, entity_alt_index))
         if whole:
             return whole

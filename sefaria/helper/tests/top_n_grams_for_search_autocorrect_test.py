@@ -603,3 +603,70 @@ def test_autocorrect_query_normalizes_the_query_like_the_table_keys():
     assert autocorrect_query("moshé rabbeinu", trie) is None
     result = autocorrect_query("moshé rabbenu", trie)
     assert result.corrected_query == "moshé rabbeinu"
+
+
+# --------------------------------------------------------------------------- #
+#  Never call len()/bool() on a table: a datrie trie's len() walks every key   #
+# --------------------------------------------------------------------------- #
+
+class _NoLenTable:
+    """
+    Stands in for a `datrie` trie, whose `len()` -- and so truthiness -- is O(number of keys)
+    (~1s for the corpus table). Lookups work; any `len()`/`bool()` raises, so a regression
+    that checks a table's truthiness fails loudly instead of just getting slow.
+    """
+    def __init__(self, data):
+        self._data = dict(data)
+
+    def __contains__(self, key):
+        return key in self._data
+
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __len__(self):
+        raise AssertionError("len()/bool() on a phrase table is O(n) for a datrie trie")
+
+
+_NO_LEN_TOP_N_GRAMS = {"shabbat": 500, "mourning": 400, "talmud": 900, "bereishit rabbah": 300}
+_NO_LEN_ENTITIES = {"rambam": 3.0, "rashi on bereishit": 2.5}
+
+
+@pytest.mark.parametrize("query", [
+    "shabat",                                              # one word, corpus table
+    "bereshit rabbah",                                     # phrase
+    "rambam",                                              # already attested in the entity index
+    "rashi on bereshit",                                   # short phrase, entity candidate
+    "what does the talmud say about mourning on shabat",   # long: windowed scan, one fix
+    "nothing here is close to anything at all",            # long: no window fixable
+    "",
+])
+def test_autocorrect_query_never_takes_len_or_truthiness_of_a_table(query):
+    expected = autocorrect_query(query, _NO_LEN_TOP_N_GRAMS, _NO_LEN_ENTITIES)
+    assert autocorrect_query(query, _NoLenTable(_NO_LEN_TOP_N_GRAMS), _NoLenTable(_NO_LEN_ENTITIES)) == expected
+    assert autocorrect_query(query, _NoLenTable(_NO_LEN_TOP_N_GRAMS)) == autocorrect_query(query, _NO_LEN_TOP_N_GRAMS)
+
+
+def test_autocorrect_query_with_a_long_query_corrects_whole_from_entities_without_len():
+    entities = _NoLenTable({"a b c d e": 3.0})
+    result = autocorrect_query("a b c d f", _NoLenTable(_NO_LEN_TOP_N_GRAMS), entities)
+    assert result is not None and result.corrected_query == "a b c d e"
+
+
+def test_is_empty_agrees_for_dicts_and_real_tries():
+    from sefaria.helper.top_n_grams_for_search_autocorrect import _is_empty, build_phrase_trie
+    assert _is_empty(None) and _is_empty({}) and _is_empty(build_phrase_trie(()))
+    assert not _is_empty({"a": 1}) and not _is_empty(build_phrase_trie([("a", 1)]))
+    assert not _is_empty(build_phrase_trie([("a", 1.5)], int_values=False))
+    assert not _is_empty(_NoLenTable({"a": 1}))
+
+
+def test_autocorrect_query_treats_an_empty_entity_index_as_absent():
+    from sefaria.helper.top_n_grams_for_search_autocorrect import build_phrase_trie
+    for empty in ({}, build_phrase_trie((), int_values=False), None):
+        assert autocorrect_query("shabat", _NO_LEN_TOP_N_GRAMS, empty) == autocorrect_query("shabat", _NO_LEN_TOP_N_GRAMS)
+    # Both tables empty: nothing to correct against.
+    assert autocorrect_query("shabat", {}, build_phrase_trie((), int_values=False)) is None
