@@ -663,5 +663,8 @@
     "search.year.bce": "{year} לפנה״ס",
     "search.year.ce": "{year} לספירה",
     "search.result_card.one_more_version": "1 גרסה נוספת",
-    "search.result_card.more_versions": "{count} גרסאות נוספות"
+    "search.result_card.more_versions": "{count} גרסאות נוספות",
+    "header.library_assistant": "עוזר הספרייה",
+    "search.null.button.library_assistant": "נסו את עוזר הספרייה",
+    "search.null.body.library_assistant": "נסו מונח חיפוש אחר או שאלו את עוזר הספרייה."
 }
