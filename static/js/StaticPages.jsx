@@ -3173,7 +3173,7 @@ const MobileAppPage = () => (
         <MobilePageHeader />
         <EnBlock padded={true}>
             <p className="staticPageAboutText" style={{fontSize: "18px", lineHeight: "1.7", margin: "50px 0"}}>
-                Explore Sefaria&#39;s free library of Jewish texts in original langauges and translation — Torah, Talmud, Mishnah, Kabbalah, siddur and more. Discover 3,000 years of texts with links, interconnections, and commentaries. Download nearly the entire library to learn offline, anywhere, anytime.
+                Explore Sefaria&#39;s free library of Jewish texts in original langauges and translation: Torah, Talmud, Mishnah, Kabbalah, siddur, and more. Discover 3,000 years of texts with links, interconnections, and commentaries. Download nearly the entire library to learn offline &#x2014;  anywhere, anytime.
             </p>
         </EnBlock>
         <HeBlock padded={true}>
@@ -3217,7 +3217,7 @@ const MobileAppPage = () => (
             <Feature
                 enTitle="Calendar"
                 heTitle="לוח לימוד יומי"
-                enText="Check the daily calendar to find current readings for the weekly Torah portion, Daf Yomi, 929, and more."
+                enText="Check the daily calendar to find current readings for the weekly Torah portion, Daf Yomi, 929, and a dozen other communal learning schedules."
                 heText="בעזרת לוח הלימוד היומי של ספריית ספריא תוכלו למצוא את הקריאות הרלוונטיות בתורה, את הדף היומי בתלמוד, את 929 ועוד."
                 enImg="/static/img/mobile-landing-page/calmock.png"
                 enImgAlt="Screenshot of calendar on app"
@@ -3229,7 +3229,7 @@ const MobileAppPage = () => (
                 reverse
                 enTitle="Commentaries"
                 heTitle="פרשנויות, מדרשים ועוד"
-                enText="Learn with a variety of commentaries and explore the interconnections between texts. Torah commentaries include Rashi, Ibn Ezra, Ramban, Sforno, Abarbanel, and more. Talmud Bavli commentaries include Rashi, Tosafot, Rashba, Rosh, and more."
+                enText="Learn with a variety of commentaries and explore the interconnections between texts. Torah commentaries include Rashi, Ibn Ezra, Ramban, Sforno, Abarbanel, and more. Talmud commentaries include Rashi, Tosafot, Rashba, Rosh, and more."
                 heText={`בספריית ספריא תוכלו לעיין במקוון פרשנויות, מדרשים ועוד, וליהנות מקישוריות המחברת בין המקורות שמצטטים זה את זה או שיש ביניהם קשר תמטי. אלה כוללים את כתביהם של רש"י, אבן עזרא, רמב"ן, ספורנו, אברבנאל ועוד אודות התנ"ך, ואת פירושי רש"י , רשב"א ועוד רבים אחרים על התלמוד.`}
                 enImg="/static/img/mobile-landing-page/commmock.png"
                 enImgAlt="Screenshot of commentary panel on app"
