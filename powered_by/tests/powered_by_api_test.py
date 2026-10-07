@@ -350,6 +350,30 @@ def test_translate_formstack_converts_yes_no_radios_to_booleans():
     assert cleaned["has_pbs_logo"] is False
 
 
+def test_translate_formstack_treats_long_form_yes_answer_as_true():
+    body = {"Field191150099": "Yes! I have added the Powered by Sefaria logo to my project."}
+    assert translate_formstack_payload(body)["has_pbs_logo"] is True
+
+
+def test_translate_formstack_long_form_no_answer_stays_false():
+    body = {"Field191150099": "No, I have not added the logo yet."}
+    assert translate_formstack_payload(body)["has_pbs_logo"] is False
+
+
+def test_translate_formstack_adds_https_to_schemeless_links():
+    body = {"Field179244929": "example.com/app", "Field179355747": "github.com/me/repo"}
+    cleaned = translate_formstack_payload(body)
+    assert cleaned["project_link"] == "https://example.com/app"
+    assert cleaned["project_source_code"] == "https://github.com/me/repo"
+
+
+def test_translate_formstack_keeps_existing_scheme():
+    body = {"Field179244929": "http://example.com", "Field179355747": " https://github.com/me/repo "}
+    cleaned = translate_formstack_payload(body)
+    assert cleaned["project_link"] == "http://example.com"
+    assert cleaned["project_source_code"] == "https://github.com/me/repo"
+
+
 def test_translate_formstack_joins_category_checkbox_values():
     body = {"Field179248693": ["Apps", "AI Projects"]}
     cleaned = translate_formstack_payload(body)
@@ -510,7 +534,7 @@ def test_post_ignores_staff_only_fields_on_create(client):
     response = post_powered_by(client, body)
     assert response.status_code == 201
     project = Project.objects.get(project_link="https://newproject.example.com")
-    assert project.is_published is False
+    assert project.is_published is True
     assert project.featured is False
     assert project.tags == []
     assert project.is_buggy is False
@@ -543,7 +567,7 @@ def test_post_same_project_link_creates_a_new_project(client):
 def test_post_cannot_alter_an_existing_published_project(client):
     # Even a POST that reuses a live project's project_link and claims
     # is_published must not touch the existing row -- it just creates a
-    # separate, unpublished project of its own.
+    # separate project of its own.
     project = make_project(
         project_link="https://livesite.example.com",
         project_name="Original Name",
@@ -564,7 +588,7 @@ def test_post_cannot_alter_an_existing_published_project(client):
 
     new_project = Project.objects.get(id=response.json()["project"]["id"])
     assert new_project.project_name == "Defaced Name"
-    assert new_project.is_published is False
+    assert new_project.is_published is True
 
 
 @pytest.mark.django_db
@@ -579,12 +603,12 @@ def test_post_always_defaults_submission_source_and_date(client):
 
 
 @pytest.mark.django_db
-def test_post_create_still_defaults_unpublished(client):
+def test_post_create_defaults_published(client):
     body = {"project_name": "Brand New Project", "project_link": "https://brandnew.example.com"}
     response = post_powered_by(client, body)
     assert response.status_code == 201
     project = Project.objects.get(project_link="https://brandnew.example.com")
-    assert project.is_published is False
+    assert project.is_published is True
 
 
 # --- view: HTTP method restriction --------------------------------------------
