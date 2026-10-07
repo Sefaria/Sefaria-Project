@@ -32,6 +32,7 @@ AASA_EXCLUDED_PATHS = [
     "/accounts/*",
     "/_allauth/*",
     "/api/auth/google/redirect",
+    "/officepowered_by/",
 ]
 
 # Marks a redirect as "stay on web". Read by apple_app_site_association's AASA rule, stripped in client.jsx.
