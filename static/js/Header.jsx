@@ -12,6 +12,7 @@ import {
 } from './Misc';
 import { ProfilePic } from "./ProfilePic";
 import { HeaderAutocomplete } from './HeaderAutocomplete'
+import { usePocToolboxConfig, useExtraEntryPoints } from './LibraryAssistantPoc';
 import {
   DropdownMenu,
   DropdownMenuSeparator,
@@ -22,6 +23,23 @@ import {
 } from './common/DropdownMenu';
 import Util from './sefaria/util';
 import Button from './common/Button';
+
+const LibraryAssistantHeaderLink = ({ label, pill }) => {
+  const open = (e) => {
+    e.preventDefault(); // tells ReaderApp's in-app link handler to leave this click alone
+    document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {source: 'header'}}));
+  };
+  return (
+    <a href="#" role="button" className={classNames('textLink', 'libraryAssistantLink', {libraryAssistantPill: pill})}
+       onClick={open} onKeyDown={Util.handleKeyboardClick}>
+      <span className="libraryAssistantStar" aria-hidden="true">✦</span>
+      <span className="libraryAssistantLabel">
+        {label ? <span className={Sefaria.interfaceLang === 'hebrew' ? 'int-he' : 'int-en'}>{label}</span>
+               : <InterfaceText>header.library_assistant</InterfaceText>}
+      </span>
+    </a>
+  );
+};
 
 const AuthNavLink = ({flow, openURL, close, children}) => {
   const href = `/${flow}`;
@@ -261,6 +279,14 @@ const Header = (props) => {
   }, "sa.header_viewed");
 
 
+  const pocConfig = usePocToolboxConfig();
+  // POC: the toolbox can move the assistant out of the header, to a banner on the texts page
+  const showAssistantLink = props.libraryAssistant && props.module === Sefaria.LIBRARY_MODULE && pocConfig.placement !== 'banner' && pocConfig.entryPoints !== 'none';
+  // The pill sits at an end of a group (after Donate or before search), never between two links
+  const assistantPill = pocConfig.headerStyle === 'pill';
+  const assistantSlot = assistantPill && pocConfig.headerSlot === 'beforeDonate' ? 'afterDonate' : (pocConfig.headerSlot || 'afterDonate');
+  const assistantLink = showAssistantLink && <LibraryAssistantHeaderLink label={pocConfig.headerText?.trim()} pill={assistantPill} />;
+
   const links = props.module === Sefaria.LIBRARY_MODULE ? ['Texts', 'Topics'] : ['Topics', 'Collections']
   const linkIds = {'Topics': 'common.topics', 'Collections': 'common.collections'};  // 'Texts' translates via the terms dictionary
   const textLinks = <div className="textLinks">
@@ -275,7 +301,9 @@ const Header = (props) => {
         <InterfaceText>{linkIds[link] || link}</InterfaceText>
       </a>
     ))}
+    {assistantSlot === 'beforeDonate' && assistantLink}
     <DonateLink classes={"textLink donate"} source={"Header"}><InterfaceText>header.donate</InterfaceText></DonateLink>
+    {assistantSlot === 'afterDonate' && assistantLink}
   </div>
 
   
@@ -289,11 +317,13 @@ const Header = (props) => {
       </nav>
 
       <div className="headerLinksSection">
+        {assistantSlot === 'beforeSearch' && assistantLink}
         <HeaderAutocomplete
           onRefClick={props.onRefClick}
           showSearch={props.showSearch}
           openTopic={props.openTopic}
           openURL={props.openURL}
+          libraryAssistant={showAssistantLink}
         />
         
         {!Sefaria._uid && props.module === Sefaria.LIBRARY_MODULE && <SignUpButton />}
@@ -368,6 +398,7 @@ const Header = (props) => {
           close={props.onMobileMenuButtonClick}
           module={props.module}
           hasUnreadNotifications={hasUnreadNotifications}
+          libraryAssistant={props.libraryAssistant}
           />
       }
       <GlobalWarningMessage />
@@ -396,6 +427,7 @@ Header.propTypes = {
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func,
   notificationCount: PropTypes.number,
+  libraryAssistant: PropTypes.bool,
 };
 
 const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
@@ -422,11 +454,17 @@ const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
   );
 }
 
-const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications }) => {
+const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications, libraryAssistant }) => {
+  const showAssistantItem = useExtraEntryPoints() && libraryAssistant;
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
   });
+  const openLibraryAssistant = (e) => {
+    e.preventDefault(); // tells ReaderApp's in-app link handler to leave this click alone
+    close();
+    document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {source: 'mobile_nav_menu'}}));
+  };
       
   return (
     <nav className={classes} aria-label="Mobile navigation menu">
@@ -438,6 +476,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           openURL={openURL}
           onNavigate={close}
           hideHebrewKeyboard={true}
+          libraryAssistant={libraryAssistant && module === Sefaria.LIBRARY_MODULE}
         />
       </div>
       {module === Sefaria.LIBRARY_MODULE &&
@@ -450,6 +489,12 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
             <img src="/static/icons/topic.svg" alt={Sefaria._("common.topics")} />
             <InterfaceText>common.topics</InterfaceText>
           </a>
+          {showAssistantItem &&
+            <a href="#" role="button" className="libraryAssistantMenuItem" onClick={openLibraryAssistant}>
+              <span className="libraryAssistantMenuStar" aria-hidden="true">✦</span>
+              <InterfaceText>header.library_assistant</InterfaceText>
+            </a>
+          }
           <a href="/calendars" onClick={close}>
             <img src="/static/icons/calendar.svg" alt={Sefaria._("header.learning_schedules")} />
             <InterfaceText>header.learning_schedules</InterfaceText>
@@ -652,4 +697,4 @@ const CreateButton = () => {
 };
 
 
-export { Header };
+export { Header, MobileNavMenu };

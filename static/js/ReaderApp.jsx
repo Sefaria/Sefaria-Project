@@ -2422,6 +2422,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       widths = panelStates.map( panel => evenWidth );
     }
 
+    const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
+    // On phones the widget itself becomes a full-screen sheet, opened from its own button or the mobile menu.
+    // Logged-out visitors get the assistant without a token (it limits them to a few free responses)
+    const hasChatbotIdentity = !!this.props.chatbot_user_token || !Sefaria._uid;
+    // Not on the login and registration screens, which logged-out visitors reach from the assistant itself
+    const displayChatbot = this.props.chatbot_enabled && hasChatbotIdentity && isLibraryModule && !this.state.showAuth && !(this.props.remoteConfig?.chatbot?.hide === 1);
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
@@ -2437,7 +2443,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         translationLanguagePreference={this.state.translationLanguagePreference}
         setTranslationLanguagePreference={this.setTranslationLanguagePreference} 
         module={Sefaria.activeModule}
-        notificationCount={this.state.notificationCount}/>
+        notificationCount={this.state.notificationCount}
+        libraryAssistant={displayChatbot}/>
     );
 
     var panels = [];
@@ -2575,9 +2582,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
     const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
-    const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
-    const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
-    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment;
+    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment && !displayChatbot;
     const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
     return (

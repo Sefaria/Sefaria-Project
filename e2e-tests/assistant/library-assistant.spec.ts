@@ -173,12 +173,10 @@ test.describe('Library Assistant — header menu', () => {
 
 /**
  * Responsive viewport — UX-085.
- * The Library Assistant must not render at mobile widths (375 px).
- * This test uses the LA user so we can confirm the suppression happens even
- * for a whitelisted user, not just for logged-out / non-whitelisted users.
+ * At mobile widths (375 px) the Library Assistant is a full-screen sheet.
  */
 test.describe('Library Assistant — responsive', () => {
-  test('UX-085: Library Assistant is hidden on a 375 px mobile viewport', async ({ context }) => {
+  test('UX-085: Library Assistant is a full-screen sheet on a 375 px mobile viewport', async ({ context }) => {
     // Navigate and wait for the component to mount at desktop size first
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
     const pm = new PageManager(page, LANGUAGES.EN);
@@ -187,8 +185,7 @@ test.describe('Library Assistant — responsive', () => {
     // Resize to a typical mobile viewport
     await page.setViewportSize({ width: 375, height: 667 });
 
-    // The entire <lc-chatbot> host (and its trigger / panel) should be hidden
-    await expect(page.locator('lc-chatbot')).toBeHidden({ timeout: t(5000) });
+    await pm.onLibraryAssistant().expectFullScreenSheet();
   });
 });
 
@@ -212,16 +209,17 @@ test.describe('Library Assistant — visibility boundaries', () => {
     await pm.onLibraryAssistant().expectNotPresent();
   });
 
-  test('LA-NEG-003: Does not appear for a logged-out user on the library home', async ({ context }) => {
+  // Logged-out visitors get the assistant (a few free responses, then a login prompt).
+  test('LA-ANON-001: Appears for a logged-out user on the library home', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await pm.onLibraryAssistant().expectNotPresent();
+    await pm.onLibraryAssistant().waitForReady();
   });
 
-  test('LA-NEG-004: Does not appear for a logged-out user on a reader page', async ({ context }) => {
+  test('LA-ANON-002: Appears for a logged-out user on a reader page', async ({ context }) => {
     const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await pm.onLibraryAssistant().expectNotPresent();
+    await pm.onLibraryAssistant().waitForReady();
   });
 });
 

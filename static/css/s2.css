@@ -565,6 +565,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .mobileNavMenu.closed {
   display: none;
 }
+/* The Library Assistant's floating button would sit on top of the open menu */
+.readerApp:has(.mobileNavMenu:not(.closed)) lc-chatbot {
+  visibility: hidden;
+}
 .mobileNavMenu .searchLine {
   padding: 15px 10px;
   border-bottom: 1px solid #EDEDEC;
@@ -603,6 +607,16 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 .mobileNavMenu a > img.blackIcon {
   opacity: 0.4;
+}
+/* POC (la-sandbox): the Library Assistant item is purple, with the ✦ as its icon */
+.mobileNavMenu a.libraryAssistantMenuItem {
+  color: var(--mussar-purple);
+}
+.mobileNavMenu .libraryAssistantMenuStar {
+  display: inline-block;
+  width: 16px;
+  margin-inline-end: 15px;
+  text-align: center;
 }
 .mobileNavMenu a.blue {
   background-color: var(--sefaria-blue);
@@ -5387,6 +5401,72 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
 }
 
+/* POC (la-sandbox): the Library Assistant banner above "Browse the Library". Type follows the
+   design system's system styles (sefaria-design-foundations): en/he-system-body-regular for
+   the copy, en/he-system-small-strong for the button. */
+.libraryAssistantBanner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 30px;
+  padding: 12px 16px 12px 20px;
+  border-radius: 6px;
+  background: var(--mussar-purple);
+  color: white;
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.interface-hebrew .libraryAssistantBanner {
+  padding: 12px 20px 12px 16px;
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+.libraryAssistantBannerStar {
+  font-size: 18px;
+  line-height: 1;
+}
+.libraryAssistantBannerButton {
+  flex: none;
+  margin-inline-start: auto;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: white;
+  color: var(--mussar-purple);
+  font-family: var(--english-sans-serif-font-family);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 18px;
+  cursor: pointer;
+}
+.interface-hebrew .libraryAssistantBannerButton {
+  font-family: var(--hebrew-sans-serif-font-family);
+  font-weight: 700;
+}
+.libraryAssistantBanner:hover .libraryAssistantBannerButton {
+  background: #F7EEF5; /* purple-100 */
+}
+.libraryAssistantBannerButton:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 2px;
+}
+
+.noSearchResults-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+/* POC (la-sandbox): the same purple as the header item and the search row */
+.noSearchResults-cta--assistant {
+  cursor: pointer;
+  background: var(--mussar-purple);
+  border-color: var(--mussar-purple);
+}
+
 .noSearchResults-caption {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
@@ -5510,6 +5590,29 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .autocomplete-dropdown .type-icon.search-icon {
   padding-inline-start: 3px;
+}
+/* POC (la-sandbox): "Ask Library Assistant" row under "Search for", in the promo purple */
+.autocomplete-dropdown .type-icon.assistant-star {
+  opacity: 1;
+  color: var(--mussar-purple);
+  font-family: 'Roboto';
+  font-size: 16px;
+  line-height: 18px;
+  text-align: center;
+}
+.autocomplete-dropdown .assistant-override-text {
+  color: var(--mussar-purple);
+}
+.search-group-suggestions:has(.search-override-wrapper:not(.assistant-override-wrapper)):has(+ .search-group-suggestions .assistant-override-wrapper) {
+  border-bottom: 0;
+}
+/* Phones: the "Search for" row is a bordered block; with the assistant row under it,
+   the two share one block */
+@media (max-width: 842px) {
+  .search-group-suggestions:has(+ .search-group-suggestions .assistant-override-wrapper) .search-override-wrapper {
+    margin-bottom: 0;
+    border-bottom: 0;
+  }
 }
 .autocomplete-dropdown .type-title{
   font-family: 'Roboto';
@@ -8948,6 +9051,15 @@ But not to use a display block directive that might break continuous mode for ot
 }
 .interface-hebrew .toolsButton .toolsButtonIcon {
   margin-top: 1px;
+}
+/* POC (la-sandbox): a text glyph in the icon slot, and the purple "✦ Ask Library Assistant" */
+.toolsButton .toolsButtonGlyph {
+  text-align: center;
+  line-height: 1;
+}
+.toolsButton.askLibraryAssistant,
+.toolsButton.askLibraryAssistant .toolsButtonIcon {
+  color: var(--mussar-purple);
 }
 .toolsButton img.toolsButtonIcon {
   width: 18px;

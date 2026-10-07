@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
+import { useExtraEntryPoints } from './LibraryAssistantPoc';
 
 const CTA_HREFS = {
   sources: '/texts',
@@ -9,6 +10,15 @@ const CTA_HREFS = {
   authors: '/people',
   topics:  '/topics',
 };
+
+// POC (la-sandbox, from Mickey's mf1 branch): the Sources null page offers the Library
+// Assistant, which opens with a request built from the query that found nothing
+export const assistantNoResultsPrompt = (query) => Sefaria.interfaceLang === 'hebrew'
+  ? `חיפשתי את "${query}" בספריא ולא נמצאו תוצאות. תוכלו לעזור לי למצוא מקורות, ספרים, מחברים ו/או נושאים רלוונטיים?`
+  : `I searched for "${query}" on Sefaria and got no results. Can you help me find relevant sources, books, authors and/or topics?`;
+const askLibraryAssistant = (query) => document.dispatchEvent(new CustomEvent('chatbot:open', {
+  detail: { source: 'search_no_results', question: assistantNoResultsPrompt(query) },
+}));
 
 function renderCaption() {
   const reportBugText = Sefaria._('search.null.caption.report_bug');
@@ -27,6 +37,10 @@ function renderCaption() {
 
 function NoSearchResults({ mode, query }) {
   const key = (type) => `search.null.${mode}.${type}`;
+  // Only offer the assistant when its widget is on the page (checked after mount: SSR has no document)
+  const [hasAssistant, setHasAssistant] = useState(false);
+  useEffect(() => setHasAssistant(!!document.querySelector('lc-chatbot')), []);
+  const extraEntryPoints = useExtraEntryPoints();
   const heading = Sefaria._(key('h1')).replace(/\[query\]|\{userquery\}/g, query);
 
   return (
@@ -46,9 +60,16 @@ function NoSearchResults({ mode, query }) {
             <InterfaceText>{key('body')}</InterfaceText>
           </p>
         </div>
-        <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
-          <InterfaceText>{key('button')}</InterfaceText>
-        </a>
+        <div className="noSearchResults-ctas">
+          <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
+            <InterfaceText>{key('button')}</InterfaceText>
+          </a>
+          {mode === 'sources' && hasAssistant && extraEntryPoints && (
+            <button type="button" className="noSearchResults-cta noSearchResults-cta--assistant" onClick={() => askLibraryAssistant(query)}>
+              ✦ <InterfaceText>{key('assistant_button')}</InterfaceText>
+            </button>
+          )}
+        </div>
         {renderCaption()}
       </div>
     </div>

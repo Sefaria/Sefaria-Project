@@ -14,6 +14,25 @@ DEFAULT_TTL_HOURS = 72
 NONCE_SIZE_BYTES = 12
 
 
+def resolve_chatbot_version(request):
+    """
+    The ai-chatbot PR preview this request should use: ``?chatbot_version=<PR#>`` is
+    remembered in the session for later pages, and ``?chatbot_version=clear`` forgets it.
+
+    Both the script tag (context processor) and the widget's API base (``base_props``)
+    read it through here. ``base_props`` runs before the context processors, so reading
+    only the session there pointed the first page at the default backend.
+    """
+    requested = request.GET.get("chatbot_version", "").strip()
+    if requested == "clear":
+        request.session.pop("chatbot_version", None)
+        return None
+    if requested:
+        request.session["chatbot_version"] = requested
+        return requested
+    return request.session.get("chatbot_version")
+
+
 def _hash_user_id(user_id):
     return hashlib.sha256(str(user_id).encode("utf-8")).hexdigest()
 
