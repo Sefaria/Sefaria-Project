@@ -1,6 +1,6 @@
 /**
- * POC (la-sandbox): the desktop header's Library Assistant item. The widget's POC toolbox
- * picks its text and its slot (saved in localStorage, previewed live through `chatbot:poc-config`).
+ * The desktop header's "✦ Library Assistant" pill: shown when the assistant widget is on the
+ * page, just before search, and it opens the widget through the `chatbot:open` event.
  */
 jest.mock('../sefaria/sefaria', () => ({ __esModule: true, default: {
   LIBRARY_MODULE: 'library',
@@ -37,12 +37,11 @@ import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { Header } from '../Header';
 
-describe('Header Library Assistant item (POC)', () => {
+describe('Header Library Assistant pill', () => {
   let container;
   beforeEach(() => {
     container = document.createElement('div');
     document.body.appendChild(container);
-    localStorage.clear();
   });
   afterEach(() => { ReactDOM.unmountComponentAtNode(container); container.remove(); });
 
@@ -60,40 +59,27 @@ describe('Header Library Assistant item (POC)', () => {
     expect(item()).toBeNull();
   });
 
-  it('sits after Donate by default and opens the widget', () => {
+  it('is a pill just before search', () => {
     render();
     expect(order()).toEqual(['link', 'link', 'donate', 'assistant', 'search']);
+    expect(item().classList.contains('libraryAssistantPill')).toBe(true);
     expect(item().textContent).toBe('✦header.library_assistant');
+  });
 
+  it('opens the widget', () => {
+    render();
     const onOpen = jest.fn();
     document.addEventListener('chatbot:open', onOpen);
     const click = new MouseEvent('click', { bubbles: true, cancelable: true });
     act(() => { item().dispatchEvent(click); });
-    expect(onOpen.mock.calls[0][0].detail).toEqual({ source: 'header' });
-    expect(click.defaultPrevented).toBe(true);
     document.removeEventListener('chatbot:open', onOpen);
+    expect(onOpen.mock.calls[0][0].detail).toEqual({ source: 'header' });
+    // ReaderApp's in-app link handler skips clicks whose default was prevented
+    expect(click.defaultPrevented).toBe(true);
   });
 
-  it('follows the saved toolbox choice', () => {
-    localStorage.setItem('lc_chatbot:poc_toolbox', JSON.stringify({ headerSlot: 'beforeDonate', headerText: 'Try Assistant' }));
-    render();
-    expect(order()).toEqual(['link', 'link', 'assistant', 'donate', 'search']);
-    expect(item().textContent).toBe('✦Try Assistant');
-  });
-
-  it('shows the pill version, never between Topics and Donate', () => {
-    localStorage.setItem('lc_chatbot:poc_toolbox', JSON.stringify({ headerStyle: 'pill', headerSlot: 'beforeDonate' }));
-    render();
-    expect(item().classList.contains('libraryAssistantPill')).toBe(true);
-    expect(order()).toEqual(['link', 'link', 'donate', 'assistant', 'search']);
-  });
-
-  it('previews live toolbox changes', () => {
-    render();
-    act(() => {
-      document.dispatchEvent(new CustomEvent('chatbot:poc-config', { detail: { headerSlot: 'beforeSearch' } }));
-    });
-    expect(order()).toEqual(['link', 'link', 'donate', 'assistant', 'search']);
-    expect(item().parentElement.classList.contains('headerLinksSection')).toBe(true);
+  it('is absent outside the library', () => {
+    render({ module: 'voices' });
+    expect(item()).toBeNull();
   });
 });

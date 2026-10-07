@@ -17,7 +17,6 @@ import {
   CategoryHeader
 } from './Misc';
 import {ContentText} from "./ContentText";
-import { LibraryAssistantBrowseBanner } from './LibraryAssistantPoc';
 
 
 const TextsPage = ({categories, settings, setCategories, onCompareBack, openSearch,
@@ -108,7 +107,6 @@ const TextsPage = ({categories, settings, setCategories, onCompareBack, openSear
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
-            { !compare && <LibraryAssistantBrowseBanner /> }
             { title }
             { about }
             { dedication }

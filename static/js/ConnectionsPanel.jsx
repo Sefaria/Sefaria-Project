@@ -16,7 +16,7 @@ import {
 } from './Media';
 
 import { CategoryFilter, TextFilter } from './ConnectionFilters';
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { ReaderPanelContext } from './context';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
@@ -41,7 +41,6 @@ import Util from './sefaria/util';
 import TopicSearch from "./TopicSearch";
 import WebPage from './WebPage'
 import { SignUpModalKind } from './sefaria/signupModalContent';
-import { useExtraEntryPoints } from './LibraryAssistantPoc';
 
 
 class ConnectionsPanel extends Component {
@@ -291,7 +290,6 @@ class ConnectionsPanel extends Component {
         <div>
           {this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null}
           <div className="topToolsButtons">
-              <LibraryAssistantToolsButton />
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" urlConnectionsMode="About" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Table of Contents" he="תוכן העניינים" image="text-navigation.svg" urlConnectionsMode="Navigation" onClick={() => this.props.setConnectionsMode("Navigation")} />
               <ToolsButton en="Search in this Text" he="חיפוש בטקסט" image="compare.svg" urlConnectionsMode="SidebarSearch" onClick={() => this.props.setConnectionsMode("SidebarSearch")} />
@@ -1094,7 +1092,7 @@ AdvancedToolsList.propTypes = {
 };
 
 
-const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image, glyph,
+const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image,
                        count, control = "interface", typeface = "system", alwaysShow = false,
                        greyColor=false, highlighted=false, experiment=false,
                        children }) => {
@@ -1111,8 +1109,6 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image, 
     iconElem = (<i className={classNames(classes)} />)
   } else if (image) {
     iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt={en} />);
-  } else if (glyph) {
-    iconElem = (<span className="toolsButtonIcon toolsButtonGlyph" aria-hidden="true">{glyph}</span>);
   }
   //We only want to generate reloadable urls for states where we actually respond to said url. See ReaderApp.makeHistoryState()- sidebarModes.
   const url = urlConnectionsMode ? Sefaria.util.replaceUrlParam("with", urlConnectionsMode) : null;
@@ -1144,16 +1140,6 @@ const ToolsButton = ({ en, he, onClick, urlConnectionsMode = null, icon, image, 
   );
 }
 
-// POC (la-sandbox, after Mickey's mf1 item): opens the Library Assistant widget. Shown only
-// when the widget is on the page (checked after mount: SSR has no document).
-const LibraryAssistantToolsButton = () => {
-  const [hasAssistant, setHasAssistant] = useState(false);
-  useEffect(() => setHasAssistant(!!document.querySelector('lc-chatbot')), []);
-  const showItem = useExtraEntryPoints() && hasAssistant;
-  const open = () => document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {source: 'resources_panel'}}));
-  return showItem ? <ToolsButton en="Ask Library Assistant" he="שאלו את עוזר הספרייה" glyph="✦" onClick={open} /> : null;
-};
-
 ToolsButton.SecondaryIcon = ({ icon, alt }) => (
   <img src={`/static/icons/${icon}`} className="toolsButtonSecondaryIcon" alt={alt} />
 );
@@ -1168,7 +1154,6 @@ ToolsButton.propTypes = {
   he: PropTypes.string.isRequired,
   icon: PropTypes.string,
   image: PropTypes.string,
-  glyph: PropTypes.string,
   count: PropTypes.number,
   onClick: PropTypes.func,
   greyColor: PropTypes.bool,
@@ -1672,6 +1657,5 @@ export {
   ConnectionsPanel,
   ConnectionsPanelHeader,
   ToolsButton,
-  LibraryAssistantToolsButton,
   ShareBox
 };

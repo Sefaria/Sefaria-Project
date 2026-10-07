@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
-import { useExtraEntryPoints } from './LibraryAssistantPoc';
 
 const CTA_HREFS = {
   sources: '/texts',
@@ -11,7 +10,7 @@ const CTA_HREFS = {
   topics:  '/topics',
 };
 
-// POC (la-sandbox, from Mickey's mf1 branch): the Sources null page offers the Library
+// The Sources null page offers the Library
 // Assistant, which opens with a request built from the query that found nothing
 export const assistantNoResultsPrompt = (query) => Sefaria.interfaceLang === 'hebrew'
   ? `חיפשתי את "${query}" בספריא ולא נמצאו תוצאות. תוכלו לעזור לי למצוא מקורות, ספרים, מחברים ו/או נושאים רלוונטיים?`
@@ -40,7 +39,6 @@ function NoSearchResults({ mode, query }) {
   // Only offer the assistant when its widget is on the page (checked after mount: SSR has no document)
   const [hasAssistant, setHasAssistant] = useState(false);
   useEffect(() => setHasAssistant(!!document.querySelector('lc-chatbot')), []);
-  const extraEntryPoints = useExtraEntryPoints();
   const heading = Sefaria._(key('h1')).replace(/\[query\]|\{userquery\}/g, query);
 
   return (
@@ -64,7 +62,7 @@ function NoSearchResults({ mode, query }) {
           <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
             <InterfaceText>{key('button')}</InterfaceText>
           </a>
-          {mode === 'sources' && hasAssistant && extraEntryPoints && (
+          {mode === 'sources' && hasAssistant && (
             <button type="button" className="noSearchResults-cta noSearchResults-cta--assistant" onClick={() => askLibraryAssistant(query)}>
               ✦ <InterfaceText>{key('assistant_button')}</InterfaceText>
             </button>

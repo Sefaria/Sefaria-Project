@@ -120,71 +120,35 @@
   color: var(--dark-grey);
 }
 
-/* POC (la-sandbox): Library Assistant header item, in the promo purple */
+/* Library Assistant pill before the search box: white on the promo purple, as tall as the
+   search box; it darkens on hover instead of underlining */
 .textLink.libraryAssistantLink,
 .textLink.libraryAssistantLink:is(:hover, :focus, :active) {
   display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  color: var(--mussar-purple);
-  white-space: nowrap;
-  text-decoration: none; /* only the words underline, not the star */
-}
-
-.libraryAssistantLink:is(:hover, :focus-visible, :active) .libraryAssistantLabel {
-  text-decoration: underline;
-}
-
-.libraryAssistantStar {
-  font-size: 0.875em;
-}
-
-/* Styled like the .textLinks items wherever it sits (it can also sit before the search box,
-   outside .textLinks): same size and weight, and the same nudge down, which the star shares */
-.textLink.libraryAssistantLink {
-  font-size: 16px;
-  font-weight: 500;
-}
-
-.libraryAssistantLink .int-en,
-.libraryAssistantLink .libraryAssistantStar {
-  transform: translateY(0.15em);
-}
-
-.libraryAssistantLink .int-he,
-.interface-hebrew .libraryAssistantLink .libraryAssistantStar {
-  transform: translateY(0.1em);
-}
-
-/* The pill version: white on purple, as tall as the search box, text centred by the box
-   (so without the nudge above) and no underline (it darkens instead) */
-.textLink.libraryAssistantLink.libraryAssistantPill,
-.textLink.libraryAssistantLink.libraryAssistantPill:is(:hover, :focus, :active) {
   align-items: center;
+  gap: 6px;
   height: 30px;
   padding: 0 14px;
   border-radius: 250px;
   background: var(--mussar-purple);
   color: white;
   font-size: 14px;
-}
-
-.textLink.libraryAssistantLink.libraryAssistantPill:is(:hover, :active) {
-  background: #653259; /* purple-800 */
-}
-
-.libraryAssistantPill:is(:hover, :focus-visible, :active) .libraryAssistantLabel {
+  font-weight: 500;
+  white-space: nowrap;
   text-decoration: none;
 }
 
-.libraryAssistantPill:focus-visible {
+.textLink.libraryAssistantLink:is(:hover, :active) {
+  background: #653259; /* purple-800 */
+}
+
+.libraryAssistantLink:focus-visible {
   outline: 2px solid var(--mussar-purple);
   outline-offset: 2px;
 }
 
-.libraryAssistantPill :is(.int-en, .int-he, .libraryAssistantStar),
-.interface-hebrew .libraryAssistantPill .libraryAssistantStar {
-  transform: none;
+.libraryAssistantStar {
+  font-size: 0.875em;
 }
 
 .headerLinksSection {
