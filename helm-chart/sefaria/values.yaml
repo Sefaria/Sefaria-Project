@@ -350,7 +350,7 @@ ingress:
 gateway:
   enabled: true
   className: envoy
-  staticAssetTimeout: ""
+  catchAllTimeout: ""
   alpnProtocols:
     - http/1.1
   annotations:

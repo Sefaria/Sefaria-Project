@@ -95,18 +95,6 @@ spec:
       backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
-    {{- with .Values.gateway.staticAssetTimeout }}
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /static/
-      timeouts:
-        request: {{ . }}
-        backendRequest: {{ . }}
-      backendRefs:
-        - name: nginx-{{ $.Values.deployEnv }}
-          port: 80
-    {{- end }}
     - backendRefs:
         - name: nginx-{{ $.Values.deployEnv }}
           port: 80
@@ -114,4 +102,9 @@ spec:
         - path:
             type: PathPrefix
             value: /
+      {{- with .Values.gateway.catchAllTimeout }}
+      timeouts:
+        request: {{ . }}
+        backendRequest: {{ . }}
+      {{- end }}
 {{- end }}
