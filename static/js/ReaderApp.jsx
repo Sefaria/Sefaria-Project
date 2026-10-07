@@ -2420,7 +2420,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     // On phones the widget itself becomes a full-screen sheet, opened from its own button or the mobile menu.
     // Logged-out visitors get the assistant without a token (it limits them to a few free responses)
     const hasChatbotIdentity = !!this.props.chatbot_user_token || !Sefaria._uid;
-    const displayChatbot = this.props.chatbot_enabled && hasChatbotIdentity && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
+    // Not on the login and registration screens, which logged-out visitors reach from the assistant itself
+    const displayChatbot = this.props.chatbot_enabled && hasChatbotIdentity && isLibraryModule && !this.state.showAuth && !(this.props.remoteConfig?.chatbot?.hide === 1);
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
