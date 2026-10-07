@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from types import SimpleNamespace
 import pytest
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
@@ -593,6 +594,12 @@ class Test_normal_forms(object):
         assert Ref("Genesis 2:5").url() == "Genesis.2.5"
         assert Ref("Genesis 2:5-10").url() == "Genesis.2.5-10"
         assert Ref("Rashi on Shabbat 12a.10").url() == "Rashi_on_Shabbat.12a.10"
+
+    def test_url_form_escapes_title_separators(self):
+        ref = SimpleNamespace(_url=None, sections=[], normal=lambda: "Book, Chapter/Part\\Object")
+
+        assert Ref.url(ref) == "Book,_Chapter%2FPart%5CObject"
+        assert Ref.url(ref, encode_html=False) == "Book,_Chapter/Part\\Object"
 
 
     def test_talmud_range_short(self):
