@@ -1,0 +1,10 @@
+/* After sefaria.org's .addToSourceSheetBox (s2.css) */
+.view { display: flex; flex-direction: column; gap: 10px; }
+.label { font-family: var(--sefaria-font-ui-en); font-size: 14px; color: var(--sefaria-color-text-secondary, #666); letter-spacing: 1px; text-transform: uppercase; margin-top: 10px; }
+.view[lang="he"] .label { font-family: var(--sefaria-font-ui-he); text-transform: none; }
+.citation { font-family: var(--sefaria-font-text-en, "adobe-garamond-pro", Georgia, serif); font-size: 18px; }
+.view[lang="he"] .citation { font-family: var(--sefaria-font-text-he, "Taamey Frank", serif); }
+.select { width: 100%; box-sizing: border-box; padding: 10px 14px; border: 1px solid var(--sefaria-color-border, #ccc); border-radius: 6px; background: #fff; font: inherit; font-size: 16px; }
+.error { margin: 0; color: var(--sefaria-color-error, #b3261e); }
+.confirm { font-family: var(--sefaria-font-text-en, "adobe-garamond-pro", Georgia, serif); font-size: 18px; line-height: 1.4; }
+.confirm a { color: inherit; text-decoration: underline; }

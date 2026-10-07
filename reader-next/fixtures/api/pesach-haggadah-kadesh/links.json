@@ -1,0 +1,1591 @@
+[
+  {
+    "_id": "65d393d254f68c3ca19fa6fb",
+    "index_title": "Shenei Luchot HaBerit",
+    "category": "Musar",
+    "type": "commentary",
+    "ref": "Shenei Luchot HaBerit, Aseret HaDibrot, Pesachim, Matzah Shemurah 1",
+    "anchorRef": "Pesach Haggadah, Kadesh 1",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 1"
+    ],
+    "sourceRef": "Shenei Luchot HaBerit, Aseret HaDibrot, Pesachim, Matzah Shemurah 1",
+    "sourceHeRef": "שני לוחות הברית, עשרת הדברות, מסכת פסחים, מצה שמורה א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": false,
+    "compDate": [
+      1611,
+      1631
+    ],
+    "commentaryNum": 1,
+    "collectiveTitle": {
+      "en": "Shenei Luchot HaBerit",
+      "he": "שני לוחות הברית"
+    },
+    "heTitle": "מצה שמורה"
+  },
+  {
+    "_id": "6609114f18e4d4eaeea6b490",
+    "index_title": "The Jonathan Sacks Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "The Jonathan Sacks Haggadah, Kadesh 1:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 1",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 1"
+    ],
+    "sourceRef": "The Jonathan Sacks Haggadah, Kadesh 1:1",
+    "sourceHeRef": "הגדת הרב יונתן זקס, קדש א׳:א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "The Jonathan Sacks Haggadah",
+      "he": "הגדת הרב יונתן זקס"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5a9bb498d6e4a965e44dc8d3",
+    "index_title": "Simchat HaRegel on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Simchat HaRegel on Pesach Haggadah, Kadesh 10:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 10",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 10"
+    ],
+    "sourceRef": "Simchat HaRegel on Pesach Haggadah, Kadesh 10:1",
+    "sourceHeRef": "שמחת הרגל על הגדה של פסח, קדש י׳:א׳",
+    "anchorVerse": 10,
+    "sourceHasEn": true,
+    "compDate": [
+      1758,
+      1782
+    ],
+    "commentaryNum": 10.0001,
+    "collectiveTitle": {
+      "en": "Simchat HaRegel",
+      "he": "שמחת הרגל"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5a9bb498d6e4a965e44dc8d5",
+    "index_title": "Simchat HaRegel on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Simchat HaRegel on Pesach Haggadah, Kadesh 10:2",
+    "anchorRef": "Pesach Haggadah, Kadesh 10",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 10"
+    ],
+    "sourceRef": "Simchat HaRegel on Pesach Haggadah, Kadesh 10:2",
+    "sourceHeRef": "שמחת הרגל על הגדה של פסח, קדש י׳:ב׳",
+    "anchorVerse": 10,
+    "sourceHasEn": true,
+    "compDate": [
+      1758,
+      1782
+    ],
+    "commentaryNum": 10.0002,
+    "collectiveTitle": {
+      "en": "Simchat HaRegel",
+      "he": "שמחת הרגל"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5a9bb498d6e4a965e44dc8c5",
+    "index_title": "Simchat HaRegel on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Simchat HaRegel on Pesach Haggadah, Kadesh 2:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Simchat HaRegel on Pesach Haggadah, Kadesh 2:1",
+    "sourceHeRef": "שמחת הרגל על הגדה של פסח, קדש ב׳:א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": false,
+    "compDate": [
+      1758,
+      1782
+    ],
+    "commentaryNum": 2.0001,
+    "collectiveTitle": {
+      "en": "Simchat HaRegel",
+      "he": "שמחת הרגל"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5c8f4a7ba18064001831047f",
+    "index_title": "Shibolei HaLeket on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Shibolei HaLeket on Pesach Haggadah, Kadesh 2:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Shibolei HaLeket on Pesach Haggadah, Kadesh 2:1",
+    "sourceHeRef": "שבלי הלקט על הגדה של פסח, קדש ב׳:א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": false,
+    "compDate": [
+      1240,
+      1280
+    ],
+    "commentaryNum": 2.0001,
+    "collectiveTitle": {
+      "en": "Shibolei HaLeket",
+      "he": "שבלי הלקט"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5c8f4a7ba180640018310481",
+    "index_title": "Shibolei HaLeket on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Shibolei HaLeket on Pesach Haggadah, Kadesh 2:2",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Shibolei HaLeket on Pesach Haggadah, Kadesh 2:2",
+    "sourceHeRef": "שבלי הלקט על הגדה של פסח, קדש ב׳:ב׳",
+    "anchorVerse": 2,
+    "sourceHasEn": false,
+    "compDate": [
+      1240,
+      1280
+    ],
+    "commentaryNum": 2.0002,
+    "collectiveTitle": {
+      "en": "Shibolei HaLeket",
+      "he": "שבלי הלקט"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5c8f4a7ba180640018310483",
+    "index_title": "Shibolei HaLeket on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Shibolei HaLeket on Pesach Haggadah, Kadesh 2:3",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Shibolei HaLeket on Pesach Haggadah, Kadesh 2:3",
+    "sourceHeRef": "שבלי הלקט על הגדה של פסח, קדש ב׳:ג׳",
+    "anchorVerse": 2,
+    "sourceHasEn": false,
+    "compDate": [
+      1240,
+      1280
+    ],
+    "commentaryNum": 2.0003,
+    "collectiveTitle": {
+      "en": "Shibolei HaLeket",
+      "he": "שבלי הלקט"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5c8f4a7ba180640018310485",
+    "index_title": "Shibolei HaLeket on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Shibolei HaLeket on Pesach Haggadah, Kadesh 2:4",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Shibolei HaLeket on Pesach Haggadah, Kadesh 2:4",
+    "sourceHeRef": "שבלי הלקט על הגדה של פסח, קדש ב׳:ד׳",
+    "anchorVerse": 2,
+    "sourceHasEn": false,
+    "compDate": [
+      1240,
+      1280
+    ],
+    "commentaryNum": 2.0004,
+    "collectiveTitle": {
+      "en": "Shibolei HaLeket",
+      "he": "שבלי הלקט"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "6609114f18e4d4eaeea6b492",
+    "index_title": "The Jonathan Sacks Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "The Jonathan Sacks Haggadah, Kadesh 3:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 3",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 3"
+    ],
+    "sourceRef": "The Jonathan Sacks Haggadah, Kadesh 3:1",
+    "sourceHeRef": "הגדת הרב יונתן זקס, קדש ג׳:א׳",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "commentaryNum": 3.0001,
+    "collectiveTitle": {
+      "en": "The Jonathan Sacks Haggadah",
+      "he": "הגדת הרב יונתן זקס"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5a9bb498d6e4a965e44dc8c7",
+    "index_title": "Simchat HaRegel on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Simchat HaRegel on Pesach Haggadah, Kadesh 6:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 6",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 6"
+    ],
+    "sourceRef": "Simchat HaRegel on Pesach Haggadah, Kadesh 6:1",
+    "sourceHeRef": "שמחת הרגל על הגדה של פסח, קדש ו׳:א׳",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      1758,
+      1782
+    ],
+    "commentaryNum": 6.0001,
+    "collectiveTitle": {
+      "en": "Simchat HaRegel",
+      "he": "שמחת הרגל"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "6609114f18e4d4eaeea6b494",
+    "index_title": "The Jonathan Sacks Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "The Jonathan Sacks Haggadah, Kadesh 6:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 6",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 6"
+    ],
+    "sourceRef": "The Jonathan Sacks Haggadah, Kadesh 6:1",
+    "sourceHeRef": "הגדת הרב יונתן זקס, קדש ו׳:א׳",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "commentaryNum": 6.0001,
+    "collectiveTitle": {
+      "en": "The Jonathan Sacks Haggadah",
+      "he": "הגדת הרב יונתן זקס"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5a9bb498d6e4a965e44dc8c9",
+    "index_title": "Simchat HaRegel on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Simchat HaRegel on Pesach Haggadah, Kadesh 7:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 7",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 7"
+    ],
+    "sourceRef": "Simchat HaRegel on Pesach Haggadah, Kadesh 7:1",
+    "sourceHeRef": "שמחת הרגל על הגדה של פסח, קדש ז׳:א׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      1758,
+      1782
+    ],
+    "commentaryNum": 7.0001,
+    "collectiveTitle": {
+      "en": "Simchat HaRegel",
+      "he": "שמחת הרגל"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5a9bb498d6e4a965e44dc8cb",
+    "index_title": "Simchat HaRegel on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Simchat HaRegel on Pesach Haggadah, Kadesh 7:2",
+    "anchorRef": "Pesach Haggadah, Kadesh 7",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 7"
+    ],
+    "sourceRef": "Simchat HaRegel on Pesach Haggadah, Kadesh 7:2",
+    "sourceHeRef": "שמחת הרגל על הגדה של פסח, קדש ז׳:ב׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      1758,
+      1782
+    ],
+    "commentaryNum": 7.0002,
+    "collectiveTitle": {
+      "en": "Simchat HaRegel",
+      "he": "שמחת הרגל"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5a9bb498d6e4a965e44dc8cd",
+    "index_title": "Simchat HaRegel on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Simchat HaRegel on Pesach Haggadah, Kadesh 7:3",
+    "anchorRef": "Pesach Haggadah, Kadesh 7",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 7"
+    ],
+    "sourceRef": "Simchat HaRegel on Pesach Haggadah, Kadesh 7:3",
+    "sourceHeRef": "שמחת הרגל על הגדה של פסח, קדש ז׳:ג׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      1758,
+      1782
+    ],
+    "commentaryNum": 7.0003,
+    "collectiveTitle": {
+      "en": "Simchat HaRegel",
+      "he": "שמחת הרגל"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5a9bb498d6e4a965e44dc8cf",
+    "index_title": "Simchat HaRegel on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Simchat HaRegel on Pesach Haggadah, Kadesh 7:4",
+    "anchorRef": "Pesach Haggadah, Kadesh 7",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 7"
+    ],
+    "sourceRef": "Simchat HaRegel on Pesach Haggadah, Kadesh 7:4",
+    "sourceHeRef": "שמחת הרגל על הגדה של פסח, קדש ז׳:ד׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      1758,
+      1782
+    ],
+    "commentaryNum": 7.0004,
+    "collectiveTitle": {
+      "en": "Simchat HaRegel",
+      "he": "שמחת הרגל"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5a9bb498d6e4a965e44dc8d1",
+    "index_title": "Simchat HaRegel on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Simchat HaRegel on Pesach Haggadah, Kadesh 7:5",
+    "anchorRef": "Pesach Haggadah, Kadesh 7",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 7"
+    ],
+    "sourceRef": "Simchat HaRegel on Pesach Haggadah, Kadesh 7:5",
+    "sourceHeRef": "שמחת הרגל על הגדה של פסח, קדש ז׳:ה׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      1758,
+      1782
+    ],
+    "commentaryNum": 7.0005,
+    "collectiveTitle": {
+      "en": "Simchat HaRegel",
+      "he": "שמחת הרגל"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5cb5b4ba7bb9b60019f025fd",
+    "index_title": "Naftali Seva Ratzon on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Naftali Seva Ratzon on Pesach Haggadah, Kadesh 1:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 1",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 1"
+    ],
+    "sourceRef": "Naftali Seva Ratzon on Pesach Haggadah, Kadesh 1:1",
+    "sourceHeRef": "נפתלי שבע רצון על הגדה של פסח, קדש א׳:א׳",
+    "anchorVerse": 1,
+    "sourceHasEn": true,
+    "compDate": [
+      1670,
+      1710
+    ],
+    "commentaryNum": 1.0001,
+    "collectiveTitle": {
+      "en": "Naftali Seva Ratzon",
+      "he": "נפתלי שבע רצון"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "68c08e19d1d15f4c18aac309",
+    "index_title": "Jeremiah",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Jeremiah 9:24",
+    "anchorRef": "Pesach Haggadah, Kadesh 10",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 10"
+    ],
+    "sourceRef": "Jeremiah 9:24",
+    "sourceHeRef": "ירמיהו ט׳:כ״ד",
+    "anchorVerse": 10,
+    "sourceHasEn": true,
+    "compDate": [
+      -600,
+      -500
+    ],
+    "commentaryNum": 9.0024,
+    "collectiveTitle": {
+      "en": "Jeremiah",
+      "he": "ירמיהו"
+    },
+    "heTitle": "ירמיהו"
+  },
+  {
+    "_id": "55102141fbfba27cbef6dfc4",
+    "index_title": "Marbeh Lesaper on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Marbeh Lesaper on Pesach Haggadah, Kadesh 12:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 12",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 12"
+    ],
+    "sourceRef": "Marbeh Lesaper on Pesach Haggadah, Kadesh 12:1",
+    "sourceHeRef": "מרבה לספר על הגדה של פסח, קדש י״ב:א׳",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      1750,
+      1790
+    ],
+    "commentaryNum": 12.0001,
+    "collectiveTitle": {
+      "en": "Marbeh Lesaper",
+      "he": "מרבה לספר"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5a858fafd6e4a968244ada30",
+    "index_title": "Maaseh Nissim on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Maaseh Nissim on Pesach Haggadah, Kadesh 12:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 12",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 12"
+    ],
+    "sourceRef": "Maaseh Nissim on Pesach Haggadah, Kadesh 12:1",
+    "sourceHeRef": "מעשה ניסים על הגדה של פסח, קדש י״ב:א׳",
+    "anchorVerse": 12,
+    "sourceHasEn": true,
+    "compDate": [
+      1789,
+      1801
+    ],
+    "commentaryNum": 12.0001,
+    "collectiveTitle": {
+      "en": "Maaseh Nissim",
+      "he": "מעשה ניסים"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "551020f1fbfba27cbef6dc92",
+    "index_title": "Tevele Bondi on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Tevele Bondi on Pesach Haggadah, Kadesh 2:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Tevele Bondi on Pesach Haggadah, Kadesh 2:1",
+    "sourceHeRef": "טעבעלה באנדי על הגדה של פסח , קדש ב׳:א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1820,
+      1880
+    ],
+    "commentaryNum": 2.0001,
+    "collectiveTitle": {
+      "en": "Maarechet Heidenheim",
+      "he": "מערכת היידענהיים"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "551020f1fbfba27cbef6dc94",
+    "index_title": "Tevele Bondi on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Tevele Bondi on Pesach Haggadah, Kadesh 2:2",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Tevele Bondi on Pesach Haggadah, Kadesh 2:2",
+    "sourceHeRef": "טעבעלה באנדי על הגדה של פסח , קדש ב׳:ב׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1820,
+      1880
+    ],
+    "commentaryNum": 2.0002,
+    "collectiveTitle": {
+      "en": "Maarechet Heidenheim",
+      "he": "מערכת היידענהיים"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5510216cfbfba27cbef6e1a8",
+    "index_title": "Kimcha Davshuna on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Kimcha Davshuna on Pesach Haggadah, Kadesh 2:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Kimcha Davshuna on Pesach Haggadah, Kadesh 2:1",
+    "sourceHeRef": "קמחא דאבישונא על הגדה של פסח, קדש ב׳:א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1520,
+      1540
+    ],
+    "commentaryNum": 2.0001,
+    "collectiveTitle": {
+      "en": "Kimcha Davshuna",
+      "he": "קמחא דאבישונא"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "55102193fbfba27cbef6e2a6",
+    "index_title": "Naftali Seva Ratzon on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2:1",
+    "sourceHeRef": "נפתלי שבע רצון על הגדה של פסח, קדש ב׳:א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1670,
+      1710
+    ],
+    "commentaryNum": 2.0001,
+    "collectiveTitle": {
+      "en": "Naftali Seva Ratzon",
+      "he": "נפתלי שבע רצון"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "55102193fbfba27cbef6e2a8",
+    "index_title": "Naftali Seva Ratzon on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2:2",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Naftali Seva Ratzon on Pesach Haggadah, Kadesh 2:2",
+    "sourceHeRef": "נפתלי שבע רצון על הגדה של פסח, קדש ב׳:ב׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1670,
+      1710
+    ],
+    "commentaryNum": 2.0002,
+    "collectiveTitle": {
+      "en": "Naftali Seva Ratzon",
+      "he": "נפתלי שבע רצון"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "592655d1d6e4a9576039b3ef",
+    "index_title": "Exodus",
+    "category": "Tanakh",
+    "type": "related",
+    "ref": "Exodus 20:8",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Exodus 20:8",
+    "sourceHeRef": "שמות כ׳:ח׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 20.0008,
+    "collectiveTitle": {
+      "en": "Exodus",
+      "he": "שמות"
+    },
+    "heTitle": "שמות"
+  },
+  {
+    "_id": "5a818fbbd6e4a95367dfcae1",
+    "index_title": "Kimcha Davshuna on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Kimcha Davshuna on Pesach Haggadah, Kadesh 2:2",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Kimcha Davshuna on Pesach Haggadah, Kadesh 2:2",
+    "sourceHeRef": "קמחא דאבישונא על הגדה של פסח, קדש ב׳:ב׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1520,
+      1540
+    ],
+    "commentaryNum": 2.0002,
+    "collectiveTitle": {
+      "en": "Kimcha Davshuna",
+      "he": "קמחא דאבישונא"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5a818fbbd6e4a95367dfcaee",
+    "index_title": "Kimcha Davshuna on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Kimcha Davshuna on Pesach Haggadah, Kadesh 2:3",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Kimcha Davshuna on Pesach Haggadah, Kadesh 2:3",
+    "sourceHeRef": "קמחא דאבישונא על הגדה של פסח, קדש ב׳:ג׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1520,
+      1540
+    ],
+    "commentaryNum": 2.0003,
+    "collectiveTitle": {
+      "en": "Kimcha Davshuna",
+      "he": "קמחא דאבישונא"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5a818fbbd6e4a95367dfcaf1",
+    "index_title": "Kimcha Davshuna on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Kimcha Davshuna on Pesach Haggadah, Kadesh 2:4",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Kimcha Davshuna on Pesach Haggadah, Kadesh 2:4",
+    "sourceHeRef": "קמחא דאבישונא על הגדה של פסח, קדש ב׳:ד׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1520,
+      1540
+    ],
+    "commentaryNum": 2.0004,
+    "collectiveTitle": {
+      "en": "Kimcha Davshuna",
+      "he": "קמחא דאבישונא"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5a818fbbd6e4a95367dfcafa",
+    "index_title": "Kimcha Davshuna on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Kimcha Davshuna on Pesach Haggadah, Kadesh 2:5",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Kimcha Davshuna on Pesach Haggadah, Kadesh 2:5",
+    "sourceHeRef": "קמחא דאבישונא על הגדה של פסח, קדש ב׳:ה׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1520,
+      1540
+    ],
+    "commentaryNum": 2.0005,
+    "collectiveTitle": {
+      "en": "Kimcha Davshuna",
+      "he": "קמחא דאבישונא"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5a858fc7d6e4a968244adabb",
+    "index_title": "Maaseh Nissim on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Maaseh Nissim on Pesach Haggadah, Kadesh 2:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Maaseh Nissim on Pesach Haggadah, Kadesh 2:1",
+    "sourceHeRef": "מעשה ניסים על הגדה של פסח, קדש ב׳:א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1789,
+      1801
+    ],
+    "commentaryNum": 2.0001,
+    "collectiveTitle": {
+      "en": "Maaseh Nissim",
+      "he": "מעשה ניסים"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cdd4",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:1",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0001,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cdd6",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:2",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:2",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:ב׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0002,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cdd8",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:3",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:3",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:ג׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0003,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cdda",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:4",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:4",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:ד׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0004,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cddc",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:5",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:5",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:ה׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0005,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cdde",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:6",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:6",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:ו׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0006,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cde0",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:7",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:7",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:ז׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0007,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cde2",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:8",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:8",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:ח׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0008,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cde4",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:9",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:9",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:ט׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0009,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cde6",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:10",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:10",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:י׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.001,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cde8",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:11",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:11",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:י״א",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0011,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cdea",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:12",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:12",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:י״ב",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0012,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cdec",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:13",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:13",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:י״ג",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0013,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cdee",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:14",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:14",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:י״ד",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0014,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cdf0",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:15",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:15",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:ט״ו",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0015,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aca1f91d6e4a944fee9cdf2",
+    "index_title": "Minchat Ani on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Minchat Ani on Pesach Haggadah, Kadesh 2:16",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Minchat Ani on Pesach Haggadah, Kadesh 2:16",
+    "sourceHeRef": "מנחת עני על הגדה של פסח, קדש ב׳:ט״ז",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1830,
+      1870
+    ],
+    "commentaryNum": 2.0016,
+    "collectiveTitle": {
+      "en": "Minchat Ani",
+      "he": "מנחת עני"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5cb45b960156a800184b7138",
+    "index_title": "Marbeh Lesaper on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Marbeh Lesaper on Pesach Haggadah, Kadesh 2:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Marbeh Lesaper on Pesach Haggadah, Kadesh 2:1",
+    "sourceHeRef": "מרבה לספר על הגדה של פסח, קדש ב׳:א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1750,
+      1790
+    ],
+    "commentaryNum": 2.0001,
+    "collectiveTitle": {
+      "en": "Marbeh Lesaper",
+      "he": "מרבה לספר"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5cb5be64055ef20018554eb5",
+    "index_title": "Divrei Negidim on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Divrei Negidim on Pesach Haggadah, Kadesh 2:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Divrei Negidim on Pesach Haggadah, Kadesh 2:1",
+    "sourceHeRef": "דברי נגידים על הגדה של פסח, קדש ב׳:א׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1895,
+      1925
+    ],
+    "commentaryNum": 2.0001,
+    "collectiveTitle": {
+      "en": "Divrei Negidim",
+      "he": "דברי נגידים"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5cb5be64055ef20018554eb7",
+    "index_title": "Divrei Negidim on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Divrei Negidim on Pesach Haggadah, Kadesh 2:2",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Divrei Negidim on Pesach Haggadah, Kadesh 2:2",
+    "sourceHeRef": "דברי נגידים על הגדה של פסח, קדש ב׳:ב׳",
+    "anchorVerse": 2,
+    "sourceHasEn": false,
+    "compDate": [
+      1895,
+      1925
+    ],
+    "commentaryNum": 2.0002,
+    "collectiveTitle": {
+      "en": "Divrei Negidim",
+      "he": "דברי נגידים"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5cb5be64055ef20018554eb9",
+    "index_title": "Divrei Negidim on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Divrei Negidim on Pesach Haggadah, Kadesh 2:3",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Divrei Negidim on Pesach Haggadah, Kadesh 2:3",
+    "sourceHeRef": "דברי נגידים על הגדה של פסח, קדש ב׳:ג׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1895,
+      1925
+    ],
+    "commentaryNum": 2.0003,
+    "collectiveTitle": {
+      "en": "Divrei Negidim",
+      "he": "דברי נגידים"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5cb5be64055ef20018554ebb",
+    "index_title": "Divrei Negidim on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Divrei Negidim on Pesach Haggadah, Kadesh 2:4",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Divrei Negidim on Pesach Haggadah, Kadesh 2:4",
+    "sourceHeRef": "דברי נגידים על הגדה של פסח, קדש ב׳:ד׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1895,
+      1925
+    ],
+    "commentaryNum": 2.0004,
+    "collectiveTitle": {
+      "en": "Divrei Negidim",
+      "he": "דברי נגידים"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5cb5be64055ef20018554ebd",
+    "index_title": "Divrei Negidim on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Divrei Negidim on Pesach Haggadah, Kadesh 2:5",
+    "anchorRef": "Pesach Haggadah, Kadesh 2",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 2"
+    ],
+    "sourceRef": "Divrei Negidim on Pesach Haggadah, Kadesh 2:5",
+    "sourceHeRef": "דברי נגידים על הגדה של פסח, קדש ב׳:ה׳",
+    "anchorVerse": 2,
+    "sourceHasEn": true,
+    "compDate": [
+      1895,
+      1925
+    ],
+    "commentaryNum": 2.0005,
+    "collectiveTitle": {
+      "en": "Divrei Negidim",
+      "he": "דברי נגידים"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "551020f1fbfba27cbef6dc98",
+    "index_title": "Tevele Bondi on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Tevele Bondi on Pesach Haggadah, Kadesh 3:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 3",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 3"
+    ],
+    "sourceRef": "Tevele Bondi on Pesach Haggadah, Kadesh 3:1",
+    "sourceHeRef": "טעבעלה באנדי על הגדה של פסח , קדש ג׳:א׳",
+    "anchorVerse": 3,
+    "sourceHasEn": true,
+    "compDate": [
+      1820,
+      1880
+    ],
+    "commentaryNum": 3.0001,
+    "collectiveTitle": {
+      "en": "Maarechet Heidenheim",
+      "he": "מערכת היידענהיים"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "63dbd34761b3379eb56840e7",
+    "index_title": "Machzor Vitry",
+    "category": "Quoting Commentary",
+    "type": "",
+    "ref": "Machzor Vitry, Laws of Pesach 65:3",
+    "anchorRef": "Pesach Haggadah, Kadesh 4",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 4"
+    ],
+    "sourceRef": "Machzor Vitry, Laws of Pesach 65:3",
+    "sourceHeRef": "מחזור ויטרי, הלכות פסח ס״ה:ג׳",
+    "anchorVerse": 4,
+    "sourceHasEn": false,
+    "compDate": [
+      1055,
+      1105
+    ],
+    "commentaryNum": 65.0003,
+    "collectiveTitle": {
+      "en": "Machzor Vitry",
+      "he": "מחזור ויטרי"
+    },
+    "heTitle": "הלכות פסח"
+  },
+  {
+    "_id": "695ee6753489d9ecd3b88c69",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "",
+    "ref": "Genesis 1:31-2:3",
+    "anchorRef": "Pesach Haggadah, Kadesh 4",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 4"
+    ],
+    "sourceRef": "Genesis 1:31-2:3",
+    "sourceHeRef": "בראשית א׳:ל״א-ב׳:ג׳",
+    "anchorVerse": 4,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 1.0031,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "55102003fbfba27cbef6c43a",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "liturgy",
+    "ref": "Genesis 2:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 5",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 5"
+    ],
+    "sourceRef": "Genesis 2:1",
+    "sourceHeRef": "בראשית ב׳:א׳",
+    "anchorVerse": 5,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 2.0001,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "55102007fbfba27cbef6c43c",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "liturgy",
+    "ref": "Genesis 2:2",
+    "anchorRef": "Pesach Haggadah, Kadesh 6",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 6"
+    ],
+    "sourceRef": "Genesis 2:2",
+    "sourceHeRef": "בראשית ב׳:ב׳",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 2.0002,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5510200bfbfba27cbef6c43e",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "liturgy",
+    "ref": "Genesis 2:2",
+    "anchorRef": "Pesach Haggadah, Kadesh 6-7",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 6",
+      "Pesach Haggadah, Kadesh 7"
+    ],
+    "sourceRef": "Genesis 2:2",
+    "sourceHeRef": "בראשית ב׳:ב׳",
+    "anchorVerse": 6,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 2.0002,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "5510200ffbfba27cbef6c441",
+    "index_title": "Genesis",
+    "category": "Tanakh",
+    "type": "liturgy",
+    "ref": "Genesis 2:3",
+    "anchorRef": "Pesach Haggadah, Kadesh 7",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 7"
+    ],
+    "sourceRef": "Genesis 2:3",
+    "sourceHeRef": "בראשית ב׳:ג׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      -1400,
+      -400
+    ],
+    "commentaryNum": 2.0003,
+    "collectiveTitle": {
+      "en": "Genesis",
+      "he": "בראשית"
+    },
+    "heTitle": "בראשית"
+  },
+  {
+    "_id": "55102141fbfba27cbef6dfc2",
+    "index_title": "Marbeh Lesaper on Pesach Haggadah",
+    "category": "Commentary",
+    "type": "commentary",
+    "ref": "Marbeh Lesaper on Pesach Haggadah, Kadesh 7:1",
+    "anchorRef": "Pesach Haggadah, Kadesh 7",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 7"
+    ],
+    "sourceRef": "Marbeh Lesaper on Pesach Haggadah, Kadesh 7:1",
+    "sourceHeRef": "מרבה לספר על הגדה של פסח, קדש ז׳:א׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      1750,
+      1790
+    ],
+    "commentaryNum": 7.0001,
+    "collectiveTitle": {
+      "en": "Marbeh Lesaper",
+      "he": "מרבה לספר"
+    },
+    "heTitle": "קדש"
+  },
+  {
+    "_id": "5aaab62ed6e4a91dc2d82d65",
+    "index_title": "Amos",
+    "category": "Tanakh",
+    "type": "related",
+    "ref": "Amos 3:2",
+    "anchorRef": "Pesach Haggadah, Kadesh 7",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 7"
+    ],
+    "sourceRef": "Amos 3:2",
+    "sourceHeRef": "עמוס ג׳:ב׳",
+    "anchorVerse": 7,
+    "sourceHasEn": true,
+    "compDate": [
+      -1000,
+      -600
+    ],
+    "commentaryNum": 3.0002,
+    "collectiveTitle": {
+      "en": "Amos",
+      "he": "עמוס"
+    },
+    "heTitle": "עמוס"
+  },
+  {
+    "_id": "5ab4c2d8d6e4a91150646be4",
+    "index_title": "Kol Bo",
+    "category": "Halakhah",
+    "type": "commentary",
+    "ref": "Kol Bo 50:18",
+    "anchorRef": "Pesach Haggadah, Kadesh 7",
+    "anchorRefExpanded": [
+      "Pesach Haggadah, Kadesh 7"
+    ],
+    "sourceRef": "Kol Bo 50:18",
+    "sourceHeRef": "כל בו נ׳:י״ח",
+    "anchorVerse": 7,
+    "sourceHasEn": false,
+    "compDate": [
+      1250,
+      1450
+    ],
+    "commentaryNum": 50.0018,
+    "collectiveTitle": {
+      "en": "Kol Bo",
+      "he": "כל בו"
+    },
+    "heTitle": "כל בו"
+  }
+]

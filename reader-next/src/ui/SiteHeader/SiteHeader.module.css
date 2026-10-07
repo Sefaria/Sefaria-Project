@@ -1,0 +1,56 @@
+.header { position: relative; z-index: 110; background: var(--sefaria-color-surface); box-shadow: 0 1px 3px rgb(0 0 0 / 20%); font-family: var(--sefaria-font-ui-en); }
+.header[lang="he"] { font-family: var(--sefaria-font-ui-he); }
+.inner { display: flex; align-items: center; justify-content: space-between; height: 60px; padding-inline: 30px; box-sizing: border-box; }
+.nav { display: flex; align-items: center; gap: 60px; }
+.logo { display: inline-flex; align-items: center; }
+.logo img { height: 25px; width: auto; display: block; }
+.links { display: flex; align-items: center; gap: 30px; }
+.link { padding: 0; font-size: 16px; font-weight: 500; color: #666; text-decoration: none; }
+.link:hover { color: var(--sefaria-color-text); }
+.right { display: flex; align-items: center; gap: 20px; }
+.search { display: flex; align-items: center; gap: 8px; width: 250px; height: 34px; padding-inline: 10px; box-sizing: border-box; background: #ededec; border-radius: 17px; }
+.search input { flex: 1; min-width: 0; border: 0; background: none; font-family: var(--sefaria-font-text-en); font-size: 17px; color: var(--sefaria-color-text); }
+.search input:focus-visible { outline: 2px solid var(--sefaria-color-focus); outline-offset: 4px; }
+.searchBtn { display: inline-flex; padding: 0; border: 0; background: none; cursor: pointer; color: #666; font-size: 1.15rem; }
+.signup { display: inline-flex; align-items: center; height: 28px; padding: 6px 12px; box-sizing: border-box; border-radius: 6px; background: var(--sefaria-color-brand, #18345d); color: #fff; font-size: 14px; text-decoration: none; white-space: nowrap; }
+.signup:hover { opacity: 0.9; }
+.icons { display: flex; align-items: center; gap: 20px; }
+.icons { color: #666; }
+.icons button { color: inherit; }
+.iconLink { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin: -3px; padding: 0; border-radius: 6px; color: var(--sefaria-color-text-secondary); }
+.iconLink:hover { color: var(--sefaria-color-text); }
+.iconLink { color: #666; }
+.menu { padding: 8px; min-width: 200px; display: flex; flex-direction: column; gap: 2px; font-size: 15px; }
+.menuItem { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 6px; color: var(--sefaria-color-text); text-decoration: none; }
+.menuItem:hover { background: var(--sefaria-color-surface-subtle, #f0f0f0); }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.sep { height: 1px; background: var(--sefaria-color-border); margin-block: 4px; }
+.menuHeading { padding: 6px 10px; font-size: 12px; letter-spacing: 0.04em; color: var(--sefaria-color-text-muted); text-transform: uppercase; }
+.langRow { display: flex; gap: 12px; padding: 6px 10px; }
+.langRow a { color: var(--sefaria-color-text-secondary); text-decoration: none; }
+.langRow a[aria-current="true"] { color: var(--sefaria-color-text); font-weight: 700; }
+.mobileBar, .mobileMenu { display: none; }
+
+/* Phone and small tablet: logo bar and a slide-out menu (the old site flips at the same width the panels do). */
+@media (max-width: 842px) {
+  .desktop { display: none; }
+  .mobileBar { display: flex; align-items: center; justify-content: space-between; height: 60px; padding-inline: 12px; }
+  .mobileBar .logo img { height: 22px; }
+  .mobileMenu { display: block; position: absolute; inset-inline: 0; top: 100%; background: var(--sefaria-color-surface); box-shadow: 0 6px 12px rgb(0 0 0 / 15%); padding: 8px 16px 16px; max-height: calc(100dvh - 60px); overflow: auto; }
+  .mobileMenu[hidden] { display: none; }
+  .mobileMenu .search { width: 100%; margin-block: 8px 12px; }
+  .mobileMenu a { text-decoration: none; }
+}
+
+/* VERIFIED on sefaria.org (1280px): 18px icons 20px apart, 24px targets kept by negative margins */
+.icons > div > button:first-child { width: 24px; height: 24px; margin: -3px; padding: 0; }
+.icons > a svg, .icons > div > button:first-child svg { width: 18px; height: 18px; }
+
+/* the drop-down and its button share the analytics feature name */
+.menuWrap {
+  display: contents;
+}
+/* signed in: the profile picture opens the account menu */
+.pictureButton { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer; }
+.menuName { cursor: default; }
+.menuName:hover { background: none; }

@@ -1,0 +1,28 @@
+.row { display: flex; align-items: center; gap: var(--sefaria-space-3); width: 100%; padding: var(--sefaria-space-2) 0; border: 0; background: none; color: inherit; font: inherit; text-align: start; text-decoration: none; cursor: pointer; }
+.row:hover .label { text-decoration: underline; }
+.icon { flex: none; color: var(--_color, var(--sefaria-color-text-muted)); }
+.main { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.label { font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); line-height: var(--sefaria-leading-ui); }
+.label[lang="he"] { font-family: var(--sefaria-font-text-he); }
+.count { margin-inline-start: var(--sefaria-space-1); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-sans-body); color: var(--sefaria-color-text-muted); }
+.description { font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-caption); color: var(--sefaria-color-text-secondary); line-height: var(--sefaria-leading-ui); }
+.tag { flex: none; padding: 0 4px; border: 1px solid var(--sefaria-color-border-strong); border-radius: var(--sefaria-radius-xs); font: 500 10px/14px var(--sefaria-font-ui-en); color: var(--sefaria-color-text-secondary); letter-spacing: 0.04em; }
+.dimmed .label, .dimmed .icon, .dimmed .count { opacity: 0.45; }
+.current .label { font-weight: 700; }
+.heading { margin: var(--sefaria-space-6) 0 var(--sefaria-space-2); padding-bottom: var(--sefaria-space-2); border-bottom: 1px solid var(--sefaria-color-border-strong); font-size: var(--sefaria-text-sans-small); font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; color: var(--sefaria-color-text-secondary); }
+.headingTitle { margin: var(--sefaria-space-8) 0 var(--sefaria-space-3); padding-bottom: var(--sefaria-space-2); border-bottom: 1px solid var(--sefaria-color-border); font-family: var(--sefaria-font-ui-en); font-size: 1.25rem; font-weight: 400; color: var(--sefaria-color-text-secondary); }
+
+/* VERIFIED on sefaria.org (1280px): tool and resource rows are Roboto 16px black, letter-spacing 1px, counts light; every row 41px apart */
+.row { padding-block: 9px; }
+.row[data-tool] { padding-block: 10px; }
+.row[data-tool] .label { font-family: var(--sefaria-font-ui-en); font-size: 16px; letter-spacing: 1px; color: #000; }
+.row[data-tool] .count { font-weight: 300; letter-spacing: 1px; color: #666; }
+.count { font-weight: 300; }
+.label { line-height: 23px; }
+.row[data-tool] .label { line-height: 21px; }
+.main { gap: 0; }
+.icon { display: inline-flex; align-items: center; }
+.main { line-height: 21px; }
+
+/* "English (14)": mixed case, 16px, letter-spaced, the count light (VERIFIED on sefaria.org) */
+.headingLanguage { margin: 20px 0 16px; padding-block-end: 10px; border-bottom: 1px solid var(--sefaria-color-border-strong); font-family: var(--sefaria-font-ui-en); font-size: 16px; font-weight: 400; letter-spacing: 1px; color: #666; }

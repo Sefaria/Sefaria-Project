@@ -1,0 +1,32 @@
+.title { margin: 0 0 var(--sefaria-space-6); font-family: var(--sefaria-font-text-en); font-size: var(--sefaria-text-serif-body); font-weight: 400; }
+.title[lang="he"] { font-family: var(--sefaria-font-text-he); }
+.titleBar { display: block; width: 28px; height: 4px; margin-top: var(--sefaria-space-2); background: var(--_color, var(--sefaria-color-brand)); }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sefaria-space-6); }
+.item { display: grid; gap: var(--sefaria-space-2); font-size: 1.15em; line-height: var(--sefaria-reader-line-height); }
+.item[data-lang="he"] { font-size: calc(1.15em * 1.1); }
+.ref { font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-caption); letter-spacing: 0.02em; }
+.ref a { color: var(--sefaria-color-text-secondary); text-decoration: none; }
+.ref a:hover { text-decoration: underline; }
+.number { display: inline-block; min-width: 1.4em; margin-inline-end: var(--sefaria-space-1); font-family: var(--sefaria-font-ui-en); font-size: var(--sefaria-text-caption); color: var(--sefaria-color-text-muted); }
+.text { margin: 0; text-align: start; }
+/* Text faces follow the language of each version, like the reader: serif for text, the Hebrew UI face for an RTL translation. */
+.text :global([lang]) { font-family: var(--sefaria-font-text-en); }
+.text :global([lang="he"]), .text :global([lang="arc"]) { font-family: var(--sefaria-font-text-he); }
+.text :global([lang]:not([lang="he"]):not([lang="en"])[dir="rtl"]) { font-family: var(--sefaria-font-ui-he); }
+.actions { display: flex; gap: var(--sefaria-space-3); }
+.notice { color: var(--sefaria-color-text-secondary); }
+
+/* VERIFIED on sefaria.org (1280px): 18px black upper-case title with a 4px category-coloured rule under its own width; each connected
+   text a 1px #eee-ruled block: the source in grey 18px serif, the text justified 18px/25px, "⧉ Open" in 14px grey sans */
+.title { display: inline-block; margin: 0 0 18px; padding-block-end: 9px; border-block-end: 4px solid var(--_color, #4b71b7); font-size: 18px; line-height: 21.6px; text-transform: uppercase; color: #000; }
+.titleBar { display: none; }
+.list { gap: 0; }
+.item { gap: 0; padding-block: 17px 15px; border-block-end: 1px solid #eee; font-size: 18px; line-height: 25.2px; }
+.item[data-lang="he"] { font-size: 20px; line-height: 28px; }
+.ref { font-family: var(--sefaria-font-text-en); font-size: 18px; letter-spacing: 0; color: #6f6f6f; line-height: 25.2px; }
+.ref a { color: inherit; }
+.text { text-align: justify; }
+.actions { margin-block-start: 10px; }
+.open { display: inline-flex; align-items: center; gap: 6px; font-family: var(--sefaria-font-ui-en); font-size: 14px; line-height: 22px; color: #6f6f6f; text-decoration: none; }
+.open:hover { text-decoration: underline; }
+.notice { font-family: var(--sefaria-font-ui-en); font-size: 14px; font-style: italic; color: #000; }

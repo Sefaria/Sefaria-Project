@@ -1,0 +1,12 @@
+/* A split fills its container; its cells share the space by --share, never below --min (then it scrolls). */
+.fill { width: 100%; height: 100%; }
+.split { display: flex; min-width: 0; min-height: 0; }
+.split[data-direction="row"] { flex-direction: row; overflow-x: auto; overflow-y: hidden; }
+.split[data-direction="column"] { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+.cell { display: flex; position: relative; flex: var(--share) 1 0; min-width: 0; min-height: 0; }
+.split[data-direction="row"] > .cell { min-width: var(--min); }
+.split[data-direction="column"] > .cell { min-height: var(--min); }
+.split[data-dividers="true"][data-direction="row"] > .cell + .cell { border-inline-start: 1px solid var(--sefaria-color-border); }
+.split[data-dividers="true"][data-direction="column"] > .cell + .cell { border-block-start: 1px solid var(--sefaria-color-border); }
+.cell > .split, .cell > .leaf { flex: 1; }
+.leaf { display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; }

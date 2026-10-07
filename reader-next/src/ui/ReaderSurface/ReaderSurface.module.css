@@ -1,0 +1,32 @@
+/*
+ * The reading surface. Language, layout and size are data attributes so every descendant can style
+ * itself from one source of truth. The surface is a size container: segment-number gutters and
+ * bilingual layouts respond to the *panel's* width (panels resize independently), not the viewport.
+ */
+.surface {
+  container-type: inline-size;
+  container-name: reader;
+  font-size: calc(var(--sefaria-reader-body-en) * var(--sefaria-reader-font-scale, 1));
+  line-height: var(--sefaria-reader-line-height);
+  color: var(--sefaria-color-text);
+  max-width: var(--sefaria-reader-measure);
+  margin-inline: auto;
+  padding-inline: var(--_pad);
+  --_pad: var(--sefaria-segment-gutter);
+  position: relative;
+}
+/* Hebrew and bilingual panels read right-to-left; English-only reads left-to-right. */
+.surface[data-language="english"] { direction: ltr; }
+.surface[data-language="hebrew"], .surface[data-language="bilingual"] { direction: rtl; }
+
+/* A panel narrower than 730px (the old "narrowColumn") keeps the text 26px further from its edges, so the segment numbers
+   have a gutter of their own: at 390px the text runs from x=56 to x=334 (VERIFIED on sefaria.org). */
+@container panel (max-width: 729.98px) {
+  .surface { --_pad: calc(var(--sefaria-segment-gutter) + 26px); }
+}
+
+/* A real phone (the old "singlePanel": `.singlePanel .basetext .text { padding: 0 34px }`, VERIFIED with a phone User-Agent: the text
+   runs from x=34 to x=356 at 390px). A narrow desktop window keeps the 56px above — sefaria.org decides by User-Agent, we by a touch screen. */
+@media (max-width: 842px) and (pointer: coarse) {
+  .surface { --_pad: 34px; }
+}

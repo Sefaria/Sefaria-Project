@@ -1,0 +1,2 @@
+.skip { position: absolute; inset-inline-start: 8px; top: -100px; z-index: 100; padding: 10px 16px; border-radius: 6px; background: var(--sefaria-color-text); color: var(--sefaria-color-surface); font-family: var(--sefaria-font-ui-en); text-decoration: none; }
+.skip:focus { top: 8px; }

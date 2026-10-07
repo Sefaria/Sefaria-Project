@@ -1,0 +1,9 @@
+.row { display: flex; align-items: center; justify-content: space-between; gap: var(--sefaria-space-4); width: 100%; padding: var(--sefaria-space-2) 0; background: none; border: 0; font: inherit; color: var(--sefaria-color-text); text-align: start; cursor: pointer; }
+.row[aria-disabled="true"] { cursor: not-allowed; color: var(--sefaria-color-text-muted); }
+.text { display: grid; gap: 2px; }
+.description { font-size: var(--sefaria-text-caption); color: var(--sefaria-color-text-secondary); }
+.track { position: relative; flex: none; width: 46px; height: 24px; border-radius: var(--sefaria-radius-pill); background: #ccc; transition: background 0.15s; }
+.thumb { position: absolute; top: 2px; inset-inline-start: 2px; width: 20px; height: 20px; border-radius: var(--sefaria-radius-round); background: var(--sefaria-color-surface); box-shadow: var(--sefaria-shadow-1); transition: inset-inline-start 0.15s; }
+.row[aria-checked="true"] .track { background: var(--sefaria-color-brand); }
+.row[aria-checked="true"] .thumb { inset-inline-start: 24px; }
+.row[aria-disabled="true"] .track { opacity: 0.5; }

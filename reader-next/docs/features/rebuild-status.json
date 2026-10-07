@@ -1,0 +1,1607 @@
+{
+ "BOK-022": {
+  "status": "done",
+  "by": "src/ui/RelatedTopics"
+ },
+ "CON-013": {
+  "status": "done",
+  "note": "About, Translations, Table of Contents and Search in this Text work"
+ },
+ "CON-039": {
+  "status": "done",
+  "by": "src/ui/AboutView/AboutView.tsx"
+ },
+ "CON-042": {
+  "status": "done",
+  "by": "src/features/reader/TextPanel.tsx"
+ },
+ "CON-043": {
+  "status": "partial",
+  "note": "Lookup, filter and typed search done; no Hebrew keyboard or autocomplete in the box (search phase)",
+  "by": "src/lib/lexicon/lookup.ts"
+ },
+ "CON-044": {
+  "status": "done",
+  "by": "src/ui/LexiconEntry/LexiconEntry.tsx"
+ },
+ "CON-046": {
+  "status": "done",
+  "by": "src/ui/TopicsView/TopicsView.tsx"
+ },
+ "CON-052": {
+  "status": "done",
+  "by": "src/ui/WebPagesView/WebPagesView.tsx"
+ },
+ "CON-053": {
+  "status": "done",
+  "by": "src/lib/connections/webpages.ts"
+ },
+ "CON-054": {
+  "status": "done"
+ },
+ "CON-059": {
+  "status": "done",
+  "by": "src/ui/TorahReadingsView/TorahReadingsView.tsx"
+ },
+ "CON-060": {
+  "status": "done",
+  "by": "src/ui/ManuscriptsView/ManuscriptsView.tsx"
+ },
+ "I18-001": {
+  "status": "partial",
+  "note": "Translation and version preferences from cookies; content-language and country suggestion not yet"
+ },
+ "LIB-046": {
+  "status": "partial",
+  "note": "Component exists; library pages not built"
+ },
+ "LIB-060": {
+  "status": "partial",
+  "note": "Component exists; library pages not built"
+ },
+ "PLT-002": {
+  "status": "done",
+  "note": "/healthz-reader + node rollout probes; Django health URLs pass through",
+  "by": "src/start.ts"
+ },
+ "PLT-003": {
+  "status": "done",
+  "note": "Server-rendered text, canonical redirects, prev/next links; in the cluster the client answers first and passes Django's pages through (docs/DEPLOYMENT.md)",
+  "by": "src/routes/$.tsx"
+ },
+ "PLT-004": {
+  "status": "replaced",
+  "note": "Hydration and bootstrap are TanStack Start's; dehydrated query cache replaces serialized props",
+  "by": "src/router.tsx"
+ },
+ "PLT-005": {
+  "status": "replaced",
+  "note": "Hydration and bootstrap are TanStack Start's; dehydrated query cache replaces serialized props",
+  "by": "src/router.tsx"
+ },
+ "PLT-006": {
+  "status": "partial",
+  "note": "Page titles done; meta descriptions not"
+ },
+ "PLT-007": {
+  "status": "todo"
+ },
+ "PLT-008": {
+  "status": "todo"
+ },
+ "PLT-011": {
+  "status": "replaced",
+  "note": "Hydration and bootstrap are TanStack Start's; dehydrated query cache replaces serialized props",
+  "by": "src/router.tsx"
+ },
+ "PLT-012": {
+  "status": "replaced",
+  "note": "Hydration and bootstrap are TanStack Start's; dehydrated query cache replaces serialized props",
+  "by": "src/router.tsx"
+ },
+ "PLT-013": {
+  "status": "replaced",
+  "note": "Hydration and bootstrap are TanStack Start's; dehydrated query cache replaces serialized props",
+  "by": "src/router.tsx"
+ },
+ "PLT-014": {
+  "status": "deferred",
+  "note": "Library/Voices module helpers wait for the Voices decision"
+ },
+ "PLT-019": {
+  "status": "partial",
+  "note": "Phone layout done; other mobile-web specifics not audited"
+ },
+ "PLT-026": {
+  "status": "todo"
+ },
+ "PLT-027": {
+  "status": "todo"
+ },
+ "RTE-001": {
+  "status": "deferred",
+  "note": "Depends on the owner's decisions on Voices, auth and hosting"
+ },
+ "RTE-002": {
+  "status": "replaced",
+  "note": "Django URL composition, middleware and global JS payloads have no equivalent in a TanStack Start app"
+ },
+ "RTE-004": {
+  "status": "deferred",
+  "note": "Depends on the owner's decisions on Voices, auth and hosting"
+ },
+ "RTE-008": {
+  "status": "replaced",
+  "note": "Django URL composition, middleware and global JS payloads have no equivalent in a TanStack Start app"
+ },
+ "RTE-009": {
+  "status": "todo"
+ },
+ "RTE-021": {
+  "status": "deferred",
+  "note": "Depends on the owner's decisions on Voices, auth and hosting"
+ },
+ "RTE-022": {
+  "status": "deferred",
+  "note": "Depends on the owner's decisions on Voices, auth and hosting"
+ },
+ "RTE-026": {
+  "status": "done",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "RTE-027": {
+  "status": "done",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "RTE-028": {
+  "status": "done",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "RTE-029": {
+  "status": "todo"
+ },
+ "RTE-030": {
+  "status": "todo"
+ },
+ "RTE-032": {
+  "status": "done",
+  "note": "Login/register/reset routes here; logout Django's",
+  "by": "src/routes/_auth.tsx"
+ },
+ "RTE-033": {
+  "status": "done",
+  "note": "Endpoints called same-origin; stay Django's in the pass-through",
+  "by": "src/lib/auth, src/server/pass-through.ts"
+ },
+ "RTE-034": {
+  "status": "done",
+  "by": "src/routes/interface.$lang.tsx"
+ },
+ "RTE-035": {
+  "status": "replaced",
+  "note": "Django URL composition, middleware and global JS payloads have no equivalent in a TanStack Start app"
+ },
+ "RTE-039": {
+  "status": "deferred",
+  "note": "Depends on the owner's decisions on Voices, auth and hosting"
+ },
+ "RTE-040": {
+  "status": "partial",
+  "note": "Unknown book is a real 404 page; error pages for server failures not designed"
+ },
+ "RTE-042": {
+  "status": "done",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "RTE-043": {
+  "status": "done",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "RTE-044": {
+  "status": "done",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "RTE-049": {
+  "status": "done",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "RTE-053": {
+  "status": "done",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "RTE-054": {
+  "status": "done",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "RTE-055": {
+  "status": "done",
+  "by": "src/lib/reader/position-store.ts"
+ },
+ "RTE-056": {
+  "status": "done",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "RTE-058": {
+  "status": "done",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "RTE-059": {
+  "status": "deferred",
+  "note": "Depends on the owner's decisions on Voices, auth and hosting"
+ },
+ "RTE-062": {
+  "status": "done",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "SHL-007": {
+  "status": "done",
+  "by": "src/lib/reader/settings.ts"
+ },
+ "SHL-008": {
+  "status": "done",
+  "by": "src/lib/reader/settings.ts"
+ },
+ "SHL-009": {
+  "status": "done",
+  "by": "src/lib/reader/settings.ts"
+ },
+ "SHL-011": {
+  "status": "done",
+  "by": "src/lib/reader/settings.ts"
+ },
+ "SHL-017": {
+  "status": "done",
+  "by": "src/lib/reader/settings.ts"
+ },
+ "SHL-018": {
+  "status": "done",
+  "by": "src/lib/reader/settings.ts"
+ },
+ "SHL-022": {
+  "status": "replaced",
+  "note": "TanStack Start entry, providers in src/routes/__root.tsx; no global props object",
+  "by": "src/routes/__root.tsx"
+ },
+ "SHL-023": {
+  "status": "n/a",
+  "note": "Header-only mode over Django static pages exists only because the old app bolts onto server-rendered pages"
+ },
+ "SHL-025": {
+  "status": "replaced",
+  "note": "No user-agent sniffing: one responsive layout, the single-panel breakpoint is a CSS media query (max-width: 842px)",
+  "by": "src/features/workspace/Workspace.module.css"
+ },
+ "SHL-026": {
+  "status": "replaced",
+  "note": "TanStack Start entry, providers in src/routes/__root.tsx; no global props object",
+  "by": "src/routes/__root.tsx"
+ },
+ "SHL-027": {
+  "status": "replaced",
+  "note": "TanStack Start entry, providers in src/routes/__root.tsx; no global props object",
+  "by": "src/routes/__root.tsx"
+ },
+ "SHL-028": {
+  "status": "done",
+  "by": "src/lib/workspace/"
+ },
+ "SHL-029": {
+  "status": "partial",
+  "note": "Text panels only; sheet, menu and search panels are not modelled yet"
+ },
+ "SHL-030": {
+  "status": "done",
+  "by": "src/lib/workspace/"
+ },
+ "SHL-031": {
+  "status": "done",
+  "by": "src/features/reader/TextPanel.tsx"
+ },
+ "SHL-032": {
+  "status": "todo",
+  "note": "Sheet and menu panel kinds plug into PanelHost in src/features/workspace/Workspace.tsx"
+ },
+ "SHL-033": {
+  "status": "done",
+  "by": "src/features/reader/TextPanel.tsx"
+ },
+ "SHL-034": {
+  "status": "todo",
+  "note": "Sheet and menu panel kinds plug into PanelHost in src/features/workspace/Workspace.tsx"
+ },
+ "SHL-036": {
+  "status": "partial",
+  "note": "Each panel is a labelled <section>; no class state hooks beyond data attributes"
+ },
+ "SHL-039": {
+  "status": "done",
+  "by": "src/lib/workspace/"
+ },
+ "SHL-043": {
+  "status": "done",
+  "by": "src/lib/workspace/"
+ },
+ "SHL-044": {
+  "status": "done",
+  "by": "src/lib/workspace/"
+ },
+ "SHL-045": {
+  "status": "done",
+  "by": "src/features/reader/TextPanel.tsx"
+ },
+ "SHL-046": {
+  "status": "done",
+  "by": "src/features/reader/TextPanel.tsx"
+ },
+ "SHL-047": {
+  "status": "done",
+  "by": "src/lib/workspace/"
+ },
+ "SHL-048": {
+  "status": "done",
+  "by": "src/lib/workspace/"
+ },
+ "SHL-049": {
+  "status": "done",
+  "note": "Citation closes what is next and opens there, as sefaria.org (owner decision)",
+  "by": "src/features/reader/TextPanel.tsx"
+ },
+ "SHL-052": {
+  "status": "done",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "SHL-053": {
+  "status": "done",
+  "by": "src/features/reader/TextPanel.tsx"
+ },
+ "SHL-056": {
+  "status": "partial",
+  "note": "Opening a base text in place works; opening a sheet in a panel waits for Voices"
+ },
+ "SHL-059": {
+  "status": "done",
+  "by": "src/lib/workspace/"
+ },
+ "SHL-060": {
+  "status": "todo",
+  "note": "Open library, Voices, search and user pages from a panel"
+ },
+ "SHL-061": {
+  "status": "done",
+  "by": "src/lib/workspace/"
+ },
+ "SHL-062": {
+  "status": "done",
+  "by": "src/features/reader/TextPanel.tsx, src/features/shell/mobile-menu.ts"
+ },
+ "SHL-063": {
+  "status": "done",
+  "note": "History entries record why they changed (scroll/stay/select/go) and which panel",
+  "by": "src/features/workspace/navigation.tsx"
+ },
+ "SHL-064": {
+  "status": "done",
+  "by": "src/features/workspace/navigation.tsx src/lib/reader/position-store.ts"
+ },
+ "SHL-066": {
+  "status": "done",
+  "note": "URLs read and written exactly as sefaria.org (owner decision); corpus round-trips",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "SHL-067": {
+  "status": "partial",
+  "note": "Links in the text and sidebar navigate in-app; no global interception for arbitrary hrefs yet"
+ },
+ "SHL-069": {
+  "status": "partial",
+  "note": "Real anchors honour modifier clicks inside FilterRow; text links and others not audited"
+ },
+ "SHL-072": {
+  "status": "replaced",
+  "note": "Panels get their own state and callbacks through TextPanel props and useWorkspaceNav, not a context"
+ },
+ "SHL-074": {
+  "status": "partial",
+  "note": "Title, attribution, version label, display settings; no save button; title does not open the sidebar yet; hidden-on-phone-with-sidebar not done"
+ },
+ "TXD-001": {
+  "status": "done",
+  "note": "Clean copy; markup simpler than the old",
+  "by": "src/lib/reader/copy.ts"
+ },
+ "TXD-002": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-003": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-005": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-006": {
+  "status": "done",
+  "by": "src/features/reader/reader-route.ts"
+ },
+ "TXD-007": {
+  "status": "replaced",
+  "note": "The legacy text shape, per-segment cache and request adapter are replaced by the normalised model and the section-level library cache",
+  "by": "src/lib/text/model.ts src/lib/cache/"
+ },
+ "TXD-008": {
+  "status": "replaced",
+  "note": "The legacy text shape, per-segment cache and request adapter are replaced by the normalised model and the section-level library cache",
+  "by": "src/lib/text/model.ts src/lib/cache/"
+ },
+ "TXD-009": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-010": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-011": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-012": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-013": {
+  "status": "done",
+  "by": "src/lib/reader/header.ts src/features/reader/TextPanel.tsx"
+ },
+ "TXD-014": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-017": {
+  "status": "replaced",
+  "note": "The legacy text shape, per-segment cache and request adapter are replaced by the normalised model and the section-level library cache",
+  "by": "src/lib/text/model.ts src/lib/cache/"
+ },
+ "TXD-021": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-025": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-031": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-033": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-034": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-036": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-037": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-038": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-040": {
+  "status": "replaced",
+  "note": "CSS state classes on the panel are data attributes on the rebuild's components"
+ },
+ "TXD-041": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-042": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-043": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-044": {
+  "status": "partial",
+  "note": "RTL translations get direction; Hebrew styling not verified for every language"
+ },
+ "TXD-045": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-046": {
+  "status": "done",
+  "note": "Gutter placement matches; collisions step apart (live's fix misplaces them)",
+  "by": "src/ui/Segment/Segment.module.css, src/lib/reader/spread-numbers.ts"
+ },
+ "TXD-047": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-048": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-049": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-050": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-052": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-053": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-054": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-055": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-056": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-057": {
+  "status": "partial",
+  "note": "Selection read and click-after-selection guard done; selected segments are not highlighted; double-click guard not ported",
+  "by": "src/lib/reader/selection.ts"
+ },
+ "TXD-059": {
+  "status": "done",
+  "by": "src/lib/lexicon/lookup.ts"
+ },
+ "TXD-061": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-065": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-067": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXD-068": {
+  "status": "done",
+  "by": "src/features/reader/ src/lib/text/"
+ },
+ "TXT-009": {
+  "status": "done",
+  "by": "src/lib/reader/header.ts"
+ },
+ "VER-001": {
+  "status": "partial",
+  "note": "Cookie read; no setter UI or suggestion banner yet"
+ },
+ "VER-002": {
+  "status": "partial",
+  "note": "Cookie read and written (a year); profile storage waits for auth",
+  "by": "src/lib/versions/prefs-source.ts"
+ },
+ "VER-003": {
+  "status": "done",
+  "by": "src/features/reader/TextPanel.tsx"
+ },
+ "VER-005": {
+  "status": "done",
+  "by": "src/lib/reader/header.ts"
+ },
+ "VER-006": {
+  "status": "done",
+  "by": "src/ui/AboutView/AboutView.tsx"
+ },
+ "VER-007": {
+  "status": "done",
+  "by": "src/features/reader/ConnectionsPane.tsx"
+ },
+ "VER-008": {
+  "status": "done",
+  "note": "Downloads are served by sefaria.org",
+  "by": "src/ui/DownloadVersions/DownloadVersions.tsx"
+ },
+ "VER-010": {
+  "status": "partial",
+  "note": "Preview opens the sidebar; truncation is CSS max-height without the clickable ellipsis"
+ },
+ "VER-013": {
+  "status": "partial",
+  "note": "Preview, Open and back done; Add to Sheet needs sign-in",
+  "by": "src/ui/TranslationsView/TranslationOpenView.tsx"
+ },
+ "VER-014": {
+  "status": "done",
+  "by": "src/lib/versions/preferences.ts src/features/reader/reader-route.ts"
+ },
+ "VER-016": {
+  "status": "partial",
+  "note": "About-box mode only; book-page and Translations-box modes pending"
+ },
+ "VER-017": {
+  "status": "done",
+  "by": "src/ui/VersionInfo/VersionInfo.tsx"
+ },
+ "BOK-008": {
+  "status": "done",
+  "note": "Sidebar links go in place; the book page will reuse TocView",
+  "by": "src/ui/TocView/TocView.tsx, src/lib/toc/"
+ },
+ "BOK-009": {
+  "status": "done",
+  "note": "Sidebar view done, text identical to sefaria.org for six books",
+  "by": "src/ui/TocView/TocView.tsx, src/lib/toc/"
+ },
+ "BOK-010": {
+  "status": "done",
+  "note": "Done in TocView; the book-page overlay not built",
+  "by": "src/ui/TocView/TocView.tsx, src/lib/toc/"
+ },
+ "BOK-011": {
+  "status": "done",
+  "note": "Done in TocView",
+  "by": "src/ui/TocView/TocView.tsx, src/lib/toc/"
+ },
+ "BOK-014": {
+  "status": "done",
+  "note": "Done",
+  "by": "src/ui/TocView/TocView.tsx, src/lib/toc/"
+ },
+ "BOK-015": {
+  "status": "done",
+  "note": "Done (Genesis portions, Berakhot chapters, Zohar essay verified)",
+  "by": "src/ui/TocView/TocView.tsx, src/lib/toc/"
+ },
+ "BOK-016": {
+  "status": "partial",
+  "note": "Letters done; the dictionary search box is not",
+  "by": "src/ui/TocView/TocView.tsx, src/lib/toc/"
+ },
+ "BOK-017": {
+  "status": "done",
+  "note": "Done; matches the old click-only (no URL) behaviour",
+  "by": "src/ui/TocView/TocView.tsx, src/lib/toc/"
+ },
+ "BOK-018": {
+  "status": "done",
+  "note": "Done",
+  "by": "src/ui/TocView/TocView.tsx, src/lib/toc/"
+ },
+ "BOK-012": {
+  "status": "partial",
+  "note": "Ported, synthetic tests only",
+  "by": "src/lib/toc/model.ts"
+ },
+ "BOK-013": {
+  "status": "partial",
+  "note": "Ported, synthetic tests only",
+  "by": "src/lib/toc/model.ts"
+ },
+ "SRC-094": {
+  "status": "done",
+  "note": "Box, results, paging, query in URL, Hebrew keyboard, dictionary box for dictionary books. Not copied: remembering the query in memory after leaving the view (the address carries it).",
+  "by": "src/ui/SidebarSearch, src/lib/search/text-search.ts, src/ui/DictionarySearch"
+ },
+ "SRC-095": {
+  "status": "done",
+  "note": "sbsq / sbsqN read and written",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "SRC-096": {
+  "status": "done",
+  "note": "Results and click verified; qh dead and not ported",
+  "by": "src/ui/SidebarSearch/SidebarSearch.tsx"
+ },
+ "SRC-097": {
+  "status": "done",
+  "by": "src/lib/search/text-search.ts"
+ },
+ "CON-061": {
+  "status": "done",
+  "note": "Link box, copy, Facebook/X/email; deep-linkable unlike the old site",
+  "by": "src/ui/ShareView"
+ },
+ "CON-067": {
+  "status": "done",
+  "note": "Form, validation, request; never exercised against production",
+  "by": "src/ui/FeedbackView, src/lib/feedback"
+ },
+ "GUI-004": {
+  "status": "done",
+  "note": "Modal, all eight kinds; links to the client's own auth page",
+  "by": "src/ui/SignUpModal, src/ui/Modal"
+ },
+ "CON-011": {
+  "status": "done",
+  "note": "Signed out gated; signed in gets the tools",
+  "by": "src/features/reader/ConnectionsPane.tsx"
+ },
+ "CON-048": {
+  "status": "partial",
+  "note": "Signed-out modal only; the tool itself needs accounts (Phase 7)",
+  "by": "src/features/reader/ConnectionsPane.tsx"
+ },
+ "CON-055": {
+  "status": "partial",
+  "note": "Signed-out modal only; the tool itself needs accounts (Phase 7)",
+  "by": "src/features/reader/ConnectionsPane.tsx"
+ },
+ "CON-062": {
+  "status": "done",
+  "note": "Signed in → Django's /translate page",
+  "by": "src/features/reader/ConnectionsPane.tsx"
+ },
+ "CON-065": {
+  "status": "partial",
+  "note": "Two texts: done; one text's Browse waits for Compare Text",
+  "by": "src/ui/AddConnectionView"
+ },
+ "RTE-046": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "RTE-063": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "SHL-019": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "SHL-020": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "SHL-065": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXD-027": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXD-028": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXD-035": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXD-069": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXT-002": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXT-003": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXT-004": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXT-005": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXT-006": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXT-007": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXT-008": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXT-013": {
+  "status": "partial",
+  "note": "Only the supporting helper/colour is built (tested); the page/address UI is not"
+ },
+ "TXT-015": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXT-022": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXT-025": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-003": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-004": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-006": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-008": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-009": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-012": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-014": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-015": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-017": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-019": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-020": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-021": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-023": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-024": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-025": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-026": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-027": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-029": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-030": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-032": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-033": {
+  "status": "done",
+  "note": "Open replaces the sidebar with a new panel, as sefaria.org (parity equal)",
+  "by": "src/features/reader/TextPanel.tsx"
+ },
+ "CON-070": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "CON-071": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "VER-009": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "VER-011": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "VER-012": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "LIB-001": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-019": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "GUI-012": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "GUI-013": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "GUI-019": {
+  "status": "done",
+  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+ },
+ "TXD-058": {
+  "status": "done",
+  "note": "Clean copy; markup simpler than the old",
+  "by": "src/lib/reader/copy.ts"
+ },
+ "TXD-064": {
+  "status": "done",
+  "by": "src/ui/TextColumnBanner"
+ },
+ "TXD-063": {
+  "status": "deferred",
+  "note": "Needs country header + accounts"
+ },
+ "GUI-002": {
+  "status": "done",
+  "note": "Links point to the old site's pages until built",
+  "by": "src/ui/SiteHeader"
+ },
+ "GUI-003": {
+  "status": "partial",
+  "note": "No autocomplete (Phase 6), no keyboard, no accounts",
+  "by": "src/ui/SiteHeader"
+ },
+ "GUI-009": {
+  "status": "done",
+  "by": "src/ui/SiteHeader"
+ },
+ "GUI-010": {
+  "status": "done",
+  "note": "Signed-out and signed-in menus (signed-in not checked live)",
+  "by": "src/ui/SiteHeader"
+ },
+ "GUI-011": {
+  "status": "partial",
+  "note": "Signed-out menu; search without autocomplete",
+  "by": "src/ui/SiteHeader"
+ },
+ "GUI-007": {
+  "status": "done",
+  "by": "src/ui/CookieNotice"
+ },
+ "I18-002": {
+  "status": "done",
+  "by": "src/ui/SkipLink, src/routes/__root.tsx"
+ },
+ "I18-007": {
+  "status": "done",
+  "by": "src/ui/SiteHeader"
+ },
+ "I18-008": {
+  "status": "partial",
+  "note": "Language switch done; the preferred-translation reset is not",
+  "by": "src/ui/SiteHeader"
+ },
+ "SHL-071": {
+  "status": "done",
+  "by": "src/features/reader/TextPanel.tsx"
+ },
+ "CON-045": {
+  "status": "done",
+  "by": "src/ui/NamedEntityView"
+ },
+ "TXD-022": {
+  "status": "done",
+  "by": "src/ui/NamedEntityView, src/lib/text/prepare.ts"
+ },
+ "SHL-035": {
+  "status": "done",
+  "by": "src/features/shared/RouteError.tsx"
+ },
+ "SHL-040": {
+  "status": "done",
+  "by": "src/features/reader/TextPanel.tsx"
+ },
+ "I18-003": {
+  "status": "partial",
+  "note": "New-panel focus done; sidebar focus on verse click intentionally not",
+  "by": "src/features/reader/TextPanel.tsx"
+ },
+ "BOK-001": {
+  "status": "partial",
+  "note": "Page, contents, versions, sidebar; compare-panel mode and extended notes not built",
+  "by": "src/ui/BookPage, src/features/book"
+ },
+ "BOK-002": {
+  "status": "done",
+  "note": "Done; dedication unverified live",
+  "by": "src/ui/BookPage, src/features/book"
+ },
+ "BOK-003": {
+  "status": "done",
+  "note": "Start/Continue (continue from this browser)",
+  "by": "src/ui/BookPage, src/features/book"
+ },
+ "BOK-005": {
+  "status": "done",
+  "note": "Done",
+  "by": "src/ui/BookPage, src/features/book"
+ },
+ "BOK-006": {
+  "status": "partial",
+  "note": "About, related topics, downloads; the promo module is not built",
+  "by": "src/ui/BookPage, src/features/book"
+ },
+ "BOK-007": {
+  "status": "done",
+  "note": "Done",
+  "by": "src/ui/BookPage, src/features/book"
+ },
+ "BOK-023": {
+  "status": "done",
+  "by": "src/lib/catalog/index-details.ts"
+ },
+ "TXT-023": {
+  "status": "done",
+  "by": "src/features/book/book-route.ts"
+ },
+ "LIB-008": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-009": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-010": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-011": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-012": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-014": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-015": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-016": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-017": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-023": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-024": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-028": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-030": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-031": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-033": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-035": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-037": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-038": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-039": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-040": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-041": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-067": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-069": {
+  "status": "done",
+  "by": "src/ui/CategoryPage, src/ui/NavSidebar, src/features/library"
+ },
+ "LIB-002": {
+  "status": "partial",
+  "note": "Heading done; language toggle and editor buttons not"
+ },
+ "LIB-005": {
+  "status": "todo",
+  "note": "Not built"
+ },
+ "LIB-026": {
+  "status": "todo",
+  "note": "CMS promo slot not built (dynamic marketing)"
+ },
+ "SRC-039": {
+  "status": "done",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts, src/ui/SearchPage"
+ },
+ "SRC-040": {
+  "status": "done",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts, src/ui/SearchPage"
+ },
+ "SRC-042": {
+  "status": "done",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts, src/ui/SearchPage"
+ },
+ "SRC-046": {
+  "status": "done",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts, src/ui/SearchPage"
+ },
+ "SRC-048": {
+  "status": "done",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts, src/ui/SearchPage"
+ },
+ "SRC-051": {
+  "status": "done",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts, src/ui/SearchPage"
+ },
+ "SRC-052": {
+  "status": "done",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts, src/ui/SearchPage"
+ },
+ "SRC-053": {
+  "status": "done",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts, src/ui/SearchPage"
+ },
+ "SRC-054": {
+  "status": "done",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts, src/ui/SearchPage"
+ },
+ "SRC-055": {
+  "status": "done",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts, src/ui/SearchPage"
+ },
+ "SRC-057": {
+  "status": "done",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts, src/ui/SearchPage"
+ },
+ "SRC-061": {
+  "status": "done",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts, src/ui/SearchPage"
+ },
+ "SRC-066": {
+  "status": "done",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts, src/ui/SearchPage"
+ },
+ "SRC-085": {
+  "status": "done",
+  "by": "src/features/search/SearchRoute.tsx, src/lib/search/search-page.ts, src/ui/SearchPage"
+ },
+ "SRC-031": {
+  "status": "n/a",
+  "note": "Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch)."
+ },
+ "SRC-032": {
+  "status": "n/a",
+  "note": "Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch)."
+ },
+ "SRC-033": {
+  "status": "n/a",
+  "note": "Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch)."
+ },
+ "SRC-034": {
+  "status": "n/a",
+  "note": "Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch)."
+ },
+ "SRC-035": {
+  "status": "n/a",
+  "note": "Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch)."
+ },
+ "SRC-036": {
+  "status": "n/a",
+  "note": "Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch)."
+ },
+ "SRC-037": {
+  "status": "n/a",
+  "note": "Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch)."
+ },
+ "SRC-038": {
+  "status": "n/a",
+  "note": "Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch)."
+ },
+ "SRC-073": {
+  "status": "n/a",
+  "note": "Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch)."
+ },
+ "SRC-074": {
+  "status": "n/a",
+  "note": "Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch)."
+ },
+ "SRC-075": {
+  "status": "n/a",
+  "note": "Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch)."
+ },
+ "SRC-076": {
+  "status": "n/a",
+  "note": "Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch)."
+ },
+ "SRC-078": {
+  "status": "n/a",
+  "note": "Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch)."
+ },
+ "SRC-081": {
+  "status": "n/a",
+  "note": "Server behaviour; the client calls this API (name, entity-search, search-wrapper, OpenSearch)."
+ },
+ "SRC-059": {
+  "status": "n/a",
+  "note": "Dead in the old site (qh param, topic cards query) or a list of things search never had; not rebuilt."
+ },
+ "SRC-077": {
+  "status": "n/a",
+  "note": "Dead in the old site (qh param, topic cards query) or a list of things search never had; not rebuilt."
+ },
+ "SRC-103": {
+  "status": "n/a",
+  "note": "Dead in the old site (qh param, topic cards query) or a list of things search never had; not rebuilt."
+ },
+ "SRC-101": {
+  "status": "n/a",
+  "note": "Garden visualization / kNN API: not part of the reader."
+ },
+ "SRC-102": {
+  "status": "n/a",
+  "note": "Garden visualization / kNN API: not part of the reader."
+ },
+ "SRC-014": {
+  "status": "replaced",
+  "note": "Old-site crash on exact Collection/Category Enter; the rebuild navigates to the category/collection normally."
+ },
+ "SRC-087": {
+  "status": "done",
+  "note": "Hebrew titles match; old bug not ported",
+  "by": "src/lib/search/search-page.ts"
+ },
+ "SRC-025": {
+  "status": "deferred",
+  "note": "Needs Compare Text, which is not built."
+ },
+ "SRC-026": {
+  "status": "deferred",
+  "note": "Needs Compare Text, which is not built."
+ },
+ "SRC-027": {
+  "status": "deferred",
+  "note": "Collections / Voices / topics: Phase 7, owner decides."
+ },
+ "SRC-088": {
+  "status": "deferred",
+  "note": "Collections / Voices / topics: Phase 7, owner decides."
+ },
+ "SRC-089": {
+  "status": "deferred",
+  "note": "Collections / Voices / topics: Phase 7, owner decides."
+ },
+ "SRC-090": {
+  "status": "deferred",
+  "note": "Collections / Voices / topics: Phase 7, owner decides."
+ },
+ "SRC-091": {
+  "status": "deferred",
+  "note": "Collections / Voices / topics: Phase 7, owner decides."
+ },
+ "SRC-092": {
+  "status": "deferred",
+  "note": "Collections / Voices / topics: Phase 7, owner decides."
+ },
+ "SRC-093": {
+  "status": "deferred",
+  "note": "Collections / Voices / topics: Phase 7, owner decides."
+ },
+ "SRC-098": {
+  "status": "deferred",
+  "note": "Collections / Voices / topics: Phase 7, owner decides."
+ },
+ "SRC-099": {
+  "status": "deferred",
+  "note": "Collections / Voices / topics: Phase 7, owner decides."
+ },
+ "SRC-100": {
+  "status": "deferred",
+  "note": "Collections / Voices / topics: Phase 7, owner decides."
+ },
+ "SRC-104": {
+  "status": "done",
+  "by": "src/lib/analytics/search-flow.ts"
+ },
+ "SRC-105": {
+  "status": "done",
+  "by": "src/features/search/use-search-analytics.ts"
+ },
+ "SRC-106": {
+  "status": "done",
+  "by": "src/features/search/use-search-analytics.ts"
+ },
+ "SRC-107": {
+  "status": "done",
+  "by": "src/lib/analytics/search-box.ts"
+ },
+ "SRC-108": {
+  "status": "done",
+  "by": "src/lib/analytics/search-flow.ts"
+ },
+ "SRC-028": {
+  "status": "deferred",
+  "note": "OpenSearch / sitelinks / legacy s1 handoff need server or deploy decisions: ask the owner."
+ },
+ "SRC-029": {
+  "status": "deferred",
+  "note": "OpenSearch / sitelinks / legacy s1 handoff need server or deploy decisions: ask the owner."
+ },
+ "SRC-030": {
+  "status": "deferred",
+  "note": "OpenSearch / sitelinks / legacy s1 handoff need server or deploy decisions: ask the owner."
+ },
+ "SRC-070": {
+  "status": "done",
+  "note": "Parent-category crumb from /api/topics-toc (cauldron reader-next; absent where the endpoint is not deployed)",
+  "by": "src/lib/topics/topic-toc.ts"
+ },
+ "SRC-060": {
+  "status": "done",
+  "note": ":active on touch devices",
+  "by": "src/ui/SearchPage"
+ },
+ "ACC-001": {
+  "status": "done",
+  "note": "Auth page is a route; in-app links with signup source",
+  "by": "src/features/auth/AuthRoute.tsx"
+ },
+ "ACC-002": {
+  "status": "done",
+  "note": "One Tap ported (needs GOOGLE_SSO_CLIENT_ID and same-origin Django)",
+  "by": "src/features/auth/use-google-one-tap.ts"
+ },
+ "ACC-006": {
+  "status": "done",
+  "note": "Sign-up modal links to the client's own auth page",
+  "by": "src/ui/SignUpModal"
+ },
+ "ACC-007": {
+  "status": "done",
+  "note": "/login, /register, reset link rendered here; logout Django's",
+  "by": "src/routes/_auth.tsx"
+ },
+ "ACC-008": {
+  "status": "done",
+  "note": "Ported; geometry matched to sefaria.org at 1280 and on a phone",
+  "by": "src/features/auth/AuthPage.tsx"
+ },
+ "ACC-009": {
+  "status": "done",
+  "by": "src/features/auth/views.tsx"
+ },
+ "ACC-010": {
+  "status": "done",
+  "note": "reCAPTCHA when RECAPTCHA_PUBLIC_KEY is configured",
+  "by": "src/features/auth/views.tsx"
+ },
+ "ACC-011": {
+  "status": "done",
+  "note": "Reset validity asked with a side-effect-free probe; token link handed to Django first",
+  "by": "src/features/auth/AuthPage.tsx, src/server/pass-through.ts"
+ },
+ "ACC-012": {
+  "status": "done",
+  "note": "Needs the client IDs in the runtime config and same-origin Django",
+  "by": "src/features/auth/use-provider-triggers.tsx"
+ },
+ "ACC-013": {
+  "status": "done",
+  "by": "src/features/auth/use-google-one-tap.ts"
+ },
+ "ACC-014": {
+  "status": "n/a",
+  "note": "Mobile-app JWT endpoints; not used by the web client"
+ },
+ "ACC-016": {
+  "status": "done",
+  "by": "src/features/auth/viewer.ts"
+ },
+ "ANL-002": {
+  "status": "done",
+  "by": "src/features/auth/signup-source.ts"
+ },
+ "ANL-013": {
+  "status": "done",
+  "note": "Through trackAuthEvent → gtag until the shared analytics module",
+  "by": "src/lib/auth/analytics.ts"
+ },
+ "ANL-003": {
+  "status": "done",
+  "by": "src/ui/SiteHeader"
+ },
+ "ANL-004": {
+  "status": "done",
+  "by": "src/features/shell/BannerImpressionProbe.tsx"
+ },
+ "ANL-005": {
+  "status": "done",
+  "by": "src/lib/analytics/session.ts"
+ },
+ "ANL-006": {
+  "status": "done",
+  "by": "src/features/shell/BannerImpressionProbe.tsx"
+ },
+ "ANL-007": {
+  "status": "done",
+  "by": "src/lib/analytics/search-box.ts"
+ },
+ "ANL-008": {
+  "status": "done",
+  "by": "src/lib/analytics/session.ts"
+ },
+ "ANL-011": {
+  "status": "done",
+  "by": "src/lib/analytics/session.ts"
+ },
+ "ANL-015": {
+  "status": "done",
+  "by": "src/lib/analytics/declarative.ts"
+ },
+ "ANL-016": {
+  "status": "done",
+  "by": "src/lib/analytics/core.ts"
+ },
+ "ANL-017": {
+  "status": "done",
+  "by": "src/lib/analytics/sentry.ts"
+ },
+ "ANL-009": {
+  "status": "partial",
+  "note": "Built for the reader; Display Option Click is dead on the old site; translation preference setting not in this client",
+  "by": "src/lib/analytics/reader.ts"
+ },
+ "ANL-012": {
+  "status": "partial",
+  "note": "Built for the sidebar views this client has; Guide, notes and sheet events wait for those features",
+  "by": "src/lib/analytics/reader.ts"
+ },
+ "ANL-014": {
+  "status": "partial",
+  "note": "GTM, gtag, Simple Analytics, Sentry built; VWO / Hotjar / Unbounce need an owner decision",
+  "by": "src/lib/analytics/scripts.ts"
+ },
+ "ANL-001": {
+  "status": "done",
+  "note": "Page views come from GTM / gtag as on the old site",
+  "by": "src/lib/analytics/scripts.ts"
+ },
+ "ANL-010": {
+  "status": "n/a",
+  "note": "Dead on the old site"
+ },
+ "SHL-010": {
+  "status": "done",
+  "note": "New panels take the reader's default language, as sefaria.org",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "USL-001": {
+  "status": "done",
+  "note": "Save/remove on the server, state from the saved list; sheets wait for Voices",
+  "by": "src/features/reader/use-reader-history.ts"
+ },
+ "USL-009": {
+  "status": "done",
+  "note": "Save/remove on the server, state from the saved list; sheets wait for Voices",
+  "by": "src/features/reader/use-reader-history.ts"
+ },
+ "USL-011": {
+  "status": "done",
+  "note": "Save/remove on the server, state from the saved list; sheets wait for Voices",
+  "by": "src/features/reader/use-reader-history.ts"
+ },
+ "USL-002": {
+  "status": "done",
+  "note": "Primary and sidebar (secondary) history; signed out in the cookie",
+  "by": "src/features/reader/use-reader-history.ts"
+ },
+ "USL-010": {
+  "status": "done",
+  "note": "Primary and sidebar (secondary) history; signed out in the cookie",
+  "by": "src/features/reader/use-reader-history.ts"
+ },
+ "USL-012": {
+  "status": "done",
+  "note": "Primary and sidebar (secondary) history; signed out in the cookie",
+  "by": "src/features/reader/use-reader-history.ts"
+ },
+ "CON-049": {
+  "status": "done",
+  "note": "Signed-in notes on the selection: add, edit, delete",
+  "by": "src/ui/NotesView"
+ },
+ "USL-005": {
+  "status": "done",
+  "note": "Signed-in notes on the selection: add, edit, delete",
+  "by": "src/ui/NotesView"
+ },
+ "USL-007": {
+  "status": "done",
+  "note": "Signed-in notes on the selection: add, edit, delete",
+  "by": "src/ui/NotesView"
+ },
+ "CON-034": {
+  "status": "partial",
+  "note": "Add to Sheet works; partial-selection trimming (CON-056) to do",
+  "by": "src/ui/AddToSheetView"
+ },
+ "CON-036": {
+  "status": "done",
+  "by": "src/ui/ConnectionsPanel/TextList.tsx"
+ },
+ "CON-038": {
+  "status": "done",
+  "by": "src/features/reader/ConnectionsPane.tsx"
+ }
+}

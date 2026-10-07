@@ -1,0 +1,419 @@
+{
+  "title": "Klein Dictionary",
+  "categories": [
+    "Reference",
+    "Dictionary"
+  ],
+  "schema": {
+    "nodes": [
+      {
+        "nodeType": "DictionaryNode",
+        "lexiconName": "Klein Dictionary",
+        "firstWord": "א",
+        "lastWord": "תִּתֹּֽרֶת",
+        "headwordMap": [
+          [
+            "א",
+            "Klein Dictionary, א"
+          ],
+          [
+            "ב",
+            "Klein Dictionary, ב"
+          ],
+          [
+            "ג",
+            "Klein Dictionary, ג"
+          ],
+          [
+            "ד",
+            "Klein Dictionary, ד"
+          ],
+          [
+            "ה",
+            "Klein Dictionary, ה"
+          ],
+          [
+            "ו",
+            "Klein Dictionary, ו"
+          ],
+          [
+            "ז",
+            "Klein Dictionary, ז"
+          ],
+          [
+            "ח",
+            "Klein Dictionary, ח"
+          ],
+          [
+            "ט",
+            "Klein Dictionary, ט"
+          ],
+          [
+            "י",
+            "Klein Dictionary, י"
+          ],
+          [
+            "כ",
+            "Klein Dictionary, כ"
+          ],
+          [
+            "ל",
+            "Klein Dictionary, ל"
+          ],
+          [
+            "מ",
+            "Klein Dictionary, מ"
+          ],
+          [
+            "נ",
+            "Klein Dictionary, נ"
+          ],
+          [
+            "ס",
+            "Klein Dictionary, ס"
+          ],
+          [
+            "ע",
+            "Klein Dictionary, ע"
+          ],
+          [
+            "פ",
+            "Klein Dictionary, פ"
+          ],
+          [
+            "צ",
+            "Klein Dictionary, צ"
+          ],
+          [
+            "ק",
+            "Klein Dictionary, ק"
+          ],
+          [
+            "ר",
+            "Klein Dictionary, ר"
+          ],
+          [
+            "ש",
+            "Klein Dictionary, ש"
+          ],
+          [
+            "ת",
+            "Klein Dictionary, ת"
+          ]
+        ],
+        "default": true,
+        "title": "",
+        "heTitle": ""
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "titles": [
+          {
+            "primary": true,
+            "text": "הקדמה",
+            "lang": "he"
+          },
+          {
+            "primary": true,
+            "text": "Preface",
+            "lang": "en"
+          }
+        ],
+        "title": "Preface",
+        "heTitle": "הקדמה",
+        "heSectionNames": [
+          "פסקה"
+        ],
+        "key": "Preface",
+        "content_counts": 14
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "titles": [
+          {
+            "primary": true,
+            "text": "מבוא",
+            "lang": "he"
+          },
+          {
+            "primary": true,
+            "text": "Introduction",
+            "lang": "en"
+          }
+        ],
+        "title": "Introduction",
+        "heTitle": "מבוא",
+        "heSectionNames": [
+          "פסקה"
+        ],
+        "key": "Introduction",
+        "content_counts": 10
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "titles": [
+          {
+            "primary": true,
+            "text": "הערות על שימוש",
+            "lang": "he"
+          },
+          {
+            "primary": true,
+            "text": "Notes on Usage",
+            "lang": "en"
+          }
+        ],
+        "title": "Notes on Usage",
+        "heTitle": "הערות על שימוש",
+        "heSectionNames": [
+          "פסקה"
+        ],
+        "key": "Notes on Usage",
+        "content_counts": 18
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "titles": [
+          {
+            "primary": true,
+            "text": "כללי תעתיק",
+            "lang": "he"
+          },
+          {
+            "primary": true,
+            "text": "Transliteration Rules",
+            "lang": "en"
+          }
+        ],
+        "title": "Transliteration Rules",
+        "heTitle": "כללי תעתיק",
+        "heSectionNames": [
+          "פסקה"
+        ],
+        "key": "Transliteration Rules",
+        "content_counts": 13
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "titles": [
+          {
+            "primary": true,
+            "text": "סמלים",
+            "lang": "he"
+          },
+          {
+            "primary": true,
+            "text": "Symbols used in this Dictionary",
+            "lang": "en"
+          }
+        ],
+        "title": "Symbols used in this Dictionary",
+        "heTitle": "סמלים",
+        "heSectionNames": [
+          "פסקה"
+        ],
+        "key": "Symbols used in this Dictionary",
+        "content_counts": 11
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "titles": [
+          {
+            "primary": true,
+            "text": "ביבליוגרפיה",
+            "lang": "he"
+          },
+          {
+            "primary": true,
+            "text": "Names of Authors, Books and Journals Frequently Referred to in this Dictionary",
+            "lang": "en"
+          }
+        ],
+        "title": "Names of Authors, Books and Journals Frequently Referred to in this Dictionary",
+        "heTitle": "ביבליוגרפיה",
+        "heSectionNames": [
+          "פסקה"
+        ],
+        "key": "Names of Authors, Books and Journals Frequently Referred to in this Dictionary",
+        "content_counts": 55
+      },
+      {
+        "nodeType": "JaggedArrayNode",
+        "depth": 1,
+        "addressTypes": [
+          "Integer"
+        ],
+        "sectionNames": [
+          "Paragraph"
+        ],
+        "titles": [
+          {
+            "primary": true,
+            "text": "רשימת קיצורים",
+            "lang": "he"
+          },
+          {
+            "primary": true,
+            "text": "Abbreviations",
+            "lang": "en"
+          }
+        ],
+        "title": "Abbreviations",
+        "heTitle": "רשימת קיצורים",
+        "heSectionNames": [
+          "פסקה"
+        ],
+        "key": "Abbreviations",
+        "content_counts": 187
+      }
+    ],
+    "titles": [
+      {
+        "primary": true,
+        "text": "מילון קליין",
+        "lang": "he"
+      },
+      {
+        "text": "Klein Dictionary",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Klein Dictionary",
+    "heTitle": "מילון קליין",
+    "key": "Klein Dictionary"
+  },
+  "order": [
+    2
+  ],
+  "authors": [
+    {
+      "en": "Ernest Klein",
+      "he": "אֶרְנֶסְט דוד קליין",
+      "slug": "ernest-klein"
+    }
+  ],
+  "enDesc": "A scholarly etymological dictionary of rabbinic Hebrew.",
+  "enShortDesc": "20th-century scholarly English dictionary with etymology and derivatives of modern Hebrew words.",
+  "heShortDesc": "מילון באנגלית המבאר את משמעותן והתפתחותן של מילים בעברית ונגזרותיהן, נכתב במאה ה-20.",
+  "pubDate": [
+    1987
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    1973,
+    1983
+  ],
+  "compPlace": "Toronto, Canada",
+  "pubPlace": "Jerusalem, Israel",
+  "era": "CO",
+  "is_cited": false,
+  "lexiconName": "Klein Dictionary",
+  "heTitle": "מילון קליין",
+  "titleVariants": [
+    "Klein Dictionary"
+  ],
+  "heTitleVariants": [
+    "מילון קליין"
+  ],
+  "firstSectionRef": "Klein Dictionary, א",
+  "heCategories": [
+    "מילונים וספרי יעץ",
+    "מילונים"
+  ],
+  "compDateString": {
+    "en": " (c.1973  – c.1983 CE)",
+    "he": " (1973 – 1983 לספירה בקירוב)"
+  },
+  "pubDateString": {
+    "en": " (1987 CE)",
+    "he": " (1987 לספירה)"
+  },
+  "compPlaceString": {
+    "en": "Toronto, Canada",
+    "he": "טורונטו"
+  },
+  "pubPlaceString": {
+    "en": "Jerusalem, Israel",
+    "he": "ירושלים, ישראל"
+  },
+  "relatedTopics": [
+    {
+      "slug": "idolatry",
+      "title": {
+        "en": "Idolatry",
+        "he": "עבודה זרה"
+      }
+    },
+    {
+      "slug": "kippah",
+      "title": {
+        "en": "Kippah",
+        "he": "כיפה"
+      }
+    },
+    {
+      "slug": "adar",
+      "title": {
+        "en": "Adar",
+        "he": "אדר"
+      }
+    },
+    {
+      "slug": "harmful-forces",
+      "title": {
+        "en": "Harmful Forces",
+        "he": "מזיקין"
+      }
+    },
+    {
+      "slug": "curiosity",
+      "title": {
+        "en": "Curiosity",
+        "he": "סקרנות"
+      }
+    }
+  ]
+}

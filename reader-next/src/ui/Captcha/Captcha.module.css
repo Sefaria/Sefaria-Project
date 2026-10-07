@@ -1,0 +1,5 @@
+.captcha { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.box { display: block; width: 100%; border-radius: 2px; }
+.captcha[data-error="true"] .box { outline: 1px solid var(--sefaria-color-danger); outline-offset: -1px; }
+.error { display: flex; align-items: center; gap: 8px; color: var(--sefaria-color-danger); font-size: 14px; line-height: 1; }
+.error img { width: 18px; height: 18px; flex: 0 0 18px; }

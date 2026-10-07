@@ -1,0 +1,103 @@
+{
+  "lang": "en",
+  "is_ref": true,
+  "completions": [
+    "Siddur Ashkenaz",
+    "Siddur Ashkenaz, Kaddish",
+    "Siddur Ashkenaz, Shabbat",
+    "Siddur Ashkenaz, Weekday",
+    "Siddur Ashkenaz, Berachot",
+    "Siddur Ashkenaz, Festivals",
+    "Siddur Ashkenaz, Shabbat, Maariv",
+    "Siddur Ashkenaz, Weekday, Maariv",
+    "Siddur Ashkenaz, Shabbat, Minchah",
+    "Siddur Ashkenaz, Weekday, Minchah"
+  ],
+  "completion_objects": [
+    {
+      "title": "Siddur Ashkenaz",
+      "key": "Siddur Ashkenaz",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Siddur Ashkenaz, Kaddish",
+      "key": "Siddur Ashkenaz, Kaddish",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Siddur Ashkenaz, Shabbat",
+      "key": "Siddur Ashkenaz, Shabbat",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Siddur Ashkenaz, Weekday",
+      "key": "Siddur Ashkenaz, Weekday",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Siddur Ashkenaz, Berachot",
+      "key": "Siddur Ashkenaz, Berachot",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Siddur Ashkenaz, Festivals",
+      "key": "Siddur Ashkenaz, Festivals",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Siddur Ashkenaz, Shabbat, Maariv",
+      "key": "Siddur Ashkenaz, Shabbat, Maariv",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Siddur Ashkenaz, Weekday, Maariv",
+      "key": "Siddur Ashkenaz, Weekday, Maariv",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Siddur Ashkenaz, Shabbat, Minchah",
+      "key": "Siddur Ashkenaz, Shabbat, Minchah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    },
+    {
+      "title": "Siddur Ashkenaz, Weekday, Minchah",
+      "key": "Siddur Ashkenaz, Weekday, Minchah",
+      "type": "ref",
+      "is_primary": true,
+      "order": 1000000
+    }
+  ],
+  "is_book": true,
+  "is_node": true,
+  "is_section": false,
+  "is_segment": false,
+  "is_range": false,
+  "type": "ref",
+  "ref": "Siddur Ashkenaz",
+  "url": "Siddur_Ashkenaz",
+  "index": "Siddur Ashkenaz",
+  "book": "Siddur Ashkenaz",
+  "internalSections": [],
+  "internalToSections": [],
+  "sections": [],
+  "toSections": [],
+  "examples": []
+}

@@ -2055,6 +2055,11 @@ def table_of_contents_api(request):
     return jsonResponse(toc, callback=request.GET.get("callback", None))
 
 
+def topics_toc_api(request):
+    """The topics table of contents (the tree the topics pages and search's topic crumbs are built from)."""
+    return http.HttpResponse(library.get_topic_toc_json(), content_type="application/json; charset=utf-8")
+
+
 @catch_error_as_json
 def search_autocomplete_redirecter(request):
     query = request.GET.get("q", "")
@@ -5534,6 +5539,10 @@ def application_health_api(request):
         return True
 
     def isNodeJsReachable():
+        # Django depends on the Node server only for its own server rendering. With USE_NODE off (Helm nodejs.mode "reader")
+        # the node pods are the reader client, which sends /healthz back to Django: checking it would wait on ourselves.
+        if not USE_NODE:
+            return True
         url = NODE_HOST + "/healthz"
         try:
             statusCode = urllib.request.urlopen(url).status

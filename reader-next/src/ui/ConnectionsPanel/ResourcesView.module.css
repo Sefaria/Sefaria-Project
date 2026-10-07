@@ -1,0 +1,5 @@
+.more { display: flex; align-items: center; gap: var(--sefaria-space-3); padding: var(--sefaria-space-2) 0; border: 0; background: none; font: inherit; color: var(--sefaria-color-text); cursor: pointer; }
+.more:hover { text-decoration: underline; }
+.moreIcon { color: var(--sefaria-color-brand); }
+.empty { color: var(--sefaria-color-text-secondary); margin: var(--sefaria-space-4) 0; }
+.topTools { padding-block: var(--sefaria-space-2) var(--sefaria-space-3); }

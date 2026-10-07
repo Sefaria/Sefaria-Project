@@ -1,0 +1,48 @@
+/* Measured from sefaria.org's s2.css (.connectionsPanel textarea.noteText, .deleteNote, .note, .editNoteButton) */
+.view { display: flex; flex-direction: column; gap: 10px; }
+.addNoteBox { display: flex; flex-direction: column; gap: 10px; }
+.noteText {
+  width: 100%;
+  min-height: 100px;
+  border: none;
+  border-radius: 7px;
+  padding: 20px 25px;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  font-size: 18px;
+  font-family: var(--sefaria-font-text-en, "adobe-garamond-pro", "Crimson Text", Georgia, serif);
+  background: #fff;
+  color: var(--sefaria-color-text);
+  resize: vertical;
+}
+.view[lang="he"] .noteText { font-family: var(--sefaria-font-text-he, "Taamey Frank", serif); }
+.error { margin: 0; color: var(--sefaria-color-error, #b3261e); }
+.deleteNote {
+  text-align: center;
+  padding: 18px 0;
+  color: var(--sefaria-color-text-secondary, #999);
+  font-size: 15px;
+  cursor: pointer;
+  font-family: var(--sefaria-font-ui-en);
+  background: none;
+  border: 0;
+}
+.allNotesLink { margin-top: 10px; }
+.noteList { list-style: none; margin: 0; padding: 0; }
+.note { position: relative; padding: 30px 0; border-top: 1px solid #e6e5e6; }
+.note:first-child { border-top: none; }
+.noteContent { font-family: var(--sefaria-font-text-en, "adobe-garamond-pro", Georgia, serif); font-size: 18px; line-height: 1.4; overflow-wrap: anywhere; }
+.editNoteButton {
+  position: absolute;
+  top: 30px;
+  inset-inline-start: -32px;
+  visibility: hidden;
+  color: #c6c6c6;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.note:hover .editNoteButton,
+.editNoteButton:focus-visible { visibility: visible; }
+@media (hover: none) { .editNoteButton { visibility: visible; position: static; float: inline-end; } }

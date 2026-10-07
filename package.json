@@ -160,7 +160,8 @@
     ],
     "testEnvironment": "jsdom",
     "testPathIgnorePatterns": [
-      "<rootDir>/e2e-tests/"
+      "<rootDir>/e2e-tests/",
+      "<rootDir>/reader-next/"
     ]
   },
   "babel": {

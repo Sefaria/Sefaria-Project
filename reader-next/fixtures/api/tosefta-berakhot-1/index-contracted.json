@@ -1,0 +1,271 @@
+{
+  "title": "Tosefta Berakhot",
+  "categories": [
+    "Tosefta",
+    "Vilna Edition",
+    "Seder Zeraim"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 2,
+    "addressTypes": [
+      "Perek",
+      "Integer"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Tosefta"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "tosefta",
+          "berakhot"
+        ]
+      }
+    ],
+    "lengths": [
+      7,
+      151
+    ],
+    "titles": [
+      {
+        "lang": "en",
+        "text": "Tos. Berakhot"
+      },
+      {
+        "lang": "en",
+        "text": "Tosefta Berachot"
+      },
+      {
+        "lang": "en",
+        "text": "T. Berakhot"
+      },
+      {
+        "lang": "en",
+        "text": "Tosefta Brachot"
+      },
+      {
+        "lang": "en",
+        "text": "Tos. Berachot"
+      },
+      {
+        "lang": "en",
+        "text": "Tosef. Ber."
+      },
+      {
+        "text": "תוספתא ברכות",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Tosefta Berakhot",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "title": "Tosefta Berakhot",
+    "heTitle": "תוספתא ברכות",
+    "heSectionNames": [
+      "פרק",
+      "תוספתא"
+    ],
+    "key": "Tosefta Berakhot",
+    "content_counts": [
+      16,
+      22,
+      26,
+      19,
+      37,
+      31,
+      0
+    ]
+  },
+  "order": [
+    1
+  ],
+  "authors": [],
+  "enDesc": "Berakhot (“Blessings”) is the first tractate of Zeraim (“Seeds”), the first order of the Mishnah, and the only tractate in Zeraim included in the Babylonian Talmud. Its nine chapters discuss the laws of prayers, focusing on the Shema, the Amidah, and blessings, including those recited in the context of eating.",
+  "enShortDesc": "Blessings and prayers, focusing on Shema and the Amidah.",
+  "heShortDesc": "ברכות ותפילות, בדגש על קריאת שמע ועל תפילת העמידה.",
+  "pubDate": [
+    1521
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    190,
+    230
+  ],
+  "compPlace": "Talmudic Israel",
+  "pubPlace": "Venice",
+  "era": "T",
+  "is_cited": true,
+  "heTitle": "תוספתא ברכות",
+  "titleVariants": [
+    "Tos. Berakhot",
+    "Tosefta Berachot",
+    "T. Berakhot",
+    "Tosefta Brachot",
+    "Tos. Berachot",
+    "Tosef. Ber.",
+    "Tosefta Berakhot"
+  ],
+  "heTitleVariants": [
+    "תוספתא ברכות"
+  ],
+  "sectionNames": [
+    "Chapter",
+    "Tosefta"
+  ],
+  "depth": 2,
+  "firstSectionRef": "Tosefta Berakhot 1",
+  "heCategories": [
+    "תוספתא",
+    "דפוס וילנא",
+    "סדר זרעים"
+  ],
+  "compDateString": {
+    "en": " (c.190  – c.230 CE)",
+    "he": " (190 – 230 לספירה בקירוב)"
+  },
+  "pubDateString": {
+    "en": " (1521 CE)",
+    "he": " (1521 לספירה)"
+  },
+  "compPlaceString": {
+    "en": "Talmudic Israel",
+    "he": "ישראל התלמודית"
+  },
+  "pubPlaceString": {
+    "en": "Venice",
+    "he": "ונציה"
+  },
+  "relatedTopics": [
+    {
+      "slug": "prayer",
+      "title": {
+        "en": "Prayer",
+        "he": "תפילה"
+      }
+    },
+    {
+      "slug": "blessings-(halakhah)",
+      "title": {
+        "en": "Blessings (Halakhah)",
+        "he": "ברכות"
+      }
+    },
+    {
+      "slug": "holiness",
+      "title": {
+        "en": "Holiness",
+        "he": "קדושה"
+      }
+    },
+    {
+      "slug": "chanukkah",
+      "title": {
+        "en": "Chanukkah",
+        "he": "חנוכה"
+      }
+    },
+    {
+      "slug": "wisdom",
+      "title": {
+        "en": "Wisdom",
+        "he": "חכמה"
+      }
+    },
+    {
+      "slug": "derekh-eretz",
+      "title": {
+        "en": "Derekh Eretz",
+        "he": "דרך ארץ"
+      }
+    },
+    {
+      "slug": "women",
+      "title": {
+        "en": "Women",
+        "he": "נשים"
+      }
+    },
+    {
+      "slug": "passover",
+      "title": {
+        "en": "Passover",
+        "he": "פסח"
+      }
+    },
+    {
+      "slug": "seder",
+      "title": {
+        "en": "Seder",
+        "he": "ליל הסֵדֶר"
+      }
+    },
+    {
+      "slug": "al-hanisim",
+      "title": {
+        "en": "Al HaNissim",
+        "he": "על הניסים"
+      }
+    },
+    {
+      "slug": "humility",
+      "title": {
+        "en": "Humility",
+        "he": "ענוה"
+      }
+    },
+    {
+      "slug": "letters",
+      "title": {
+        "en": "Letters",
+        "he": "אותיות"
+      }
+    },
+    {
+      "slug": "king-saul",
+      "title": {
+        "en": "King Saul",
+        "he": "המלך שאול"
+      }
+    },
+    {
+      "slug": "blessings",
+      "title": {
+        "en": "Blessings",
+        "he": "ברכה"
+      }
+    },
+    {
+      "slug": "jerusalem",
+      "title": {
+        "en": "Jerusalem",
+        "he": "ירושלים"
+      }
+    },
+    {
+      "slug": "shemoneh-esrei",
+      "title": {
+        "en": "Amidah",
+        "he": "עמידה"
+      }
+    },
+    {
+      "slug": "judah",
+      "title": {
+        "en": "Judah",
+        "he": "יהודה"
+      }
+    },
+    {
+      "slug": "kavanah",
+      "title": {
+        "en": "Kavanah",
+        "he": "כוונה"
+      }
+    }
+  ]
+}

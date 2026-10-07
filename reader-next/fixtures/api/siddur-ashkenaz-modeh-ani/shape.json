@@ -1,0 +1,4115 @@
+[
+  {
+    "isComplex": true,
+    "section": "Siddur",
+    "length": 456,
+    "chapters": [
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, מודה אני",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, נטילת ידים",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Netilat Yadayim",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, אשר יצר",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Asher Yatzar",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, אלהי נשמה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Elokai Neshama",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, ציצית",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Tzitzit",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, ברכות התורה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Torah Blessings",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, לימוד תורה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Torah Study",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, טלית",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Tallit",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, תפילין",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Tefillin",
+        "length": 1,
+        "chapters": 13,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, מה טובו",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Ma Tovu",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, אדון עולם",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Adon Olam",
+        "length": 1,
+        "chapters": 10,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, יגדל",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Yigdal",
+        "length": 1,
+        "chapters": 27,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, ברכות השחר",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Morning Blessings",
+        "length": 1,
+        "chapters": 18,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, עקדה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Akedah",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, עול מלכות שמים",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Sovereignty of Heaven",
+        "length": 1,
+        "chapters": 10,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, קרבנות, פרשת הכיור",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Korbanot, Kiyor",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, קרבנות, פרשת תרומת הדשן",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Korbanot, Terumat HaDeshen",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, קרבנות, פרשת קרבן תמיד",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Korbanot, Korban HaTamid",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, קרבנות, פרשת הקטורת",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Korbanot, Ketoret",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, קרבנות, סדר המערכה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Korbanot, Order of the Temple Service",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, קרבנות, דיני זבחים",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Korbanot, Laws of Sacrifices",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, קרבנות, ברייתא דרבי ישמעאל",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Korbanot, Baraita of Rabbi Yishmael",
+        "length": 1,
+        "chapters": 14,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, הכנה לתפילה, קרבנות, קדיש דרבנן",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Korbanot, Kaddish DeRabbanan",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, מזמור שיר",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Introductory Psalm",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, קדיש יתום",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Mourner's Kaddish",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, ברוך שאמר",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Barukh She'amar",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, הודו",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Hodu",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, מזמור לתודה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Mizmor Letoda",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, יהי כבוד",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Yehi Chevod",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, אשרי",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Ashrei",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, תהילים קמו",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Psalm 146",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, תהילים קמז",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Psalm 147",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, תהילים קמח",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Psalm 148",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, תהילים קמט",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Psalm 149",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, תהילים קנ",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Psalm 150",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, ברוך ה׳",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Closing Verses",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, ויברך דוד",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Vayevarech David",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, אתה הוא",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Ata Hu",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, אז ישיר",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Az Yashir",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, ישתבח",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Yishtabach",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, תהילים קל",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Psalm 130",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, פסוקי דזמרה, חצי קדיש",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Pesukei Dezimra, Half Kaddish",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, ברכות קריאת שמע, ברכו",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Blessings of the Shema, Barchu",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, ברכות קריאת שמע, יוצר אור",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Blessings of the Shema, First Blessing before Shema",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, ברכות קריאת שמע, אהבת ישראל",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Blessings of the Shema, Second Blessing before Shema",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, ברכות קריאת שמע, שמע",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Blessings of the Shema, Shema",
+        "length": 1,
+        "chapters": 12,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, ברכות קריאת שמע, גאל ישראל",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Blessings of the Shema, Blessing after Shema",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, אבות",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Patriarchs",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, גבורות",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Divine Might",
+        "length": 1,
+        "chapters": 11,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, קדושת השם",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Holiness of God",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, קדושה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Kedushah",
+        "length": 1,
+        "chapters": 14,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, דעת",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Knowledge",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, תשובה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Repentance",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, סליחה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Forgiveness",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, גאולה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Redemption",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, רפואה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Healing",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, ברכת השנים",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Prosperity",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, קבוץ גליות",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Gathering the Exiles",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, משפט",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Justice",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, ברכת המינים",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Against Enemies",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, על הצדיקים",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, The Righteous",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, בנין ירושלים",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Rebuilding Jerusalem",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, מלכות בית דוד",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Kingdom of David",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, שומע תפילה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Response to Prayer",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, עבודה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Temple Service",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, מודים",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Thanksgiving",
+        "length": 1,
+        "chapters": 12,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, ברכת כוהנים",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Birkat Kohanim",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, שים שלום",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Peace",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, עמידה, אלוהי נצור",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Amidah, Concluding Passage",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, אחר העמידה, וידוי וי\"ג מידות",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Post Amidah, Vidui and 13 Middot",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, אחר העמידה, אבינו מלכנו",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Post Amidah, Avinu Malkenu",
+        "length": 1,
+        "chapters": 54,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, אחר העמידה, תחנון, והוא רחום",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Post Amidah, Tachanun, For Monday and Thursday",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, אחר העמידה, תחנון, נפילת אפיים",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Post Amidah, Tachanun, Nefilat Apayim",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, אחר העמידה, תחנון, ה אל׳ ישראל",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Post Amidah, Tachanun, God of Israel",
+        "length": 1,
+        "chapters": 11,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, אחר העמידה, תחנון, שומר ישראל",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Post Amidah, Tachanun, Shomer Yisrael",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, אחר העמידה, תחנון, חצי קדיש",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Post Amidah, Tachanun, Half Kaddish",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, קריאת התורה, הוצאת ספר תורה, אל ארך אפים",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Torah Reading, Removing the Torah from Ark, El Erech Appayim",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, קריאת התורה, הוצאת ספר תורה, ויהי בנסוע",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Torah Reading, Removing the Torah from Ark, Vayehi Binsoa",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, קריאת התורה, הוצאת ספר תורה, בריך שמה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Torah Reading, Removing the Torah from Ark, Berich Shmei",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, קריאת התורה, הוצאת ספר תורה, לך השם",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Torah Reading, Removing the Torah from Ark, Lekha Hashem",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, קריאת התורה, הוצאת ספר תורה, אב הרחמים",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Torah Reading, Removing the Torah from Ark, Av Harachamim",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, קריאת התורה, הוצאת ספר תורה, ותגלה ותראה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Torah Reading, Removing the Torah from Ark, Vetigaleh Veteraeh",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, קריאת התורה, קריאת התורה, ברכת התורה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Torah Reading, Reading from Sefer, Birkat HaTorah",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, קריאת התורה, קריאת התורה, ברכת הגומל",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Torah Reading, Reading from Sefer, Birkat Hagomel",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, קריאת התורה, קריאת התורה, חצי קדיש",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Torah Reading, Reading from Sefer, Half Kaddish",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, קריאת התורה, קריאת התורה, הגבהה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Torah Reading, Reading from Sefer, Raising the Torah",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, קריאת התורה, קריאת התורה, יהי רצון",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Torah Reading, Reading from Sefer, Prayers for Welfare of the People",
+        "length": 1,
+        "chapters": 0,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, קריאת התורה, הכנסת ספר תורה, יהללו",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Torah Reading, Returning Sefer to Aron, Yehalelu",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, קריאת התורה, הכנסת ספר תורה, לדוד מזמור",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Torah Reading, Returning Sefer to Aron, LeDavid Mizmor",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, קריאת התורה, הכנסת ספר תורה, ובנוחה יאמר",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Torah Reading, Returning Sefer to Aron, Uvenucho Yomar",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, סיום תפילה, אשרי",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Concluding Prayers, Ashrei",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, סיום תפילה, למנצח",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Concluding Prayers, Lamenatze'ach",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, סיום תפילה, ובא לציון",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Concluding Prayers, Uva Letzion",
+        "length": 1,
+        "chapters": 11,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, סיום תפילה, קדיש שלם",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Concluding Prayers, Kaddish Shalem",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, סיום תפילה, עלינו",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Concluding Prayers, Alenu",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, סיום תפילה, קדיש יתום",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Concluding Prayers, Mourner's Kaddish",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, סיום תפילה, שיר של יום",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Concluding Prayers, Song of the Day",
+        "length": 1,
+        "chapters": 19,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, סיום תפילה, ברכי נפשי",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Concluding Prayers, Barchi Nafshi",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, סיום תפילה, לדוד",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Concluding Prayers, LeDavid",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, סיום תפילה, קרבנות, אין כאלוהינו",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Concluding Prayers, Korbanot (Israel), Ein Kelohenu",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, סיום תפילה, קרבנות, פטום קטורת",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Concluding Prayers, Korbanot (Israel), Pitum HaKetoret",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, סיום תפילה, קרבנות, קדיש יתום (**)",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Concluding Prayers, Korbanot (Israel), Mourner's Kaddish",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, סיום תפילה, קרבנות, ברכו",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Concluding Prayers, Korbanot (Israel), Barchu",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, תפילות נוספות, שש זכירות",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Post Service, Six Remembrances",
+        "length": 1,
+        "chapters": 12,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, תפילות נוספות, עשרת הדברות",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Post Service, Ten Commandments",
+        "length": 1,
+        "chapters": 10,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת שחרית, תפילות נוספות, י\"ג עיקרי אמונה",
+        "title": "Siddur Ashkenaz, Weekday, Shacharit, Post Service, Thirteen Principles",
+        "length": 1,
+        "chapters": 13,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, אשרי",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Ashrei",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, אבות",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Patriarchs",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, גבורות",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Divine Might",
+        "length": 1,
+        "chapters": 11,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, קדושת השם",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Holiness of God",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, קדושה",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Keduasha",
+        "length": 1,
+        "chapters": 14,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, דעת",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Knowledge",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, תשובה",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Repentance",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, סליחה",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Forgiveness",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, גאולה",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Redemption",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, רפואה",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Healing",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, ברכת השנים",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Prosperity",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, קבוץ גליות",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Gathering the Exiles",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, משפט",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Justice",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, ברכת המינים",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Against Enemies",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, על הצדיקים",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, The Righteous",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, בנין ירושלים",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Rebuilding Jerusalem",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, מלכות בית דוד",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Kingdom of David",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, שומע תפילה",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Response to Prayer",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, עבודה",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Temple Service",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, מודים",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Thanksgiving",
+        "length": 1,
+        "chapters": 12,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, ברכת כוהנים",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Birkat Kohanim",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, שים שלום",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Peace",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, עמידה, אלוהי נצור",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Amida, Concluding Passage",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, אחר העמידה, וידוי וי\"ג המידות",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Post Amidah, Vidui and 13 Middot",
+        "length": 1,
+        "chapters": 0,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, אחר העמידה, אבינו מלכנו",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Post Amidah, Avinu Malkenu",
+        "length": 1,
+        "chapters": 53,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, אחר העמידה, תחנון, נפילת אפים",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Post Amidah, Tachanun, Nefilat Appayim",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, אחר העמידה, תחנון, שומר ישראל",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Post Amidah, Tachanun, Shomer Yisrael",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, אחר העמידה, קדיש שלם",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Post Amidah, Kaddish Shalem",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, סיום תפילה, עלינו",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Concluding Prayers, Alenu",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, תפילת מנחה, סיום תפילה, קדיש יתום",
+        "title": "Siddur Ashkenaz, Weekday, Minchah, Concluding Prayers, Mourner's Kaddish",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, והוא רחום",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Vehu Rachum",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, ברכו",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Barchu",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, ברכות קריאת שמע, המעריב ערבים",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Blessings of the Shema, First Blessing before Shema",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, ברכות קריאת שמע, אהבת עולם",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Blessings of the Shema, Second Blessing before Shema",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, ברכות קריאת שמע, שמע",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Blessings of the Shema, Shema",
+        "length": 1,
+        "chapters": 12,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, ברכות קריאת שמע, אמת ואמונה",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Blessings of the Shema, First Blessing after Shema",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, ברכות קריאת שמע, השכיבנו",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Blessings of the Shema, Second Blessing after Shema",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, ברכות קריאת שמע, ברוך ה׳ לעולם (outside of Israel)",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Blessings of the Shema, Third Blessing after Shema",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, ברכות קריאת שמע, חצי קדיש",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Blessings of the Shema, Half Kaddish",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, אבות",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Patriarchs",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, גבורות",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Divine Might",
+        "length": 1,
+        "chapters": 10,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, קדושת השם",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Holiness of God",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, דעת",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Knowledge",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, תשובה",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Repentance",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, סליחה",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Forgiveness",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, גאולה",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Redemption",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, רפואה",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Healing",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, ברכת השנים",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Prosperity",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, קיבוץ גלויות",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Gathering the Exiles",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, משפט",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Justice",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, ברכת המינים",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Against Enemies",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, על הצדיקים",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, The Righteous",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, בניין ירושלים",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Rebuilding Jerusalem",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, מלכות בית דוד",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Kingdom of David",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, שומע תפילה",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Response to Prayer",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, עבודה",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Temple Service",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, מודים",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Thanksgiving",
+        "length": 1,
+        "chapters": 10,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, שים שלום",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Peace",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עמידה, אלוהי נצור",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Amidah, Concluding Passage",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, קדיש שלם",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Kaddish Shalem",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, תוספות למוצאי שבת, ויהי נעם",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Additions for Motza'ei Shabbat, Viyehi Noam",
+        "length": 1,
+        "chapters": 11,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, תוספות למוצאי שבת, ויתן לך",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Additions for Motza'ei Shabbat, Veyiten Lekha",
+        "length": 1,
+        "chapters": 10,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, ספירת העומר",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Sefirat HaOmer",
+        "length": 1,
+        "chapters": 65,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, עלינו",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Alenu",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, קדיש יתום",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Mourner's Kaddish",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, לדוד",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, LeDavid",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, ברכת הלבנה",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Birkat HaLevana",
+        "length": 1,
+        "chapters": 18,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ימי חול, מעריב, קריאת שמע על המיטה",
+        "title": "Siddur Ashkenaz, Weekday, Maariv, Keri'at Shema al Hamita",
+        "length": 1,
+        "chapters": 37,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, קבלת שבת, ידיד נפש",
+        "title": "Siddur Ashkenaz, Shabbat, Kabbalat Shabbat, Yedid Nefesh",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, קבלת שבת, תהילים צה",
+        "title": "Siddur Ashkenaz, Shabbat, Kabbalat Shabbat, Psalm 95",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, קבלת שבת, תהילים צו",
+        "title": "Siddur Ashkenaz, Shabbat, Kabbalat Shabbat, Psalm 96",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, קבלת שבת, תהילים צז",
+        "title": "Siddur Ashkenaz, Shabbat, Kabbalat Shabbat, Psalm 97",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, קבלת שבת, תהילים צח",
+        "title": "Siddur Ashkenaz, Shabbat, Kabbalat Shabbat, Psalm 98",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, קבלת שבת, תהילים צט",
+        "title": "Siddur Ashkenaz, Shabbat, Kabbalat Shabbat, Psalm 99",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, קבלת שבת, תהילים כט",
+        "title": "Siddur Ashkenaz, Shabbat, Kabbalat Shabbat, Psalm 29",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, קבלת שבת, אנא בכח",
+        "title": "Siddur Ashkenaz, Shabbat, Kabbalat Shabbat, Ana Bekoach",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, קבלת שבת, לכה דודי",
+        "title": "Siddur Ashkenaz, Shabbat, Kabbalat Shabbat, Lekha Dodi",
+        "length": 1,
+        "chapters": 19,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, קבלת שבת, תהילים צב",
+        "title": "Siddur Ashkenaz, Shabbat, Kabbalat Shabbat, Psalm 92",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, קבלת שבת, תהילים צג",
+        "title": "Siddur Ashkenaz, Shabbat, Kabbalat Shabbat, Psalm 93",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, קבלת שבת, קדיש יתום",
+        "title": "Siddur Ashkenaz, Shabbat, Kabbalat Shabbat, Mourner's Kaddish",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, קבלת שבת, במה מדליקין",
+        "title": "Siddur Ashkenaz, Shabbat, Kabbalat Shabbat, Bameh Madlikin",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, קבלת שבת, קדיש דרבנן",
+        "title": "Siddur Ashkenaz, Shabbat, Kabbalat Shabbat, Kaddish DeRabbanan",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, ברכו",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Barchu",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, קריאת שמע וברכותיה, המעריב ערבים",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Blessings of the Shema, First Blessing before Shema",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, קריאת שמע וברכותיה, אהבת עולם",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Blessings of the Shema, Second Blessing before Shema",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, קריאת שמע וברכותיה, שמע",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Blessings of the Shema, Shema",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, קריאת שמע וברכותיה, אמת ואמונה",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Blessings of the Shema, First Blessing after Shema",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, קריאת שמע וברכותיה, השכיבינו",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Blessings of the Shema, Second Blessing after Shema",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, ושמרו",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Veshamru",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, חצי קדיש",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Half Kaddish",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, עמידה, אבות",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Amidah, Patriarchs",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, עמידה, גבורות",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Amidah, Divine Might",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, עמידה, קדושת השם",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Amidah, Holines of God's Name",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, עמידה, קדושת היום",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Amidah, Sanctity of the Day",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, עמידה, עבודה",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Amidah, Temple Service",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, עמידה, מודים",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Amidah, Thanksgiving",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, עמידה, שלום רב",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Amidah, Peace",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, עמידה, אלהי נצור",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Amidah, Concluding Passage",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, ויכולו",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Vay'chulu",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, ברכה אחת מעין שבע",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Me'ein Sheva",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, קדיש שלם",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Kaddish Shalem",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, ספירת העומר",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Sefirat HaOmer",
+        "length": 1,
+        "chapters": 14,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, עלינו",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Aleinu",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, קדיש יתום",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Mourner's Kaddish",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, לדוד",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, LeDavid",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, יגדל",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Yigdal",
+        "length": 1,
+        "chapters": 27,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מעריב, אדון עולם",
+        "title": "Siddur Ashkenaz, Shabbat, Maariv, Adon Olam",
+        "length": 1,
+        "chapters": 11,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, ליל שבת, ברכת הבנים",
+        "title": "Siddur Ashkenaz, Shabbat, Shabbat Evening, Blessing the Children",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, ליל שבת, שלום עליכם",
+        "title": "Siddur Ashkenaz, Shabbat, Shabbat Evening, Shalom Aleichem",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, ליל שבת, קידוש",
+        "title": "Siddur Ashkenaz, Shabbat, Shabbat Evening, Kiddush",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, ליל שבת, ריבון כל העולמים",
+        "title": "Siddur Ashkenaz, Shabbat, Shabbat Evening, Ribon Kol HaOlamim",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, ליל שבת, אשת חיל",
+        "title": "Siddur Ashkenaz, Shabbat, Shabbat Evening, Eshet Chayil",
+        "length": 1,
+        "chapters": 22,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, ליל שבת, זמירות לליל שבת, כל מקדש",
+        "title": "Siddur Ashkenaz, Shabbat, Shabbat Evening, Zemirot for Shabbat Evening, Kol Mekadesh",
+        "length": 1,
+        "chapters": 33,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, ליל שבת, זמירות לליל שבת, מנוחה ושמחה",
+        "title": "Siddur Ashkenaz, Shabbat, Shabbat Evening, Zemirot for Shabbat Evening, Menucha VeSimcha",
+        "length": 1,
+        "chapters": 20,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, ליל שבת, זמירות לליל שבת, מה ידידות",
+        "title": "Siddur Ashkenaz, Shabbat, Shabbat Evening, Zemirot for Shabbat Evening, Ma Yedidut",
+        "length": 1,
+        "chapters": 25,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, ליל שבת, זמירות לליל שבת, יום זה לישראל",
+        "title": "Siddur Ashkenaz, Shabbat, Shabbat Evening, Zemirot for Shabbat Evening, Yom zeh L'yisrael",
+        "length": 1,
+        "chapters": 34,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, ליל שבת, זמירות לליל שבת, יה ריבון",
+        "title": "Siddur Ashkenaz, Shabbat, Shabbat Evening, Zemirot for Shabbat Evening, Yah Ribon",
+        "length": 1,
+        "chapters": 25,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, ליל שבת, זמירות לליל שבת, צמאה נפשי",
+        "title": "Siddur Ashkenaz, Shabbat, Shabbat Evening, Zemirot for Shabbat Evening, Tzamah Nafshi",
+        "length": 1,
+        "chapters": 56,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, ליל שבת, זמירות לליל שבת, צור משלו",
+        "title": "Siddur Ashkenaz, Shabbat, Shabbat Evening, Zemirot for Shabbat Evening, Tzur Mishelo",
+        "length": 1,
+        "chapters": 22,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, מודה אני",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Modeh Ani",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, נטילת ידים",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Netilat Yadayim",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, אשר יצר",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Asher Yatzar",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, אלהי נשמה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Elokai Neshama",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, ציצית",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Tzitzit",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, טלית",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Tallit",
+        "length": 1,
+        "chapters": 10,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, מה טובו",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Ma Tovu",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, אדון עולם",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Adon Olam",
+        "length": 1,
+        "chapters": 10,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, יגדל",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Yigdal",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, ברכות השחר",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Morning Blessings",
+        "length": 1,
+        "chapters": 21,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, עקדה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Akedah",
+        "length": 1,
+        "chapters": 19,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, עול מלכות שמים",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Sovereignty of Heaven",
+        "length": 1,
+        "chapters": 26,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, קרבנות, פרשת הכיור",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Korbanot, Kiyor",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, קרבנות, פרשת תרומת הדשן",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Korbanot, Terumat HaDeshen",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, קרבנות, פרשת קרבן תמיד",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Korbanot, Korban HaTamid",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, קרבנות, פרשת הקטורת",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Korbanot, Ketoret",
+        "length": 1,
+        "chapters": 27,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, קרבנות, סדר המערכה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Korbanot, Order of the Temple Service",
+        "length": 1,
+        "chapters": 18,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, קרבנות, דיני זבחים",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Korbanot, Laws of Sacrifices",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, קרבנות, ברייתא דרבי ישמעאל",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Korbanot, Baraita of Rabbi Yishmael",
+        "length": 1,
+        "chapters": 16,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנה לתפילה, קרבנות, קדיש דרבנן",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Preparatory Prayers, Korbanot, Kaddish DeRabbanan",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, מזמור שיר חנוכת הבית",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Mizmor Shir",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, קדיש יתום",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Mourner's Kaddish",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, ברוך שאמר",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Barukh She'amar",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, הודו",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Hodu",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, מזמור לתודה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Mizmor Letoda",
+        "length": 1,
+        "chapters": 0,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים יט",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 19",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים לד",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 34",
+        "length": 1,
+        "chapters": 12,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים צ",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 90",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים צא",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 91",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים קלה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 135",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים קלו",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 136",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים לג",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 33",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים צב",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 92",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים צג",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 93",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, יהי כבוד",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Yehi Chevod",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, אשרי",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Ashrei",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים קמו",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 146",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים קמז",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 147",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים קמח",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 148",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים קמט",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 149",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים קנ",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 150",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, ברוך ה׳",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Baruch Hashem",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, ויברך דוד",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Vayevarech David",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, אז ישיר",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Shirat HaYam",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, נשמת כל חי",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Nishmat Kol Chai",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, שוכן עד",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Shochen Ad",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, ישתבח",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Yishtabach",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, תהילים קל",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Psalm 130",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, פסוקי דזמרה, חצי קדיש",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Pesukei Dezimra, Half Kaddish",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, ברכות קריאת שמע, ברכו",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Blessings of the Shema, Barchu",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, ברכות קריאת שמע, יוצר אור",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Blessings of the Shema, First Blessing before Shema",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, ברכות קריאת שמע, אהבת ישראל",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Blessings of the Shema, Second Blessing before Shema",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, ברכות קריאת שמע, שמע",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Blessings of the Shema, Shema",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, ברכות קריאת שמע, גאל ישראל",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Blessings of the Shema, Blessing after Shema",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, עמידה, אבות",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Amidah, Patriarchs",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, עמידה, גבורות",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Amidah, Divine Might",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, עמידה, קדושה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Amidah, Kedushah",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, עמידה, קדושת השם",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Amidah, Holiness of God",
+        "length": 1,
+        "chapters": 0,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, עמידה, קדושת היום",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Amidah, Sanctity of the Day",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, עמידה, עבודה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Amidah, Temple Service",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, עמידה, מודים",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Amidah, Thanksgiving",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, עמידה, ברכת כהנים",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Amidah, Birkat Kohanim",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, עמידה, שים שלום",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Amidah, Peace",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, עמידה, אלוהי נצור",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Amidah, Concluding Passage",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, עמידה, קדיש שלם",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Amidah, Kaddish Shalem",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, הוצאת ספר תורה, אין כמוך",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Removing the Torah from the Ark, Ein Kamocha",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, הוצאת ספר תורה, ויהי בנסע",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Removing the Torah from the Ark, Vayehi Binsoa",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, הוצאת ספר תורה, בריך שמה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Removing the Torah from the Ark, Berich Shmei",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, הוצאת ספר תורה, שמע ישראל",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Removing the Torah from the Ark, Shema Yisrael (Gadlu)",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, הוצאת ספר תורה, לך השם",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Removing the Torah from the Ark, Lecha Hashem",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, הוצאת ספר תורה, ויעזור ויגן",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Removing the Torah from the Ark, Veyazor Veyagen",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, קריאת התורה, ברכת התורה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Reading from Sefer, Birkat HaTorah",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, קריאת התורה, ברכת הגומל",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Reading from Sefer, Birkat Hagomel",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, קריאת התורה, מי שברך, לעולה התורה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Reading from Sefer, Mi Sheberach, For an Oleh",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, קריאת התורה, מי שברך, לחולים",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Reading from Sefer, Mi Sheberach, For Sickness (includes man and woman)",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, קריאת התורה, מי שברך, ליולדות, יולדת בן",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Reading from Sefer, Mi Sheberach, For Birth, Birth of a Son",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, קריאת התורה, מי שברך, ליולדות, יולדת בת",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Reading from Sefer, Mi Sheberach, For Birth, Birth of Daughter",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, קריאת התורה, מי שברך, בר מצוה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Reading from Sefer, Mi Sheberach, Bar Mitzvah",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, קריאת התורה, מי שברך, בת מצוה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Reading from Sefer, Mi Sheberach, Bat Mitzvah",
+        "length": 1,
+        "chapters": 0,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, קריאת התורה, חצי קדיש",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Reading from Sefer, Half Kaddish",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, קריאת התורה, הגבהה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Reading from Sefer, Raising the Torah",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, קריאת התורה, קריאת התורה, הפטרה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Torah Reading, Reading from Sefer, Haftarah",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, תפילות לציבור, יקום פרקן",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Communal Prayers, Yekum Purkan",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, תפילות לציבור, תפילה לשלום מדינת ישראל",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Communal Prayers, Prayer of the State of Israel",
+        "length": 1,
+        "chapters": 35,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, תפילות לציבור, מי שברך לחיילי צה\"ל",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Communal Prayers, Prayer for Israeli Soldiers",
+        "length": 1,
+        "chapters": 12,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, תפילות לציבור, מי שברך לשבויים",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Communal Prayers, Prayer for Those Being Held in Captivity",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, תפילות לציבור, ברכת החודש",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Communal Prayers, Birkat Hachodesh",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, תפילות לציבור, אב הרחמים",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Communal Prayers, Av HaRachamim",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, אשרי",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Ashrei",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, הכנסת ספר תורה",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Returning Sefer to Aron",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, שחרית, חצי קדיש",
+        "title": "Siddur Ashkenaz, Shabbat, Shacharit, Half Kaddish",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, עמידה, אבות",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Amidah, Patriarchs",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, עמידה, גבורות",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Amidah, Divine Might",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, עמידה, קדושה",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Amidah, Kedushah",
+        "length": 1,
+        "chapters": 13,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, עמידה, קדושת השם",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Amidah, Holiness of God",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, עמידה, קדושת היום, לשבת",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Amidah, Sanctity of the Day, For Shabbat",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, עמידה, קדושת היום, לשבת ראש חודש",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Amidah, Sanctity of the Day, For Shabbat Rosh Chodesh",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, עמידה, עבודה",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Amidah, Temple Service",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, עמידה, מודים",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Amidah, Thanksgiving",
+        "length": 1,
+        "chapters": 21,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, עמידה, ברכת כהנים",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Amidah, Birkat Kohanim",
+        "length": 1,
+        "chapters": 15,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, עמידה, שים שלום",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Amidah, Peace",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, עמידה, אלוהי נצור",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Amidah, Concluding Passage",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, עמידה, קדיש שלם",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Amidah, Kaddish Shalem",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, קדיש שלם",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Kaddish Shalem",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, אין כאלוהינו",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Ein Keloheinu",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, פיטום הקטורת",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Pitum Haketoret",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, קדיש דרבנן",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Kaddish Derabbanan",
+        "length": 1,
+        "chapters": 14,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, עלינו",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Alenu",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, קדיש יתום",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Mourner's Kaddish",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, מזמור שיר ליום השבת",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Mizmor Shir L'Yom HaShabbat",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, קדיש יתום",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Mourner's Kaddish",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, לדוד",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, LeDavid",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, שיר הכבוד",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Shir HaKavod",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, קדיש יתום",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Mourner's Kaddish",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מוסף לשבת, אדון עולם",
+        "title": "Siddur Ashkenaz, Shabbat, Musaf LeShabbat, Adon Olam",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, סעודת היום, קידושא רבה",
+        "title": "Siddur Ashkenaz, Shabbat, Daytime Meal, Kiddusha Rabba",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, סעודת היום, זמירות לסעודת היום, ברוך אל עליון",
+        "title": "Siddur Ashkenaz, Shabbat, Daytime Meal, Zemirot for Second Meal, Baruch Kel Elyon",
+        "length": 1,
+        "chapters": 83,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, סעודת היום, זמירות לסעודת היום, יום זה מכובד",
+        "title": "Siddur Ashkenaz, Shabbat, Daytime Meal, Zemirot for Second Meal, Yom Zeh Mechubad",
+        "length": 1,
+        "chapters": 67,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, סעודת היום, זמירות לסעודת היום, יום שבתון",
+        "title": "Siddur Ashkenaz, Shabbat, Daytime Meal, Zemirot for Second Meal, Yom Shabbaton",
+        "length": 1,
+        "chapters": 51,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, סעודת היום, זמירות לסעודת היום, שמרו שבתותי",
+        "title": "Siddur Ashkenaz, Shabbat, Daytime Meal, Zemirot for Second Meal, Shimru Shabtotai",
+        "length": 1,
+        "chapters": 38,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, סעודת היום, זמירות לסעודת היום, כי אשמרה",
+        "title": "Siddur Ashkenaz, Shabbat, Daytime Meal, Zemirot for Second Meal, Ki Eshmera",
+        "length": 1,
+        "chapters": 49,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, סעודת היום, זמירות לסעודת היום, דרור יקרא",
+        "title": "Siddur Ashkenaz, Shabbat, Daytime Meal, Zemirot for Second Meal, Dror Yikrah",
+        "length": 1,
+        "chapters": 55,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, אשרי",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Ashrei",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, ובא לציון",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Uva Letzion",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, חצי קדיש",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Half Kaddish",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, קריאת התורה, הוצאת ספר תורה, ואני תפילתי",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Torah Reading, Removing the Torah from Ark, Va'ani Tefillati",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, קריאת התורה, הוצאת ספר תורה, ויהי בנסוע",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Torah Reading, Removing the Torah from Ark, Vayehi Binsoa",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, קריאת התורה, הוצאת ספר תורה, בריך שמה",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Torah Reading, Removing the Torah from Ark, Berich Shmei",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, קריאת התורה, הוצאת ספר תורה, גדלו",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Torah Reading, Removing the Torah from Ark, Gadlu",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, קריאת התורה, הוצאת ספר תורה, לך ה׳",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Torah Reading, Removing the Torah from Ark, Lekha Hashem",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, קריאת התורה, הוצאת ספר תורה, אב הרחמים",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Torah Reading, Removing the Torah from Ark, Av Harachamim",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, קריאת התורה, הוצאת ספר תורה, ותגלה ותראה",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Torah Reading, Removing the Torah from Ark, Vetigaleh Veteraeh",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, קריאת התורה, קריאת התורה, ברכת התורה",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Torah Reading, Reading from Sefer, Birkat HaTorah",
+        "length": 1,
+        "chapters": 12,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, קריאת התורה, קריאת התורה, הגבהה",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Torah Reading, Reading from Sefer, Raising the Torah",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, קריאת התורה, הכנסת התורה, יהללו",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Torah Reading, Returning Sefer to Aron, Yehalelu",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, קריאת התורה, הכנסת התורה, לדוד מזמור",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Torah Reading, Returning Sefer to Aron, LeDavid",
+        "length": 1,
+        "chapters": 10,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, קריאת התורה, הכנסת התורה, ובנוחה יאמר",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Torah Reading, Returning Sefer to Aron, Uvenucho Yomar",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, עמידה, אבות",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Amidah, Patriarchs",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, עמידה, גבורות",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Amidah, Divine Might",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, עמידה, קדושה",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Amidah, Kedushah",
+        "length": 1,
+        "chapters": 10,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, עמידה, קדושת השם",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Amidah, Holiness of God",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, עמידה, קדושת היום",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Amidah, Sanctity of the Day",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, עמידה, עבודה",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Amidah, Temple Service",
+        "length": 1,
+        "chapters": 11,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, עמידה, מודים, מודים ומודים דרבנן",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Amidah, Thanksgiving, Modim",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, עמידה, מודים, על הניסים לחנוכה",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Amidah, Thanksgiving, Al Hanisim for Chanukkah",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, עמידה, מודים, על הניסים לפורים",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Amidah, Thanksgiving, Al Hanisim for Purim",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, עמידה, שים שלום",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Amidah, Peace",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, עמידה, אלוהי נצור",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Amidah, Concluding Passage",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, צדקתך צדק",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Tzidkatkhah Tzedek",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, קדיש שלם",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Kaddish Shalem",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, עלינו",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Alenu",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, קדיש יתום",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Mourner's Kaddish",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, מנחה, ברכי נפשי",
+        "title": "Siddur Ashkenaz, Shabbat, Minchah, Barchi Nafshi",
+        "length": 1,
+        "chapters": 35,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, סעודת שלישית, אתקינו",
+        "title": "Siddur Ashkenaz, Shabbat, Third Meal, Atkinu",
+        "length": 1,
+        "chapters": 12,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, סעודת שלישית, מזמור לדוד",
+        "title": "Siddur Ashkenaz, Shabbat, Third Meal, Mizmor LeDavid",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, סעודת שלישית, ידיד נפש",
+        "title": "Siddur Ashkenaz, Shabbat, Third Meal, Yedid Nefesh",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, שבת, הבדלה",
+        "title": "Siddur Ashkenaz, Shabbat, Havdalah",
+        "length": 1,
+        "chapters": 17,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, הלל, ברכת הלל",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Hallel, Berakhah before the Hallel",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, הלל, תהילים קיג",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Hallel, Psalm 113",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, הלל, תהילים קיד",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Hallel, Psalm 114",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, הלל, תהילים קטו",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Hallel, Psalm 115",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, הלל, תהילים קטז",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Hallel, Psalm 116",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, הלל, תהילים קיז",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Hallel, Psalm 117",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, הלל, תהילים קיח",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Hallel, Psalm 118",
+        "length": 1,
+        "chapters": 13,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, הלל, ברכה בסוף",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Hallel, Berakhah after the Hallel",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, מוסף עמידה לראש חודש, אבות",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Musaf Amidah for Rosh Chodesh, Avot",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, מוסף עמידה לראש חודש, גבורות",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Musaf Amidah for Rosh Chodesh, Gevurot",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, מוסף עמידה לראש חודש, קדושה, קדושת השם",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Musaf Amidah for Rosh Chodesh, Kedushah, Kedushat HaShem",
+        "length": 1,
+        "chapters": 13,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, מוסף עמידה לראש חודש, קדושת היום",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Musaf Amidah for Rosh Chodesh, Sanctity of the Day",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, מוסף עמידה לראש חודש, עבודה",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Musaf Amidah for Rosh Chodesh, Avodah",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, מוסף עמידה לראש חודש, מודים",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Musaf Amidah for Rosh Chodesh, Hodayah",
+        "length": 1,
+        "chapters": 17,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, מוסף עמידה לראש חודש, ברכת כהנים",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Musaf Amidah for Rosh Chodesh, Birkat Kohanim",
+        "length": 1,
+        "chapters": 20,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, מוסף עמידה לראש חודש, שים שלום",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Musaf Amidah for Rosh Chodesh, Peace",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, ראש חודש, מוסף עמידה לראש חודש, אלוהי נצור",
+        "title": "Siddur Ashkenaz, Festivals, Rosh Chodesh, Musaf Amidah for Rosh Chodesh, Passages Ending Amidah",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, עמידה לערבית, שחרית, מנחה, אבות",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Amida for Maariv, Shacharit, Mincha, Avot",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, עמידה לערבית, שחרית, מנחה, גבורות",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Amida for Maariv, Shacharit, Mincha, Gevurot",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, עמידה לערבית, שחרית, מנחה, קדושה",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Amida for Maariv, Shacharit, Mincha, Kedusha",
+        "length": 1,
+        "chapters": 19,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, עמידה לערבית, שחרית, מנחה, קדושת היום",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Amida for Maariv, Shacharit, Mincha, Sanctity of the Day",
+        "length": 1,
+        "chapters": 24,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, עמידה לערבית, שחרית, מנחה, עבודה",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Amida for Maariv, Shacharit, Mincha, Avodah",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, עמידה לערבית, שחרית, מנחה, מודים",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Amida for Maariv, Shacharit, Mincha, Modim",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, עמידה לערבית, שחרית, מנחה, ברכת כהנים",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Amida for Maariv, Shacharit, Mincha, Birkat Kohanim",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, עמידה לערבית, שחרית, מנחה, ברכה לשלום",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Amida for Maariv, Shacharit, Mincha, Peace",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, עמידה לערבית, שחרית, מנחה, סיום עמידה",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Amida for Maariv, Shacharit, Mincha, Concluding Prayer",
+        "length": 1,
+        "chapters": 8,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, מוסף, אבות",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Mussaf, Avot",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, מוסף, גבורות",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Mussaf, Gevurot",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, מוסף, קדושה",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Mussaf, Kedusha",
+        "length": 1,
+        "chapters": 24,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, מוסף, קדושת השם",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Mussaf, Sanctity of the Name",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, מוסף, קדושת היום",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Mussaf, Sanctity of the Day",
+        "length": 1,
+        "chapters": 69,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, מוסף, עבודה",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Mussaf, Avodah",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, מוסף, מודים",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Mussaf, Modim",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, מוסף, ברכת כוהנים",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Mussaf, Birkat Kohanim",
+        "length": 1,
+        "chapters": 19,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, מוסף, ברכת שלום",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Mussaf, Peace",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילות לשלוש רגלים, מוסף, סיום עמידה",
+        "title": "Siddur Ashkenaz, Festivals, Shalosh Regalim, Mussaf, Concluding Prayer",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילת טל",
+        "title": "Siddur Ashkenaz, Festivals, Prayer for Dew",
+        "length": 1,
+        "chapters": 60,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, תפילת גשם",
+        "title": "Siddur Ashkenaz, Festivals, Prayer for Rain",
+        "length": 1,
+        "chapters": 60,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סוכות, תפילות בסוכה, כשנכנסים לסוכה",
+        "title": "Siddur Ashkenaz, Festivals, Sukkot, Prayers in the Sukkah, Entering the Sukkah",
+        "length": 1,
+        "chapters": 2,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סוכות, תפילות בסוכה, אושפיזין",
+        "title": "Siddur Ashkenaz, Festivals, Sukkot, Prayers in the Sukkah, Ushpizin",
+        "length": 1,
+        "chapters": 21,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סוכות, תפילות בסוכה, כשיוצאים מן הסוכה",
+        "title": "Siddur Ashkenaz, Festivals, Sukkot, Prayers in the Sukkah, Leaving the Sukkah",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סוכות, נטילת לולב",
+        "title": "Siddur Ashkenaz, Festivals, Sukkot, Blessing on Lulav",
+        "length": 1,
+        "chapters": 3,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סוכות, הושענות, כל יום בסוכות שחל בשבת",
+        "title": "Siddur Ashkenaz, Festivals, Sukkot, Hosha'anot, For Shabbat Chol Hamoed",
+        "length": 1,
+        "chapters": 32,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סוכות, הושענות, יום טוב ראשון של סוכות",
+        "title": "Siddur Ashkenaz, Festivals, Sukkot, Hosha'anot, First Day of Sukkot",
+        "length": 1,
+        "chapters": 24,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סוכות, הושענות, יום שני של סוכות",
+        "title": "Siddur Ashkenaz, Festivals, Sukkot, Hosha'anot, Second Day of Sukkot",
+        "length": 1,
+        "chapters": 32,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סוכות, הושענות, יום שלישי של סוכות",
+        "title": "Siddur Ashkenaz, Festivals, Sukkot, Hosha'anot, Third Day of Sukkot",
+        "length": 1,
+        "chapters": 25,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סוכות, הושענות, יום רביעי של סוכות",
+        "title": "Siddur Ashkenaz, Festivals, Sukkot, Hosha'anot, Fourth Day of Sukkot",
+        "length": 1,
+        "chapters": 61,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סוכות, הושענות, יום חמישי של סוכות",
+        "title": "Siddur Ashkenaz, Festivals, Sukkot, Hosha'anot, Fifth Day of Sukkot",
+        "length": 1,
+        "chapters": 45,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סוכות, הושענות, יום שישי של סוכות",
+        "title": "Siddur Ashkenaz, Festivals, Sukkot, Hosha'anot, Sixth Day of Sukkot",
+        "length": 1,
+        "chapters": 46,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סוכות, הושענות, הושענא רבה",
+        "title": "Siddur Ashkenaz, Festivals, Sukkot, Hosha'anot, Hosha'ana Rabba",
+        "length": 1,
+        "chapters": 90,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, חנוכה, סדר הדלקת נרות חנוכה, ברכות הדלקת נרות חנוכה",
+        "title": "Siddur Ashkenaz, Festivals, Chanukah, Service for Lighting Chanukah Candles, Blessings on Chanukah Candles",
+        "length": 1,
+        "chapters": 9,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, חנוכה, סדר הדלקת נרות חנוכה, הנרות הללו",
+        "title": "Siddur Ashkenaz, Festivals, Chanukah, Service for Lighting Chanukah Candles, Hanerot Hallalu",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, חנוכה, סדר הדלקת נרות חנוכה, מעוז צור",
+        "title": "Siddur Ashkenaz, Festivals, Chanukah, Service for Lighting Chanukah Candles, Maoz Tzur",
+        "length": 1,
+        "chapters": 29,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סליחות, צום גדליה",
+        "title": "Siddur Ashkenaz, Festivals, Selichot, Fast of Gedalia",
+        "length": 1,
+        "chapters": 299,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סליחות, עשרה בטבת",
+        "title": "Siddur Ashkenaz, Festivals, Selichot, Ten of Tevet",
+        "length": 1,
+        "chapters": 55,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סליחות, תענית אסתר",
+        "title": "Siddur Ashkenaz, Festivals, Selichot, Fast of Esther",
+        "length": 1,
+        "chapters": 47,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סליחות, שבעה עשר בתמוז",
+        "title": "Siddur Ashkenaz, Festivals, Selichot, Seventeen of Tamuz",
+        "length": 1,
+        "chapters": 42,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סליחות, יום כיפור קטן",
+        "title": "Siddur Ashkenaz, Festivals, Selichot, Yom Kippur Katan",
+        "length": 1,
+        "chapters": 112,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, חגים, סליחות, בהב",
+        "title": "Siddur Ashkenaz, Festivals, Selichot, BaHaB",
+        "length": 1,
+        "chapters": 4,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ברכות, ברכת המזון",
+        "title": "Siddur Ashkenaz, Berachot, Birkat HaMazon",
+        "length": 1,
+        "chapters": 89,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ברכות, ברכת הנהנין, אכילה, ברכות ראשונות",
+        "title": "Siddur Ashkenaz, Berachot, Birkat Hanehenin, Eating, Barachot Rishonot",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ברכות, ברכת הנהנין, אכילה, ברכות אחרונות, על המחיה",
+        "title": "Siddur Ashkenaz, Berachot, Birkat Hanehenin, Eating, Brachot Achronot, Al Hamichyah",
+        "length": 1,
+        "chapters": 10,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ברכות, ברכת הנהנין, אכילה, ברכות אחרונות, בורא נפשות",
+        "title": "Siddur Ashkenaz, Berachot, Birkat Hanehenin, Eating, Brachot Achronot, Borei Nefashot",
+        "length": 1,
+        "chapters": 5,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ברכות, ברכת הנהנין, ברכות הראייה השמיעה והריח",
+        "title": "Siddur Ashkenaz, Berachot, Birkat Hanehenin, Blessings on Sights Sounds and Smells",
+        "length": 1,
+        "chapters": 33,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ברכות, ברכת המצוות",
+        "title": "Siddur Ashkenaz, Berachot, Birkhot Hamitzvot",
+        "length": 1,
+        "chapters": 35,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ברכות, מחיה המתים",
+        "title": "Siddur Ashkenaz, Berachot, Asher Yatzar Etchem Badin",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ברכות, תפילת הדרך",
+        "title": "Siddur Ashkenaz, Berachot, Tefillat HaDerech",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, ברכות, הביננו",
+        "title": "Siddur Ashkenaz, Berachot, Havinenu",
+        "length": 1,
+        "chapters": 14,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, קדיש, חצי קדיש",
+        "title": "Siddur Ashkenaz, Kaddish, Half Kaddish",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, קדיש, קדיש יתום",
+        "title": "Siddur Ashkenaz, Kaddish, Mourner's Kaddish",
+        "length": 1,
+        "chapters": 7,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, קדיש, קדיש שלם",
+        "title": "Siddur Ashkenaz, Kaddish, Kaddish Shalem",
+        "length": 1,
+        "chapters": 1,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, קדיש, קדיש דרבנן",
+        "title": "Siddur Ashkenaz, Kaddish, Kaddish d'Rabbanan",
+        "length": 1,
+        "chapters": 14,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, קדיש, קדיש דאתחדתא",
+        "title": "Siddur Ashkenaz, Kaddish, Kaddish achar HaKevura",
+        "length": 1,
+        "chapters": 22,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      },
+      {
+        "section": "Siddur",
+        "heTitle": "סידור אשכנז, קדיש, קדיש אחר השלמת מסכת",
+        "title": "Siddur Ashkenaz, Kaddish, Kaddish achar Hashlamat Meschet",
+        "length": 1,
+        "chapters": 6,
+        "book": "Siddur Ashkenaz",
+        "heBook": "סידור אשכנז"
+      }
+    ],
+    "book": "Siddur Ashkenaz",
+    "heBook": "סידור אשכנז"
+  }
+]

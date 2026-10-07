@@ -1,0 +1,1260 @@
+{
+  "title": "Jerusalem Talmud Berakhot",
+  "categories": [
+    "Talmud",
+    "Yerushalmi",
+    "Seder Zeraim"
+  ],
+  "schema": {
+    "nodeType": "JaggedArrayNode",
+    "depth": 3,
+    "addressTypes": [
+      "Perek",
+      "Halakhah",
+      "Integer"
+    ],
+    "sectionNames": [
+      "Chapter",
+      "Halakhah",
+      "Segment"
+    ],
+    "match_templates": [
+      {
+        "term_slugs": [
+          "yerushalmi",
+          "berakhot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "yerushalmi",
+          "tractate",
+          "berakhot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "talmud",
+          "yerushalmi",
+          "tractate",
+          "berakhot"
+        ]
+      },
+      {
+        "term_slugs": [
+          "talmud",
+          "yerushalmi",
+          "berakhot"
+        ]
+      }
+    ],
+    "ref_resolver_context_mutations": [
+      {
+        "op": "swap",
+        "input_terms": [
+          "halakha"
+        ],
+        "output_terms": [
+          "yerushalmi",
+          "berakhot"
+        ]
+      }
+    ],
+    "lengths": [
+      9,
+      58,
+      655
+    ],
+    "referenceableSections": [
+      true,
+      true,
+      false
+    ],
+    "titles": [
+      {
+        "text": "Yerushalmi Berachot",
+        "lang": "en"
+      },
+      {
+        "text": "JT Berakhot",
+        "lang": "en"
+      },
+      {
+        "text": "JT Berachot",
+        "lang": "en"
+      },
+      {
+        "text": "Talmud Yerushalmi Berakhot",
+        "lang": "en"
+      },
+      {
+        "text": "Yerushalmi Berakhot",
+        "lang": "en"
+      },
+      {
+        "text": "Y. Ber.",
+        "lang": "en"
+      },
+      {
+        "text": "ירושלמי ברכות",
+        "lang": "he"
+      },
+      {
+        "text": "ירו' ברכות",
+        "lang": "he"
+      },
+      {
+        "text": "ירוש' ברכות",
+        "lang": "he"
+      },
+      {
+        "text": "תלמוד ירושלמי ברכות",
+        "lang": "he",
+        "primary": true
+      },
+      {
+        "text": "Jerusalem Talmud Berakhot",
+        "lang": "en",
+        "primary": true
+      }
+    ],
+    "key": "Jerusalem Talmud Berakhot"
+  },
+  "alt_structs": {
+    "Venice": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 1:1:2-6:11",
+          "addressTypes": [
+            "Folio"
+          ],
+          "sectionNames": [
+            "Column"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 1:1:2-4",
+            "Jerusalem Talmud Berakhot 1:1:4-15",
+            "Jerusalem Talmud Berakhot 1:1:15-24",
+            "Jerusalem Talmud Berakhot 1:1:24-31",
+            "Jerusalem Talmud Berakhot 1:1:31-2:7",
+            "Jerusalem Talmud Berakhot 1:2:7-4:4",
+            "Jerusalem Talmud Berakhot 1:4:4-5:14",
+            "Jerusalem Talmud Berakhot 1:5:14-6:8",
+            "Jerusalem Talmud Berakhot 1:6:8-11"
+          ],
+          "startingAddress": "2a",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-17"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "first"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-17"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 1,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 1",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "מאימתי",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 2:1:1-9:4",
+          "addressTypes": [
+            "Folio"
+          ],
+          "sectionNames": [
+            "Column"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 2:1:1-8",
+            "Jerusalem Talmud Berakhot 2:1:8-3:2",
+            "Jerusalem Talmud Berakhot 2:3:2-15",
+            "Jerusalem Talmud Berakhot 2:3:15-4:10",
+            "Jerusalem Talmud Berakhot 2:4:10-6:2",
+            "Jerusalem Talmud Berakhot 2:6:2-8:4",
+            "Jerusalem Talmud Berakhot 2:8:4-9:2",
+            "Jerusalem Talmud Berakhot 2:9:2-4"
+          ],
+          "startingAddress": "4a",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-27"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "second"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-27"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 2,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 2",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "היה קורא",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 3:1:1-6:4",
+          "addressTypes": [
+            "Folio"
+          ],
+          "sectionNames": [
+            "Column"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 3:1:1-8",
+            "Jerusalem Talmud Berakhot 3:1:8-23",
+            "Jerusalem Talmud Berakhot 3:1:23-4:3",
+            "Jerusalem Talmud Berakhot 3:4:3-5:4",
+            "Jerusalem Talmud Berakhot 3:5:4-6:2",
+            "Jerusalem Talmud Berakhot 3:6:2-4"
+          ],
+          "startingAddress": "5d",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-37"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "third"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-37"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 3,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 3",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "מי שמתו",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 4:1:1-6:7",
+          "addressTypes": [
+            "Folio"
+          ],
+          "sectionNames": [
+            "Column"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 4:1:1-8",
+            "Jerusalem Talmud Berakhot 4:1:8-22",
+            "Jerusalem Talmud Berakhot 4:1:22-33",
+            "Jerusalem Talmud Berakhot 4:1:33-3:2",
+            "Jerusalem Talmud Berakhot 4:3:2-4:4",
+            "Jerusalem Talmud Berakhot 4:4:4-5:4",
+            "Jerusalem Talmud Berakhot 4:5:4-6:7"
+          ],
+          "startingAddress": "7a",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-47"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "fourth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-47"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 4,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 4",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "תפלת השחר",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 5:1:1-5:3",
+          "addressTypes": [
+            "Folio"
+          ],
+          "sectionNames": [
+            "Column"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 5:1:1-2",
+            "Jerusalem Talmud Berakhot 5:1:2-12",
+            "Jerusalem Talmud Berakhot 5:1:12-2:3",
+            "Jerusalem Talmud Berakhot 5:2:3-13",
+            "Jerusalem Talmud Berakhot 5:2:13-4:3",
+            "Jerusalem Talmud Berakhot 5:4:3-5:3"
+          ],
+          "startingAddress": "8c",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-57"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "fifth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-57"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 5,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 5",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "אין עומדין",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 6:1:1-8:3",
+          "addressTypes": [
+            "Folio"
+          ],
+          "sectionNames": [
+            "Column"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 6:1:1-2",
+            "Jerusalem Talmud Berakhot 6:1:2-14",
+            "Jerusalem Talmud Berakhot 6:1:14-2:4",
+            "Jerusalem Talmud Berakhot 6:2:4-6:2",
+            "Jerusalem Talmud Berakhot 6:6:2-8:3"
+          ],
+          "startingAddress": "9d",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-65"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "sixth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-65"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 6,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 6",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "כיצד מברכין",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 7:1:1-5:11",
+          "addressTypes": [
+            "Folio"
+          ],
+          "sectionNames": [
+            "Column"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 7:1:1-2",
+            "Jerusalem Talmud Berakhot 7:1:2-7",
+            "Jerusalem Talmud Berakhot 7:1:7-3:2",
+            "Jerusalem Talmud Berakhot 7:3:2-5:7",
+            "Jerusalem Talmud Berakhot 7:5:7-11"
+          ],
+          "startingAddress": "10d",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-75"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "seventh"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-75"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 7,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 7",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "שלשה שאכלו",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 8:1:1-8:7",
+          "addressTypes": [
+            "Folio"
+          ],
+          "sectionNames": [
+            "Column"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 8:1:1-7",
+            "Jerusalem Talmud Berakhot 8:1:7-3:5",
+            "Jerusalem Talmud Berakhot 8:3:5-6:9",
+            "Jerusalem Talmud Berakhot 8:6:9-8:7"
+          ],
+          "startingAddress": "11d",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-85"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "eighth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-85"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 8,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 8",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "אלו דברים",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 9:1:1-5:22",
+          "addressTypes": [
+            "Folio"
+          ],
+          "sectionNames": [
+            "Column"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 9:1:1-2",
+            "Jerusalem Talmud Berakhot 9:1:2-11",
+            "Jerusalem Talmud Berakhot 9:1:11-19",
+            "Jerusalem Talmud Berakhot 9:1:19-31",
+            "Jerusalem Talmud Berakhot 9:1:31-2:9",
+            "Jerusalem Talmud Berakhot 9:2:9-20",
+            "Jerusalem Talmud Berakhot 9:2:20-3:8",
+            "Jerusalem Talmud Berakhot 9:3:8-5:12",
+            "Jerusalem Talmud Berakhot 9:5:12-18",
+            "Jerusalem Talmud Berakhot 9:5:18-22"
+          ],
+          "startingAddress": "12c",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-95"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "ninth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-95"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "last"
+              ]
+            },
+            {
+              "term_slugs": [
+                "last"
+              ]
+            }
+          ],
+          "numeric_equivalent": 9,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 9",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "הרואה",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        }
+      ]
+    },
+    "Vilna": {
+      "nodes": [
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 1:1:1-6:11",
+          "addressTypes": [
+            "Talmud"
+          ],
+          "sectionNames": [
+            "Daf"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 1:1:1-2",
+            "Jerusalem Talmud Berakhot 1:1:2-7",
+            "Jerusalem Talmud Berakhot 1:1:7-11",
+            "Jerusalem Talmud Berakhot 1:1:11-12",
+            "Jerusalem Talmud Berakhot 1:1:12-15",
+            "Jerusalem Talmud Berakhot 1:1:15-16",
+            "Jerusalem Talmud Berakhot 1:1:16-19",
+            "Jerusalem Talmud Berakhot 1:1:19-23",
+            "Jerusalem Talmud Berakhot 1:1:23-27",
+            "Jerusalem Talmud Berakhot 1:1:27-29",
+            "Jerusalem Talmud Berakhot 1:1:29-31",
+            "Jerusalem Talmud Berakhot 1:1:31-36",
+            "Jerusalem Talmud Berakhot 1:1:36-2:2",
+            "Jerusalem Talmud Berakhot 1:2:2-8",
+            "Jerusalem Talmud Berakhot 1:2:8-9",
+            "Jerusalem Talmud Berakhot 1:2:9-4:3",
+            "Jerusalem Talmud Berakhot 1:4:3-5:3",
+            "Jerusalem Talmud Berakhot 1:5:3-9",
+            "Jerusalem Talmud Berakhot 1:5:9-14",
+            "Jerusalem Talmud Berakhot 1:5:14-18",
+            "Jerusalem Talmud Berakhot 1:5:18-6:3",
+            "Jerusalem Talmud Berakhot 1:6:3-11"
+          ],
+          "startingAddress": "1a",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-17"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "first"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-17"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 1,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 1",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "מאימתי",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 2:1:1-9:4",
+          "addressTypes": [
+            "Talmud"
+          ],
+          "sectionNames": [
+            "Daf"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 2:1:1-4",
+            "Jerusalem Talmud Berakhot 2:1:4-14",
+            "Jerusalem Talmud Berakhot 2:1:14-19",
+            "Jerusalem Talmud Berakhot 2:1:19-3:4",
+            "Jerusalem Talmud Berakhot 2:3:4-7",
+            "Jerusalem Talmud Berakhot 2:3:7-10",
+            "Jerusalem Talmud Berakhot 2:3:10-14",
+            "Jerusalem Talmud Berakhot 2:3:14-4:1",
+            "Jerusalem Talmud Berakhot 2:4:1-3",
+            "Jerusalem Talmud Berakhot 2:4:3-8",
+            "Jerusalem Talmud Berakhot 2:4:8-12",
+            "Jerusalem Talmud Berakhot 2:4:12-5:1",
+            "Jerusalem Talmud Berakhot 2:5:1-8",
+            "Jerusalem Talmud Berakhot 2:5:8-6:3",
+            "Jerusalem Talmud Berakhot 2:6:3-7:2",
+            "Jerusalem Talmud Berakhot 2:7:2-8:2",
+            "Jerusalem Talmud Berakhot 2:8:2-7",
+            "Jerusalem Talmud Berakhot 2:8:7-9:1",
+            "Jerusalem Talmud Berakhot 2:9:1-4"
+          ],
+          "startingAddress": "12a",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-27"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "second"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-27"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 2,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 2",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "היה קורא",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 3:1:1-6:4",
+          "addressTypes": [
+            "Talmud"
+          ],
+          "sectionNames": [
+            "Daf"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 3:1:1-4",
+            "Jerusalem Talmud Berakhot 3:1:4-7",
+            "Jerusalem Talmud Berakhot 3:1:7-12",
+            "Jerusalem Talmud Berakhot 3:1:12-18",
+            "Jerusalem Talmud Berakhot 3:1:18-23",
+            "Jerusalem Talmud Berakhot 3:1:23-2:3",
+            "Jerusalem Talmud Berakhot 3:2:3-5",
+            "Jerusalem Talmud Berakhot 3:2:5-3:8",
+            "Jerusalem Talmud Berakhot 3:3:8-11",
+            "Jerusalem Talmud Berakhot 3:3:11-4:5",
+            "Jerusalem Talmud Berakhot 3:4:5-15",
+            "Jerusalem Talmud Berakhot 3:4:15-5:6",
+            "Jerusalem Talmud Berakhot 3:5:6-13",
+            "Jerusalem Talmud Berakhot 3:5:13-6:1",
+            "Jerusalem Talmud Berakhot 3:6:1-3",
+            "Jerusalem Talmud Berakhot 3:6:3-4"
+          ],
+          "startingAddress": "21b",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-37"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "third"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-37"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 3,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 3",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "מי שמתו",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 4:1:1-6:7",
+          "addressTypes": [
+            "Talmud"
+          ],
+          "sectionNames": [
+            "Daf"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 4:1:1-2",
+            "Jerusalem Talmud Berakhot 4:1:2-10",
+            "Jerusalem Talmud Berakhot 4:1:10-16",
+            "Jerusalem Talmud Berakhot 4:1:16-21",
+            "Jerusalem Talmud Berakhot 4:1:21-25",
+            "Jerusalem Talmud Berakhot 4:1:25-28",
+            "Jerusalem Talmud Berakhot 4:1:28-31",
+            "Jerusalem Talmud Berakhot 4:1:31-33",
+            "Jerusalem Talmud Berakhot 4:1:33-3:2",
+            "Jerusalem Talmud Berakhot 4:3:2-11",
+            "Jerusalem Talmud Berakhot 4:3:11-4:2",
+            "Jerusalem Talmud Berakhot 4:4:2-9",
+            "Jerusalem Talmud Berakhot 4:4:9-5:5",
+            "Jerusalem Talmud Berakhot 4:5:5-6:3",
+            "Jerusalem Talmud Berakhot 4:6:3-7",
+            "Jerusalem Talmud Berakhot 4:6:7"
+          ],
+          "startingAddress": "29a",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-47"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "fourth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-47"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 4,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 4",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "תפלת השחר",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 5:1:1-5:3",
+          "addressTypes": [
+            "Talmud"
+          ],
+          "sectionNames": [
+            "Daf"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 5:1:1-3",
+            "Jerusalem Talmud Berakhot 5:1:3-11",
+            "Jerusalem Talmud Berakhot 5:1:11-18",
+            "Jerusalem Talmud Berakhot 5:1:18-2:3",
+            "Jerusalem Talmud Berakhot 5:2:3-6",
+            "Jerusalem Talmud Berakhot 5:2:6-10",
+            "Jerusalem Talmud Berakhot 5:2:10-3:2",
+            "Jerusalem Talmud Berakhot 5:3:2-7",
+            "Jerusalem Talmud Berakhot 5:3:7-4:3",
+            "Jerusalem Talmud Berakhot 5:4:3-5:3"
+          ],
+          "startingAddress": "36b",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-57"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "fifth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-57"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 5,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 5",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "אין עומדין",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 6:1:1-8:3",
+          "addressTypes": [
+            "Talmud"
+          ],
+          "sectionNames": [
+            "Daf"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 6:1:1-2",
+            "Jerusalem Talmud Berakhot 6:1:2-4",
+            "Jerusalem Talmud Berakhot 6:1:4-6",
+            "Jerusalem Talmud Berakhot 6:1:6-8",
+            "Jerusalem Talmud Berakhot 6:1:8-9",
+            "Jerusalem Talmud Berakhot 6:1:9-11",
+            "Jerusalem Talmud Berakhot 6:1:11-15",
+            "Jerusalem Talmud Berakhot 6:1:15-17",
+            "Jerusalem Talmud Berakhot 6:1:17-23",
+            "Jerusalem Talmud Berakhot 6:1:23-2:1",
+            "Jerusalem Talmud Berakhot 6:2:1-4",
+            "Jerusalem Talmud Berakhot 6:2:4-4:2",
+            "Jerusalem Talmud Berakhot 6:4:2-4",
+            "Jerusalem Talmud Berakhot 6:4:4-5:3",
+            "Jerusalem Talmud Berakhot 6:5:3-5",
+            "Jerusalem Talmud Berakhot 6:5:5-6:3",
+            "Jerusalem Talmud Berakhot 6:6:3-4",
+            "Jerusalem Talmud Berakhot 6:6:4-6",
+            "Jerusalem Talmud Berakhot 6:6:6-8:2",
+            "Jerusalem Talmud Berakhot 6:8:2-3"
+          ],
+          "startingAddress": "41a",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-65"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "sixth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-65"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 6,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 6",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "כיצד מברכין",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 7:1:1-5:11",
+          "addressTypes": [
+            "Talmud"
+          ],
+          "sectionNames": [
+            "Daf"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 7:1:1-3",
+            "Jerusalem Talmud Berakhot 7:1:3-5",
+            "Jerusalem Talmud Berakhot 7:1:5-6",
+            "Jerusalem Talmud Berakhot 7:1:6-7",
+            "Jerusalem Talmud Berakhot 7:1:7-2:2",
+            "Jerusalem Talmud Berakhot 7:2:2-7",
+            "Jerusalem Talmud Berakhot 7:2:7-3:1",
+            "Jerusalem Talmud Berakhot 7:3:1-4",
+            "Jerusalem Talmud Berakhot 7:3:4-4:3",
+            "Jerusalem Talmud Berakhot 7:4:3-5:5",
+            "Jerusalem Talmud Berakhot 7:5:5-11",
+            "Jerusalem Talmud Berakhot 7:5:11"
+          ],
+          "startingAddress": "51a",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-75"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "seventh"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-75"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 7,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 7",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "שלשה שאכלו",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 8:1:1-8:7",
+          "addressTypes": [
+            "Talmud"
+          ],
+          "sectionNames": [
+            "Daf"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 8:1:1-6",
+            "Jerusalem Talmud Berakhot 8:1:6-7",
+            "Jerusalem Talmud Berakhot 8:1:7-2:2",
+            "Jerusalem Talmud Berakhot 8:2:2-6",
+            "Jerusalem Talmud Berakhot 8:2:6-12",
+            "Jerusalem Talmud Berakhot 8:2:12-3:3",
+            "Jerusalem Talmud Berakhot 8:3:3-4:1",
+            "Jerusalem Talmud Berakhot 8:4:1-5:6",
+            "Jerusalem Talmud Berakhot 8:5:6-6:4",
+            "Jerusalem Talmud Berakhot 8:6:4-11",
+            "Jerusalem Talmud Berakhot 8:6:11-8:6",
+            "Jerusalem Talmud Berakhot 8:8:6-7"
+          ],
+          "startingAddress": "56b",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-85"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "eighth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-85"
+              ],
+              "scope": "any"
+            }
+          ],
+          "numeric_equivalent": 8,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 8",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "אלו דברים",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        },
+        {
+          "nodeType": "ArrayMapNode",
+          "depth": 1,
+          "wholeRef": "Jerusalem Talmud Berakhot 9:1:1-5:22",
+          "addressTypes": [
+            "Talmud"
+          ],
+          "sectionNames": [
+            "Daf"
+          ],
+          "refs": [
+            "Jerusalem Talmud Berakhot 9:1:1-4",
+            "Jerusalem Talmud Berakhot 9:1:4-13",
+            "Jerusalem Talmud Berakhot 9:1:13-22",
+            "Jerusalem Talmud Berakhot 9:1:22-33",
+            "Jerusalem Talmud Berakhot 9:1:33-2:6",
+            "Jerusalem Talmud Berakhot 9:2:6-12",
+            "Jerusalem Talmud Berakhot 9:2:12-20",
+            "Jerusalem Talmud Berakhot 9:2:20-3:3",
+            "Jerusalem Talmud Berakhot 9:3:3-7",
+            "Jerusalem Talmud Berakhot 9:3:7-5:1",
+            "Jerusalem Talmud Berakhot 9:5:1-7",
+            "Jerusalem Talmud Berakhot 9:5:7-16",
+            "Jerusalem Talmud Berakhot 9:5:16-22"
+          ],
+          "startingAddress": "62a",
+          "match_templates": [
+            {
+              "term_slugs": [
+                "perek",
+                "chapter-95"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "ninth"
+              ]
+            },
+            {
+              "term_slugs": [
+                "chapter-95"
+              ],
+              "scope": "any"
+            },
+            {
+              "term_slugs": [
+                "perek",
+                "last"
+              ]
+            },
+            {
+              "term_slugs": [
+                "last"
+              ]
+            }
+          ],
+          "numeric_equivalent": 9,
+          "referenceable": "optional",
+          "titles": [
+            {
+              "text": "Chapter 9",
+              "lang": "en",
+              "primary": true
+            },
+            {
+              "text": "הרואה",
+              "lang": "he",
+              "primary": true
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "order": [
+    1
+  ],
+  "authors": [],
+  "enDesc": "Berakhot (“Blessings”) is the first tractate of Zeraim (“Seeds”), the first order of the Mishnah, and the only tractate in Zeraim included in the Babylonian Talmud. Its nine chapters discuss the laws of prayers, focusing on the Shema, the Amidah, and blessings, including those recited in the context of eating.",
+  "heDesc": "",
+  "enShortDesc": "Blessings and prayers, focusing on Shema and the Amidah.",
+  "heShortDesc": "ברכות ותפילות, בדגש על קריאת שמע ועל תפילת העמידה.",
+  "pubDate": [
+    1523
+  ],
+  "hasErrorMargin": true,
+  "compDate": [
+    375,
+    425
+  ],
+  "compPlace": "Talmudic Israel",
+  "pubPlace": "Venice",
+  "era": "A",
+  "is_cited": true,
+  "corpora": [
+    "Yerushalmi"
+  ]
+}
