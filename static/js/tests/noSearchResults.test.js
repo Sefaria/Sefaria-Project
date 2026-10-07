@@ -1,5 +1,5 @@
 /* Testing done using Jest */
-// The Sources null page offers "✦ Try Library Assistant" next to Browse Library when the
+// Every null page (sources, books, authors, topics) offers "✦ Try Library Assistant" next to its browse button when the
 // assistant widget is on the page; it opens the widget with a request built from the query.
 jest.mock("../sefaria/sefaria", () => ({ __esModule: true, default: {
   _: (k) => k,
@@ -59,8 +59,16 @@ describe("NoSearchResults", function () {
     expect(assistantButton()).toBeNull();
   });
 
-  it.each(["books", "authors", "topics"])("does not show it on the %s null page", function (mode) {
+  it.each(["books", "authors", "topics"])("shows it on the %s null page too, sending the same request", function (mode) {
     render(mode);
-    expect(assistantButton()).toBeNull();
+    const ctas = container.querySelectorAll(".noSearchResults-ctas .noSearchResults-cta");
+    expect(ctas).toHaveLength(2);
+    expect(ctas[1]).toBe(assistantButton());
+    const listener = jest.fn();
+    document.addEventListener("chatbot:open", listener);
+    act(() => { assistantButton().click(); });
+    document.removeEventListener("chatbot:open", listener);
+    expect(listener.mock.calls[0][0].detail.source).toBe("search_no_results");
+    expect(listener.mock.calls[0][0].detail.question).toContain('"minkeee"');
   });
 });

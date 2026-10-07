@@ -11,7 +11,7 @@ const CTA_HREFS = {
   topics:  '/topics',
 };
 
-// The Sources null page offers the Library
+// Every null tab (sources, books, authors, topics) offers the Library
 // Assistant, which opens with a request built from the query that found nothing
 export const assistantNoResultsPrompt = (query) => Sefaria.interfaceLang === 'hebrew'
   ? `חיפשתי "${query}" בספריא ואין תוצאות. אפשר לעזור לי למצוא מקורות, ספרים, מחברים ו/או נושאים רלוונטיים?`
@@ -63,7 +63,7 @@ function NoSearchResults({ mode, query }) {
           <a href={CTA_HREFS[mode]} className="noSearchResults-cta">
             <InterfaceText>{key('button')}</InterfaceText>
           </a>
-          {mode === 'sources' && hasAssistant && (
+          {hasAssistant && (
             <button type="button" className="noSearchResults-cta noSearchResults-cta--assistant" onClick={() => askLibraryAssistant(query)}>
               <LibraryAssistantStar />
               <InterfaceText>search.null.button.library_assistant</InterfaceText>
