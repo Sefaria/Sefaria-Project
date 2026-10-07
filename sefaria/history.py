@@ -26,7 +26,7 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None, initial_skip
 
     for i in range(len(activity)):
         a = activity[i]
-        if a["rev_type"].endswith("text") or a["rev_type"] == "review":
+        if a["rev_type"].endswith(("text", "lexicon_entry")) or a["rev_type"] == "review":
             try:
                 a["history_url"] = "/activity/%s/%s/%s" % (Ref(a["ref"]).url(), a["language"], a["version"].replace(" ", "_"))
             except:
