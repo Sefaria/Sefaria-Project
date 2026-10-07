@@ -21,6 +21,11 @@ class Link(abst.AbstractMongoRecord):
     A link between two texts (or more specifically, two references)
     """
     collection = 'links'
+
+    @classmethod
+    def visibility_filter(cls):
+        return text.hidden_records_filter(ref_fields=("refs",))
+
     history_noun = 'link'
 
     required_attrs = [

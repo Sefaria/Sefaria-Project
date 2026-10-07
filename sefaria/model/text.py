@@ -4,6 +4,7 @@ text.py
 """
 
 import time
+from django.conf import settings as django_settings
 import structlog
 import dataclasses
 from sefaria.system.progress_context import report_progress
@@ -182,6 +183,69 @@ class TocSerializationOptions:
     include_authors: bool = False
 
 
+ADMIN_ONLY_TITLES_TTL = 60  # seconds
+_admin_only_titles_cache = {"titles": [], "fetched": None}
+
+
+def show_admin_only_books():
+    return bool(getattr(django_settings, "SHOW_ADMIN_ONLY_BOOKS", False))
+
+
+def admin_only_titles(force_refresh=False):
+    """
+    All titles (primary and alternate, English and Hebrew) of Indexes marked `admin_only`.
+    Used to filter collections keyed by title string (texts, vstate, links, history).
+    Reads db.index directly, and is cached for ADMIN_ONLY_TITLES_TTL seconds rather than snapshotted
+    at startup, so that a book added after a process starts is still filtered.
+    """
+    cache = _admin_only_titles_cache
+    now = time.time()
+    if force_refresh or cache["fetched"] is None or now - cache["fetched"] > ADMIN_ONLY_TITLES_TTL:
+        titles = set()
+        for raw in db.index.find({"admin_only": True}):
+            titles.add(raw["title"])
+            try:
+                for lang in ("en", "he"):
+                    titles.update(Index(raw).all_titles(lang))
+            except Exception:
+                logger.warning("Could not read alternate titles of admin_only index {}".format(raw["title"]))
+        cache["titles"] = sorted(titles)
+        cache["fetched"] = now
+    return cache["titles"]
+
+
+def hidden_titles_filter(field="title"):
+    """Query fragment excluding admin_only titles, or None where hidden books are shown."""
+    if show_admin_only_books():
+        return None
+    titles = admin_only_titles()
+    return {field: {"$nin": titles}} if titles else None
+
+
+def hidden_records_filter(title_fields=(), ref_fields=()):
+    """
+    Query excluding records that belong to an admin_only book, for collections that store the book
+    as a title string (`title_fields`) or inside a ref string (`ref_fields`, e.g. links' "refs",
+    history's "ref").  None where hidden books are shown or there are none.
+    Ref strings are matched by title prefix, so a public book whose title starts with a hidden
+    title followed by a space would also be excluded.  Hidden titles should be distinctive.
+    """
+    if show_admin_only_books():
+        return None
+    titles = admin_only_titles()
+    if not titles:
+        return None
+    clauses = [{f: {"$in": titles}} for f in title_fields]
+    ref_pattern = "^(?:{})(?:[ ,]|$)".format("|".join(re.escape(t) for t in titles))
+    clauses += [{f: {"$regex": ref_pattern}} for f in ref_fields]
+    return {"$nor": clauses}
+
+
+def public_query(query=None, title_fields=(), ref_fields=()):
+    """`query` with admin_only books excluded. For direct db.* reads that bypass the model query layer."""
+    return abst.merge_queries(query, hidden_records_filter(title_fields, ref_fields))
+
+
 class Index(abst.AbstractMongoRecord, AbstractIndex):
     """
     Index objects define the names and structure of texts stored in the system.
@@ -225,7 +289,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "dedication",           # (dict) Dedication texts, keyed by language
         "hidden",               # (bool) Default false.  If not present, Index is visible in all TOCs.  True value hides the text in the main TOC, but keeps it in the search toc.
         "corpora",              # (list[str]) List of corpora that this index is included in. Currently these are just strings without validation. First element is used to group texts for determining version preference within a corpus.
+        "admin_only",           # (bool) Default false.  True hides the book from every process where SHOW_ADMIN_ONLY_BOOKS is False. Set it on the very first save.
     ]
+
+    @classmethod
+    def visibility_filter(cls):
+        return None if show_admin_only_books() else {"admin_only": {"$ne": True}}
+
+    def is_admin_only(self):
+        return bool(getattr(self, "admin_only", False))
 
     def __str__(self):
         return "Index: {}".format(self.title)
@@ -746,9 +818,16 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         for btitle in getattr(self, "base_text_titles", []):
             try:
-                library.get_index(btitle)
+                base_index = library.get_index(btitle)
             except BookNameError:
                 raise InputError("Base Text Titles must point to existing texts in the system.")
+            if base_index.is_admin_only() and not self.is_admin_only():
+                raise InputError("{} depends on admin_only book {}, so it must also be admin_only.".format(self.title, btitle))
+
+        if self.is_admin_only():
+            for place_key in ['compPlace', 'pubPlace']:  # the Index save hook would write these to public Place records
+                if getattr(self, place_key, None):
+                    raise InputError("admin_only books may not set {}.".format(place_key))
 
         from sefaria.model import Category
         if not Category().load({"path": self.categories}):
@@ -789,6 +868,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                             raise InputError(u'The title {} occurs twice in this Index record'.format(title))
                 """
                 for title in all_titles:
+                    # hidden titles are invisible to the library in public mode, so check them explicitly
+                    if not show_admin_only_books() and title in admin_only_titles():
+                        raise InputError('A text called "{}" already exists.'.format(title))
                     existing = library.get_schema_node(title, lang)
                     existing_index = existing.index if existing else Index().load({"title": title})
                     if existing_index and not self.same_record(existing_index) and existing_index.title != self.pkeys_orig_values.get("title"):
@@ -1328,6 +1410,11 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     """
     history_noun = 'text'
     collection = 'texts'
+
+    @classmethod
+    def visibility_filter(cls):
+        return hidden_titles_filter("title")
+
     content_attr = "chapter"
     track_pkeys = True
     pkeys = ["title", "direction", "versionTitle"]
@@ -5058,6 +5145,8 @@ class Library(object):
         # This is used in the case of a remotely triggered multiserver update
         if isinstance(indx, str):
             indx = Index().load({"title": indx})
+            if indx is None:  # admin_only book announced by a staff process
+                return
 
         self.get_toc_tree().update_title(indx, recount=True)
 
@@ -5145,6 +5234,8 @@ class Library(object):
         # This is used in the case of a remotely triggered multiserver update
         if isinstance(index_object, str):
             index_object = Index().load({"title": index_object})
+            if index_object is None:  # admin_only book announced by a staff process
+                return
 
         self._index_map[index_object.title] = index_object
         try:
@@ -5200,6 +5291,8 @@ class Library(object):
         index_object_title = index_object.title if isinstance(index_object, Index) else index_object
         self.remove_index_record_from_cache(index_object, old_title=old_title, rebuild=False)
         new_index = Index().load({"title": index_object_title})
+        if not new_index and not show_admin_only_books() and index_object_title in admin_only_titles(force_refresh=True):
+            return  # announced by a staff process: public processes never load admin_only books
         assert new_index, "No Index record found for {}: {}".format(index_object.__class__.__name__, index_object_title)
         self.add_index_record_to_cache(new_index, rebuild=True)
 
@@ -6168,7 +6261,7 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
     library.refresh_index_record_in_cache(indx, old_title=old_title)
     library.reset_text_titles_cache()
 
-    if MULTISERVER_ENABLED:
+    if MULTISERVER_ENABLED and not indx.is_admin_only():  # hidden books are never announced to public servers
         server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title, old_title])
     elif USE_VARNISH:
         from sefaria.system.varnish.wrapper import invalidate_title
@@ -6180,14 +6273,14 @@ def process_index_change_in_core_cache(indx, **kwargs):
         library.add_index_record_to_cache(indx)
         library.reset_text_titles_cache()
 
-        if MULTISERVER_ENABLED:
+        if MULTISERVER_ENABLED and not indx.is_admin_only():  # hidden books are never announced to public servers
             server_coordinator.publish_event("library", "add_index_record_to_cache", [indx.title])
 
     else:
         library.refresh_index_record_in_cache(indx)
         library.reset_text_titles_cache()
 
-        if MULTISERVER_ENABLED:
+        if MULTISERVER_ENABLED and not indx.is_admin_only():  # hidden books are never announced to public servers
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title])
         elif USE_VARNISH:
             from sefaria.system.varnish.wrapper import invalidate_title
@@ -6198,14 +6291,14 @@ def process_index_change_in_toc(indx, **kwargs):
     old_ref = kwargs.get('orig_vals').get('title') if kwargs.get('orig_vals') else None
     library.update_index_in_toc(indx, old_ref=old_ref)
 
-    if MULTISERVER_ENABLED:
+    if MULTISERVER_ENABLED and not indx.is_admin_only():  # hidden books are never announced to public servers
         server_coordinator.publish_event("library", "update_index_in_toc", [indx.title, old_ref])
 
 
 def process_index_delete_in_toc(indx, **kwargs):
     library.delete_index_from_toc(indx)
 
-    if MULTISERVER_ENABLED:
+    if MULTISERVER_ENABLED and not indx.is_admin_only():  # hidden books are never announced to public servers
         server_coordinator.publish_event("library", "delete_index_from_toc", [indx.title, indx.categories])
 
 
@@ -6213,7 +6306,7 @@ def process_index_delete_in_core_cache(indx, **kwargs):
     library.remove_index_record_from_cache(indx)
     library.reset_text_titles_cache()
 
-    if MULTISERVER_ENABLED:
+    if MULTISERVER_ENABLED and not indx.is_admin_only():  # hidden books are never announced to public servers
         server_coordinator.publish_event("library", "remove_index_record_from_cache", [indx.title])
     elif USE_VARNISH:
         from sefaria.system.varnish.wrapper import invalidate_title

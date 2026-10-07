@@ -152,6 +152,11 @@ def next_revision_num():
 
 class History(abst.AbstractMongoRecord):
     collection = 'history'
+
+    @classmethod
+    def visibility_filter(cls):
+        from sefaria.model.text import hidden_records_filter
+        return hidden_records_filter(title_fields=("title",), ref_fields=("ref",))
     required_attrs = [
         "rev_type",
         "user",

@@ -360,6 +360,11 @@ SEARCH_INDEX_NAME_TOPIC = 'topic'
 SEARCH_INDEX_NAME_BOOK = 'book'
 SEARCH_INDEX_NAME_CATEGORY = 'category'
 
+# Whether this process loads Index records marked `admin_only`. Only the staff site (preprod)
+# and staff-mode scripts set this True; everything else must leave it False so that hidden
+# books are never loaded.
+SHOW_ADMIN_ONLY_BOOKS = False
+
 # Grab environment specific settings from a file which
 # is left out of the repo.
 if os.getenv("CI_RUN"):

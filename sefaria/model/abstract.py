@@ -21,6 +21,19 @@ from sefaria.system.exceptions import InputError, SluggedMongoRecordMissingError
 logger = structlog.get_logger(__name__)
 
 
+def merge_queries(query, extra):
+    """
+    Combine two mongo queries with $and, so that a key present in both is not overwritten.
+    Returns `query` untouched when there is nothing to add.
+    """
+    query = query or {}
+    if not extra:
+        return query
+    if not query:
+        return extra
+    return {"$and": [query, extra]}
+
+
 class AbstractMongoRecord(object):
     """
     AbstractMongoRecord - superclass of classes representing mongo records.
@@ -46,6 +59,14 @@ class AbstractMongoRecord(object):
         self.pkeys_orig_values = {}
         self.load_from_dict(attrs, True)
             
+    @classmethod
+    def visibility_filter(cls):
+        """
+        Extra query merged into every read of this collection (see `admin_only` books).
+        Subclasses override to hide records from the current process. None means no filter.
+        """
+        return None
+
     def load_by_id(self, _id=None):
         if _id is None:
             raise Exception(type(self).__name__ + ".load() expects an _id as an argument. None provided.")
@@ -56,6 +77,7 @@ class AbstractMongoRecord(object):
         return self.load({"_id": _id})
 
     def load(self, query, proj=None):
+        query = merge_queries(query, self.visibility_filter())
         obj = getattr(db, self.collection).find_one(query, proj)
         if obj:
             assert set(obj.keys()) <= set(self._saveable_attr_keys()), \
@@ -332,7 +354,7 @@ class AbstractMongoSet(collections.abc.Iterable):
     recordClass = AbstractMongoRecord
 
     def __init__(self, query=None, page=0, limit=0, sort=None, proj=None, skip=None, hint=None, record_kwargs=None):   # default sort used to be =[("_id", 1)]
-        self.query = query or {}
+        self.query = merge_queries(query, self.recordClass.visibility_filter())
         self.record_kwargs = record_kwargs or {}  # kwargs to pass to record when instantiating
         self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj)
         if sort:
