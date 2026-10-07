@@ -3,6 +3,7 @@ from django.urls import re_path
 from django.contrib import admin
 from sefaria.settings import ADMIN_PATH
 import reader.views as reader_views
+import reader.lemma_search as lemma_search_views
 import sourcesheets.views as sheets_views
 import remote_config.views as remote_config_views
 import api.views as api_views
@@ -18,6 +19,8 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from sso.views import MobileTokenObtainPairView
 
 shared_patterns = [
+    path("experimental/lemma-search/", lemma_search_views.page, name="lemma-search-experiment"),
+    path("api/experimental/lemma-search", lemma_search_views.jobs, name="lemma-search-jobs"),
     path('_allauth/', include('allauth.headless.urls')),
     path('accounts/', include('allauth.urls')),
     path('', include('sso.urls')),
