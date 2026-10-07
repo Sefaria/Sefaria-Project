@@ -5,6 +5,8 @@ Utility functions for views and request/response handling.
 from fnmatch import fnmatch
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
+from django.conf import settings
+
 
 def add_query_param(url, param, value=""):
     """
@@ -33,7 +35,7 @@ AASA_EXCLUDED_PATHS = [
     "/accounts/*",
     "/_allauth/*",
     "/api/auth/google/redirect",
-    "/officepowered_by/*",
+    f"/{settings.ADMIN_PATH.strip('/')}/*",  # Django admin; path is deployment-configurable
 ]
 
 
