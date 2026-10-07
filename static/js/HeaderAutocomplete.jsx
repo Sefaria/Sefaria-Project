@@ -109,7 +109,7 @@ const getURLForObject = function(type, key) {
     } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
       return `/topics/${key}`;
     } else if (type === "ref" && Sefaria.activeModule === Sefaria.LIBRARY_MODULE) {
-      return `/${key.replace(/ /g, '_')}`;
+      return `/${Sefaria.util.encodeTitleForUrl(key)}`;
     } else if (type === "User" && Sefaria.activeModule === Sefaria.VOICES_MODULE) {
       return `/profile/${key}`;
     }

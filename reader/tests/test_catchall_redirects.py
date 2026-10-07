@@ -6,7 +6,9 @@ are properly redirected to the library module.
 """
 from urllib.parse import urlparse, parse_qs
 import pytest
+from django.http import HttpResponse
 from django.test import override_settings
+from django.urls import resolve
 from sefaria.system.exceptions import InputError
 from sefaria.constants.model import VOICES_MODULE
 
@@ -108,6 +110,75 @@ def test_library_catchall_valid_ref_no_redirect(client, monkeypatch):
     if response.status_code == 301:
         # If it redirects, it should stay on library domain
         assert HTTP_HOST in response["Location"] or "www.modularization.testing.sefaria.org" in response["Location"]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("encoded_path, tref", [
+    (
+        "The_Five_Books_of_Moses,_by_Everett_Fox,_The_Day_of_Purgation%2FAtonement",
+        "The_Five_Books_of_Moses,_by_Everett_Fox,_The_Day_of_Purgation/Atonement",
+    ),
+    (
+        "Judaism's_Life_Changing_Ideas%3B_A_Weekly_Reading_of_the_Jewish_Bible%2C_Matot%3B_Subject%5CObject",
+        "Judaism's_Life_Changing_Ideas;_A_Weekly_Reading_of_the_Jewish_Bible,_Matot;_Subject\\Object",
+    ),
+])
+def test_catchall_preserves_escaped_title_separators(client, monkeypatch, encoded_path, tref):
+    parsed_refs = []
+
+    class DummyRef:
+        def url(self, encode_html=False):
+            return tref
+
+    def parse_ref(value):
+        parsed_refs.append(value)
+        return DummyRef()
+
+    monkeypatch.setattr("reader.views.Ref.instantiate_ref_with_legacy_parse_fallback", parse_ref)
+    monkeypatch.setattr("reader.views.text_panels", lambda request, ref: HttpResponse(ref))
+
+    response = client.get(f"/{encoded_path}")
+
+    assert response.status_code == 200
+    assert parsed_refs == [tref]
+    assert response.content.decode() == tref
+
+
+@pytest.mark.django_db
+def test_title_with_legacy_version_route_segments_is_not_redirected(client, monkeypatch):
+    class DummyRef:
+        def url(self, encode_html=False):
+            return "Book/en/Part"
+
+    monkeypatch.setattr("reader.views.Ref.instantiate_ref_with_legacy_parse_fallback", lambda tref: DummyRef())
+    monkeypatch.setattr("reader.views.text_panels", lambda request, ref: HttpResponse(ref))
+
+    response = client.get("/Book/en/Part")
+
+    assert response.status_code == 200
+    assert response.content.decode() == "Book/en/Part"
+
+
+@pytest.mark.django_db
+def test_api_title_with_legacy_version_route_segments_is_not_redirected(client, monkeypatch):
+    class DummyRef:
+        def url(self, encode_html=False):
+            return "Book/en/Part"
+
+    monkeypatch.setattr("reader.views.Ref.instantiate_ref_with_legacy_parse_fallback", lambda tref: DummyRef())
+    monkeypatch.setattr("reader.views.texts_api", lambda request, tref: HttpResponse(tref))
+
+    response = client.get("/api/texts/Book/en/Part")
+
+    assert response.status_code == 200
+    assert response.content.decode() == "Book/en/Part"
+
+
+@pytest.mark.parametrize("prefix", ["/api/ref/", "/api/texts/", "/api/v3/texts/"])
+def test_ref_api_routes_accept_title_slashes(prefix):
+    match = resolve(f"{prefix}Book,_Chapter/Part")
+
+    assert match.kwargs["tref"] == "Book,_Chapter/Part"
 
 
 @pytest.mark.django_db

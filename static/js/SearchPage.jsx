@@ -209,7 +209,7 @@ const bookHitCardProps = (hit, query) => {
   return {
     ...common,
     type: 'text',
-    href: `/${hit.title_en.replace(/ /g, "_").replace(/\?/g, "%3F")}`,
+    href: `/${Sefaria.util.encodeTitleForUrl(hit.title_en)}`,
     crumbs: categoryPathCrumbs(hit.categories || []),
   };
 };
