@@ -3118,24 +3118,47 @@ const MobileTestimonial = ({icon, enTitle, heTitle, enText, heText, enAttrib, he
     </div>
 );
 
-const MobileDownloadButtons = () => (
+const DEFAULT_MOBILE_APP_STORE_URLS = {
+    ios: "https://apps.apple.com/app/apple-store/id1163273965?mt=8",
+    android: "https://play.google.com/store/apps/details?id=org.sefaria.sefaria",
+};
+
+const mobileAppStoreUrls = (search) => {
+    const params = new URLSearchParams(search);
+    const source = params.get("utm_source");
+    const medium = params.get("utm_medium");
+    const campaign = params.get("utm_campaign");
+    if (!source || !medium || !campaign) {
+        return DEFAULT_MOBILE_APP_STORE_URLS;
+    }
+
+    const referrer = new URLSearchParams({utm_source: source, utm_medium: medium, utm_campaign: campaign});
+    const androidParams = new URLSearchParams({id: "org.sefaria.sefaria", referrer: referrer.toString()});
+    const iosParams = new URLSearchParams({pt: "118389482", ct: [source, medium, campaign].join("-"), mt: "8"});
+    return {
+        ios: `https://apps.apple.com/app/apple-store/id1163273965?${iosParams}`,
+        android: `https://play.google.com/store/apps/details?${androidParams}`,
+    };
+};
+
+const MobileDownloadButtons = ({storeUrls}) => (
     <div className="mobileHeaderButtons">
-        <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8"
+        <a href={storeUrls.ios}
            className="button flexContainer mobileDownloadButton int-en" target="_blank">
             <img src="/static/img/mobile-landing-page/apple.png" alt="iOS" />
             <span>Download for iOS</span>
         </a>
-        <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria"
+        <a href={storeUrls.android}
            className="button flexContainer mobileDownloadButton int-en" target="_blank">
             <img src="/static/img/mobile-landing-page/googleplay.png" alt="Android" />
             <span>Download for Android</span>
         </a>
-        <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8"
+        <a href={storeUrls.ios}
            className="button flexContainer mobileDownloadButton int-he" target="_blank">
             <img src="/static/img/mobile-landing-page/apple.png" alt="iOS" />
             <span>הורדה ל iOS</span>
         </a>
-        <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria"
+        <a href={storeUrls.android}
            className="button flexContainer mobileDownloadButton int-he" target="_blank">
             <img src="/static/img/mobile-landing-page/googleplay.png" alt="Android" />
             <span>הורדה לאנדרואיד</span>
@@ -3143,7 +3166,7 @@ const MobileDownloadButtons = () => (
     </div>
 );
 
-const MobilePageHeader = () => (
+const MobilePageHeader = ({storeUrls}) => (
     <div className="staticPageHeader mobile">
         <div className="staticPageBlockInner flexContainer">
             <div className="staticPageHeaderTextBox">
@@ -3154,7 +3177,7 @@ const MobilePageHeader = () => (
                 <SimpleInterfaceBlock classes="staticPageHeaderText mobile"
                     en="The Jewish Library — Free, Anywhere, Anytime."
                     he="ספרייה של כל מקורות היהדות זמינה בכל עת ובכל מקום." />
-                <MobileDownloadButtons />
+                <MobileDownloadButtons storeUrls={storeUrls} />
             </div>
             <div className="staticPageHeaderImg">
                 <div className="mobileHeaderImages">
@@ -3168,9 +3191,14 @@ const MobilePageHeader = () => (
     </div>
 );
 
-const MobileAppPage = () => (
-    <StaticPage optionalClass="mobile">
-        <MobilePageHeader />
+const MobileAppPage = () => {
+    const [storeUrls, setStoreUrls] = useState(DEFAULT_MOBILE_APP_STORE_URLS);
+    useEffect(() => {
+        setStoreUrls(mobileAppStoreUrls(window.location.search));
+    }, []);
+
+    return <StaticPage optionalClass="mobile">
+        <MobilePageHeader storeUrls={storeUrls} />
         <EnBlock padded={true}>
             <p className="staticPageAboutText" style={{fontSize: "18px", lineHeight: "1.7", margin: "50px 0"}}>
                 Explore Sefaria&#39;s free library of Jewish texts in original langauges and translation: Torah, Talmud, Mishnah, Kabbalah, siddur, and more. Discover 3,000 years of texts with links, interconnections, and commentaries. Download nearly the entire library to learn offline &#x2014;  anywhere, anytime.
@@ -3267,22 +3295,22 @@ const MobileAppPage = () => (
                 <span className="int-he">למה אתם מחכים? הורידו היום את היישומון של ספריית ספריא והתחילו במסע למידה מעמיק ומעשיר.</span>
             </h3>
             <div className="mobileDownloadCtaButtons">
-                <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8"
+                <a href={storeUrls.ios}
                    className="mobileDownloadButton dark flexContainer int-en" target="_blank">
                     <img src="/static/img/mobile-landing-page/apple.png" alt="iOS" />
                     <span>Download for iOS</span>
                 </a>
-                <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria"
+                <a href={storeUrls.android}
                    className="mobileDownloadButton dark flexContainer int-en" target="_blank">
                     <img src="/static/img/mobile-landing-page/googleplay.png" alt="Android" />
                     <span>Download for Android</span>
                 </a>
-                <a href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8"
+                <a href={storeUrls.ios}
                    className="mobileDownloadButton dark flexContainer int-he" target="_blank">
                     <img src="/static/img/mobile-landing-page/apple.png" alt="iOS" />
                     <span>הורדה ל iOS</span>
                 </a>
-                <a href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria"
+                <a href={storeUrls.android}
                    className="mobileDownloadButton dark flexContainer int-he" target="_blank">
                     <img src="/static/img/mobile-landing-page/googleplay.png" alt="Android" />
                     <span>הורדה לאנדרואיד</span>
@@ -3295,8 +3323,8 @@ const MobileAppPage = () => (
             includeEducatorOption={false}
             contextName="Mobile Landing Page"
         />
-    </StaticPage>
-);
+    </StaticPage>;
+};
 
 export {
     SheetsLandingPage,
