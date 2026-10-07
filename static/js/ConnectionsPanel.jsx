@@ -55,6 +55,7 @@ class ConnectionsPanel extends Component {
       linksLoaded: false, // has the list of refs been loaded
       connectionSummaryCollapsed: true,
       currentlyVisibleSectionRef: Sefaria.sectionRef(this.props.currentlyVisibleRef),
+      height: null, // mobile sheet height set by dragging its header, e.g. "70%"
     };
   }
   toggleTopLevelCollapsed() {
@@ -589,7 +590,7 @@ class ConnectionsPanel extends Component {
     const marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) !== -1;
     let classes = classNames({ connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel });
     return (
-      <div className={classes} key={this.props.mode}>
+      <div className={classes} key={this.props.mode} style={this.state.height ? {height: this.state.height} : null}>
         {this.props.fullPanel ? null :
           <ConnectionsPanelHeader
             connectionsMode={this.props.mode}
@@ -602,7 +603,8 @@ class ConnectionsPanel extends Component {
             recentFilters={this.props.recentFilters}
             baseRefs={this.props.srefs}
             setFilter={this.props.setFilter}
-            closePanel={this.props.closePanel}
+            closePanel={this.props.closeConectionsInPanel}
+            setHeight={height => this.setState({height})}
             toggleLanguage={this.props.toggleLanguage}
             interfaceLang={this.props.interfaceLang}
             backButtonSettings={this.props.backButtonSettings}
@@ -636,6 +638,7 @@ ConnectionsPanel.propTypes = {
   onCitationClick: PropTypes.func,
   openNav: PropTypes.func,
   closePanel: PropTypes.func,
+  closeConectionsInPanel: PropTypes.func,
   toggleLanguage: PropTypes.func,
   selectedWords: PropTypes.string,
   selectedNamedEntity: PropTypes.string,

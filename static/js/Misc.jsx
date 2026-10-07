@@ -1238,14 +1238,14 @@ class CloseButton extends Component {
   render() {
     const { altText = Sefaria._("common.close"), icon, url = "" } = this.props;
     
-    if (icon == "circledX"){
-      var iconElement = <img src="/static/icons/circled-x.svg" alt={Sefaria._("common.close")} aria-hidden="true"/>;
+    if (icon == "circledX" || icon == "circledXSolid"){
+      var iconElement = <img src={icon == "circledX" ? "/static/icons/circled-x.svg" : "/static/icons/circled-x-solid.svg"} alt={Sefaria._("common.close")} aria-hidden="true"/>;
     } else if (icon == "chevron") {
       var iconElement = <i className="fa fa-chevron-left"></i>
     } else {
       var iconElement = "×";
     }
-    const classes = classNames({readerNavMenuCloseButton: 1, circledX: icon === "circledX"});
+    const classes = classNames({readerNavMenuCloseButton: 1, circledX: icon === "circledX" || icon === "circledXSolid"});
     
     return (
       <a
