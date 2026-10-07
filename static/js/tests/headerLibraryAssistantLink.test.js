@@ -63,7 +63,7 @@ describe('Header Library Assistant pill', () => {
     render();
     expect(order()).toEqual(['link', 'link', 'donate', 'assistant', 'search']);
     expect(item().classList.contains('libraryAssistantPill')).toBe(true);
-    expect(item().textContent).toBe('✦header.library_assistant');
+    expect(item().textContent).toBe('header.library_assistant');
   });
 
   it('opens the widget', () => {

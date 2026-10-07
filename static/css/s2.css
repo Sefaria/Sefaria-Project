@@ -613,10 +613,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
   color: var(--mussar-purple);
 }
 .mobileNavMenu .libraryAssistantMenuStar {
-  display: inline-block;
   width: 16px;
+  height: 16px;
   margin-inline-end: 15px;
-  text-align: center;
+  vertical-align: middle;
 }
 .mobileNavMenu a.blue {
   background-color: var(--sefaria-blue);
@@ -5397,8 +5397,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   gap: 12px;
 }
 
-/* The Library Assistant's purple, as on its header pill */
+/* The Library Assistant's purple, as on its header pill. content-box matches the <a>
+   beside it (a <button> defaults to border-box, which made it 3px shorter). */
 .noSearchResults-cta--assistant {
+  box-sizing: content-box;
+  gap: 8px;
   cursor: pointer;
   background: var(--mussar-purple);
   border-color: var(--mussar-purple);

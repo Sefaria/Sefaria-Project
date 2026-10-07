@@ -22,6 +22,7 @@ import {
 } from './common/DropdownMenu';
 import Util from './sefaria/util';
 import Button from './common/Button';
+import LibraryAssistantStar from './LibraryAssistantStar';
 
 // The "✦ Library Assistant" pill in the header, just before search: opens the assistant widget
 const LibraryAssistantHeaderLink = () => {
@@ -32,7 +33,7 @@ const LibraryAssistantHeaderLink = () => {
   return (
     <a href="#" role="button" className="textLink libraryAssistantLink libraryAssistantPill"
        onClick={open} onKeyDown={Util.handleKeyboardClick}>
-      <span className="libraryAssistantStar" aria-hidden="true">✦</span>
+      <LibraryAssistantStar />
       <span className="libraryAssistantLabel"><InterfaceText>header.library_assistant</InterfaceText></span>
     </a>
   );
@@ -477,7 +478,7 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
           </a>
           {libraryAssistant &&
             <a href="#" role="button" className="libraryAssistantMenuItem" onClick={openLibraryAssistant}>
-              <span className="libraryAssistantMenuStar" aria-hidden="true">✦</span>
+              <LibraryAssistantStar className="libraryAssistantMenuStar" />
               <InterfaceText>header.library_assistant</InterfaceText>
             </a>
           }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
+import LibraryAssistantStar from './LibraryAssistantStar';
 
 const CTA_HREFS = {
   sources: '/texts',
@@ -64,7 +65,8 @@ function NoSearchResults({ mode, query }) {
           </a>
           {mode === 'sources' && hasAssistant && (
             <button type="button" className="noSearchResults-cta noSearchResults-cta--assistant" onClick={() => askLibraryAssistant(query)}>
-              ✦ <InterfaceText>search.null.button.library_assistant</InterfaceText>
+              <LibraryAssistantStar />
+              <InterfaceText>search.null.button.library_assistant</InterfaceText>
             </button>
           )}
         </div>

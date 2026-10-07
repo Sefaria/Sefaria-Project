@@ -44,7 +44,7 @@ describe('MobileNavMenu Library Assistant item', () => {
   it('sits above Learning Schedules, with the ✦ as its icon', () => {
     render({ libraryAssistant: true });
     const labels = [...container.querySelectorAll('a')].map(a => a.textContent);
-    expect(labels.indexOf('✦header.library_assistant')).toBe(labels.indexOf('header.learning_schedules') - 1);
+    expect(labels.indexOf('header.library_assistant')).toBe(labels.indexOf('header.learning_schedules') - 1);
   });
 
   it('closes the menu and asks the widget to open', () => {

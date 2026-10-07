@@ -144,8 +144,8 @@ $interfaces: english hebrew;
   outline: 2px solid var(--mussar-purple);
   outline-offset: 2px;
 }
-.libraryAssistantStar {
-  font-size: 0.875em;
+.libraryAssistantStarIcon {
+  flex-shrink: 0;
 }
 
 .headerLinksSection {
