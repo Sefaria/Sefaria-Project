@@ -3,13 +3,8 @@ import DOMPurify from 'dompurify';
 import Editor, { Toolbar, BtnBold, BtnItalic, createButton } from 'react-simple-wysiwyg';
 import Sefaria from './sefaria/sefaria';
 
-// Narrower than the ALLOWED_TAGS LexiconEntry declares in sefaria/model/lexicon.py, which
-// includes tags no entry in the 8 lexicons this tool edits (Klein, Jastrow, BDB, BDB Aramaic,
-// Sefer HaShorashim, Animadversions, Kovetz Yesodot, Krupnik -- the two other lexicons in the DB
-// have no Dictionary-category Index and aren't reachable here) actually uses: i/b/strong/em/sup/
-// sub/span/a/br are real and common; big appears in only a handful of entries; u/small/img and
-// the data-commentator/data-order/data-label/src attributes appear in none. Keep in sync with
-// LexiconEntry.ALLOWED_TAGS/ALLOWED_ATTRS if that changes.
+// Display only -- what this renders is never saved. Narrower than LexiconEntry.ALLOWED_TAGS
+// (sefaria/model/lexicon.py), which allows tags no stored entry actually uses.
 const ALLOWED_TAGS = ['i', 'b', 'br', 'strong', 'em', 'big', 'sup', 'sub', 'span', 'a'];
 const ALLOWED_ATTR = ['class', 'dir', 'href', 'data-ref', 'data-scroll-link'];
 
@@ -18,10 +13,7 @@ export const sanitizeLexiconHtml = (html) => DOMPurify.sanitize(typeof html === 
   ALLOWED_ATTR,
 });
 
-// Toolbar covers what's actually used in stored lexicon content: bold, italic, superscript,
-// subscript, and ref links (by far the dominant one, ~66% of entries -- handled by BtnRefLink
-// below). No button for big (15 entries) or anything else that's rare/unused -- existing markup
-// still round-trips via sanitizeLexiconHtml above, it just isn't toolbar-creatable.
+// Only the markup stored entries actually use. Rarer tags still round-trip, just aren't creatable.
 const BtnSuperscript = createButton('Superscript', 'x²', 'superscript');
 const BtnSubscript = createButton('Subscript', 'x₂', 'subscript');
 
@@ -36,13 +28,9 @@ const unwrap = (el) => el.replaceWith(...el.childNodes);
 // block element, in browsers that support this non-standard but widely-implemented command.
 const onEditorFocus = () => document.execCommand('defaultParagraphSeparator', false, 'br');
 
-// The one piece with no off-the-shelf equivalent: a small form resolving a Sefaria ref (not a raw
-// URL) into both `href` and `data-ref`, with its own field for the displayed label -- the label is
-// a separate, often hand-crafted citation (e.g. "Pr 4:18", or a Hebrew abbreviation), never assumed
-// to equal the ref. Resolution is Sefaria.normRef/humanRef (pure client-side ref parsing, already
-// used the same way by e.g. Misc.jsx's TextBlockLink) rather than the /api/name/ autocompleter
-// endpoint -- that endpoint is served by a separate "name service" that isn't guaranteed to be
-// running (disabled outright via DISABLE_AUTOCOMPLETER on some servers, including local dev).
+// Resolves a Sefaria ref into `href` + `data-ref`, with a separate field for the displayed label
+// (often a hand-crafted citation like "Pr 4:18", not the ref). Parses client-side rather than via
+// /api/name/, which is a separate service that isn't always running (DISABLE_AUTOCOMPLETER).
 const RefLinkForm = ({ initialRef, initialLabel, canRemove, onSave, onRemove, onClose }) => {
   const [refText, setRefText] = useState(initialRef);
   const [label, setLabel] = useState(initialLabel);
@@ -90,30 +78,24 @@ export const WysiwygValueNode = ({ value, isEditing, canEdit, setIsEditing, hand
   const { commitDraft } = customNodeProps;
   const valueBeforeEdit = useRef(null);
 
-  // Seeded with the stored value exactly as it is, deliberately unsanitized: DOMPurify rebuilds
-  // every element it passes, which reverses attribute order and drops tags outside the display
-  // allowlist below, so sanitizing here would rewrite untouched markup the moment a field is
-  // edited -- noise in every saved diff, and silent loss of anything the narrower list omits.
-  // Sanitizing content on its way in is LexiconEntry._sanitize()'s job on save, which is the
-  // boundary that protects readers too (an entry renders as live HTML in the reader panel, with
-  // no client-side pass at all).
+  // Stored value as-is, deliberately unsanitized: DOMPurify rebuilds every element it passes,
+  // reversing attribute order and dropping tags outside the display allowlist, so sanitizing here
+  // would rewrite untouched markup on any edit. Sanitizing on save is LexiconEntry._sanitize()'s job.
   useEffect(() => {
     if (!isEditing) { return; }
     valueBeforeEdit.current = value;
     setDraftHtml(value);
   }, [isEditing]);
 
-  // Every keystroke goes straight into the panel's draft rather than waiting on json-edit-react's
-  // own per-field confirm icon (hidden, along with its cancel sibling, in lexicon-edit.scss): the
-  // text then survives closing the field by any means, and Save always sends what's in the box.
+  // Straight into the panel's draft, not json-edit-react's staging: the text then survives
+  // closing the field by any means, and Save sends what's in the box. Its icons are hidden (scss).
   const updateDraft = (html) => {
     setDraftHtml(html);
     commitDraft(nodeData.path, html);
   };
 
-  // The one way back. handleEdit writes a value and closes the field in one step, so passing the
-  // value from when editing started undoes everything typed since -- and it has to be ours rather
-  // than the library's cancel icon, which can't know to undo drafts already committed above.
+  // The one way back. handleEdit writes a value and closes the field at once; the library's own
+  // cancel can't serve here, since it only discards staging we no longer use.
   const cancelEdit = () => handleEdit(valueBeforeEdit.current);
 
   // Defined per-instance (not at module scope, like BtnBold etc.) so it can open a link form
@@ -125,9 +107,8 @@ export const WysiwygValueNode = ({ value, isEditing, canEdit, setIsEditing, hand
     setLinkTarget({ el: $el, existingLink: closestLink(range.commonAncestorContainer), range: range.cloneRange() });
   }));
 
-  // Browsers don't suppress <a href> navigation just because the link sits inside a
-  // contentEditable -- without this, clicking an existing ref link while editing navigates away
-  // instead of editing it. Routes the click into the same link form as the toolbar button.
+  // A link inside a contentEditable still navigates on click, so route it into the link form
+  // instead.
   const onEditorClick = (e) => {
     const link = closestLink(e.target);
     if (!link) { return; }

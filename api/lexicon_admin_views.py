@@ -4,7 +4,7 @@ from django.views import View
 
 from sefaria.client.util import jsonResponse
 from sefaria.model import log_update, diff_strings
-from sefaria.model.lexicon import LexiconEntry, LexiconEntrySet, Lexicon
+from sefaria.model.lexicon import LexiconEntry, LexiconEntrySet, Lexicon, DictionaryEntry
 from sefaria.model.text import Ref
 from sefaria.helper.schema import change_lexicon_headword, get_available_lexicon_headword
 from sefaria.system.exceptions import InputError
@@ -26,6 +26,28 @@ def _load_lexicon_entry(lexicon, headword):
     if len(matches) > 1:
         raise AmbiguousLexiconEntry()
     return matches[0] if matches else None
+
+
+def _render_entry(entry):
+    """The entry as displayed text, for the history diff. A lexicon with no dictionary subclass
+    of its own (e.g. Halachic Terminology) maps to the base LexiconEntry, which has no rendered
+    form at all -- nothing to diff."""
+    return "\n".join(entry.as_strings(with_headword=False)) if isinstance(entry, DictionaryEntry) else ""
+
+
+def _load_entry_ref(lexicon, headword):
+    """Returns (lexicon record, tref). tref is None for a lookup-only lexicon -- with no Index,
+    its entries have no ref to log against or to cache."""
+    lex = Lexicon().load({"name": lexicon})
+    tref = f"{lex.index_title}, {headword}" if lex and getattr(lex, "index_title", None) else None
+    return lex, tref
+
+
+def _log_entry_change(user_id, lex, tref, old_dict, new_dict, old_text, new_text):
+    diff_html, revert_patch = diff_strings(old_text, new_text)
+    log_update(user_id, LexiconEntry, old_dict, new_dict, ref=tref,
+               diff_html=diff_html, revert_patch=revert_patch,
+               version=getattr(lex, "version_title", None), language=getattr(lex, "version_lang", None))
 
 
 def _not_found():
@@ -61,24 +83,20 @@ class LexiconEntryView(View):
         if not entry:
             return _not_found()
         old_dict = entry.contents()
-        old_body = "\n".join(entry.as_strings(with_headword=False))
+        old_body = _render_entry(entry)
         try:
             entry.replace_content_attrs(body.get("content", {}))
             entry.save()
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
-        new_body = "\n".join(entry.as_strings(with_headword=False))
-        diff_html, revert_patch = diff_strings(old_body, new_body)
+        new_body = _render_entry(entry)
+        lex, tref = _load_entry_ref(lexicon, entry.headword)
+        _log_entry_change(request.user.id, lex, tref, old_dict, entry.contents(), old_body, new_body)
         # DictionaryEntryNode embeds the loaded entry inside itself, so a cached Ref for it
         # would otherwise keep serving pre-edit content until the process restarts. This
         # process's own cache is cleared directly; other pods behind the same deployment
         # each carry their own copy of the same cache and only hear about the edit via
-        # the multiserver event. The same lookup also gives us the ref for history logging.
-        lex = Lexicon().load({"name": lexicon})
-        tref = f"{lex.index_title}, {entry.headword}" if lex and getattr(lex, "index_title", None) else None
-        log_update(request.user.id, LexiconEntry, old_dict, entry.contents(),
-                   ref=tref, diff_html=diff_html, revert_patch=revert_patch,
-                   version=getattr(lex, "version_title", None), language=getattr(lex, "version_lang", None))
+        # the multiserver event.
         if tref:
             Ref.remove_ref_from_cache(lex.index_title, tref)
             if MULTISERVER_ENABLED:
@@ -140,10 +158,7 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
         # can still transform it (NFC-normalize), so resolved is only the pre-save candidate.
         # change_lexicon_headword only ever touches this entry's headword field, so patching
         # that one field onto old_dict avoids a second DB read just to log history.
-        diff_html, revert_patch = diff_strings(old_headword, actual_headword)
-        lex = Lexicon().load({"name": lexicon})
-        tref = f"{lex.index_title}, {actual_headword}" if lex and getattr(lex, "index_title", None) else None
-        log_update(request.user.id, LexiconEntry, old_dict, {**old_dict, "headword": actual_headword},
-                   ref=tref, diff_html=diff_html, revert_patch=revert_patch,
-                   version=getattr(lex, "version_title", None), language=getattr(lex, "version_lang", None))
+        lex, tref = _load_entry_ref(lexicon, actual_headword)
+        _log_entry_change(request.user.id, lex, tref, old_dict, {**old_dict, "headword": actual_headword},
+                          old_headword, actual_headword)
         return jsonResponse({"status": "ok", "headword": actual_headword})
