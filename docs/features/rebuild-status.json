@@ -343,6 +343,7 @@
  },
  "SHL-049": {
   "status": "done",
+  "note": "Citation closes what is next and opens there, as sefaria.org (owner decision)",
   "by": "src/features/reader/TextPanel.tsx"
  },
  "SHL-052": {
@@ -384,7 +385,8 @@
  },
  "SHL-066": {
   "status": "done",
-  "by": "src/lib/workspace/"
+  "note": "URLs read and written exactly as sefaria.org (owner decision); corpus round-trips",
+  "by": "src/lib/workspace/url.ts"
  },
  "SHL-067": {
   "status": "partial",
@@ -915,7 +917,8 @@
  },
  "CON-033": {
   "status": "done",
-  "note": "Tagged tests; checked against sefaria.org in the parity runs"
+  "note": "Open replaces the sidebar with a new panel, as sefaria.org (parity equal)",
+  "by": "src/features/reader/TextPanel.tsx"
  },
  "CON-070": {
   "status": "done",
@@ -1537,5 +1540,40 @@
  "ANL-010": {
   "status": "n/a",
   "note": "Dead on the old site"
+ },
+ "SHL-010": {
+  "status": "done",
+  "note": "New panels take the reader's default language, as sefaria.org",
+  "by": "src/lib/workspace/url.ts"
+ },
+ "USL-001": {
+  "status": "done",
+  "note": "Save/remove on the server, state from the saved list; sheets wait for Voices",
+  "by": "src/features/reader/use-reader-history.ts"
+ },
+ "USL-009": {
+  "status": "done",
+  "note": "Save/remove on the server, state from the saved list; sheets wait for Voices",
+  "by": "src/features/reader/use-reader-history.ts"
+ },
+ "USL-011": {
+  "status": "done",
+  "note": "Save/remove on the server, state from the saved list; sheets wait for Voices",
+  "by": "src/features/reader/use-reader-history.ts"
+ },
+ "USL-002": {
+  "status": "partial",
+  "note": "Primary history (server or cookie) done; sidebar (secondary) history CON-036 to do",
+  "by": "src/features/reader/use-reader-history.ts"
+ },
+ "USL-010": {
+  "status": "partial",
+  "note": "Primary history (server or cookie) done; sidebar (secondary) history CON-036 to do",
+  "by": "src/features/reader/use-reader-history.ts"
+ },
+ "USL-012": {
+  "status": "partial",
+  "note": "Primary history (server or cookie) done; sidebar (secondary) history CON-036 to do",
+  "by": "src/features/reader/use-reader-history.ts"
  }
 }

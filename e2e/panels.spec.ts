@@ -30,12 +30,12 @@ test.describe("several texts side by side (old multi-panel URLs)", () => {
     expect(Math.round(aside!.width)).toBeLessThan(420);
   });
 
-  test("the old client's gapped numbering (?with=all&p3=…) still opens every panel, and is rewritten sequentially", async ({ page }) => {
+  test("the old client's numbering (?with=all&p3=…: the sidebar takes number 2) opens every panel and is kept", async ({ page }) => {
     await open(page, "/Genesis.1.1?lang=en&with=all&p3=Exodus.1&lang3=en");
     await expect(panels(page)).toHaveCount(2);
     await page.locator('section[data-panel-id="p2"] [data-reader-scroller]').hover();
     await page.mouse.wheel(0, 400);
-    await expect.poll(() => new URL(page.url()).search).toMatch(/&p2=Exodus\.1\.\d+&lang2=en/);
+    await expect.poll(() => new URL(page.url()).search).toMatch(/^\?lang=en&with=all&lang2=bi&p3=Exodus\.1\.\d+&lang3=en&aliyot3=0$/);
   });
 
   test("each panel tracks its own place; scrolling one never moves the other", async ({ page }) => {
@@ -57,7 +57,8 @@ test.describe("several texts side by side (old multi-panel URLs)", () => {
   test("a verse selected in the second panel opens that panel's own sidebar (w2)", async ({ page }) => {
     await open(page, "/Genesis.1?lang=en&p2=Exodus.1&lang2=en");
     await page.locator('section[data-panel-id="p2"] [role="group"][data-ref="Exodus 1:1"]').click({ position: { x: 60, y: 10 } });
-    await expect(page).toHaveURL(/p2=Exodus\.1\.1&lang2=en&w2=all/);
+    // VERIFIED on sefaria.org: …&p2=Exodus.1.1&lang2=bi&aliyot2=0&w2=all&lang3=en (the sidebar's language is lang3)
+    await expect(page).toHaveURL(/p2=Exodus\.1\.1&lang2=en&aliyot2=0&w2=all&lang3=en$/);
     await expect(page.locator('section[data-panel-id="p2"]').getByRole("complementary")).toBeVisible();
     await expect(page.locator('section[data-panel-id="p1"]').getByRole("complementary")).toHaveCount(0);
     expect(new URL(page.url()).pathname).toBe("/Genesis.1");
@@ -69,7 +70,7 @@ test.describe("several texts side by side (old multi-panel URLs)", () => {
     const link = page.locator('section[data-panel-id="p1"] a[data-sefaria-ref="Deuteronomy 8:10"]', { hasText: "Deut." }).first();
     await link.click();
     await expect(panels(page)).toHaveCount(2);
-    await expect(page).toHaveURL(/\/Jerusalem_Talmud_Berakhot\.1\.1\?lang=en&p2=Deuteronomy\.8\.10/);
+    await expect(page).toHaveURL(/\/Jerusalem_Talmud_Berakhot\.1\.1(\.\d+)?\?lang=en&p2=Deuteronomy\.8\.10/);
     await expect(page.locator('section[data-panel-id="p2"] [role="group"][data-ref="Deuteronomy 8:10"]')).toBeInViewport();
     await expect(page.locator('section[data-panel-id="p1"] [role="group"][data-ref="Jerusalem Talmud Berakhot 1:1:1"]')).toBeVisible();
     // I18-003: the new panel takes keyboard focus on its first control
@@ -80,16 +81,57 @@ test.describe("several texts side by side (old multi-panel URLs)", () => {
   test("when the row overflows, a panel that opens beside the first is scrolled into view", async ({ page }) => {
     await open(page, "/Jerusalem_Talmud_Berakhot.1.1?lang=en&p2=Genesis.1&p3=Exodus.1&p4=Leviticus.1&p5=Numbers.1");
     await page.locator('section[data-panel-id="p1"] a[data-sefaria-ref="Deuteronomy 8:10"]', { hasText: "Deut." }).first().click();
-    await expect(panels(page)).toHaveCount(6);
+    // as sefaria.org: the citation takes the place of the panel next to it (Genesis 1)
+    await expect(panels(page)).toHaveCount(5);
+    await expect(page).toHaveURL(/p2=Deuteronomy\.8\.10&lang2=bi&aliyot2=0&p3=Exodus\.1/);
     await expect(page.locator('section [role="group"][data-ref="Deuteronomy 8:10"]')).toBeInViewport({ ratio: 0.3 });
   });
 
   // @feature SHL-048 @feature SHL-033
+  // Owner decision 2026-10-06: exactly as sefaria.org (VERIFIED with scripts/parity-panels.mjs: citation, citation-replaces-reader-panel)
+  // @feature SHL-049 @feature SHL-066
+  test("a citation closes whatever is next to its panel — even a text the reader opened — and opens there", async ({ page }) => {
+    await open(page, "/Ramban_on_Genesis.1.1?lang=bi&p2=Exodus.1");
+    await page.locator('section[data-panel-id="p1"] a.ref-link[data-sefaria-ref="Exodus 12:2"]').first().click();
+    await expect(page).toHaveURL(/\/Ramban_on_Genesis\.1\.1\.1\?lang=bi&p2=Exodus\.12\.2&lang2=bi&aliyot2=0$/);
+    await expect(panels(page)).toHaveCount(2);
+    // a second citation replaces the first
+    await page.locator('section[data-panel-id="p1"] a.ref-link[data-sefaria-ref="Exodus 20:10"]').first().click();
+    await expect(page).toHaveURL(/p2=Exodus\.20\.10&lang2=bi&aliyot2=0$/);
+    await expect(panels(page)).toHaveCount(2);
+    await expect(page.locator('section[data-panel-id="p2"] [role="group"][data-ref="Exodus 20:10"]')).toBeInViewport();
+  });
+
+  test("with the panel's sidebar open, a citation replaces the sidebar and keeps the panel after it", async ({ page }) => {
+    await open(page, "/Ramban_on_Genesis.1.1.1?lang=bi&with=all&p3=Exodus.1");
+    await expect(panels(page)).toHaveCount(2);
+    await page.locator('section[data-panel-id="p1"] a.ref-link[data-sefaria-ref="Exodus 12:2"]').first().click();
+    await expect(panels(page)).toHaveCount(3);
+    await expect(page).toHaveURL(/\?lang=bi&p2=Exodus\.12\.2&lang2=bi&aliyot2=0&p3=Exodus\.1&lang3=bi&aliyot3=0$/);
+    await expect(page.locator('section[data-panel-id="p1"]').getByRole("complementary")).toHaveCount(0);
+  });
+
+  // CON-033 (corrected), VERIFIED on sefaria.org: Open replaces the sidebar with a new panel, the text as itself
+  // @feature CON-033
+  test("Open on a connected text replaces the sidebar with a new panel after the reader's (50/50)", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await open(page, "/Genesis.1.1?lang=bi&with=Rashi");
+    const item = page.getByRole("complementary").locator("li[data-ref]").first();
+    await expect(item).toHaveAttribute("data-ref", "Rashi on Genesis 1:1:1", { timeout: 30_000 });
+    await item.getByRole("link", { name: "Open" }).click();
+    await expect(page).toHaveURL(/\/Genesis\.1\.1\?lang=bi&aliyot=0&p2=Rashi_on_Genesis\.1\.1\.1&lang2=bi$/);
+    await expect(panels(page)).toHaveCount(2);
+    await expect(page.getByRole("complementary")).toHaveCount(0);
+    const widths = await panels(page).evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().width)));
+    expect(Math.abs(widths[0]! - widths[1]!)).toBeLessThanOrEqual(2);
+    await expect(page.locator('section[data-panel-id="p2"] [role="group"][data-ref="Rashi on Genesis 1:1:1"]')).toBeInViewport();
+  });
+
   test("closing a panel keeps the others; closing the last returns to the library", async ({ page }) => {
     await open(page, "/Genesis.1?lang=en&p2=Exodus.1&lang2=en");
     await page.locator('section[data-panel-id="p1"]').getByRole("button", { name: "Close this text" }).click();
     await expect(panels(page)).toHaveCount(1);
-    await expect(page).toHaveURL(/\/Exodus\.1\?lang=en$/);
+    await expect(page).toHaveURL(/\/Exodus\.1\?lang=en&aliyot=0$/);
     await page.getByRole("button", { name: "Back to the library" }).click();
     await expect(page).toHaveURL(/\/$/);
   });

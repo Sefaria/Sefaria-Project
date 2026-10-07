@@ -58,4 +58,33 @@ test.describe("signed in on a real deployment", () => {
     await menu.getByRole("link", { name: "Log Out" }).click();
     await expect(page.getByRole("banner").getByRole("link", { name: "Sign Up" })).toBeVisible();
   });
+
+  // @feature USL-010 @feature USL-011 @feature USL-001
+  test("Save toggles the bookmark on the server, and reading is recorded in the reader's history", async ({ page }) => {
+    await page.goto("/login?next=%2FExodus.3");
+    await page.getByRole("button", { name: "Continue with Email" }).click();
+    await page.getByLabel("Email Address").fill(EMAIL!);
+    await page.getByLabel("Password", { exact: true }).fill(PASSWORD!);
+    await page.getByRole("button", { name: /^Log in$/ }).click();
+    await expect(page).toHaveURL(/\/Exodus\.3/);
+    // history: the text was recorded on arrival (signed in: POST /api/profile/sync)
+    await expect.poll(async () => {
+      const r = await page.request.get("/api/profile/user_history?saved=0&secondary=0&annotate=0&limit=5");
+      return ((await r.json()) as { ref: string }[]).map((x) => x.ref);
+    }).toContain("Exodus 3");
+    // Save: whatever the state, toggle twice and check the server each time
+    const save = page.locator("main header").first().getByRole("button", { name: /^(Save|Remove) "Exodus 3"$/ });
+    const savedOnServer = async () => {
+      const r = await page.request.get("/api/profile/user_history?saved=1&secondary=0&annotate=0&limit=1000");
+      return ((await r.json()) as { ref: string }[]).some((x) => x.ref === "Exodus 3");
+    };
+    const before = await savedOnServer();
+    await save.click();
+    await expect(save).toHaveAttribute("aria-pressed", String(!before));
+    await expect.poll(savedOnServer).toBe(!before);
+    await save.click();
+    await expect(save).toHaveAttribute("aria-pressed", String(before));
+    await expect.poll(savedOnServer).toBe(before);
+  });
 });
+

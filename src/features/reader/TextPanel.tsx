@@ -13,7 +13,7 @@ import { highlightsOf, type SearchHit } from "~/lib/search/text-search";
 import { versionKey, type TranslationVersion } from "~/lib/versions/translations";
 import { isHighlighted } from "~/lib/text/plan";
 import { prefetchNeighbours, selectionKey, textQueryOptions } from "~/lib/text/queries";
-import { close, closeAside, openAside, openNextTo, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
+import { close, closeAside, openAside, openNextToWithId, panelOrder, replace, updatePanel, updateAside } from "~/lib/workspace/ops";
 import type { AsideId, PanelId, TextPanelState, Workspace } from "~/lib/workspace/types";
 import { DisplaySettingsMenu } from "~/ui/DisplaySettingsMenu/DisplaySettingsMenu";
 import { IconButton } from "~/ui/IconButton/IconButton";
@@ -40,6 +40,9 @@ import { useReaderSettings } from "./settings-context";
 import { SETTLE_MS } from "./use-reading-scroll";
 import { TextColumn } from "./TextColumn";
 import { readerAnalytics } from "~/lib/analytics";
+import { useViewer } from "~/features/auth/viewer";
+import { legacyVersions } from "~/lib/user/history";
+import { useReaderHistory, useSaved, type PanelPlace } from "./use-reader-history";
 
 export interface TextPanelProps {
   panel: TextPanelState;
@@ -55,7 +58,6 @@ const isSinglePanel = () => typeof window !== "undefined" && window.matchMedia(S
 const MAIN = "main" as const;
 
 /** The panel added by an operation (the id in `after` that was not in `before`). */
-const addedPanel = (before: Workspace, after: Workspace): PanelId | undefined => panelOrder(after).find((id) => !before.panels[id]);
 
 /**
  * A text panel: the reading column with its header, and the panel's own side panels (the connections sidebar).
@@ -69,6 +71,9 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   // Stable object identity so memoised sections don't re-render when nothing changed.
   const settings0 = useMemo(() => applySearchToSettings(stored, { lang: panel.lang, aliyot: panel.aliyot }), [stored, panel.lang, panel.aliyot]);
   const nav = useWorkspaceNav();
+  // A sidebar the reader opens has one language: Hebrew if the reader's default is Hebrew, else English (the old openTextListAt
+  // never lets a connections panel be bilingual; only an old link without lang2 shows bi)
+  const newSidebarLang: "he" | "en" = stored.language === "hebrew" ? "he" : "en";
   const router = useRouter();
   const location = useLocation();
   const qc = useQueryClient();
@@ -233,19 +238,36 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           const existing = ws.panels[id]?.asides.find((a) => a.kind === "connections");
           // choosing another verse ends a name's card (the old closeNamedEntityInConnectionPanel)
           const keep = existing?.entity ? undefined : existing?.view;
-          return openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: keep ?? formatWith({ view: "resources" }) });
+          return openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: keep ?? formatWith({ view: "resources" }), ...(existing ? {} : { lang: newSidebarLang }) });
         },
         { state: { nav: "select", panel: id, ref } },
       );
     },
-    [apply, id],
+    [apply, id, newSidebarLang],
   );
 
-  /** Send this panel to a text (the panel itself goes there; the others stay as they are). CON-033 */
-  const openTextHere = useCallback(
-    (ref: string) => apply((ws) => closeAside(updatePanel(ws, id, { ref }), id), { state: { nav: "go", panel: id } }),
-    [apply, id],
+  /**
+   * "Open" from the sidebar (a connected text, a translation's or a version's Open Text), exactly as sefaria.org: the sidebar is
+   * replaced by a new text panel right after this one, showing that text as itself (a comment is not turned into its base text),
+   * in the version chosen if any; bilingual when this panel is, else in the sidebar's language. This panel keeps its verse.
+   * VERIFIED: Genesis 1:1 + Rashi → Open → /Genesis.1.1?lang=bi&aliyot=0&p2=Rashi_on_Genesis.1.1.1&lang2=bi (50/50).
+   * Old ReaderPanel.handleTextListClick → showBaseText → openPanelAt(replace). Phones: this panel goes there. CON-033, VER-011
+   */
+  const openFromSidebar = useCallback(
+    (ref: string, versions: { primary?: string; translation?: string } = {}) => {
+      const before = nav.current();
+      if (isSinglePanel()) {
+        apply((ws) => closeAside(updatePanel(ws, id, { ref, versions: { ...versions } }), id), { state: { nav: "go", panel: id } });
+        return;
+      }
+      const aside = before.panels[id]?.asides.find((a) => a.kind === "connections");
+      const lang = settings.language === "bilingual" ? "bi" : aside?.lang === "he" ? "he" : aside?.lang === "en" ? "en" : settings.language === "hebrew" ? "he" : "en";
+      const [after, opened] = openNextToWithId(closeAside(before, id), id, { kind: "text", ref, versions: { ...versions }, lang });
+      nav.go(after, { state: { nav: "go", panel: opened } });
+    },
+    [apply, nav, id, settings.language],
   );
+  const openTextHere = useCallback((ref: string) => openFromSidebar(ref), [openFromSidebar]);
 
   /** Search in this text: a new query replaces the last (no history entry), and opening a hit sends this panel to it in the
    *  version it was found in, the sidebar staying on the results (SRC-094, SRC-096). */
@@ -270,8 +292,9 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   /** Table of contents links: this panel goes there and its sidebar stays on the contents (VERIFIED on sefaria.org). BOK-008 */
   const goToRef = useCallback((ref: string) => apply((ws) => updatePanel(ws, id, { ref }), { state: { nav: "go", panel: id } }), [apply, id]);
 
-  // A citation in the text opens the cited text beside this one (phones: in its place), a comment as its base
-  // text with the commentator alongside. SHL-049, TXT-015
+  // A citation inside the sidebar (a dictionary entry) opens the cited text after this panel and the sidebar stays (the old
+  // onCitationClick from a connections panel; VERIFIED on sefaria.org: …&with=Lexicon&lang2=bi&p3=…). Phones: in its place.
+  // A comment opens as its base text with the commentator alongside. SHL-049, TXT-015, CON-038
   const onRefClick = useCallback(
     (ref: string) => {
       void panelForRef(qc, ref).then((target) => {
@@ -280,14 +303,41 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
           nav.go(replace(before, id, target), { state: { nav: "go" } });
           return;
         }
-        const after = openNextTo(before, id, target);
-        nav.go(after, { state: { nav: "go", panel: addedPanel(before, after) } });
+        const [after, opened] = openNextToWithId(before, id, target);
+        nav.go(after, { state: { nav: "go", panel: opened } });
       });
     },
     [qc, id, nav],
   );
 
-  const onCitationClick = useCallback((ref: string) => (readerAnalytics.citationClicked(ref), onRefClick(ref)), [onRefClick]);
+  // A citation in the text, exactly as sefaria.org (owner decision 2026-10-06; ReaderApp.handleCitationClick): whatever is next to
+  // this panel closes — its sidebar, or else the next panel, even one the reader opened — the verse holding the citation becomes
+  // this panel's current verse, and the cited text opens right after it. VERIFIED: [Ramban, Exodus 1] → citation →
+  // [Ramban on Genesis 1:1:1, Exodus 12:2]; a second citation replaces the first.
+  const onCitationClick = useCallback(
+    (ref: string, e?: React.MouseEvent) => {
+      readerAnalytics.citationClicked(ref);
+      const verse = (e?.target as Element | undefined)?.closest<HTMLElement>("[data-ref]")?.dataset.ref;
+      void panelForRef(qc, ref).then((target) => {
+        const before = nav.current();
+        if (isSinglePanel()) {
+          nav.go(replace(before, id, target), { state: { nav: "go" } });
+          return;
+        }
+        let ws = before;
+        if (ws.panels[id]?.asides.length) ws = closeAside(ws, id);
+        else {
+          const order = panelOrder(ws);
+          const next = order[order.indexOf(id) + 1];
+          if (next) ws = close(ws, next);
+        }
+        if (verse) ws = updatePanel(ws, id, { ref: verse });
+        const [after, opened] = openNextToWithId(ws, id, target);
+        nav.go(after, { state: { nav: "go", panel: opened } });
+      });
+    },
+    [qc, id, nav],
+  );
 
   // Words selected in the text: with the sidebar open, a lookup of up to three Hebrew words in one segment switches it
   // to the dictionaries. A selection never opens a closed sidebar. (VERIFIED on sefaria.org; unlike there, the URL
@@ -317,9 +367,9 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
       const ref = seg?.dataset.ref;
       if (!ref || !a) return;
       readerAnalytics.namedEntityClicked(slug);
-      apply((ws) => openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: "Lexicon", entity: { slug, text: a.textContent ?? "" } }), { state: { nav: "select", panel: id, ref } });
+      apply((ws) => openAside(updatePanel(ws, id, { ref }), id, { kind: "connections", view: "Lexicon", entity: { slug, text: a.textContent ?? "" }, ...(ws.panels[id]?.asides.length ? {} : { lang: newSidebarLang }) }), { state: { nav: "select", panel: id, ref } });
     },
-    [apply, id],
+    [apply, id, newSidebarLang],
   );
 
   // A stored setting changed from the menu must win over the same setting in the URL.
@@ -371,8 +421,13 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   );
   // "Open Text": the passage itself, in that translation (old onRangeClick with the version).
   const onOpenTranslation = useCallback(
-    (v: TranslationVersion) => apply((ws) => closeAside(withTranslation(ws, v, sidebarRef), id), { state: { nav: "go", panel: id } }),
-    [apply, withTranslation, sidebarRef, id],
+    (v: TranslationVersion) => openFromSidebar(sidebarRef, { translation: `${v.languageFamilyName}|${v.versionTitle}` }),
+    [openFromSidebar, sidebarRef],
+  );
+  /** A source version's Open Text (Version Open view): as a translation's, with that version as the source. */
+  const onOpenSource = useCallback(
+    (v: VersionMeta) => openFromSidebar(sidebarRef, { primary: `${v.languageFamilyName}|${v.versionTitle}` }),
+    [openFromSidebar, sidebarRef],
   );
 
   // The header's close button closes this panel; closing the only panel goes back to the library (SHL-048).
@@ -401,6 +456,22 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
   const sample = section.segments.find((s) => s.primary && hasNikud(s.primary))?.primary ?? section.segments[0]?.primary ?? "";
   const availability = displayMenuAvailability({ settings, book: section.book, primaryCategory: section.primaryCategory, hebrewSample: sample, showsSource });
   const interfaceLang = useInterfaceLang();
+
+  // ── signed-in: reading history and Save (USL-010, USL-011) ──────────────────────────────────────────────
+  const viewer = useViewer();
+  const place: PanelPlace | null = useMemo(() => {
+    // the old getHistoryObject: the chosen verse while the sidebar is open, else the section being read
+    const chosen = view && deferredRefs.length && deferredRefs.length < sidebarSection.segments.length ? deferredRefs[0]! : null;
+    return {
+      ref: chosen ?? section.sectionRef,
+      heRef: chosen ? undefined : section.heSectionRef,
+      versions: legacyVersions(panel.versions),
+      book: section.indexTitle,
+      language: settings.language,
+    };
+  }, [view, deferredRefs, sidebarSection, section.sectionRef, section.heSectionRef, section.indexTitle, panel.versions, settings.language]);
+  useReaderHistory(viewer, place, Boolean(view));
+  const save = useSaved(viewer, place, () => setSaveAsked(true));
   const header = headerLabels({
     sectionRef: section.sectionRef, heSectionRef: section.heSectionRef, categories: section.categories,
     translationVersion: section.translationVersion, primaryVersion: section.primaryVersion, language: settings.language, interfaceLang,
@@ -437,7 +508,12 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
         }
         end={
           <>
-          <IconButton icon="bookmark" label={`Save "${section.ref}"`} onClick={() => setSaveAsked(true)} />
+          <IconButton
+            icon="bookmark"
+            pressed={viewer ? save.isSaved : undefined}
+            label={save.isSaved ? `Remove "${place?.ref ?? section.ref}"` : `Save "${place?.ref ?? section.ref}"`}
+            onClick={save.click}
+          />
           <Popover
             open={menuOpen}
             onOpenChange={setMenuOpen}
@@ -535,8 +611,10 @@ export function TextPanel({ panel, data, innerSizes, alone }: TextPanelProps) {
                 currentSourceTitle={versions.primary?.split("|").slice(1).join("|") || undefined}
                 onSelectTranslation={onSelectTranslation}
                 onOpenTranslation={onOpenTranslation}
+                onOpenSource={onOpenSource}
                 onClose={closeSidebar}
-                lang={aside?.lang}
+                // a bilingual sidebar (an old link's lang2=bi) shows as the text's language for now
+                lang={aside?.lang === "bi" ? undefined : aside?.lang}
                 onLang={onSidebarLang}
               />
             </div>

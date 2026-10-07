@@ -7,8 +7,10 @@ import { useRouter } from "@tanstack/react-router";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { PositionStore, type EntryPositions, type SavedPosition } from "~/lib/reader/position-store";
 import { urlToRef } from "~/lib/ref/url";
-import { stringifySearch } from "~/lib/reader/search-serializer";
-import { decodeWorkspace, encodeWorkspace, type RawSearch } from "~/lib/workspace/url";
+import { parseSearch, stringifySearch } from "~/lib/reader/search-serializer";
+import { decodeWorkspace, encodeWorkspace, DEFAULT_URL_DEFAULTS, type RawSearch, type UrlDefaults } from "~/lib/workspace/url";
+import { useReaderSettings } from "../reader/settings-context";
+import type { ReaderSettings } from "~/lib/reader/settings";
 import type { PanelId, Workspace } from "~/lib/workspace/types";
 
 /**
@@ -37,8 +39,14 @@ export function navFor(state: NavState, panel: PanelId): { kind: NavKind | undef
   return { kind: mine ? state.nav : "scroll", ref: mine ? state.ref : undefined, mine };
 }
 
-export function workspaceHref(ws: Workspace): string {
-  const enc = encodeWorkspace(ws);
+/** What the URL writes for a panel that has not set its own language / aliyot: the reader's stored settings. */
+export const urlDefaultsFor = (s: Pick<ReaderSettings, "language" | "aliyotTorah">): UrlDefaults => ({
+  lang: s.language === "hebrew" ? "he" : s.language === "english" ? "en" : "bi",
+  aliyot: s.aliyotTorah ? 1 : 0,
+});
+
+export function workspaceHref(ws: Workspace, defaults: UrlDefaults = DEFAULT_URL_DEFAULTS): string {
+  const enc = encodeWorkspace(ws, defaults);
   if (!enc) return "/";
   return `${enc.path}${stringifySearch(enc.search)}`;
 }
@@ -61,6 +69,8 @@ const Ctx = createContext<WorkspaceNav | null>(null);
 
 export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const { settings } = useReaderSettings();
+  const defaults = useMemo(() => urlDefaultsFor(settings), [settings.language, settings.aliyotTorah]); // eslint-disable-line react-hooks/exhaustive-deps
   const store = useRef<PositionStore | null>(null);
   store.current ??= new PositionStore(safeSessionStorage());
   const readers = useRef(new Map<PanelId, () => SavedPosition | undefined>());
@@ -99,7 +109,7 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
   }, [router]);
   const go = useCallback<WorkspaceNav["go"]>(
     (ws, opts = {}) => {
-      const enc = encodeWorkspace(ws);
+      const enc = encodeWorkspace(ws, defaults);
       if (!enc) {
         void router.navigate({ to: "/" });
         return;
@@ -113,9 +123,58 @@ export function WorkspaceNavProvider({ children }: { children: ReactNode }) {
         state: opts.state as never,
       });
     },
-    [router],
+    [router, defaults],
   );
-  const value = useMemo(() => ({ current, href: workspaceHref, go, registerPanel, restoreFor }), [current, go, registerPanel, restoreFor]);
+  const href = useCallback((ws: Workspace) => workspaceHref(ws, defaults), [defaults]);
+  // The address bar shows the full form sefaria.org writes (its defaults filled in). Like the old client (replaceState in
+  // updateHistoryState) this only rewrites the address of the entry being shown: same entry, same state, nothing re-renders.
+  // It runs from the history layer, after the browser has the new entry (a router state change can come before it).
+  const defaultsRef = useRef(defaults);
+  defaultsRef.current = defaults;
+  const rewriteRef = useRef<() => void>(() => undefined);
+  useEffect(() => {
+    // the address in one spelling (a path may hold Hebrew: the browser reports it percent-encoded)
+    const same = (a: string, b: string) => {
+      const norm = (x: string) => {
+        try {
+          return decodeURIComponent(x).replace(/\+/g, " ");
+        } catch {
+          return x;
+        }
+      };
+      return norm(a) === norm(b);
+    };
+    let rewriting = false;
+    const rewrite = (attempt = 0) => {
+      // TanStack patches history.replaceState to notify its subscribers: ignore the notice our own rewrite causes
+      if (typeof window === "undefined" || rewriting) return;
+      const loc = router.history.location;
+      // TanStack's history notifies before the browser's pushState runs (it is deferred): wait until the address bar shows this
+      // entry, or the rewrite would land on the entry being left
+      if (!same(`${window.location.pathname}${window.location.search}`, `${loc.pathname}${loc.search}`)) {
+        if (attempt < 20) setTimeout(() => rewrite(attempt + 1), 0);
+        return;
+      }
+      const splat = decodeURIComponent(loc.pathname.replace(/^\/+/, ""));
+      if (!splat) return;
+      const enc = encodeWorkspace(decodeWorkspace(urlToRef(splat), parseSearch(loc.search) as RawSearch), defaultsRef.current);
+      if (!enc) return;
+      const full = `${enc.path}${stringifySearch(enc.search)}`;
+      if (same(full, `${window.location.pathname}${window.location.search}`)) return;
+      rewriting = true;
+      try {
+        window.history.replaceState(window.history.state, "", full + window.location.hash);
+      } finally {
+        rewriting = false;
+      }
+    };
+    rewriteRef.current = () => rewrite();
+    rewrite();
+    return router.history.subscribe(() => rewrite());
+  }, [router]);
+  // a changed setting (the language a panel falls back to) shows in the address too
+  useEffect(() => rewriteRef.current(), [defaults]);
+  const value = useMemo(() => ({ current, href, go, registerPanel, restoreFor }), [current, href, go, registerPanel, restoreFor]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

@@ -118,7 +118,8 @@ test.describe("dictionaries for selected words (verified on sefaria.org)", () =>
     await expect(jastrow).toBeVisible({ timeout: 20_000 });
     await jastrow.getByRole("link", { name: "Gen. R. s. 3" }).first().click();
     await expect(page.locator("section[data-panel-id]")).toHaveCount(2, { timeout: 20_000 });
-    await expect(page).toHaveURL(/p2=Bere(i)?shit_Rabbah\.3/);
+    // VERIFIED on sefaria.org: the sidebar stays and takes number 2, so the cited text is p3 (…&with=Lexicon&lang2=bi&p3=…)
+    await expect(page).toHaveURL(/&with=Lexicon&lang2=bi&p3=Bere(i)?shit_Rabbah\.3/);
   });
 });
 

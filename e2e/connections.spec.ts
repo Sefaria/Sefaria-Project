@@ -54,7 +54,8 @@ test.describe("connections sidebar", () => {
   test("a sidebar link is a real link: its address opens the same view", async ({ page }) => {
     await open(page, "/Genesis.1.1?with=all&lang=en");
     const href = await panel(page).getByRole("link", { name: /^Commentary/ }).getAttribute("href");
-    expect(href).toBe("/Genesis.1.1?lang=en&with=Commentary+ConnectionsList"); // parameter order as sefaria.org writes it
+    // as sefaria.org writes it (owner decision 2026-10-06): parameter order, and the sidebar's language (bi: an old link without lang2)
+    expect(href).toBe("/Genesis.1.1?lang=en&with=Commentary+ConnectionsList&lang2=bi");
     await open(page, href!);
     await expect(panel(page).getByRole("link", { name: /All Commentary/ })).toBeVisible();
   });

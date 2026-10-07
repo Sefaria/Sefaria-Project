@@ -93,3 +93,19 @@ picks up the new node image. Chart changes need a new prerelease (another `helm:
 - `/texts` is 3.8 MB of HTML (the catalog is written into the page); trim before production.
 - Add the cauldron and production hosts to the Adobe Fonts kit `aeg8div`, or the English face falls back.
 - `nodejs.mode` must be `legacy` (and `build/node/Dockerfile` the legacy one) on any branch that has not switched.
+
+## First cauldron (2026-10-06): what went wrong, and the fixes
+
+- **Restore hook**: `mongo-restore.yaml` tested `"MONGO_REPLICASET_NAME"` without `$`, so every restore URI ended in an empty
+  `replicaSet=`; the newer "verify restore completeness" step (mongo shell) rejects it. Fixed in the chart (0.89.2-reader-next.2+).
+  A failed first install can leave the hook ConfigMap `mongo-restore-<name>` behind, and every later install then fails with
+  "already exists" while Flux stalls: delete that ConfigMap and `flux reconcile helmrelease <name> --reset`.
+- **Django readiness waited on itself**: `/healthz` also checked the Node server; in reader mode that request reaches the client,
+  which passes it back to Django. Fixed: the check skips Node when `USE_NODE` is off (reader/views.py).
+- **Scale to zero**: KEDA starts web, node and redis on the first external request. Django can crash once while redis starts, and
+  boots for a few minutes; the first page may be the "temporarily unavailable" error (a 502/503/504 from Varnish now says so).
+- **Internal origin leaked into the page**: preload links for neighbouring sections used `SEFARIA_API_ORIGIN`
+  (`http://varnish-…:8040`). Anything the browser will request must use `PUBLIC_CONFIG.apiOrigin`.
+- **Verified on the cauldron**: reader pages, book and category pages, search (all tabs), `/api/topics-toc`, `/login`, `/register`
+  rendered by the client; `/about`, `/topics/*`, the 404 page passed through to Django; `/healthz` all ready; Adobe Garamond loads;
+  the analytics and sign-in keys arrive from the secret.

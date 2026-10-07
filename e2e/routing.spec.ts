@@ -46,7 +46,7 @@ test("a verse range opens at its first verse, then the address collapses to it (
   await open(page, "/Genesis.1.3-5?lang=en");
   await expect(page.locator('[data-scroll-target="true"]')).toHaveAttribute("data-ref", "Genesis 1:3");
   await expect(page.locator('[data-ref="Genesis 1:3"][role="group"]')).toBeInViewport();
-  await expect(page).toHaveURL(/\/Genesis\.1\.3\?lang=en$/);
+  await expect(page).toHaveURL(/\/Genesis\.1\.3\?lang=en&aliyot=0$/);
 });
 
 test("with the sidebar, a range highlights only its first verse, and the sidebar shows that verse", async ({ page }) => {

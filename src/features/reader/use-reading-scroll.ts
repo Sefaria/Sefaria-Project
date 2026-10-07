@@ -7,6 +7,9 @@
  *    sections added above, fonts arriving, the column narrowing when the sidebar opens, a footnote opening.
  *    The browser's own scroll anchoring is switched off (it is not in every browser and would double-correct).
  *    Corrections run in a ResizeObserver callback or the next animation frame, i.e. before paint: never visible.
+ *    Scrolling moves in whole device pixels but text heights are fractional (a 22px font at 1.6 is 35.2px a
+ *    line), so the leftover fraction of each correction goes into a sub-pixel padding above the content —
+ *    otherwise a section added above can leave the text a fraction lower, and it paints a pixel off.
  *  - Focus tracking with the old client's exact rule (see `pickFocusSegment`), every frame while scrolling, so
  *    the highlight follows the reader; `onSettled` fires once scrolling pauses (for the URL).
  *  - Edge detection for loading the previous / next section well before the reader gets there.
@@ -89,6 +92,8 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     pinnedAt: -1,
     /** scrollTop at the last step, for the direction of travel. */
     lastScrollTop: 0,
+    /** Sub-pixel padding above the content, in [0, 1): the part of a correction scrolling can't make. */
+    pad: 0,
     frame: 0,
     settleTimer: 0 as ReturnType<typeof setTimeout> | 0,
   });
@@ -162,6 +167,20 @@ export function useReadingScroll(opts: ReadingScrollOptions): ReadingScroll {
     if (Math.abs(delta) >= 0.5) {
       scrollBy(delta);
       s.corrections.push(Math.round(delta));
+    }
+    // What scrolling couldn't take (a fraction of a pixel; more only when the scroll hit an end) goes into the padding.
+    const rest = offsetOf(el) - expected;
+    if (Math.abs(rest) > 0.02 && Math.abs(rest) < 1) {
+      let pad = s.pad - rest;
+      if (pad < 0) {
+        pad += 1;
+        scrollBy(1);
+      } else if (pad >= 1) {
+        pad -= 1;
+        scrollBy(-1);
+      }
+      s.pad = pad;
+      content.style.paddingTop = pad ? `${pad}px` : "";
     }
     s.anchor = { ref: s.anchor.ref, offset: offsetOf(el), scrollTop: scrollTopNow() };
   }, [offsetOf, scrollBy, scrollTopNow]);

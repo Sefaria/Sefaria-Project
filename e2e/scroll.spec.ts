@@ -60,7 +60,7 @@ test.describe("the reader's place is tracked to the verse", () => {
     const first = new URL(page.url()).pathname;
     await wheel(page, 300, 2);
     await expect.poll(() => new URL(page.url()).pathname).not.toBe(first);
-    expect(new URL(page.url()).search).toBe("?lang=en");
+    expect(new URL(page.url()).search).toBe("?lang=en&aliyot=0"); // as sefaria.org writes it (aliyot for the Torah)
   });
 
   test("the header and the title follow the section", async ({ page }) => {

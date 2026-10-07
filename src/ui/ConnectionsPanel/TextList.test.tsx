@@ -40,9 +40,10 @@ describe("TextList", () => {
 
   it("hides item titles for commentary lists but shows them otherwise", () => {
     const { rerender } = render(<TextList {...props} items={[item(1)]} />);
-    expect(screen.queryByRole("link", { name: "Rashi on Genesis 1:1:1" })).toBeNull();
+    expect(screen.queryByText("Rashi on Genesis 1:1:1")).toBeNull();
     rerender(<TextList {...props} hideItemTitles={false} items={[item(1)]} />);
-    expect(screen.getByRole("link", { name: "Rashi on Genesis 1:1:1" })).toHaveAttribute("href", "/Rashi_on_Genesis.1.1.1");
+    // a title, not a link (VERIFIED on sefaria.org: clicking it does nothing; "Open" opens the text)
+    expect(screen.getByText("Rashi on Genesis 1:1:1").closest("a")).toBeNull();
   });
 
   it("gives every item an Open link", () => {

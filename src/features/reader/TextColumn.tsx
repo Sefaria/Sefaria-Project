@@ -221,6 +221,8 @@ export function TextColumn(props: TextColumnProps) {
   // Connection counts for the dots: one links request per loaded section (cached; fetched after hydration).
   const linkQueries = useQueries({ queries: sections.map((p) => linksQueryOptions(p.ref)) });
   const filterKey = linkFilter.join("|");
+  // One string, not a spread: the number of queries grows with the sections, and React's deps must keep their length.
+  const linksUpdatedKey = linkQueries.map((q) => q.dataUpdatedAt).join(",");
   const countsBySection = useMemo(() => {
     const out = new Map<string, Record<string, number>>();
     sections.forEach((p, i) => {
@@ -229,7 +231,7 @@ export function TextColumn(props: TextColumnProps) {
     });
     return out;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sections, filterKey, ...linkQueries.map((q) => q.dataUpdatedAt)]);
+  }, [sections, filterKey, linksUpdatedKey]);
 
   // Continuous layout: numbers of segments that begin on one line step apart (TXD-046)
   useEffect(() => {

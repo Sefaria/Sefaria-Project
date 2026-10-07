@@ -100,6 +100,8 @@ export interface ConnectionsPaneProps {
   onOpenSearchHit: (hit: SearchHit) => void;
   onSelectTranslation: (v: TranslationVersion) => void;
   onOpenTranslation: (v: TranslationVersion) => void;
+  /** A source version's Open Text: a new panel in that version (as a translation's). */
+  onOpenSource?: (v: VersionMeta) => void;
   onClose: () => void;
   /** The sidebar's own language (`lang2`) and changing it (the aleph / ayin button in its header). */
   lang?: "en" | "he";
@@ -429,7 +431,7 @@ function ConnectionsPaneInner(props: ConnectionsPaneProps & { onSignUp: (kind: S
           version={version}
           lang={sourcePreview ? bucketLanguage(sourcePreview) : "he"}
           openHref={sourcePreview ? props.selectSourceHref(sourcePreview) : hrefFor({ view: "resources" })}
-          onOpen={() => sourcePreview && props.onSelectSource(sourcePreview)}
+          onOpen={() => sourcePreview && (props.onOpenSource ?? props.onSelectSource)(sourcePreview)}
         />
       </ConnectionsPanel>
     );
