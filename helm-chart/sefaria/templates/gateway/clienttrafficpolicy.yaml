@@ -15,4 +15,11 @@ spec:
   clientIPDetection:
     xForwardedFor:
       numTrustedHops: 1
+  {{- if .Values.authService.enabled }}
+  # The auth service's identity headers come only from ext_authz. Strip client-sent copies at the listener, before
+  # any filter, so a fail-open pass (auth service down or slow) cannot carry a spoofed tier or project upstream.
+  headers:
+    earlyRequestHeaders:
+      remove: [x-sefaria-tier, x-sefaria-project, x-sefaria-auth-result]
+  {{- end }}
 {{- end }}
