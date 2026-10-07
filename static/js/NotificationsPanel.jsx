@@ -83,7 +83,8 @@ class NotificationsPanel extends Component {
     const notifications = Sefaria.notifications.map(n => 
       <Notifications type={n.type} props={n} key={n._id} />
     );
-    const sidebarModules = [{type: "StayConnected"}];
+    // Promo: sidebar-ad slot — makes this page targetable by ads (pageType "notifications").
+    const sidebarModules = [{type: "StayConnected"}, {type: "Promo"}];
     return (
       <div className="readerNavMenu sans-serif">
         <div className="content">

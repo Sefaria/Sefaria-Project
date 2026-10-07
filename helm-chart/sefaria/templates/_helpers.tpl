@@ -173,6 +173,9 @@ Setup complete tasks queue info
 */}}
 {{- define "sefaria.tasks.internalQueues" }}
 tasks: {{ .Values.deployEnv }}-tasks
+{{- if .Values.tasks.findRefs.enabled }}
+findRefs: {{ .Values.deployEnv }}-find-refs
+{{- end }}
 {{- end }}
 {{- define "sefaria.tasks.queues" }}
 {{- merge  (fromYaml (include "sefaria.tasks.internalQueues" . )) .Values.tasks.queues | toYaml }}

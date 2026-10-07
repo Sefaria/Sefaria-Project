@@ -11,6 +11,7 @@ import EditCollectionPage from './EditCollectionPage';
 import SearchState from './sefaria/searchState';
 import SearchAnalytics from './sefaria/searchAnalytics';
 import {ReaderPanelContext, AdContext, StrapiDataProvider, ExampleComponent, StrapiDataContext} from './context';
+import { classifyPanels } from './sefaria/pageTypes';
 import {
   ContestLandingPage,
   PBSC2020LandingPage,
@@ -44,7 +45,7 @@ import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
 import AuthPage from './auth/AuthPage';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
-import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
+import { resumePendingAuthAttempt } from './auth/authAnalytics.js';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -242,7 +243,7 @@ class ReaderApp extends Component {
       Sefaria.markUserAsNewVisitor();
     }
 
-    resumePendingSignUpAttempt();
+    resumePendingAuthAttempt();
     if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
       sessionStorage.setItem("sa.reader_app_mounted", "true");
       sa_event("reader_app_mounted");
@@ -2373,7 +2374,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       isLoggedIn: Sefaria._uid,
       interfaceLang: Sefaria.interfaceLang,
       dt: Sefaria.util.epoch_time(new Date())*1000,
-      keywordTargets: refs ? deDupedTriggers : []
+      keywordTargets: refs ? deDupedTriggers : [],
+      // The KINDS of page open across all panels (a union, like keywordTargets above), for
+      // sidebar ads that target a page type rather than a keyword. A topic panel showing a
+      // specific topic classifies to nothing here — whether it's an author page needs fetched
+      // topic data, so TopicPage supplies the answer via Promotions' pageTypeOverride prop.
+      pageTypes: classifyPanels(this.state.panels)
     };
     return context
   }
