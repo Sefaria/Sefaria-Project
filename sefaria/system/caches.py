@@ -177,7 +177,7 @@ class SimpleMongoDBCache(BaseCache):
         self.validate_key(key)
         coll = self._get_collection()
         if not 'capped' in self._db.command("collstats", self._collection_name):
-            coll.remove({'key': key})
+            coll.delete_many({'key': key})
         else:
             coll.update_one({'key': key}, {'$set': {'expires': timezone.now()}})
 
@@ -187,7 +187,7 @@ class SimpleMongoDBCache(BaseCache):
         self.validate_key(key)
         now = timezone.now()
 
-        data = coll.find(
+        count = coll.count_documents(
             {'$and':
                 [
                     {'key': key},
@@ -196,18 +196,19 @@ class SimpleMongoDBCache(BaseCache):
                         {'expires': None},
                     ]}
                 ]
-            }
+            },
+            limit=1,
         )
 
-        return data.count() > 0
+        return count > 0
 
     def clear(self):
         coll = self._get_collection()
         collstats = self._db.command("collstats", self._collection_name)
         if not 'capped' in collstats or not collstats['capped']:
-            coll.remove({})
+            coll.delete_many({})
         else:
-            coll.update({}, {'$set': {'expires': timezone.now()}})
+            coll.update_many({}, {'$set': {'expires': timezone.now()}})
 
     def _get_collection(self):
         if getattr(self, '_coll', None) is None:

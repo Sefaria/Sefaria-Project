@@ -1396,7 +1396,7 @@ class SheetPostTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
         data = json.loads(response.content)
         self.assertTrue("error" not in data)
-        self.assertEqual(0, db.sheets.find({"id": sheet_id}).count())
+        self.assertEqual(0, db.sheets.count_documents({"id": sheet_id}))
 
 
 class UserSyncTest(SefariaTestCase):

@@ -84,9 +84,9 @@ def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_
     # Move user reading history
     db.user_history.update_many({"uid": from_uid}, {"$set": {"uid": into_uid}})
     # Move group admins
-    db.groups.update({"admins": from_uid}, {"$set": {"admins.$": into_uid}})
+    db.groups.update_many({"admins": from_uid}, {"$set": {"admins.$": into_uid}})
     # Move group members
-    db.groups.update({"members": from_uid}, {"$set": {"members.$": into_uid}})
+    db.groups.update_many({"members": from_uid}, {"$set": {"members.$": into_uid}})
     # Move Sheets
     db.sheets.update_many({"owner": from_uid}, {"$set": {"owner": into_uid}})
     # Move Notes
