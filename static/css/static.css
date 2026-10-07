@@ -3591,7 +3591,7 @@ display: none;
     flex-direction: column;
   }
   .staticPage .staticPageBlockInner {
-    width: auto !important;
+    width: auto;
     max-width: none;
     margin: 0 30px;
   }
@@ -3661,6 +3661,7 @@ display: none;
     text-align: center;
   }
   .staticPage .staticPageHeader.mobile .staticPageBlockInner {
+    width: auto;
     max-width: 100%;
   }
   .staticPage .staticPageHeader.mobile h1 {
