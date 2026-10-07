@@ -3686,26 +3686,28 @@ display: none;
     padding-top: -25px;
   }
   .staticPage .staticPageHeader.mobile .mobileHeaderImages {
-    width: 326px;
-    height: 332px;
+    width: 100%;
+    max-width: 326px;
+    height: auto;
+    aspect-ratio: 326 / 332;
   }
   .staticPage .staticPageHeader.mobile .mobileHeaderImages img.mobileHeaderTablet {
-    width: 245px;
-    height: 306px;
-    left: 81px;
+    width: calc(100% * 245 / 326);
+    height: calc(100% * 306 / 332);
+    left: calc(100% * 81 / 326);
     top: 0;
   }
   .staticPage .staticPageHeader.mobile .mobileHeaderImages img.mobileHeaderTablet.int-he {
     left: 0;
   }
   .staticPage .staticPageHeader.mobile .mobileHeaderImages img.mobileHeaderPhone {
-    width: 151px;
-    height: 245px;
+    width: calc(100% * 151 / 326);
+    height: calc(100% * 245 / 332);
     left: 0;
-    top: 87px;
+    top: calc(100% * 87 / 332);
   }
   .staticPage .staticPageHeader.mobile .mobileHeaderImages img.mobileHeaderPhone.int-he {
-    left: 175px;
+    left: calc(100% * 175 / 326);
   }
   .staticPage.mobile .feature .featureImage {
     margin: 0 auto;
