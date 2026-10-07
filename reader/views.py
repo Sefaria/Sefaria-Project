@@ -4841,6 +4841,30 @@ def translations_api(request, lang=None):
     return jsonResponse(res)
 
 
+@django_cache(timeout=60 * 60)
+def _titles_with_version_in_language(lang):
+    """
+    Titles of every Index that has at least one Version whose actualLanguage is `lang`.
+    Uses the existing `actualLanguage` index on the texts collection.
+    """
+    return sorted(db.texts.distinct("title", {"actualLanguage": lang}))
+
+
+@catch_error_as_json
+def translation_titles_api(request, lang):
+    """
+    Returns {"lang": <lang>, "titles": [...]} -- every Index title that has a Version in `lang`
+    (matched on Version.actualLanguage, the same key the Translations sidebar / page use).
+    Backs the library TOC "Filter by Language" control, which greys out TOC nodes with no match below them.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
+    lang = lang.lower()
+    if not re.fullmatch(r"[a-z]{2,3}", lang):
+        raise InputError("Invalid language code.")
+    return jsonResponse({"lang": lang, "titles": _titles_with_version_in_language(lang)})
+
+
 def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags

@@ -17065,3 +17065,75 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   pointer-events: none;
 }
 /* ========== MOBILE FILTER ICON BUTTON - END ========== */
+/* ========== LIBRARY TOC "FILTER BY LANGUAGE" (POC) ========== */
+.navTitleControls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.tocLanguageFilter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--medium-grey);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.tocLanguageFilter select {
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--light-grey);
+  border-radius: 6px;
+  background-color: #fff;
+  color: #000;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.tocLanguageFilter.active select {
+  border-color: var(--sefaria-blue, #18345D);
+  box-shadow: inset 0 0 0 1px var(--sefaria-blue, #18345D);
+}
+.tocLanguageFilter.loading select {
+  opacity: 0.6;
+}
+.tocLanguageFilterRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+.tocLanguageFilterNote {
+  font-size: 14px;
+  color: var(--medium-grey);
+}
+/* Non-matching TOC items stay clickable but are greyed out */
+.navBlock.tocLangFilterNoMatch,
+.versionBlock.tocLangFilterNoMatch {
+  opacity: 0.35;
+  filter: grayscale(1);
+  transition: opacity 0.15s ease-in-out;
+}
+.navBlock.tocLangFilterNoMatch:hover,
+.versionBlock.tocLangFilterNoMatch:hover {
+  opacity: 0.6;
+}
+/* Nested sub-category headings: grey by color (not opacity) so it doesn't compound with the items below */
+.category.tocLangFilterNoMatch h2,
+.category.tocLangFilterNoMatch h2 *,
+.category.tocLangFilterNoMatch .categoryDescription {
+  color: var(--light-grey) !important;
+}
+@media (max-width: 842px) {
+  .tocLanguageFilterLabel {
+    display: none;
+  }
+  .tocLanguageFilter select {
+    max-width: 150px;
+  }
+}
+/* ========== LIBRARY TOC "FILTER BY LANGUAGE" (POC) - END ========== */
