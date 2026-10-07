@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import DOMPurify from 'dompurify';
 import Editor, { Toolbar, BtnBold, BtnItalic, createButton } from 'react-simple-wysiwyg';
 import Sefaria from './sefaria/sefaria';
@@ -82,24 +82,39 @@ const RefLinkForm = ({ initialRef, initialLabel, canRemove, onSave, onRemove, on
 
 // A CustomNodeDefinition `element` for json-edit-react: renders lexicon content string values as
 // styled/rendered HTML (no visible tags) in both view and edit mode.
-export const WysiwygValueNode = ({ value, isEditing, setIsEditing, setValue, canEdit }) => {
+export const WysiwygValueNode = ({ value, isEditing, canEdit, setIsEditing, handleEdit, nodeData, customNodeProps }) => {
   const [draftHtml, setDraftHtml] = useState('');
   // Captured when a link is clicked or the Ref button is used: which element to edit inside, and
   // (for a brand new link, wrapping a text selection) the Range to replace.
   const [linkTarget, setLinkTarget] = useState(null); // {el, existingLink, range} | null
+  const { commitDraft } = customNodeProps;
+  const valueBeforeEdit = useRef(null);
 
+  // Seeded with the stored value exactly as it is, deliberately unsanitized: DOMPurify rebuilds
+  // every element it passes, which reverses attribute order and drops tags outside the display
+  // allowlist below, so sanitizing here would rewrite untouched markup the moment a field is
+  // edited -- noise in every saved diff, and silent loss of anything the narrower list omits.
+  // Sanitizing content on its way in is LexiconEntry._sanitize()'s job on save, which is the
+  // boundary that protects readers too (an entry renders as live HTML in the reader panel, with
+  // no client-side pass at all).
   useEffect(() => {
-    if (isEditing) { setDraftHtml(sanitizeLexiconHtml(value)); }
+    if (!isEditing) { return; }
+    valueBeforeEdit.current = value;
+    setDraftHtml(value);
   }, [isEditing]);
 
-  // json-edit-react always overlays its own confirm/cancel icons whenever a custom node reports
-  // isEditing (there's no prop to turn this off -- showEditTools only affects the view-mode
-  // icons). This component renders no Done/Cancel of its own; those library icons commit via
-  // its OWN internal tracked value, not this component's draftHtml, unless `setValue` (also a
-  // prop here) is kept up to date in parallel with every change -- otherwise clicking them
-  // silently reverts to the pre-edit content. So every change below updates both draftHtml
-  // (what this component itself renders/edits) and setValue (what the library's icons commit).
-  const updateDraft = (html) => { setDraftHtml(html); setValue(html); };
+  // Every keystroke goes straight into the panel's draft rather than waiting on json-edit-react's
+  // own per-field confirm icon (hidden, along with its cancel sibling, in lexicon-edit.scss): the
+  // text then survives closing the field by any means, and Save always sends what's in the box.
+  const updateDraft = (html) => {
+    setDraftHtml(html);
+    commitDraft(nodeData.path, html);
+  };
+
+  // The one way back. handleEdit writes a value and closes the field in one step, so passing the
+  // value from when editing started undoes everything typed since -- and it has to be ours rather
+  // than the library's cancel icon, which can't know to undo drafts already committed above.
+  const cancelEdit = () => handleEdit(valueBeforeEdit.current);
 
   // Defined per-instance (not at module scope, like BtnBold etc.) so it can open a link form
   // scoped to *this* field.
@@ -179,6 +194,7 @@ export const WysiwygValueNode = ({ value, isEditing, setIsEditing, setValue, can
           <BtnRefLink />
         </Toolbar>
       </Editor>
+      <button type="button" className="lexiconWysiwygCancel" onClick={cancelEdit}>Cancel</button>
       {linkTarget && (
         <RefLinkForm
           initialRef={linkTarget.existingLink?.getAttribute('data-ref') ?? ''}

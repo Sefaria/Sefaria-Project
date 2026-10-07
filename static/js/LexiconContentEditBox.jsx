@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { JsonEditor } from 'json-edit-react';
+import { JsonEditor, assign } from 'json-edit-react';
 import { LoadingMessage, InterfaceText } from './Misc';
 import LexiconEntryEditBox, { useLexiconEntrySave, fetchLexiconApi, CurrentHeadwordDisplay, SaveButton } from './LexiconEntryEditBox';
 import { WysiwygValueNode } from './LexiconWysiwygValue';
@@ -12,13 +12,14 @@ import { WysiwygValueNode } from './LexiconWysiwygValue';
 // WysiwygValueNode instead of as literal tag text. The string-matching definition must come
 // first: json-edit-react uses the first customNodeDefinitions entry whose condition matches a
 // given node. showEditTools: false hides the library's view-mode edit/delete/copy icon overlay,
-// which would otherwise sit redundantly next to WysiwygValueNode's own click-to-edit surface. It
-// has no effect on the library's edit-mode confirm/cancel icon pair -- those are unconditional
-// whenever a node reports isEditing, with no flag to turn them off, so this tool relies on them
-// directly to commit/cancel (WysiwygValueNode keeps them working correctly via the `setValue`
-// prop; see that file).
-const customNodeDefinitions = [
-  { condition: ({ value }) => typeof value === 'string', element: WysiwygValueNode, showOnEdit: true, showOnView: true, showEditTools: false },
+// which would otherwise sit redundantly next to WysiwygValueNode's own click-to-edit surface.
+// commitDraft is how WysiwygValueNode writes an open field's text into the draft as it's typed,
+// instead of through json-edit-react's own confirm icon -- that icon and its cancel sibling are
+// both hidden in lexicon-edit.scss, in favor of this panel's Save button and the node's own
+// Cancel (which is the only thing that puts a field back).
+const buildCustomNodeDefinitions = (commitDraft) => [
+  { condition: ({ value }) => typeof value === 'string', element: WysiwygValueNode,
+    customNodeProps: { commitDraft }, showOnEdit: true, showOnView: true, showEditTools: false },
 ];
 
 
@@ -63,6 +64,8 @@ export const ContentEditor = ({ identity }) => {
 
 const ContentEditorForm = ({ identity, initialDraft }) => {
   const { value, setValue, saving, message, save } = useLexiconEntrySave(initialDraft);
+  const commitDraft = useCallback((path, html) => setValue(current => assign(current, path, html)), []);
+  const customNodeDefinitions = useMemo(() => buildCustomNodeDefinitions(commitDraft), [commitDraft]);
 
   const onSave = () => {
     const url = `/api/lexicon-entry/${encodeURIComponent(identity.lexiconName)}/${encodeURIComponent(identity.headword)}`;
