@@ -90,7 +90,8 @@ function NoSearchResults({ mode, query }) {
         <div className="noSearchResults-textGroup">
           <p className="noSearchResults-heading serif">{heading}</p>
           <p className="noSearchResults-body">
-            <InterfaceText>{key('body')}</InterfaceText>
+            {/* With the assistant on, one body for every tab that points to it */}
+            <InterfaceText>{hasAssistant ? 'search.null.body.library_assistant' : key('body')}</InterfaceText>
           </p>
         </div>
         <div className="noSearchResults-ctas">

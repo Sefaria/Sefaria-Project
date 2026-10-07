@@ -78,6 +78,15 @@ describe("NoSearchResults", function () {
     expect(listener.mock.calls[0][0].detail.question).toContain('"minkeee"');
   });
 
+  it.each(["sources", "books", "authors", "topics"])("uses the assistant body on %s when the assistant is on, the tab's own when off", function (mode) {
+    render(mode);
+    expect(container.querySelector(".noSearchResults-body").textContent).toBe("search.null.body.library_assistant");
+    act(() => { ReactDOM.unmountComponentAtNode(container); });
+    document.querySelector("lc-chatbot").remove();
+    render(mode);
+    expect(container.querySelector(".noSearchResults-body").textContent).toBe(`search.null.${mode}.body`);
+  });
+
   describe("on phones (prototype)", () => {
     beforeEach(() => { mockBreakpoint = "mobile"; });
     afterEach(() => { mockBreakpoint = "desktop"; });
