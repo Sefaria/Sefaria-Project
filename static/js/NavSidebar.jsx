@@ -168,9 +168,13 @@ const RecentlyViewed = ({toggleSignUpModal, mobile}) => {
           </SidebarModule>;
 }
 
-const Promo = () =>
+// pageTypeOverride flows in via the module descriptor ({type: "Promo", props: {...}}) for pages
+// whose kind can't be read from panel state — today only the portal sidebar, which passes
+// portal_page (see PortalNavSideBar in TopicPage.jsx). Everywhere else the module is used
+// props-less and classification comes from AdContext.
+const Promo = ({ pageTypeOverride }) =>
     <SidebarModule>
-        <Promotions adType="sidebar"/>
+        <Promotions pageTypeOverride={pageTypeOverride}/>
     </SidebarModule>
 ;
 

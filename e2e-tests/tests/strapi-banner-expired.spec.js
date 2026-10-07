@@ -16,8 +16,9 @@
  *
  * VIEWER CANDIDATES ARE PINNED TO {GB} ON PURPOSE. The banner targets `exclude [US]`, which that
  * viewer passes, so expiry is the ONLY gate it fails. The test overrides only the signals consumed
- * by countryCandidates; it leaves Date and the browser timezone itself alone so the HAR request's
- * recorded date range still matches.
+ * by countryCandidates; it leaves Date and the browser timezone itself alone — a habit from the
+ * recording era (the HAR's date-derived query had to keep matching) that still keeps the pinned
+ * clock and the payload's window reasoning simple.
  *
  * THE POSITIVE CONTROL IS A REAL RENDER. A modal published in the same payload is still active at
  * the pinned clock, and the test waits for it to appear. That single step establishes three things
@@ -29,11 +30,11 @@
  *   installOverlaySuppression(), which short-circuits /api/strapi/graphql-cache with an empty
  *   payload and marks every modal_/banner_ localStorage key as already-seen — i.e. it suppresses
  *   exactly what this spec asserts on (see e2e-tests/CLAUDE.md §3). So it intentionally uses a
- *   bare page.goto plus routeFromHAR, keeping Strapi ON.
+ *   bare page.goto plus a synthetic Strapi route, keeping Strapi ON.
  */
 
 import { test, expect } from '@playwright/test';
-import { routeWithStrapiHarFixture, expectStrapiServedFromHar } from '../support/strapi-har-fixture.js';
+import { routeWithStrapiPayload, expectStrapiServed } from '../support/strapi-payload-fixture.js';
 import {
   SCENARIOS,
   prepareStrapiPage,
@@ -49,19 +50,19 @@ const expected = scenario.expected;
 test.describe('Strapi Banner — expired date window', () => {
   test.use({ extraHTTPHeaders: { 'cf-ipcountry': scenario.viewerCountry } });
 
-  let har;
+  let served;
   /** The Strapi payload as the page actually received it. */
   let payload;
 
   test.beforeEach(async ({ page, context }) => {
-    har = await routeWithStrapiHarFixture(context, scenario.har);
+    served = await routeWithStrapiPayload(context, scenario.payload);
     await prepareStrapiPage(page, scenario);
 
     // The shared Playwright config uses America/New_York and an en-US browser locale, either of
     // which would add US to the plausible-country set. Under conservative exclusion that would
     // make this expired exclude-[US] banner fail two gates. Pin the targeting signals to GB while
-    // preserving the real timezone used by Date, because changing that would invalidate the HAR's
-    // date-derived query and POST body.
+    // preserving the real timezone used by Date: the synthetic route no longer cares about the
+    // query string, but the scenario's pinnedNow/window arithmetic still assumes the config timezone.
     await page.addInitScript(() => {
       const nativeResolvedOptions = Intl.DateTimeFormat.prototype.resolvedOptions;
       Intl.DateTimeFormat.prototype.resolvedOptions = function resolvedOptionsWithoutCountryHint() {
@@ -81,7 +82,7 @@ test.describe('Strapi Banner — expired date window', () => {
   });
 
   test.afterEach(() => {
-    expectStrapiServedFromHar(har);
+    expectStrapiServed(served);
   });
 
   test('is delivered in the payload but not displayed', async ({ page }) => {
