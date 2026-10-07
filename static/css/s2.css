@@ -5314,11 +5314,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px; /* illustration to text; was 48px + 12px, tightened so the buttons show without scrolling */
+  gap: 16px; /* illustration to text; was 48px + 12px, tightened so the buttons show without scrolling */
   max-width: 480px;
   width: 100%;
   margin: 0 auto;
-  padding-top: 16px;
+  padding-top: 0;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
@@ -5424,6 +5424,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: var(--sefaria-blue);
   text-decoration: underline;
+}
+
+/* Desktop, assistant off (only the browse button): tighter heading, body and button */
+@media (min-width: 541px) {
+  .noSearchResults:not(.noSearchResults--withAssistant) .noSearchResults-textGroup {
+    gap: 12px;
+  }
+  .noSearchResults:not(.noSearchResults--withAssistant) .noSearchResults-content {
+    gap: 16px;
+  }
 }
 
 @media (max-width: 540px) {
