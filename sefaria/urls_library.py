@@ -46,6 +46,9 @@ urlpatterns = [
     re_path(r'^settings/account?$', reader_views.account_settings),
     path('settings/account/user', reader_views.account_user_update),
     re_path(r'^settings/profile/?$', reader_views.settings_profile_redirect),
+    re_path(r'^settings/your-data/?$', reader_views.your_data_page),
+    path('settings/your-data/export', reader_views.your_data_export),
+    path('settings/your-data/history', reader_views.your_data_history_api),
 
     re_path(r'^community/?$', reader_views.community_to_voices_redirect),
 
