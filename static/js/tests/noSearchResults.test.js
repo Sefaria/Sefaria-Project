@@ -37,7 +37,7 @@ describe("NoSearchResults", function () {
     expect(ctas).toHaveLength(2);
     expect(ctas[0].getAttribute("href")).toBe("/texts");
     expect(ctas[1]).toBe(assistantButton());
-    expect(assistantButton().textContent).toBe("✦ search.null.sources.assistant_button");
+    expect(assistantButton().textContent).toBe("✦ search.null.button.library_assistant");
   });
 
   it("opens the assistant with a request for the query when clicked", function () {

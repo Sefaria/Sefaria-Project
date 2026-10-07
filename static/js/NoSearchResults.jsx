@@ -13,7 +13,7 @@ const CTA_HREFS = {
 // The Sources null page offers the Library
 // Assistant, which opens with a request built from the query that found nothing
 export const assistantNoResultsPrompt = (query) => Sefaria.interfaceLang === 'hebrew'
-  ? `חיפשתי את "${query}" בספריא ולא נמצאו תוצאות. תוכלו לעזור לי למצוא מקורות, ספרים, מחברים ו/או נושאים רלוונטיים?`
+  ? `חיפשתי את "${query}" בספריא ואין תוצאות. אפשר לעזור לי למצוא מקורות, ספרים, מחברים ו/או נושאים רלוונטיים?`
   : `I searched for "${query}" on Sefaria and got no results. Can you help me find relevant sources, books, authors and/or topics?`;
 const askLibraryAssistant = (query) => document.dispatchEvent(new CustomEvent('chatbot:open', {
   detail: { source: 'search_no_results', question: assistantNoResultsPrompt(query) },
@@ -64,7 +64,7 @@ function NoSearchResults({ mode, query }) {
           </a>
           {mode === 'sources' && hasAssistant && (
             <button type="button" className="noSearchResults-cta noSearchResults-cta--assistant" onClick={() => askLibraryAssistant(query)}>
-              ✦ <InterfaceText>{key('assistant_button')}</InterfaceText>
+              ✦ <InterfaceText>search.null.button.library_assistant</InterfaceText>
             </button>
           )}
         </div>
