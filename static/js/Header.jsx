@@ -368,6 +368,7 @@ const Header = (props) => {
           close={props.onMobileMenuButtonClick}
           module={props.module}
           hasUnreadNotifications={hasUnreadNotifications}
+          libraryAssistant={props.libraryAssistant}
           />
       }
       <GlobalWarningMessage />
@@ -396,6 +397,7 @@ Header.propTypes = {
   translationLanguagePreference: PropTypes.string,
   setTranslationLanguagePreference: PropTypes.func,
   notificationCount: PropTypes.number,
+  libraryAssistant: PropTypes.bool,
 };
 
 const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
@@ -422,11 +424,16 @@ const LoggedOutButtons = ({ mobile, loginOnly, openURL, close }) => {
   );
 }
 
-const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications }) => {
+const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visible, module, hasUnreadNotifications, libraryAssistant }) => {
   const classes = classNames({
     mobileNavMenu: 1,
     closed: !visible,
   });
+  const openLibraryAssistant = (e) => {
+    e.preventDefault(); // tells ReaderApp's in-app link handler to leave this click alone
+    close();
+    document.dispatchEvent(new CustomEvent('chatbot:open', {detail: {source: 'mobile_nav_menu'}}));
+  };
       
   return (
     <nav className={classes} aria-label="Mobile navigation menu">
@@ -454,6 +461,12 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
             <img src="/static/icons/calendar.svg" alt={Sefaria._("header.learning_schedules")} />
             <InterfaceText>header.learning_schedules</InterfaceText>
           </a>
+          {libraryAssistant &&
+            <a href="#" role="button" onClick={openLibraryAssistant}>
+              <img src="/static/icons/ai-star-outline-18.svg" alt="" />
+              <InterfaceText>header.library_assistant</InterfaceText>
+            </a>
+          }
         </>
       }
       {module === Sefaria.VOICES_MODULE &&
@@ -652,4 +665,4 @@ const CreateButton = () => {
 };
 
 
-export { Header };
+export { Header, MobileNavMenu };
