@@ -2574,6 +2574,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
+    // Reading pages, where the assistant's Ask button steps aside while scrolling on phones:
+    // a text (with or without its resources panel), a single topic, a sheet (reading or editing)
+    const firstPanel = this.state.panels[0];
+    const isReadingPage = !!firstPanel && (
+      (!firstPanel.menuOpen && ["Text", "TextAndConnections", "Sheet"].includes(firstPanel.mode)) ||
+      (firstPanel.menuOpen === "topics" && !!firstPanel.navigationTopic && !firstPanel.navigationTopicCategory)
+    );
     const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
     return (
@@ -2613,6 +2620,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   max-input-chars={this.props.chatbot_max_input_chars}
                   max-prompts={this.props.chatbot_max_prompts}
                   interface-lang={Sefaria._getShortInterfaceLang()}
+                  hide-launcher-on-scroll={isReadingPage || undefined}
                 />
               )}
               </main>
