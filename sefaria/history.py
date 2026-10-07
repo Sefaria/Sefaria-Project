@@ -26,7 +26,10 @@ def get_activity(query={}, page_size=100, page=1, filter_type=None, initial_skip
 
     for i in range(len(activity)):
         a = activity[i]
-        if a["rev_type"].endswith("text") or a["rev_type"] == "review":
+        # rev_type is "<action> <kind>" -- "edit text", "add lexicon_entry" -- so the kind is
+        # the last word. These are the kinds whose history is browsable per ref/version.
+        kind = a["rev_type"].rsplit(" ", 1)[-1]
+        if kind in ("text", "lexicon_entry") or a["rev_type"] == "review":
             try:
                 a["history_url"] = "/activity/%s/%s/%s" % (Ref(a["ref"]).url(), a["language"], a["version"].replace(" ", "_"))
             except:
