@@ -72,6 +72,7 @@ export const emptyState = () => ({
   confirmationToken: null,    // the token in that link
   failNextKey: false,
   submitterEmailListingId: null,   // the listing whose submitter email is the account email
+  dismissedListingIds: [],         // listings the developer said aren't theirs
   profile: null,
   projects: [],
   expandedProjectId: null,
@@ -139,7 +140,6 @@ export const makeProject = (fields) => ({
   organization: "",
   websiteUrl: "",
   aiAssisted: false,
-  listingRequest: null,        // {id, name, url}: a link staff have still to confirm
   linkedListingId: null,       // the Powered by listing this project is
   consentWithdrawnAt: null,    // when a public project was made private
   usage: {requests30: 0, lastUsed: null},
@@ -257,15 +257,6 @@ export const parseWebsite = (input) => {
   }
 };
 
-/* Listing links compare as host and path, ignoring scheme, "www." and a trailing slash. */
-export const normalizeWebsite = (url) => (
-  (url || "").trim().toLowerCase()
-    .replace(/^[a-z]+:\/\//, "")
-    .replace(/^www\./, "")
-    .replace(/[?#].*$/, "")
-    .replace(/\/+$/, "")
-);
-
 /* The mock listings as this account sees them: the test panel can give one of them the
    account email as its submitter email, and a listing linked to one of this account's
    projects belongs to this account. */
@@ -282,27 +273,36 @@ export const emailMatchedListing = (listings, email, verified) => (
   verified ? listings.find(l => !l.ownedByAnotherAccount && !l.linkedProjectId && sameEmail(l.submitterEmail, email)) || null : null
 );
 
-export const listingForWebsite = (listings, url) => {
-  const wanted = normalizeWebsite(url);
-  return wanted ? listings.find(l => normalizeWebsite(l.url) === wanted) || null : null;
-};
-
-export const canLinkByEmail = (listing, email, verified) => (
-  !!listing && verified && !listing.ownedByAnotherAccount && !listing.linkedProjectId && sameEmail(listing.submitterEmail, email)
-);
-
 /* Only these listing fields are public, so only these can be compared on screen. */
 export const publicListing = (listing) => (
   listing ? {id: listing.id, name: listing.name, url: listing.url, description: listing.description} : null
 );
 
-/* Project and listing fields that disagree, for the person to settle by hand. */
-export const listingConflicts = (fields, listing) => [
-  {field: "name", project: (fields.name || "").trim(), listing: listing.name},
-  {field: "description", project: (fields.description || "").trim(), listing: listing.description},
-  {field: "websiteUrl", project: (fields.websiteUrl || "").trim(), listing: listing.url,
-    same: normalizeWebsite(fields.websiteUrl) === normalizeWebsite(listing.url)},
-].filter(c => !(c.same !== undefined ? c.same : c.project === c.listing));
+/* A public project made from a listing and linked to it, for a developer who said the
+   listing is theirs. */
+export const projectFromListing = (listing) => makeProject({
+  name: listing.name,
+  description: listing.description,
+  websiteUrl: parseWebsite(listing.url).url,
+  visibility: "public",
+  linkedListingId: listing.id,
+});
+
+/* What a developer finds after answering staff outreach with "yes": the reply confirmed
+   the email, and staff created the project from their listing. */
+export const outreachState = (state, listingId) => {
+  const listing = POWERED_BY_LISTINGS.find(l => l.id === listingId);
+  const alreadyLinked = (state.projects || []).some(p => p.linkedListingId === listingId);
+  const project = alreadyLinked ? null : projectFromListing(listing);
+  return {
+    ...state,
+    emailVerified: true,
+    developerEnabled: true,
+    submitterEmailListingId: listingId,
+    projects: project ? [project, ...state.projects] : state.projects,
+    expandedProjectId: project ? project.id : state.expandedProjectId,
+  };
+};
 
 /* Deleting a project revokes its keys with it: they live only on the project. */
 export const removeProject = (state, projectId) => ({

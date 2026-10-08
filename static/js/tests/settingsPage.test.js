@@ -251,102 +251,58 @@ describe('project website', () => {
   });
 });
 
-describe('Powered by listing matches', () => {
-  it('offers a listing submitted with the account email', () => {
-    openNewProject({ submitterEmailListingId: 'pb03' });
-    const notice = container.querySelector('.devPocMatch');
-    expect(notice.textContent).toContain('We found a Powered by Sefaria listing you submitted: Mishnah Yomit Tracker');
-    expect(buttonNamed(notice, 'Link')).toBeTruthy();
+const yourListingDialog = () => container.querySelector('[aria-labelledby="devPocYourListingTitle"]');
 
-    act(() => { buttonNamed(notice, 'Not mine').click(); });
-    expect(container.querySelector('.devPocMatch')).toBeNull();
+describe('"Is this your project?"', () => {
+  const mountWithListing = (state = {}) => mount('developer', {
+    ...DEVELOPER_ON, profile: PROFILE, projects: [], submitterEmailListingId: 'pb03', ...state,
   });
 
-  it('offers nothing when no listing has the account email', () => {
+  it('asks about a listing submitted with the account email, showing only its public fields', () => {
+    mountWithListing();
+    const dialog = yourListingDialog();
+    expect(dialog.textContent).toContain('Is this your project?');
+    expect(dialog.textContent).toContain('Mishnah Yomit Tracker');
+    expect(dialog.textContent).toContain('mishnahtracker.app');
+    expect(dialog.textContent).not.toContain('tova@example.org');
+  });
+
+  it('asks nothing when no listing has the account email', () => {
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [] });
+    expect(yourListingDialog()).toBeNull();
+  });
+
+  it('asks nothing before the email is verified', () => {
+    mountWithListing({ ssoOverride: false, emailVerified: false });
+    expect(yourListingDialog()).toBeNull();
+  });
+
+  it('creates a public project from the listing, linked to it', () => {
+    mountWithListing();
+    act(() => { buttonNamed(yourListingDialog(), 'Yes, add it').click(); });
+    const saved = lastSavedState().projects[0];
+    expect(saved.name).toBe('Mishnah Yomit Tracker');
+    expect(saved.description).toBe('Track your daily two mishnayot and share progress with a study group.');
+    expect(saved.websiteUrl).toBe('https://mishnahtracker.app');
+    expect(saved.visibility).toBe('public');
+    expect(saved.linkedListingId).toBe('pb03');
+    expect(yourListingDialog()).toBeNull();
+    expect(container.querySelector('[data-agent-action="new-key"]')).toBeTruthy();
+  });
+
+  it('stops asking once the developer says it is not theirs', () => {
+    mountWithListing();
+    act(() => { buttonNamed(yourListingDialog(), "No, it's not mine").click(); });
+    expect(yourListingDialog()).toBeNull();
+    expect(lastSavedState().dismissedListingIds).toEqual(['pb03']);
+    expect(lastSavedState().projects).toEqual([]);
+  });
+
+  it('no longer asks about websites that are already listed', () => {
     openNewProject();
-    expect(container.querySelector('.devPocMatch')).toBeNull();
-  });
-
-  it('spots a listed website however it is typed, and offers only a request to link', () => {
-    openNewProject();
-    typeInto(container.querySelector('#devPocProjectUrl'), 'https://www.DafYomiCompanion.org/');
-    const notice = container.querySelector('.devPocMatch');
-    expect(notice.textContent).toContain('This website is already on Powered by Sefaria');
-    expect(notice.textContent).toContain('Daf Yomi Companion');
-    expect(notice.textContent).not.toContain('editor@dafyomicompanion.org');
-    expect(buttonNamed(notice, 'Link this listing')).toBeUndefined();
-
-    act(() => { buttonNamed(notice, 'Request to link').click(); });
-    expect(container.querySelector('.devPocMatch').textContent).toContain('Link requested');
-  });
-
-  it('lets the website match carry on as a new project', () => {
-    openNewProject();
-    typeInto(container.querySelector('#devPocProjectUrl'), 'parshasheets.org');
-    act(() => { buttonNamed(container.querySelector('.devPocMatch'), 'Continue as a new project').click(); });
-    expect(container.querySelector('.devPocMatch')).toBeNull();
-  });
-
-  it('offers to link a listed website whose submitter email is the account email', () => {
-    openNewProject({ submitterEmailListingId: 'pb03' });
-    typeInto(container.querySelector('#devPocProjectUrl'), 'mishnahtracker.app');
-    const notices = container.querySelectorAll('.devPocMatch');
-    expect(notices.length).toBe(1);
-    expect(notices[0].textContent).toContain('This website is already on Powered by Sefaria');
-    expect(buttonNamed(notices[0], 'Link this listing')).toBeTruthy();
-  });
-
-  it('sends a website owned by another account to hello@sefaria.org', () => {
-    openNewProject();
-    typeInto(container.querySelector('#devPocProjectUrl'), 'chavrutamatch.com');
-    const notice = container.querySelector('.devPocMatch');
-    expect(notice.textContent).toContain('already registered by another account');
-    expect(notice.querySelector('a[href="mailto:hello@sefaria.org"]')).toBeTruthy();
-    expect(notice.querySelector('button')).toBeNull();
-  });
-});
-
-describe('linking a listing', () => {
-  const startLink = () => {
-    openNewProject({ submitterEmailListingId: 'pb03' });
-    typeInto(container.querySelector('#devPocProjectDescription'), 'My own tracker');
-    act(() => { buttonNamed(container.querySelector('.devPocMatch'), 'Link').click(); });
-    return container.querySelector('[aria-labelledby="devPocConflictTitle"]');
-  };
-
-  it('shows each differing field side by side and chooses nothing', () => {
-    const dialog = startLink();
-    const fields = Array.from(dialog.querySelectorAll('[data-conflict]')).map(c => c.dataset.conflict);
-    expect(fields).toEqual(['name', 'description', 'websiteUrl']);
-    const name = dialog.querySelector('[data-conflict="name"]');
-    expect(name.textContent).toContain('Daf Tracker');
-    expect(name.textContent).toContain('Mishnah Yomit Tracker');
-    expect(dialog.querySelector('#devPocKeep-name').value).toBe('');
-    expect(buttonNamed(dialog, 'Link listing').disabled).toBe(true);
-  });
-
-  it('links with what the person kept and makes the project public', () => {
-    const dialog = startLink();
-    act(() => { buttonNamed(dialog.querySelector('[data-conflict="name"]'), 'Use this').click(); });
-    typeInto(dialog.querySelector('#devPocKeep-description'), 'Both, really');
-    const websiteSide = dialog.querySelectorAll('[data-conflict="websiteUrl"] .devPocConflictSide')[1];
-    act(() => { buttonNamed(websiteSide, 'Use this').click(); });
-    act(() => { buttonNamed(dialog, 'Link listing').click(); });
-
-    expect(container.querySelector('[aria-labelledby="devPocConflictTitle"]')).toBeNull();
-    expect(container.querySelector('#devPocProjectName').value).toBe('Daf Tracker');
-    expect(container.querySelector('#devPocProjectDescription').value).toBe('Both, really');
-    expect(container.querySelector('#devPocProjectUrl').value).toBe('mishnahtracker.app');
-    expect(container.querySelector('.devPocLinked').textContent).toContain('Mishnah Yomit Tracker');
-    expect(visibilityRadio('public').checked).toBe(true);
-    expect(container.querySelector('.devPocMatch')).toBeNull();
-  });
-
-  it('cancels without changing anything', () => {
-    const dialog = startLink();
-    act(() => { buttonNamed(dialog, 'Cancel').click(); });
-    expect(container.querySelector('.devPocLinked')).toBeNull();
-    expect(container.querySelector('#devPocProjectDescription').value).toBe('My own tracker');
+    typeInto(container.querySelector('#devPocProjectUrl'), 'dafyomicompanion.org');
+    expect(container.textContent).not.toContain('already on Powered by Sefaria');
+    expect(container.querySelector('[data-agent-action="request-listing-link"]')).toBeNull();
   });
 });
 
@@ -380,7 +336,7 @@ describe('saving a project', () => {
 
 const publicProject = (extra = {}) => ({
   id: 'proj01', name: 'Daf Tracker', description: 'A tracker', visibility: 'public', organization: '',
-  websiteUrl: 'https://daftracker.org', aiAssisted: false, listingRequest: null, linkedListingId: null,
+  websiteUrl: 'https://daftracker.org', aiAssisted: false, linkedListingId: null,
   consentWithdrawnAt: null, usage: { requests30: 0, lastUsed: null }, keys: [], ...extra,
 });
 
@@ -513,11 +469,10 @@ describe('Hebrew interface', () => {
     expect(developerPanel().textContent).not.toContain('No projects yet');
   });
 
-  it('renders the listing match and visibility in Hebrew', () => {
+  it('asks "Is this your project?" in Hebrew', () => {
     Sefaria.interfaceLang = 'hebrew';
-    openNewProject({ submitterEmailListingId: 'pb03' });
-    expect(container.querySelector('.devPocMatch').textContent).toContain('מצאנו רישום ב־Powered by Sefaria שהגשת');
-    expect(visibilityRadio('public').parentElement.textContent).toContain('ציבורי');
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], submitterEmailListingId: 'pb03' });
+    expect(yourListingDialog().textContent).toContain('האם זה הפרויקט שלך?');
   });
 });
 
@@ -629,10 +584,21 @@ describe('POC test panel', () => {
   });
 
   it("gives a listing the account email as its submitter email", () => {
-    openNewProject();
-    expect(container.querySelector('.devPocMatch')).toBeNull();
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [] });
+    expect(yourListingDialog()).toBeNull();
     typeInto(container.querySelector('[data-poc-control="submitter-email-listing"]'), 'pb07');
     expect(lastSavedState().submitterEmailListingId).toBe('pb07');
-    expect(container.querySelector('.devPocMatch').textContent).toContain('Rambam Daily Audio');
+    expect(yourListingDialog().textContent).toContain('Rambam Daily Audio');
+  });
+
+  it('shows what staff leave after an outreach reply: email confirmed, project linked', () => {
+    mount('developer', { developerEnabled: false, ssoOverride: false, profile: PROFILE, projects: [] });
+    act(() => { container.querySelector('[data-poc-control="outreach-yes"]').click(); });
+    const saved = lastSavedState();
+    expect(saved.emailVerified).toBe(true);
+    expect(saved.developerEnabled).toBe(true);
+    expect(saved.projects[0].linkedListingId).toBe('pb01');
+    expect(yourListingDialog()).toBeNull();
+    expect(developerPanel().textContent).toContain('Daf Yomi Companion');
   });
 });
