@@ -666,5 +666,9 @@
     "search.result_card.more_versions": "{count} more versions",
     "header.library_assistant": "Library Assistant",
     "search.null.button.library_assistant": "Try Library Assistant",
-    "search.null.body.library_assistant": "Try a different search term or ask the Library Assistant for help."
+    "search.null.body.library_assistant": "Try a different search term or ask the Library Assistant for help.",
+    "search.null.sources.body.library_assistant": "Try a different search term, browse the Library or ask the Library Assistant for help.",
+    "search.null.books.body.library_assistant": "Try a different search term, browse the Library or ask the Library Assistant for help.",
+    "search.null.authors.body.library_assistant": "Try a different search term, browse all Authors or ask the Library Assistant for help.",
+    "search.null.topics.body.library_assistant": "Try a different search term, browse all Topics or ask the Library Assistant for help."
 }
