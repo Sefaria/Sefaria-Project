@@ -544,8 +544,6 @@
     "search.sort.alphabetical": "א-ת",
     "search.null.sources.h1": "לא נמצאו מקורות עבור ״{userquery}״",
     "search.null.sources.body": "נסו מונח חיפוש אחר או עיינו בספרייה.",
-    "search.null.button.library_assistant": "נסו את עוזר הספרייה",
-    "search.null.body.library_assistant": "נסו מונח חיפוש אחר או שאלו את עוזר הספרייה.",
     "search.null.sources.button": "לעיון בספרייה",
     "search.null.sources.button.link": "https://www.sefaria.org.il/texts",
     "search.null.books.h1": "לא נמצאו ספרים עבור ״{userquery}״",

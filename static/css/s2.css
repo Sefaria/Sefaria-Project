@@ -5364,7 +5364,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 16px;
   font-style: normal;
   font-weight: 400;
-  line-height: normal;
+  line-height: 24px;
   color: var(--darker-grey);
   margin: 0;
 }
@@ -5399,16 +5399,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   flex-wrap: wrap;
   justify-content: center;
   gap: 12px;
-}
-
-/* The Library Assistant's purple, as on its header pill. content-box matches the <a>
-   beside it (a <button> defaults to border-box, which made it 3px shorter). */
-.noSearchResults-cta--assistant {
-  box-sizing: content-box;
-  gap: 8px;
-  cursor: pointer;
-  background: var(--mussar-purple);
-  border-color: var(--mussar-purple);
 }
 
 .noSearchResults-caption {
