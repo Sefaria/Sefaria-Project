@@ -20,8 +20,8 @@ table's doc-count threshold, or exceeds its MAX_PHRASE_WORDS cap.
 
 `Library.build_entity_alt_index()` (sefaria/model/text.py) builds this once per process, from
 `init_library_cache()` (reader/startup.py), onto `Library._entity_alt_index`. Normalization
-deliberately reuses top_n_grams_for_search_autocorrect.py's own (`normalize_word`, simple
-whitespace split) -- not the separate ES-analyzer-mirroring tokenizer in
+deliberately reuses top_n_grams_for_search_autocorrect.py's own (`tokenize`: the linker
+normalizer, simple whitespace split, `normalize_word`) -- not the separate ES-analyzer-mirroring tokenizer in
 sefaria/helper/search.py -- because this index feeds the same edit-distance phrase matching
 the top-n-grams table already does, and the two sides of that comparison have to agree on
 what a "phrase" looks like.
@@ -31,7 +31,7 @@ from typing import Dict, Sequence
 
 import structlog
 
-from sefaria.helper.top_n_grams_for_search_autocorrect import build_phrase_trie, normalize_word
+from sefaria.helper.top_n_grams_for_search_autocorrect import build_phrase_trie, tokenize
 
 logger = structlog.get_logger(__name__)
 
@@ -70,8 +70,13 @@ def _entity_tie_break_score(weight: float, bonus: bool = False) -> float:
     return score + NAMED_ENTITY_BONUS if bonus else score
 
 
-def _normalize_phrase(title: str) -> str:
-    return " ".join(normalize_word(w) for w in (title or "").split())
+def _normalize_phrase(title: str, lang: str) -> str:
+    """
+    Same word normalization as the top-n-grams table (`tokenize`: the linker normalizer for
+    `lang`, then per-word edge-punctuation strip and lowercasing), so a title and a query
+    written the same way land on the same key.
+    """
+    return " ".join(tokenize(title, lang))
 
 
 def _add_entry(index: Dict[str, float], phrase: str, score: float) -> None:
@@ -107,7 +112,7 @@ def build_entity_alt_index(langs: Sequence[str] = ('en', 'he'),
         # produces noise like "Moreh Nevukhim, Prefatory Remarks" that is not a book title.
         for lang in langs:
             for title in (book.nodes.title_group.all_titles(lang) or []):
-                _add_entry(index, _normalize_phrase(title), book_score)
+                _add_entry(index, _normalize_phrase(title, lang), book_score)
 
     topics = TopicSet({"shouldDisplay": {"$ne": False}, "numSources": {"$gte": min_topic_sources},
                         "subclass": {"$ne": "author"}})
@@ -115,13 +120,13 @@ def build_entity_alt_index(langs: Sequence[str] = ('en', 'he'),
         score = _entity_tie_break_score(getattr(t, "numSources", 0))
         for lang in langs:
             for title in t.get_titles(lang, with_disambiguation=False):
-                _add_entry(index, _normalize_phrase(title), score)
+                _add_entry(index, _normalize_phrase(title, lang), score)
 
     for author in AuthorTopicSet():
         score = _entity_tie_break_score(getattr(author, "numSources", 0), bonus=True)
         for lang in langs:
             for title in author.get_titles(lang, with_disambiguation=False):
-                _add_entry(index, _normalize_phrase(title), score)
+                _add_entry(index, _normalize_phrase(title, lang), score)
 
     return index
 

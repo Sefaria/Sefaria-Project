@@ -43,9 +43,16 @@ def test_entity_tie_break_score_bonus_applies_even_at_zero_weight():
 # --------------------------------------------------------------------------- #
 
 def test_normalize_phrase_matches_word_by_word_normalization():
-    assert _normalize_phrase("Mishneh Torah") == "mishneh torah"
-    assert _normalize_phrase("") == ""
-    assert _normalize_phrase(None) == ""
+    assert _normalize_phrase("Mishneh Torah", "en") == "mishneh torah"
+    assert _normalize_phrase("", "en") == ""
+    assert _normalize_phrase(None, "en") == ""
+
+
+def test_normalize_phrase_applies_the_linker_normalizer_by_language():
+    # Hebrew: nikud/cantillation and maqaf handled like the top-n-grams table; geresh -> apostrophe.
+    assert _normalize_phrase("בְּרֵאשִׁית־בָּרָא", "he") == "בראשית ברא"
+    assert _normalize_phrase("רמב״ם", "he") == 'רמב"ם'
+    assert _normalize_phrase("  Rashi’s   Commentary ", "en") == "rashi’s commentary".replace("’", "'")
 
 
 def test_add_entry_keeps_the_higher_score_on_collision():

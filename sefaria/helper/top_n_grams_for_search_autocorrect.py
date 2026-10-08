@@ -66,7 +66,7 @@ import datrie
 import structlog
 from pymongo import UpdateOne
 
-from sefaria.model.autospell import SpellChecker, letter_scope, normalize_chars
+from sefaria.model.autospell import SpellChecker, letter_scope, normalize_chars, strip_apostrophes
 from sefaria.system.database import db
 
 logger = structlog.get_logger(__name__)
@@ -104,6 +104,7 @@ AMBIGUITY_LOG_GAP = 1.0
 # marks, etc) but leave the interior of the word untouched -- this is what keeps an
 # abbreviation's internal gershayim intact, e.g. 'רמב"ם' / 'רמב״ם' survive as one token.
 _EDGE_STRIP_RE = re.compile(r'^\W+|\W+$', re.UNICODE)
+_HEBREW_RE = re.compile('[\u05d0-\u05ea]')
 
 
 def normalize_word(word: str) -> str:
@@ -492,6 +493,20 @@ def _best_match(phrase: str, top_n_grams: PhraseTable,
     return ranked[0][0] if ranked else None
 
 
+def normalize_query(query: str) -> str:
+    """
+    Clean a search query once, up front, so the original/corrected pair the "Showing results
+    for" banner displays differs only by the correction itself. Runs the same linker
+    normalizer the table was built with (see `tokenize`: geresh and curly quotes unidecoded to
+    ASCII, doubled spaces collapsed, plus maqaf/cantillation for Hebrew), then strips the
+    apostrophes that leaves and any leading/trailing/repeated whitespace.
+    """
+    from sefaria.model.linker.linker_entity_recognizer import get_linker_normalizer
+    lang = 'he' if _HEBREW_RE.search(query or '') else 'en'
+    normalized = get_linker_normalizer(lang).normalize(query or '')
+    return " ".join(strip_apostrophes(normalized).split())
+
+
 def _substitute_window(words: List[str], normalized: List[str], start: int, end: int, candidate: str) -> str:
     """
     Build the full query (all of `words`) with just `[start:end)` replaced by `candidate`.
@@ -603,6 +618,7 @@ def autocorrect_query(query: str, top_n_grams: PhraseTable,
     :return: an AutocorrectResult if a correction or an ambiguous-suggestions result applies,
         else None (search `query` as typed, with nothing to show about it).
     """
+    query = normalize_query(query)
     if entity_alt_index is not None and _is_empty(entity_alt_index):
         entity_alt_index = None  # decide emptiness once per query, in O(1) -- see _is_empty
     if not query or (_is_empty(top_n_grams) and entity_alt_index is None):

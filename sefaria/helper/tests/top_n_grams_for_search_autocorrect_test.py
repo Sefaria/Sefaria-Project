@@ -254,6 +254,14 @@ def test_autocorrect_query_short_phrase_one_off_match():
         original_query="bereshit rabbah", corrected_query="bereishit rabbah")
 
 
+def test_autocorrect_query_cleans_whitespace_and_apostrophes_in_both_queries():
+    top_n_grams = {"bereishit rabbah": 10}
+    assert autocorrect_query("  bere\u05f3shit \u2019 rabbah  ", top_n_grams) == AutocorrectResult(
+        original_query="bereshit rabbah", corrected_query="bereishit rabbah")
+    assert autocorrect_query("bereshit   rabbah", top_n_grams) == AutocorrectResult(
+        original_query="bereshit rabbah", corrected_query="bereishit rabbah")
+
+
 def test_autocorrect_query_short_phrase_already_attested_is_noop():
     top_n_grams = {"bereishit rabbah": 10}
     assert autocorrect_query("bereishit rabbah", top_n_grams) is None
