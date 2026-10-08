@@ -1,12 +1,15 @@
 """
-Tests for serve_static view — voices→library redirect for about-sidebar pages.
+Tests for serve_static and the settings page.
 """
+import json
+
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
-from django.test import RequestFactory
+from django.test import Client, RequestFactory, TestCase, override_settings
 from django.conf import settings
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
+from reader.conftest import create_test_user, page_props, purge_test_profiles
 import reader.views as reader_views
 
 
@@ -47,3 +50,172 @@ def test_library_sidebar_page_no_redirect(factory, monkeypatch):
     request = _make_request(factory, "/about", LIBRARY_MODULE)
     response = reader_views.serve_static(request, "about", by_lang=True)
     assert response.status_code not in (301, 302)
+
+
+class SettingsPageTest(TestCase):
+    """
+    /settings/account and /settings/developer are one React page, behind a login.
+    """
+    databases = "__all__"
+
+    def setUp(self):
+        self.user = create_test_user("settings")
+        purge_test_profiles(self.user)
+
+    def tearDown(self):
+        purge_test_profiles(self.user)
+
+    def props_for(self, url):
+        self.client.force_login(self.user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        return page_props(response.content.decode("utf-8"))
+
+    def test_account_tab_renders_for_a_logged_in_user(self):
+        props = self.props_for("/settings/account")
+
+        self.assertEqual(props["initialSettingsTab"], "account")
+        self.assertEqual(props["initialMenu"], "settings")
+        self.assertIn("libraryAssistantEnabled", props["initialAccountSettings"])
+
+    def test_developer_tab_renders_for_a_logged_in_user(self):
+        props = self.props_for("/settings/developer")
+
+        self.assertEqual(props["initialSettingsTab"], "developer")
+        self.assertIsNone(props["initialDeveloperProjectId"])
+        self.assertIsNone(props["initialDeveloperPoc"])
+
+    def test_a_project_url_carries_its_id(self):
+        props = self.props_for("/settings/developer/projects/abc123")
+
+        self.assertEqual(props["initialSettingsTab"], "developer")
+        self.assertEqual(props["initialDeveloperProjectId"], "abc123")
+
+    def test_stored_mock_state_is_rendered_into_the_props(self):
+        self.client.force_login(self.user)
+        self.client.post("/api/developer-poc/state", json.dumps({"projects": []}),
+                         content_type="application/json")
+
+        self.assertEqual(self.props_for("/settings/developer")["initialDeveloperPoc"],
+                         {"projects": []})
+
+    def test_anonymous_users_are_redirected_to_login(self):
+        for url in ("/settings/account", "/settings/developer"):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 302)
+            self.assertIn("/login", response["Location"])
+
+
+class DeveloperPocStateApiTest(TestCase):
+    """
+    The mock developer state round-trips through the session.
+    """
+    databases = "__all__"
+    url = "/api/developer-poc/state"
+
+    def setUp(self):
+        self.user = create_test_user("devpoc")
+        purge_test_profiles(self.user)
+        self.client.force_login(self.user)
+
+    def tearDown(self):
+        purge_test_profiles(self.user)
+
+    def post(self, body):
+        return self.client.post(self.url, body, content_type="application/json")
+
+    def get(self):
+        return json.loads(self.client.get(self.url).content)
+
+    def test_unset_state_reads_as_null(self):
+        self.assertIsNone(self.get())
+
+    def test_post_then_get_returns_the_same_object(self):
+        state = {"projects": [{"id": "p1", "keys": ["sfr_test_1"]}], "ssoOverride": True}
+
+        response = self.post(json.dumps(state))
+
+        self.assertEqual(json.loads(response.content), {"ok": True})
+        self.assertEqual(self.get(), state)
+
+    def test_delete_clears_the_state(self):
+        self.post(json.dumps({"projects": []}))
+
+        response = self.client.delete(self.url)
+
+        self.assertEqual(json.loads(response.content), {"ok": True})
+        self.assertIsNone(self.get())
+
+    def test_a_non_object_body_is_rejected(self):
+        self.assertEqual(self.post(json.dumps(["nope"])).status_code, 400)
+        self.assertEqual(self.post("not json").status_code, 400)
+        self.assertIsNone(self.get())
+
+    def test_an_oversized_body_is_rejected(self):
+        oversized = json.dumps({"blob": "x" * (64 * 1024)})
+
+        self.assertEqual(self.post(oversized).status_code, 400)
+        self.assertIsNone(self.get())
+
+    def test_anonymous_users_are_redirected_to_login(self):
+        self.client.logout()
+
+        self.assertEqual(self.client.get(self.url).status_code, 302)
+
+
+LOCMEM_CACHES = {
+    "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "devpoc-confirm"},
+    "shared": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "devpoc-confirm-shared"},
+}
+
+
+@override_settings(CACHES=LOCMEM_CACHES)
+class DeveloperPocEmailConfirmationTest(TestCase):
+    """
+    The mock confirmation link works without a login and from any browser.
+    """
+    databases = "__all__"
+    token = "abcdefgh12345678"
+
+    def setUp(self):
+        self.user = create_test_user("devpocconfirm")
+        purge_test_profiles(self.user)
+
+    def tearDown(self):
+        purge_test_profiles(self.user)
+
+    def wait_for_link(self, client):
+        client.force_login(self.user)
+        client.post("/api/developer-poc/state",
+                    json.dumps({"emailVerified": False, "developerEnabled": False,
+                                "confirmationSentAt": "2026-10-06T00:00:00Z", "confirmationToken": self.token}),
+                    content_type="application/json")
+
+    def test_opening_the_link_logged_out_in_another_browser_confirms_the_waiting_session(self):
+        self.wait_for_link(self.client)
+        other_browser = Client()
+
+        response = other_browser.get("/settings/developer/confirm-email/" + self.token)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/settings/developer/email-confirmed")
+        state = json.loads(self.client.get("/api/developer-poc/state").content)
+        self.assertTrue(state["emailVerified"])
+        self.assertTrue(state["developerEnabled"])
+        self.assertIsNone(state["confirmationToken"])
+
+    def test_a_different_token_confirms_nothing(self):
+        self.wait_for_link(self.client)
+
+        Client().get("/settings/developer/confirm-email/zzzzzzzz99999999")
+
+        self.assertFalse(json.loads(self.client.get("/api/developer-poc/state").content)["emailVerified"])
+
+    def test_a_malformed_token_is_not_found(self):
+        self.assertEqual(Client().get("/settings/developer/confirm-email/NOT-A-TOKEN").status_code, 404)
+
+    def test_the_landing_page_needs_no_login(self):
+        response = Client().get("/settings/developer/email-confirmed")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(page_props(response.content.decode("utf-8"))["initialMenu"], "developerEmailConfirmed")
