@@ -1,17 +1,9 @@
 """
-Build the top-n-grams table used for search-query auto-correction (sc-47189).
+Build the search auto-correction phrase table (see sefaria/helper/top_n_grams_for_search_autocorrect.py)
+and save it as a datrie file.
 
-Walks every segment in the library (optionally scoped to one or more categories), counts
-how many distinct segments ("documents") each normalized phrase appears in, keeps only the
-phrases that clear --min-doc-count, and saves the result as a `datrie` trie file. With
---upload, that file replaces the one in GCS (gs://sefaria-search-autocorrect), which the name
-service downloads at startup -- see sefaria/helper/top_n_grams_for_search_autocorrect.py and
-reader/views.py:search_autocorrect_api.
-
-Every environment reads the same GCS object, so only the production CronJob uploads
-(helm-chart/sefaria/templates/cronjob/build-top-n-grams-for-search-autocorrect.yaml). Run by
-hand without --upload to build a local file, then point TOP_N_GRAMS_TRIE_SOURCE in
-local_settings at it:
+Every environment loads the one GCS object --upload replaces, so only the production CronJob
+uploads. To try a local build, point TOP_N_GRAMS_TRIE_SOURCE in local_settings at --output.
 
 Usage:
     ./run scripts/build_top_n_grams_for_search_autocorrect.py --output /tmp/top_n_grams.trie

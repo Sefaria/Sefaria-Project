@@ -52,19 +52,15 @@ data:
             set req.backend_hint = name_service;
             return (pass);
         }
-        # Routed like the completion endpoints, but cacheable -- see the search-autocorrect
-        # block below, which decides between hash and pass.
+        # Same backend, but cacheable (see below).
         if (req.url ~ "^/api/search-autocorrect") {
             set req.backend_hint = name_service;
         }
         {{- end }}
 
-        # Search auto-correction (sc-47189): a pure function of `q` and the top-n-grams table,
-        # which only changes when the name service restarts (and every release gets a fresh
-        # varnish).  Every search calls it before searching, so cache it rather than pass; the
-        # 1d TTL in vcl_backend_response bounds how stale an answer can be after a mid-release
-        # name-service restart picks up a newer table.  Must precede the staging pass, like the
-        # name-service routing above.
+        # Every search calls this first, and the answer depends only on `q` and the table,
+        # which changes only when the name service restarts.  The 1d TTL bounds staleness
+        # after a restart picks up a newer table.  Must precede the staging pass.
         if (req.url ~ "^/api/search-autocorrect" && req.method == "GET" && req.http.Host !~ "^staging") {
             unset req.http.Cookie;
             unset req.http.Accept-Language;

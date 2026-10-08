@@ -1,8 +1,6 @@
 /**
- * Client side of fuzzy-search query auto-correction (sc-47189): Search.autocorrectQuery asks
- * the name service (/api/search-autocorrect) and Search.entitySearch searches whatever it
- * answers. Sefaria._cachedApiPromise is stubbed with a plain url -> response map; the global
- * Sefaria is how search.js reaches it.
+ * Search.autocorrectQuery and Search.entitySearch's use of it. Sefaria._cachedApiPromise is
+ * stubbed with a url -> response map on the global Sefaria, which is how search.js reaches it.
  */
 // The real module boots the whole app on import; search.js only needs the global at call time.
 jest.mock('../sefaria/sefaria', () => ({__esModule: true, default: {}}));

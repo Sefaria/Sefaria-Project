@@ -4010,7 +4010,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 24px;
   cursor: pointer;
 }
-/* Search-query auto-correction (sc-47189) */
+/* Search-query auto-correction banner */
 .searchAutocorrectBanner {
   display: flex;
   flex-direction: column;

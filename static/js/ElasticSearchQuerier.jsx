@@ -104,27 +104,18 @@ class ElasticSearchQuerier extends Component {
         hits:           [],
         error:          false,
         topics:         [],
-        // Fuzzy-search POC (sc-47189): correctedQuery is set from the name service's
-        // /api/search-autocorrect response (see _resolveAutocorrect) when the typed query was
-        // auto-corrected against the top-n-grams table; it is what the Sources query searches.
-        // suggestedQueries is set instead when multiple candidate corrections were too
-        // close in popularity to pick one with confidence -- see AMBIGUITY_LOG_GAP in
-        // sefaria/helper/top_n_grams_for_search_autocorrect.py -- so the query runs
-        // uncorrected but the banner can still offer alternatives. The two are mutually
-        // exclusive: the endpoint only ever sends one or the other.
-        // Whether auto-correction is off at all is the `disableAutoCorrect` prop: panel state
-        // (searchNoAutocorrect), so it lives in the URL (&no_autocorrect=1) and survives
-        // refresh, back/forward, and shared links. A caller with no URL of its own (the
-        // sidebar's search-in-book) passes no `onDisableAutoCorrect`; there the click is kept in
-        // localDisableAutoCorrect instead, until the query changes. See _autoCorrectDisabled.
+        // From /api/search-autocorrect (at most one is set). When correctedQuery is set, it is
+        // what gets searched.
         correctedQuery: null,
         suggestedQueries: null,
+        // "Search instead for <query>" normally lives in panel state (the `disableAutoCorrect`
+        // prop, so it's in the URL). Callers without a panel, like the sidebar's search-in-book,
+        // pass no onDisableAutoCorrect and the click is kept here until the query changes.
         localDisableAutoCorrect: false,
       }
 
-      // Load search results from cache so they are available for immediate render.
-      // The cache is keyed by the query actually searched, so first apply the correction if
-      // this query's lookup is already cached (see _resolveAutocorrect).
+      // Load search results from cache so they are available for immediate render. The cache
+      // is keyed by the text actually searched, so apply an already-known correction first.
       const cachedCorrection = !props.disableAutoCorrect && Sefaria.search.getCachedAutocorrect(props.query);
       if (cachedCorrection) {
           this.state.correctedQuery = cachedCorrection.corrected_query || null;
@@ -242,15 +233,7 @@ class ElasticSearchQuerier extends Component {
             // entry whose query and tab both changed in one update, and this runs
             // before SearchPage.componentDidUpdate reports the new tab.
             SearchAnalytics.startQuery(newProps.query, this._analyticsTab(newProps));
-            // Fuzzy-search POC (sc-47189): the previous query's correction doesn't apply.
-            // (ReaderApp.updateQuery likewise clears searchNoAutocorrect for a new query.)
-            state.correctedQuery = null;
-            state.suggestedQueries = null;
-            state.localDisableAutoCorrect = false;
-            // The previous query's Sources total must not be read as this query's (the tab
-            // auto-switch in SearchPage decides from it): start from an empty total, running.
-            state.totals = new SearchTotal();
-            state.isQueryRunning = !!newProps.query;
+            state = {...this._rerunState(), localDisableAutoCorrect: false, isQueryRunning: !!newProps.query};
             this.setState(state, () => {
                 this._executeAllQueries(newProps);
                 if (!this.props.searchInBook) {
@@ -258,22 +241,20 @@ class ElasticSearchQuerier extends Component {
                 }
             });
         } else if (!!this.props.disableAutoCorrect !== !!newProps.disableAutoCorrect) {
-            // Fuzzy-search POC (sc-47189): "Search instead for <original query>" was clicked
-            // (or back/forward crossed that click). Same query, different text actually
-            // searched: rerun everything, with or without the correction.
-            state.correctedQuery = null;
-            state.suggestedQueries = null;
-            state.totals = new SearchTotal();
-            state.isQueryRunning = true;
-            this.setState(state, () => this._executeAllQueries(newProps));
+            // "Search instead for <query>" was clicked, or back/forward crossed that click.
+            this.setState(this._rerunState(), () => this._executeAllQueries(newProps));
         } else if (this._shouldUpdateQuery(this.props, newProps, this.props.searchState.type)) {
             this.setState(state, () => {
                 this._executeQuery(newProps, this.props.searchState.type);
             })
         }
     }
+    _rerunState() {
+        // Also drops the old Sources total, which SearchPage's empty-tab auto-switch reads.
+        return {hits: [], pagesLoaded: 0, moreToLoad: true, correctedQuery: null, suggestedQueries: null,
+                totals: new SearchTotal(), isQueryRunning: true};
+    }
     async _executeTopicQuery(query) {
-        // `query` is what the other tabs actually search -- the correction, when one applies.
         const topicQuerier = new TopicQuerier();
         const d = await Sefaria.getName(query)
         if (this._unmounted || this._searchedQuery() !== query) { return; }  // superseded meanwhile
@@ -296,9 +277,8 @@ class ElasticSearchQuerier extends Component {
         if (this._unmounted || this._searchedQuery() !== query) { return; }
         this.setState({topics: searchTopics});
     }
-    _searchedQuery() {
-      // The text actually searched: the correction when one applies, else the query as typed.
-      return this.state.correctedQuery || this.props.query;
+    _searchedQuery(props = this.props) {
+      return this.state.correctedQuery || props.query;
     }
     updateRunningQuery(ajax) {
       this.state.runningQueries = ajax;
@@ -335,22 +315,13 @@ class ElasticSearchQuerier extends Component {
         }
       });
     }
-    /**
-     * Fuzzy-search query auto-correction (sc-47189). Asks the name service whether the typed
-     * query should be corrected and records the answer in state, where _getQueryArgs picks it
-     * up as the query the Sources search runs. (The entity tabs ask for themselves, in
-     * Sefaria.search.entitySearch; both share one cached lookup.) Resolves after the state is
-     * set, and never rejects -- a failed lookup just means searching the query as typed.
-     * Skipped when the user chose "Search instead for <original query>".
-     */
     _resolveAutocorrect(props) {
+      // Resolves once the correction is in state; never rejects. The entity tabs look it up
+      // themselves (Sefaria.search.entitySearch), sharing the cached request.
       if (this._autoCorrectDisabled(props) || !props.query) { return Promise.resolve(); }
-      // Show the loading state across the lookup, so the gap before the search starts doesn't
-      // read as "no results". _executeQuery takes over (and clears it) once it runs.
+      // Without this, the gap before the search starts would render as "no results".
       if (!Sefaria.search.getCachedAutocorrect(props.query)) { this.setState({isQueryRunning: true}); }
       return Sefaria.search.autocorrectQuery(props.query).then(({corrected_query, suggested_queries}) => {
-        // Unmounted, or a newer query arrived while the lookup was in flight (its own call
-        // handles it).
         if (this._unmounted || this.props.query !== props.query || this._autoCorrectDisabled()) { return; }
         return new Promise(resolve => this.setState({
           correctedQuery: corrected_query || null,
@@ -443,9 +414,7 @@ class ElasticSearchQuerier extends Component {
       const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, this.props.searchState.type);
 
       return {
-        // Fuzzy-search POC (sc-47189): search the correction when one applies (see
-        // _resolveAutocorrect); `correctedQuery` is null when it doesn't or the user opted out.
-        query: this.state.correctedQuery || props.query,
+        query: this._searchedQuery(props),
         type: this.props.searchState.type,
         applied_filters: request_applied,
         appliedFilterAggTypes,
@@ -459,26 +428,14 @@ class ElasticSearchQuerier extends Component {
     _autoCorrectDisabled(props = this.props, state = this.state) {
       return !!props.disableAutoCorrect || state.localDisableAutoCorrect;
     }
-    /**
-     * Fuzzy-search POC (sc-47189). Called when the user clicks "Search instead for
-     * <original query>" in the auto-correction banner. Normally that's a panel-state change
-     * (onDisableAutoCorrect), which comes back as the `disableAutoCorrect` prop and reruns
-     * every query from componentWillReceiveProps; without a panel to hold it, rerun here.
-     */
     disableAutoCorrect = () => {
+      // With a panel, the rerun happens when the change comes back as the disableAutoCorrect prop.
       if (this._autoCorrectDisabled()) { return; }
       if (this.props.onDisableAutoCorrect) {
         this.props.onDisableAutoCorrect();
         return;
       }
-      this.setState({
-        localDisableAutoCorrect: true,
-        correctedQuery: null,
-        suggestedQueries: null,
-        hits: [],
-        pagesLoaded: 0,
-        moreToLoad: true
-      }, () => this._executeAllQueries());
+      this.setState({...this._rerunState(), localDisableAutoCorrect: true}, () => this._executeAllQueries());
     }
     _loadNextPage() {
       console.log("load next page")

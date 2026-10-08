@@ -1,60 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Top n-grams table for search-query auto-correction (sc-47189).
+Search-query auto-correction against a table of frequent corpus phrases.
 
-The "top n-grams" table is a precomputed set of normalized *phrases* -- contiguous runs of
-1 to `MAX_PHRASE_WORDS` words -- that occur in more than some threshold of Sefaria segments
-("documents"), each mapped to the number of documents it appears in. It powers query
-auto-correction: a search query (or, for a query longer than `MAX_PHRASE_WORDS` words, a
-single edit that the query's overlapping `MAX_PHRASE_WORDS`-word windows agree on) that isn't itself a known phrase, but is exactly one
-edit (insert/delete/replace/transpose) away from one, gets silently rewritten to that known
-phrase before hitting Elasticsearch (see `autocorrect_query` below and its caller,
-`search_autocorrect_api` in reader/views.py, which the search page calls before searching).
+The table maps every normalized phrase of 1-MAX_PHRASE_WORDS words that appears in more than
+a threshold number of segments to that segment count. A query that isn't in the table (or in
+the entity alt-title index, see entity_alt_index.py) but is one edit away from an entry gets
+rewritten to it. Whole phrases are corrected, never lone words: a word can be a fine one-edit
+fix on its own and still produce a phrase the corpus never contains.
 
-Correcting whole phrases rather than individual words (the original POC) matters because a
-lone word can be a perfectly good 1-edit fix in isolation while still producing a corrected
-*phrase* that appears nowhere in the corpus -- e.g. a real word substituted into a sequence
-that never actually occurs together. Requiring the corrected phrase itself to be a top-n-gram
-entry means a correction is only ever offered if the result is something the corpus actually
-contains.
+When several candidates score within AMBIGUITY_LOG_GAP of each other, nothing is corrected and
+they are returned as suggestions instead -- picking one would be a guess.
 
-The table is built by `scripts/build_top_n_grams_for_search_autocorrect.py`, run on a
-schedule by the `build-top-n-grams-for-search-autocorrect` CronJob
-(helm-chart/sefaria/templates/cronjob/), which saves it as a finished `datrie` trie file and
-uploads that one object to a public-read GCS bucket (`TRIE_BUCKET` / `TRIE_BLOB`). The name
-service downloads and loads it at startup (`load_top_n_grams`) -- a ~1s `datrie` load instead
-of rebuilding a multi-million-key trie in Python. Overwriting a GCS object is atomic, so a
-reader always gets either the previous complete table or the new one, never a mix.
-`Library.build_top_n_grams_for_search_autocorrect()` (sefaria/model/text.py) loads it once,
-from `init_library_cache()` (reader/startup.py), onto
-`Library._top_n_grams_for_search_autocorrect`. This module holds the tokenizer the builder and
-the search-time lookup share, plus the edit-distance-1 candidate generation and the trie
-save/upload/load helpers.
-
-At search time both tables live in `datrie` tries (see `build_phrase_trie`), the same
-structure the autocompleters in sefaria/model/autospell.py use, rather than Python dicts: a
-trie shares common prefixes, which cuts the resident size of a multi-million-phrase table
-considerably. Keys are normalized with autospell's `normalize_chars` so every one fits the
-trie's `letter_scope` alphabet; `autocorrect_query` normalizes the query the same way.
-Lookups are unchanged (`in` / `[]`), so a plain dict works anywhere a trie does -- the
-builder, which only ever holds its counts transiently, still produces one.
-
-`autocorrect_query` also optionally takes `entity_alt_index`: the runtime-only (never
-persisted to Mongo) index of Book/Author/Topic alternate titles built by
-`sefaria/helper/entity_alt_index.py` and held on `Library._entity_alt_index`. A candidate
-from either source is ranked by the same damped popularity tie-break (`_tie_break_score`),
-so the two can be compared on one scale even though their raw weights (corpus doc counts vs.
-a topic's `numSources`) are nothing alike.
-
-When more than one candidate is close in that score (see `AMBIGUITY_LOG_GAP`), picking the
-single highest-scoring one would be a guess, not a correction -- two terms close in weight are
-genuinely competing for the user's attention (e.g. "mari" vs "maariv"), and silently choosing
-between them is as likely to be wrong as right. In that case `autocorrect_query` does not
-correct the query at all; it returns the competing terms instead (most likely first), so the caller
-can show them as suggestions while the original, uncorrected query is what actually runs. A
-large gap between the top two candidates means they are not really competing -- one is so much
-more attested than the other that picking it is a correction, not a guess -- so that case still
-auto-corrects exactly as before.
+Lifecycle: a weekly CronJob runs scripts/build_top_n_grams_for_search_autocorrect.py, which
+saves the table as a datrie file and uploads it to a public GCS object. The name service
+downloads it at startup (`load_top_n_grams`) and serves /api/search-autocorrect from it.
 """
 import math
 import re
@@ -72,99 +31,74 @@ from sefaria.model.autospell import SpellChecker, letter_scope, normalize_chars,
 
 logger = structlog.get_logger(__name__)
 
-# Where the built table lives: one `datrie` trie file (see `save_top_n_grams_trie`) in a
-# public-read GCS bucket. Public, because it's derived entirely from public library text --
-# so the name service downloads it over plain HTTPS with no credentials (only the CronJob,
-# which writes it, authenticates). `TOP_N_GRAMS_TRIE_SOURCE` in local_settings overrides the
-# URL, or points at a local file path instead (local dev / tests).
+# Public-read: the table is derived from public text, so the name service downloads it without
+# credentials; only the CronJob's upload authenticates. Replacing a GCS object is atomic.
+# TOP_N_GRAMS_TRIE_SOURCE in local_settings overrides this with another URL or a local path.
 TRIE_BUCKET = "sefaria-search-autocorrect"
 TRIE_BLOB = "top_n_grams_for_search_autocorrect.trie"
 TRIE_URL = f"https://storage.googleapis.com/{TRIE_BUCKET}/{TRIE_BLOB}"
 _DOWNLOAD_TIMEOUT_SECONDS = 120
-# build_top_n_grams splits each phrase-length level into this many passes over the spooled
-# segments to bound the size of the in-memory counter (see its docstring).
 _DEFAULT_NUM_SHARDS = 16
 
-# The longest phrase (in words) the table indexes and autocorrect_query will ever try to
-# correct as a unit. Chosen so correction stays scoped to a coherent phrase rather than a
-# single word -- see the module docstring -- while keeping the build tractable: a segment of
-# length L contributes O(L * MAX_PHRASE_WORDS) phrases rather than O(L^2).
+# Longer phrases would make the build superlinear in segment length for little gain.
 MAX_PHRASE_WORDS = 3
 
-# How close (on the log-damped tie-break scale) the top two candidates have to be before
-# they're treated as genuinely competing rather than one being a clear winner. Candidate
-# scores are already log10 of a raw weight (doc count / numSources -- see _tie_break_score /
-# entity_alt_index's _entity_tie_break_score), so a gap of 1.0 means the leader's underlying
-# weight is roughly 10x the runner-up's or more: at that point they are not really competing
-# for the user's attention (see the module docstring's "mari" vs "maariv" example), and the
-# correction is confident enough to apply automatically, same as a single-candidate fix.
+# Scores are log10 of popularity, so a gap of 1.0 means the leader is ~10x more attested than
+# the runner-up. Under that, the candidates are treated as competing (e.g. "mari" vs "maariv").
 AMBIGUITY_LOG_GAP = 1.0
 
-# Queries past either limit are searched as typed, never corrected. Candidate generation is
-# linear in query length but pure-Python CPU on the single-worker name service (shared with
-# autocomplete), and a 5,000-character query costs seconds -- while no real typo-prone query
-# is anywhere near this long.
+# Longer queries are searched as typed. Candidate generation is pure-Python CPU on the
+# single-worker name service: a 5,000-char query took seconds.
 MAX_QUERY_CHARS = 100
 MAX_QUERY_WORDS = 10
 
+# Strips edge punctuation only, so an abbreviation's internal gershayim (רמב"ם) survives.
+_EDGE_STRIP_RE = re.compile(r'^\W+|\W+$', re.UNICODE)
+_HEBREW_RE = re.compile('[א-ת]')
 _DIGIT_RE = re.compile(r'\d')
 
-# Strip every leading/trailing non-word character (regular punctuation, ASCII/Hebrew quote
-# marks, etc) but leave the interior of the word untouched -- this is what keeps an
-# abbreviation's internal gershayim intact, e.g. 'רמב"ם' / 'רמב״ם' survive as one token.
-_EDGE_STRIP_RE = re.compile(r'^\W+|\W+$', re.UNICODE)
-_HEBREW_RE = re.compile('[\u05d0-\u05ea]')
+
+def _linker_normalize(text: str, lang: str) -> str:
+    # Same normalizer as the linker: strips cantillation/maqaf/HTML, unidecodes quote marks.
+    from sefaria.model.linker.linker_entity_recognizer import get_linker_normalizer
+    return get_linker_normalizer(lang).normalize(text or '')
 
 
 def normalize_word(word: str) -> str:
-    """
-    Normalize a single already-whitespace-split token for the top-n-grams table: strip
-    leading/trailing punctuation (keeping internal punctuation, e.g. internal quotation
-    marks, untouched) and lowercase the result. No lemmatization is attempted (POC).
-    """
     return _EDGE_STRIP_RE.sub('', word).lower()
 
 
 def tokenize(text: str, lang: str) -> List[str]:
-    """
-    Split a segment of text into normalized words for the top-n-grams table. Runs the same
-    normalizer the linker applies server-side (get_linker_normalizer) first, so words are
-    tokenized consistently with the rest of the NLP pipeline -- cantillation/maqaf/HTML/
-    footnote-markers stripped, quote characters unidecoded to ASCII -- then splits on
-    whitespace and strips edge punctuation per word.
-    """
-    from sefaria.model.linker.linker_entity_recognizer import get_linker_normalizer
-    normalized = get_linker_normalizer(lang).normalize(text or '')
-    return [w for w in (normalize_word(tok) for tok in normalized.split()) if w]
+    return [w for w in (normalize_word(tok) for tok in _linker_normalize(text, lang).split()) if w]
 
 
-def _segment_phrases(tokens: List[str], max_n: int = MAX_PHRASE_WORDS) -> set:
+def normalize_query(query: str) -> str:
     """
-    Every contiguous run of 1 to `max_n` words in `tokens` (a tokenized segment), each
-    joined into a single space-separated phrase string. A phrase that recurs within the
-    same segment (e.g. a word repeated twice) appears once in the returned set -- doc
-    counting, like the original per-word table, counts a segment at most once per phrase.
+    Normalize the query the way the table was built, up front, so the original/corrected pair
+    shown in the banner differs only by the correction.
     """
-    phrases = set()
-    n_tokens = len(tokens)
-    for n in range(1, min(max_n, n_tokens) + 1):
-        for start in range(0, n_tokens - n + 1):
-            phrases.add(" ".join(tokens[start:start + n]))
-    return phrases
+    lang = 'he' if _HEBREW_RE.search(query or '') else 'en'
+    return " ".join(strip_apostrophes(_linker_normalize(query, lang)).split())
 
 
-# --- Build / persist / load ----------------------------------------------------------
+# --- Build -----------------------------------------------------------------------------
+
+def thresholds_by_length(min_doc_count: Union[int, Sequence[int]]) -> List[int]:
+    """One threshold per phrase length; a single value applies to every length."""
+    values = [min_doc_count] if isinstance(min_doc_count, int) else list(min_doc_count)
+    if len(values) == 1:
+        values = values * MAX_PHRASE_WORDS
+    if len(values) != MAX_PHRASE_WORDS:
+        raise ValueError(f"min_doc_count needs 1 or {MAX_PHRASE_WORDS} values (one per phrase length), got {len(values)}")
+    return values
+
 
 def _frequent_ngrams(tokens: List[str], n: int, frequent_prev: Dict[str, int],
                      shard: int = 0, num_shards: int = 1) -> set:
     """
-    Every contiguous run of exactly `n` (>= 2) words in `tokens` whose two (n-1)-word
-    sub-runs are both in `frequent_prev` (the surviving phrases of length n-1). A phrase can
-    only appear in more than k documents if each of its sub-phrases does too, so a run with a
-    non-surviving sub-run can never clear the threshold and isn't worth a counter slot.
-    Deduped within the segment, like `_segment_phrases`. With `num_shards` > 1 only phrases
-    whose hash falls in `shard` are returned, so a caller can split one level's counting
-    across several passes to cap the size of its counter.
+    The distinct n-word runs in `tokens` whose two (n-1)-word sub-runs are both in
+    `frequent_prev` -- a phrase can't clear a threshold its sub-phrases don't. With
+    `num_shards` > 1, only runs hashing to `shard`.
     """
     phrases = set()
     for start in range(0, len(tokens) - n + 1):
@@ -178,9 +112,11 @@ def _frequent_ngrams(tokens: List[str], n: int, frequent_prev: Dict[str, int],
 
 def _spool_tokenized_segments(spool, langs, categories: Optional[List[str]]) -> Counter:
     """
-    Walk the library once (see `build_top_n_grams` for the version/dedup rules), write every
-    non-empty tokenized segment to `spool` as one space-joined line, and return the document
-    counts of the single-word phrases.
+    Write each tokenized segment to `spool` as one line; return single-word doc counts.
+
+    Each tref is counted once per (index, lang). Versions are walked in priority order, so
+    that's the top version's text, falling back to a lower one only where the top one lacks
+    the segment (partial translations).
     """
     from sefaria.model import IndexSet
 
@@ -197,27 +133,19 @@ def _spool_tokenized_segments(spool, langs, categories: Optional[List[str]]) -> 
             continue
 
         seen_trefs_by_lang = {lang: set() for lang in langs}
-
         for version in versions:
             lang = version.language
             if lang not in langs:
                 continue
-            seen_trefs = seen_trefs_by_lang[lang]
 
-            def action(segment_str, tref, _he_tref, version, _lang=lang, _seen=seen_trefs):
+            def action(segment_str, tref, _he_tref, _version, _lang=lang, _seen=seen_trefs_by_lang[lang]):
                 if tref in _seen:
-                    # Already counted from a higher-priority (or, for a tie, earlier)
-                    # version of this same (index, lang) -- don't count it again.
                     return
                 _seen.add(tref)
-                if not segment_str:
-                    return
-                tokens = tokenize(segment_str, _lang)
-                if not tokens:
-                    return
-                spool.write(" ".join(tokens) + "\n")
-                # A phrase counts once per document, no matter how many times it recurs in it.
-                unigram_counts.update(set(tokens))
+                tokens = tokenize(segment_str, _lang) if segment_str else []
+                if tokens:
+                    spool.write(" ".join(tokens) + "\n")
+                    unigram_counts.update(set(tokens))
 
             try:
                 version.walk_thru_contents(action)
@@ -226,66 +154,22 @@ def _spool_tokenized_segments(spool, langs, categories: Optional[List[str]]) -> 
     return unigram_counts
 
 
-def thresholds_by_length(min_doc_count: Union[int, Sequence[int]]) -> List[int]:
-    """
-    Normalize `min_doc_count` to one threshold per phrase length: a list of MAX_PHRASE_WORDS
-    ints, index i being the threshold for (i + 1)-word phrases. A single int (or a one-element
-    sequence) applies to every length; otherwise exactly MAX_PHRASE_WORDS values are required.
-    """
-    values = [min_doc_count] if isinstance(min_doc_count, int) else list(min_doc_count)
-    if len(values) == 1:
-        values = values * MAX_PHRASE_WORDS
-    if len(values) != MAX_PHRASE_WORDS:
-        raise ValueError(f"min_doc_count needs 1 or {MAX_PHRASE_WORDS} values (one per phrase length), got {len(values)}")
-    return values
-
-
 def build_top_n_grams(min_doc_count: Union[int, Sequence[int]], langs=('he', 'en'), categories: Optional[List[str]] = None,
                       num_shards: int = _DEFAULT_NUM_SHARDS) -> Dict[str, int]:
     """
-    Walk every segment in the library (optionally scoped to `categories`, e.g. ["Tanakh"])
-    and count, per normalized phrase (every contiguous run of 1 to MAX_PHRASE_WORDS words),
-    the number of distinct segments ("documents") it appears in at least once. A phrase that
-    occurs 5 times in one segment and never again still has a doc count of 1. Returns only
-    phrases whose doc count is > the threshold for their length: `min_doc_count` is one int
-    for every length, or one value per phrase length (see `thresholds_by_length`) -- longer
-    phrases are rarer, so they can be kept at a lower bar than single words.
+    {phrase: number of segments containing it} for every phrase whose count exceeds the
+    threshold for its length (see `thresholds_by_length`).
 
-    Memory: counting every 1..MAX_PHRASE_WORDS-gram of the whole library in one Counter holds
-    hundreds of millions of mostly-singleton phrases and can exhaust RAM. Instead this counts
-    level by level (Apriori): pass 1 tokenizes each segment once, spools it to a temp file on
-    disk, and counts single words; each later pass n re-reads the spool and counts only the
-    n-word runs whose two (n-1)-word sub-runs survived the previous pass (see
-    `_frequent_ngrams`). The result is identical to counting everything, but only phrases that
-    can still clear the threshold ever occupy memory. With per-length thresholds, "can still
-    clear" means the *lowest* threshold of this length and every longer one: a trigram that
-    clears a low bar needs its bigrams and words to clear that same low bar, even when they
-    are only kept in the output at a higher one. So each level is counted and carried forward
-    down to that floor, then filtered to its own threshold for the result -- still exact.
-    Even so, a level's counter (bigrams
-    especially) can reach tens of GB, so each level is itself split into `num_shards` passes
-    over the spool, each counting only the phrases whose hash falls in that shard -- peak
-    memory is roughly 1/num_shards of the level's full counter, at the cost of re-reading the
-    spool that many times per level.
-
-    Uses Version.walk_thru_contents, which bulk-fetches a whole version's content in one
-    query, instead of one ref.text() call per segment -- far fewer round trips to Mongo.
-
-    Every version of a requested language is walked (not just the top-priority one), but
-    each tref is only ever counted once per (index, lang): `index.versionSet()` sorts by
-    priority descending (VersionSet's default sort), and a `seen_trefs` set shared across
-    all of an index's versions of a language -- not reset per version -- skips a tref the
-    moment it's been counted once. Walking in priority order means that's normally the
-    top-priority version's wording; a tref only falls through to a lower-priority version
-    when the higher-priority one doesn't have it at all (a partial translation, a stub,
-    etc.), so a partial top version can't silently drop that segment from the table.
-    The same set is what prevents two versions that both cover a tref from counting its
-    phrases twice -- there is no other version-counting logic here.
+    Counting every n-gram at once needs hundreds of millions of counter entries, so this counts
+    level by level (Apriori): words first, then only the n-grams whose (n-1)-word sub-runs
+    survived. Segments are tokenized once into a temp-file spool that each level re-reads. A
+    level is carried forward at the lowest threshold of it and every longer length (a kept
+    trigram's bigrams must be counted even if they're below the bigram threshold), so the
+    result is exact. Each level is further split into `num_shards` hash passes, since a
+    bigram counter alone can reach tens of GB.
     """
     with tempfile.TemporaryFile(mode="w+", encoding="utf-8") as spool:
         thresholds = thresholds_by_length(min_doc_count)
-        # floors[i]: lowest bar a phrase of length i + 1 must clear to still matter, either
-        # as output (thresholds[i]) or as a sub-phrase of a longer kept phrase.
         floors = [min(thresholds[i:]) for i in range(MAX_PHRASE_WORDS)]
         unigram_counts = _spool_tokenized_segments(spool, langs, categories)
         carried = {w: c for w, c in unigram_counts.items() if c > floors[0]}
@@ -312,32 +196,22 @@ def build_top_n_grams(min_doc_count: Union[int, Sequence[int]], langs=('he', 'en
     return result
 
 
+# --- Trie storage ----------------------------------------------------------------------
+
 _TRIE_ALPHABET = frozenset(letter_scope)
 
-# What the lookup functions accept for either table: a datrie trie from `build_phrase_trie`
-# at runtime, or a plain dict (the builder's output, and what tests pass) -- they only use
-# `in`, `[]` and truthiness.
+# Lookups only use `in` and `[]`, so tests can pass plain dicts.
 PhraseTable = Union[Dict[str, Union[int, float]], datrie.BaseTrie]
 
 
 def build_phrase_trie(items: Iterable[Tuple[str, Union[int, float]]], int_values: bool = True) -> datrie.BaseTrie:
     """
-    Build a `datrie` trie of {phrase: value} for `autocorrect_query` to look phrases up in.
+    Keys go through autospell's `normalize_chars` to fit the trie alphabet. datrie silently
+    drops keys outside its alphabet, so those are skipped and counted here instead. Keys that
+    collide after normalizing keep the higher value.
 
-    Each key goes through autospell's `normalize_chars` (accents/odd characters unidecoded,
-    apostrophes dropped) so it fits the trie's `letter_scope` alphabet -- datrie silently
-    discards a key with a character outside its alphabet, so a key that still doesn't fit
-    after normalizing is skipped explicitly and counted in a warning instead. Phrases that
-    collide once normalized keep the higher value, matching how entity_alt_index resolves a
-    shared title.
-
-    `int_values=True` (the corpus doc counts) uses `datrie.BaseTrie`, which stores each value
-    as a C int -- compact, and what makes the multi-million-phrase table affordable.
-    `int_values=False` (the entity index's float scores) uses `datrie.Trie`, which holds
-    arbitrary Python objects; that index is small enough for the extra per-value cost not to matter.
-
-    `items` is consumed once, so a Mongo cursor can be streamed straight in with no
-    intermediate dict.
+    `int_values` picks `BaseTrie` (C ints; what makes the multi-million-phrase table fit) over
+    `Trie` (Python objects, needed for the entity index's float scores).
     """
     trie = (datrie.BaseTrie if int_values else datrie.Trie)(letter_scope)
     skipped = 0
@@ -354,12 +228,7 @@ def build_phrase_trie(items: Iterable[Tuple[str, Union[int, float]]], int_values
 
 
 def save_top_n_grams_trie(top_n_grams: Dict[str, int], path: str) -> int:
-    """
-    Build the runtime trie from a freshly built table (see `build_phrase_trie`) and save it to
-    `path` with datrie's own binary format, which `load_top_n_grams` reads back in about a
-    second. Keys are inserted in sorted order, which datrie builds far faster than random
-    order. Returns the number of phrases in the saved trie.
-    """
+    """Save as a datrie file; returns the phrase count. Sorted inserts build much faster."""
     trie = build_phrase_trie(sorted(top_n_grams.items()))
     trie.save(path)
     return len(trie)
@@ -367,13 +236,9 @@ def save_top_n_grams_trie(top_n_grams: Dict[str, int], path: str) -> int:
 
 def upload_top_n_grams_trie(path: str, num_phrases: int, min_doc_count: Union[int, Sequence[int]]) -> None:
     """
-    Upload the trie file at `path` to `TRIE_BUCKET`/`TRIE_BLOB`, replacing the previous one
-    atomically. Build info rides along as object metadata, which `load_top_n_grams` reads off
-    the download's response headers to log what it loaded. `no-cache` stops GCS's edge cache
-    (on by default for public objects) from serving the previous table for up to an hour.
-
-    Needs write credentials -- GoogleStorageManager's service account
-    (GOOGLE_APPLICATION_CREDENTIALS_FILEPATH, mounted into the CronJob).
+    Needs GoogleStorageManager's write credentials. Build info goes in object metadata, which
+    the loader reads from the download's response headers. `no-cache` stops GCS's edge cache
+    (on by default for public objects) serving the previous table for up to an hour.
     """
     from sefaria.google_storage_manager import GoogleStorageManager
     blob = GoogleStorageManager.get_bucket(TRIE_BUCKET).blob(TRIE_BLOB)
@@ -392,7 +257,6 @@ def _trie_source() -> str:
 
 
 def _download(url: str, dest) -> dict:
-    """Stream `url` into the open binary file `dest`; returns the response headers."""
     with requests.get(url, stream=True, timeout=_DOWNLOAD_TIMEOUT_SECONDS) as resp:
         resp.raise_for_status()
         for chunk in resp.iter_content(chunk_size=1 << 20):
@@ -402,15 +266,9 @@ def _download(url: str, dest) -> dict:
 
 def load_top_n_grams() -> datrie.BaseTrie:
     """
-    Load the top-n-grams trie saved by the most recent
-    `scripts/build_top_n_grams_for_search_autocorrect.py` run: downloaded from GCS (see
-    `TRIE_URL`), or read from a local path if `TOP_N_GRAMS_TRIE_SOURCE` names one.
-
-    Never fails startup. If the trie is missing, unreadable, or empty, this returns an
-    empty trie, which disables auto-correction (`autocorrect_query` returns None against it).
-    That outcome is logged at ERROR under the stable event name
-    `top_n_grams_for_search_autocorrect_unavailable`, so a log-based alert can catch it -- an
-    empty table otherwise looks exactly like a working one.
+    Never fails startup: a missing, unreadable or empty table returns an empty trie, which
+    turns auto-correction off. That case logs `top_n_grams_for_search_autocorrect_unavailable`
+    at ERROR for alerting, since otherwise it looks exactly like a working table.
     """
     source = _trie_source()
     generated, num_phrases = None, None
@@ -425,7 +283,7 @@ def load_top_n_grams() -> datrie.BaseTrie:
         else:
             trie = datrie.BaseTrie.load(source)
         if num_phrases is None:
-            num_phrases = len(trie)  # walks every key (~1s); only when no metadata says
+            num_phrases = len(trie)  # walks every key (~1s)
         num_phrases = int(num_phrases)
     except Exception as e:
         logger.error("top_n_grams_for_search_autocorrect_unavailable", source=source,
@@ -442,23 +300,13 @@ def load_top_n_grams() -> datrie.BaseTrie:
 
 # --- Autocorrect -----------------------------------------------------------------------
 
-# Alphabet used to generate edit candidates: Hebrew letters, English letters, digits, and
-# the gershayim a top-n-grams phrase can legitimately contain internally (e.g. רמב"ם). No
-# apostrophe: `normalize_chars` strips them from every key, so a candidate with one could
-# never match. Deliberately excludes the space character -- replace/insert never introduces a
-# new word boundary, so a candidate can only gain or lose one by *deleting* an existing space.
-# Every character is within autospell's `letter_scope`, so no candidate can fall outside the
-# trie's alphabet.
+# Edit alphabet. No space, so a candidate only changes word boundaries by deleting one. No
+# apostrophe, since `normalize_chars` strips it from every key.
 _ALPHABET = "abcdefghijklmnopqrstuvwxyz0123456789\"" + ''.join(chr(c) for c in range(0x05d0, 0x05eb))
 
 
 class _PhraseSpellChecker(SpellChecker):
-    """
-    autospell's SpellChecker, used only for its `single_edits` (the Norvig-style candidate
-    generator the autocompleter already relies on), over this table's own mixed
-    Hebrew + Latin + digit alphabet rather than one language's letters -- a top-n-grams
-    phrase can be either language, and the table isn't split by one.
-    """
+    """autospell's edit generator over a mixed Hebrew/Latin alphabet; the table isn't split by language."""
     def __init__(self):
         super().__init__("en")
         self.letters = _ALPHABET
@@ -468,23 +316,12 @@ _phrase_spell_checker = _PhraseSpellChecker()
 
 
 def _one_edit_candidates(phrase: str) -> set:
-    """
-    Every string exactly one edit (delete, transpose, replace, or insert) away from
-    `phrase`, which may be a single word or several words joined by spaces -- the edit
-    operates on the string as a whole either way. Unlike the autocompleter, the first
-    character is editable too (`hold_first_letter=False`): a typo there is as likely as
-    anywhere else, and this is a phrase correction, not a prefix completion.
-    """
+    # Unlike prefix completion, a typo in the first letter is as likely as anywhere else.
     return _phrase_spell_checker.single_edits(phrase, hold_first_letter=False)
 
 
 def _is_empty(table: Optional[PhraseTable]) -> bool:
-    """
-    Whether `table` (a dict, a trie, or None) has no entries -- in O(1). Never use the table's
-    truthiness / `len()` for this: a `datrie` trie has no stored size, so `len()` (and so
-    `bool()`) walks every key -- about a second for the corpus table, and ~8ms for the entity
-    index, which `_ranked_candidates` used to pay once per candidate.
-    """
+    # Not len()/bool(): datrie stores no size, so those walk every key (~1s on the corpus table).
     if table is None:
         return True
     if isinstance(table, dict):
@@ -492,97 +329,56 @@ def _is_empty(table: Optional[PhraseTable]) -> bool:
     return next(iter(table), None) is None
 
 
-def _tie_break_score(count: int) -> float:
+def _tie_break_score(count: float) -> float:
     """
-    Damps a raw doc count onto a log scale: large counts stop mattering in direct proportion
-    to their size, so a phrase with 50,000 hits isn't treated as 500x "more correct" than one
-    with 100. This is also the scale `sefaria.helper.entity_alt_index` precomputes its own
-    candidates' scores on (see that module's `_entity_tie_break_score`), so a top-n-grams
-    candidate and an entity-alt candidate can be ranked against each other by this one number
-    even though their raw weights (corpus doc counts vs. a topic's `numSources`) are on
-    completely different scales. Mirrors the shape (not the exact constants) of the
-    popularity tie-break `get_entity_query_obj` already uses for entity-search relevance
-    (`1 + log10(1 + numSources) * 0.2`) -- popularity/frequency breaks ties, it never is the
-    primary signal.
+    Log-damped popularity, so 50,000 hits isn't 500x "more correct" than 100. The entity
+    index scores on this same scale, which is what makes the two sources comparable.
     """
     return math.log10(1 + max(count, 0))
 
 
+def _keep_max(scores: Dict[str, float], key: str, score: float) -> None:
+    if key not in scores or score > scores[key]:
+        scores[key] = score
+
+
+def _by_score(scores: Dict[str, float]) -> List[Tuple[str, float]]:
+    """Highest first; ties A-Z so results don't depend on set iteration order."""
+    return sorted(scores.items(), key=lambda pair: (-pair[1], pair[0]))
+
+
 def _keeps_numbers(phrase_words: List[str], candidate: str) -> bool:
     """
-    Whether `candidate` leaves every digit-bearing word of the phrase exactly as typed. A
-    number in a query is almost always a citation ("berakhot 2a", "genesis 1:3") where a
-    one-character change lands on a different, perfectly valid page -- not a typo fix.
+    A word with a digit is almost always a citation ("berakhot 2a"), where a one-character
+    change lands on a different valid page rather than fixing a typo.
     """
     candidate_words = candidate.split()
     if len(candidate_words) != len(phrase_words):
-        return False  # a space was deleted, merging some word into or out of a number
+        return False  # a deleted space merged a word into or out of a number
     return all(cw == pw for pw, cw in zip(phrase_words, candidate_words) if _DIGIT_RE.search(pw))
 
 
 def _ranked_candidates(phrase: str, top_n_grams: PhraseTable,
                         entity_alt_index: Optional[PhraseTable] = None) -> List[Tuple[str, float]]:
-    """
-    Every one-edit-distance candidate for `phrase`, found in either source, paired with its
-    tie-break score -- the higher of the two sources' scores when a candidate is found in
-    both. Sorted by score descending; ties broken by the candidate string itself, so the
-    order (and so `autocorrect_query`'s choice among equally-scored candidates) is
-    deterministic rather than dependent on set iteration order. Candidates that change a
-    word containing a digit are dropped (see `_keeps_numbers`).
-    """
-    scores: Dict[str, float] = {}
+    """One-edit candidates found in either source, at the higher of their scores, best first."""
     candidates = _one_edit_candidates(phrase)
     if _DIGIT_RE.search(phrase):
         words = phrase.split()
         candidates = {c for c in candidates if _keeps_numbers(words, c)}
+    scores: Dict[str, float] = {}
     for c in candidates:
         if c in top_n_grams:
-            score = _tie_break_score(top_n_grams[c])
-            if c not in scores or score > scores[c]:
-                scores[c] = score
+            _keep_max(scores, c, _tie_break_score(top_n_grams[c]))
         if entity_alt_index is not None and c in entity_alt_index:
-            score = entity_alt_index[c]  # already precomputed on the same comparable scale
-            if c not in scores or score > scores[c]:
-                scores[c] = score
-    return sorted(scores.items(), key=lambda pair: (-pair[1], pair[0]))
-
-
-def _best_match(phrase: str, top_n_grams: PhraseTable,
-                 entity_alt_index: Optional[PhraseTable] = None) -> Optional[str]:
-    """
-    One-edit-distance correction for a phrase (one or more words), chosen from both the
-    top-n-grams table and the optional runtime entity-alt index: the single
-    highest-scoring candidate, with no regard for how close the runner-up is (contrast
-    `_try_window`, which uses `_ranked_candidates` directly so it can tell a confident
-    winner apart from genuinely competing candidates -- see AMBIGUITY_LOG_GAP). Kept as a
-    thin convenience wrapper for callers that only ever want a single best guess.
-    """
-    ranked = _ranked_candidates(phrase, top_n_grams, entity_alt_index)
-    return ranked[0][0] if ranked else None
-
-
-def normalize_query(query: str) -> str:
-    """
-    Clean a search query once, up front, so the original/corrected pair the "Showing results
-    for" banner displays differs only by the correction itself. Runs the same linker
-    normalizer the table was built with (see `tokenize`: geresh and curly quotes unidecoded to
-    ASCII, doubled spaces collapsed, plus maqaf/cantillation for Hebrew), then strips the
-    apostrophes that leaves and any leading/trailing/repeated whitespace.
-    """
-    from sefaria.model.linker.linker_entity_recognizer import get_linker_normalizer
-    lang = 'he' if _HEBREW_RE.search(query or '') else 'en'
-    normalized = get_linker_normalizer(lang).normalize(query or '')
-    return " ".join(strip_apostrophes(normalized).split())
+            _keep_max(scores, c, entity_alt_index[c])  # stored pre-scored
+    return _by_score(scores)
 
 
 def _substitute_window(words: List[str], normalized: List[str], start: int, end: int, candidate: str) -> str:
     """
-    Build the full query (all of `words`) with just `[start:end)` replaced by `candidate`.
-    Same word count as the window: swap in only the word(s) that actually changed, so a word
-    the user already typed correctly keeps its original casing instead of being flattened to
-    the table's lowercase form. A one-character edit that crossed a word boundary (deleted a
-    space, merging two words) leaves old and new words not lined up position-by-position, so
-    the whole window is replaced verbatim instead.
+    The full query with `[start:end)` replaced by `candidate`. Only changed words are swapped,
+    so correctly typed words keep their casing; an edit that merged or split words replaces the
+    whole window.
     """
     corrected_words = list(words)
     candidate_words = candidate.split()
@@ -597,36 +393,21 @@ def _substitute_window(words: List[str], normalized: List[str], start: int, end:
 
 @dataclass(frozen=True)
 class AmbiguousCandidates:
-    """
-    Signals that a window had more than one candidate correction close enough in score
-    (within AMBIGUITY_LOG_GAP of the top one) that picking a single winner would be a guess.
-    `scored_queries` holds one full, ready-to-search query per competing candidate -- the same
-    window substituted with each candidate in turn -- paired with that candidate's tie-break
-    score, most likely first.
-    """
+    """Full queries for each competing candidate, with scores, best first."""
     scored_queries: List[Tuple[str, float]] = field(default_factory=list)
-
-
-def _by_score(scored: Dict[str, float]) -> List[str]:
-    """Queries most likely first; equal scores A-Z, so the order is deterministic."""
-    return [q for q, _ in sorted(scored.items(), key=lambda pair: (-pair[1], pair[0]))]
 
 
 def _try_window(words: List[str], normalized: List[str], start: int, end: int,
                  top_n_grams: PhraseTable,
                  entity_alt_index: Optional[PhraseTable] = None) -> Union[str, AmbiguousCandidates, None]:
     """
-    Try to correct `normalized[start:end]` (a contiguous run of query words) as a single
-    phrase. Returns:
-    - None if the window is already a known phrase in either source (nothing to fix), or
-      isn't a 1-edit match for anything;
-    - an `AmbiguousCandidates` if more than one candidate is close enough in score that none
-      of them is a confident winner (see AMBIGUITY_LOG_GAP) -- no correction is applied;
-    - otherwise the full corrected query (all of `words`, with just this window fixed up).
+    Correct `normalized[start:end]` as one phrase. Returns the full corrected query,
+    AmbiguousCandidates if every candidate within AMBIGUITY_LOG_GAP of the best (not just the
+    top two) is competing, or None if the window is already attested or has no candidate.
     """
     phrase = " ".join(normalized[start:end])
     if phrase in top_n_grams or (entity_alt_index is not None and phrase in entity_alt_index):
-        return None  # already an attested phrase/title -- nothing to correct here
+        return None
 
     ranked = _ranked_candidates(phrase, top_n_grams, entity_alt_index)
     if not ranked:
@@ -634,15 +415,11 @@ def _try_window(words: List[str], normalized: List[str], start: int, end: int,
 
     top_score = ranked[0][1]
     if len(ranked) > 1 and (top_score - ranked[1][1]) < AMBIGUITY_LOG_GAP:
-        # More than one candidate is still in play this close to the top score -- every one
-        # of them, not just the top two (a third could be just as close), is a genuine
-        # competitor. Surface them all rather than guess among them.
         scored = {}
         for c, score in ranked:
             if top_score - score < AMBIGUITY_LOG_GAP:
-                q = _substitute_window(words, normalized, start, end, c)
-                scored[q] = max(score, scored.get(q, score))
-        return AmbiguousCandidates(scored_queries=[(q, scored[q]) for q in _by_score(scored)])
+                _keep_max(scored, _substitute_window(words, normalized, start, end, c), score)
+        return AmbiguousCandidates(scored_queries=_by_score(scored))
 
     return _substitute_window(words, normalized, start, end, ranked[0][0])
 
@@ -650,11 +427,8 @@ def _try_window(words: List[str], normalized: List[str], start: int, end: int,
 @dataclass(frozen=True)
 class AutocorrectResult:
     """
-    - `corrected_query` set, `suggested_queries` None: a confident correction -- search
-      `corrected_query` instead of what was typed.
-    - `corrected_query` None, `suggested_queries` set: too ambiguous to correct -- search
-      `original_query` as typed (the "bad"/uncorrected result), but offer `suggested_queries`
-      (most likely first) as alternatives the reader can pick instead of guessing for them.
+    Exactly one of `corrected_query` (search it instead) or `suggested_queries` (search the
+    original, offer these best first) is set.
     """
     original_query: str
     corrected_query: Optional[str] = None
@@ -664,48 +438,24 @@ class AutocorrectResult:
 def autocorrect_query(query: str, top_n_grams: PhraseTable,
                        entity_alt_index: Optional[PhraseTable] = None) -> Optional[AutocorrectResult]:
     """
-    Product spec sc-47189. Corrects a *phrase*, never a lone word in isolation, so a fix is
-    only ever offered when the resulting phrase is itself something the corpus contains, or a
-    known Book/Author/Topic alternate title/name (see the module docstring and
-    sefaria/helper/entity_alt_index.py).
+    None means search `query` as typed.
 
-    - A query of up to MAX_PHRASE_WORDS words is treated as a single phrase: if it already
-      matches a top-n-grams or entity-alt entry, it's searched normally, uncorrected (returns
-      None). Otherwise, if the whole phrase is exactly one edit away from some phrase in
-      either source, that's the correction -- unless more than one candidate is competing for
-      it (see AMBIGUITY_LOG_GAP and the module docstring), in which case nothing is corrected
-      and the competing candidates come back as `suggested_queries` instead.
-    - A longer query first gets one extra, entity-alt-only chance to be corrected *in its
-      entirety*: an entity title/name is a single curated unit, not generated as a sliding
-      window over corpus text, so unlike the top-n-grams table it is never capped at
-      MAX_PHRASE_WORDS -- explaining the WHOLE query this way beats any partial fix below.
-      Failing that, only full MAX_PHRASE_WORDS-word windows are tried (never shorter phrases
-      or lone words), and at most one edit is made in the whole query: see
-      `_correct_long_query_by_trigrams`. Every other word is left exactly as typed. A query
-      with no such correction (every window attested, none fixable within a 1-edit budget, or
-      fixable windows that disagree about the edit) returns None.
-    - A query longer than MAX_QUERY_CHARS or MAX_QUERY_WORDS is never corrected (returns None).
-    - A word containing a digit is never changed (see `_keeps_numbers`).
-
-    :param query: the raw query text as typed/submitted.
-    :param top_n_grams: {normalized_phrase: doc_count}, e.g. `library._top_n_grams_for_search_autocorrect`.
-    :param entity_alt_index: {normalized_phrase: tie_break_score}, e.g.
-        `library._entity_alt_index` -- see sefaria/helper/entity_alt_index.py. Optional: a
-        query corrects against the top-n-grams table alone when omitted.
-    :return: an AutocorrectResult if a correction or an ambiguous-suggestions result applies,
-        else None (search `query` as typed, with nothing to show about it).
+    - Up to MAX_PHRASE_WORDS words: the whole query is one phrase.
+    - Longer: first try the whole query against entity titles only (titles aren't capped at
+      MAX_PHRASE_WORDS), then `_correct_long_query_by_trigrams`.
+    - Never corrects queries over MAX_QUERY_CHARS / MAX_QUERY_WORDS, or words with digits.
     """
     if len(query or '') > MAX_QUERY_CHARS:
         return None
     query = normalize_query(query)
     if entity_alt_index is not None and _is_empty(entity_alt_index):
-        entity_alt_index = None  # decide emptiness once per query, in O(1) -- see _is_empty
+        entity_alt_index = None
     if not query or (_is_empty(top_n_grams) and entity_alt_index is None):
         return None
     words = query.split()
-    if not words or len(words) > MAX_QUERY_WORDS:
+    if len(words) > MAX_QUERY_WORDS:
         return None
-    normalized = [normalize_chars(normalize_word(w)) for w in words]  # same as the table's keys
+    normalized = [normalize_chars(normalize_word(w)) for w in words]  # the table's key form
     n = len(normalized)
 
     def finish(result: Union[str, AmbiguousCandidates, None]) -> Optional[AutocorrectResult]:
@@ -723,37 +473,30 @@ def autocorrect_query(query: str, top_n_grams: PhraseTable,
         if whole:
             return whole
 
-    return _correct_long_query_by_trigrams(words, normalized, top_n_grams, entity_alt_index)
+    return _correct_long_query_by_trigrams(query, words, normalized, top_n_grams, entity_alt_index)
 
 
-def _correct_long_query_by_trigrams(words: List[str], normalized: List[str], top_n_grams: PhraseTable,
+def _correct_long_query_by_trigrams(query: str, words: List[str], normalized: List[str], top_n_grams: PhraseTable,
                                      entity_alt_index: Optional[PhraseTable]) -> Optional[AutocorrectResult]:
     """
-    Correct a query longer than MAX_PHRASE_WORDS using only full-size (MAX_PHRASE_WORDS-word)
-    windows -- never shorter phrases or lone words, whose one-edit "fixes" are too often a real
-    but rare word turned into a common one -- and at most ONE edit in the whole query.
+    Tries every MAX_PHRASE_WORDS-word window -- never shorter ones, whose one-edit "fixes" too
+    often turn a rare real word into a common one -- and allows one edit in the whole query.
 
-    Every window is tried. One typo sits inside up to MAX_PHRASE_WORDS overlapping windows, and
-    each of them, if fixable, proposes the same full corrected query -- that agreement is the
-    evidence. So:
-    - all fixable windows propose the same single query: that's the correction;
-    - fixable windows propose different queries (two separate typos, or a rare-but-valid
-      trigram that happens to be one edit from a common one): no confident single edit, so
-      nothing is corrected;
-    - the only fixable windows are ambiguous (see AMBIGUITY_LOG_GAP): their competing queries
-      come back together as suggestions.
+    One typo sits in up to MAX_PHRASE_WORDS overlapping windows, which should all propose the
+    same corrected query; that agreement is the evidence. Windows proposing different queries
+    (two typos, or a rare-but-valid trigram near a common one) mean no correction. If the only
+    fixable windows are ambiguous, their suggestions are returned together.
     """
     confident, ambiguous = set(), {}
     for start in range(len(normalized) - MAX_PHRASE_WORDS + 1):
         result = _try_window(words, normalized, start, start + MAX_PHRASE_WORDS, top_n_grams, entity_alt_index)
         if isinstance(result, AmbiguousCandidates):
             for q, score in result.scored_queries:
-                ambiguous[q] = max(score, ambiguous.get(q, score))
+                _keep_max(ambiguous, q, score)
         elif result:
             confident.add(result)
-    original = " ".join(words)
     if len(confident) == 1 and not ambiguous:
-        return AutocorrectResult(original_query=original, corrected_query=next(iter(confident)))
+        return AutocorrectResult(original_query=query, corrected_query=next(iter(confident)))
     if ambiguous and not confident:
-        return AutocorrectResult(original_query=original, suggested_queries=_by_score(ambiguous))
+        return AutocorrectResult(original_query=query, suggested_queries=[q for q, _ in _by_score(ambiguous)])
     return None

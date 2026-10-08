@@ -4511,17 +4511,9 @@ class Library(object):
 
         self.langs = ["en", "he"]
 
-        # Top n-grams table for search-query auto-correction (sc-47189,
-        # sefaria/helper/top_n_grams_for_search_autocorrect.py). Empty until
-        # build_top_n_grams_for_search_autocorrect() loads it from GCS during
-        # init_library_cache() (reader/startup.py) -- mirrors the autocompleters' staged,
-        # flag-gated build below rather than doing Mongo I/O unconditionally inside __init__.
+        # Search auto-correction tables; populated by init_library_cache() where the
+        # autocompleters are (the name service), empty elsewhere.
         self._top_n_grams_for_search_autocorrect = {}
-
-        # Runtime-only Book/Author/Topic alt-title index for the same auto-correction (sc-47189,
-        # sefaria/helper/entity_alt_index.py) -- NEVER persisted to Mongo, unlike
-        # _top_n_grams_for_search_autocorrect above. Empty until build_entity_alt_index()
-        # populates it, likewise during init_library_cache().
         self._entity_alt_index = {}
 
         # Maps, keyed by language, from index key to array of titles
@@ -4620,14 +4612,7 @@ class Library(object):
                         self._title_node_maps[lang].update(tree_titles)
 
     def autocorrect_query(self, query):
-        """
-        Fuzzy-search POC (sc-47189). See
-        sefaria.helper.top_n_grams_for_search_autocorrect.autocorrect_query for the algorithm.
-        Returns an AutocorrectResult (a confident `corrected_query`, or ambiguous
-        `suggested_queries`) if `query` should be corrected against the top-n-grams table or
-        the runtime Book/Author/Topic alt-title index (sefaria/helper/entity_alt_index.py),
-        else None (search `query` as typed).
-        """
+        """See sefaria.helper.top_n_grams_for_search_autocorrect.autocorrect_query."""
         from sefaria.helper.top_n_grams_for_search_autocorrect import autocorrect_query
         return autocorrect_query(query, self._top_n_grams_for_search_autocorrect, self._entity_alt_index)
 
@@ -5029,39 +5014,15 @@ class Library(object):
             self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
             self._cross_lexicon_auto_completer_is_ready = True
 
-    def build_top_n_grams_for_search_autocorrect(self):
-        """
-        Loads the top-n-grams table (search-query auto-correction, sc-47189): the trie file
-        the scheduled `scripts/build_top_n_grams_for_search_autocorrect.py` CronJob uploads to
-        GCS, downloaded and loaded in one step -- this is a read of a
-        precomputed artifact, not a build, so unlike the autocompleters above there's no
-        expensive in-process construction here. No-op when
-        DISABLE_AUTOCOMPLETER is set: like the autocompleters, this table is held only by the
-        name service when deployed. Missing/unreadable data leaves the table empty, disabling
-        auto-correction rather than failing startup -- logged at ERROR so it can be alerted on.
-        """
+    def build_search_autocorrect_tables(self):
+        """Downloads the corpus table the CronJob built and builds the entity title index."""
         if DISABLE_AUTOCOMPLETER:
-            logger.warning("DISABLE_AUTOCOMPLETER is set; skipping top-n-grams table load.")
+            logger.warning("DISABLE_AUTOCOMPLETER is set; skipping search autocorrect tables.")
             return
         from sefaria.helper.top_n_grams_for_search_autocorrect import load_top_n_grams
-        with build_pathway("build_top_n_grams_for_search_autocorrect"):
-            self._top_n_grams_for_search_autocorrect = load_top_n_grams()
-
-    def build_entity_alt_index(self):
-        """
-        Builds the runtime Book/Author/Topic alt-title index (search-query auto-correction,
-        sc-47189) from live Mongo data (Index/Topic/AuthorTopic) -- an in-process
-        construction from already-loaded collections, like the autocompleters above, not a
-        read of a precomputed artifact (contrast build_top_n_grams_for_search_autocorrect()
-        above: this index is never persisted to Mongo, so there is nothing to load). No-op
-        when DISABLE_AUTOCOMPLETER is set (name service only, like the autocompleters); an empty index just leaves auto-correction
-        without entity-alt matches, it does not fail startup.
-        """
-        if DISABLE_AUTOCOMPLETER:
-            logger.warning("DISABLE_AUTOCOMPLETER is set; skipping entity alt index build.")
-            return
         from sefaria.helper.entity_alt_index import build_entity_alt_trie
-        with build_pathway("build_entity_alt_index"):
+        with build_pathway("build_search_autocorrect_tables"):
+            self._top_n_grams_for_search_autocorrect = load_top_n_grams()
             self._entity_alt_index = build_entity_alt_trie()
 
     def cross_lexicon_auto_completer(self):

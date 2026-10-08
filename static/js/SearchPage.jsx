@@ -28,26 +28,14 @@ import SearchAnalytics, { tabLabel } from './sefaria/searchAnalytics';
 
 
 /**
- * Fuzzy-search query auto-correction (sc-47189). Shown once, above the tab strip, when the
- * name service's /api/search-autocorrect corrected the typed query (see search_autocorrect_api
- * and ElasticSearchQuerier._resolveAutocorrect) -- the same correction applies to every tab
- * (Sources/Books/Authors/Topics), so there's one shared banner rather than one per tab.
- * The search bar itself keeps showing what the user actually typed -- this banner is the
- * only place `correctedQuery` vs `originalQuery` is surfaced. The first line's term is
- * inert (you're already looking at those results); clicking the second line's term re-runs
- * every tab with auto-correction disabled, searching `originalQuery` exactly as typed.
- *
- * `suggestedQueries` is the ambiguous-correction counterpart: when multiple candidates were
- * too close in popularity to pick one with confidence (AMBIGUITY_LOG_GAP in
- * sefaria/helper/top_n_grams_for_search_autocorrect.py), the server leaves the query
- * uncorrected and sends these instead -- a "did you mean" prompt rather than a silent guess.
- * `correctedQuery` and `suggestedQueries` are mutually exclusive; the server only ever sends
- * one or the other.
+ * One banner above the tabs, since the correction applies to all of them. The search bar keeps
+ * what the user typed, so this is the only place the correction shows. Renders either the
+ * "results for X / search instead for Y" state (`correctedQuery`) or the "did you mean" state
+ * (`suggestedQueries`); the server never sends both.
  */
 const SearchAutocorrectBanner = ({correctedQuery, originalQuery, onSearchOriginal, suggestedQueries, onSearchSuggestion}) => {
-  // The status region is always rendered (empty when there's nothing to show) so screen
-  // readers announce the banner when it appears -- a live region mounted together with its
-  // content isn't reliably announced (WCAG 4.1.3).
+  // Always rendered, even empty: a live region mounted together with its content isn't
+  // reliably announced by screen readers.
   return (
     <div role="status">
       {correctedQuery ?
@@ -71,15 +59,13 @@ SearchAutocorrectBanner.propTypes = {
   onSearchSuggestion:  PropTypes.func,
 };
 
-// The query's script is independent of the interface language (a Hebrew query on the English
-// interface, or vice versa), so mark each term's own direction and language: `dir` isolates it
-// so the label and query don't reorder each other, and `lang` lets screen readers switch voice.
+// A query's script can differ from the interface language. `dir` keeps the label and query from
+// reordering each other; `lang` lets screen readers switch voice.
 const _queryLangProps = query => Sefaria.hebrew.isHebrew(query) ? {dir: "rtl", lang: "he"} : {dir: "ltr", lang: "en"};
 
-// Shared by both banner states: a clickable query term that, for keyboard users, hands focus
-// to the search box (which now holds that query) once clicked, instead of letting it drop to
-// <body> as the term itself unmounts. Not done for clicks/taps, where focusing the input would
-// pop up the mobile keyboard.
+// For keyboard activation, focus moves to the search box, since the clicked term unmounts and
+// focus would otherwise drop to <body>. Not for clicks/taps, where it would pop up the mobile
+// keyboard.
 const _AutocorrectTerm = ({query, onClick, className}) => {
   const handle = e => {
     const searchInput = e.type === "keydown" && e.currentTarget.closest(".searchContent")?.querySelector(".searchPageSearchBar input");
@@ -119,13 +105,7 @@ SearchAutocorrectBannerContent.propTypes = {
   onSearchOriginal: PropTypes.func,
 };
 
-/**
- * The "did you mean" state (sc-47189): rendered instead of SearchAutocorrectBannerContent when
- * the query was too ambiguous to correct with confidence. Each suggestion is a full,
- * ready-to-search query (not just the differing word), most likely first; clicking one
- * searches it directly, exactly like clicking the corrected term in the confident-correction
- * banner.
- */
+// Each suggestion is a full query, most likely first.
 const SearchSuggestedQueriesBannerContent = ({suggestedQueries, onSearchSuggestion}) => (
   <div className="searchAutocorrectBanner">
     <div className="searchAutocorrectBanner-line">
@@ -404,10 +384,9 @@ class SearchPage extends Component {
     // would land afterwards and mix rows from the old ordering into the new list. Kept off
     // `state` because it must update synchronously, before React re-renders.
     this._entityFetchTokens = Object.fromEntries(ENTITY_TABS.map(t => [t.type, 0]));
-    // Fuzzy-search query auto-correction (sc-47189): whether the reader has clicked a tab by
-    // hand for the query on screen, and which query/correction pair maybeAutoSwitchTabAfter
-    // Correction() has already acted on (or decided not to act on). Both reset when the query
-    // changes. Kept off `state`: they gate a side effect rather than describe what to render.
+    // For maybeAutoSwitchFromEmptyTab: whether the reader picked a tab for the query on screen,
+    // and which query/correction it has already decided for. Off `state` because they gate a
+    // side effect rather than rendering.
     this._userSelectedTab = false;
     this._autoSwitchDecidedFor = null;
   }
@@ -561,7 +540,7 @@ class SearchPage extends Component {
     this.fetchEntityResults();
     this._onResize();  // first real viewport measurement; the constructor could not take one
     window.addEventListener('resize', this._onResize);
-    this.maybeAutoSwitchTabAfterCorrection();
+    this.maybeAutoSwitchFromEmptyTab();
   }
 
   componentWillUnmount() {
@@ -587,34 +566,21 @@ class SearchPage extends Component {
       // previous result set — so rebuild the filter tree unselected before refetching.
       this.setState({bookCategoryFilters: this.makeBookCategoryFilters(), bookCategoryCounts: null},
                     () => this.resetEntityResults(ENTITY_TABS.map(t => t.type)));
-      // A new query starts the auto-switch decision over: forget which tab the reader picked
-      // for the previous query, and that we already decided (or didn't need to decide) where
-      // to land for the previous correction.
       this._userSelectedTab = false;
       this._autoSwitchDecidedFor = null;
     } else if (prevProps.disableAutoCorrect !== this.props.disableAutoCorrect) {
-      // Fuzzy-search query auto-correction (sc-47189): clicking "Search instead for
-      // <original query>" in the banner (any tab) re-searches every tab uncorrected, not
-      // just the one the click happened on -- one query, one correction decision, applied
-      // everywhere. Same query, so category selections/counts stay valid; only what was
-      // actually searched changes.
+      // "Search instead for <query>" re-searches every tab, not just the one clicked on.
+      // Same query, so category selections stay valid.
       this.resetEntityResults(ENTITY_TABS.map(t => t.type));
     }
-    this.maybeAutoSwitchTabAfterCorrection();
+    this.maybeAutoSwitchFromEmptyTab();
   }
 
-  // A query whose current tab comes back empty -- corrected or not -- would otherwise strand
-  // the reader on a blank tab, so land instead on the first tab (Sources, Books, Authors,
-  // then Topics) that has at least one result. This applies to every new search, even when
-  // the reader had picked the tab on screen by hand for an earlier query; only a tab click
-  // made for the query on screen sticks (_userSelectedTab resets when the query changes).
-  // If the current tab has results, or every tab is empty, it stays put.
-  //
-  // Sources' count and the entity tabs' counts each arrive from their own independent fetch
-  // (see the class comment on componentDidMount/fetchEntityResults), so this runs on every
-  // update and simply waits (returns without deciding) until the tab it would need to check
-  // next has loaded.
-  maybeAutoSwitchTabAfterCorrection() {
+  // If the current tab comes back empty, move to the first tab (in tab order) with results.
+  // A tab the reader clicked for an earlier query doesn't stop this; one clicked for the query
+  // on screen does. Tab counts arrive from independent fetches, so this runs on every update
+  // and returns undecided until each count it needs has loaded.
+  maybeAutoSwitchFromEmptyTab() {
     if (this._userSelectedTab || !this.props.query || this.props.searchInBook) { return; }
     const decisionKey = `${this.props.query}||${this.props.correctedQuery || ""}`;
     if (this._autoSwitchDecidedFor === decisionKey) { return; }
@@ -755,9 +721,8 @@ class SearchPage extends Component {
     this._reportedTabTransition = tab;
     // replaceHistory is only passed (as true) by TabView's programmatic
     // default-tab call on mount (Misc.jsx TabView.componentDidMount) and by
-    // maybeAutoSwitchTabAfterCorrection() -- neither is a user click, so don't report it
-    // and don't let it count as the reader having picked a tab by hand. User clicks omit
-    // the argument.
+    // maybeAutoSwitchFromEmptyTab() -- neither is a user click, so neither is reported or
+    // counts as the reader picking a tab.
     if (!replaceHistory) {
       this.reportTabChange(tab);
       this._userSelectedTab = true;

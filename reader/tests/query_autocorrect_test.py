@@ -1,10 +1,6 @@
 """
-search_autocorrect_api's contract (reader.views): a confident correction, an ambiguous
-"did you mean" result, or no correction at all.
-
-library.autocorrect_query is patched out: this is about how reader.views turns an
-AutocorrectResult into the JSON the client reads -- not about the auto-correction algorithm
-itself (see sefaria/helper/tests/top_n_grams_for_search_autocorrect_test.py for that).
+search_autocorrect_api's JSON contract. library.autocorrect_query is patched out; the
+algorithm is tested in sefaria/helper/tests/top_n_grams_for_search_autocorrect_test.py.
 """
 import json
 from unittest.mock import patch

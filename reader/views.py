@@ -1081,7 +1081,7 @@ def get_search_params(get_dict, i=None):
         # `tab` is the text/sheet search type; `search_tab` is the active results tab
         # on the search page (sources/books/authors/topics).
         "search_tab": urllib.parse.unquote(get_dict.get(get_param("search_tab", i), "")) or None,
-        # "Search instead for <original query>" (sc-47189): search `query` exactly as typed.
+        # Set by "Search instead for <query>": search `query` exactly as typed.
         "no_autocorrect": get_dict.get(get_param("no_autocorrect", i)) == "1",
         "field": field,
         "sort": sort,
@@ -4930,24 +4930,12 @@ def dummy_search_api(request):
 @catch_error_as_json
 def search_autocorrect_api(request):
     """
-    Fuzzy-search query auto-correction (sc-47189).
-
     GET /api/search-autocorrect?q=<query>
+    -> {"corrected_query": str|None, "suggested_queries": [str]|None}, at most one set.
 
-    Returns {"corrected_query": str|None, "suggested_queries": [str]|None}; both are None when
-    no correction applies. A confident correction sets `corrected_query` (the client searches
-    that instead and shows a "results for X / search instead for Y" banner); an ambiguous one
-    -- several candidates too close in popularity to pick one with confidence, see
-    AMBIGUITY_LOG_GAP in sefaria/helper/top_n_grams_for_search_autocorrect.py -- sets
-    `suggested_queries` for a "did you mean" prompt while the original query still runs.
-    The two are mutually exclusive. `suggested_queries` is ordered most likely first. Queries
-    past MAX_QUERY_CHARS / MAX_QUERY_WORDS are never corrected.
-
-    Served by the name service when deployed, like /api/name: it holds the top-n-grams table
-    and entity alt index (see reader/startup.py), which web pods deliberately don't load. The
-    search endpoints themselves (search_wrapper_api, entity_search_api) never correct -- the
-    client calls this first and searches whatever it returns. Varnish caches responses by URL
-    (see varnish-config.yaml), so there's deliberately no per-request parameter beyond `q`.
+    The client calls this before searching and searches the correction; the search endpoints
+    themselves never correct. Served by the name service, which holds the tables. Varnish
+    caches by URL, so don't add per-request parameters beyond `q`.
     """
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -4995,9 +4983,7 @@ def entity_search_api(request):
     GET /api/entity-search?q=<query>&type=<topic|author|book>&sort=<relevance|alpha|year_asc|year_desc>
                           &filter=<category path>&start=<offset>&size=<page size>
 
-    Searches `q` exactly as given. Fuzzy-search query auto-correction (sc-47189) is not applied
-    here: the client corrects the query first via search_autocorrect_api (name service) and
-    sends the result as `q`.
+    Searches `q` exactly as given; the client applies search_autocorrect_api's correction first.
 
     `start` (default 0) and `size` (default 20, capped at 100) page the results; the tab
     fetches successive pages on scroll. `total` always reports the full match count.

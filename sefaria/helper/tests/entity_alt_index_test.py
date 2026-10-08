@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests for sefaria.helper.entity_alt_index (search-query auto-correction, sc-47189).
-
-build_entity_alt_index() is exercised against stand-ins for IndexSet/TopicSet/AuthorTopicSet
-(see sefaria/helper/tests/search_test.py's _FakeSearch etc. for the same monkeypatch-a-model-
-query pattern) rather than real Mongo data, so these stay unit tests of this module's own
-assembly/scoring logic.
+build_entity_alt_index() runs against stand-ins for IndexSet/TopicSet/AuthorTopicSet, not Mongo.
 """
 from sefaria.helper.entity_alt_index import (
     MIN_TOPIC_SOURCES,

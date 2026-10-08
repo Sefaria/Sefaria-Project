@@ -1,16 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests for sefaria.helper.top_n_grams_for_search_autocorrect (search-query
-auto-correction, sc-47189).
-
-`tokenize()` and `build_top_n_grams()` route through the linker's normalizer and the full
-library (IndexSet, Version.walk_thru_contents) respectively -- that normalizer is already
-covered by linker_test.py / normalization_tests.py, and re-exercising it here would make
-this a library-build integration test rather than a unit test of this module's own logic.
-These tests instead take tokenized word lists and top-n-grams dicts as given and cover what's
-actually local to this module: phrase generation from a token list, the edit-distance-1
-search, the phrase-vs-single-word correction policy, and the trie file save/load round trip
-(local files and a faked download, so no network is required).
+Tables are plain dicts and segments pre-tokenized, so no library, Mongo or network is needed.
+The linker normalizer that `tokenize` wraps has its own tests.
 """
 import pytest
 
@@ -18,10 +9,8 @@ from sefaria.helper.top_n_grams_for_search_autocorrect import (
     MAX_PHRASE_WORDS,
     AMBIGUITY_LOG_GAP,
     normalize_word,
-    _segment_phrases,
     _one_edit_candidates,
     _ranked_candidates,
-    _best_match,
     _tie_break_score,
     _try_window,
     AmbiguousCandidates,
@@ -34,6 +23,16 @@ from sefaria.helper.top_n_grams_for_search_autocorrect import (
     MAX_QUERY_WORDS,
 )
 import sefaria.helper.top_n_grams_for_search_autocorrect as top_n_grams_for_search_autocorrect
+
+
+def _best_match(phrase, *tables):
+    ranked = _ranked_candidates(phrase, *tables)
+    return ranked[0][0] if ranked else None
+
+
+def _segment_phrases(tokens, max_n=MAX_PHRASE_WORDS):
+    """Brute-force oracle: every distinct 1..max_n-word run."""
+    return {" ".join(tokens[i:i + n]) for n in range(1, max_n + 1) for i in range(len(tokens) - n + 1)}
 
 
 # --------------------------------------------------------------------------- #
@@ -52,40 +51,7 @@ def test_normalize_word_keeps_internal_punctuation():
 
 
 # --------------------------------------------------------------------------- #
-#  _segment_phrases                                                          #
-# --------------------------------------------------------------------------- #
-
-def test_segment_phrases_generates_every_contiguous_run_up_to_max_n():
-    tokens = ["in", "the", "beginning"]
-    assert _segment_phrases(tokens, max_n=3) == {
-        "in", "the", "beginning",
-        "in the", "the beginning",
-        "in the beginning",
-    }
-
-
-def test_segment_phrases_respects_max_n():
-    tokens = ["a", "b", "c", "d"]
-    phrases = _segment_phrases(tokens, max_n=2)
-    assert "a b c" not in phrases
-    assert "a b" in phrases and "c d" in phrases
-    assert "a" in phrases and "d" in phrases
-
-
-def test_segment_phrases_handles_fewer_tokens_than_max_n():
-    # A segment shorter than MAX_PHRASE_WORDS must not crash or fabricate out-of-range runs.
-    assert _segment_phrases(["lone"], max_n=3) == {"lone"}
-    assert _segment_phrases([], max_n=3) == set()
-
-
-def test_segment_phrases_dedupes_repeats_within_one_segment():
-    # A phrase recurring in the same segment counts once per doc -- see build_top_n_grams's
-    # doc-counting contract.
-    assert _segment_phrases(["echo", "echo"], max_n=2) == {"echo", "echo echo"}
-
-
-# --------------------------------------------------------------------------- #
-#  _one_edit_candidates / _best_match                                        #
+#  _one_edit_candidates / best candidate                                     #
 # --------------------------------------------------------------------------- #
 
 def test_one_edit_candidates_includes_known_single_edits():
@@ -269,10 +235,7 @@ def test_autocorrect_query_short_phrase_already_attested_is_noop():
 
 
 def test_autocorrect_query_does_not_correct_a_lone_word_into_an_unattested_phrase():
-    # The product fix this module exists for: "bereshit" alone is one edit from "bereishit",
-    # and "rabbati" is a real top-n-grams word too -- but the combined phrase "bereishit
-    # rabbati" was never seen in the corpus, so it must NOT be offered, unlike the
-    # single-word-correction POC this replaced.
+    # Each word alone has a fix, but the corrected phrase never occurs in the corpus.
     top_n_grams = {"bereishit": 50, "rabbati": 20}  # no "bereishit rabbati" entry
     assert autocorrect_query("bereshit rabbati", top_n_grams) is None
 
@@ -324,8 +287,7 @@ def test_autocorrect_query_empty_inputs():
 
 
 def test_max_phrase_words_is_three():
-    # The spec this module implements: phrases of up to 3 words. If this ever changes, the
-    # window-size tests above need to change with it.
+    # The window-size tests above assume 3.
     assert MAX_PHRASE_WORDS == 3
 
 
