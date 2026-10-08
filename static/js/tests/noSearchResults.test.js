@@ -47,9 +47,8 @@ describe("NoSearchResults", function () {
       document.removeEventListener("chatbot:launcher", launcher);
       const detail = launcher.mock.calls[launcher.mock.calls.length - 1][0].detail;
       expect(detail).toEqual({
-        label: "search.null.launcher.library_assistant",
-        question: 'I searched for "minkeee" on Sefaria and got no results. Can you help me find relevant sources, books, authors and/or topics?',
         source: "search_no_results",
+        question: 'I searched for "minkeee" on Sefaria and got no results. Can you help me find relevant sources, books, authors and/or topics?',
       });
     });
 

@@ -50,10 +50,10 @@ function NoSearchResults({ mode, query }) {
   }, []);
   useEffect(() => {
     if (!hasAssistant) { return; }
+    // The widget shows its own label for this source ("✦ Search with Library Assistant")
     document.dispatchEvent(new CustomEvent('chatbot:launcher', {detail: {
-      label: Sefaria._('search.null.launcher.library_assistant'),
-      question: assistantNoResultsPrompt(query),
       source: 'search_no_results',
+      question: assistantNoResultsPrompt(query),
     }}));
     return () => document.dispatchEvent(new CustomEvent('chatbot:launcher', {detail: null}));
   }, [hasAssistant, query]);

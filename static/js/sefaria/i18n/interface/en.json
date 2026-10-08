@@ -556,7 +556,6 @@
     "search.sort.alphabetical": "A-Z",
     "search.null.sources.h1": "No sources found for “{userquery}”",
     "search.null.sources.body": "Try a different search term or browse the library.",
-    "search.null.launcher.library_assistant": "Search with Library Assistant",
     "search.null.sources.body_library_assistant": "Try a different search term, browse the Library or ask the Library Assistant for help.",
     "search.null.books.body_library_assistant": "Try a different search term, browse the Library or ask the Library Assistant for help.",
     "search.null.authors.body_library_assistant": "Try a different search term, browse all Authors or ask the Library Assistant for help.",
