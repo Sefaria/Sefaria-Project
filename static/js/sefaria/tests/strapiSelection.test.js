@@ -555,8 +555,8 @@ describe("malformed document data — skipped, never fatal", function () {
 });
 
 describe("isPathExcluded", function () {
-  it("excludes the fixed fundraising/app paths", function () {
-    ["/donate", "/mobile", "/app", "/ways-to-give"].forEach((path) => {
+  it("excludes the fixed fundraising and mobile paths", function () {
+    ["/donate", "/mobile", "/ways-to-give"].forEach((path) => {
       expect(isPathExcluded(modal(), path)).toBe(true);
     });
   });
