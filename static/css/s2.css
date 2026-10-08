@@ -4021,6 +4021,48 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 24px;
   cursor: pointer;
 }
+/* Search-query auto-correction banner */
+.searchAutocorrectBanner {
+  display: flex;
+  flex-direction: column;
+  row-gap: 4px;
+  margin-top: 20px;
+  margin-bottom: 12px;
+  color: var(--near-black);
+}
+.searchAutocorrectBanner-line {
+  font-size: 18px;
+  line-height: 27px;
+  /* override the font variable, not font-family, which the universal * rule in fonts.css sets on every element */
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+.searchAutocorrectBanner-secondary {
+  font-size: var(--sans-serif-body-font-size);
+  line-height: 1.4;
+}
+.searchAutocorrectBanner-line :is(.int-en, .int-he) {
+  color: var(--near-black);
+}
+/* the query words can be in either script, so Roboto for Latin with Heebo covering Hebrew glyphs */
+.searchAutocorrectBanner-corrected,
+.searchAutocorrectBanner-original {
+  --english-font: "Roboto", "Heebo", sans-serif;
+}
+/* strong weight follows the term's own language: 600 for English, 700 for Hebrew */
+.searchAutocorrectBanner-corrected {
+  font-weight: 600;
+  color: var(--near-black);
+  text-decoration: none;
+}
+.searchAutocorrectBanner-corrected:lang(he) {
+  font-weight: 700;
+}
+.searchAutocorrectBanner-original {
+  cursor: pointer;
+  color: var(--select-blue);
+  text-decoration: underline;
+}
 .searchContent .tab-view .tab-list .tab .searchTabCount {
   display: inline-block;
   min-width: 24px;

@@ -647,6 +647,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
         "searchQuery": search_params["query"],
         "searchType": search_params["tab"],
         "tab": search_params["search_tab"],
+        "searchNoAutocorrect": search_params["no_autocorrect"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -1080,6 +1081,8 @@ def get_search_params(get_dict, i=None):
         # `tab` is the text/sheet search type; `search_tab` is the active results tab
         # on the search page (sources/books/authors/topics).
         "search_tab": urllib.parse.unquote(get_dict.get(get_param("search_tab", i), "")) or None,
+        # Set by "Search instead for <query>": search `query` exactly as typed.
+        "no_autocorrect": get_dict.get(get_param("no_autocorrect", i)) == "1",
         "field": field,
         "sort": sort,
         "filters": filters,
@@ -1121,6 +1124,7 @@ def search(request):
         "initialMenu": "search",
         "initialQuery": search_params["query"],
         "initialSearchTab": search_params["search_tab"],
+        "initialSearchNoAutocorrect": search_params["no_autocorrect"],
         "initialSearchFilters": search_params["filters"],
         "initialSearchFilterAggTypes": search_params["filterAggTypes"],
         "initialSearchField": search_params["field"],
@@ -4923,6 +4927,26 @@ def dummy_search_api(request):
     return resp
 
 
+@catch_error_as_json
+def search_autocorrect_api(request):
+    """
+    GET /api/search-autocorrect?q=<query>
+    -> {"corrected_query": str|None, "suggested_queries": [str]|None}, at most one set.
+
+    The client calls this before searching and searches the correction; the search endpoints
+    themselves never correct. Served by the name service, which holds the tables. Varnish
+    caches by URL, so don't add per-request parameters beyond `q`.
+    """
+    if request.method != "GET":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+    query = request.GET.get("q", "").strip()
+    result = library.autocorrect_query(query) if query else None
+    return jsonResponse({
+        "corrected_query": result.corrected_query if result else None,
+        "suggested_queries": result.suggested_queries if result else None,
+    })
+
+
 @csrf_exempt
 def search_wrapper_api(request, es6_compat=False):
     """
@@ -4938,6 +4962,7 @@ def search_wrapper_api(request, es6_compat=False):
         else:
             j = request.body  # using content-type: application/json
         j = json.loads(j)
+
         es_client = get_elasticsearch_client_for_online_search()
         search_obj = Search(using=es_client, index=j.get("type")).params(request_timeout=5)
         search_obj = get_query_obj(search_obj=search_obj, **j)
@@ -4957,6 +4982,8 @@ def entity_search_api(request):
 
     GET /api/entity-search?q=<query>&type=<topic|author|book>&sort=<relevance|alpha|year_asc|year_desc>
                           &filter=<category path>&start=<offset>&size=<page size>
+
+    Searches `q` exactly as given; the client applies search_autocorrect_api's correction first.
 
     `start` (default 0) and `size` (default 20, capped at 100) page the results; the tab
     fetches successive pages on scroll. `total` always reports the full match count.

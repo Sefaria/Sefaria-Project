@@ -4511,6 +4511,11 @@ class Library(object):
 
         self.langs = ["en", "he"]
 
+        # Search auto-correction tables; populated by init_library_cache() where the
+        # autocompleters are (the name service), empty elsewhere.
+        self._top_n_grams_for_search_autocorrect = {}
+        self._entity_alt_index = {}
+
         # Maps, keyed by language, from index key to array of titles
         self._index_title_maps = {lang:{} for lang in self.langs}
 
@@ -4609,6 +4614,11 @@ class Library(object):
                         tree_titles = tree.title_dict(lang)
                         self._index_title_maps[lang][tree.key] = list(tree_titles.keys())
                         self._title_node_maps[lang].update(tree_titles)
+
+    def autocorrect_query(self, query):
+        """See sefaria.helper.top_n_grams_for_search_autocorrect.autocorrect_query."""
+        from sefaria.helper.top_n_grams_for_search_autocorrect import autocorrect_query
+        return autocorrect_query(query, self._top_n_grams_for_search_autocorrect, self._entity_alt_index)
 
     def _reset_index_derivative_objects(self, include_auto_complete=False):
         """
@@ -5006,6 +5016,16 @@ class Library(object):
             self._cross_lexicon_auto_completer = AutoCompleter("he", library, include_titles=False, include_lexicons=True)
             self._cross_lexicon_auto_completer_is_ready = True
 
+    def build_search_autocorrect_tables(self):
+        """Downloads the corpus table the CronJob built and builds the entity title index."""
+        if DISABLE_AUTOCOMPLETER:
+            logger.warning("DISABLE_AUTOCOMPLETER is set; skipping search autocorrect tables.")
+            return
+        from sefaria.helper.top_n_grams_for_search_autocorrect import load_top_n_grams
+        from sefaria.helper.entity_alt_index import build_entity_alt_trie
+        with build_pathway("build_search_autocorrect_tables"):
+            self._top_n_grams_for_search_autocorrect = load_top_n_grams()
+            self._entity_alt_index = build_entity_alt_trie()
 
     def cross_lexicon_auto_completer(self):
         """

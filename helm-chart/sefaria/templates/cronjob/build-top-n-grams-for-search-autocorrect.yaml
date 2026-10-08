@@ -1,0 +1,64 @@
+{{- if .Values.cronJobs.buildTopNGramsForSearchAutocorrect.enabled }}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.deployEnv }}-build-top-n-grams-for-search-autocorrect
+  labels:
+    {{- include "sefaria.labels" . | nindent 4 }}
+spec:
+  schedule: "0 3 * * 0"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        spec:
+          containers:
+          - name: build-top-n-grams-for-search-autocorrect
+            image: "{{ .Values.web.containerImage.imageRegistry }}:{{ .Values.web.containerImage.tag }}"
+            env:
+            - name: REDIS_HOST
+              value: "redis-{{ .Values.deployEnv }}"
+            - name: NODEJS_HOST
+              value: "node-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            - name: VARNISH_HOST
+              value: "varnish-{{ .Values.deployEnv }}-{{ .Release.Revision }}"
+            envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.localSettings.ref }}
+                optional: true
+            - secretRef:
+                name: local-settings-secrets-{{ .Values.deployEnv }}
+                optional: true
+            - configMapRef:
+                name: local-settings-{{ .Values.deployEnv }}
+            volumeMounts:
+              - mountPath: /app/sefaria/local_settings.py
+                name: local-settings
+                subPath: local_settings.py
+                readOnly: true
+              # Write credentials for the GCS upload (GOOGLE_APPLICATION_CREDENTIALS_FILEPATH);
+              # readers download the public object without any.
+              - mountPath: /google-cloud-secret
+                name: backup-manager-secret
+                readOnly: true
+            command: ["bash"]
+            args: [
+              "-c",
+              "/app/run /app/scripts/build_top_n_grams_for_search_autocorrect.py --min-doc-count 100 20 5 --upload"
+            ]
+          restartPolicy: OnFailure
+          volumes:
+          - name: local-settings
+            configMap:
+              name: local-settings-file-{{ .Values.deployEnv }}
+              items:
+                - key: local_settings.py
+                  path: local_settings.py
+          - name: backup-manager-secret
+            secret:
+              secretName: {{ template "sefaria.secrets.backupManager" . }}
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2
+{{- end }}

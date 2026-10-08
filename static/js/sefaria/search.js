@@ -583,7 +583,30 @@ class Search {
       });
       return { availableFilters, registry: {}, orphans: [] };
     }
-    entitySearch(query, type, start = 0, {sort = "relevance", categoryPaths = []} = {}) {
+    _cachedGet(url, key) {
+        // _cachedApiPromise caches whatever comes back, error bodies included, so evict failures
+        // or they'd stick for the session. Promise.resolve() because its miss path returns a
+        // jQuery 2 Deferred, which has no .catch().
+        return Promise.resolve(Sefaria._cachedApiPromise({url, key, store: this._cache}))
+            .then(data => {
+                if (!data || data.error) { throw new Error(data?.error || "empty response"); }
+                return data;
+            })
+            .catch(e => { delete this._cache[key]; throw e; });
+    }
+    autocorrectQuery(query) {
+        // Resolves to {corrected_query, suggested_queries}. Never rejects: a failed lookup just
+        // means searching the query as typed.
+        const noCorrection = {corrected_query: null, suggested_queries: null};
+        if (!query) { return Promise.resolve(noCorrection); }
+        const url = `${Sefaria.apiHost}/api/search-autocorrect?q=${encodeURIComponent(query)}`;
+        return this._cachedGet(url, `autocorrect|${query}`).catch(() => noCorrection);
+    }
+    getCachedAutocorrect(query) {
+        // Lets a component apply an already-known correction synchronously, at construction.
+        return this._cache[`autocorrect|${query}`];
+    }
+    entitySearch(query, type, start = 0, {sort = "relevance", categoryPaths = [], disableAutocorrect = false} = {}) {
         // Fetches one page of entity results (from `start`), so the tab panels can lazily
         // load more on scroll. `total` reports the full match count so the count badges and
         // "more to load" checks stay correct.
@@ -600,24 +623,18 @@ class Search {
         //
         // Sorted so the key depends on which categories are selected, not on the order they
         // were clicked in.
+        //
+        // Unless `disableAutocorrect`, searches autocorrectQuery's confident correction. The
+        // cache key uses the text actually searched, so the flag needs no key of its own.
         const paths = [...categoryPaths].sort();
-        const cacheKey = `entitySearch|${type}|${query}|${start}|${sort}|${paths.join("|")}`;
-        let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(query)}&type=${encodeURIComponent(type)}&start=${start}&sort=${encodeURIComponent(sort)}`;
-        paths.forEach(path => { url += `&filter=${encodeURIComponent(path)}`; });
-        // Sefaria._cachedApiPromise is the shared helper for cached GETs: it returns the
-        // stored value on a hit, and on a miss fetches, caches under `key`, and de-duplicates
-        // concurrent requests for the same url. Promise.resolve() re-wraps its result because
-        // on the miss path it hands back a jQuery 2 Deferred, which has no .catch() for callers.
-        return Promise.resolve(Sefaria._cachedApiPromise({url, key: cacheKey, store: this._cache}))
-            .then(data => {
-                if (data.error) {
-                    // The helper caches whatever the API returned, so evict the error body —
-                    // otherwise one failed page would stick for the rest of the session.
-                    delete this._cache[cacheKey];
-                    throw new Error(data.error);
-                }
-                return data;
-            });
+        const correction = disableAutocorrect ? Promise.resolve(null) : this.autocorrectQuery(query);
+        return correction.then(corrected => {
+            const searched = corrected?.corrected_query || query;
+            const cacheKey = `entitySearch|${type}|${searched}|${start}|${sort}|${paths.join("|")}`;
+            let url = `${Sefaria.apiHost}/api/entity-search?q=${encodeURIComponent(searched)}&type=${encodeURIComponent(type)}&start=${start}&sort=${encodeURIComponent(sort)}`;
+            paths.forEach(path => { url += `&filter=${encodeURIComponent(path)}`; });
+            return this._cachedGet(url, cacheKey);
+        });
     }
 }
 
