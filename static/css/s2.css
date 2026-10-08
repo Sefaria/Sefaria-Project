@@ -5427,6 +5427,24 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 
 @media (max-width: 540px) {
+  /* Phones: a smaller illustration, the H3 heading size and tighter gaps, so the whole
+     message (down to "Something seems wrong?") sits above the floating Ask button */
+  .noSearchResults {
+    gap: 12px;
+  }
+  .noSearchResults-image {
+    width: 96px;
+    height: 96px;
+  }
+  .noSearchResults-content {
+    gap: 16px;
+  }
+  .noSearchResults-textGroup {
+    gap: 12px;
+  }
+  .noSearchResults-heading {
+    font-size: 22px;
+  }
   .noSearchResults-cta {
     margin-bottom: 24px;
   }
