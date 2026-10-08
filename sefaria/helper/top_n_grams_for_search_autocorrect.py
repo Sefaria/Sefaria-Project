@@ -5,8 +5,8 @@ Top n-grams table for search-query auto-correction (sc-47189).
 The "top n-grams" table is a precomputed set of normalized *phrases* -- contiguous runs of
 1 to `MAX_PHRASE_WORDS` words -- that occur in more than some threshold of Sefaria segments
 ("documents"), each mapped to the number of documents it appears in. It powers query
-auto-correction: a search query (or, for a query longer than `MAX_PHRASE_WORDS` words, the
-longest contiguous run of its words) that isn't itself a known phrase, but is exactly one
+auto-correction: a search query (or, for a query longer than `MAX_PHRASE_WORDS` words, a
+single edit that the query's overlapping `MAX_PHRASE_WORDS`-word windows agree on) that isn't itself a known phrase, but is exactly one
 edit (insert/delete/replace/transpose) away from one, gets silently rewritten to that known
 phrase before hitting Elasticsearch (see `autocorrect_query` below and its caller,
 `search_wrapper_api` in reader/views.py).
@@ -602,13 +602,11 @@ def autocorrect_query(query: str, top_n_grams: PhraseTable,
       entirety*: an entity title/name is a single curated unit, not generated as a sliding
       window over corpus text, so unlike the top-n-grams table it is never capped at
       MAX_PHRASE_WORDS -- explaining the WHOLE query this way beats any partial fix below.
-      Failing that, the query is corrected (or found ambiguous) at most once, in its longest
-      fixable contiguous run of words: window sizes MAX_PHRASE_WORDS down to 1 are tried
-      (against both sources), left to right within each size, and the first window that is
-      both not already a known phrase and one edit from one wins -- confidently or
-      ambiguously; every other word in the query is left exactly as typed either way. A query
-      with no such window anywhere (every window already attested, or too far off to fix
-      within a 1-edit budget) also returns None.
+      Failing that, only full MAX_PHRASE_WORDS-word windows are tried (never shorter phrases
+      or lone words), and at most one edit is made in the whole query: see
+      `_correct_long_query_by_trigrams`. Every other word is left exactly as typed. A query
+      with no such correction (every window attested, none fixable within a 1-edit budget, or
+      fixable windows that disagree about the edit) returns None.
 
     :param query: the raw query text as typed/submitted.
     :param top_n_grams: {normalized_phrase: doc_count}, e.g. `library._top_n_grams_for_search_autocorrect`.
@@ -644,9 +642,36 @@ def autocorrect_query(query: str, top_n_grams: PhraseTable,
         if whole:
             return whole
 
-    for size in range(MAX_PHRASE_WORDS, 0, -1):
-        for start in range(0, n - size + 1):
-            result = finish(_try_window(words, normalized, start, start + size, top_n_grams, entity_alt_index))
-            if result:
-                return result
+    return _correct_long_query_by_trigrams(words, normalized, top_n_grams, entity_alt_index)
+
+
+def _correct_long_query_by_trigrams(words: List[str], normalized: List[str], top_n_grams: PhraseTable,
+                                     entity_alt_index: Optional[PhraseTable]) -> Optional[AutocorrectResult]:
+    """
+    Correct a query longer than MAX_PHRASE_WORDS using only full-size (MAX_PHRASE_WORDS-word)
+    windows -- never shorter phrases or lone words, whose one-edit "fixes" are too often a real
+    but rare word turned into a common one -- and at most ONE edit in the whole query.
+
+    Every window is tried. One typo sits inside up to MAX_PHRASE_WORDS overlapping windows, and
+    each of them, if fixable, proposes the same full corrected query -- that agreement is the
+    evidence. So:
+    - all fixable windows propose the same single query: that's the correction;
+    - fixable windows propose different queries (two separate typos, or a rare-but-valid
+      trigram that happens to be one edit from a common one): no confident single edit, so
+      nothing is corrected;
+    - the only fixable windows are ambiguous (see AMBIGUITY_LOG_GAP): their competing queries
+      come back together as suggestions.
+    """
+    confident, ambiguous = set(), set()
+    for start in range(len(normalized) - MAX_PHRASE_WORDS + 1):
+        result = _try_window(words, normalized, start, start + MAX_PHRASE_WORDS, top_n_grams, entity_alt_index)
+        if isinstance(result, AmbiguousCandidates):
+            ambiguous.update(result.queries)
+        elif result:
+            confident.add(result)
+    original = " ".join(words)
+    if len(confident) == 1 and not ambiguous:
+        return AutocorrectResult(original_query=original, corrected_query=next(iter(confident)))
+    if ambiguous and not confident:
+        return AutocorrectResult(original_query=original, suggested_queries=sorted(ambiguous))
     return None

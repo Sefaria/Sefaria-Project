@@ -282,32 +282,33 @@ def test_autocorrect_query_three_word_phrase():
         original_query="shir hashirim rabah", corrected_query="shir hashirim rabbah")
 
 
-def test_autocorrect_query_long_query_fixes_longest_window_first():
-    # "quick bereshit rabbah fox" (a 3-word window) is NOT attested, but "bereshit rabbah"
-    # (the 2-word window inside it) is one edit from an attested phrase -- the 2-word fix
-    # must win, and every other word in the query is left exactly as typed.
-    top_n_grams = {"bereishit rabbah": 10}
+def test_autocorrect_query_long_query_fixes_one_typo_seen_by_overlapping_trigrams():
+    # "bereshit" sits in three windows; only the ones with an attested one-edit neighbour
+    # propose a fix, and they all propose the same query.
+    top_n_grams = {"the quick bereishit": 10, "quick bereishit rabbah": 10, "bereishit rabbah fox": 10}
     result = autocorrect_query("The quick bereshit rabbah fox jumps", top_n_grams)
     assert result == AutocorrectResult(
         original_query="The quick bereshit rabbah fox jumps",
         corrected_query="The quick bereishit rabbah fox jumps")
 
 
-def test_autocorrect_query_long_query_falls_back_to_single_word_window():
-    # No 3- or 2-word window is fixable here; only the lone word "teh" needs a fix.
-    top_n_grams = {"the": 100}
-    result = autocorrect_query("in teh beginning of everything", top_n_grams)
-    assert result == AutocorrectResult(
-        original_query="in teh beginning of everything",
-        corrected_query="in the beginning of everything")
+def test_autocorrect_query_long_query_never_falls_back_to_shorter_windows():
+    # "teh" is one edit from the attested word "the", and "teh beginning" from nothing -- but
+    # no trigram is fixable, and bigrams/single words are not tried for long queries.
+    top_n_grams = {"the": 100, "the beginning": 50}
+    assert autocorrect_query("in teh beginning of everything", top_n_grams) is None
 
 
-def test_autocorrect_query_long_query_prefers_leftmost_window_of_the_same_size():
-    top_n_grams = {"aaa bbb": 10, "xxx yyy": 10}
-    result = autocorrect_query("aab bbb ccc xxy yyy", top_n_grams)
-    # Both "aab bbb" and "xxy yyy" are one-edit 2-word fixes; the leftmost one wins.
+def test_autocorrect_query_long_query_two_separate_typos_corrects_nothing():
+    top_n_grams = {"aaa bbb ccc": 10, "xxx yyy zzz": 10}
+    assert autocorrect_query("aab bbb ccc xxy yyy zzz", top_n_grams) is None
+
+
+def test_autocorrect_query_long_query_ambiguous_trigrams_return_suggestions():
+    top_n_grams = {"the cot sat": 50, "the cap sat": 40}
+    result = autocorrect_query("the cat sat down", top_n_grams)
     assert result == AutocorrectResult(
-        original_query="aab bbb ccc xxy yyy", corrected_query="aaa bbb ccc xxy yyy")
+        original_query="the cat sat down", suggested_queries=["the cap sat down", "the cot sat down"])
 
 
 def test_autocorrect_query_long_query_unfixable_returns_none():
@@ -395,7 +396,7 @@ def test_autocorrect_query_confident_when_disparity_is_large():
 
 
 def test_autocorrect_query_ambiguous_in_a_long_query_keeps_surrounding_words():
-    top_n_grams = {"cot": 50, "cap": 40}
+    top_n_grams = {"the cot sat": 50, "the cap sat": 40}
     result = autocorrect_query("The cat sat down", top_n_grams)
     assert result == AutocorrectResult(
         original_query="The cat sat down",
