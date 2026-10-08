@@ -38,10 +38,15 @@ spec:
                 name: local-settings
                 subPath: local_settings.py
                 readOnly: true
+              # Write credentials for the GCS upload (GOOGLE_APPLICATION_CREDENTIALS_FILEPATH);
+              # readers download the public object without any.
+              - mountPath: /google-cloud-secret
+                name: backup-manager-secret
+                readOnly: true
             command: ["bash"]
             args: [
               "-c",
-              "/app/run /app/scripts/build_top_n_grams_for_search_autocorrect.py --min-doc-count 100 20 5"
+              "/app/run /app/scripts/build_top_n_grams_for_search_autocorrect.py --min-doc-count 100 20 5 --upload"
             ]
           restartPolicy: OnFailure
           volumes:
@@ -51,6 +56,9 @@ spec:
               items:
                 - key: local_settings.py
                   path: local_settings.py
+          - name: backup-manager-secret
+            secret:
+              secretName: {{ template "sefaria.secrets.backupManager" . }}
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2
 {{- end }}

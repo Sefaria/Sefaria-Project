@@ -475,10 +475,11 @@ cronJobs:
   # Settings for regenerating long cached data
   regenerate:
     enabled: true
-  # Rebuilds the top-n-grams table (search-query auto-correction, sc-47189) into Mongo;
-  # library/task/web pods load the result at startup (see
-  # sefaria/helper/top_n_grams_for_search_autocorrect.py).
-  # Off by default -- turn on once the table's memory footprint has been sized.
+  # Rebuilds the top-n-grams table (search-query auto-correction, sc-47189) and uploads it
+  # to gs://sefaria-search-autocorrect, which the name service downloads at startup (see
+  # sefaria/helper/top_n_grams_for_search_autocorrect.py). EVERY environment reads that one
+  # object, so enable this in production only -- a cauldron run would overwrite prod's table.
+  # Off by default -- turn on once the build's memory footprint has been sized.
   buildTopNGramsForSearchAutocorrect:
     enabled: false
   dailyEmailNotifications:

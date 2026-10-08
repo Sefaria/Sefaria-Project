@@ -48,11 +48,28 @@ data:
         # paths were never cached (they fell through to pass below), so routing
         # plus pass preserves their caching semantics exactly.  Must precede the
         # staging pass so staging hosts route here too.
-        if (req.url ~ "^/(api/name/|api/words/completion/|api/opensearch-suggestions|api/search-autocorrect|search-autocomplete-redirecter)") {
+        if (req.url ~ "^/(api/name/|api/words/completion/|api/opensearch-suggestions|search-autocomplete-redirecter)") {
             set req.backend_hint = name_service;
             return (pass);
         }
+        # Routed like the completion endpoints, but cacheable -- see the search-autocorrect
+        # block below, which decides between hash and pass.
+        if (req.url ~ "^/api/search-autocorrect") {
+            set req.backend_hint = name_service;
+        }
         {{- end }}
+
+        # Search auto-correction (sc-47189): a pure function of `q` and the top-n-grams table,
+        # which only changes when the name service restarts (and every release gets a fresh
+        # varnish).  Every search calls it before searching, so cache it rather than pass; the
+        # 1d TTL in vcl_backend_response bounds how stale an answer can be after a mid-release
+        # name-service restart picks up a newer table.  Must precede the staging pass, like the
+        # name-service routing above.
+        if (req.url ~ "^/api/search-autocorrect" && req.method == "GET" && req.http.Host !~ "^staging") {
+            unset req.http.Cookie;
+            unset req.http.Accept-Language;
+            return (hash);
+        }
 
         if (req.http.Host ~ "^staging") {
             return (pass);

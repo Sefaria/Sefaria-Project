@@ -9,7 +9,7 @@ auto-correction: a search query (or, for a query longer than `MAX_PHRASE_WORDS` 
 single edit that the query's overlapping `MAX_PHRASE_WORDS`-word windows agree on) that isn't itself a known phrase, but is exactly one
 edit (insert/delete/replace/transpose) away from one, gets silently rewritten to that known
 phrase before hitting Elasticsearch (see `autocorrect_query` below and its caller,
-`search_wrapper_api` in reader/views.py).
+`search_autocorrect_api` in reader/views.py, which the search page calls before searching).
 
 Correcting whole phrases rather than individual words (the original POC) matters because a
 lone word can be a perfectly good 1-edit fix in isolation while still producing a corrected
@@ -20,14 +20,16 @@ contains.
 
 The table is built by `scripts/build_top_n_grams_for_search_autocorrect.py`, run on a
 schedule by the `build-top-n-grams-for-search-autocorrect` CronJob
-(helm-chart/sefaria/templates/cronjob/), and persisted to Mongo
-(`db.top_n_grams_for_search_autocorrect`) rather than a local file -- every web pod reads the
-same collection at startup with no artifact-shipping step of its own (see `save_top_n_grams` /
-`load_top_n_grams` below). `Library.build_top_n_grams_for_search_autocorrect()`
-(sefaria/model/text.py) loads it once, from `init_library_cache()` (reader/startup.py), onto
+(helm-chart/sefaria/templates/cronjob/), which saves it as a finished `datrie` trie file and
+uploads that one object to a public-read GCS bucket (`TRIE_BUCKET` / `TRIE_BLOB`). The name
+service downloads and loads it at startup (`load_top_n_grams`) -- a ~1s `datrie` load instead
+of rebuilding a multi-million-key trie in Python. Overwriting a GCS object is atomic, so a
+reader always gets either the previous complete table or the new one, never a mix.
+`Library.build_top_n_grams_for_search_autocorrect()` (sefaria/model/text.py) loads it once,
+from `init_library_cache()` (reader/startup.py), onto
 `Library._top_n_grams_for_search_autocorrect`. This module holds the tokenizer the builder and
-the search-time lookup share, plus the edit-distance-1 candidate generation and the Mongo
-load/save helpers.
+the search-time lookup share, plus the edit-distance-1 candidate generation and the trie
+save/upload/load helpers.
 
 At search time both tables live in `datrie` tries (see `build_phrase_trie`), the same
 structure the autocompleters in sefaria/model/autospell.py use, rather than Python dicts: a
@@ -48,7 +50,7 @@ When more than one candidate is close in that score (see `AMBIGUITY_LOG_GAP`), p
 single highest-scoring one would be a guess, not a correction -- two terms close in weight are
 genuinely competing for the user's attention (e.g. "mari" vs "maariv"), and silently choosing
 between them is as likely to be wrong as right. In that case `autocorrect_query` does not
-correct the query at all; it returns the competing terms instead (sorted A-Z), so the caller
+correct the query at all; it returns the competing terms instead (most likely first), so the caller
 can show them as suggestions while the original, uncorrected query is what actually runs. A
 large gap between the top two candidates means they are not really competing -- one is so much
 more attested than the other that picking it is a correction, not a guess -- so that case still
@@ -63,24 +65,22 @@ from dataclasses import dataclass, field
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple, Union
 
 import datrie
+import requests
 import structlog
-from pymongo import UpdateOne
 
 from sefaria.model.autospell import SpellChecker, letter_scope, normalize_chars, strip_apostrophes
-from sefaria.system.database import db
 
 logger = structlog.get_logger(__name__)
 
-# Mongo collection the built table lives in: one document per phrase ({"_id": phrase,
-# "count": doc_count, "batch": <build timestamp>}), plus one "__meta__" document carrying
-# build info. `phrase` is 1 to MAX_PHRASE_WORDS words, normalized and joined by a single
-# space -- the same shape `autocorrect_query` looks phrases up by.
-TOP_N_GRAMS_COLLECTION = "top_n_grams_for_search_autocorrect"
-_META_ID = "__meta__"
-# Mongo bulk_write payloads are chunked at this size so a full-library build (potentially
-# millions of phrases, now that every 1-3 word run is counted rather than every word) doesn't
-# assemble one enormous in-memory request.
-_BULK_WRITE_CHUNK_SIZE = 5000
+# Where the built table lives: one `datrie` trie file (see `save_top_n_grams_trie`) in a
+# public-read GCS bucket. Public, because it's derived entirely from public library text --
+# so the name service downloads it over plain HTTPS with no credentials (only the CronJob,
+# which writes it, authenticates). `TOP_N_GRAMS_TRIE_SOURCE` in local_settings overrides the
+# URL, or points at a local file path instead (local dev / tests).
+TRIE_BUCKET = "sefaria-search-autocorrect"
+TRIE_BLOB = "top_n_grams_for_search_autocorrect.trie"
+TRIE_URL = f"https://storage.googleapis.com/{TRIE_BUCKET}/{TRIE_BLOB}"
+_DOWNLOAD_TIMEOUT_SECONDS = 120
 # build_top_n_grams splits each phrase-length level into this many passes over the spooled
 # segments to bound the size of the in-memory counter (see its docstring).
 _DEFAULT_NUM_SHARDS = 16
@@ -99,6 +99,15 @@ MAX_PHRASE_WORDS = 3
 # for the user's attention (see the module docstring's "mari" vs "maariv" example), and the
 # correction is confident enough to apply automatically, same as a single-candidate fix.
 AMBIGUITY_LOG_GAP = 1.0
+
+# Queries past either limit are searched as typed, never corrected. Candidate generation is
+# linear in query length but pure-Python CPU on the single-worker name service (shared with
+# autocomplete), and a 5,000-character query costs seconds -- while no real typo-prone query
+# is anywhere near this long.
+MAX_QUERY_CHARS = 100
+MAX_QUERY_WORDS = 10
+
+_DIGIT_RE = re.compile(r'\d')
 
 # Strip every leading/trailing non-word character (regular punctuation, ASCII/Hebrew quote
 # marks, etc) but leave the interior of the word untouched -- this is what keeps an
@@ -303,35 +312,6 @@ def build_top_n_grams(min_doc_count: Union[int, Sequence[int]], langs=('he', 'en
     return result
 
 
-def save_top_n_grams(top_n_grams: Dict[str, int], min_doc_count: Union[int, Sequence[int]]) -> None:
-    """
-    Persist a freshly built top-n-grams table to `db.top_n_grams_for_search_autocorrect`, one
-    document per phrase, so every web pod can load it at startup with a single query and no
-    file/bucket to ship.
-
-    Writes are tagged with a fresh `batch` id (a timestamp); once every phrase of the new
-    batch has been upserted, documents left over from the previous batch (an old phrase that
-    no longer clears `min_doc_count`, or was dropped from the library) are deleted. Readers
-    never see a half-written table -- concurrently, they see the previous complete batch
-    until this finishes, then the new one.
-    """
-    batch = time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())
-    items = list(top_n_grams.items())
-    for i in range(0, len(items), _BULK_WRITE_CHUNK_SIZE):
-        chunk = items[i:i + _BULK_WRITE_CHUNK_SIZE]
-        db[TOP_N_GRAMS_COLLECTION].bulk_write(
-            [UpdateOne({"_id": phrase}, {"$set": {"count": count, "batch": batch}}, upsert=True)
-             for phrase, count in chunk],
-            ordered=False,
-        )
-    db[TOP_N_GRAMS_COLLECTION].delete_many({"_id": {"$ne": _META_ID}, "batch": {"$ne": batch}})
-    db[TOP_N_GRAMS_COLLECTION].update_one(
-        {"_id": _META_ID},
-        {"$set": {"min_doc_count": min_doc_count, "generated": batch, "num_words": len(top_n_grams)}},
-        upsert=True,
-    )
-
-
 _TRIE_ALPHABET = frozenset(letter_scope)
 
 # What the lookup functions accept for either table: a datrie trie from `build_phrase_trie`
@@ -373,20 +353,91 @@ def build_phrase_trie(items: Iterable[Tuple[str, Union[int, float]]], int_values
     return trie
 
 
+def save_top_n_grams_trie(top_n_grams: Dict[str, int], path: str) -> int:
+    """
+    Build the runtime trie from a freshly built table (see `build_phrase_trie`) and save it to
+    `path` with datrie's own binary format, which `load_top_n_grams` reads back in about a
+    second. Keys are inserted in sorted order, which datrie builds far faster than random
+    order. Returns the number of phrases in the saved trie.
+    """
+    trie = build_phrase_trie(sorted(top_n_grams.items()))
+    trie.save(path)
+    return len(trie)
+
+
+def upload_top_n_grams_trie(path: str, num_phrases: int, min_doc_count: Union[int, Sequence[int]]) -> None:
+    """
+    Upload the trie file at `path` to `TRIE_BUCKET`/`TRIE_BLOB`, replacing the previous one
+    atomically. Build info rides along as object metadata, which `load_top_n_grams` reads off
+    the download's response headers to log what it loaded. `no-cache` stops GCS's edge cache
+    (on by default for public objects) from serving the previous table for up to an hour.
+
+    Needs write credentials -- GoogleStorageManager's service account
+    (GOOGLE_APPLICATION_CREDENTIALS_FILEPATH, mounted into the CronJob).
+    """
+    from sefaria.google_storage_manager import GoogleStorageManager
+    blob = GoogleStorageManager.get_bucket(TRIE_BUCKET).blob(TRIE_BLOB)
+    blob.metadata = {
+        "generated": time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
+        "num-phrases": str(num_phrases),
+        "min-doc-count": " ".join(str(v) for v in thresholds_by_length(min_doc_count)),
+    }
+    blob.cache_control = "no-cache"
+    blob.upload_from_filename(path, content_type="application/octet-stream")
+
+
+def _trie_source() -> str:
+    from django.conf import settings
+    return getattr(settings, "TOP_N_GRAMS_TRIE_SOURCE", None) or TRIE_URL
+
+
+def _download(url: str, dest) -> dict:
+    """Stream `url` into the open binary file `dest`; returns the response headers."""
+    with requests.get(url, stream=True, timeout=_DOWNLOAD_TIMEOUT_SECONDS) as resp:
+        resp.raise_for_status()
+        for chunk in resp.iter_content(chunk_size=1 << 20):
+            dest.write(chunk)
+        return dict(resp.headers)
+
+
 def load_top_n_grams() -> datrie.BaseTrie:
     """
-    Load the top-n-grams table built by the most recent
-    `scripts/build_top_n_grams_for_search_autocorrect.py` run from Mongo, as a trie (see
-    `build_phrase_trie`). Returns an empty trie (which silently disables auto-correction --
-    `autocorrect_query` always returns None against an empty table) if it hasn't been built
-    yet in this environment, or on any read error -- that must not be a startup error.
+    Load the top-n-grams trie saved by the most recent
+    `scripts/build_top_n_grams_for_search_autocorrect.py` run: downloaded from GCS (see
+    `TRIE_URL`), or read from a local path if `TOP_N_GRAMS_TRIE_SOURCE` names one.
+
+    Never fails startup. If the trie is missing, unreadable, or empty, this returns an
+    empty trie, which disables auto-correction (`autocorrect_query` returns None against it).
+    That outcome is logged at ERROR under the stable event name
+    `top_n_grams_for_search_autocorrect_unavailable`, so a log-based alert can catch it -- an
+    empty table otherwise looks exactly like a working one.
     """
+    source = _trie_source()
+    generated, num_phrases = None, None
     try:
-        cursor = db[TOP_N_GRAMS_COLLECTION].find({"_id": {"$ne": _META_ID}}, {"count": 1})
-        return build_phrase_trie((doc["_id"], doc["count"]) for doc in cursor)
+        if source.startswith(("http://", "https://")):
+            with tempfile.NamedTemporaryFile(suffix=".trie") as f:
+                headers = _download(source, f)
+                f.flush()
+                trie = datrie.BaseTrie.load(f.name)
+            generated = headers.get("x-goog-meta-generated")
+            num_phrases = headers.get("x-goog-meta-num-phrases")
+        else:
+            trie = datrie.BaseTrie.load(source)
+        if num_phrases is None:
+            num_phrases = len(trie)  # walks every key (~1s); only when no metadata says
+        num_phrases = int(num_phrases)
     except Exception as e:
-        logger.warning(f"Could not load top-n-grams table from Mongo: {e}")
+        logger.error("top_n_grams_for_search_autocorrect_unavailable", source=source,
+                     reason=f"{type(e).__name__}: {e}")
         return build_phrase_trie(())
+    if num_phrases == 0:
+        logger.error("top_n_grams_for_search_autocorrect_unavailable", source=source, reason="empty table",
+                     generated=generated)
+    else:
+        logger.info("top_n_grams_for_search_autocorrect_loaded", source=source, num_phrases=num_phrases,
+                    generated=generated)
+    return trie
 
 
 # --- Autocorrect -----------------------------------------------------------------------
@@ -457,6 +508,18 @@ def _tie_break_score(count: int) -> float:
     return math.log10(1 + max(count, 0))
 
 
+def _keeps_numbers(phrase_words: List[str], candidate: str) -> bool:
+    """
+    Whether `candidate` leaves every digit-bearing word of the phrase exactly as typed. A
+    number in a query is almost always a citation ("berakhot 2a", "genesis 1:3") where a
+    one-character change lands on a different, perfectly valid page -- not a typo fix.
+    """
+    candidate_words = candidate.split()
+    if len(candidate_words) != len(phrase_words):
+        return False  # a space was deleted, merging some word into or out of a number
+    return all(cw == pw for pw, cw in zip(phrase_words, candidate_words) if _DIGIT_RE.search(pw))
+
+
 def _ranked_candidates(phrase: str, top_n_grams: PhraseTable,
                         entity_alt_index: Optional[PhraseTable] = None) -> List[Tuple[str, float]]:
     """
@@ -464,10 +527,15 @@ def _ranked_candidates(phrase: str, top_n_grams: PhraseTable,
     tie-break score -- the higher of the two sources' scores when a candidate is found in
     both. Sorted by score descending; ties broken by the candidate string itself, so the
     order (and so `autocorrect_query`'s choice among equally-scored candidates) is
-    deterministic rather than dependent on set iteration order.
+    deterministic rather than dependent on set iteration order. Candidates that change a
+    word containing a digit are dropped (see `_keeps_numbers`).
     """
     scores: Dict[str, float] = {}
-    for c in _one_edit_candidates(phrase):
+    candidates = _one_edit_candidates(phrase)
+    if _DIGIT_RE.search(phrase):
+        words = phrase.split()
+        candidates = {c for c in candidates if _keeps_numbers(words, c)}
+    for c in candidates:
         if c in top_n_grams:
             score = _tie_break_score(top_n_grams[c])
             if c not in scores or score > scores[c]:
@@ -532,10 +600,16 @@ class AmbiguousCandidates:
     """
     Signals that a window had more than one candidate correction close enough in score
     (within AMBIGUITY_LOG_GAP of the top one) that picking a single winner would be a guess.
-    `queries` holds one full, ready-to-search query per competing candidate -- the same
-    window substituted with each candidate in turn -- sorted A-Z.
+    `scored_queries` holds one full, ready-to-search query per competing candidate -- the same
+    window substituted with each candidate in turn -- paired with that candidate's tie-break
+    score, most likely first.
     """
-    queries: List[str] = field(default_factory=list)
+    scored_queries: List[Tuple[str, float]] = field(default_factory=list)
+
+
+def _by_score(scored: Dict[str, float]) -> List[str]:
+    """Queries most likely first; equal scores A-Z, so the order is deterministic."""
+    return [q for q, _ in sorted(scored.items(), key=lambda pair: (-pair[1], pair[0]))]
 
 
 def _try_window(words: List[str], normalized: List[str], start: int, end: int,
@@ -563,9 +637,12 @@ def _try_window(words: List[str], normalized: List[str], start: int, end: int,
         # More than one candidate is still in play this close to the top score -- every one
         # of them, not just the top two (a third could be just as close), is a genuine
         # competitor. Surface them all rather than guess among them.
-        competing = {c for c, score in ranked if top_score - score < AMBIGUITY_LOG_GAP}
-        queries = sorted(_substitute_window(words, normalized, start, end, c) for c in competing)
-        return AmbiguousCandidates(queries=queries)
+        scored = {}
+        for c, score in ranked:
+            if top_score - score < AMBIGUITY_LOG_GAP:
+                q = _substitute_window(words, normalized, start, end, c)
+                scored[q] = max(score, scored.get(q, score))
+        return AmbiguousCandidates(scored_queries=[(q, scored[q]) for q in _by_score(scored)])
 
     return _substitute_window(words, normalized, start, end, ranked[0][0])
 
@@ -577,7 +654,7 @@ class AutocorrectResult:
       `corrected_query` instead of what was typed.
     - `corrected_query` None, `suggested_queries` set: too ambiguous to correct -- search
       `original_query` as typed (the "bad"/uncorrected result), but offer `suggested_queries`
-      (sorted A-Z) as alternatives the reader can pick instead of guessing for them.
+      (most likely first) as alternatives the reader can pick instead of guessing for them.
     """
     original_query: str
     corrected_query: Optional[str] = None
@@ -607,6 +684,8 @@ def autocorrect_query(query: str, top_n_grams: PhraseTable,
       `_correct_long_query_by_trigrams`. Every other word is left exactly as typed. A query
       with no such correction (every window attested, none fixable within a 1-edit budget, or
       fixable windows that disagree about the edit) returns None.
+    - A query longer than MAX_QUERY_CHARS or MAX_QUERY_WORDS is never corrected (returns None).
+    - A word containing a digit is never changed (see `_keeps_numbers`).
 
     :param query: the raw query text as typed/submitted.
     :param top_n_grams: {normalized_phrase: doc_count}, e.g. `library._top_n_grams_for_search_autocorrect`.
@@ -616,13 +695,15 @@ def autocorrect_query(query: str, top_n_grams: PhraseTable,
     :return: an AutocorrectResult if a correction or an ambiguous-suggestions result applies,
         else None (search `query` as typed, with nothing to show about it).
     """
+    if len(query or '') > MAX_QUERY_CHARS:
+        return None
     query = normalize_query(query)
     if entity_alt_index is not None and _is_empty(entity_alt_index):
         entity_alt_index = None  # decide emptiness once per query, in O(1) -- see _is_empty
     if not query or (_is_empty(top_n_grams) and entity_alt_index is None):
         return None
     words = query.split()
-    if not words:
+    if not words or len(words) > MAX_QUERY_WORDS:
         return None
     normalized = [normalize_chars(normalize_word(w)) for w in words]  # same as the table's keys
     n = len(normalized)
@@ -631,7 +712,7 @@ def autocorrect_query(query: str, top_n_grams: PhraseTable,
         if result is None:
             return None
         if isinstance(result, AmbiguousCandidates):
-            return AutocorrectResult(original_query=query, suggested_queries=result.queries)
+            return AutocorrectResult(original_query=query, suggested_queries=[q for q, _ in result.scored_queries])
         return AutocorrectResult(original_query=query, corrected_query=result)
 
     if n <= MAX_PHRASE_WORDS:
@@ -662,16 +743,17 @@ def _correct_long_query_by_trigrams(words: List[str], normalized: List[str], top
     - the only fixable windows are ambiguous (see AMBIGUITY_LOG_GAP): their competing queries
       come back together as suggestions.
     """
-    confident, ambiguous = set(), set()
+    confident, ambiguous = set(), {}
     for start in range(len(normalized) - MAX_PHRASE_WORDS + 1):
         result = _try_window(words, normalized, start, start + MAX_PHRASE_WORDS, top_n_grams, entity_alt_index)
         if isinstance(result, AmbiguousCandidates):
-            ambiguous.update(result.queries)
+            for q, score in result.scored_queries:
+                ambiguous[q] = max(score, ambiguous.get(q, score))
         elif result:
             confident.add(result)
     original = " ".join(words)
     if len(confident) == 1 and not ambiguous:
         return AutocorrectResult(original_query=original, corrected_query=next(iter(confident)))
     if ambiguous and not confident:
-        return AutocorrectResult(original_query=original, suggested_queries=sorted(ambiguous))
+        return AutocorrectResult(original_query=original, suggested_queries=_by_score(ambiguous))
     return None

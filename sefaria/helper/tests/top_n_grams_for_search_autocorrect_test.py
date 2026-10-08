@@ -9,15 +9,14 @@ covered by linker_test.py / normalization_tests.py, and re-exercising it here wo
 this a library-build integration test rather than a unit test of this module's own logic.
 These tests instead take tokenized word lists and top-n-grams dicts as given and cover what's
 actually local to this module: phrase generation from a token list, the edit-distance-1
-search, the phrase-vs-single-word correction policy, and the Mongo load/save round trip
-(faked, so no real Mongo is required).
+search, the phrase-vs-single-word correction policy, and the trie file save/load round trip
+(local files and a faked download, so no network is required).
 """
 import pytest
 
 from sefaria.helper.top_n_grams_for_search_autocorrect import (
     MAX_PHRASE_WORDS,
     AMBIGUITY_LOG_GAP,
-    _META_ID,
     normalize_word,
     _segment_phrases,
     _one_edit_candidates,
@@ -28,9 +27,11 @@ from sefaria.helper.top_n_grams_for_search_autocorrect import (
     AmbiguousCandidates,
     AutocorrectResult,
     autocorrect_query,
-    save_top_n_grams,
+    save_top_n_grams_trie,
     build_phrase_trie,
     load_top_n_grams,
+    MAX_QUERY_CHARS,
+    MAX_QUERY_WORDS,
 )
 import sefaria.helper.top_n_grams_for_search_autocorrect as top_n_grams_for_search_autocorrect
 
@@ -213,7 +214,7 @@ def test_try_window_returns_ambiguous_candidates_when_scores_are_close():
     normalized = [normalize_word(w) for w in words]
     result = _try_window(words, normalized, 0, 1, top_n_grams)
     assert isinstance(result, AmbiguousCandidates)
-    assert result.queries == ["cap", "cot"]  # sorted A-Z
+    assert [q for q, _ in result.scored_queries] == ["cot", "cap"]  # most likely first
 
 
 def test_try_window_confident_when_disparity_is_large():
@@ -232,7 +233,7 @@ def test_try_window_ambiguous_includes_every_candidate_within_the_gap_not_just_t
     normalized = [normalize_word(w) for w in words]
     result = _try_window(words, normalized, 0, 1, top_n_grams)
     assert isinstance(result, AmbiguousCandidates)
-    assert result.queries == ["cap", "cot", "cut"]
+    assert [q for q, _ in result.scored_queries] == ["cot", "cap", "cut"]
 
 
 def test_try_window_ambiguous_preserves_surrounding_words_per_suggestion():
@@ -241,7 +242,7 @@ def test_try_window_ambiguous_preserves_surrounding_words_per_suggestion():
     normalized = [normalize_word(w) for w in words]
     result = _try_window(words, normalized, 1, 2, top_n_grams)
     assert isinstance(result, AmbiguousCandidates)
-    assert result.queries == ["The cap sat", "The cot sat"]
+    assert [q for q, _ in result.scored_queries] == ["The cot sat", "The cap sat"]
 
 
 # --------------------------------------------------------------------------- #
@@ -308,7 +309,7 @@ def test_autocorrect_query_long_query_ambiguous_trigrams_return_suggestions():
     top_n_grams = {"the cot sat": 50, "the cap sat": 40}
     result = autocorrect_query("the cat sat down", top_n_grams)
     assert result == AutocorrectResult(
-        original_query="the cat sat down", suggested_queries=["the cap sat down", "the cot sat down"])
+        original_query="the cat sat down", suggested_queries=["the cot sat down", "the cap sat down"])
 
 
 def test_autocorrect_query_long_query_unfixable_returns_none():
@@ -384,7 +385,7 @@ def test_autocorrect_query_ambiguous_returns_suggestions_not_a_correction():
     top_n_grams = {"cot": 50, "cap": 40}
     result = autocorrect_query("cat", top_n_grams)
     assert result == AutocorrectResult(
-        original_query="cat", corrected_query=None, suggested_queries=["cap", "cot"])
+        original_query="cat", corrected_query=None, suggested_queries=["cot", "cap"])
 
 
 def test_autocorrect_query_confident_when_disparity_is_large():
@@ -401,7 +402,7 @@ def test_autocorrect_query_ambiguous_in_a_long_query_keeps_surrounding_words():
     assert result == AutocorrectResult(
         original_query="The cat sat down",
         corrected_query=None,
-        suggested_queries=["The cap sat down", "The cot sat down"])
+        suggested_queries=["The cot sat down", "The cap sat down"])
 
 
 def test_autocorrect_query_ambiguous_between_top_n_grams_and_entity_alt_candidates():
@@ -411,7 +412,7 @@ def test_autocorrect_query_ambiguous_between_top_n_grams_and_entity_alt_candidat
     entity_alt_index = {"cot": 1.7}
     result = autocorrect_query("cat", top_n_grams, entity_alt_index)
     assert result == AutocorrectResult(
-        original_query="cat", corrected_query=None, suggested_queries=["cap", "cot"])
+        original_query="cat", corrected_query=None, suggested_queries=["cot", "cap"])
 
 
 def test_ambiguity_log_gap_is_one_order_of_magnitude():
@@ -419,94 +420,98 @@ def test_ambiguity_log_gap_is_one_order_of_magnitude():
     assert AMBIGUITY_LOG_GAP == 1.0
 
 
+def test_ambiguous_suggestions_equal_scores_fall_back_to_a_z():
+    result = autocorrect_query("cat", {"cot": 40, "cap": 40})
+    assert result.suggested_queries == ["cap", "cot"]
+
+
 # --------------------------------------------------------------------------- #
-#  save_top_n_grams / load_top_n_grams (faked Mongo)                         #
+#  Numbers are never edited                                                   #
 # --------------------------------------------------------------------------- #
 
-class _FakeCollection:
-    """
-    Stands in for db[TOP_N_GRAMS_COLLECTION]: just enough of the pymongo collection API
-    (bulk_write, delete_many, update_one, find) for save_top_n_grams/load_top_n_grams to run
-    against, backed by a plain dict instead of a real Mongo server.
-    """
-    def __init__(self):
-        self.docs = {}
-        self.bulk_write_calls = 0
-
-    def bulk_write(self, ops, ordered=False):
-        self.bulk_write_calls += 1
-        for op in ops:
-            doc = self.docs.setdefault(op._filter["_id"], {"_id": op._filter["_id"]})
-            doc.update(op._doc["$set"])
-
-    def delete_many(self, filt):
-        keep_id = filt["_id"]["$ne"]
-        keep_batch = filt["batch"]["$ne"]
-        for _id in [k for k, d in self.docs.items() if k != keep_id and d.get("batch") != keep_batch]:
-            del self.docs[_id]
-
-    def update_one(self, filt, update, upsert=True):
-        doc = self.docs.setdefault(filt["_id"], {"_id": filt["_id"]})
-        doc.update(update["$set"])
-
-    def find(self, filt, projection=None):
-        exclude_id = filt["_id"]["$ne"]
-        return [dict(d) for _id, d in self.docs.items() if _id != exclude_id]
+def test_autocorrect_query_never_edits_a_number():
+    # "berakhot 2a" is a citation, not a typo of a neighboring daf.
+    top_n_grams = {"berakhot 22a": 50, "berakhot 5a": 40, "berakhot 8a": 30}
+    assert autocorrect_query("berakhot 2a", top_n_grams) is None
 
 
-class _FakeDb:
-    def __init__(self, collection):
-        self._collection = collection
+def test_autocorrect_query_still_fixes_words_next_to_a_number():
+    top_n_grams = {"berakhot 2a": 50}
+    assert autocorrect_query("berakhto 2a", top_n_grams) == AutocorrectResult(
+        original_query="berakhto 2a", corrected_query="berakhot 2a")
 
-    def __getitem__(self, name):
-        return self._collection
 
+def test_autocorrect_query_never_merges_a_word_into_a_number():
+    # Deleting the space would change the digit-bearing word "2a" into "berakhot2a".
+    assert autocorrect_query("berakhot 2a", {"berakhot2a": 50}) is None
+
+
+# --------------------------------------------------------------------------- #
+#  Query length caps                                                          #
+# --------------------------------------------------------------------------- #
+
+def test_autocorrect_query_skips_queries_over_the_char_cap():
+    top_n_grams = {"bereishit": 100}
+    long_query = "bereshit " + "x" * MAX_QUERY_CHARS
+    assert autocorrect_query(long_query, top_n_grams) is None
+
+
+def test_autocorrect_query_skips_queries_over_the_word_cap():
+    top_n_grams = {"the cot sat": 50}
+    query = "the cat sat " + " ".join(["w"] * (MAX_QUERY_WORDS - 2))
+    assert len(query) <= MAX_QUERY_CHARS
+    assert autocorrect_query(query, top_n_grams) is None
+
+
+# --------------------------------------------------------------------------- #
+#  save_top_n_grams_trie / load_top_n_grams                                   #
+# --------------------------------------------------------------------------- #
 
 @pytest.fixture
-def fake_mongo(monkeypatch):
-    collection = _FakeCollection()
-    monkeypatch.setattr(top_n_grams_for_search_autocorrect, "db", _FakeDb(collection))
-    return collection
+def trie_source(monkeypatch):
+    def point_at(source):
+        monkeypatch.setattr(top_n_grams_for_search_autocorrect, "_trie_source", lambda: source)
+    return point_at
 
 
-def test_save_then_load_top_n_grams_round_trips(fake_mongo):
+def test_save_then_load_trie_round_trips_from_a_local_file(tmp_path, trie_source):
+    path = str(tmp_path / "t.trie")
     top_n_grams = {"bereishit rabbah": 10, "the": 100}
-    save_top_n_grams(top_n_grams, min_doc_count=3)
+    assert save_top_n_grams_trie(top_n_grams, path) == 2
+    trie_source(path)
     assert dict(load_top_n_grams().items()) == top_n_grams
 
 
-def test_save_top_n_grams_removes_phrases_dropped_from_a_later_batch(fake_mongo, monkeypatch):
-    # Batch ids are a timestamp with 1-second resolution; force two distinct ones rather
-    # than relying on this test spanning a real wall-clock second boundary.
-    batches = iter(["batch-1", "batch-2"])
-    monkeypatch.setattr(top_n_grams_for_search_autocorrect.time, "strftime", lambda *a, **k: next(batches))
-    save_top_n_grams({"old phrase": 5}, min_doc_count=3)
-    save_top_n_grams({"new phrase": 5}, min_doc_count=3)
-    assert dict(load_top_n_grams().items()) == {"new phrase": 5}
+def test_load_trie_downloads_from_a_url(tmp_path, trie_source, monkeypatch):
+    path = str(tmp_path / "t.trie")
+    save_top_n_grams_trie({"the": 100}, path)
+
+    def fake_download(url, dest):
+        with open(path, "rb") as f:
+            dest.write(f.read())
+        return {"x-goog-meta-generated": "2026-10-08T00:00:00Z", "x-goog-meta-num-phrases": "1"}
+
+    monkeypatch.setattr(top_n_grams_for_search_autocorrect, "_download", fake_download)
+    trie_source("https://storage.googleapis.com/bucket/t.trie")
+    assert dict(load_top_n_grams().items()) == {"the": 100}
 
 
-def test_save_top_n_grams_writes_meta_document(fake_mongo):
-    save_top_n_grams({"a": 10}, min_doc_count=3)
-    meta = fake_mongo.docs[_META_ID]
-    assert meta["min_doc_count"] == 3
-    assert meta["num_words"] == 1
-    assert "generated" in meta
+def test_load_trie_returns_empty_trie_and_logs_error_on_failure(trie_source, monkeypatch):
+    errors = []
+    monkeypatch.setattr(top_n_grams_for_search_autocorrect.logger, "error", lambda event, **kw: errors.append(event))
+    trie_source("/nonexistent/path.trie")
+    assert dict(load_top_n_grams().items()) == {}
+    assert errors == ["top_n_grams_for_search_autocorrect_unavailable"]
 
 
-def test_save_top_n_grams_chunks_bulk_writes(fake_mongo, monkeypatch):
-    monkeypatch.setattr(top_n_grams_for_search_autocorrect, "_BULK_WRITE_CHUNK_SIZE", 2)
-    save_top_n_grams({"a": 1, "b": 1, "c": 1, "d": 1, "e": 1}, min_doc_count=0)
-    assert fake_mongo.bulk_write_calls == 3  # ceil(5 / 2)
-    assert dict(load_top_n_grams().items()) == {"a": 1, "b": 1, "c": 1, "d": 1, "e": 1}
-
-
-def test_load_top_n_grams_returns_empty_trie_on_error(monkeypatch):
-    class _BrokenCollection:
-        def find(self, *args, **kwargs):
-            raise RuntimeError("no connection")
-
-    monkeypatch.setattr(top_n_grams_for_search_autocorrect, "db", _FakeDb(_BrokenCollection()))
-    assert len(load_top_n_grams()) == 0
+def test_load_trie_logs_error_when_table_is_empty(tmp_path, trie_source, monkeypatch):
+    errors = []
+    monkeypatch.setattr(top_n_grams_for_search_autocorrect.logger, "error", lambda event, **kw: errors.append(event))
+    path = str(tmp_path / "empty.trie")
+    save_top_n_grams_trie({}, path)
+    trie_source(path)
+    assert dict(load_top_n_grams().items()) == {}
+    assert errors == ["top_n_grams_for_search_autocorrect_unavailable"]
 
 
 # --------------------------------------------------------------------------- #

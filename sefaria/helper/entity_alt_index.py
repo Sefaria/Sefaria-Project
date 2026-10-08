@@ -3,7 +3,7 @@
 Runtime-only entity alt-title/name index for search-query auto-correction (sc-47189).
 
 Unlike sefaria/helper/top_n_grams_for_search_autocorrect.py's corpus phrase table -- built by
-a weekly CronJob and persisted to Mongo (`db.top_n_grams_for_search_autocorrect`) -- this
+a weekly CronJob and saved as a trie file in GCS -- this
 index is built fresh in-process at startup from already-live Mongo collections
 (Index / Topic / AuthorTopic) and is NEVER written back to Mongo. There is no
 `db.entity_alt_index` collection, and there must never be one: every web pod rebuilds this
@@ -18,7 +18,8 @@ top-n-grams candidate on one scale (see
 "Mishne Torah" -> "Mishneh Torah" even though that phrase never clears the top-n-grams
 table's doc-count threshold, or exceeds its MAX_PHRASE_WORDS cap.
 
-`Library.build_entity_alt_index()` (sefaria/model/text.py) builds this once per process, from
+`Library.build_entity_alt_index()` (sefaria/model/text.py) builds this once per process
+(only on the name service, or wherever DISABLE_AUTOCOMPLETER is off), from
 `init_library_cache()` (reader/startup.py), onto `Library._entity_alt_index`. Normalization
 deliberately reuses top_n_grams_for_search_autocorrect.py's own (`tokenize`: the linker
 normalizer, simple whitespace split, `normalize_word`) -- not the separate ES-analyzer-mirroring tokenizer in

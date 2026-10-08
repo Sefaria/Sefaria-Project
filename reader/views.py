@@ -647,6 +647,7 @@ def make_search_panel_dict(get_dict, i, **kwargs):
         "searchQuery": search_params["query"],
         "searchType": search_params["tab"],
         "tab": search_params["search_tab"],
+        "searchNoAutocorrect": search_params["no_autocorrect"],
     }
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
@@ -1080,6 +1081,8 @@ def get_search_params(get_dict, i=None):
         # `tab` is the text/sheet search type; `search_tab` is the active results tab
         # on the search page (sources/books/authors/topics).
         "search_tab": urllib.parse.unquote(get_dict.get(get_param("search_tab", i), "")) or None,
+        # "Search instead for <original query>" (sc-47189): search `query` exactly as typed.
+        "no_autocorrect": get_dict.get(get_param("no_autocorrect", i)) == "1",
         "field": field,
         "sort": sort,
         "filters": filters,
@@ -1121,6 +1124,7 @@ def search(request):
         "initialMenu": "search",
         "initialQuery": search_params["query"],
         "initialSearchTab": search_params["search_tab"],
+        "initialSearchNoAutocorrect": search_params["no_autocorrect"],
         "initialSearchFilters": search_params["filters"],
         "initialSearchFilterAggTypes": search_params["filterAggTypes"],
         "initialSearchField": search_params["field"],
@@ -4936,12 +4940,14 @@ def search_autocorrect_api(request):
     -- several candidates too close in popularity to pick one with confidence, see
     AMBIGUITY_LOG_GAP in sefaria/helper/top_n_grams_for_search_autocorrect.py -- sets
     `suggested_queries` for a "did you mean" prompt while the original query still runs.
-    The two are mutually exclusive.
+    The two are mutually exclusive. `suggested_queries` is ordered most likely first. Queries
+    past MAX_QUERY_CHARS / MAX_QUERY_WORDS are never corrected.
 
     Served by the name service when deployed, like /api/name: it holds the top-n-grams table
     and entity alt index (see reader/startup.py), which web pods deliberately don't load. The
     search endpoints themselves (search_wrapper_api, entity_search_api) never correct -- the
-    client calls this first and searches whatever it returns.
+    client calls this first and searches whatever it returns. Varnish caches responses by URL
+    (see varnish-config.yaml), so there's deliberately no per-request parameter beyond `q`.
     """
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -4950,7 +4956,7 @@ def search_autocorrect_api(request):
     return jsonResponse({
         "corrected_query": result.corrected_query if result else None,
         "suggested_queries": result.suggested_queries if result else None,
-    }, callback=request.GET.get("callback", None))
+    })
 
 
 @csrf_exempt

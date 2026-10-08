@@ -63,6 +63,7 @@ class ReaderApp extends Component {
         mode:                    "Menu",
         menuOpen:                props.initialMenu,
         searchQuery:             props.initialQuery,
+        searchNoAutocorrect:     props.initialSearchNoAutocorrect,
         tab:                     props.initialSearchTab,
         topicSort:               props.initialTopicSort,
         searchState: new SearchState({
@@ -177,6 +178,8 @@ class ReaderApp extends Component {
       translationsSlug:        state.translationsSlug        || null,
       collectionData:          state.collectionData          || null,
       searchQuery:             state.searchQuery             || null,
+      // "Search instead for <original query>" (sc-47189): auto-correction off for this query.
+      searchNoAutocorrect:     state.searchNoAutocorrect     || false,
       showHighlight:           state.showHighlight           || null,
       searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),
       compare:                 state.compare                 || false,
@@ -451,6 +454,7 @@ class ReaderApp extends Component {
           (JSON.stringify(next.connectionData) !== JSON.stringify(prev.connectionData)) ||
           (!Sefaria.areBothVersionsEqual(prev.currVersions, next.currVersions)) ||
           (prev.searchQuery != next.searchQuery) ||
+          (!!prev.searchNoAutocorrect !== !!next.searchNoAutocorrect) ||
           (prev.tab !== next.tab) ||
           (prev.topicSort !== next.topicSort) ||
           (prev.collectionName !== next.collectionName) ||
@@ -555,7 +559,9 @@ class ReaderApp extends Component {
             // `tab` is taken on search URLs (it means the text/sheet search type),
             // so the active results tab (sources/books/authors/topics) is `search_tab`.
             const searchTab = state.tab ? `&search_tab=${encodeURIComponent(state.tab)}` : "";
-            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` + searchTab +
+            // sc-47189: keeps "Search instead for <original query>" across refresh/back/shared links.
+            const noAutocorrect = state.searchNoAutocorrect ? "&no_autocorrect=1" : "";
+            hist.url   = "search" + (state.searchQuery ? (`&q=${query}&tab=${state.searchState.type}` + searchTab + noAutocorrect +
               state.searchState.makeURL({ prefix: prefix, isStart: false })) : "");
             hist.mode  = "search";
             break;
@@ -1473,6 +1479,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     const state = this.state.panels[n];
     const updates = {
       searchQuery: query,
+      searchNoAutocorrect: false,  // a new query is auto-corrected again (sc-47189)
       searchState: state.searchState.update({ filtersValid: false }),
     };
     this.setPanelState(n, updates);
@@ -2641,6 +2648,7 @@ ReaderApp.propTypes = {
   initialCollectionData:       PropTypes.object,
   initialQuery:                PropTypes.string,
   initialSearchTab:            PropTypes.string,
+  initialSearchNoAutocorrect:  PropTypes.bool,
   initialSearchFilters:        PropTypes.array,
   initialSearchField:          PropTypes.string,
   initialSearchSortType:       PropTypes.string,

@@ -29,8 +29,8 @@ import SearchAnalytics, { tabLabel } from './sefaria/searchAnalytics';
 
 /**
  * Fuzzy-search query auto-correction (sc-47189). Shown once, above the tab strip, when the
- * server auto-corrected the typed query against the top-n-grams table (see search_wrapper_api /
- * entity_search_api / ElasticSearchQuerier) -- the same correction applies to every tab
+ * name service's /api/search-autocorrect corrected the typed query (see search_autocorrect_api
+ * and ElasticSearchQuerier._resolveAutocorrect) -- the same correction applies to every tab
  * (Sources/Books/Authors/Topics), so there's one shared banner rather than one per tab.
  * The search bar itself keeps showing what the user actually typed -- this banner is the
  * only place `correctedQuery` vs `originalQuery` is surfaced. The first line's term is
@@ -122,7 +122,7 @@ SearchAutocorrectBannerContent.propTypes = {
 /**
  * The "did you mean" state (sc-47189): rendered instead of SearchAutocorrectBannerContent when
  * the query was too ambiguous to correct with confidence. Each suggestion is a full,
- * ready-to-search query (not just the differing word) sorted A-Z by the server; clicking one
+ * ready-to-search query (not just the differing word), most likely first; clicking one
  * searches it directly, exactly like clicking the corrected term in the confident-correction
  * banner.
  */

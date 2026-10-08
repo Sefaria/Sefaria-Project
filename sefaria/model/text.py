@@ -4513,7 +4513,7 @@ class Library(object):
 
         # Top n-grams table for search-query auto-correction (sc-47189,
         # sefaria/helper/top_n_grams_for_search_autocorrect.py). Empty until
-        # build_top_n_grams_for_search_autocorrect() populates it from Mongo during
+        # build_top_n_grams_for_search_autocorrect() loads it from GCS during
         # init_library_cache() (reader/startup.py) -- mirrors the autocompleters' staged,
         # flag-gated build below rather than doing Mongo I/O unconditionally inside __init__.
         self._top_n_grams_for_search_autocorrect = {}
@@ -4623,9 +4623,10 @@ class Library(object):
         """
         Fuzzy-search POC (sc-47189). See
         sefaria.helper.top_n_grams_for_search_autocorrect.autocorrect_query for the algorithm.
-        Returns (corrected_query, original_query) if `query` should be auto-corrected against
-        the top-n-grams table or the runtime Book/Author/Topic alt-title index
-        (sefaria/helper/entity_alt_index.py), else None (search `query` as typed).
+        Returns an AutocorrectResult (a confident `corrected_query`, or ambiguous
+        `suggested_queries`) if `query` should be corrected against the top-n-grams table or
+        the runtime Book/Author/Topic alt-title index (sefaria/helper/entity_alt_index.py),
+        else None (search `query` as typed).
         """
         from sefaria.helper.top_n_grams_for_search_autocorrect import autocorrect_query
         return autocorrect_query(query, self._top_n_grams_for_search_autocorrect, self._entity_alt_index)
@@ -5030,14 +5031,14 @@ class Library(object):
 
     def build_top_n_grams_for_search_autocorrect(self):
         """
-        Loads the top-n-grams table (search-query auto-correction, sc-47189) from Mongo,
-        where it's written by the scheduled
-        `scripts/build_top_n_grams_for_search_autocorrect.py` CronJob -- this is a read of a
+        Loads the top-n-grams table (search-query auto-correction, sc-47189): the trie file
+        the scheduled `scripts/build_top_n_grams_for_search_autocorrect.py` CronJob uploads to
+        GCS, downloaded and loaded in one step -- this is a read of a
         precomputed artifact, not a build, so unlike the autocompleters above there's no
         expensive in-process construction here. No-op when
         DISABLE_AUTOCOMPLETER is set: like the autocompleters, this table is held only by the
-        name service when deployed. Missing/not-yet-built data just
-        leaves the table empty, silently disabling auto-correction rather than failing startup.
+        name service when deployed. Missing/unreadable data leaves the table empty, disabling
+        auto-correction rather than failing startup -- logged at ERROR so it can be alerted on.
         """
         if DISABLE_AUTOCOMPLETER:
             logger.warning("DISABLE_AUTOCOMPLETER is set; skipping top-n-grams table load.")
