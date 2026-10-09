@@ -1,7 +1,8 @@
 import React from "react";
 import Sefaria from "../sefaria/sefaria";
 import { InterfaceText } from "../Misc";
-import { BILINGUAL_TEXT } from "./bilingualUtils";
+import { TEXT_KEYS } from "./textKeys";
+import { InterfaceTextWithSlots } from "./InterfaceTextWithSlots";
 import { FORM_STATUS } from "./stateSymbols";
 import LearningLevelSurvey from "./LearningLevelSurvey";
 
@@ -57,7 +58,7 @@ function SubscriptionChangesSummary({ diffs, marketingOptOut, newsletters }) {
           {added.length > 0 && (
             <div data-anl-text={added.join(", ")}>
               <p className="selectedLabel">
-                <InterfaceText text={BILINGUAL_TEXT.SUBSCRIBED_TO} />
+                <InterfaceText>{TEXT_KEYS.SUBSCRIBED_TO}</InterfaceText>
               </p>
               <p className="selectedList">{added.map((k) => keyToDisplayLabel(newsletters, k)).join(", ")}</p>
             </div>
@@ -65,7 +66,7 @@ function SubscriptionChangesSummary({ diffs, marketingOptOut, newsletters }) {
           {removed.length > 0 && (
             <div data-anl-text={removed.join(", ")}>
               <p className="selectedLabel">
-                <InterfaceText text={BILINGUAL_TEXT.UNSUBSCRIBED_FROM} />
+                <InterfaceText>{TEXT_KEYS.UNSUBSCRIBED_FROM}</InterfaceText>
               </p>
               <p className="selectedList">{removed.map((k) => keyToDisplayLabel(newsletters, k)).join(", ")}</p>
             </div>
@@ -74,12 +75,12 @@ function SubscriptionChangesSummary({ diffs, marketingOptOut, newsletters }) {
       )}
       {marketingOptOut && (
         <p className="selectedLabel singleCase">
-          <InterfaceText text={BILINGUAL_TEXT.OPTED_OUT_MARKETING} />
+          <InterfaceText>{TEXT_KEYS.OPTED_OUT_MARKETING}</InterfaceText>
         </p>
       )}
       {nothingChanged && (
         <p className="selectedLabel singleCase">
-          <InterfaceText text={BILINGUAL_TEXT.PREFERENCES_UP_TO_DATE} />
+          <InterfaceText>{TEXT_KEYS.PREFERENCES_UP_TO_DATE}</InterfaceText>
         </p>
       )}
     </div>
@@ -152,7 +153,7 @@ export default function NewsletterConfirmationView({
             </div>
 
             <h2 className="confirmationTitle">
-              <InterfaceText text={BILINGUAL_TEXT.THANK_YOU} />
+              <InterfaceText>{TEXT_KEYS.THANK_YOU}</InterfaceText>
             </h2>
 
             {/* CONDITIONAL MESSAGE
@@ -161,14 +162,14 @@ export default function NewsletterConfirmationView({
             */}
             {willReceiveConfirmationEmail ? (
               <p className="confirmationMessage">
-                <InterfaceText text={BILINGUAL_TEXT.CONFIRMATION_SENT} /> <strong>{email}</strong>.<br />
-                <InterfaceText text={BILINGUAL_TEXT.SHOULD_SEE_SOON} />
+                <InterfaceTextWithSlots id={TEXT_KEYS.CONFIRMATION_SENT} slots={{ email: <strong>{email}</strong> }} /><br />
+                <InterfaceText>{TEXT_KEYS.SHOULD_SEE_SOON}</InterfaceText>
               </p>
             ) : (
               <p className="confirmationMessage">
-                <InterfaceText text={BILINGUAL_TEXT.SUBMISSION_RECEIVED} />
+                <InterfaceText>{TEXT_KEYS.SUBMISSION_RECEIVED}</InterfaceText>
                 <br />
-                <InterfaceText text={BILINGUAL_TEXT.PREFERENCES_SAVED} />
+                <InterfaceText>{TEXT_KEYS.PREFERENCES_SAVED}</InterfaceText>
               </p>
             )}
           </>
@@ -185,7 +186,7 @@ export default function NewsletterConfirmationView({
           selectedNewsletterKeys && (
             <div className="selectedNewslettersDisplay" data-anl-text={selectedNewsletterKeys}>
               <p className="selectedLabel">
-                <InterfaceText text={BILINGUAL_TEXT.SUBSCRIBED_TO} />
+                <InterfaceText>{TEXT_KEYS.SUBSCRIBED_TO}</InterfaceText>
               </p>
               <p className="selectedList">{selectedNewsletterLabels}</p>
             </div>

@@ -16,7 +16,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { FORM_STATUS, STAGE } from '../stateSymbols';
-import { BILINGUAL_TEXT } from '../bilingualUtils';
+import { TEXT_KEYS } from '../textKeys';
 
 // ============================================================================
 // Mocks — must be declared before the component import
@@ -27,7 +27,7 @@ jest.mock('../../sefaria/sefaria', () => ({
   _uid: 0,
   _email: null,
   interfaceLang: 'english',
-  _: (text) => text,
+  _: (text) => require('../testSupport/i18nTestUtils').translate(text),
   util: {
     isValidEmailAddress: (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
   },
@@ -105,7 +105,11 @@ jest.mock('../SuccessView', () => {
 });
 
 jest.mock('../../Misc', () => ({
-  InterfaceText: ({ text }) => text.en || text.he || null,
+  // Children are keys (or plain server strings); `text` objects only come from backend data.
+  InterfaceText: ({ text, children }) => {
+    const { translate } = require('../testSupport/i18nTestUtils');
+    return text ? (text.en || text.he || null) : translate(children);
+  },
   LoadingMessage: () => null,
   LoadingRing: () => null,
 }));
@@ -219,16 +223,14 @@ describe('NewsletterSignUpPageForm', () => {
       expect(errors).not.toHaveProperty('confirmEmail');
     });
 
-    it('each error is a bilingual {en, he} object', async () => {
+    it('each error is a TEXT_KEYS key string (resolved to bilingual text at render time)', async () => {
       await renderForm();
       await act(async () => { lastFormViewProps.onSubmit(); });
 
       const errors = lastFormViewProps.fieldErrors;
       Object.values(errors).forEach((err) => {
-        expect(err).toHaveProperty('en');
-        expect(err).toHaveProperty('he');
-        expect(typeof err.en).toBe('string');
-        expect(typeof err.he).toBe('string');
+        expect(typeof err).toBe('string');
+        expect(Object.values(TEXT_KEYS)).toContain(err);
       });
     });
 
@@ -273,17 +275,17 @@ describe('NewsletterSignUpPageForm', () => {
 
     it('missing first name → ENTER_FIRST_NAME', async () => {
       const errors = await submitWithOverrides({ firstName: '' });
-      expect(errors.firstName).toBe(BILINGUAL_TEXT.ENTER_FIRST_NAME);
+      expect(errors.firstName).toBe(TEXT_KEYS.ENTER_FIRST_NAME);
     });
 
     it('missing last name → ENTER_LAST_NAME', async () => {
       const errors = await submitWithOverrides({ lastName: '' });
-      expect(errors.lastName).toBe(BILINGUAL_TEXT.ENTER_LAST_NAME);
+      expect(errors.lastName).toBe(TEXT_KEYS.ENTER_LAST_NAME);
     });
 
     it('invalid email format → VALID_EMAIL', async () => {
       const errors = await submitWithOverrides({ email: 'not-an-email', confirmEmail: 'not-an-email' });
-      expect(errors.email).toBe(BILINGUAL_TEXT.VALID_EMAIL);
+      expect(errors.email).toBe(TEXT_KEYS.VALID_EMAIL);
     });
 
     it('mismatched emails → EMAILS_MISMATCH', async () => {
@@ -291,12 +293,12 @@ describe('NewsletterSignUpPageForm', () => {
         email: 'ada@example.com',
         confirmEmail: 'different@example.com',
       });
-      expect(errors.confirmEmail).toBe(BILINGUAL_TEXT.EMAILS_MISMATCH);
+      expect(errors.confirmEmail).toBe(TEXT_KEYS.EMAILS_MISMATCH);
     });
 
     it('no newsletters selected → SELECT_NEWSLETTER', async () => {
       const errors = await submitWithOverrides({ newsletter: null });
-      expect(errors.newsletters).toBe(BILINGUAL_TEXT.SELECT_NEWSLETTER);
+      expect(errors.newsletters).toBe(TEXT_KEYS.SELECT_NEWSLETTER);
     });
 
     it('valid form produces empty fieldErrors', async () => {
@@ -307,7 +309,7 @@ describe('NewsletterSignUpPageForm', () => {
     it('blurring email clears stale confirmEmail mismatch error when emails now match', async () => {
       // Submit with mismatched emails → hasAttemptedSubmit=true, confirmEmail error set
       await submitWithOverrides({ email: 'ada@example.com', confirmEmail: 'different@example.com' });
-      expect(lastFormViewProps.fieldErrors.confirmEmail).toBe(BILINGUAL_TEXT.EMAILS_MISMATCH);
+      expect(lastFormViewProps.fieldErrors.confirmEmail).toBe(TEXT_KEYS.EMAILS_MISMATCH);
 
       // User fixes email to match the already-typed confirmEmail value
       act(() => { lastFormViewProps.onFieldChange('email', 'different@example.com'); });
@@ -327,7 +329,7 @@ describe('NewsletterSignUpPageForm', () => {
 
       // Submit empty form → newsletter error appears
       await act(async () => { lastFormViewProps.onSubmit(); });
-      expect(lastFormViewProps.fieldErrors.newsletters).toBe(BILINGUAL_TEXT.SELECT_NEWSLETTER);
+      expect(lastFormViewProps.fieldErrors.newsletters).toBe(TEXT_KEYS.SELECT_NEWSLETTER);
 
       // Toggle a newsletter ON
       act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
@@ -349,7 +351,7 @@ describe('NewsletterSignUpPageForm', () => {
 
       // Toggle OFF → error returns
       act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
-      expect(lastFormViewProps.fieldErrors.newsletters).toBe(BILINGUAL_TEXT.SELECT_NEWSLETTER);
+      expect(lastFormViewProps.fieldErrors.newsletters).toBe(TEXT_KEYS.SELECT_NEWSLETTER);
     });
 
     it('does not run revalidation before submit has been attempted', async () => {
@@ -434,7 +436,7 @@ describe('NewsletterSignUpPageForm', () => {
   // ---------- Suite 6: Submit flow — API error ----------
 
   describe('Submit flow — API error', () => {
-    it('sets ERROR status with bilingual errorMessage on rejection', async () => {
+    it('sets ERROR status with the server error message as a plain string on rejection', async () => {
       subscribeNewsletter.mockRejectedValueOnce(new Error('Server unavailable'));
 
       await renderForm();
@@ -448,10 +450,24 @@ describe('NewsletterSignUpPageForm', () => {
       await act(async () => { lastFormViewProps.onSubmit(); });
 
       expect(lastFormViewProps.formStatus.status).toBe(FORM_STATUS.ERROR);
-      expect(lastFormViewProps.formStatus.errorMessage).toEqual({
-        en: 'Server unavailable',
-        he: 'Server unavailable',
-      });
+      expect(lastFormViewProps.formStatus.errorMessage).toBe('Server unavailable');
+    });
+
+    it('falls back to TEXT_KEYS.GENERIC_ERROR when the rejection has no message', async () => {
+      subscribeNewsletter.mockRejectedValueOnce(new Error(''));
+
+      await renderForm();
+
+      act(() => { lastFormViewProps.onFieldChange('firstName', 'Ada'); });
+      act(() => { lastFormViewProps.onFieldChange('lastName', 'Lovelace'); });
+      act(() => { lastFormViewProps.onFieldChange('email', 'ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('confirmEmail', 'ada@example.com'); });
+      act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
+
+      await act(async () => { lastFormViewProps.onSubmit(); });
+
+      expect(lastFormViewProps.formStatus.status).toBe(FORM_STATUS.ERROR);
+      expect(lastFormViewProps.formStatus.errorMessage).toBe(TEXT_KEYS.GENERIC_ERROR);
     });
 
     it('clears a stale backend error when a later submit has client validation errors', async () => {
@@ -474,7 +490,7 @@ describe('NewsletterSignUpPageForm', () => {
 
       expect(lastFormViewProps.formStatus.status).toBe(FORM_STATUS.IDLE);
       expect(lastFormViewProps.formStatus.errorMessage).toBeNull();
-      expect(lastFormViewProps.fieldErrors.email).toBe(BILINGUAL_TEXT.VALID_EMAIL);
+      expect(lastFormViewProps.fieldErrors.email).toBe(TEXT_KEYS.VALID_EMAIL);
     });
 
     it('uses GENERIC_ERROR when error has no message', async () => {
@@ -490,7 +506,7 @@ describe('NewsletterSignUpPageForm', () => {
 
       await act(async () => { lastFormViewProps.onSubmit(); });
 
-      expect(lastFormViewProps.formStatus.errorMessage).toBe(BILINGUAL_TEXT.GENERIC_ERROR);
+      expect(lastFormViewProps.formStatus.errorMessage).toBe(TEXT_KEYS.GENERIC_ERROR);
     });
   });
 

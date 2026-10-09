@@ -4,7 +4,8 @@ import Sefaria from "../sefaria/sefaria";
 import { InterfaceText, LoadingMessage } from "../Misc";
 import SelectableOption from "./SelectableOption";
 import MarketingEmailToggle from "./MarketingEmailToggle";
-import { BILINGUAL_TEXT } from "./bilingualUtils";
+import { TEXT_KEYS } from "./textKeys";
+import { InterfaceTextWithSlots } from "./InterfaceTextWithSlots";
 import { FORM_STATUS } from "./stateSymbols";
 
 /**
@@ -23,7 +24,7 @@ function InlineError({ fieldName, errors }) {
   if (!error) return null;
   return (
     <div className="inlineFieldError" id={`${fieldName}-error`} role="alert">
-      <InterfaceText text={error} />
+      <InterfaceText>{error}</InterfaceText>
     </div>
   );
 }
@@ -62,7 +63,7 @@ function BackendErrorBanner({ message }) {
     >
       <span className="errorIcon">⚠️</span>
       <span>
-        <InterfaceText text={message} />
+        <InterfaceText>{message}</InterfaceText>
       </span>
     </div>
   );
@@ -79,13 +80,13 @@ function FieldErrorSummary({ fieldErrors }) {
     >
       <h3 className="errorSummaryTitle">
         <span className="errorIcon">⚠️</span>
-        <InterfaceText text={BILINGUAL_TEXT.FIX_ERRORS} />
+        <InterfaceText>{TEXT_KEYS.FIX_ERRORS}</InterfaceText>
       </h3>
       <ul className="errorSummaryList">
         {Object.entries(fieldErrors).map(([field, message]) => (
           <li key={field}>
             <a href={`#${field}-error`} className="errorSummaryLink">
-              <InterfaceText text={message} />
+              <InterfaceText>{message}</InterfaceText>
             </a>
           </li>
         ))}
@@ -95,8 +96,11 @@ function FieldErrorSummary({ fieldErrors }) {
 }
 
 function SubmitButton({ isSubmitting, isLoggedIn }) {
-  const buttonText = isLoggedIn ? BILINGUAL_TEXT.UPDATE_PREFERENCES : BILINGUAL_TEXT.SUBMIT;
-  const loadingText = isLoggedIn ? BILINGUAL_TEXT.UPDATING : BILINGUAL_TEXT.SUBMITTING;
+  const buttonText = isLoggedIn ? TEXT_KEYS.UPDATE_PREFERENCES : TEXT_KEYS.SUBMIT;
+  // _bilingual resolves both languages at once — unlike _(), which only answers for
+  // whichever language the page is in right now — so message/heMessage below get the
+  // real English/Hebrew pair, not the same string twice.
+  const loadingText = Sefaria._bilingual(isLoggedIn ? TEXT_KEYS.UPDATING : TEXT_KEYS.SUBMITTING);
   return (
     <button
       type="submit"
@@ -109,7 +113,7 @@ function SubmitButton({ isSubmitting, isLoggedIn }) {
       {isSubmitting ? (
         <LoadingMessage message={loadingText.en} heMessage={loadingText.he} />
       ) : (
-        <InterfaceText text={buttonText} />
+        <InterfaceText>{buttonText}</InterfaceText>
       )}
     </button>
   );
@@ -143,11 +147,11 @@ export default function NewsletterFormView({
       {/* HEADER SECTION */}
       <div className="newsletterFormHeader">
         <h2 className="newsletterFormTitle" ref={formTitleRef}>
-          <InterfaceText text={isLoggedIn ? BILINGUAL_TEXT.MANAGE_TITLE : BILINGUAL_TEXT.SUBSCRIBE_TITLE} />
+          <InterfaceText>{isLoggedIn ? TEXT_KEYS.MANAGE_TITLE : TEXT_KEYS.SUBSCRIBE_TITLE}</InterfaceText>
         </h2>
         {!isLoggedIn && (
           <p className="newsletterFormSubtitle">
-            <InterfaceText text={BILINGUAL_TEXT.SUBSCRIBE_SUBTITLE} />
+            <InterfaceText>{TEXT_KEYS.SUBSCRIBE_SUBTITLE}</InterfaceText>
           </p>
         )}
       </div>
@@ -158,7 +162,7 @@ export default function NewsletterFormView({
       {isLoggedIn && (
         <>
           <div className="newsletterEmailInfo">
-            <InterfaceText text={BILINGUAL_TEXT.MANAGING_SUBSCRIPTIONS_FOR} /> <strong>{userEmail}</strong>
+            <InterfaceTextWithSlots id={TEXT_KEYS.MANAGING_SUBSCRIPTIONS_FOR} slots={{ email: <strong>{userEmail}</strong> }} />
           </div>
           <MarketingEmailToggle
             wantsMarketingEmails={formData.wantsMarketingEmails}
@@ -194,7 +198,7 @@ export default function NewsletterFormView({
               <div className="nameFieldsRow">
                 <FormInput
                   id="firstName"
-                  label="First Name"
+                  label="common.first_name"
                   value={formData.firstName}
                   onChange={onFieldChange}
                   onBlur={onFieldBlur}
@@ -203,7 +207,7 @@ export default function NewsletterFormView({
                 />
                 <FormInput
                   id="lastName"
-                  label="Last Name"
+                  label="common.last_name"
                   value={formData.lastName}
                   onChange={onFieldChange}
                   onBlur={onFieldBlur}
@@ -218,7 +222,7 @@ export default function NewsletterFormView({
               <FormInput
                 id="email"
                 type="email"
-                label="Email Address"
+                label="common.email_address"
                 value={formData.email}
                 onChange={onFieldChange}
                 onBlur={onFieldBlur}
@@ -229,7 +233,7 @@ export default function NewsletterFormView({
               <FormInput
                 id="confirmEmail"
                 type="email"
-                label="Confirm Email Address"
+                label={TEXT_KEYS.CONFIRM_EMAIL_ADDRESS}
                 value={formData.confirmEmail}
                 onChange={onFieldChange}
                 onBlur={onFieldBlur}
@@ -243,7 +247,7 @@ export default function NewsletterFormView({
         {/* NEWSLETTER SELECTION SECTION */}
         <div className="formSection newsletterSelectionSection" id="newsletters">
           <p className="newsletterSelectionLabel">
-            <InterfaceText text={BILINGUAL_TEXT.SELECT_LISTS_SECTION} />
+            <InterfaceText>{TEXT_KEYS.SELECT_LISTS_SECTION}</InterfaceText>
           </p>
 
           {/* INLINE ERROR FOR NEWSLETTERS */}
@@ -256,7 +260,7 @@ export default function NewsletterFormView({
               hasError: !!fieldErrors.newsletters,
             })}
             role="group"
-            aria-label={Sefaria._("Newsletter options")}
+            aria-label={Sefaria._(TEXT_KEYS.NEWSLETTER_OPTIONS)}
             aria-invalid={!!fieldErrors.newsletters}
             aria-describedby={fieldErrors.newsletters ? "newsletters-error" : undefined}
           >
@@ -286,8 +290,8 @@ export default function NewsletterFormView({
 
       {/* PRIVACY NOTE */}
       <div className="privacyNote">
-        <p className="small"><InterfaceText text={BILINGUAL_TEXT.PRIVACY_NOTE_1} /></p>
-        <p className="small"><InterfaceText text={BILINGUAL_TEXT.PRIVACY_NOTE_2} /></p>
+        <p className="small"><InterfaceText>{TEXT_KEYS.PRIVACY_NOTE_1}</InterfaceText></p>
+        <p className="small"><InterfaceText>{TEXT_KEYS.PRIVACY_NOTE_2}</InterfaceText></p>
       </div>
     </div>
   );

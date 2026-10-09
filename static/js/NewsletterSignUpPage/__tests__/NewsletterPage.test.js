@@ -16,11 +16,17 @@ import { STAGE } from "../stateSymbols";
 // Mocks — must be declared before the component import
 // ============================================================================
 
-jest.mock("../../sefaria/sefaria", () => ({
-  interfaceLang: "english",
-  _: (text) => text,
-  site: false,
-}));
+jest.mock("../../sefaria/sefaria", () => {
+  const { translate, keyedString } = require("../testSupport/i18nTestUtils");
+  const mockSefaria = {
+    interfaceLang: "english",
+    // Like the real Sefaria._: resolves keyed strings for the *current* interface language.
+    _: (text) => translate(text, mockSefaria.interfaceLang),
+    _keyedString: (id, lang) => keyedString(id, lang),
+    site: false,
+  };
+  return mockSefaria;
+});
 
 const Sefaria = require("../../sefaria/sefaria");
 
@@ -37,6 +43,7 @@ jest.mock("../../Misc", () => {
   return {
     SimpleInterfaceBlock,
     InterfaceText: ({ text, children }) => {
+      const { translate } = require("../testSupport/i18nTestUtils");
       if (text) {
         return (
           <>
@@ -45,7 +52,12 @@ jest.mock("../../Misc", () => {
           </>
         );
       }
-      return <span className="int-en">{children}</span>;
+      return (
+        <>
+          <span className="int-en">{translate(children, "english")}</span>
+          <span className="int-he">{translate(children, "hebrew")}</span>
+        </>
+      );
     },
     HebrewText: ({ children }) => <>{children}</>,
     EnglishText: ({ children }) => <>{children}</>,

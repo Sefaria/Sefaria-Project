@@ -9,18 +9,23 @@ import React from "react";
 import ReactDOMServer from "react-dom/server";
 import NewsletterConfirmationView from "../NewsletterConfirmationView";
 import { FORM_STATUS } from "../stateSymbols";
-import SefariaModule from "../../sefaria/sefaria";
+import { TEXT_KEYS } from "../textKeys";
+import MockSefariaModule from "../../sefaria/sefaria";
+import { enText, heText, escapeHtml } from "../testSupport/i18nTestUtils";
 
 // Mock Sefaria global object
 jest.mock("../../sefaria/sefaria", () => ({
   interfaceLang: "english",
-  _: (text) => text,
+  _: (text) => require("../testSupport/i18nTestUtils").translate(text),
+  _keyedString: (id, lang) => require("../testSupport/i18nTestUtils").keyedString(id, lang),
+  _bilingual: (id) => require("../testSupport/i18nTestUtils").bilingual(id),
   site: false,
 }));
 
 // Set up global Sefaria object for components that use it
 global.Sefaria = {
-  _: (text) => text, // Simple pass-through for translation function
+  _: (text) => require("../testSupport/i18nTestUtils").translate(text), // resolves keyed strings from en.json
+  _bilingual: (id) => require("../testSupport/i18nTestUtils").bilingual(id),
   interfaceLang: "english",
   site: false,
 };
@@ -31,9 +36,16 @@ jest.mock("../../Misc", () => ({
     if (text) {
       return <span className="int-en">{text.en || text}</span>;
     }
-    return <span className="int-en">{children}</span>;
+    return <span className="int-en">{require("../testSupport/i18nTestUtils").translate(children)}</span>;
   },
-  LoadingMessage: ({ message }) => <span>{message || "Loading..."}</span>,
+  // Picks message or heMessage based on the CURRENT interface language, mirroring the
+  // real LoadingMessage+InterfaceText (EnglishText/HebrewText filtering). A mock that
+  // always showed `message` could never fail a test that put the wrong value into
+  // `heMessage` — see the _bilingual fix in LearningLevelSurvey.jsx/NewsletterFormView.jsx.
+  LoadingMessage: ({ message, heMessage }) => {
+    const isHebrew = MockSefariaModule.interfaceLang === "hebrew";
+    return <span>{(isHebrew ? heMessage : message) || "Loading..."}</span>;
+  },
 }));
 
 // Mock SelectableOption (used by learning level radio buttons)
@@ -56,7 +68,12 @@ const NEWSLETTERS = [
 ];
 
 const LEARNING_LEVELS = [
-  { value: 1, label: { en: "Newcomer", he: "מתחיל" }, description: { en: "Newcomer desc", he: "תיאור" } },
+  {
+    value: 1,
+    analyticsName: "Newcomer",
+    label: "newsletter_sign_up_page.learning_level_1.label",
+    description: "newsletter_sign_up_page.learning_level_1.description",
+  },
 ];
 
 const baseProps = {
@@ -86,7 +103,7 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         subscriptionDiffs: null,
       });
 
-      expect(html).toContain("You&#x27;ve subscribed to:");
+      expect(html).toContain(escapeHtml(enText(TEXT_KEYS.SUBSCRIBED_TO)));
       expect(html).toContain("Sefaria News &amp; Resources, Educator Resources");
     });
 
@@ -97,7 +114,7 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         subscriptionDiffs: null,
       });
 
-      expect(html).not.toContain("unsubscribed from");
+      expect(html).not.toContain(escapeHtml(enText(TEXT_KEYS.UNSUBSCRIBED_FROM)));
     });
 
     it('does not show "up to date" text', () => {
@@ -107,7 +124,7 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         subscriptionDiffs: null,
       });
 
-      expect(html).not.toContain("up to date");
+      expect(html).not.toContain(enText(TEXT_KEYS.PREFERENCES_UP_TO_DATE));
     });
 
     it("hides newsletter display when no labels provided", () => {
@@ -117,7 +134,7 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         subscriptionDiffs: null,
       });
 
-      expect(html).not.toContain("You&#x27;ve subscribed to:");
+      expect(html).not.toContain(escapeHtml(enText(TEXT_KEYS.SUBSCRIBED_TO)));
     });
   });
 
@@ -132,7 +149,7 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         },
       });
 
-      expect(html).toContain("You&#x27;ve subscribed to:");
+      expect(html).toContain(escapeHtml(enText(TEXT_KEYS.SUBSCRIBED_TO)));
       expect(html).toContain("Educator Resources");
     });
 
@@ -146,7 +163,7 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         },
       });
 
-      expect(html).not.toContain("unsubscribed from");
+      expect(html).not.toContain(escapeHtml(enText(TEXT_KEYS.UNSUBSCRIBED_FROM)));
     });
   });
 
@@ -161,7 +178,7 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         },
       });
 
-      expect(html).toContain("unsubscribed from");
+      expect(html).toContain(escapeHtml(enText(TEXT_KEYS.UNSUBSCRIBED_FROM)));
       expect(html).toContain("Educator Resources");
     });
 
@@ -175,7 +192,7 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         },
       });
 
-      expect(html).not.toContain("You&#x27;ve subscribed to:");
+      expect(html).not.toContain(escapeHtml(enText(TEXT_KEYS.SUBSCRIBED_TO)));
     });
   });
 
@@ -190,9 +207,9 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         },
       });
 
-      expect(html).toContain("You&#x27;ve subscribed to:");
+      expect(html).toContain(escapeHtml(enText(TEXT_KEYS.SUBSCRIBED_TO)));
       expect(html).toContain("Educator Resources");
-      expect(html).toContain("unsubscribed from");
+      expect(html).toContain(escapeHtml(enText(TEXT_KEYS.UNSUBSCRIBED_FROM)));
       expect(html).toContain("Sefaria News &amp; Resources");
     });
   });
@@ -209,7 +226,7 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         marketingOptOut: false,
       });
 
-      expect(html).toContain("up to date");
+      expect(html).toContain(enText(TEXT_KEYS.PREFERENCES_UP_TO_DATE));
     });
 
     it('does not show "subscribed to" or "unsubscribed from"', () => {
@@ -223,8 +240,8 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         marketingOptOut: false,
       });
 
-      expect(html).not.toContain("You&#x27;ve subscribed to:");
-      expect(html).not.toContain("unsubscribed from");
+      expect(html).not.toContain(escapeHtml(enText(TEXT_KEYS.SUBSCRIBED_TO)));
+      expect(html).not.toContain(escapeHtml(enText(TEXT_KEYS.UNSUBSCRIBED_FROM)));
     });
   });
 
@@ -240,7 +257,7 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         marketingOptOut: true,
       });
 
-      expect(html).toContain("opted out of marketing emails");
+      expect(html).toContain(escapeHtml(enText(TEXT_KEYS.OPTED_OUT_MARKETING)));
     });
 
     it('does not show "up to date" when marketing opt-out is the only change', () => {
@@ -254,7 +271,7 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         marketingOptOut: true,
       });
 
-      expect(html).not.toContain("up to date");
+      expect(html).not.toContain(enText(TEXT_KEYS.PREFERENCES_UP_TO_DATE));
     });
 
     it("suppresses subscription diffs when opting out (opt-out is the louder, exclusive message)", () => {
@@ -271,8 +288,8 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
         marketingOptOut: true,
       });
 
-      expect(html).toContain("opted out of marketing emails");
-      expect(html).not.toContain("You&#x27;ve subscribed to:");
+      expect(html).toContain(escapeHtml(enText(TEXT_KEYS.OPTED_OUT_MARKETING)));
+      expect(html).not.toContain(escapeHtml(enText(TEXT_KEYS.SUBSCRIBED_TO)));
       expect(html).not.toContain("Educator Resources");
     });
   });
@@ -295,27 +312,27 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
     });
 
     it("uses Hebrew text as primary when interface language is Hebrew", () => {
-      SefariaModule.interfaceLang = "hebrew";
+      MockSefariaModule.interfaceLang = "hebrew";
       const html = renderView({
         isLoggedIn: false,
         newsletters: NEWSLETTERS_WITH_HEBREW,
         selectedNewsletters: { hebrew_news: true },
         subscriptionDiffs: null,
       });
-      SefariaModule.interfaceLang = "english";
+      MockSefariaModule.interfaceLang = "english";
 
       expect(html).toContain("חדשות ספריא");
     });
 
     it("falls back to English text when interface is Hebrew but newsletter has no Hebrew name", () => {
-      SefariaModule.interfaceLang = "hebrew";
+      MockSefariaModule.interfaceLang = "hebrew";
       const html = renderView({
         isLoggedIn: false,
         newsletters: NEWSLETTERS_WITH_HEBREW,
         selectedNewsletters: { sefaria_news: true },
         subscriptionDiffs: null,
       });
-      SefariaModule.interfaceLang = "english";
+      MockSefariaModule.interfaceLang = "english";
 
       expect(html).toContain("Sefaria News &amp; Resources");
     });
@@ -346,6 +363,35 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
       });
 
       expect(html).toContain("Sefaria News &amp; Resources, Educator Resources");
+    });
+  });
+
+  describe("Embedded learning-level survey — submitting state", () => {
+    // isSubmitting is derived internally from formStatus.status, not a direct prop (see
+    // NewsletterConfirmationView.jsx). These guard the Sefaria._bilingual(...) fix: a
+    // prior version resolved the same key via Sefaria._() for both `message` and
+    // `heMessage`, which only looked correct because the (now-fixed) LoadingMessage mock
+    // above discarded whichever one didn't match the current language.
+    it("shows the English SUBMITTING text while the embedded survey is submitting", () => {
+      const html = renderView({
+        formStatus: { status: FORM_STATUS.SUBMITTING, isLoggedIn: false },
+        selectedNewsletters: {},
+        subscriptionDiffs: null,
+      });
+
+      expect(html).toContain(enText(TEXT_KEYS.SUBMITTING));
+    });
+
+    it("shows the Hebrew SUBMITTING text while the embedded survey is submitting", () => {
+      MockSefariaModule.interfaceLang = "hebrew";
+      const html = renderView({
+        formStatus: { status: FORM_STATUS.SUBMITTING, isLoggedIn: false },
+        selectedNewsletters: {},
+        subscriptionDiffs: null,
+      });
+      MockSefariaModule.interfaceLang = "english";
+
+      expect(html).toContain(heText(TEXT_KEYS.SUBMITTING));
     });
   });
 });

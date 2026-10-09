@@ -14,8 +14,10 @@
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import NewsletterFormView from "../NewsletterFormView";
-import { BILINGUAL_TEXT } from "../bilingualUtils";
+import { TEXT_KEYS } from "../textKeys";
 import { FORM_STATUS } from "../stateSymbols";
+import { enText, heText } from "../testSupport/i18nTestUtils";
+import MockSefariaModule from "../../sefaria/sefaria";
 
 // ============================================================================
 // Mocks — same pattern as existing tests
@@ -23,12 +25,15 @@ import { FORM_STATUS } from "../stateSymbols";
 
 jest.mock("../../sefaria/sefaria", () => ({
   interfaceLang: "english",
-  _: (text) => text,
+  _: (text) => require("../testSupport/i18nTestUtils").translate(text),
+  _keyedString: (id, lang) => require("../testSupport/i18nTestUtils").keyedString(id, lang),
+  _bilingual: (id) => require("../testSupport/i18nTestUtils").bilingual(id),
   site: false,
 }));
 
 global.Sefaria = {
-  _: (text) => text,
+  _: (text) => require("../testSupport/i18nTestUtils").translate(text),
+  _bilingual: (id) => require("../testSupport/i18nTestUtils").bilingual(id),
   interfaceLang: "english",
   site: false,
 };
@@ -43,9 +48,24 @@ jest.mock("../../Misc", () => ({
         </span>
       );
     }
-    return <span className="int-en">{children}</span>;
+    // Keyed children render both languages, like the real InterfaceText.
+    const { translate } = require("../testSupport/i18nTestUtils");
+    return (
+      <span>
+        <span className="int-en">{translate(children, "english")}</span>
+        <span className="int-he">{translate(children, "hebrew")}</span>
+      </span>
+    );
   },
-  LoadingMessage: ({ message, heMessage }) => <span className="loading">{message || "Loading..."}</span>,
+  // Mirrors the real LoadingMessage+InterfaceText: picks message or heMessage based on
+  // the CURRENT interface language, like the real component does via EnglishText/
+  // HebrewText filtering. A mock that always showed `message` could never fail a test
+  // that passed the wrong value into `heMessage` — exactly the bug this suite exists
+  // to catch (see _bilingual usage in NewsletterFormView.jsx).
+  LoadingMessage: ({ message, heMessage }) => {
+    const isHebrew = MockSefariaModule.interfaceLang === "hebrew";
+    return <span className="loading">{(isHebrew ? heMessage : message) || "Loading..."}</span>;
+  },
 }));
 
 jest.mock("../SelectableOption", () => {
@@ -119,37 +139,37 @@ describe("NewsletterFormView", () => {
     it("renders English error text for a field with an error", () => {
       const html = renderView({
         hasAttemptedSubmit: true,
-        fieldErrors: { firstName: BILINGUAL_TEXT.ENTER_FIRST_NAME },
+        fieldErrors: { firstName: TEXT_KEYS.ENTER_FIRST_NAME },
       });
 
-      expect(html).toContain(BILINGUAL_TEXT.ENTER_FIRST_NAME.en);
+      expect(html).toContain(enText(TEXT_KEYS.ENTER_FIRST_NAME));
     });
 
     it("renders Hebrew error text for a field with an error", () => {
       const html = renderView({
         hasAttemptedSubmit: true,
-        fieldErrors: { firstName: BILINGUAL_TEXT.ENTER_FIRST_NAME },
+        fieldErrors: { firstName: TEXT_KEYS.ENTER_FIRST_NAME },
       });
 
-      expect(html).toContain(BILINGUAL_TEXT.ENTER_FIRST_NAME.he);
+      expect(html).toContain(heText(TEXT_KEYS.ENTER_FIRST_NAME));
     });
 
     it("renders email error with correct message", () => {
       const html = renderView({
         hasAttemptedSubmit: true,
-        fieldErrors: { email: BILINGUAL_TEXT.VALID_EMAIL },
+        fieldErrors: { email: TEXT_KEYS.VALID_EMAIL },
       });
 
-      expect(html).toContain(BILINGUAL_TEXT.VALID_EMAIL.en);
+      expect(html).toContain(enText(TEXT_KEYS.VALID_EMAIL));
     });
 
     it("renders last name error with correct message", () => {
       const html = renderView({
         hasAttemptedSubmit: true,
-        fieldErrors: { lastName: BILINGUAL_TEXT.ENTER_LAST_NAME },
+        fieldErrors: { lastName: TEXT_KEYS.ENTER_LAST_NAME },
       });
 
-      expect(html).toContain(BILINGUAL_TEXT.ENTER_LAST_NAME.en);
+      expect(html).toContain(enText(TEXT_KEYS.ENTER_LAST_NAME));
     });
 
     it("does not render error when fieldErrors is empty", () => {
@@ -164,7 +184,7 @@ describe("NewsletterFormView", () => {
     it("renders error with correct id for accessibility linkage", () => {
       const html = renderView({
         hasAttemptedSubmit: true,
-        fieldErrors: { email: BILINGUAL_TEXT.ENTER_EMAIL },
+        fieldErrors: { email: TEXT_KEYS.ENTER_EMAIL },
       });
 
       expect(html).toContain('id="email-error"');
@@ -174,7 +194,7 @@ describe("NewsletterFormView", () => {
     it("adds hasError class to input when field has error", () => {
       const html = renderView({
         hasAttemptedSubmit: true,
-        fieldErrors: { firstName: BILINGUAL_TEXT.ENTER_FIRST_NAME },
+        fieldErrors: { firstName: TEXT_KEYS.ENTER_FIRST_NAME },
       });
 
       // The firstName input should have the hasError class
@@ -189,36 +209,36 @@ describe("NewsletterFormView", () => {
       const html = renderView({
         hasAttemptedSubmit: true,
         fieldErrors: {
-          firstName: BILINGUAL_TEXT.ENTER_FIRST_NAME,
-          email: BILINGUAL_TEXT.ENTER_EMAIL,
+          firstName: TEXT_KEYS.ENTER_FIRST_NAME,
+          email: TEXT_KEYS.ENTER_EMAIL,
         },
       });
 
       expect(html).toContain("newsletterErrorSummary");
-      expect(html).toContain(BILINGUAL_TEXT.FIX_ERRORS.en);
+      expect(html).toContain(enText(TEXT_KEYS.FIX_ERRORS));
     });
 
     it("renders all error messages in the summary list", () => {
       const html = renderView({
         hasAttemptedSubmit: true,
         fieldErrors: {
-          firstName: BILINGUAL_TEXT.ENTER_FIRST_NAME,
-          email: BILINGUAL_TEXT.ENTER_EMAIL,
-          newsletters: BILINGUAL_TEXT.SELECT_NEWSLETTER,
+          firstName: TEXT_KEYS.ENTER_FIRST_NAME,
+          email: TEXT_KEYS.ENTER_EMAIL,
+          newsletters: TEXT_KEYS.SELECT_NEWSLETTER,
         },
       });
 
-      expect(html).toContain(BILINGUAL_TEXT.ENTER_FIRST_NAME.en);
-      expect(html).toContain(BILINGUAL_TEXT.ENTER_EMAIL.en);
-      expect(html).toContain(BILINGUAL_TEXT.SELECT_NEWSLETTER.en);
+      expect(html).toContain(enText(TEXT_KEYS.ENTER_FIRST_NAME));
+      expect(html).toContain(enText(TEXT_KEYS.ENTER_EMAIL));
+      expect(html).toContain(enText(TEXT_KEYS.SELECT_NEWSLETTER));
     });
 
     it("renders summary links pointing to correct field IDs", () => {
       const html = renderView({
         hasAttemptedSubmit: true,
         fieldErrors: {
-          firstName: BILINGUAL_TEXT.ENTER_FIRST_NAME,
-          email: BILINGUAL_TEXT.ENTER_EMAIL,
+          firstName: TEXT_KEYS.ENTER_FIRST_NAME,
+          email: TEXT_KEYS.ENTER_EMAIL,
         },
       });
 
@@ -238,7 +258,7 @@ describe("NewsletterFormView", () => {
     it("does not render error summary before submit attempt", () => {
       const html = renderView({
         hasAttemptedSubmit: false,
-        fieldErrors: { firstName: BILINGUAL_TEXT.ENTER_FIRST_NAME },
+        fieldErrors: { firstName: TEXT_KEYS.ENTER_FIRST_NAME },
       });
 
       expect(html).not.toContain("newsletterErrorSummary");
@@ -247,7 +267,9 @@ describe("NewsletterFormView", () => {
     it("renders last name field without the optional caption", () => {
       const html = renderView();
 
-      expect(html).toContain('placeholder="Last Name"');
+      // "common.last_name" is the shared key NewsletterFormView.jsx references directly
+      // (not one of our own TEXT_KEYS) — resolve it the same way rather than pin the word.
+      expect(html).toContain(`placeholder="${enText("common.last_name")}"`);
       expect(html).not.toContain("Last Name (Optional)");
     });
   });
@@ -255,18 +277,17 @@ describe("NewsletterFormView", () => {
   // ---------- Suite 3: Backend error display ----------
 
   describe("Backend error display", () => {
-    it("renders bilingual backend error when formStatus has errorMessage", () => {
+    it("renders a plain-string backend error message", () => {
       const html = renderView({
         formStatus: {
           ...baseProps.formStatus,
           status: FORM_STATUS.ERROR,
-          errorMessage: { en: "Server error", he: "שגיאת שרת" },
+          errorMessage: "Server error",
         },
       });
 
       expect(html).toContain("newsletterErrorMessage");
       expect(html).toContain("Server error");
-      expect(html).toContain("שגיאת שרת");
     });
 
     it("does not render backend error when errorMessage is null", () => {
@@ -354,8 +375,49 @@ describe("NewsletterFormView", () => {
       });
 
       // The submit button should show "Submit" text, not loading
-      expect(html).toContain(BILINGUAL_TEXT.SUBMIT.en);
+      expect(html).toContain(enText(TEXT_KEYS.SUBMIT));
       expect(html).not.toContain('class="loading"');
+    });
+
+    // These four guard the Sefaria._bilingual(...) fix directly: a prior version resolved
+    // the same key via Sefaria._() for both `message` and `heMessage`, which only looked
+    // correct because the (now-fixed) LoadingMessage mock above discarded whichever one
+    // didn't match the current language. These assert the actual text shown, in both
+    // languages and both logged-in states, so a regression can't hide behind the mock again.
+    it("shows the English SUBMITTING text while submitting (logged out)", () => {
+      const html = renderView({
+        formStatus: { ...baseProps.formStatus, status: FORM_STATUS.SUBMITTING, isLoggedIn: false },
+      });
+
+      expect(html).toContain(enText(TEXT_KEYS.SUBMITTING));
+    });
+
+    it("shows the Hebrew SUBMITTING text while submitting (logged out)", () => {
+      MockSefariaModule.interfaceLang = "hebrew";
+      const html = renderView({
+        formStatus: { ...baseProps.formStatus, status: FORM_STATUS.SUBMITTING, isLoggedIn: false },
+      });
+      MockSefariaModule.interfaceLang = "english";
+
+      expect(html).toContain(heText(TEXT_KEYS.SUBMITTING));
+    });
+
+    it("shows the English UPDATING text while submitting (logged in)", () => {
+      const html = renderView({
+        formStatus: { ...baseProps.formStatus, status: FORM_STATUS.SUBMITTING, isLoggedIn: true },
+      });
+
+      expect(html).toContain(enText(TEXT_KEYS.UPDATING));
+    });
+
+    it("shows the Hebrew UPDATING text while submitting (logged in)", () => {
+      MockSefariaModule.interfaceLang = "hebrew";
+      const html = renderView({
+        formStatus: { ...baseProps.formStatus, status: FORM_STATUS.SUBMITTING, isLoggedIn: true },
+      });
+      MockSefariaModule.interfaceLang = "english";
+
+      expect(html).toContain(heText(TEXT_KEYS.UPDATING));
     });
   });
 });

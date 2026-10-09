@@ -1,7 +1,9 @@
 import React from "react";
 import { InterfaceText, LoadingMessage } from "../Misc";
 import SelectableOption from "./SelectableOption";
-import { BILINGUAL_TEXT } from "./bilingualUtils";
+import Sefaria from "../sefaria/sefaria";
+import { TEXT_KEYS } from "./textKeys";
+import { InterfaceTextWithSlots } from "./InterfaceTextWithSlots";
 
 /**
  * LearningLevelSurvey — optional radio-group form asking the user their learning level.
@@ -27,6 +29,7 @@ export default function LearningLevelSurvey({
   isSubmitting,
   errorMessage,
 }) {
+  const submittingText = Sefaria._bilingual(TEXT_KEYS.SUBMITTING);
   return (
     <div
       className="embeddedLearningLevel"
@@ -38,10 +41,10 @@ export default function LearningLevelSurvey({
       {/* HEADER WITH OPTIONAL INDICATOR */}
       <div className="learningLevelHeaderWrapper">
         <h3 className="learningLevelHeader">
-          <InterfaceText text={BILINGUAL_TEXT.LEARNING_LEVEL_HEADER} />
+          <InterfaceText>{TEXT_KEYS.LEARNING_LEVEL_HEADER}</InterfaceText>
         </h3>
         <span className="optionalLabel">
-          <InterfaceText text={BILINGUAL_TEXT.OPTIONAL} />
+          <InterfaceText>{TEXT_KEYS.OPTIONAL}</InterfaceText>
         </span>
       </div>
 
@@ -75,13 +78,13 @@ export default function LearningLevelSurvey({
               type="radio"
               name="learningLevel"
               value={level.value}
-              label={<InterfaceText text={level.description} />}
+              label={<InterfaceText>{level.description}</InterfaceText>}
               isSelected={selectedLevel === level.value}
               onChange={() => onLevelSelect(level.value)}
               disabled={isSubmitting}
               analyticsAttributes={{
                 "data-anl-event": "learning_level_selected:input",
-                "data-anl-text": level.label.en,
+                "data-anl-text": level.analyticsName,
                 "data-anl-form_name": "learning_level_survey",
               }}
             />
@@ -99,27 +102,35 @@ export default function LearningLevelSurvey({
             data-anl-form_name="learning_level_survey"
           >
             {isSubmitting ? (
-              <LoadingMessage message={BILINGUAL_TEXT.SUBMITTING.en} heMessage={BILINGUAL_TEXT.SUBMITTING.he} />
+              // _bilingual resolves both languages at once — unlike _(), which only
+              // answers for whichever language the page is in right now — so message/
+              // heMessage get the real English/Hebrew pair, not the same string twice.
+              <LoadingMessage message={submittingText.en} heMessage={submittingText.he} />
             ) : (
-              <InterfaceText text={BILINGUAL_TEXT.SUBMIT} />
+              <InterfaceText>{TEXT_KEYS.SUBMIT}</InterfaceText>
             )}
           </button>
 
           {/* SKIP OPTION - Disabled during submission to prevent concurrent actions */}
           <p className="skipPrompt">
-            <InterfaceText text={BILINGUAL_TEXT.OR_PREFIX} />{" "}
-            <button
-              type="button"
-              className={`skipLink${isSubmitting ? " disabled" : ""}`}
-              onClick={onSkip}
-              disabled={isSubmitting}
-              data-anl-event="learning_level_action:click"
-              data-anl-action="skip_learning_level"
-              data-anl-form_name="learning_level_survey"
-            >
-              <InterfaceText text={BILINGUAL_TEXT.SKIP_THIS_STEP} />
-            </button>{" "}
-            <InterfaceText text={BILINGUAL_TEXT.AND_GO_TO_HOMEPAGE} />
+            <InterfaceTextWithSlots
+              id={TEXT_KEYS.SKIP_PROMPT}
+              slots={{
+                skip_link: (
+                  <button
+                    type="button"
+                    className={`skipLink${isSubmitting ? " disabled" : ""}`}
+                    onClick={onSkip}
+                    disabled={isSubmitting}
+                    data-anl-event="learning_level_action:click"
+                    data-anl-action="skip_learning_level"
+                    data-anl-form_name="learning_level_survey"
+                  >
+                    <InterfaceText>{TEXT_KEYS.SKIP_THIS_STEP}</InterfaceText>
+                  </button>
+                ),
+              }}
+            />
           </p>
         </div>
       </form>

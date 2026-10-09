@@ -14,7 +14,7 @@ import Cookies from "js-cookie";
 const parseJsonResponse = async (response) => {
   const contentType = response.headers.get("content-type");
   if (!contentType || !contentType.includes("application/json")) {
-    // Empty message so callers fall through to their BILINGUAL_TEXT.GENERIC_ERROR.
+    // Empty message so callers fall through to their TEXT_KEYS.GENERIC_ERROR.
     // code property preserves the HTTP status for debugging.
     throw Object.assign(new Error(), { code: `server_error_${response.status}` });
   }

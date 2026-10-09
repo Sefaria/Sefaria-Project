@@ -1,7 +1,7 @@
 import React from "react";
 import Sefaria from "../sefaria/sefaria";
 import { InterfaceText, ToggleSet } from "../Misc";
-import { BILINGUAL_TEXT } from "./bilingualUtils";
+import { TEXT_KEYS } from "./textKeys";
 
 /**
  * MarketingEmailToggle - Yes/No toggle for marketing email opt-out
@@ -25,19 +25,18 @@ export default function MarketingEmailToggle({
 }) {
   // Define toggle options for ToggleSet.
   // content accepts React elements; ariaLabel must be a plain string for aria-label attribute.
-  const isHebrew = Sefaria.interfaceLang === "hebrew";
   const toggleOptions = [
     {
       name: "yes",
-      content: <InterfaceText text={BILINGUAL_TEXT.YES} />,
+      content: <InterfaceText>{TEXT_KEYS.YES}</InterfaceText>,
       role: "radio",
-      ariaLabel: isHebrew ? BILINGUAL_TEXT.YES.he : BILINGUAL_TEXT.YES.en,
+      ariaLabel: Sefaria._(TEXT_KEYS.YES),
     },
     {
       name: "no",
-      content: <InterfaceText text={BILINGUAL_TEXT.NO} />,
+      content: <InterfaceText>{TEXT_KEYS.NO}</InterfaceText>,
       role: "radio",
-      ariaLabel: isHebrew ? BILINGUAL_TEXT.NO.he : BILINGUAL_TEXT.NO.en,
+      ariaLabel: Sefaria._(TEXT_KEYS.NO),
     },
   ];
 
@@ -57,13 +56,13 @@ export default function MarketingEmailToggle({
       data-testid="marketing-email-toggle-section"
     >
       <div className="marketingEmailToggleLabel">
-        <InterfaceText text={BILINGUAL_TEXT.MARKETING_EMAIL_QUESTION} />
+        <InterfaceText>{TEXT_KEYS.MARKETING_EMAIL_QUESTION}</InterfaceText>
       </div>
 
       <div className={`marketingToggleWrapper${disabled ? " disabled" : ""}`}>
         <ToggleSet
           blueStyle={true}
-          ariaLabel={Sefaria._("Marketing email preference")}
+          ariaLabel={Sefaria._(TEXT_KEYS.MARKETING_EMAIL_PREFERENCE)}
           name="marketingEmails"
           options={toggleOptions}
           setOption={handleSetOption}
@@ -72,7 +71,7 @@ export default function MarketingEmailToggle({
       </div>
 
       <div className="marketingEmailNote">
-        <InterfaceText text={BILINGUAL_TEXT.ADMIN_EMAILS_NOTE} />
+        <InterfaceText>{TEXT_KEYS.ADMIN_EMAILS_NOTE}</InterfaceText>
       </div>
     </div>
   );

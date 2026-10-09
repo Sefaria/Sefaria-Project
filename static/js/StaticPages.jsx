@@ -13,7 +13,7 @@ import {
 import {NewsletterSignUpForm} from "./NewsletterSignUpForm";
 import NewsletterSignUpPageForm from "./NewsletterSignUpPage/NewsletterSignUpPageForm";
 import { STAGE } from "./NewsletterSignUpPage/stateSymbols";
-import { BILINGUAL_TEXT } from "./NewsletterSignUpPage/bilingualUtils";
+import { TEXT_KEYS } from "./NewsletterSignUpPage/textKeys";
 import palette from './sefaria/palette';
 import classNames from 'classnames';
 import { getCsrfToken } from './sefaria/csrf';
@@ -3080,13 +3080,13 @@ const HeaderForNewsletterPage = () => (
     <div className="staticPageBlockInner flexContainer">
       <div className="staticPageHeaderTextBox newsletter">
         <h1>
-          <span className="int-en">{BILINGUAL_TEXT.HERO_TITLE.en}</span>
-          <span className="int-he">{BILINGUAL_TEXT.HERO_TITLE.he}</span>
+          <span className="int-en">{Sefaria._keyedString(TEXT_KEYS.HERO_TITLE, "en")}</span>
+          <span className="int-he">{Sefaria._keyedString(TEXT_KEYS.HERO_TITLE, "he")}</span>
         </h1>
         <SimpleInterfaceBlock
           classes="staticPageHeaderText"
-          en={BILINGUAL_TEXT.HERO_DESCRIPTION.en}
-          he={BILINGUAL_TEXT.HERO_DESCRIPTION.he}
+          en={Sefaria._keyedString(TEXT_KEYS.HERO_DESCRIPTION, "en")}
+          he={Sefaria._keyedString(TEXT_KEYS.HERO_DESCRIPTION, "he")}
         />
       </div>
     </div>
@@ -3146,7 +3146,7 @@ const NewsletterPage = () => {
           {showEmailExamples ? (
             <>
               <GreyBox light={true}>
-                <H2Block text={BILINGUAL_TEXT.EMAIL_EXAMPLES_HEADER} />
+                <H2Block en={Sefaria._keyedString(TEXT_KEYS.EMAIL_EXAMPLES_HEADER, "en")} he={Sefaria._keyedString(TEXT_KEYS.EMAIL_EXAMPLES_HEADER, "he")} />
               </GreyBox>
               <EnhancedFeature
                 enTitle="Weekly Parashah Study Companion"
@@ -3163,7 +3163,7 @@ const NewsletterPage = () => {
             </>
           ) : null}
           <WhiteBox>
-            <H2Block text={BILINGUAL_TEXT.TESTIMONIALS_HEADER} />
+            <H2Block en={Sefaria._keyedString(TEXT_KEYS.TESTIMONIALS_HEADER, "en")} he={Sefaria._keyedString(TEXT_KEYS.TESTIMONIALS_HEADER, "he")} />
             <Section>
               <ResponsiveNBox
                 threshold2={Number.POSITIVE_INFINITY}

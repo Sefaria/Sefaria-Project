@@ -1,6 +1,6 @@
 import React from "react";
 import { InterfaceText } from "../Misc";
-import { BILINGUAL_TEXT } from "./bilingualUtils";
+import { TEXT_KEYS } from "./textKeys";
 
 /**
  * SuccessView - Final success view after form completion
@@ -23,11 +23,11 @@ export default function SuccessView() {
         </div>
 
         <h2 className="successTitle">
-          <InterfaceText text={BILINGUAL_TEXT.ALL_SET} />
+          <InterfaceText>{TEXT_KEYS.ALL_SET}</InterfaceText>
         </h2>
 
         <p className="successMessage">
-          <InterfaceText text={BILINGUAL_TEXT.THANKS_FOR_JOINING} />
+          <InterfaceText>{TEXT_KEYS.THANKS_FOR_JOINING}</InterfaceText>
         </p>
       </div>
 
@@ -40,7 +40,7 @@ export default function SuccessView() {
           data-anl-action="go_to_homepage"
           data-anl-form_name="newsletter_signup_complete"
         >
-          <InterfaceText text={BILINGUAL_TEXT.RETURN_TO_SEFARIA} />
+          <InterfaceText>{TEXT_KEYS.RETURN_TO_SEFARIA}</InterfaceText>
         </a>
       </div>
     </div>

@@ -1,12 +1,13 @@
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import SuccessView from "../SuccessView";
-import { BILINGUAL_TEXT } from "../bilingualUtils";
+import { TEXT_KEYS } from "../textKeys";
+import { enText, heText, escapeHtml } from "../testSupport/i18nTestUtils";
 
 jest.mock("../../Misc", () => {
   const React = require("react");
   return {
-    InterfaceText: ({ text }) => React.createElement("span", null, text.en),
+    InterfaceText: ({ children }) => React.createElement("span", null, require("../testSupport/i18nTestUtils").translate(children)),
   };
 });
 
@@ -21,20 +22,21 @@ describe("SuccessView", () => {
   });
 
   it("renders ALL_SET heading text", () => {
-    expect(html).toContain(BILINGUAL_TEXT.ALL_SET.en);
+    expect(html).toContain(enText(TEXT_KEYS.ALL_SET));
   });
 
-  it("BILINGUAL_TEXT.ALL_SET has Hebrew text", () => {
-    expect(BILINGUAL_TEXT.ALL_SET.he).toBe("הכל מוכן!");
+  it("TEXT_KEYS.ALL_SET has Hebrew text", () => {
+    expect(heText(TEXT_KEYS.ALL_SET)).toBe("הכל מוכן!");
   });
 
   it("renders THANKS_FOR_JOINING message", () => {
-    // renderToString HTML-encodes apostrophes as &#x27; — match a safe substring
-    expect(html).toContain("Thank you for joining our community");
+    // escapeHtml accounts for renderToString HTML-encoding the apostrophe as &#x27;,
+    // so this can match the full resolved sentence instead of an apostrophe-free substring.
+    expect(html).toContain(escapeHtml(enText(TEXT_KEYS.THANKS_FOR_JOINING)));
   });
 
   it("renders RETURN_TO_SEFARIA link text", () => {
-    expect(html).toContain(BILINGUAL_TEXT.RETURN_TO_SEFARIA.en);
+    expect(html).toContain(enText(TEXT_KEYS.RETURN_TO_SEFARIA));
   });
 
   it("homepage link points to root path", () => {

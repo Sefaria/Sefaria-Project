@@ -11,11 +11,14 @@
 import React from "react";
 import ReactDOMServer from "react-dom/server";
 import MarketingEmailToggle from "../MarketingEmailToggle";
+import { TEXT_KEYS } from "../textKeys";
+import { enText } from "../testSupport/i18nTestUtils";
 
 // Mock Sefaria global object
 jest.mock("../../sefaria/sefaria", () => ({
   interfaceLang: "english",
-  _: (text) => text,
+  _: (text) => require("../testSupport/i18nTestUtils").translate(text),
+  _keyedString: (id, lang) => require("../testSupport/i18nTestUtils").keyedString(id, lang),
   site: false,
 }));
 
@@ -26,7 +29,7 @@ jest.mock("../../Misc", () => ({
     if (text) {
       return <span className="int-en">{text.en || text}</span>;
     }
-    return <span className="int-en">{children}</span>;
+    return <span className="int-en">{require("../testSupport/i18nTestUtils").translate(children)}</span>;
   },
   // Mock ToggleSet for toggle functionality
   ToggleSet: ({ blueStyle, ariaLabel, name, options, setOption, currentValue }) => (
@@ -97,7 +100,7 @@ describe("MarketingEmailToggle", () => {
         <MarketingEmailToggle wantsMarketingEmails={true} onToggle={mockOnToggle} />,
       );
       expect(html).toContain("marketingEmailToggleLabel");
-      expect(html).toContain("Do you want to receive email updates from Sefaria");
+      expect(html).toContain(enText(TEXT_KEYS.MARKETING_EMAIL_QUESTION));
     });
 
     it("renders helper text about administrative emails", () => {
@@ -105,7 +108,7 @@ describe("MarketingEmailToggle", () => {
         <MarketingEmailToggle wantsMarketingEmails={true} onToggle={mockOnToggle} />,
       );
       expect(html).toContain("marketingEmailNote");
-      expect(html).toContain("administrative emails");
+      expect(html).toContain(enText(TEXT_KEYS.ADMIN_EMAILS_NOTE));
     });
 
     it("renders both Yes and No options", () => {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useReducer } from "react";
 import Sefaria from "../sefaria/sefaria";
 import { FORM_STATUS, STAGE, FORM_STATUS_ACTION } from "./stateSymbols";
-import { BILINGUAL_TEXT, LEARNING_LEVELS } from "./bilingualUtils";
+import { TEXT_KEYS, LEARNING_LEVELS } from "./textKeys";
 import { InterfaceText, LoadingMessage, LoadingRing } from "../Misc";
 import NewsletterFormView from "./NewsletterFormView";
 import NewsletterConfirmationView from "./NewsletterConfirmationView";
@@ -23,21 +23,22 @@ function buildFieldValidators(formData, formStatus) {
   const hasSelectedNewsletter = Object.values(formData.selectedNewsletters).some(Boolean);
 
   return {
-    firstName: () => (isLoggedOut && !formData.firstName.trim() ? BILINGUAL_TEXT.ENTER_FIRST_NAME : null),
-    lastName: () => (isLoggedOut && !formData.lastName.trim() ? BILINGUAL_TEXT.ENTER_LAST_NAME : null),
+    firstName: () => (isLoggedOut && !formData.firstName.trim() ? TEXT_KEYS.ENTER_FIRST_NAME : null),
+    lastName: () => (isLoggedOut && !formData.lastName.trim() ? TEXT_KEYS.ENTER_LAST_NAME : null),
     email: () => {
-      if (!formData.email.trim()) return BILINGUAL_TEXT.ENTER_EMAIL;
-      if (!Sefaria.util.isValidEmailAddress(formData.email)) return BILINGUAL_TEXT.VALID_EMAIL;
+      if (!formData.email.trim()) return TEXT_KEYS.ENTER_EMAIL;
+      if (!Sefaria.util.isValidEmailAddress(formData.email)) return TEXT_KEYS.VALID_EMAIL;
       return null;
     },
     confirmEmail: () =>
-      isLoggedOut && formData.email !== formData.confirmEmail ? BILINGUAL_TEXT.EMAILS_MISMATCH : null,
-    newsletters: () => (isLoggedOut && !hasSelectedNewsletter ? BILINGUAL_TEXT.SELECT_NEWSLETTER : null),
+      isLoggedOut && formData.email !== formData.confirmEmail ? TEXT_KEYS.EMAILS_MISMATCH : null,
+    newsletters: () => (isLoggedOut && !hasSelectedNewsletter ? TEXT_KEYS.SELECT_NEWSLETTER : null),
   };
 }
 
-function errorToBilingualMessage(error) {
-  return error.message ? { en: error.message, he: error.message } : BILINGUAL_TEXT.GENERIC_ERROR;
+function errorToMessage(error) {
+  // Server messages are plain text (not keys); <InterfaceText> shows them unchanged in both languages.
+  return error.message || TEXT_KEYS.GENERIC_ERROR;
 }
 
 function computeSubscriptionDiffs(initial, current) {
@@ -254,7 +255,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
       dispatchFormStatus({ type: FORM_STATUS_ACTION.SUBMIT_SUCCEEDED, nextStage });
     } catch (error) {
       if (!isMountedRef.current) return;
-      dispatchFormStatus({ type: FORM_STATUS_ACTION.SUBMIT_FAILED, error: errorToBilingualMessage(error) });
+      dispatchFormStatus({ type: FORM_STATUS_ACTION.SUBMIT_FAILED, error: errorToMessage(error) });
     }
   };
 
@@ -313,7 +314,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
 
   const handleSaveLearningLevel = async () => {
     if (formData.learningLevel === null) {
-      dispatchFormStatus({ type: FORM_STATUS_ACTION.SUBMIT_FAILED, error: BILINGUAL_TEXT.SELECT_LEARNING_LEVEL });
+      dispatchFormStatus({ type: FORM_STATUS_ACTION.SUBMIT_FAILED, error: TEXT_KEYS.SELECT_LEARNING_LEVEL });
       return;
     }
     await runSubmission(() => updateLearningLevel(formData.email, formData.learningLevel), STAGE.SUCCESS);
@@ -360,12 +361,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
       if (serviceUnavailable) {
         return (
           <div className="newsletterUnavailable">
-            <InterfaceText
-              text={{
-                en: "Newsletter sign-up is not available right now.",
-                he: "ההרשמה לניוזלטר אינה זמינה כרגע.",
-              }}
-            />
+            <InterfaceText>{TEXT_KEYS.NEWSLETTER_UNAVAILABLE}</InterfaceText>
           </div>
         );
       }
