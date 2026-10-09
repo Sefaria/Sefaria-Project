@@ -209,7 +209,7 @@ class TimePeriod(abst.AbstractMongoRecord):
         :return:
         """
         #This info should be stored on Generations.  It doesn't change.
-        if self.type == "Era":
+        if getattr(self, "type", None) == "Era":
             return self
         t = TimePeriod().load({"type": "Era",
                         "start": {"$lte": self.start},

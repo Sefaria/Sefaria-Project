@@ -7,6 +7,13 @@
 
 <head>
 
+	{# Server-rendered CSRF token — this page is standalone (does not extend base.html), #}
+	{# so it needs its own copy. The 'main' React bundle reads it at runtime via #}
+	{# sefaria/csrf.js rather than the csrftoken cookie, which can be ambiguous when a #}
+	{# parent-domain (.sefaria.org) cookie coexists with a host-scoped one (e.g. on #}
+	{# cauldrons). The inline jQuery AJAX hook (js/django-csrf.js) instead inlines #}
+	{# {{ csrf_token }} directly, since it is itself server-rendered. See base.html. #}
+	<meta name="csrf-token" content="{{ csrf_token }}"/>
 	<title>{{ page_title }} | Sefaria</title>
 	<meta name="description" content="{{ description_text }}... [{{ page_title }} {{ title_variants }}]">
 	<meta name="apple-mobile-web-app-capable" content="yes">
@@ -169,17 +176,10 @@
 
 				<div id="languageForm">
 					<span>Language:</span>
-					<select id="language">
-					  <option value="en">English</option>
-					  <option value="he">Hebrew</option>
-					  <!--
-					  <option value="ar">Aramaic</option>
-					  <option value="ru">Russian</option>
-					  <option value="es">Spanish</option>
-					  <option value="fr">French</option>
-					  <option value="de">German</option>
-					-->
-					</select>
+					<!-- populated by populateLanguageSelect() in editor.js, from Sefaria.ISOMap.
+					     Direction is derived from the chosen language (Sefaria.ISOMap), not a
+					     separate control. -->
+					<select id="language"></select>
 				</div>
 
 			</div>

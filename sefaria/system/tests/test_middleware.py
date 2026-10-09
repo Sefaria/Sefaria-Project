@@ -6,9 +6,10 @@ an approved list derived from DOMAIN_MODULES.
 """
 from unittest.mock import patch
 from django.contrib.auth.models import AnonymousUser
+from django.conf import settings
 from django.test import RequestFactory, override_settings
-from django.http import HttpResponse
-from sefaria.system.middleware import ModuleMiddleware, SessionCookieDomainMiddleware, SessionIDAuthMiddleware
+from django.http import HttpResponse, HttpResponseRedirect
+from sefaria.system.middleware import ModuleMiddleware, SessionCookieDomainMiddleware, SessionIDAuthMiddleware, LocationSettingsMiddleware, WebSessionRedirectMiddleware
 from sefaria.utils.chatbot import build_chatbot_user_token
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 
@@ -682,3 +683,175 @@ class TestCsrfTrustedOrigins:
             request = self._post_request(host=self.UNRELATED_HOST, origin=origin)
             assert self._check_referer(request) is None, \
                 f"Origin {origin} should be trusted via wildcard but was rejected"
+
+
+# ============================================================================
+# TESTS: LOCATION SETTINGS (cf-ipcountry -> country_code / diaspora)
+# ============================================================================
+
+class TestLocationSettingsMiddleware:
+    """Test that country_code/diaspora are derived from cf-ipcountry, falling back to
+    PINNED_IPCOUNTRY (or 'us') when the header is missing or unrecognized."""
+
+    def test_valid_country_header_sets_country_code(self):
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/', HTTP_CF_IPCOUNTRY='FR')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'fr'
+        assert request.diaspora is True
+
+    def test_il_header_sets_diaspora_false(self):
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/', HTTP_CF_IPCOUNTRY='IL')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'il'
+        assert request.diaspora is False
+
+    @patch('sefaria.settings.PINNED_IPCOUNTRY', 'de', create=True)
+    def test_missing_header_falls_back_to_pinned_ipcountry(self):
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'de'
+
+    @patch('sefaria.settings.PINNED_IPCOUNTRY', 'de', create=True)
+    def test_unknown_xx_header_falls_back_to_pinned_ipcountry(self):
+        """Cloudflare sets cf-ipcountry to XX when it can't geolocate the visitor -- this
+        should be treated the same as a missing header, not passed on as a real country."""
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/', HTTP_CF_IPCOUNTRY='XX')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'de'
+
+    @patch('sefaria.settings.PINNED_IPCOUNTRY', 'de', create=True)
+    def test_lowercase_xx_header_also_falls_back(self):
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/', HTTP_CF_IPCOUNTRY='xx')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'de'
+
+    def test_missing_setting_falls_back_to_env_var(self, monkeypatch):
+        """Kubernetes deploys inject PINNED_IPCOUNTRY as a pod env var, but the chart's
+        generated local_settings may not define the Django setting -- the env var must
+        still take effect."""
+        import sefaria.settings
+        monkeypatch.delattr(sefaria.settings, 'PINNED_IPCOUNTRY', raising=False)
+        monkeypatch.setenv('PINNED_IPCOUNTRY', 'GB')
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'gb'
+
+    def test_missing_setting_and_env_defaults_to_us(self, monkeypatch):
+        import sefaria.settings
+        monkeypatch.delattr(sefaria.settings, 'PINNED_IPCOUNTRY', raising=False)
+        monkeypatch.delenv('PINNED_IPCOUNTRY', raising=False)
+        middleware = LocationSettingsMiddleware(get_response=lambda r: HttpResponse())
+        request = RequestFactory().get('/')
+
+        middleware.process_request(request)
+
+        assert request.country_code == 'us'
+
+
+# ============================================================================
+# TESTS: WEB SESSION REDIRECT MARKING (no_applink)
+# ============================================================================
+
+class TestWebSessionRedirectMiddleware:
+    """A redirect gets marked no_applink when it continues a web session (sefaria
+    Referer, or an allauth OAuth path where Referer is always external) -- see
+    sefaria/utils/views_utils.py for why."""
+
+    def _middleware(self):
+        return WebSessionRedirectMiddleware(get_response=lambda r: HttpResponse())
+
+    @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
+    def test_sefaria_referer_marks_redirect(self):
+        request = RequestFactory().get('/', HTTP_REFERER='https://www.sefaria.org/texts')
+        result = self._middleware().process_response(request, HttpResponseRedirect('/next'))
+
+        assert 'no_applink=1' in result['Location']
+
+    @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
+    def test_external_referer_does_not_mark_redirect(self):
+        request = RequestFactory().get('/', HTTP_REFERER='https://mail.google.com/')
+        result = self._middleware().process_response(request, HttpResponseRedirect('/next'))
+
+        assert 'no_applink' not in result['Location']
+
+    @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
+    def test_no_referer_does_not_mark_redirect(self):
+        request = RequestFactory().get('/login')
+        result = self._middleware().process_response(request, HttpResponseRedirect('/'))
+
+        assert 'no_applink' not in result['Location']
+
+    def test_accounts_path_marks_redirect_regardless_of_referer(self):
+        request = RequestFactory().get('/accounts/google/login/callback/')
+        result = self._middleware().process_response(request, HttpResponseRedirect('/'))
+
+        assert 'no_applink=1' in result['Location']
+
+    def test_allauth_path_marks_redirect_regardless_of_referer(self):
+        request = RequestFactory().get('/_allauth/browser/v1/auth/session')
+        result = self._middleware().process_response(request, HttpResponseRedirect('/'))
+
+        assert 'no_applink=1' in result['Location']
+
+    def test_google_one_tap_redirect_path_marks_redirect_regardless_of_referer(self):
+        # accounts.google.com POSTs here directly (redirect-mode SSO) -- Referer is
+        # always Google's, never sefaria's, same as /accounts/* and /_allauth/*.
+        request = RequestFactory().post('/api/auth/google/redirect', HTTP_REFERER='https://accounts.google.com/')
+        result = self._middleware().process_response(request, HttpResponseRedirect('/'))
+
+        assert 'no_applink=1' in result['Location']
+
+    @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
+    def test_admin_redirect_with_sefaria_referer_is_not_marked(self):
+        # Redirects to an already AASA-excluded path (the admin save redirect) need no no_applink.
+        admin = settings.ADMIN_PATH.strip('/')
+        request = RequestFactory().post(
+            f'/{admin}/project/1/change/', HTTP_REFERER=f'https://www.sefaria.org/{admin}/project/1/change/')
+        result = self._middleware().process_response(request, HttpResponseRedirect(f'/{admin}/project/?e=1'))
+
+        assert 'no_applink' not in result['Location']
+
+    def test_non_redirect_response_is_untouched(self):
+        request = RequestFactory().get('/accounts/google/login/callback/')
+        response = HttpResponse('ok')
+
+        result = self._middleware().process_response(request, response)
+
+        assert result is response
+
+    @override_settings(DOMAIN_MODULES=PRODUCTION_CONFIG)
+    def test_external_redirect_target_is_not_marked_even_with_sefaria_referer(self):
+        # /wiki -> https://developers.sefaria.org/... (sites/sefaria/urls.py) is a real
+        # example: a sefaria-referred request whose redirect target isn't a sefaria domain.
+        request = RequestFactory().get('/wiki', HTTP_REFERER='https://www.sefaria.org/texts')
+        result = self._middleware().process_response(
+            request, HttpResponseRedirect('https://developers.sefaria.org/docs/welcome')
+        )
+
+        assert 'no_applink' not in result['Location']
+
+    def test_external_redirect_target_is_not_marked_from_oauth_path_either(self):
+        request = RequestFactory().get('/accounts/google/login/callback/')
+        result = self._middleware().process_response(
+            request, HttpResponseRedirect('https://example.com/')
+        )
+
+        assert 'no_applink' not in result['Location']

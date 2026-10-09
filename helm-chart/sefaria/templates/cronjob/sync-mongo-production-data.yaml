@@ -110,13 +110,14 @@ spec:
                     optional: true
                 - configMapRef:
                     name: local-settings-{{ .Values.deployEnv }}
+              # 1Gi OOM-killed mongorestore mid-sheets (~14GB collection).
               resources:
                 requests:
                   cpu: 500m
-                  memory: 500Mi
-                limits:
-                  cpu: 750m
                   memory: "1Gi"
+                limits:
+                  cpu: "1"
+                  memory: "4Gi"
           restartPolicy: Never
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 2

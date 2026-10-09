@@ -1,0 +1,167 @@
+@charset "UTF-8";
+/*
+ * Shared auth-component styles.
+ * Used by the common/ components (Input, Captcha)
+ * and the auth-primary Button variant.
+ *
+ * No font-family or dir rules — these are inherited from the site.
+ * No !important rules (see auth.scss for the one exception, the Google SDK
+ * overlay's inline-style override).
+ */
+.sefaria-input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.sefaria-input-labelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sefaria-input-label {
+  font-size: 14px;
+  line-height: 1.3;
+  color: #121212;
+}
+.sefaria-input-trailingLink {
+  font-size: 14px;
+  color: var(--sefaria-blue);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.sefaria-input--disabled .sefaria-input-label {
+  color: var(--medium-grey-legacy);
+}
+.sefaria-input-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.sefaria-input-field.has-trailing-icon .sefaria-input-control {
+  padding-inline-end: 40px;
+}
+.sefaria-input-control {
+  width: 100%;
+  box-sizing: border-box;
+  height: 45px;
+  padding: 0 16px;
+  border: 1px solid #e6e6e6;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #121212;
+  font-size: 16px;
+  line-height: 1.45;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.sefaria-input-control::placeholder {
+  color: var(--medium-grey-legacy);
+  font-size: 14px;
+  opacity: 1;
+}
+.sefaria-input-control:hover:not(:disabled) {
+  border-color: var(--medium-grey-legacy);
+}
+.sefaria-input-control:focus {
+  border-color: var(--light-grey);
+}
+.sefaria-input-control:disabled {
+  background: #f5f5f5;
+  color: var(--medium-grey-legacy);
+  border-color: #e6e6e6;
+  cursor: not-allowed;
+}
+.sefaria-input--error .sefaria-input-control {
+  border-color: #c03522;
+}
+.sefaria-input-reveal {
+  position: absolute;
+  inset-inline-end: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #707070;
+  direction: ltr;
+}
+.sefaria-input-reveal img {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+.sefaria-input-error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #c03522;
+  font-size: 14px;
+  line-height: 1.3;
+}
+.sefaria-input-errorIcon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+button.sefaria-common-button.auth-primary,
+a.sefaria-common-button.auth-primary {
+  background-color: var(--sefaria-blue);
+  border: 1.5px solid var(--sefaria-blue);
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 600;
+  height: 51px;
+  color: #ffffff;
+}
+button.sefaria-common-button.auth-primary *,
+a.sefaria-common-button.auth-primary * {
+  color: #ffffff;
+}
+button.sefaria-common-button.auth-primary:hover,
+a.sefaria-common-button.auth-primary:hover {
+  background-color: #132b4c;
+}
+
+button.sefaria-common-button.auth-primary:disabled {
+  cursor: not-allowed;
+}
+
+.sefaria-captcha {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+.sefaria-captcha-box {
+  display: block;
+  width: 100%;
+  border-radius: 2px;
+}
+.sefaria-captcha--error .sefaria-captcha-box {
+  outline: 1px solid #c03522;
+  outline-offset: -1px;
+}
+.sefaria-captcha-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c03522;
+  font-size: 14px;
+  line-height: 1;
+}
+.sefaria-captcha-error img {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+}
+
+/*# sourceMappingURL=common-component.css.map */

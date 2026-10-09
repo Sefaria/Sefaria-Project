@@ -25,6 +25,7 @@ import { UserProfile }  from './UserProfile';
 import CalendarsPage from './CalendarsPage'
 import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
+import LinkerEditorPage from './LinkerEditorPage';
 import PublicCollectionsPage from './PublicCollectionsPage';
 import TranslationsPage from './TranslationsPage';
 import { TextColumnBannerChooser } from './TextColumnBanner';
@@ -189,6 +190,20 @@ class ReaderPanel extends Component {
     } else {
       this.showBaseText(citationRef, replace, currVersions, [], true);
     }
+  }
+  handleLinkerAdminCitationClick(sourceRef, lang, charRange, spans) {
+    // For ambiguous citations several spans share a charRange; prefer the option the disambiguator
+    // kept (llm_ambiguous_option_valid !== false) rather than blindly taking the first.
+    const span = spans?.find(s => s.llm_ambiguous_option_valid !== false) || spans?.[0];
+    if (!span) { return; }
+    const connectionData = {
+      linkerAdminSpan: {...span, sourceRef, lang, charRange},
+    };
+    Sefaria._linkerAdminSelectedCitation = connectionData;
+    this.openConnectionsPanel([sourceRef], {connectionsMode: "LinkerAdmin", connectionData});
+    const url = new URL(window.location.href);
+    Sefaria.util.setLinkerAdminUrlParams(url.searchParams);
+    history.replaceState(history.state, document.title, url.pathname + url.search + url.hash);
   }
   handleTextListClick(ref, replaceHistory, currVersions) {
     this.showBaseText(ref, replaceHistory, currVersions, [], false);  // don't attempt to convert commentary to base ref when opening from connections panel
@@ -573,6 +588,10 @@ class ReaderPanel extends Component {
       currentlyVisibleRef: ref,
     });
   }
+  setLinkerEditorBook(book) {
+    this.replaceHistory = false;
+    this.conditionalSetState({linkerEditorBook: book});
+  }
   setTab(tab, replaceHistoryIfReaderAppUpdated=false) {
     // There is a race condition such that when navigating to a new page that has a TabView component, sometimes TabView
     // mounts before ReaderApp's componentDidUpdate gets called, which results in setTab calling conditionalSetState
@@ -759,6 +778,7 @@ class ReaderPanel extends Component {
           updateTextColumn={this.updateTextColumn}
           onSegmentClick={this.handleBaseSegmentClick}
           onCitationClick={this.handleCitationClick}
+          onLinkerAdminCitationClick={this.handleLinkerAdminCitationClick}
           onNamedEntityClick={this.onNamedEntityClick}
           setTextListHighlight={this.setTextListHighlight}
           setCurrentlyVisibleRef={this.setCurrentlyVisibleRef}
@@ -788,8 +808,6 @@ class ReaderPanel extends Component {
           openSheet={this.openSheet}
           setSelectedWords={this.setSelectedWords}
           contentLang={this.state.settings.language}
-          setDivineNameReplacement={this.props.setDivineNameReplacement}
-          divineNameReplacement={this.props.divineNameReplacement}
           style={style}
           historyObject={this.props.getHistoryObject(this.state, false)}
           toggleSignUpModal={this.props.toggleSignUpModal}
@@ -861,8 +879,6 @@ class ReaderPanel extends Component {
           checkIntentTimer={this.props.checkIntentTimer}
           navigatePanel={this.props.navigatePanel}
           translationLanguagePreference={this.props.translationLanguagePreference}
-          setDivineNameReplacement={this.props.setDivineNameReplacement}
-          divineNameReplacement={this.props.divineNameReplacement}
           setPreviousSettings={this.setPreviousSettings}
           filterRef={this.state.filterRef}
           backButtonSettings={this.state.backButtonSettings}
@@ -890,7 +906,7 @@ class ReaderPanel extends Component {
                     initialWidth={this.state.width}
                     toggleSignUpModal={this.props.toggleSignUpModal} />);
     } else if (this.state.menuOpen === "sheetsWithRef") {
-      menu = (<SheetsWithRefPage srefs={this.state.sheetsWithRef.en}
+      menu = (<SheetsWithRefPage srefs={this.state.sheetsWithRef}
                                  searchState={this.state['searchState']}
                                  updateSearchState={this.props.updateSearchState}
                                  updateAppliedFilter={this.props.updateSearchFilter}
@@ -948,11 +964,14 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       menu = (<ElasticSearchQuerier
                     query={this.state.searchQuery}
+                    tab={this.state.tab}
+                    setTab={this.setTab}
                     searchState={this.state['searchState']}
                     resetSearchFilters={this.props.resetSearchFilters}
                     settings={Sefaria.util.clone(this.state.settings)}
                     panelsOpen={this.props.panelsOpen}
                     onResultClick={this.props.onSearchResultClick}
+                    openURL={this.props.openURL}
                     toggleLanguage={this.toggleLanguage}
                     close={this.props.closePanel}
                     onQueryChange={this.props.onQueryChange}
@@ -1081,7 +1100,16 @@ class ReaderPanel extends Component {
         <ModeratorToolsPanel
           interfaceLang={this.props.interfaceLang} />
       );
-      
+
+    } else if (this.state.menuOpen === "linkerEditor") {
+      menu = (
+        <LinkerEditorPage
+          interfaceLang={this.props.interfaceLang}
+          initialBook={this.state.linkerEditorBook}
+          onBookChange={this.setLinkerEditorBook.bind(this)}
+        />
+      );
+
     } else if (["saved", "history", "notes"].includes(this.state.menuOpen)) {
       menu = (
         <UserHistoryPanel              
@@ -1223,6 +1251,7 @@ ReaderPanel.propTypes = {
   openNamedEntityInNewPanel:   PropTypes.func,
   onNavTextClick:              PropTypes.func,
   onSearchResultClick:         PropTypes.func,
+  openURL:                     PropTypes.func,   // ReaderApp.openURL: routes any in-app path (ref, /texts/…, /topics/…) without a page load
   onUpdate:                    PropTypes.func,
   onError:                     PropTypes.func,
   closePanel:                  PropTypes.func,
@@ -1255,7 +1284,6 @@ ReaderPanel.propTypes = {
   analyticsInitialized:        PropTypes.bool,
   setVersionFilter:            PropTypes.func,
   saveLastPlace:               PropTypes.func,
-  setDivineNameReplacement:    PropTypes.func,
   checkIntentTimer:            PropTypes.func,
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
@@ -1354,7 +1382,7 @@ class ReaderControls extends Component {
 
     if (this.props.sheetID) {
       if (this.props.sheetTitle === null) {
-        title = heTitle = Sefaria._("Loading...");
+        title = heTitle = Sefaria._("common.loading");
       } else {
         title = heTitle = Sefaria.sheets.getSheetTitle(this.props.sheetTitle);
       }

@@ -12,7 +12,7 @@
  */
 import React from 'react';
 import Component from 'react-class';
-import Cookies from 'js-cookie';
+import { getCsrfToken } from '../../sefaria/csrf';
 import { InterfaceText, EnglishText, HebrewText } from '../../Misc';
 import ModToolsSection from './shared/ModToolsSection';
 import { stripHtmlTags } from '../utils';
@@ -160,7 +160,7 @@ class WorkflowyModeratorTool extends Component {
     const data = new FormData(event.target);
     const request = new Request(
       '/modtools/upload_text',
-      { headers: { 'X-CSRFToken': Cookies.get('csrftoken') } }
+      { headers: { 'X-CSRFToken': getCsrfToken() } }
     );
 
     fetch(request, {

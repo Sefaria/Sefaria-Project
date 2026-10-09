@@ -21,7 +21,7 @@ for book in bible_books:
     print(rashi_title.encode('utf-8'))
     vs = VersionSet({'title': rashi_title, 'language': 'he'})
     for v in vs:
-        modify_text_by_function(rashi_title, v.versionTitle, 'he', replace_double_quotes, 8646, skip_links=True)
+        modify_text_by_function(rashi_title, v.versionTitle, 'rtl', replace_double_quotes, 8646, skip_links=True)
 
 talmud_books = library.get_indexes_in_category('Talmud')
 for book in talmud_books:
@@ -29,4 +29,4 @@ for book in talmud_books:
     print(rashi_title.encode('utf-8'))
     vs = VersionSet({'title': rashi_title, 'language': 'he'})
     for v in vs:
-        modify_text_by_function(rashi_title, v.versionTitle, 'he', replace_double_quotes, 8646, skip_links=True)
+        modify_text_by_function(rashi_title, v.versionTitle, 'rtl', replace_double_quotes, 8646, skip_links=True)

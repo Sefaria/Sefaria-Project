@@ -17,6 +17,7 @@ from emailusernames.utils import get_user, user_exists
 from django_recaptcha.fields import ReCaptchaField
 from django_recaptcha.widgets import ReCaptchaV2Checkbox
 
+from allauth.socialaccount.models import SocialAccount
 from sefaria.helper.crm.crm_mediator import CrmMediator
 from sefaria.settings import DEBUG
 from sefaria.settings import MOBILE_APP_KEY
@@ -76,7 +77,14 @@ class SefariaNewUserForm(EmailUserCreationForm):
         if user_exists(email):
             user = get_user(email)
             if not user.groups.filter(name=SEED_GROUP).exists():
-                raise forms.ValidationError(_("A user with that email already exists."))
+                social = SocialAccount.objects.filter(user=user)
+                # Not wrapped in _(): register_api (Mobile's AuthPage.js) still text-matches these verbatim.
+                if social.filter(provider='google').exists():
+                    raise forms.ValidationError("This email address is already registered via Google Sign-In.", code='sso_google_exists')
+                elif social.filter(provider='apple').exists():
+                    raise forms.ValidationError("This email address is already registered via Apple Sign-In.", code='sso_apple_exists')
+                else:
+                    raise forms.ValidationError("An account with this email address already exists.", code='email_exists')
         return email
 
     def save(self, commit=True):

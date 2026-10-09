@@ -11,6 +11,7 @@ Overwrites existing documents; inserts new ones. Reports new/updated counts per 
 """
 import argparse
 import json
+import os
 import sys
 from bson import ObjectId
 from tqdm import tqdm
@@ -19,6 +20,51 @@ import django
 django.setup()
 
 from sefaria.system.database import db
+
+_STREAM_BUF_SIZE = 1 << 20  # 1 MB
+
+
+def _iter_json_array(path, desc=None):
+    """Stream items from a JSON array file one at a time without loading the whole file."""
+    decoder = json.JSONDecoder()
+    buf = ""
+    prev_tell = 0
+    with open(path, encoding="utf-8") as f, \
+         tqdm(total=os.path.getsize(path), unit="B", unit_scale=True, desc=desc) as bar:
+
+        def _read():
+            nonlocal prev_tell
+            chunk = f.read(_STREAM_BUF_SIZE)
+            cur = f.tell()
+            bar.update(cur - prev_tell)
+            prev_tell = cur
+            return chunk
+
+        while "[" not in buf:
+            chunk = _read()
+            if not chunk:
+                return
+            buf += chunk
+        buf = buf[buf.index("[") + 1:]
+        while True:
+            buf = buf.lstrip(" \n\r\t,")
+            if not buf:
+                chunk = _read()
+                if not chunk:
+                    return
+                buf += chunk
+                continue
+            if buf[0] == "]":
+                return
+            try:
+                obj, idx = decoder.raw_decode(buf)
+                yield obj
+                buf = buf[idx:]
+            except json.JSONDecodeError:
+                chunk = _read()
+                if not chunk:
+                    return
+                buf += chunk
 
 
 def _deserialize_doc(doc):
@@ -29,9 +75,9 @@ def _deserialize_doc(doc):
     return result
 
 
-def _upsert_links(collection, docs, label):
+def _upsert_links(collection, path, label):
     new_count = updated_count = skipped_count = deleted_count = 0
-    for raw in tqdm(docs, desc=label):
+    for raw in _iter_json_array(path, desc=label):
         doc = _deserialize_doc(raw)
         oid = doc["_id"]
         refs = doc.get("refs", [])
@@ -58,9 +104,9 @@ def _upsert_links(collection, docs, label):
     return new_count, updated_count
 
 
-def _upsert_by_ref_key(collection, docs, label):
+def _upsert_by_ref_key(collection, path, label):
     new_count = updated_count = skipped_count = deleted_count = 0
-    for raw in tqdm(docs, desc=label):
+    for raw in _iter_json_array(path, desc=label):
         doc = _deserialize_doc(raw)
         oid = doc.get("_id")
         query = {k: doc[k] for k in ("ref", "versionTitle", "language") if k in doc}
@@ -87,13 +133,6 @@ def _upsert_by_ref_key(collection, docs, label):
     return new_count, updated_count
 
 
-def _load(path, label):
-    with open(path, encoding="utf-8") as f:
-        data = json.load(f)
-    print(f"Loaded {len(data)} {label} from {path}")
-    return data
-
-
 def main():
     parser = argparse.ArgumentParser(description="Import disambiguated objects from JSON files into MongoDB")
     parser.add_argument("--links", required=True, help="Path to links.json")
@@ -101,14 +140,9 @@ def main():
     parser.add_argument("--marked-up-text-chunks", required=True, help="Path to marked_up_text_chunks.json")
     args = parser.parse_args()
 
-    links_docs = _load(args.links, "links")
-    lo_docs = _load(args.linker_output, "linker_output docs")
-    mutc_docs = _load(args.marked_up_text_chunks, "marked_up_text_chunks docs")
-
-    print()
-    _upsert_links(db.links, links_docs, "links")
-    _upsert_by_ref_key(db.linker_output, lo_docs, "linker_output")
-    _upsert_by_ref_key(db.marked_up_text_chunks, mutc_docs, "marked_up_text_chunks")
+    _upsert_links(db.links, args.links, "links")
+    _upsert_by_ref_key(db.linker_output, args.linker_output, "linker_output")
+    _upsert_by_ref_key(db.marked_up_text_chunks, args.marked_up_text_chunks, "marked_up_text_chunks")
 
 
 if __name__ == "__main__":

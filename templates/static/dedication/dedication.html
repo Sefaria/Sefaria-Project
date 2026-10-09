@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% load sefaria_tags %}
+
+{% block meta_title %}{% meta_title %}{% if request.interfaceLang == "hebrew" %}{{ dedication.he_title|striptags }}{% else %}{{ dedication.en_title|striptags }}{% endif %}{% endmeta_title %}{% endblock %}
+
+{% block content %}
+<div id="dedicationPage" class="container static biReady">
+    <div class="inner">
+
+        <div class="int-en">
+            <h1>{{ dedication.en_title }}</h1>
+            {{ dedication.en_content|safe }}
+        </div>
+
+        <div class="int-he">
+            <h1>{{ dedication.he_title }}</h1>
+            {{ dedication.he_content|safe }}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
+import { goToPageWithLang } from '../utils';
 import { LANGUAGES, t } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS } from '../constants';
@@ -10,12 +10,11 @@ const clickFirstAvailableVersion = async (page: Page) => {
     await selectVersionButton.click();
 };
 
-test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
+test.describe('Library Texts Tree Traversal Tests - Tanach', { tag: '@sanity' }, () => {
 
     // Test: Tanach > Genesis > Clicking a chapter in Contents tab
     test('Tanach - Genesis Contents Tab', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
 
 
         // Check bilingual interface if possible, or just click through
@@ -33,7 +32,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Tanach > Genesis > Clicking the Versions tab > Clicking a version
     test('Tanach - Genesis Versions Tab', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
 
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
         await page.getByRole('link', { name: 'Genesis', exact: true }).click();
@@ -51,7 +49,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Tanah > Psalms Alt TOC > Chapter
     test('Tanach - Psalms Alt TOC - Chapter', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
         await page.getByRole('link', { name: 'Psalms', exact: true }).click();
 
@@ -64,7 +61,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Tanah > Psalms Alt TOC > 30 Day Cycle
     test('Tanach - Psalms Alt TOC - 30 Day Cycle', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
         await page.getByRole('link', { name: 'Psalms', exact: true }).click();
 
@@ -78,7 +74,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Tanah > Psalms Alt TOC > Book
     test('Tanach - Psalms Alt TOC - Book', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
         await page.getByRole('link', { name: 'Psalms', exact: true }).click();
 
@@ -92,7 +87,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Tanach > Aramaic Targum > Proverbs
     test('Tanach - Aramaic Targum - Proverbs', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
         await page.getByRole('link', { name: 'Aramaic Targum' }).click();
         await page.getByRole('link', { name: 'Proverbs' }).click();
@@ -105,7 +99,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Tanach > Rashi
     test('Tanach - Rashi', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
         await page.getByRole('link', { name: 'Rashi', exact: true }).click();
         await page.getByRole('link', { name: 'Genesis' }).click();
@@ -118,7 +111,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Tanach > Chatam Sofer on Torah > Clicking on a parasha
     test('Tanach - Chatam Sofer on Torah - Parasha', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
         await page.getByRole('link', { name: 'Chatam Sofer on Torah' }).click();
 
@@ -130,7 +122,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Tanach > Chatam Sofer on Torah > Clicking the Versions Tab
     test('Tanach - Chatam Sofer on Torah - Versions Tab', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
         await page.getByRole('link', { name: 'Chatam Sofer on Torah' }).click();
 
@@ -142,7 +133,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Tanach > Avraham Remer > Click one of the choices > Click Contents > one of the numbers > Click one of the chapters
     test('Tanach - Avraham Remer - Contents - Chapters', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
         await page.getByRole('link', { name: 'Avraham Remer' }).click();
         await page.locator('.navBlockTitle').filter({ hasText: 'MeAvur HaAretz; on Joshua' }).click();
@@ -156,7 +146,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Tanach > Steinsaltz > Click a book
     test('Tanach - Steinsaltz - Book', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
         await page.getByRole('link', { name: 'Steinsaltz' }).click();
         await page.getByRole('link', { name: 'Genesis' }).click();
@@ -169,7 +158,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Tanach > Jonathan Sacks
     test('Tanach - Jonathan Sacks', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
         await page.getByRole('link', { name: 'Jonathan Sacks' }).click();
         await page.getByRole('link', { name: 'Genesis; The Book of the Beginnings' }).click();
@@ -183,7 +171,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Tanach > Nechama Leibowitz (Sheets)
     test('Tanach - Nechama Leibowitz', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Tanakh' }).first().click();
         await page.getByRole('link', { name: 'Nechama Leibowitz' }).click();
 
@@ -198,7 +185,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Talmud > Jerusalem > Berakhot > Alt TOC > Chapter
     test('Talmud - Jerusalem - Berakhot - Chapter', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Talmud' }).first().click();
         await page.locator('.navToggle:has-text("Jerusalem")').click();
         await page.getByRole('link', { name: 'Berakhot' }).click();
@@ -212,7 +198,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Talmud > Jerusalem > Berakhot > Alt TOC > Venice
     test('Talmud - Jerusalem - Berakhot - Venice', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Talmud' }).first().click();
         await page.locator('.navToggle:has-text("Jerusalem")').click();
         await page.getByRole('link', { name: 'Berakhot' }).click();
@@ -226,7 +211,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Talmud > Jerusalem > Berakhot > Alt TOC > Vilna
     test('Talmud - Jerusalem - Berakhot - Vilna', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Talmud' }).first().click();
         await page.locator('.navToggle:has-text("Jerusalem")').click();
         await page.getByRole('link', { name: 'Berakhot' }).click();
@@ -242,7 +226,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Kabbalah > Zohar > Daf
     test('Kabbalah - Zohar - Daf', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Kabbalah' }).first().click();
         await page.getByRole('link', { name: 'Zohar', exact: true }).click();
 
@@ -255,7 +238,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     test('Kabbalah - Zohar - Essay', async ({ context }) => {
         // Testing in Hebrew since essays are in Hebrew
         const page = await goToPageWithLang(context, `${MODULE_URLS.HE.LIBRARY}/texts`, LANGUAGES.HE);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'קבלה' }).first().click();
         await page.getByRole('link', { name: 'ספר הזהר', exact: true }).click();
         await page.getByRole('link', { name: 'מאמר', exact: true }).click();
@@ -270,7 +252,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Reference > Jastrow Dictionary > Search takes straight to word
     test('Reference - Jastrow - Search', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Reference' }).first().click();
         await page.getByRole('link', { name: 'Jastrow', exact: true }).click();
 
@@ -285,7 +266,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Reference > Jastrow Dictionary > Clicking letter of Alef-Bais
     test('Reference - Jastrow - Alef-Bais', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Reference' }).first().click();
         await page.getByRole('link', { name: 'Jastrow', exact: true }).click();
 
@@ -297,7 +277,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Reference > Kovetz Yesodot VaChakirot > Index
     test('Reference - Kovetz Yesodot VaChakirot - Index', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Reference' }).first().click();
         await page.getByRole('link', { name: 'Kovetz Yesodot VaChakirot' }).click();
 
@@ -309,7 +288,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Reference > Kovetz Yesodot VaChakirot > Browse by Letter
     test('Reference - Kovetz Yesodot VaChakirot - Browse by Letter', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/texts`, LANGUAGES.EN);
-        await hideAllModalsAndPopups(page);
         await page.locator('.navBlockTitle').filter({ hasText: 'Reference' }).first().click();
         await page.getByRole('link', { name: 'Kovetz Yesodot VaChakirot' }).click();
 
@@ -321,7 +299,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Reference > Seder Hadorot > Compositions
     test('Reference - Seder Hadorot - Compositions', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.HE.LIBRARY}/texts`, LANGUAGES.HE);
-        await hideAllModalsAndPopups(page);
         await page.getByRole('link', { name: 'מילונים וספרי יעץ' }).click();
         await page.getByRole('link', { name: 'סדר הדורות' }).click();
 
@@ -334,7 +311,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Reference > Seder Hadorot > Authors
     test('Reference - Seder Hadorot - Authors', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.HE.LIBRARY}/texts`, LANGUAGES.HE);
-        await hideAllModalsAndPopups(page);
         await page.getByRole('link', { name: 'מילונים וספרי יעץ' }).click();
         await page.getByRole('link', { name: 'סדר הדורות' }).click();
 
@@ -347,7 +323,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Reference > Seder Hadorot > Tanaim and Amoraim
     test('Reference - Seder Hadorot - Tanaim and Amoraim', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.HE.LIBRARY}/texts`, LANGUAGES.HE);
-        await hideAllModalsAndPopups(page);
         await page.getByRole('link', { name: 'מילונים וספרי יעץ' }).click();
         await page.getByRole('link', { name: 'סדר הדורות' }).click();
 
@@ -360,7 +335,6 @@ test.describe('Library Texts Tree Traversal Tests - Tanach', () => {
     // Test: Reference > Seder Hadorot > Contents
     test('Reference - Seder Hadorot - Contents', async ({ context }) => {
         const page = await goToPageWithLang(context, `${MODULE_URLS.HE.LIBRARY}/texts`, LANGUAGES.HE);
-        await hideAllModalsAndPopups(page);
         await page.getByRole('link', { name: 'מילונים וספרי יעץ' }).click();
         await page.getByRole('link', { name: 'סדר הדורות' }).click();
 

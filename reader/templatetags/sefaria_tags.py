@@ -357,7 +357,7 @@ def strip_tags(value):
 
 @register.filter(is_safe=True)
 def escape_quotes(value):
-	"""
+	r"""
 	Returns the given HTML with single and double quotes escpaed with \ for a JS context
 	"""
 	value = value.replace("'", "\\'")

@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups } from '../utils';
+import { goToPageWithLang, goToPageWithUser } from '../utils';
 import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import { MODULE_URLS } from '../constants';
@@ -24,26 +24,25 @@ test.describe('Library Assistant — English', () => {
   test.beforeEach(async ({ context }) => {
     page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
     pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onLibraryAssistant().waitForReady();
   });
 
-  test('UX-001: Floating trigger button is visible when the panel is closed', async () => {
+  test('UX-001: Floating trigger button is visible when the panel is closed', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureClosed();
     await pm.onLibraryAssistant().expectTriggerVisible();
   });
 
-  test('UX-003: Clicking the floating trigger opens the chat panel and focuses input', async () => {
+  test('UX-003: Clicking the floating trigger opens the chat panel and focuses input', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureClosed();
     await pm.onLibraryAssistant().clickTriggerAndExpectOpen();
   });
 
-  test('UX-004: Close button closes the chat panel', async () => {
+  test('UX-004: Close button closes the chat panel', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().clickCloseAndExpectClosed();
   });
 
-  test('UX-013: Toggle panel to docked (side-rail) mode', async () => {
+  test('UX-013: Toggle panel to docked (side-rail) mode', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureFloating();
     await pm.onLibraryAssistant().toggleToDocked();
   });
@@ -60,7 +59,7 @@ test.describe('Library Assistant — English', () => {
     await pm.onLibraryAssistant().expectSendDisabled();
   });
 
-  test('UX-023: Send button is enabled when the input has text', async () => {
+  test('UX-023: Send button is enabled when the input has text', { tag: '@sanity' }, async () => {
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().typeMessage('<AUTO TEST> hello');
     await pm.onLibraryAssistant().expectSendEnabled();
@@ -77,7 +76,7 @@ test.describe('Library Assistant — English', () => {
     await pm.onLibraryAssistant().waitForResponse();
   });
 
-  test('UX-026: Clicking the send button sends the typed message', async () => {
+  test('UX-026: Clicking the send button sends the typed message', { tag: '@sanity' }, async () => {
     test.setTimeout(t(90000));
     const prompt = '<AUTO TEST> Say hello in one short word';
     await pm.onLibraryAssistant().ensureOpen();
@@ -88,7 +87,7 @@ test.describe('Library Assistant — English', () => {
     await pm.onLibraryAssistant().waitForResponse();
   });
 
-  test('UX-027: Input and send button are disabled while awaiting a response', async () => {
+  test('UX-027: Input and send button are disabled while awaiting a response', { tag: '@sanity' }, async () => {
     test.setTimeout(t(90000));
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().typeMessage('<AUTO TEST> Give me a short greeting');
@@ -97,7 +96,7 @@ test.describe('Library Assistant — English', () => {
     await pm.onLibraryAssistant().waitForResponse();
   });
 
-  test('UX-036: Thinking indicator appears immediately after sending a message', async () => {
+  test('UX-036: Thinking indicator appears immediately after sending a message', { tag: '@sanity' }, async () => {
     test.setTimeout(t(90000));
     await pm.onLibraryAssistant().ensureOpen();
     await pm.onLibraryAssistant().typeMessage('<AUTO TEST> Say hello briefly');
@@ -121,7 +120,6 @@ test.describe('Library Assistant — header menu', () => {
   test.beforeEach(async ({ context }) => {
     page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
     pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onLibraryAssistant().waitForReady();
     await pm.onLibraryAssistant().ensureOpen();
   });
@@ -133,13 +131,9 @@ test.describe('Library Assistant — header menu', () => {
     // in LCChatbot.svelte).
     await pm.onLibraryAssistant().openHeaderMenu();
     await pm.onLibraryAssistant().expectMenuVisible();
-    await pm.onLibraryAssistant().expectMenuItemTexts([
-      'Settings',
-      'Restart conversation',
-      'Give feedback',
-      'Help',
-      'Opt-out in Settings',
-    ]);
+    await pm.onLibraryAssistant().expectMenuItemTexts(
+      pm.onLibraryAssistant().expectedMenuTexts(BROWSER_SETTINGS.enLAUser.isModerator),
+    );
   });
 
   test('UX-058: Clicking outside the menu closes it', async () => {
@@ -159,7 +153,7 @@ test.describe('Library Assistant — header menu', () => {
     await pm.onLibraryAssistant().expectMenuHidden();
   });
 
-  test('UX-060: Restart conversation clears all messages and shows empty state', async () => {
+  test('UX-060: Restart conversation clears all messages and shows empty state', { tag: '@sanity' }, async () => {
     test.setTimeout(t(90000));
     // Send a message so there is something to clear
     await pm.onLibraryAssistant().typeMessage('<AUTO TEST> Hello for restart test');
@@ -173,8 +167,7 @@ test.describe('Library Assistant — header menu', () => {
     await pm.onLibraryAssistant().expectEmptyState();
     await pm.onLibraryAssistant().expectNoUserMessages();
     // Textarea should be focused and re-enabled
-    const textarea = page.getByLabel('Prompt input');
-    await expect(textarea).toBeEnabled({ timeout: t(5000) });
+    await pm.onLibraryAssistant().expectTextareaEnabled();
   });
 });
 
@@ -189,7 +182,6 @@ test.describe('Library Assistant — responsive', () => {
     // Navigate and wait for the component to mount at desktop size first
     const page = await goToPageWithUser(context, MODULE_URLS.EN.LIBRARY, BROWSER_SETTINGS.enLAUser);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onLibraryAssistant().waitForReady();
 
     // Resize to a typical mobile viewport
@@ -211,28 +203,24 @@ test.describe('Library Assistant — visibility boundaries', () => {
   test('LA-NEG-001: Does not appear on voices.sefaria.org home (even when logged in as LA user)', async ({ context }) => {
     const page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enLAUser);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onLibraryAssistant().expectNotPresent();
   });
 
   test('LA-NEG-002: Does not appear on a voices sheet page', async ({ context }) => {
     const page = await goToPageWithUser(context, `${MODULE_URLS.EN.VOICES}/sheets/393695`, BROWSER_SETTINGS.enLAUser);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onLibraryAssistant().expectNotPresent();
   });
 
   test('LA-NEG-003: Does not appear for a logged-out user on the library home', async ({ context }) => {
     const page = await goToPageWithLang(context, MODULE_URLS.EN.LIBRARY, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onLibraryAssistant().expectNotPresent();
   });
 
   test('LA-NEG-004: Does not appear for a logged-out user on a reader page', async ({ context }) => {
     const page = await goToPageWithLang(context, `${MODULE_URLS.EN.LIBRARY}/Genesis.1`, LANGUAGES.EN);
     const pm = new PageManager(page, LANGUAGES.EN);
-    await hideAllModalsAndPopups(page);
     await pm.onLibraryAssistant().expectNotPresent();
   });
 });

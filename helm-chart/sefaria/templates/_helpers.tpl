@@ -63,6 +63,22 @@ elastic-admin-{{ .Values.deployEnv }}
 {{- end }}
 {{- end }}
 
+{{- define "sefaria.secrets.pgvectorPassword" }}
+{{- if .Values.secrets.pgvectorPassword.ref -}}
+{{- .Values.secrets.pgvectorPassword.ref }}
+{{- else -}}
+pgvector-secret-{{ .Values.deployEnv }}
+{{- end }}
+{{- end }}
+
+{{- define "sefaria.secrets.geminiApiKey" }}
+{{- if .Values.secrets.geminiApiKey.ref -}}
+{{- .Values.secrets.geminiApiKey.ref }}
+{{- else -}}
+gemini-api-key-{{ .Values.deployEnv }}
+{{- end }}
+{{- end }}
+
 {{- define "sefaria.tarballName" }}
 {{- if .Values.restore.tarball -}}
 {{- .Values.restore.tarball }}
@@ -157,6 +173,9 @@ Setup complete tasks queue info
 */}}
 {{- define "sefaria.tasks.internalQueues" }}
 tasks: {{ .Values.deployEnv }}-tasks
+{{- if .Values.tasks.findRefs.enabled }}
+findRefs: {{ .Values.deployEnv }}-find-refs
+{{- end }}
 {{- end }}
 {{- define "sefaria.tasks.queues" }}
 {{- merge  (fromYaml (include "sefaria.tasks.internalQueues" . )) .Values.tasks.queues | toYaml }}

@@ -416,7 +416,7 @@ Normalization tools for mapping chars to words and vice versa
 
 
 def char_indices_from_word_indices(input_string, word_ranges, split_regex=None):
-    """
+    r"""
     ***Important***
     We use regular expression matching to solve this problem. We use the regex \s+ as default. This *should* replicate
     the behavior of str.split(), but use this with caution. It would be advisable to send the exact regex that was used

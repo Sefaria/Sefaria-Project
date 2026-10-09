@@ -229,22 +229,6 @@ class TextRange extends Component {
     $(event.target).closest("sup").next("i.footnote").toggle();
     this.conditionalPlaceSegmentNumbers();
   }
-  parashahHeader(data, segment, includeAliyout=false) {
-    // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parahsah
-    // returns null otherwise.
-    //let data = this.getText();
-    if (!data) { return null; }
-    if ("alts" in data && data.alts.length && ((data.categories[1] == "Torah" && !data["isDependant"]) || data.categories[2] == "Onkelos")) {
-      const curRef = segment.ref;
-      if ("alt" in segment && segment.alt != null){
-        if(includeAliyout || "whole" in segment.alt){
-          return {"en": segment.alt["en"][0], "he": segment.alt["he"][0], "parashaTitle": "whole" in segment.alt}
-        }
-      }
-    }
-    return null;
-  }
-
   render() {
     const data = this.state.data;
     let title, ref;
@@ -302,7 +286,7 @@ class TextRange extends Component {
       const textHighlights = (highlight || !this.props.basetext) && !!this.props.textHighlights ? this.props.textHighlights : null; // apply textHighlights in a base text only when the segment is hightlights
       let parashahHeader = null;
         if (this.props.showParashahHeaders) {
-        const parashahNames = this.parashahHeader(data, segment, (this.props.settings.aliyotTorah == 'aliyotOn'));
+        const parashahNames = Util.parashahHeader(data, segment, (this.props.settings.aliyotTorah == 'aliyotOn'));
         if (parashahNames){
           const pclasses = classNames({
                     parashahHeader: 1,
@@ -343,6 +327,7 @@ class TextRange extends Component {
             panelPosition={this.props.panelPosition}
             onSegmentClick={this.props.onSegmentClick}
             onCitationClick={this.props.onCitationClick}
+            onLinkerAdminCitationClick={this.props.onLinkerAdminCitationClick}
             onFootnoteClick={this.onFootnoteClick}
             onNamedEntityClick={this.props.onNamedEntityClick}
             unsetTextHighlight={this.props.unsetTextHighlight}
@@ -434,6 +419,7 @@ TextRange.propTypes = {
   onRangeClick:           PropTypes.func,
   onSegmentClick:         PropTypes.func,
   onCitationClick:        PropTypes.func,
+  onLinkerAdminCitationClick: PropTypes.func,
   onNamedEntityClick:     PropTypes.func,
   showBaseText:           PropTypes.func,
   unsetTextHighlight:     PropTypes.func,
@@ -504,7 +490,12 @@ class TextSegment extends Component {
         const lang = contentSpan?.classList.contains('he') ? 'he' : 'en';
         const key = `${this.props.sref}|${lang}|${charRange}`;
         const spans = Sefaria._linkerOutputMap[key];
-        Sefaria._makeLinkerDebugAlert(this.props.sref, lang, charRange, spans);
+        const sampleSpan = spans?.[0];
+        if (sampleSpan?.type === "citation" && Sefaria.is_moderator && this.props.onLinkerAdminCitationClick) {
+          this.props.onLinkerAdminCitationClick(this.props.sref, lang, charRange, spans);
+        } else {
+          Sefaria._makeLinkerDebugAlert(this.props.sref, lang, charRange, spans);
+        }
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -688,6 +679,7 @@ TextSegment.propTypes = {
   linkCount:       PropTypes.number,
   filter:          PropTypes.array,
   onCitationClick: PropTypes.func,
+  onLinkerAdminCitationClick: PropTypes.func,
   onSegmentClick:  PropTypes.func,
   onFootnoteClick: PropTypes.func,
   onNamedEntityClick: PropTypes.func,

@@ -8,6 +8,7 @@ from datetime import datetime
 
 from sefaria.model import *
 from sefaria.system.database import db
+from sefaria.constants.model import MIN_SOURCES_FOR_TOPIC_DISPLAY
 from .settings import STATICFILES_DIRS, STATIC_URL
 
 
@@ -133,7 +134,7 @@ class SefariaSiteMapGenerator(object):
         Creates a sitemap for each topic that has at least one source or source sheet.
         """
         topics = TopicSet()
-        topics = [topic for topic in topics if topic.should_display()]
+        topics = [topic for topic in topics if topic.should_display(min_sources=MIN_SOURCES_FOR_TOPIC_DISPLAY)]
         urls = [self._hostname + "/topics/" + topic.slug for topic in topics]
         self.write_urls(urls, "topics-sitemap.xml")
 

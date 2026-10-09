@@ -28,6 +28,17 @@ const type_title_map = {
   "User": "Users"
 };
 
+const type_title_id_map = {
+  "Collection": "common.collections",
+  "AuthorTopic": "common.authors",
+  "TocCategory": "header_autocomplete.categories",
+  "PersonTopic": "common.topics",
+  "Topic": "common.topics",
+  "ref": "header_autocomplete.books",
+  "Term": "header_autocomplete.terms",
+  "User": "header_autocomplete.users"
+};
+
 const MODULE_ALLOWED_SEARCH_TYPES = {
   [Sefaria.LIBRARY_MODULE]: ['Topic', 'ref', 'TocCategory', 'Term'],
   [Sefaria.VOICES_MODULE]: ['Topic', 'User', 'Collection']
@@ -130,7 +141,7 @@ const getQueryObj = (query) => {
 };
 
 const TextualSearchSuggestion = ({label, onClick, ...props}) => {
-    const searchOverridePre = Sefaria._('Search for') +':';
+    const searchOverridePre = Sefaria._("header_autocomplete.search_for") +':';
     const displayedLabel = (
         <>
             <span className={"search-override-text"}>
@@ -246,8 +257,12 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
 
     const blurSearch = (e) => {
       onBlur(e);
-      const oldValue = getVirtualKeyboardInputValue();
       const parent = document.getElementById('searchBox');
+      if (!parent) {
+        // the search box unmounts mid-blur when the mobile nav menu closes on navigation
+        return;
+      }
+      const oldValue = getVirtualKeyboardInputValue();
       if (!parent.contains(e.relatedTarget) && !document.getElementById('keyboardInputMaster')) {
         // debug: comment out the following line:
         setSearchFocused(false);
@@ -270,24 +285,24 @@ const SearchInputBox = ({getInputProps, highlightedSuggestion, highlightedIndex,
     const searchBoxClasses = classNames({ searchBox: 1, searchFocused });
      
     return (
-      <div id="searchBox"
-           className={searchBoxClasses}
-           role="search"
-           aria-label={Sefaria._("Site search")}>
-        <SearchButton onClick={handleSearchButtonClick} />
-        <input
-          className={inputClasses}
-          id="searchInput"
-          placeholder={Sefaria._("Search")}
-          aria-label={Sefaria._("Search for Texts or Keywords Here")}
-          onKeyDown={handleSearchKeyDown}
-          onFocus={focusSearch}
-          onBlur={blurSearch}
-          maxLength={75}
-          title={Sefaria._("Search for Texts or Keywords Here")}
-          {...otherDownShiftProps}
-        />
-      </div>
+        <div id="searchBox"
+             className={searchBoxClasses}
+             role="search"
+             aria-label={Sefaria._("header_autocomplete.site_search")}>
+            <SearchButton onClick={handleSearchButtonClick} />
+            <input
+              className={inputClasses}
+              id="searchInput"
+              placeholder={Sefaria._("common.search")}
+              aria-label={Sefaria._("common.search_for_texts_or_keywords_here")}
+              onKeyDown={handleSearchKeyDown}
+              onFocus={focusSearch}
+              onBlur={blurSearch}
+              maxLength={75}
+              title={Sefaria._("common.search_for_texts_or_keywords_here")}
+              {...otherDownShiftProps}
+            />
+        </div>
     );
   };
 const SuggestionsDispatcher = ({ suggestions, getItemProps, highlightedIndex,
@@ -326,14 +341,14 @@ const SearchSuggestionFactory = ({ type, submitSearch, redirectToObject, inputVa
             SuggestionComponent: TextualSearchSuggestion
         },
         other: {
-            onSuggestionClick: () => {
+            onSuggestionClick: (item) => {
               gtag("event", "search_navto", {
                 "project": "Global Search",
                 "feature_name": "Nav To by Mouse",
                 "to": props.label,
                 "text": inputValue
               });
-              redirectToObject();
+              redirectToObject(item);
             },
             SuggestionComponent: EntitySearchSuggestion
         }
@@ -355,7 +370,7 @@ const SuggestionsGroup = ({ suggestions, initialIndexForGroup, getItemProps, hig
         <div className={"search-group-suggestions"}>
 
          {(type != 'search') &&
-            <div className={'type-title'}><InterfaceText>{title}</InterfaceText></div>
+            <div className={'type-title'}><InterfaceText>{type_title_id_map[type] || title}</InterfaceText></div>
          }
 
             <div className={"search-group-suggestions-items"}>

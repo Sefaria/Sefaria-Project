@@ -119,31 +119,30 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
 
 
       return (
-		<div className="media"  key={anchor+"_"+"audio"}>
-			  <div className="title en">{source}</div>
-				<div className="title he">{source_he}</div>
-			  <div className="description int-en">{description}</div>
-				<div className="description int-he">{description_he}</div>
-			  <div className="panel">
+          <div className="media"  key={anchor+"_"+"audio"}>
+              <div className="title en">{source}</div>
+              <div className="title he">{source_he}</div>
+              <div className="description int-en">{description}</div>
+              <div className="description int-he">{description_he}</div>
+              <div className="panel">
           <div className="playTimeContainer">
             <input type="image" src = {playing ? "static/img/pause.svg" : "static/img/play.svg"} alt={playing ? "Pause Audio" : "Play Audio"} onClick={() => setPlaying(!playing)} id="pause"/>
             <span>{formatTime((clipEndTime-clipStartTime) - (clipEndTime - currTime)) + " / " + formatTime(clipEndTime-clipStartTime)}</span>
           </div>
-          <div className="sliderContainer"><input type="range" min={startTime} max={endTime} value = {currTime} step="any" className="slider" id={`audio-slider-${anchor}`} aria-label={Sefaria._("Audio playback position")} onChange={(value) => {handleChange(value)}}/></div>
+          <div className="sliderContainer"><input type="range" min={startTime} max={endTime} value = {currTime} step="any" className="slider" id={`audio-slider-${anchor}`} aria-label={Sefaria._("media.audio_playback_position")} onChange={(value) => {handleChange(value)}}/></div>
 			  </div>
-			  <audio id="my-audio" ref={audioElement} preload="metadata">
+              <audio id="my-audio" ref={audioElement} preload="metadata">
 				 <source src={audioUrlWithTime} type="audio/mpeg"/>
 			  </audio>
-			  <div className="meta">
+              <div className="meta">
 				<span className="int-en">License: {license}</span>
 				<span className="int-he">עסק רשיון: {license}</span>
         <br/>
 				<span className="int-en">Source: <a href={source_site} target="_blank">{source}</a></span>
 				<span className="int-he">מקור: <a href={source_site} target="_blank">{source_he}</a></span>
 			  </div>
-
-		</div>
-   )
+          </div>
+      );
 };
 
 export {

@@ -1,15 +1,13 @@
-import {InterfaceText, EnglishText, HebrewText, LanguageToggleButton, CloseButton, DisplaySettingsButton} from "./Misc";
+import {InterfaceText, EnglishText, HebrewText, LanguageToggleButton, CloseButton} from "./Misc";
 import {RecentFilterSet} from "./ConnectionFilters";
 import React  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import {CONNECTION_MODE_STRING_IDS} from './constants';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
-import {ReaderPanelContext} from "./context";
-import {DropdownMenu} from "./common/DropdownMenu";
-import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import Util from "./sefaria/util";
 
 
@@ -47,18 +45,14 @@ class ConnectionsPanelHeader extends Component {
       return null;
     }
     const excludedModes = ["Resources", "ConnectionsList"];
-    if (!excludedModes.includes(this.props.connectionsMode)) {
-      // Only modes were there's an actual source-text get the dropdown.
-      return <DropdownMenu buttonComponent={<DisplaySettingsButton/>} context={ReaderPanelContext}><ReaderDisplayOptionsMenu/></DropdownMenu>;
-    }
-    if (this.props.interfaceLang !== "english") {
+    if (excludedModes.includes(this.props.connectionsMode) && this.props.interfaceLang !== "english") {
       // if interface is Hebrew and we're not viewing actual source text in the sidebar, language switcher is turned off.
       return null;
     }
     const currentLang = Sefaria.util.getUrlVars()["lang2"];
     const nextLang = currentLang === "en" ? "he" : "en";
     const nextLangUrl = Sefaria.util.replaceUrlParam("lang2", nextLang);
-    // Otherwise provide the English/Hebrew toggle button.
+    // Provide the English/Hebrew toggle button.
     return <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} url={nextLangUrl} />;
   }
   onClick(e) {
@@ -106,7 +100,7 @@ class ConnectionsPanelHeader extends Component {
     } else if ((this.props.previousCategory && this.props.connectionsMode === "TextList") || previousMode) {
       // In a text list, back to Previous Category
       const prev = previousMode ? previousMode.splitCamelCase() : this.props.previousCategory;
-      const prevHe = previousMode ? Sefaria._(prev) : Sefaria._(this.props.previousCategory);
+      const prevHe = Sefaria._(CONNECTION_MODE_STRING_IDS[prev] || prev);
       const url = Sefaria.util.replaceUrlParam("with", prev);
       title = <a
         href={url}

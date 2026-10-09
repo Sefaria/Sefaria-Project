@@ -6,14 +6,15 @@
  */
 
 import { test, expect, Page } from '@playwright/test';
-import { goToPageWithLang, hideAllModalsAndPopups } from '../utils';
-import { LANGUAGES, t } from '../globals';
+import { goToPageWithLang, goToPageWithUser, hideAllModalsAndPopups } from '../utils';
+import { LANGUAGES, t, BROWSER_SETTINGS } from '../globals';
 import { PageManager } from '../pages/pageManager';
 import {
   MODULE_URLS,
   SITE_CONFIGS,
   EXTERNAL_URLS,
-  SEARCH_DROPDOWN
+  SEARCH_DROPDOWN,
+  USER_MENU_ITEMS
 } from '../constants';
 
 test.describe('Voices Module Header Tests - English', () => {
@@ -25,7 +26,7 @@ test.describe('Voices Module Header Tests - English', () => {
     pm = new PageManager(page, LANGUAGES.EN);
   });
 
-  test('MOD-H003: Voices header navigation and elements', async () => {
+  test('MOD-H003: Voices header navigation and elements', { tag: '@sanity' }, async () => {
     const config = SITE_CONFIGS.VOICES;
 
     await expect(page.locator(config.logo)).toBeVisible();
@@ -66,10 +67,12 @@ test.describe('Voices Module Header Tests - English', () => {
 
     const createButton = page.getByRole('banner').getByRole('button', { name: /create/i });
 
-    const initialUrl = page.url();
     await createButton.click();
 
-    await page.waitForURL(url => url.toString() !== initialUrl, { timeout: t(10000) });
+    // Create triggers a client-side (SPA) route change to the new sheet; assert
+    // the destination URL directly (poll-based, no dependency on the `load`
+    // event, which lags on the Voices SPA).
+    await expect(page).toHaveURL(/\/sheets\/(new|\d+)/, { timeout: t(15000) });
     await page.waitForLoadState('domcontentloaded');
     await hideAllModalsAndPopups(page);
     await pm.onModuleHeader().closeGuideOverlay();
@@ -101,5 +104,23 @@ test.describe('Voices Module Header Tests - English', () => {
     }
 
     await pm.onModuleHeader().logout();
+  });
+});
+
+test.describe('Voices Module Header Tests - Logged In', () => {
+  let page: Page;
+  let pm: PageManager;
+
+  test.beforeEach(async ({ context }) => {
+    page = await goToPageWithUser(context, MODULE_URLS.EN.VOICES, BROWSER_SETTINGS.enUser);
+    pm = new PageManager(page, LANGUAGES.EN);
+    await hideAllModalsAndPopups(page);
+  });
+
+  test('MOD-H017: Voices user menu contains all expected items including Saved and History', { tag: '@sanity' }, async () => {
+    await expect(pm.onModuleHeader().isLoggedIn()).resolves.toBe(true);
+    // Presence-only: every expected item — notably Saved and History — exists in the
+    // logged-in Voices user-menu dropdown.
+    await pm.onModuleHeader().assertUserMenuItems(USER_MENU_ITEMS.VOICES_LOGGED_IN);
   });
 });

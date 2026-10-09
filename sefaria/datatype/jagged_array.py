@@ -353,13 +353,13 @@ class JaggedArray(object):
         else:
             return 1
 
-    # derived from TextChunk.trim_text
+    # derived from LegacyTextChunk.trim_text
     def subarray_with_ref(self, ref):
         start = [i - 1 for i in ref.sections]
         end = [i - 1 for i in ref.toSections]
         return self.subarray(start, end)
 
-    # derived from TextChunk.trim_text
+    # derived from LegacyTextChunk.trim_text
     def subarray(self, start_indexes, end_indexes=None):
         """
         Trims a JA to the specifications of start_indexes and end_indexes

@@ -84,10 +84,15 @@ def attach_branch(new_node, parent_node, place=0):
     handle_dependant_indices(index.title)
 
 
-def remove_branch(node):
+def remove_branch(node, handle_dependencies=True):
     """
     This will delete any text in `node`
     :param node: SchemaNode to remove
+    :param handle_dependencies: When True (the default), clears base_text_mapping on every
+        structure-matched commentary, which disables their automatic commentary linking.
+        That is the right call for a structural change that leaves the base/commentary
+        mapping invalid.  Pass False when base text and commentaries are being changed in
+        lockstep and the mapping stays correct, so it is not thrown away needlessly.
     :return:
     """
     assert isinstance(node, SchemaNode)
@@ -111,7 +116,8 @@ def remove_branch(node):
     library.rebuild()
     refresh_version_state(index.title)
 
-    handle_dependant_indices(index.title)
+    if handle_dependencies:
+        handle_dependant_indices(index.title)
 
 
 def reorder_children(parent_node, new_order):
@@ -529,12 +535,12 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
         assert isinstance(v, Version)
 
         if v.get_index() == index:
-            chunk = TextChunk(ja_node.ref(), lang=v.language, vtitle=v.versionTitle)
+            chunk = TextChunk(ja_node.ref(), lang=v.languageFamilyName, vtitle=v.versionTitle, direction=v.direction)
         else:
             library.refresh_index_record_in_cache(v.get_index())
             ref_name = ja_node.ref().normal()
             ref_name = ref_name.replace(index.title, v.get_index().title)
-            chunk = TextChunk(Ref(ref_name), lang=v.language, vtitle=v.versionTitle)
+            chunk = TextChunk(Ref(ref_name), lang=v.languageFamilyName, vtitle=v.versionTitle, direction=v.direction)
         ja = chunk.ja()
         if ja.get_depth() == 0:
             continue
@@ -704,6 +710,10 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
     print('Updating Ref Data')
     generic_rewrite(RefDataSet(construct_query('ref', identifier)))
     print('Updating Topic Links')
+    # The second pass QUERIES on expandedRefs but REWRITES 'ref' (generic_rewrite's
+    # default attr_name) — a second net for records the first query missed.  Rewriting
+    # the primary ref is the point: RefTopicLink._normalize() regenerates expandedRefs
+    # from it on every save, so writing the expansion directly would be overwritten.
     generic_rewrite(RefTopicLinkSet(construct_query('ref', identifier)))
     generic_rewrite(RefTopicLinkSet(construct_query('expandedRefs', identifier)))
     print('Updating Garden Stops')
@@ -715,11 +725,30 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda *args: Tr
     print('Updating Marked Up Text Chunks')
     generic_rewrite(MarkedUpTextChunkSet(construct_query('ref', identifier)))
     print('Updating Manuscripts')
-    generic_rewrite(ManuscriptSet(construct_query('contained_refs', identifier)))
-    generic_rewrite(ManuscriptSet(construct_query('expanded_refs', identifier)))
+    generic_rewrite(ManuscriptPageSet(construct_query('contained_refs', identifier)), attr_name='contained_refs')
+    generic_rewrite(ManuscriptPageSet(construct_query('expanded_refs', identifier)), attr_name='expanded_refs')
     print('Updating WebPages')
-    generic_rewrite(WebPageSet(construct_query('refs', identifier)))
-    generic_rewrite(ManuscriptSet(construct_query('expandedRefs', identifier)))
+    # Same shape as the Topic Links pair above: query on expandedRefs, but rewrite the
+    # primary 'refs', because WebPage._normalize() recomputes expandedRefs from refs.
+    # (_normalize runs inside every save() — see AbstractMongoRecord.save — so it is not
+    # something a caller can sequence around; every save here recomputes the expansion.)
+    #
+    # CAVEAT FOR DOWNSIZING CALLERS.  A downsize has to cascade BEFORE the structure
+    # changes, because the old refs stop resolving once it does — change_node_structure()
+    # does exactly this in its `delta < 0` branch.  That ordering means the expansions
+    # recomputed here are built from the OLD text.
+    #
+    # For a segment-level primary ref that is harmless: the rewriter changed the ref, so
+    # the fresh expansion is correct.  It is NOT harmless for a section-level or ranged
+    # primary ref ('Seder Olam Rabbah 9'), which no segment rewriter matches — the ref
+    # keeps its value, the expansion is regenerated unchanged from the pre-resize text,
+    # and it will still list a segment that the resize is about to delete.  Nothing here
+    # revisits it, so a downsizing caller must re-save the affected records afterwards.
+    #
+    # ManuscriptPage above is the exception: nothing recomputes its expanded_refs on save,
+    # so rewriting that field directly is both necessary and effective.
+    generic_rewrite(WebPageSet(construct_query('refs', identifier)), attr_name='refs')
+    generic_rewrite(WebPageSet(construct_query('expandedRefs', identifier)), attr_name='refs')
     if not skip_history:
         print('Updating History')
         generic_rewrite(HistorySet(construct_query('ref', identifier), sort=[('ref', 1)]))
@@ -930,7 +959,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             orig_ref = orig_ref.replace(orig_title, version.title)
             print(orig_ref)
             orRef = Ref(orig_ref)
-            tc = orRef.text(lang=version.language, vtitle=version.versionTitle)
+            tc = orRef.text(direction=version.direction, vtitle=version.versionTitle)
             ref_text = tc.text
 
             #this makes the destination mapping contain both the correct text/commentary title
@@ -947,7 +976,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
             for i in range(implied_depth, desired_depth):
                 ref_text = [ref_text]
 
-            new_tc = dRef.text(lang=version.language, vtitle=version.versionTitle)
+            new_tc = dRef.text(direction=version.direction, vtitle=version.versionTitle)
             new_tc.versionSource = version.versionSource
             new_tc.text = ref_text
             new_tc.save()

@@ -127,7 +127,7 @@ TranslationsBox.propTypes = {
 const TranslationsHeader = () => (
   <div className="translationsHeader">
     <h3>
-      <InterfaceText>Translations</InterfaceText>
+      <InterfaceText>translations_box.translations</InterfaceText>
     </h3>
     <div className="translationsDesc sans-serif">
       <InterfaceText>

@@ -8,10 +8,10 @@ import { MODULE_URLS } from '../constants';
  * Mobile auth flow — Library module (English).
  *
  * Covers the hamburger → Log in / Sign up / Forgot-password / Logout journey.
- * Sources of truth for the destination pages:
- *   Sefaria-Project/templates/registration/login.html
- *   Sefaria-Project/templates/registration/register.html
- *   Sefaria-Project/templates/registration/password_reset_form.html
+ * Source of truth is the React `AuthPage` state machine
+ * (static/js/auth/AuthPage.jsx and siblings under static/js/auth/). Both
+ * `/login` and `/register` land on `ChooseView` (provider buttons +
+ * "Continue with Email") before any email/password form is on screen.
  *
  * Each test starts anonymous in `beforeEach` so cases stay independent. The
  * post-login tests (HAM-A004/A005/A006) re-perform the login UI flow rather
@@ -61,63 +61,75 @@ test.describe('Mobile Hamburger — auth navigation (anonymous)', () => {
     await pm.onMobileHamburger().openMenu();
   });
 
-  test('HAM-A001: Tapping Log in navigates to the Sefaria login page', async () => {
+  test('HAM-A001: Tapping Log in navigates to the Sefaria login page', { tag: '@sanity' }, async () => {
     await pm.onMobileHamburger().clickLogInAndExpectLoginPage();
-    // Form is rendered with both fields and the Login submit button.
-    await expect(page.getByPlaceholder('Email Address')).toBeVisible({
+    // /login lands on ChooseView first — "Continue with Email" is always
+    // rendered regardless of whether Google/Apple SSO is configured on this
+    // sandbox. Click through to the actual email/password form.
+    const continueWithEmail = page.getByRole('button', { name: 'Continue with Email' });
+    await expect(continueWithEmail).toBeVisible({ timeout: t(5000) });
+    await continueWithEmail.tap();
+
+    // Form is rendered with both fields (labeled, not placeholder-only) and
+    // the "Log in" submit button.
+    await expect(page.getByLabel('Email Address')).toBeVisible({
       timeout: t(5000),
     });
-    await expect(page.getByPlaceholder('Password')).toBeVisible({
+    await expect(page.getByLabel('Password')).toBeVisible({
       timeout: t(5000),
     });
-    await expect(page.getByRole('button', { name: /^Login$/ })).toBeVisible({
+    await expect(page.getByRole('button', { name: /^Log in$/i })).toBeVisible({
       timeout: t(5000),
     });
   });
 
-  test('HAM-A002: From login, "Forgot your password?" navigates to the reset page; back button returns to login', async () => {
+  test('HAM-A002: From login, "Forgot your password?" navigates to the reset page; back button returns to login', { tag: '@sanity' }, async () => {
     await pm.onMobileHamburger().clickLogInAndExpectLoginPage();
+    await page.getByRole('button', { name: 'Continue with Email' }).tap();
 
-    const forgotLink = page.getByRole('link', { name: /Forgot your password\?/i });
+    const forgotLink = page.getByRole('link', { name: /Forgot Password\?/i });
     await expect(forgotLink).toBeVisible({ timeout: t(5000) });
     await forgotLink.tap();
-    await page.waitForLoadState('domcontentloaded');
 
-    // The reset page lives at /password/reset/ in Django's default config but
-    // some Sefaria sandboxes hyphenate. Assert on heading + URL substring for
-    // resilience.
-    await expect(page).toHaveURL(/password.?reset/i, { timeout: t(15000) });
-    await expect(
-      page.getByRole('heading', { name: /Forgot Your Password/i }),
-    ).toBeVisible({ timeout: t(10000) });
-
-    await page.goBack();
-    await page.waitForLoadState('domcontentloaded');
+    // The reset request view is an in-page AuthPage state, not a separate
+    // route — the URL stays /login throughout.
     await expect(page).toHaveURL(/\/login/, { timeout: t(15000) });
     await expect(
-      page.getByRole('heading', { name: /Log in to Sefaria/i }),
+      page.getByRole('heading', { name: /^Forgot Password\?$/i }),
+    ).toBeVisible({ timeout: t(10000) });
+
+    // Returning is the in-card back arrow (AuthCard's onBack), not browser
+    // history — no new URL was pushed for this view transition.
+    await page.getByRole('button', { name: 'Back' }).tap();
+    await expect(
+      page.getByRole('heading', { name: /^Log in$/i }),
     ).toBeVisible({ timeout: t(10000) });
   });
 
-  test('HAM-A003: From login, "Create a new account" navigates to register; back button returns to login', async () => {
+  test('HAM-A003: From login, "Sign Up" navigates to register; "Log in" crosslink returns to login', async () => {
     await pm.onMobileHamburger().clickLogInAndExpectLoginPage();
 
-    const createLink = page.getByRole('link', { name: /Create a new account/i });
+    const createLink = page.getByRole('link', { name: /Sign Up/i });
     await expect(createLink).toBeVisible({ timeout: t(5000) });
     await createLink.tap();
     await page.waitForLoadState('domcontentloaded');
 
     await expect(page).toHaveURL(/\/register/, { timeout: t(15000) });
-    // The register page heading is "Sign Up" per templates/registration/register.html.
+    // ChooseView's register heading is "Create Account", not "Sign Up" — the
+    // hamburger link and card heading use different copy by design.
     await expect(
-      page.getByRole('heading', { name: /^Sign Up$/i }),
+      page.getByRole('heading', { name: /^Create Account$/i }),
     ).toBeVisible({ timeout: t(10000) });
 
-    await page.goBack();
+    // Crossing flows (register -> login) is a real product link, not browser
+    // history — use it directly rather than assuming a pushState round-trip.
+    const logInLink = page.getByRole('link', { name: /^Log In$/i });
+    await expect(logInLink).toBeVisible({ timeout: t(5000) });
+    await logInLink.tap();
     await page.waitForLoadState('domcontentloaded');
     await expect(page).toHaveURL(/\/login/, { timeout: t(15000) });
     await expect(
-      page.getByRole('heading', { name: /Log in to Sefaria/i }),
+      page.getByRole('heading', { name: /^Log in$/i }),
     ).toBeVisible({ timeout: t(10000) });
   });
 });

@@ -501,7 +501,7 @@ def dedupe_identical_urls(test=True):
 
 
 def clean_webpages(test=True):
-    url_bad_regexes = WebPage.excluded_pages_url_regex()[:-1] + "|\d{3}\.\d{3}\.\d{3}\.\d{3})"  #delete any page that matches the regex produced by excluded_pages_url_regex() or in IP form
+    url_bad_regexes = WebPage.excluded_pages_url_regex()[:-1] + r"|\d{3}\.\d{3}\.\d{3}\.\d{3})"  #delete any page that matches the regex produced by excluded_pages_url_regex() or in IP form
 
 
 

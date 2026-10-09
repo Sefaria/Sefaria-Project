@@ -314,6 +314,19 @@ class DiburHamatchilAdder:
             self.add_dibur_hamatchil_to_index(index)
         db.dibur_hamatchils.bulk_write([InsertOne(d) for d in self._dhs_to_insert])
 
+    def rebuild_index_dibur_hamatchils(self, index) -> int:
+        """
+        Recompute the dibur_hamatchils for a single index (used by the linker editor after
+        diburHamatchilRegexes / isSegmentLevelDiburHamatchil edits). Scoped by container_refs,
+        which every DH doc for this index carries. Returns the count written.
+        """
+        self._dhs_to_insert = []
+        self.add_dibur_hamatchil_to_index(index)
+        db.dibur_hamatchils.delete_many({"container_refs": index.title})
+        if self._dhs_to_insert:
+            db.dibur_hamatchils.bulk_write([InsertOne(d) for d in self._dhs_to_insert])
+        return len(self._dhs_to_insert)
+
 
 class LinkerIndexConverter:
     """

@@ -20,6 +20,7 @@ django.setup()
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex
 from sefaria.utils.talmud import section_to_daf
+from sefaria.utils.util import flatten_jagged_array
 from sefaria.system.exceptions import InputError
 from .settings import SEFARIA_EXPORT_PATH
 from sefaria.system.database import db
@@ -408,7 +409,9 @@ def prepare_merged_text_for_export(title, lang=None):
 
         def merge_visitor(node, *texts, **kwargs):
             merged, merged_sources = merge_texts(texts, kwargs.get("sources"))
-            sourceset.update(merged_sources)
+            # merged_sources mirrors the (possibly nested, depth>2) shape of merged -- flatten to
+            # the unordered set of contributing versions this doc metadata actually wants.
+            sourceset.update(s for s in flatten_jagged_array(merged_sources) if s)
             return merged
 
         merged = index.nodes.visit_content(merge_visitor,

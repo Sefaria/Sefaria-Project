@@ -189,7 +189,7 @@ class SheetCategorizer extends React.Component {
               suggestions={this.state.suggestions}
               onDelete={this.onTagDelete.bind(this)}
               onAddition={this.onTagAddition.bind(this)}
-              placeholderText={Sefaria._("Add a topic...")}
+              placeholderText={Sefaria._("common.add_a_topic")}
               delimiters={["Enter", ","]}
               onInput={this.updateSuggestedTags.bind(this)}
             />
@@ -223,10 +223,10 @@ class SheetCategorizer extends React.Component {
               }
             </fieldset>
             <label htmlFor="newCategory" className="sr-only">New Category</label>
-            <input type="text" key="newCategory" id="newCategory" placeholder="New Category" aria-label={Sefaria._("New Category")} onKeyUp={this.addCategory.bind(this)}></input>
-            <button onClick={this.addCategory.bind(this)} aria-label={Sefaria._("Add new category")}>Add</button>
+            <input type="text" key="newCategory" id="newCategory" placeholder="New Category" aria-label={Sefaria._("categorize_sheets.new_category")} onKeyUp={this.addCategory.bind(this)}></input>
+            <button onClick={this.addCategory.bind(this)} aria-label={Sefaria._("categorize_sheets.add_new_category")}>Add</button>
           </div>
-          <button id="save-and-next" onClick={this.saveAndNext.bind(this)} aria-label={Sefaria._("Save and Next")}>Save and Next</button>
+          <button id="save-and-next" onClick={this.saveAndNext.bind(this)} aria-label={Sefaria._("categorize_sheets.save_and_next")}>Save and Next</button>
           <div className="left-pane-bottom">
             <h3>Settings/Admin:</h3>
             <h4>Latest sheets without: {this.state.doesNotContain}</h4>
@@ -234,7 +234,7 @@ class SheetCategorizer extends React.Component {
             <button onClick={this.toggleSheetSortingMechanism.bind(this)} aria-label={`Switch to finding sheets without: ${this.getOpposite(this.state.doesNotContain)}`}>Switch to finding sheets without: {this.getOpposite(this.state.doesNotContain)}</button>
             </div>
             <div>
-            <button onClick={this.skipAndNext.bind(this)} aria-label={Sefaria._("Skip this sheet")}>Skip this sheet</button>
+            <button onClick={this.skipAndNext.bind(this)} aria-label={Sefaria._("categorize_sheets.skip_this_sheet")}>Skip this sheet</button>
             </div>
             Sheet will not be saved!
           </div>

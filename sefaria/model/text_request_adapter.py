@@ -12,6 +12,28 @@ from sefaria.utils.hebrew import hebrew_term
 from sefaria.system.exceptions import InputError
 from sefaria.datatype.jagged_array import JaggedTextArray
 
+def resolve_default_version(versions, vtitle=None):
+    """
+    Given a list of candidate Version objects (already filtered to whatever language/family the
+    caller cares about), resolve a single version to use: the exact vtitle match if given and
+    present among the candidates, else the max-`priority` version among them. Returns None if
+    there are no candidates.
+
+    Operates entirely in-memory -- never queries mongo itself, so callers control if/when a fresh
+    query happens (pass in an already-fetched collection, e.g. via `oref.versionset()`, rather than
+    re-querying per call).
+    """
+    if not versions:
+        return None
+    if vtitle:
+        for v in versions:
+            if v.versionTitle == vtitle:
+                return v
+    # priority can be an explicit None (Version._normalize()'s float() parse failure), not just
+    # missing -- `or 0` catches that too, since getattr's default only covers missing.
+    return max(versions, key=lambda v: getattr(v, 'priority', 0) or 0)
+
+
 class TextRequestAdapter:
     """
     This class is used for getting texts for client side (API or SSR)
@@ -54,13 +76,18 @@ class TextRequestAdapter:
             relevant_versions.remove(lambda v: v.languageFamilyName != version.languageFamilyName)
         else:
             relevant_versions = [version]
-        text_range = TextRange(self.oref, version.languageFamilyName, version.versionTitle,
-                               self.fill_in_missing_segments, relevant_versions)
-        version_details['text'] = text_range.text
+        chunk = TextChunk(self.oref, lang=version.languageFamilyName, vtitle=version.versionTitle,
+                          merge_versions=self.fill_in_missing_segments, versions=relevant_versions)
+        version_details['text'] = chunk.text
 
-        sources = getattr(text_range, 'sources', None)
+        sources = getattr(chunk, 'sources', None)
         if sources is not None:
-            version_details['sources'] = sources
+            # Only genuinely merged from multiple distinct versions -- a merge attempt where one
+            # candidate covered everything isn't a "merge" from the caller's point of view (e.g.
+            # BookPage.jsx sets currentVersion.merged = !!sources).
+            real_sources = [s for s in sources if s]
+            if len(set(real_sources)) > 1:
+                version_details['sources'] = sources
 
         if self.oref.is_book_level():
             first_section_ref = version.first_section_ref() or version.get_index().nodes.first_leaf().first_section_ref()
@@ -79,11 +106,16 @@ class TextRequestAdapter:
         else:
             lang_condition = lambda v: True
         if vtitle and vtitle != self.ALL:
+            # Exact vtitle requested: strict match only, no fallback -- an unmatched vtitle is
+            # reported as missing below, not silently substituted.
             versions = [v for v in self.all_versions if lang_condition(v) and v.versionTitle == vtitle]
         else:
-            versions = [v for v in self.all_versions if lang_condition(v)]
-            if vtitle != self.ALL and versions:
-                versions = [max(versions, key=lambda v: getattr(v, 'priority', 0))]
+            candidates = [v for v in self.all_versions if lang_condition(v)]
+            if vtitle != self.ALL and candidates:
+                resolved = resolve_default_version(candidates)
+                versions = [resolved] if resolved else []
+            else:
+                versions = candidates
         for version in versions:
             if all(version.languageFamilyName != v['languageFamilyName'] or version.versionTitle != v['versionTitle'] for v in self.return_obj['versions']):
                 #do not return the same version even if included in two different version params
@@ -93,6 +125,11 @@ class TextRequestAdapter:
 
     def _add_ref_data_to_return_obj(self) -> None:
         oref = self.oref
+        # Share one VersionState fetch between next/prev instead of each independently loading
+        # its own (next_section_ref/prev_section_ref each hit the DB when vstate isn't passed).
+        vstate = StateNode(oref.index.title).versionState
+        next_ref = oref.next_section_ref(vstate=vstate)
+        prev_ref = oref.prev_section_ref(vstate=vstate)
         self.return_obj.update({
             'ref': oref.normal(),
             'heRef': oref.he_normal(),
@@ -102,8 +139,8 @@ class TextRequestAdapter:
             'heSectionRef': oref.section_ref().he_normal(),
             'firstAvailableSectionRef': oref.first_available_section_ref().normal(),
             'isSpanning': oref.is_spanning(),
-            'next': oref.next_section_ref().normal() if oref.next_section_ref() else None,
-            'prev': oref.prev_section_ref().normal() if oref.prev_section_ref() else None,
+            'next': next_ref.normal() if next_ref else None,
+            'prev': prev_ref.normal() if prev_ref else None,
             'title': oref.context_ref().normal(),
             'book': oref.book,
             'heTitle': oref.context_ref().he_normal(),

@@ -57,8 +57,6 @@ fi
 # Asset image depends on web image
 docker buildx build --push \
   --build-arg "SRC_IMG=${IMAGE_REGISTRY}/${IMAGE_NAME}-web:${TAG}" \
-  --cache-from "type=registry,ref=${IMAGE_REGISTRY}/${IMAGE_NAME}-asset:cache" \
-  --cache-to "type=registry,ref=${IMAGE_REGISTRY}/${IMAGE_NAME}-asset:cache,mode=max" \
   -t "${IMAGE_REGISTRY}/${IMAGE_NAME}-asset:${TAG}" \
   -f build/asset/Dockerfile \
   .
