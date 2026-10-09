@@ -350,10 +350,13 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
 
     # Parse request body
     body: dict[str, Any] = json.loads(cast(bytes, request.body))
-    newsletters_dict: dict[str, bool] = body.get("newsletters", {})
-    marketing_opt_out: bool = body.get(
-        "marketingOptOut", False
-    )  # Informational flag for intent tracking
+    newsletters_dict = body.get("newsletters", {})
+    marketing_opt_out = body.get("marketingOptOut", False)
+    if not isinstance(newsletters_dict, dict) or not isinstance(marketing_opt_out, bool):
+        return jsonResponse(
+            {"error": "newsletters must be an object and marketingOptOut must be a boolean."},
+            status=400,
+        )
 
     # Extract selected newsletter stringids
     selected_newsletters: list[str] = [
