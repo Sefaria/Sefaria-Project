@@ -296,6 +296,11 @@ test.describe('Newsletter Signup - Logged-Out User Flow', () => {
   });
 
   test('should show selected newsletters by name in confirmation', async ({ page }) => {
+    // Fake the subscribe call so this test never signs up a real email in ActiveCampaign
+    await page.route('**/api/newsletter/subscribe', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ status: 'ok' }) })
+    );
+
     const firstLabelText = (await page.locator('.selectableOptionText').nth(0).textContent()).trim();
     const secondLabelText = (await page.locator('.selectableOptionText').nth(1).textContent()).trim();
 

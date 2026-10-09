@@ -3,10 +3,17 @@
  *
  * Tests the logged-in newsletter flow against a real Django session that's
  * established once per run by auth.setup.js. The storageState file includes
- * a valid sessionid cookie, so:
- *   - Django recognizes the user on every request
- *   - API calls (subscribe, update preferences, learning level) work end-to-end
- *   - The full multi-stage flow can be tested: Form → Confirmation → Success
+ * a valid sessionid cookie, so Django serves the real logged-in /newsletter page
+ * and the full multi-stage flow can be tested: Form → Confirmation → Success.
+ *
+ * "Real" here means a real login and a real page. The newsletter API calls are not
+ * real: every /api/newsletter/** request is answered from a saved recording,
+ * e2e-tests/fixtures/newsletter-loggedin.har (see support/har-fixture.js).
+ * We do this because those endpoints change the user's newsletter subscriptions in
+ * ActiveCampaign. Calling them for real would change the test user's actual
+ * subscriptions every time the tests run.
+ * The saved responses use a placeholder email (test@example.com) and always report
+ * the same subscriptions, no matter what the account really has.
  *
  * These tests belong to the `authenticated` Playwright project (see
  * playwright.config.ts), which depends on the `setup` project — Playwright
@@ -255,6 +262,21 @@ test.describe("Newsletter Signup - Real Authenticated Flow", () => {
   });
 
   test("should complete full flow: select → confirm → learning level → success", async ({ page }) => {
+    // The learning-level request includes the logged-in user's email, so it only matches
+    // the saved recording when the tests run as the account that made the recording.
+    // We fake this one call here instead, so the test works for any test account and
+    // never saves a learning level on a real profile. We also keep the request body
+    // so we can check it was sent for the right user.
+    let learningLevelRequestBody = null;
+    await page.route("**/api/newsletter/learning-level", (route) => {
+      learningLevelRequestBody = route.request().postDataJSON();
+      route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ success: true, email: USER_EMAIL, learningLevel: 1 }),
+      });
+    });
+
     // Stage 1: Select newsletters
     const checkboxLabels = page.locator("label.selectableOptionLabel");
     const checkbox1 = page.locator('form input[type="checkbox"]').nth(0);
@@ -295,6 +317,9 @@ test.describe("Newsletter Signup - Real Authenticated Flow", () => {
     await expect(successView).toBeVisible({ timeout: 10000 });
     await expectSupplementalContentHidden(page);
     await expectFooterVisible(page);
+
+    // The first option is learning level 1, sent for the logged-in user's email
+    expect(learningLevelRequestBody).toEqual({ email: USER_EMAIL, learningLevel: 1 });
   });
 
   test("should skip learning level and reach success", async ({ page }) => {
@@ -367,10 +392,9 @@ test.describe("Newsletter Signup - Real Authenticated Flow", () => {
   });
 
   test("should show pre-existing subscriptions as checked", async ({ page }) => {
-    // With a real session, the form fetches the user's current subscriptions
-    // from /api/newsletter/subscriptions and pre-checks them.
-    // We can't predict which ones are checked, but we can verify the
-    // API was called and the form rendered with checkbox state.
+    // The form checks the boxes for whatever /api/newsletter/subscriptions returns.
+    // That response comes from the saved recording, which has no subscriptions,
+    // so this test only checks that every newsletter checkbox rendered.
     const checkboxes = page.locator('form input[type="checkbox"]');
     const count = await checkboxes.count();
     expect(count).toBeGreaterThanOrEqual(5);
