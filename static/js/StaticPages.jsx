@@ -3163,8 +3163,8 @@ const EnhancedFeature = ({ enTitle, enText, enImg, enImgAlt, borderColor, link, 
 
 const EnhancedUserQuote = ({ enText, heText, enImage, heImage }) => (
   <div className="enhancedUserQuote">
-    <img className="int-en" src={enImage} />
-    <img className="int-he" src={heImage} />
+    <img className="int-en" src={enImage} alt="" />
+    <img className="int-he" src={heImage} alt="" />
     <div className="enhancedUserQuoteContent">
       <div className="int-en" dangerouslySetInnerHTML={{ __html: enText }} />
       <div className="int-he" dangerouslySetInnerHTML={{ __html: heText }} />
