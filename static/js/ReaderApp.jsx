@@ -42,7 +42,6 @@ import  { io }  from 'socket.io-client';
 import { SignUpModalKind } from './sefaria/signupModalContent';
 import {shouldUseEditor} from './sefaria/sheetsUtils';
 import { BannerImpressionProbe } from './BannerImpressionProbe';
-import { ChatbotExperimentBanner } from './SiteWideBanner';
 import AuthPage from './auth/AuthPage';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
 import { resumePendingAuthAttempt } from './auth/authAnalytics.js';
@@ -2422,6 +2421,12 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
       widths = panelStates.map( panel => evenWidth );
     }
 
+    const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
+    // On phones the widget itself becomes a full-screen sheet, opened from its own button or the mobile menu.
+    // Logged-out visitors get the assistant without a token (it limits them to a few free responses)
+    const hasChatbotIdentity = !!this.props.chatbot_user_token || !Sefaria._uid;
+    // Not on the login and registration screens, which logged-out visitors reach from the assistant itself
+    const displayChatbot = this.props.chatbot_enabled && hasChatbotIdentity && isLibraryModule && !this.state.showAuth && !(this.props.remoteConfig?.chatbot?.hide === 1);
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
@@ -2437,7 +2442,8 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
         translationLanguagePreference={this.state.translationLanguagePreference}
         setTranslationLanguagePreference={this.setTranslationLanguagePreference} 
         module={Sefaria.activeModule}
-        notificationCount={this.state.notificationCount}/>
+        notificationCount={this.state.notificationCount}
+        libraryAssistant={displayChatbot}/>
     );
 
     var panels = [];
@@ -2574,10 +2580,13 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
-    const mobile = Sefaria.getBreakpoint() === Sefaria.breakpoints.MOBILE;
-    const isLibraryModule = Sefaria.activeModule === Sefaria.LIBRARY_MODULE;
-    const displayChatbot = this.props.chatbot_enabled && this.props.chatbot_user_token && !mobile && isLibraryModule && !(this.props.remoteConfig?.chatbot?.hide === 1);
-    const showChatbotBanner = isLibraryModule && this.props.show_join_chatbot_banner && !mobile && !Sefaria.in_chatbot_experiment;
+    // Reading pages, where the assistant's Ask button steps aside while scrolling on phones:
+    // a text (with or without its resources panel), a single topic, a sheet (reading or editing)
+    const firstPanel = this.state.panels[0];
+    const isReadingPage = !!firstPanel && (
+      (!firstPanel.menuOpen && ["Text", "TextAndConnections", "Sheet"].includes(firstPanel.mode)) ||
+      (firstPanel.menuOpen === "topics" && !!firstPanel.navigationTopic && !firstPanel.navigationTopicCategory)
+    );
     const chatBotApiBaseUrl = this.props.chatbot_version ? `https://${this.props.chatbot_version}.ai-server.coolifydev.sefaria.org/api` : this.props.chatbot_api_base_url;
     
     return (
@@ -2592,12 +2601,6 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
             <GoogleOneTap googleClientId={Sefaria.googleClientId} />
             <div className={classes} onClick={this.handleInAppLinkClick}>
               {header}
-              {showChatbotBanner && (
-                <ChatbotExperimentBanner
-                  promoMaybeLaterJSON={this.props.chatbot_promo_maybe_later_json}
-                  promoSessionLengthSeconds={this.props.chatbot_promo_session_length_seconds}
-                />
-              )}
               <main id="main" role="main">
                 {this.state.showAuth ? (
                   <AuthPage
@@ -2623,6 +2626,7 @@ toggleSignUpModal(modalContentKind = SignUpModalKind.Default) {
                   max-input-chars={this.props.chatbot_max_input_chars}
                   max-prompts={this.props.chatbot_max_prompts}
                   interface-lang={Sefaria._getShortInterfaceLang()}
+                  hide-launcher-on-scroll={isReadingPage || undefined}
                 />
               )}
               </main>

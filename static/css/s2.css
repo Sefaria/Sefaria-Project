@@ -565,6 +565,10 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 .mobileNavMenu.closed {
   display: none;
 }
+/* The Library Assistant's floating button would sit on top of the open menu */
+.readerApp:has(.mobileNavMenu:not(.closed)) lc-chatbot {
+  visibility: hidden;
+}
 .mobileNavMenu .searchLine {
   padding: 15px 10px;
   border-bottom: 1px solid #EDEDEC;
@@ -603,6 +607,16 @@ div:has(#bannerMessage) + .readerApp.singlePanel .mobileNavMenu {
 }
 .mobileNavMenu a > img.blackIcon {
   opacity: 0.4;
+}
+/* The Library Assistant item is purple, with the ✦ as its icon */
+.mobileNavMenu a.libraryAssistantMenuItem {
+  color: var(--mussar-purple);
+}
+.mobileNavMenu .libraryAssistantMenuStar {
+  width: 16px;
+  height: 16px;
+  margin-inline-end: 15px;
+  vertical-align: middle;
 }
 .mobileNavMenu a.blue {
   background-color: var(--sefaria-blue);
@@ -5311,21 +5325,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 48px;
+  gap: 16px; /* illustration to text; was 48px + 12px, tightened so the buttons show without scrolling */
   max-width: 480px;
   width: 100%;
   margin: 0 auto;
-  padding-top: 16px;
+  padding-top: 0;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
+
+/* Room for the assistant's floating Ask button (56px tall, 24px from the bottom; 16px on
+   phones) plus a 24px gap, so the "Something seems wrong?" line scrolls clear of it */
+.noSearchResults--withAssistant {
+  padding-bottom: calc(104px + env(safe-area-inset-bottom, 0px));
 }
 
 .noSearchResults-image {
   width: 140px;
   height: 140px;
   flex-shrink: 0;
-  margin-top: 16px;
-  margin-bottom: 12px;
 }
 
 .noSearchResults-content {
@@ -5357,7 +5375,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 16px;
   font-style: normal;
   font-weight: 400;
-  line-height: normal;
+  line-height: 24px;
   color: var(--darker-grey);
   margin: 0;
 }
@@ -5387,6 +5405,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
 }
 
+.noSearchResults-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
 .noSearchResults-caption {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 14px;
@@ -5402,7 +5427,35 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: underline;
 }
 
+/* Desktop, assistant off (only the browse button): tighter heading, body and button */
+@media (min-width: 541px) {
+  .noSearchResults:not(.noSearchResults--withAssistant) .noSearchResults-textGroup {
+    gap: 12px;
+  }
+  .noSearchResults:not(.noSearchResults--withAssistant) .noSearchResults-content {
+    gap: 16px;
+  }
+}
+
 @media (max-width: 540px) {
+  /* Phones: a smaller illustration, the H3 heading size and tighter gaps, so the whole
+     message (down to "Something seems wrong?") sits above the floating Ask button */
+  .noSearchResults {
+    gap: 12px;
+  }
+  .noSearchResults-image {
+    width: 96px;
+    height: 96px;
+  }
+  .noSearchResults-content {
+    gap: 16px;
+  }
+  .noSearchResults-textGroup {
+    gap: 12px;
+  }
+  .noSearchResults-heading {
+    font-size: 22px;
+  }
   .noSearchResults-cta {
     margin-bottom: 24px;
   }
