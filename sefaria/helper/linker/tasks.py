@@ -79,7 +79,8 @@ def on_worker_init(**kwargs):
     init_library_cache()
 
 
-@app.task(name="linker.find_refs_api")
+# The client stops polling after ~60s, so don't let a huge page tie up a worker longer than that.
+@app.task(name="linker.find_refs_api", soft_time_limit=60)
 def find_refs_api_task(raw_find_refs_input: dict) -> dict:
     """
     Celery task for the find-refs API endpoint.

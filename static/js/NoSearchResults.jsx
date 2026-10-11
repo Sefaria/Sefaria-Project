@@ -74,7 +74,7 @@ function NoSearchResults({ mode, query }) {
           <p className="noSearchResults-heading serif">{heading}</p>
           <p className="noSearchResults-body" style={hasAssistant === null ? {visibility: 'hidden'} : undefined}>
             {hasAssistant
-              ? keepNameTogether(Sefaria._(key('body_library_assistant')))
+              ? keepNameTogether(Sefaria._(key('body.library_assistant')))
               : <InterfaceText>{key('body')}</InterfaceText>}
           </p>
         </div>

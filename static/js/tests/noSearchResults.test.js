@@ -37,7 +37,7 @@ describe("NoSearchResults", function () {
     it.each(["sources", "books", "authors", "topics"])("shows no button and the assistant body on %s", function (mode) {
       render(mode);
       expect(ctas()).toHaveLength(0);
-      expect(body()).toBe(`search.null.${mode}.body_library_assistant`);
+      expect(body()).toBe(`search.null.${mode}.body.library_assistant`);
     });
 
     it("turns the floating Ask button into the search action, asking about the query", function () {
