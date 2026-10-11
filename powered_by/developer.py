@@ -359,8 +359,26 @@ def claim_listing(user, listing_id):
     except (Project.DoesNotExist, ValueError):
         raise LookupError("No such listing.")
     project.owner = user
+    _set_visibility(project, "public")
     project.save()
     return project
+
+
+@transaction.atomic
+def release_account_projects(user):
+    """
+    For an account being deleted: every key of its projects is revoked, projects it created
+    are deleted, and listings it claimed go back to unclaimed.
+    """
+    now = timezone.now()
+    for project in Project.objects.filter(owner=user):
+        project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=now)
+        if project.submission_source == SubmissionSource.DEVELOPER_SETTINGS and project.deleted_at is None:
+            project.deleted_at = now
+            project.consent_to_display = False
+            project.is_published = False
+        project.owner = None
+        project.save()
 
 
 def dismiss_listing(user, listing_id):

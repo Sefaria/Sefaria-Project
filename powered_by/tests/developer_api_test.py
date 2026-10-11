@@ -282,6 +282,30 @@ class ListingTest(DeveloperApiTestCase):
         self.assertTrue(project["linkedListing"])
         self.assertEqual(project["visibility"], "public")
 
+    def test_claiming_makes_a_private_listing_public(self):
+        Project.objects.filter(id=self.listing.id).update(consent_to_display=False, is_published=False)
+
+        self.call("post", "listings/{}/claim".format(self.listing.id))
+
+        row = Project.objects.get(id=self.listing.id)
+        self.assertTrue(row.consent_to_display)
+        self.assertTrue(row.is_published)
+
+    def test_deleting_the_account_revokes_keys_deletes_projects_and_releases_listings(self):
+        self.call("post", "listings/{}/claim".format(self.listing.id))
+        own = self.create_project()
+        claimed_key = self.create_key(str(self.listing.id))["keyId"]
+        own_key = self.create_key(own["id"])["keyId"]
+
+        user_id = self.user.id
+        self.user.delete()
+        self.user.id = user_id
+
+        self.assertTrue(all(k.revoked_at for k in ApiKey.objects.filter(id__in=[claimed_key, own_key])))
+        self.assertIsNone(Project.objects.get(id=self.listing.id).owner)
+        self.assertIsNone(Project.objects.get(id=self.listing.id).deleted_at)
+        self.assertIsNotNone(Project.objects.get(id=int(own["id"])).deleted_at)
+
     def test_a_dismissed_listing_is_not_offered_again(self):
         state = self.call("post", "listings/{}/dismiss".format(self.listing.id))[1]
 
