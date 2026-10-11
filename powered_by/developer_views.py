@@ -24,7 +24,7 @@ MAX_BODY_BYTES = 16 * 1024
 def developer_api(func):
     """
     Logged-in JSON endpoints: parses a JSON body into request.json, and maps input errors to
-    400, missing setup to 403 and unknown or unowned objects to 404.
+    400, missing setup to 403, unknown or unowned objects to 404 and a repeated request to 429.
     """
     @wraps(func)
     def wrapper(request, *args, **kwargs):
@@ -48,6 +48,10 @@ def developer_api(func):
             return jsonResponse({"error": str(e)}, status=403)
         except LookupError as e:
             return jsonResponse({"error": str(e)}, status=404)
+        except developer.CooldownError as e:
+            response = jsonResponse({"error": str(e)}, status=429)
+            response["Retry-After"] = str(e.retry_after)
+            return response
     return wrapper
 
 
@@ -91,9 +95,11 @@ def confirmation_api(request):
         raise InputError("Your email is already confirmed.")
     if not request.user.email:
         raise InputError("Your account has no email address.")
+    developer.check_confirmation_cooldown(request.user)
+    # Recorded before sending so a failed send still throttles.
+    developer.mark_confirmation_sent(request.user, True)
     if not developer.mocks_enabled():
         send_confirmation_email(request)
-    developer.mark_confirmation_sent(request.user, True)
     return state_response(request)
 
 

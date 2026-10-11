@@ -5,6 +5,7 @@ the developer profile kept in the user's profile settings, and the email check t
 An account may use developer settings once its email is verified, either by signing in with
 Google or Apple or through the emailed confirmation link (allauth's EmailAddress).
 """
+from datetime import datetime, timedelta
 from urllib.parse import urlsplit
 
 from allauth.account.models import EmailAddress, EmailConfirmationHMAC
@@ -26,11 +27,21 @@ MAX_PROFILE_DESCRIPTION_LENGTH = 300
 ENABLED_SETTING = "developer_enabled"
 PROFILE_SETTING = "developer_profile"
 CONFIRMATION_SENT_SETTING = "developer_confirmation_sent_at"
+# Written on every send and never cleared, so cancelling or confirming cannot reset the cooldown.
+CONFIRMATION_LAST_SENT_SETTING = "developer_confirmation_last_sent_at"
+CONFIRMATION_COOLDOWN = timedelta(seconds=60)
 DISMISSED_LISTINGS_SETTING = "developer_dismissed_listings"
 
 MOCK_SSO_SESSION_KEY = "developer_mock_sso"
 
 _url_validator = URLValidator(schemes=["http", "https"])
+
+
+class CooldownError(Exception):
+    """Too soon to send another confirmation email; retry_after is in whole seconds."""
+    def __init__(self, retry_after):
+        super().__init__("Wait a minute before asking for another email.")
+        self.retry_after = retry_after
 
 
 def mocks_enabled():
@@ -242,10 +253,25 @@ def require_developer(request):
     return profile
 
 
+def check_confirmation_cooldown(user):
+    """Raises CooldownError if this account was sent a confirmation email less than a minute ago."""
+    last_sent = UserProfile(id=user.id).settings.get(CONFIRMATION_LAST_SENT_SETTING)
+    if not last_sent:
+        return
+    try:
+        wait = CONFIRMATION_COOLDOWN - (timezone.now() - datetime.fromisoformat(last_sent))
+    except (TypeError, ValueError):
+        return
+    if wait > timedelta(0):
+        raise CooldownError(int(wait.total_seconds()) + 1)
+
+
 def mark_confirmation_sent(user, sent):
     profile = UserProfile(id=user.id)
     if sent:
-        profile.settings[CONFIRMATION_SENT_SETTING] = iso(timezone.now())
+        now = iso(timezone.now())
+        profile.settings[CONFIRMATION_SENT_SETTING] = now
+        profile.settings[CONFIRMATION_LAST_SENT_SETTING] = now
     else:
         profile.settings.pop(CONFIRMATION_SENT_SETTING, None)
     profile.save()

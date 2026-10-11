@@ -4,6 +4,7 @@ The developer settings API: verification, profile, projects, keys and Powered by
 import json
 import re
 import threading
+from datetime import timedelta
 from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
@@ -95,6 +96,33 @@ class VerificationTest(DeveloperApiTestCase):
         self.assertTrue(state["emailVerified"])
         self.assertTrue(state["developerEnabled"])
         self.assertIsNone(state["confirmationSentAt"])
+
+    def test_a_second_email_within_a_minute_is_refused(self):
+        self.call("post", "confirmation")
+
+        response = self.client.post("/api/developer/confirmation", "", content_type="application/json")
+
+        self.assertEqual(response.status_code, 429)
+        self.assertTrue(0 < int(response["Retry-After"]) <= 60)
+        self.assertIn("error", json.loads(response.content))
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_cancelling_does_not_reset_the_cooldown(self):
+        self.call("post", "confirmation")
+        self.call("delete", "confirmation")
+
+        self.assertEqual(self.call("post", "confirmation")[0], 429)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_another_email_is_sent_after_the_cooldown(self):
+        self.call("post", "confirmation")
+        later = timezone.now() + timedelta(seconds=61)
+
+        with patch("powered_by.developer.timezone.now", return_value=later):
+            status, _ = self.call("post", "confirmation")
+
+        self.assertEqual(status, 200)
+        self.assertEqual(len(mail.outbox), 2)
 
     def test_a_bad_link_is_not_found(self):
         self.assertEqual(Client().get("/settings/developer/confirm-email/not-a-key").status_code, 404)
