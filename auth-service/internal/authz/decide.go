@@ -83,8 +83,12 @@ func Decide(l Lookup, cfg Config, r Request) Decision {
 		if !ok || k.Revoked {
 			return deny(cfg, 401, CodeKeyInvalid, "The x-api-key is not valid for this project.")
 		}
-		if r.Origin != "" && len(k.AllowedOrigins) > 0 && !contains(k.AllowedOrigins, r.Origin) {
-			return deny(cfg, 403, CodeOriginNotAllowed, fmt.Sprintf("This key restricts browser origins and %s is not registered. Turn the restriction off if your project has its own server.", r.Origin))
+		if len(k.AllowedOrigins) > 0 && !contains(k.AllowedOrigins, r.Origin) {
+			origin := r.Origin
+			if origin == "" {
+				origin = "a request without an Origin header"
+			}
+			return deny(cfg, 403, CodeOriginNotAllowed, fmt.Sprintf("This key only accepts requests from its registered website, and %s is not one. Turn the restriction off for keys used from a server, script, app or agent.", origin))
 		}
 		return allow(k.ProjectID, k.Tier, "ok")
 	}
