@@ -241,6 +241,8 @@ test.describe('Newsletter Signup - Form Validation', () => {
     await page.waitForTimeout(500);
     const errorSummary = page.locator('.newsletterErrorSummary');
     await expect(errorSummary).toBeVisible();
+    const emailError = page.locator('#email-error');
+    await expect(emailError).toBeVisible();
 
     // Now fill in the email and confirm email
     await emailInputs.nth(0).fill('john@example.com');
@@ -248,20 +250,10 @@ test.describe('Newsletter Signup - Form Validation', () => {
 
     // Blur email field to trigger inline error clearing
     await emailInputs.nth(1).blur();
-    await page.waitForTimeout(300);
 
-    // Verify form can now be submitted successfully
-    await submitButton.click();
-
-    // Wait for page transition
-    await page.waitForTimeout(2000);
-
-    // Should move to next stage or show success
-    const pageText = await page.textContent('body');
-    const hasMovedForward = pageText.includes('confirmation') ||
-                           pageText.includes('Thank you') ||
-                           pageText.includes('All set');
-    expect(hasMovedForward || true).toBeTruthy();
+    // Submitting after the fix is covered by
+    // 'should allow submission after fixing validation errors'.
+    await expect(emailError).toBeHidden();
   });
 
   test('should accept valid email formats', async ({ page }) => {
@@ -302,20 +294,9 @@ test.describe('Newsletter Signup - Form Validation', () => {
       // Wait for response
       await page.waitForTimeout(1500);
 
-      // Should not show error summary for valid email
-      const errorSummary = page.locator('.newsletterErrorSummary');
-      const isErrorVisible = await errorSummary.isVisible().catch(() => false);
-
-      // Either no error, or error is not about email format
-      if (isErrorVisible) {
-        const errorText = await errorSummary.textContent();
-        expect(errorText.toLowerCase()).not.toContain('valid email');
-      }
-
-      // Should have moved forward or stayed on form without email error
-      const hasMovedForward = await page.locator('text=confirmation').isVisible()
-                              .catch(() => false);
-      expect(hasMovedForward || !isErrorVisible || true).toBeTruthy();
+      // A valid email must not produce a validation error. Every other field is
+      // filled in, so any error summary here means the email was rejected.
+      await expect(page.locator('.newsletterErrorSummary'), email).toBeHidden();
     }
   });
 
@@ -391,12 +372,9 @@ test.describe('Newsletter Signup - Form Validation', () => {
     const submitButton = page.locator('button:has-text("Submit")').first();
     await submitButton.click();
 
-    // Wait for error
-    await page.waitForTimeout(500);
-
-    // Verify error summary exists
-    const errorSummary = page.locator('.newsletterErrorSummary');
-    const errorWasShown = await errorSummary.isVisible().catch(() => false);
+    // The bad email is rejected. expect() retries until the error appears, so
+    // this doesn't depend on a fixed wait.
+    await expect(page.locator('.newsletterErrorSummary')).toBeVisible();
 
     // Fix the email in both fields
     await emailInputs.nth(0).fill('john@example.com');
@@ -405,16 +383,8 @@ test.describe('Newsletter Signup - Form Validation', () => {
     // Submit again
     await submitButton.click();
 
-    // Wait for response
-    await page.waitForTimeout(2000);
-
-    // Should now move to next stage
-    const pageText = await page.textContent('body');
-    const hasMovedForward = pageText.includes('confirmation') ||
-                           pageText.includes('Thank you') ||
-                           pageText.includes('All set');
-
-    expect(errorWasShown || hasMovedForward).toBeTruthy();
+    // The fixed email goes through to the confirmation stage.
+    await expect(page.locator('.newsletterConfirmationView')).toBeVisible({ timeout: 10000 });
   });
 
   test('should maintain form data while showing errors', async ({ page }) => {

@@ -94,32 +94,78 @@ test.describe("Newsletter Signup - Mobile Responsiveness", () => {
       });
 
       test("should not have content cut off", async ({ page }) => {
-        // Verify main form container is fully visible
-        const formContainer = page.locator("form").first();
-        const isFullyInViewport = await formContainer.evaluate((el) => {
-          const rect = el.getBoundingClientRect();
-          return rect.width > 0 && rect.height > 0;
+        // Measure only once the newsletter list has loaded and web fonts are in,
+        // since both change the layout.
+        await expect(page.locator("label.selectableOptionLabel").first()).toBeVisible();
+        await page.evaluate(() => document.fonts.ready);
+
+        const layout = await page.evaluate(() => {
+          const viewportWidth = document.documentElement.clientWidth;
+          const describe = (el) =>
+            `${el.tagName.toLowerCase()}.${el.className.trim()} "${el.textContent.trim().slice(0, 30)}"`;
+          const visible = [...document.querySelectorAll("#NewsletterInner *")].filter((el) => {
+            const box = el.getBoundingClientRect();
+            const style = window.getComputedStyle(el);
+            // Skip anything 1px or smaller: that's the visually-hidden pattern
+            // (e.g. the real checkboxes behind the newsletter cards), which is
+            // clipped on purpose so only screen readers see it.
+            return box.width > 1 && box.height > 1 && style.visibility !== "hidden";
+          });
+
+          return {
+            pageScrollWidth: document.documentElement.scrollWidth,
+            viewportWidth,
+            // Elements that stick out past the left or right edge of the screen.
+            offScreen: visible
+              .filter((el) => {
+                const box = el.getBoundingClientRect();
+                return box.left < -1 || box.right > viewportWidth + 1;
+              })
+              .map(describe),
+            // Elements that cut off their own content. A page can have no
+            // sideways scroll and still hide text this way, because overflow:
+            // hidden both cuts the text and stops the page from scrolling.
+            // Inputs are left out: they scroll their own text by design.
+            clipped: visible
+              .filter((el) => {
+                const style = window.getComputedStyle(el);
+                return (
+                  el.tagName !== "INPUT" &&
+                  /hidden|clip/.test(style.overflowX + style.overflowY) &&
+                  (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1)
+                );
+              })
+              .map(describe),
+          };
         });
 
-        expect(isFullyInViewport).toBe(true);
+        // The page doesn't scroll sideways.
+        expect(layout.pageScrollWidth).toBeLessThanOrEqual(layout.viewportWidth);
+        expect(layout.offScreen).toEqual([]);
+        expect(layout.clipped).toEqual([]);
       });
 
       test("should have touchable target sizes on mobile", async ({ page }) => {
         // On mobile devices, tap targets should be at least 44x44px (Apple) or 48x48px (Android)
-        const buttons = page.locator("button, label.selectableOptionLabel");
         const minTapSize = width < 600 ? 44 : 40; // More lenient on desktop
 
-        for (let i = 0; i < Math.min(await buttons.count(), 3); i++) {
-          const button = buttons.nth(i);
-          const size = await button.evaluate((el) => ({
+        // Check every target in the form, not just the first few. Scope to the
+        // form: the site header has 18x18 icon buttons that this page doesn't own.
+        const targets = page.locator(
+          'form button, form label.selectableOptionLabel, form input:not([type="checkbox"])'
+        );
+        const sizes = await targets.evaluateAll((els) =>
+          els.map((el) => ({
+            target: `${el.tagName} ${el.id || el.textContent.trim()}`,
             width: el.offsetWidth,
             height: el.offsetHeight,
-          }));
+          }))
+        );
+        expect(sizes.length).toBeGreaterThan(0);
 
-          // At least one dimension should be reasonably large
-          const isAccessible = size.width >= minTapSize || size.height >= minTapSize;
-          expect(isAccessible || true).toBeTruthy();
-        }
+        // Both dimensions must be large enough: a 300x10 button is still hard to tap.
+        const tooSmall = sizes.filter((s) => s.width < minTapSize || s.height < minTapSize);
+        expect(tooSmall).toEqual([]);
       });
 
       test("should render all newsletter checkboxes", async ({ page }) => {
@@ -170,23 +216,44 @@ test.describe("Newsletter Signup - Mobile Responsiveness", () => {
         expect(size.height).toBeGreaterThanOrEqual(minHeight);
       });
 
-      test("should not have text overflow in inputs", async ({ page }) => {
-        // Fill an input with text
-        const input = page.locator('form input[type="text"]').first();
-        await input.fill("This is a test name that might be long");
+      test("should not cut off text vertically in inputs", async ({ page }) => {
+        const inputs = page.locator('form input[type="text"], form input[type="email"]');
+        // Letters that go above and below the line (G, J, g, y, q), so the
+        // text is as tall as it gets in this font.
+        const tallText = "Gypsy Jagqy";
+        for (const input of await inputs.all()) {
+          await input.fill(tallText);
+        }
+        // Web fonts change the text height, so measure after they've loaded.
+        await page.evaluate(() => document.fonts.ready);
 
-        // Check that input can contain the text
-        const value = await input.inputValue();
-        expect(value).toBe("This is a test name that might be long");
+        const sizes = await inputs.evaluateAll((els) =>
+          els.map((el) => {
+            const style = window.getComputedStyle(el);
+            // An input never reports scrollHeight > clientHeight, even when its
+            // text is cut off, so measure the text with a hidden span in the
+            // same font instead.
+            const probe = document.createElement("span");
+            probe.textContent = el.value;
+            probe.style.cssText =
+              `font: ${style.font}; line-height: ${style.lineHeight};` +
+              "position: absolute; visibility: hidden; white-space: pre;";
+            document.body.appendChild(probe);
+            const textHeight = probe.getBoundingClientRect().height;
+            probe.remove();
+            return {
+              input: el.id,
+              textHeight,
+              // The space inside the input that the text can use.
+              spaceHeight: el.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom),
+            };
+          })
+        );
+        expect(sizes.length).toBeGreaterThan(0);
 
-        // Input should not have text overflow hidden
-        const hasOverflow = await input.evaluate((el) => {
-          const computed = window.getComputedStyle(el);
-          return computed.overflow === "hidden" && computed.textOverflow === "ellipsis";
-        });
-
-        // Should either show all text or have proper overflow handling
-        expect(hasOverflow || true).toBeTruthy();
+        // Allow 1px for rounding: clientHeight is a whole number, the text height isn't.
+        const cutOff = sizes.filter((s) => s.spaceHeight + 1 < s.textHeight);
+        expect(cutOff).toEqual([]);
       });
 
       test("should have readable form labels", async ({ page }) => {

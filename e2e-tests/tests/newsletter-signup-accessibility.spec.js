@@ -141,24 +141,27 @@ test.describe("Newsletter Signup - Accessibility", () => {
   });
 
   test("should have meaningful focus indicators", async ({ page }) => {
-    // Focus on an input
     const input = page.locator('form input[type="text"]').first();
+    // box-shadow is left out on purpose: it has a CSS transition, so reading it
+    // right after focus() returns an in-between frame and the result depends on timing.
+    const focusStyles = () =>
+      input.evaluate((el) => {
+        const computed = window.getComputedStyle(el);
+        return {
+          outlineStyle: computed.outlineStyle,
+          outlineWidth: computed.outlineWidth,
+          borderColor: computed.borderColor,
+        };
+      });
+
+    // Compare before and after focus. Checking the focused style on its own
+    // proves nothing: the computed outline is never just "none" (it reads like
+    // "rgb(51, 51, 51) none 0px") and borderColor is always some color.
+    const blurredStyles = await focusStyles();
     await input.focus();
+    const focusedStyles = await focusStyles();
 
-    // Get the computed style to see if focus is indicated
-    const styles = await input.evaluate((el) => {
-      const computed = window.getComputedStyle(el);
-      return {
-        outline: computed.outline,
-        boxShadow: computed.boxShadow,
-        borderColor: computed.borderColor,
-      };
-    });
-
-    // At minimum, something should be visible for focus (outline, shadow, or border)
-    const hasFocusIndicator = styles.outline !== "none" || styles.boxShadow !== "none" || styles.borderColor !== "";
-
-    expect(hasFocusIndicator || true).toBeTruthy();
+    expect(focusedStyles).not.toEqual(blurredStyles);
   });
 
   test("should show error messages accessibly", async ({ page }) => {
