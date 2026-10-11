@@ -12740,6 +12740,10 @@ background-color: white;
   margin-inline-start: 12px;
 }
 @media (min-width: 843px) {
+  /* Here the banner is a card in the corner, clear of the Library Assistant's button */
+  :root {
+    --lc-launcher-bottom-offset: 0px !important;
+  }
   .cookiesNotification {
     width: 360px;
     margin: 10px;
