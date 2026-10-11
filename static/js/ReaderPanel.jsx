@@ -1117,7 +1117,7 @@ class ReaderPanel extends Component {
           tab={this.state.settingsTab}
           projectId={this.state.developerProjectId}
           accountSettings={this.state.accountSettings}
-          initialDeveloperPoc={this.state.developerPoc}
+          initialDeveloper={this.state.developer}
           setTab={this.setSettingsTab.bind(this)}
           setProjectId={this.setDeveloperProjectId.bind(this)} />
       );

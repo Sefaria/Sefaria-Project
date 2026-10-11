@@ -90,7 +90,7 @@ class ReaderApp extends Component {
         settingsTab:             props.initialSettingsTab,
         developerProjectId:      props.initialDeveloperProjectId,
         accountSettings:         props.initialAccountSettings,
-        developerPoc:            props.initialDeveloperPoc,
+        developer:               props.initialDeveloper,
       };
     }
 
@@ -183,7 +183,7 @@ class ReaderApp extends Component {
       settingsTab:             state.settingsTab             || "account",
       developerProjectId:      state.developerProjectId      || null,
       accountSettings:         state.accountSettings         || null,
-      developerPoc:            state.developerPoc            || null,
+      developer:               state.developer               || null,
       searchQuery:             state.searchQuery             || null,
       showHighlight:           state.showHighlight           || null,
       searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),
