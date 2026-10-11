@@ -3,11 +3,17 @@ The developer settings API: verification, profile, projects, keys and Powered by
 """
 import json
 import re
+import threading
+from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
 from django.core import mail
-from django.test import Client, TestCase, override_settings
+from django.db import connection, connections
+from django.test import Client, TestCase, TransactionTestCase, override_settings
+from django.test.utils import CaptureQueriesContext
+from django.utils import timezone
 
+from powered_by import developer
 from powered_by.models import ApiKey, Project, SubmissionSource
 from reader.conftest import create_test_user, purge_test_profiles
 
@@ -364,3 +370,86 @@ def test_origin_of_is_the_browser_origin():
     assert origin_of("https://Example.org/app?x=1") == "https://example.org"
     assert origin_of("https://example.org:443/") == "https://example.org"
     assert origin_of("http://localhost:3000/") == "http://localhost:3000"
+
+
+class ProjectLockTest(DeveloperApiTestCase):
+
+    def setUp(self):
+        super().setUp()
+        self.set_up_developer()
+        self.project = self.create_project()
+
+    def test_creating_a_key_locks_the_project_row(self):
+        with CaptureQueriesContext(connection) as queries:
+            self.create_key(self.project["id"])
+
+        self.assertTrue(any("FOR UPDATE" in q["sql"] for q in queries))
+
+    def test_deleting_a_project_locks_the_project_row(self):
+        with CaptureQueriesContext(connection) as queries:
+            self.call("delete", "projects/" + self.project["id"])
+
+        self.assertTrue(any("FOR UPDATE" in q["sql"] for q in queries))
+
+
+class KeyCreationRaceTest(TransactionTestCase):
+    databases = "__all__"
+
+    def setUp(self):
+        self.user = create_test_user("devrace")
+        purge_test_profiles(self.user)
+        self.project = Project.objects.create(
+            submission_source=SubmissionSource.DEVELOPER_SETTINGS, project_name="Race",
+            owner=self.user, is_published=False)
+
+    def tearDown(self):
+        ApiKey.objects.filter(project=self.project).delete()
+        self.project.delete()
+        purge_test_profiles(self.user)
+
+    def test_create_key_waits_for_a_delete_in_progress_and_then_finds_no_project(self):
+        deleting = threading.Event()
+        release = threading.Event()
+        outcome = {}
+
+        class BlockingClock:
+            """Stands in for developer.timezone: delete_project reads the clock after taking the lock."""
+            @staticmethod
+            def now():
+                deleting.set()
+                assert release.wait(10)
+                return timezone.now()
+
+        def delete():
+            try:
+                with patch.object(developer, "timezone", BlockingClock):
+                    developer.delete_project(self.user, self.project.id)
+            except BaseException as e:
+                outcome["delete"] = e
+            finally:
+                connections.close_all()
+
+        def create():
+            try:
+                developer.create_key(self.user, self.project.id, "Late")
+            except BaseException as e:
+                outcome["create"] = e
+            finally:
+                connections.close_all()
+
+        deleter = threading.Thread(target=delete)
+        creator = threading.Thread(target=create)
+        deleter.start()
+        self.assertTrue(deleting.wait(10))
+        creator.start()
+        creator.join(0.5)
+        self.assertTrue(creator.is_alive(), "create_key must wait for the project row lock")
+
+        release.set()
+        deleter.join(10)
+        creator.join(10)
+
+        self.assertNotIn("delete", outcome)
+        self.assertIsInstance(outcome.get("create"), LookupError)
+        self.assertFalse(ApiKey.objects.filter(project=self.project, revoked_at__isnull=True).exists())
+        self.assertFalse(ApiKey.objects.filter(project=self.project).exists())

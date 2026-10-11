@@ -307,6 +307,17 @@ def get_owned_project(user, project_id):
         raise LookupError("No such project.")
 
 
+def _lock_owned_project(user, project_id):
+    """
+    The owned, undeleted project with its row locked until the transaction ends, so key creation,
+    project edits and deletion of one project run one at a time. Call inside transaction.atomic().
+    """
+    try:
+        return Project.objects.select_for_update().get(id=int(project_id), owner=user, deleted_at__isnull=True)
+    except (Project.DoesNotExist, ValueError):
+        raise LookupError("No such project.")
+
+
 def create_project(user, data):
     fields = clean_project_fields(data)
     project = Project(
@@ -325,7 +336,7 @@ def create_project(user, data):
 
 @transaction.atomic
 def update_project(user, project_id, data):
-    project = get_owned_project(user, project_id)
+    project = _lock_owned_project(user, project_id)
     fields = clean_project_fields(data)
     old_link = project.project_link
     _apply_fields(project, fields)
@@ -341,7 +352,7 @@ def update_project(user, project_id, data):
 
 @transaction.atomic
 def delete_project(user, project_id):
-    project = get_owned_project(user, project_id)
+    project = _lock_owned_project(user, project_id)
     now = timezone.now()
     project.api_keys.filter(revoked_at__isnull=True).update(revoked_at=now)
     project.deleted_at = now
@@ -395,8 +406,9 @@ def dismiss_listing(user, listing_id):
 
 # --- Keys --------------------------------------------------------------------
 
+@transaction.atomic
 def create_key(user, project_id, label):
-    project = get_owned_project(user, project_id)
+    project = _lock_owned_project(user, project_id)
     label = (label or "").strip() if isinstance(label, str) else ""
     if not label:
         raise InputError("Give the key a name.")
