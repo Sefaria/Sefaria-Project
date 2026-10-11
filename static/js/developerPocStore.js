@@ -1,7 +1,7 @@
 /*
  * Mock state for the Developer settings proof of concept.
  *
- * Nothing here talks to the real API. Every project, key and usage number lives in one
+ * Nothing here talks to the real API. Every project and key lives in one
  * blob saved per user through api/developer-poc/state, so product people can click
  * through the flow; the key values are random strings generated in the browser and
  * authorize nothing. The floating POC test controls reset this store and can override
@@ -98,37 +98,12 @@ export const makeKeyValue = () => (
   "sfr_test_" + TEST_KEY_SUFFIXES[Math.floor(Math.random() * TEST_KEY_SUFFIXES.length)]
 );
 
-const hashSeed = (seed) => {
-  let h = 2166136261;
-  const text = String(seed);
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return (h >>> 0) || 1;
-};
-
-/* A stable per-key daily series, so the usage chart looks the same on every render. */
-export const usageSeries = (seed, total, days = 30) => {
-  let h = hashSeed(seed);
-  const weights = [];
-  let sum = 0;
-  for (let i = 0; i < days; i++) {
-    h = (Math.imul(h, 1664525) + 1013904223) >>> 0;
-    const weight = 0.25 + (h % 1000) / 1000;
-    weights.push(weight);
-    sum += weight;
-  }
-  return weights.map(w => Math.round((total || 0) * w / sum));
-};
-
 export const makeKey = (label) => ({
   id: randomId(),
   label,
   value: makeKeyValue(),
   created: new Date().toISOString(),
   lastUsed: null,
-  requests30: 0,
   restrictToWebsite: false,
 });
 
@@ -142,7 +117,6 @@ export const makeProject = (fields) => ({
   aiAssisted: false,
   linkedListingId: null,       // the Powered by listing this project is
   consentWithdrawnAt: null,    // when a public project was made private
-  usage: {requests30: 0, lastUsed: null},
   keys: [],
   ...fields,
 });
@@ -158,12 +132,11 @@ export const sampleState = () => {
     organization: "Daf Yomi Portal",
     websiteUrl: "https://dafyomiportal.org",
     aiAssisted: true,
-    usage: {requests30: 18412, lastUsed: daysAgo(0)},
     keys: [
       {id: "key01", label: "Production", value: makeKeyValue(), created: daysAgo(40),
-        lastUsed: daysAgo(0), requests30: 17980, restrictToWebsite: true},
+        lastUsed: daysAgo(0), restrictToWebsite: true},
       {id: "key02", label: "Local development", value: makeKeyValue(), created: daysAgo(12),
-        lastUsed: daysAgo(1), requests30: 432, restrictToWebsite: false},
+        lastUsed: daysAgo(1), restrictToWebsite: false},
     ],
   });
   return {

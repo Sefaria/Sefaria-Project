@@ -23,7 +23,6 @@ import {
   sampleState,
   ssoConnected,
   accountVerified,
-  usageSeries,
   websiteHost,
   withdrawConsent,
   writeState,
@@ -52,8 +51,6 @@ const formatDate = (iso) => {
     return new Date(iso).toLocaleDateString(locale, {day: "numeric", month: "short", year: "numeric"});
   } catch (e) { return iso; }
 };
-
-const formatNumber = (n) => n.toLocaleString(Sefaria.interfaceLang === "hebrew" ? "he-IL" : "en-US");
 
 const copyToClipboard = (text, node, onDone) => {
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -1544,157 +1541,6 @@ const listingStatus = (project) => {
 };
 
 
-
-
-const CHART_WIDTH = 320;
-const CHART_HEIGHT = 72;
-
-/* Five tints of --devPoc-blue, dark to light, so up to five keys stay tellable apart. */
-const KEY_COLORS = ["#18345d", "#2f6193", "#5b8dbd", "#93b6d6", "#c5d7e8"];
-
-const DONUT_SIZE = 132;
-const DONUT_OUTER = 62;
-const DONUT_INNER = 38;
-
-const polarPoint = (radius, degrees) => {
-  const radians = (degrees - 90) * Math.PI / 180;
-  const center = DONUT_SIZE / 2;
-  return [center + radius * Math.cos(radians), center + radius * Math.sin(radians)];
-};
-
-const donutSlicePath = (startDeg, endDeg) => {
-  const large = endDeg - startDeg > 180 ? 1 : 0;
-  const [x1, y1] = polarPoint(DONUT_OUTER, startDeg);
-  const [x2, y2] = polarPoint(DONUT_OUTER, endDeg);
-  const [x3, y3] = polarPoint(DONUT_INNER, endDeg);
-  const [x4, y4] = polarPoint(DONUT_INNER, startDeg);
-  return [
-    "M", x1, y1,
-    "A", DONUT_OUTER, DONUT_OUTER, 0, large, 1, x2, y2,
-    "L", x3, y3,
-    "A", DONUT_INNER, DONUT_INNER, 0, large, 0, x4, y4,
-    "Z",
-  ].join(" ");
-};
-
-/* One ring per key. A lone key (or a key holding every request) draws as a full ring,
-   because a 360° arc collapses to nothing. */
-const UsageDonut = ({slices, total}) => {
-  const center = DONUT_SIZE / 2;
-  const ringWidth = DONUT_OUTER - DONUT_INNER;
-  const ringRadius = (DONUT_OUTER + DONUT_INNER) / 2;
-  const drawn = slices.filter(s => s.value > 0);
-  let angle = 0;
-  return (
-    <svg
-      className="devPocDonut"
-      viewBox={"0 0 " + DONUT_SIZE + " " + DONUT_SIZE}
-      role="img"
-      aria-label={Sefaria._v({en: "Requests by key over the last 30 days", he: "בקשות לפי מפתח ב־30 הימים האחרונים"})}
-    >
-      {total === 0 || drawn.length === 0 ?
-        <circle cx={center} cy={center} r={ringRadius} fill="none" stroke="#e3e6e9" strokeWidth={ringWidth} /> :
-        drawn.length === 1 ?
-        <circle cx={center} cy={center} r={ringRadius} fill="none" stroke={drawn[0].color} strokeWidth={ringWidth} /> :
-        drawn.map((slice) => {
-          const sweep = slice.value / total * 360;
-          const path = donutSlicePath(angle, angle + sweep);
-          angle += sweep;
-          return <path key={slice.id} d={path} fill={slice.color} />;
-        })}
-    </svg>
-  );
-};
-
-/* Time runs left to right in both interface languages, like the axis labels under it. */
-const UsageChart = ({series}) => {
-  const max = Math.max(1, ...series);
-  const gap = 2;
-  const barWidth = (CHART_WIDTH - gap * (series.length - 1)) / series.length;
-  return (
-    <svg
-      className="devPocChart"
-      viewBox={"0 0 " + CHART_WIDTH + " " + CHART_HEIGHT}
-      preserveAspectRatio="none"
-      role="img"
-      aria-label={Sefaria._v({en: "Daily requests over the last 30 days", he: "בקשות יומיות ב־30 הימים האחרונים"})}
-    >
-      {series.map((value, i) => {
-        const height = value > 0 ? Math.max(1, Math.round(value / max * CHART_HEIGHT)) : 0;
-        return (
-          <rect
-            key={i}
-            x={i * (barWidth + gap)}
-            y={CHART_HEIGHT - height}
-            width={barWidth}
-            height={height}
-            fill={KEY_COLORS[0]}
-          />
-        );
-      })}
-    </svg>
-  );
-};
-
-
-const UsageSection = ({project}) => {
-  const perKey = project.keys.map(k => ({key: k, series: usageSeries(k.id, k.requests30)}));
-  const total = perKey.reduce((sum, k) => sum + k.key.requests30, 0);
-  const daily = perKey.length
-    ? perKey[0].series.map((_, day) => perKey.reduce((sum, k) => sum + k.series[day], 0))
-    : [];
-  const slices = perKey.map(({key}, i) => ({
-    id: key.id, label: key.label, value: key.requests30, color: KEY_COLORS[i % KEY_COLORS.length],
-  }));
-
-  return (
-    <section className="devPocSection">
-      <div className="devPocHeading">
-        <div><h3><InterfaceText text={{en: "Usage", he: "שימוש"}} /></h3></div>
-      </div>
-      <div className="devPocStats">
-        <div className="devPocStat">
-          <strong>{formatNumber(total)}</strong>
-          <span><InterfaceText text={{en: "Requests in the last 30 days", he: "בקשות ב־30 הימים האחרונים"}} /></span>
-        </div>
-        <div className="devPocStat">
-          <strong>{formatDate(project.usage.lastUsed)}</strong>
-          <span><InterfaceText text={{en: "Last used", he: "שימוש אחרון"}} /></span>
-        </div>
-      </div>
-      <div className="devPocChartBlock">
-        <p className="devPocChartTitle"><InterfaceText text={{en: "Requests per day", he: "בקשות ביום"}} /></p>
-        <div dir="ltr">
-          <UsageChart series={daily} />
-          <div className="devPocChartAxis">
-            <span><InterfaceText text={{en: "30 days ago", he: "לפני 30 יום"}} /></span>
-            <span><InterfaceText text={{en: "Today", he: "היום"}} /></span>
-          </div>
-        </div>
-      </div>
-      <div className="devPocChartBlock">
-        <p className="devPocChartTitle"><InterfaceText text={{en: "Requests by key", he: "בקשות לפי מפתח"}} /></p>
-        <div className="devPocSplit">
-          <UsageDonut slices={slices} total={total} />
-          <ul className="devPocLegend">
-            {slices.map(slice => (
-              <li className="devPocLegendRow" key={slice.id}>
-                <span className="devPocSwatch" style={{background: slice.color}} aria-hidden="true" />
-                <span className="devPocLegendLabel" dir="auto">{slice.label}</span>
-                <span className="devPocLegendValue">{formatNumber(slice.value)}</span>
-                <span className="devPocLegendPercent">
-                  {total ? Math.round(slice.value / total * 100) : 0}%
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-
 const ProjectCard = ({project, expanded, update, setConfirm, onToggleExpand, notice}) => {
   const [editing, setEditing] = useState(false);
   const cardRef = useRef(null);
@@ -1814,7 +1660,6 @@ const ProjectCard = ({project, expanded, update, setConfirm, onToggleExpand, not
               />
             </section> : null}
           <KeysSection project={project} update={update} setConfirm={setConfirm} onAddWebsite={addWebsite} />
-          {project.keys.length ? <UsageSection project={project} /> : null}
         </div> : null}
     </article>
   );

@@ -338,7 +338,7 @@ describe('saving a project', () => {
 const publicProject = (extra = {}) => ({
   id: 'proj01', name: 'Daf Tracker', description: 'A tracker', visibility: 'public', organization: '',
   websiteUrl: 'https://daftracker.org', aiAssisted: false, linkedListingId: null,
-  consentWithdrawnAt: null, usage: { requests30: 0, lastUsed: null }, keys: [], ...extra,
+  consentWithdrawnAt: null, keys: [], ...extra,
 });
 
 describe('making a public project private', () => {
@@ -385,7 +385,7 @@ describe('making a public project private', () => {
 
 describe('deleting a project', () => {
   const withKey = (extra) => publicProject({
-    keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, lastUsed: null, requests30: 0, restrictToWebsite: false }],
+    keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, lastUsed: null, restrictToWebsite: false }],
     ...extra,
   });
   const deleteFromEditor = (projects) => {
@@ -417,7 +417,7 @@ describe('deleting a project', () => {
 describe('key cards', () => {
   const projectWithKey = () => publicProject({
     keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: '2026-09-01T00:00:00Z',
-      lastUsed: '2026-10-01T00:00:00Z', requests30: 1234, restrictToWebsite: false }],
+      lastUsed: '2026-10-01T00:00:00Z', restrictToWebsite: false }],
   });
 
   it('leads the website restriction with the allowed-origin rule, explained on request', () => {
@@ -432,13 +432,13 @@ describe('key cards', () => {
     expect(restriction.querySelector('.devPocExplainer').textContent).toContain('only works on your website');
   });
 
-  it('show when a key was created and last used, but not its request count', () => {
+  it('show when a key was created and last used, with no usage statistics', () => {
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()], expandedProjectId: 'proj01' });
     const meta = container.querySelector('.devPocKeyMeta').textContent;
     expect(meta).toContain('Created');
     expect(meta).toContain('Last used');
     expect(meta).not.toContain('requests');
-    expect(container.querySelector('.devPocStats').textContent).toContain('1,234');
+    expect(container.querySelector('.devPocProjectBody').textContent).not.toContain('Requests');
   });
 });
 
