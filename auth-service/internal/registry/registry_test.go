@@ -23,14 +23,28 @@ func TestReplaceAndLookup(t *testing.T) {
 	}
 }
 
-func TestEmptyReloadRejected(t *testing.T) {
+func TestEmptyReloadGuard(t *testing.T) {
 	r := New()
 	if err := r.ReplaceGuarded(nil); err != nil {
 		t.Fatalf("empty into empty must be allowed: %v", err)
 	}
 	r.Replace([]Key{{Key: "a"}})
 	if err := r.ReplaceGuarded([]Key{}); !errors.Is(err, ErrEmptyReload) || r.Len() != 1 {
-		t.Fatalf("err=%v len=%d", err, r.Len())
+		t.Fatalf("first empty err=%v len=%d", err, r.Len())
+	}
+	if err := r.ReplaceGuarded([]Key{}); err != nil || r.Len() != 0 {
+		t.Fatalf("second consecutive empty err=%v len=%d", err, r.Len())
+	}
+	if err := r.ReplaceGuarded([]Key{}); err != nil || r.Len() != 0 {
+		t.Fatalf("empty into empty err=%v len=%d", err, r.Len())
+	}
+	r.Replace([]Key{{Key: "b"}})
+	if err := r.ReplaceGuarded(nil); !errors.Is(err, ErrEmptyReload) {
+		t.Fatalf("first empty after non-empty err=%v", err)
+	}
+	r.ResetEmptyReloadGuard()
+	if err := r.ReplaceGuarded(nil); !errors.Is(err, ErrEmptyReload) || r.Len() != 1 {
+		t.Fatalf("empty after reset err=%v len=%d", err, r.Len())
 	}
 }
 

@@ -71,6 +71,10 @@ func main() {
 	}
 
 	reg := registry.New()
+	// A pending empty is confirmed only by an empty load about one reload interval later. The gap is 90% of
+	// the interval because firstEmptyAt is stamped after a load finishes, so the next tick can land just
+	// under a full interval later; an exact-interval gap would then slip confirmation by a whole extra tick.
+	reg.SetEmptyReloadGap(interval * 9 / 10)
 	var ready atomic.Bool
 	db, err := sql.Open("pgx", os.Getenv("PG_DSN"))
 	if err != nil {
@@ -87,15 +91,27 @@ func main() {
 		versionGauge.Set(float64(reg.Version()))
 	}
 	replace := func(keys []registry.Key) error {
+		wasNonempty := reg.Len() > 0
 		if err := reg.ReplaceGuarded(keys); err != nil {
 			reloads.WithLabelValues("rejected_empty").Inc()
 			return err
+		}
+		if len(keys) == 0 && wasNonempty {
+			slog.Warn("empty registry reload applied after consecutive empty result")
 		}
 		gauges()
 		reloads.WithLabelValues("ok").Inc()
 		ready.Store(true)
 		return nil
 	}
+	reloadLoad := func(ctx context.Context) ([]registry.Key, error) {
+		keys, err := load(ctx)
+		if err != nil {
+			reloads.WithLabelValues("error").Inc()
+		}
+		return keys, err
+	}
+	reloader := registry.NewReloader(reloadLoad, replace, registry.WithLoadErrorHook(reg.ResetEmptyReloadGuard))
 
 	t0 := time.Now()
 	if keys, err := load(ctx); err != nil {
@@ -115,12 +131,7 @@ func main() {
 		// schedules one coalesced full reload on the query pool (never on the listener's own connection).
 		co := registry.NewCoalescer(50*time.Millisecond, func() {
 			t0 := time.Now()
-			keys, err := load(ctx)
-			if err == nil {
-				err = replace(keys)
-			} else {
-				reloads.WithLabelValues("error").Inc()
-			}
+			err := reloader.Reload(ctx)
 			if err != nil {
 				notifyReloads.WithLabelValues("error").Inc()
 				slog.Warn("notify reload failed; keeping in-memory set", "err", err)
@@ -142,13 +153,7 @@ func main() {
 			OnErr: func(err error) { slog.Warn("postgres listener", "err", err) },
 		})
 	}
-	go registry.PeriodicReload(ctx, interval, func(ctx context.Context) ([]registry.Key, error) {
-		k, err := load(ctx)
-		if err != nil {
-			reloads.WithLabelValues("error").Inc()
-		}
-		return k, err
-	}, replace, func(err error) {
+	go registry.PeriodicReload(ctx, interval, reloader.Reload, func(err error) {
 		slog.Warn("reload skipped; keeping in-memory set", "err", err)
 	})
 
