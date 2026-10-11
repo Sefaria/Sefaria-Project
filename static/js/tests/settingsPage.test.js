@@ -197,7 +197,8 @@ describe('project visibility', () => {
     act(() => { buttonNamed(container, 'Show me what will be public').click(); });
     const dialog = container.querySelector('[aria-labelledby="devPocPublicTitle"]');
     expect(dialog.textContent).toContain('Daf Tracker');
-    expect(dialog.textContent).toContain('Tova Levi');
+    expect(dialog.textContent).not.toContain('Tova Levi');
+    expect(dialog.textContent).not.toContain('Made by');
     expect(Array.from(dialog.querySelectorAll('button')).map(b => b.textContent.trim())).toEqual(['Close']);
     expect(dialog.querySelector('a')).toBeNull();
 

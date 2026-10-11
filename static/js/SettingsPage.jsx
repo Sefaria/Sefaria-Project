@@ -980,14 +980,13 @@ const MakePrivateDialog = ({onConfirm, onCancel}) => {
 
 
 /* What a public project shows, for the developer to look at before or after choosing. */
-const PublicPreviewDialog = ({fields, authorName, onClose}) => {
+const PublicPreviewDialog = ({fields, onClose}) => {
   const closeRef = useRef(null);
   useDialogKeys(closeRef, onClose);
   const notYet = <span className="devPocMuted"><InterfaceText text={{en: "Not filled in yet", he: "עדיין לא מולא"}} /></span>;
   const rows = [
     {label: {en: "Project name", he: "שם הפרויקט"}, value: fields.name.trim(), dir: "auto"},
     {label: {en: "Description", he: "תיאור"}, value: fields.description.trim(), dir: "auto"},
-    {label: {en: "Made by", he: "נוצר על ידי"}, value: authorName, dir: "auto"},
     {label: {en: "Organization", he: "ארגון"}, value: fields.organization.trim(), dir: "auto", optional: true},
     {label: {en: "Website", he: "אתר"}, value: fields.websiteUrl.trim(), dir: "ltr", optional: true},
   ].filter(row => row.value || !row.optional);
@@ -1012,8 +1011,8 @@ const PublicPreviewDialog = ({fields, authorName, onClose}) => {
         </dl>
         <p>
           <InterfaceText text={{
-            en: "Your API keys and usage are never shown. You can change these details, or make the project private again, with Edit project.",
-            he: "מפתחות ה־API והשימוש בהם לעולם לא מוצגים. אפשר לשנות את הפרטים האלה, או להחזיר את הפרויקט למצב פרטי, דרך עריכת הפרויקט.",
+            en: "Your name, email address and API keys are never shown. You can change these details, or make the project private again, with Edit project.",
+            he: "השם, כתובת האימייל ומפתחות ה־API שלך לעולם לא מוצגים. אפשר לשנות את הפרטים האלה, או להחזיר את הפרויקט למצב פרטי, דרך עריכת הפרויקט.",
           }} />
         </p>
         <div className="devPocActions">
@@ -1062,7 +1061,7 @@ const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => (
 
 /* One form for creating and editing a project. A missing website asks once before saving,
    and the website field gets focus if the developer goes back to add one. */
-const ProjectForm = ({initial, savedVisibility, authorName, submitLabel, onSave, onCancel, onDelete}) => {
+const ProjectForm = ({initial, savedVisibility, submitLabel, onSave, onCancel, onDelete}) => {
   const [fields, setFields] = useState(initial);
   const [error, setError] = useState("");
   const [askWebsite, setAskWebsite] = useState(false);
@@ -1150,7 +1149,7 @@ const ProjectForm = ({initial, savedVisibility, authorName, submitLabel, onSave,
       {askWebsite ?
         <NoWebsiteDialog onAddWebsite={addWebsite} onSaveAnyway={() => { setAskWebsite(false); save(); }} /> : null}
       {previewPublic ?
-        <PublicPreviewDialog fields={fields} authorName={authorName} onClose={() => setPreviewPublic(false)} /> : null}
+        <PublicPreviewDialog fields={fields} onClose={() => setPreviewPublic(false)} /> : null}
       {askPrivate ?
         <MakePrivateDialog
           onConfirm={() => { setAskPrivate(false); set("visibility", "private"); }}
@@ -1166,7 +1165,7 @@ const newProjectFields = () => ({
 });
 
 /* The new-project form opens in place at the top of the project list. */
-const NewProjectPanel = ({authorName, onCreate, onCancel}) => {
+const NewProjectPanel = ({onCreate, onCancel}) => {
   const panelRef = useRef(null);
   useEffect(() => {
     const input = panelRef.current && panelRef.current.querySelector("#devPocProjectName");
@@ -1181,7 +1180,6 @@ const NewProjectPanel = ({authorName, onCreate, onCancel}) => {
       <ProjectForm
         initial={newProjectFields()}
         savedVisibility={null}
-        authorName={authorName}
         submitLabel={{en: "Create project", he: "יצירת פרויקט"}}
         onSave={onCreate}
         onCancel={onCancel}
@@ -1697,7 +1695,7 @@ const UsageSection = ({project}) => {
 };
 
 
-const ProjectCard = ({project, expanded, authorName, update, setConfirm, onToggleExpand, notice}) => {
+const ProjectCard = ({project, expanded, update, setConfirm, onToggleExpand, notice}) => {
   const [editing, setEditing] = useState(false);
   const cardRef = useRef(null);
 
@@ -1809,7 +1807,6 @@ const ProjectCard = ({project, expanded, authorName, update, setConfirm, onToggl
                   linkedListingId: project.linkedListingId || null,
                 }}
                 savedVisibility={project.visibility}
-                authorName={authorName}
                 submitLabel={{en: "Save project", he: "שמירת הפרויקט"}}
                 onSave={saveProject}
                 onCancel={() => setEditing(false)}
@@ -1848,7 +1845,7 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
                        connectedMessage, editingProfile, setEditingProfile, showNewProject,
                        setShowNewProject, onCreateProject, setProjectId, onStart,
                        settingUp}) => {
-  const authorName = accountName() || (state.profile ? state.profile.developerName : "");
+  const profileName = accountName() || (state.profile ? state.profile.developerName : "");
   const [askLaterListingId, setAskLaterListingId] = useState(null);
   const yourListing = emailMatchedListing(
     poweredByListings(state, accountEmail()), accountEmail(), accountVerified(state, socialProviders),
@@ -1933,7 +1930,7 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
               </React.Fragment> :
               <div className="devPocProfileSummary">
                 <span>
-                  <strong dir="auto">{authorName}</strong>
+                  <strong dir="auto">{profileName}</strong>
                   <span className="devPocHelp">
                     {profileEmails.map((email, i) => (
                       <React.Fragment key={email}>
@@ -1957,7 +1954,7 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
           </div>
 
           {showNewProject ?
-            <NewProjectPanel authorName={authorName} onCreate={onCreateProject} onCancel={() => setShowNewProject(false)} /> :
+            <NewProjectPanel onCreate={onCreateProject} onCancel={() => setShowNewProject(false)} /> :
             state.projects.length === 0 ?
             <div className="devPocEmpty">
               <h2><InterfaceText text={{en: "No projects yet", he: "עדיין אין פרויקטים"}} /></h2>
@@ -1977,7 +1974,6 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
               key={p.id}
               project={p}
               expanded={state.expandedProjectId === p.id}
-              authorName={authorName}
               update={update}
               setConfirm={setConfirm}
               notice={setNotice}
