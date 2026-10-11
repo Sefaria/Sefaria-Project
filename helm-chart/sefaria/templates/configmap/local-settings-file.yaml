@@ -180,6 +180,7 @@ data:
 
     SECRET_KEY = os.getenv("SECRET_KEY")
     CHATBOT_USER_ID_SECRET = os.getenv("CHATBOT_USER_ID_SECRET")
+    ADMIN_MCP_TOKEN_SECRET = os.getenv("ADMIN_MCP_TOKEN_SECRET")
     CHATBOT_API_BASE_URL = os.getenv("CHATBOT_API_BASE_URL", "https://chat-dev.sefaria.org/api")
 
     EMAIL_BACKEND = 'anymail.backends.mandrill.EmailBackend'

@@ -156,6 +156,8 @@ MANAGERS = ADMINS
 
 SECRET_KEY = 'insert your long random secret key here !'
 CHATBOT_USER_ID_SECRET = 'insert your chatbot user id secret here'
+# Secret for admin MCP tokens minted at /api/admin/mcp-token. Leave as None to disable admin MCP access.
+ADMIN_MCP_TOKEN_SECRET = None
 
 
 EMAIL_HOST = 'localhost'

@@ -80,6 +80,9 @@ STATICFILES_DIRS = [
 SECRET_KEY = ''
 CHATBOT_USER_ID_SECRET = 'secret'
 SESSION_ID_AUTH_HEADER = 'HTTP_X_SESSION_ID'
+# Secret for admin MCP tokens (see SessionIDAuthMiddleware). Unset disables admin MCP access.
+ADMIN_MCP_TOKEN_SECRET = None
+ADMIN_MCP_TOKEN_TTL_HOURS = 12
 CHATBOT_USE_LOCAL_SCRIPT = False
 
 TEMPLATES = [

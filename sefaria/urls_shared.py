@@ -7,6 +7,7 @@ import sourcesheets.views as sheets_views
 import remote_config.views as remote_config_views
 import api.views as api_views
 import api.linker_admin_views as linker_api_views
+import api.admin_mcp_views as admin_mcp_views
 import sefaria.views as sefaria_views
 import sefaria.gauth.views as gauth_views
 import guides.views as guides_views
@@ -207,6 +208,9 @@ shared_patterns = [
     path('api/topics/pools/<path:pool_name>', reader_views.topic_pool_api),
     re_path(r'^_api/topics/featured-topic/?$', reader_views.featured_topic_api),
     re_path(r'^api/topics/trending/?$', reader_views.trending_topics_api),
+    path('api/admin/mcp-token', admin_mcp_views.AdminMCPTokenView.as_view()),
+    path('api/admin/topic-prompts', admin_mcp_views.TopicPromptsView.as_view()),
+    path('api/admin/topic-prompts/<str:link_id>', admin_mcp_views.TopicPromptView.as_view()),
     path('api/ref-topic-links/bulk', reader_views.topic_ref_bulk_api),
     path('api/ref-topic-links/<path:tref>', reader_views.topic_ref_api),
     path('api/v2/topics/<path:topic>', reader_views.topics_api, {'v2': True}),
