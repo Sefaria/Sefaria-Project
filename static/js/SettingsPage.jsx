@@ -45,7 +45,7 @@ const maskKey = (value) => {
 };
 
 const formatDate = (iso) => {
-  if (!iso) { return Sefaria._v({en: "Never", he: "אף פעם"}); }
+  if (!iso) { return ""; }
   try {
     const locale = Sefaria.interfaceLang === "hebrew" ? "he-IL" : "en-GB";
     return new Date(iso).toLocaleDateString(locale, {day: "numeric", month: "short", year: "numeric"});
@@ -1319,7 +1319,6 @@ const KeyRow = ({project, apiKey, isNew, describedBy, onToggleRestriction, onDel
     <KeyValue value={apiKey.value} describedBy={describedBy} />
     <div className="devPocKeyMeta">
       <span><InterfaceText text={{en: "Created " + formatDate(apiKey.created), he: "נוצר ב־" + formatDate(apiKey.created)}} /></span>
-      <span><InterfaceText text={{en: "Last used " + formatDate(apiKey.lastUsed), he: "שימוש אחרון: " + formatDate(apiKey.lastUsed)}} /></span>
     </div>
     {isNew ?
       <p className="devPocKeyReady" role="status">

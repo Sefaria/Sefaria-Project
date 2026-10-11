@@ -103,7 +103,6 @@ export const makeKey = (label) => ({
   label,
   value: makeKeyValue(),
   created: new Date().toISOString(),
-  lastUsed: null,
   restrictToWebsite: false,
 });
 
@@ -133,10 +132,8 @@ export const sampleState = () => {
     websiteUrl: "https://dafyomiportal.org",
     aiAssisted: true,
     keys: [
-      {id: "key01", label: "Production", value: makeKeyValue(), created: daysAgo(40),
-        lastUsed: daysAgo(0), restrictToWebsite: true},
-      {id: "key02", label: "Local development", value: makeKeyValue(), created: daysAgo(12),
-        lastUsed: daysAgo(1), restrictToWebsite: false},
+      {id: "key01", label: "Production", value: makeKeyValue(), created: daysAgo(40), restrictToWebsite: true},
+      {id: "key02", label: "Local development", value: makeKeyValue(), created: daysAgo(12), restrictToWebsite: false},
     ],
   });
   return {

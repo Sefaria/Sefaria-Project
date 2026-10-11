@@ -385,7 +385,7 @@ describe('making a public project private', () => {
 
 describe('deleting a project', () => {
   const withKey = (extra) => publicProject({
-    keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, lastUsed: null, restrictToWebsite: false }],
+    keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: false }],
     ...extra,
   });
   const deleteFromEditor = (projects) => {
@@ -416,8 +416,7 @@ describe('deleting a project', () => {
 
 describe('key cards', () => {
   const projectWithKey = () => publicProject({
-    keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: '2026-09-01T00:00:00Z',
-      lastUsed: '2026-10-01T00:00:00Z', restrictToWebsite: false }],
+    keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: '2026-09-01T00:00:00Z', restrictToWebsite: false }],
   });
 
   it('leads the website restriction with the allowed-origin rule, explained on request', () => {
@@ -432,13 +431,13 @@ describe('key cards', () => {
     expect(restriction.querySelector('.devPocExplainer').textContent).toContain('only works on your website');
   });
 
-  it('show when a key was created and last used, with no usage statistics', () => {
+  it('show when a key was created, with no usage information', () => {
     mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()], expandedProjectId: 'proj01' });
     const meta = container.querySelector('.devPocKeyMeta').textContent;
     expect(meta).toContain('Created');
-    expect(meta).toContain('Last used');
-    expect(meta).not.toContain('requests');
-    expect(container.querySelector('.devPocProjectBody').textContent).not.toContain('Requests');
+    const body = container.querySelector('.devPocProjectBody').textContent;
+    expect(body).not.toContain('Last used');
+    expect(body).not.toMatch(/requests in the last|requests per day|requests by key/i);
   });
 });
 
