@@ -666,5 +666,9 @@
     "search.result_card.more_versions": "{count} גרסאות נוספות",
     "header.library_assistant": "עוזר הספרייה",
     "search.null.button.library_assistant": "נסו את עוזר הספרייה",
-    "search.null.body.library_assistant": "נסו מונח חיפוש אחר או שאלו את עוזר הספרייה."
+    "search.null.body.library_assistant": "נסו מונח חיפוש אחר או שאלו את עוזר הספרייה.",
+    "search.null.sources.body.library_assistant": "",
+    "search.null.topics.body.library_assistant": "",
+    "search.null.books.body.library_assistant": "",
+    "search.null.authors.body.library_assistant": ""
 }
