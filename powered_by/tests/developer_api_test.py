@@ -420,6 +420,66 @@ class ProjectLockTest(DeveloperApiTestCase):
         self.assertTrue(any("FOR UPDATE" in q["sql"] for q in queries))
 
 
+class ConfirmationLockTest(DeveloperApiTestCase):
+
+    def test_reserving_a_confirmation_send_locks_the_account_row(self):
+        with CaptureQueriesContext(connection) as queries:
+            self.call("post", "confirmation")
+
+        self.assertTrue(any("FOR UPDATE" in q["sql"] and "auth_user" in q["sql"] for q in queries))
+
+
+class ConfirmationRaceTest(TransactionTestCase):
+    databases = "__all__"
+
+    def setUp(self):
+        self.user = create_test_user("confrace")
+        purge_test_profiles(self.user)
+
+    def tearDown(self):
+        purge_test_profiles(self.user)
+
+    def test_concurrent_confirmation_requests_send_one_email(self):
+        holding = threading.Event()
+        release = threading.Event()
+        first = []
+        statuses = []
+
+        class BlockingClock:
+            """Stands in for developer.timezone: the first reservation stalls while holding the lock."""
+            @staticmethod
+            def now():
+                if not first:
+                    first.append(True)
+                    holding.set()
+                    assert release.wait(10)
+                return timezone.now()
+
+        def post():
+            try:
+                client = Client()
+                client.force_login(self.user)
+                response = client.post("/api/developer/confirmation", "", content_type="application/json")
+                statuses.append(response.status_code)
+            finally:
+                connections.close_all()
+
+        with patch.object(developer, "timezone", BlockingClock):
+            one = threading.Thread(target=post)
+            two = threading.Thread(target=post)
+            one.start()
+            self.assertTrue(holding.wait(10))
+            two.start()
+            two.join(0.5)
+            self.assertTrue(two.is_alive(), "the second request must wait for the account lock")
+            release.set()
+            one.join(10)
+            two.join(10)
+
+        self.assertEqual(sorted(statuses), [200, 429])
+        self.assertEqual(len(mail.outbox), 1)
+
+
 class KeyCreationRaceTest(TransactionTestCase):
     databases = "__all__"
 

@@ -10,6 +10,7 @@ from urllib.parse import urlsplit
 
 from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator, validate_email
 from django.db import transaction
@@ -264,6 +265,18 @@ def check_confirmation_cooldown(user):
         return
     if wait > timedelta(0):
         raise CooldownError(int(wait.total_seconds()) + 1)
+
+
+def reserve_confirmation_send(user):
+    """
+    Atomically checks the cooldown and records this send, so concurrent requests for one account
+    cannot both pass. The account's auth row is locked for the check and the write; the caller
+    sends the email afterwards, so a failed send still throttles. Raises CooldownError.
+    """
+    with transaction.atomic():
+        get_user_model().objects.select_for_update().get(pk=user.pk)
+        check_confirmation_cooldown(user)
+        mark_confirmation_sent(user, True)
 
 
 def mark_confirmation_sent(user, sent):

@@ -95,9 +95,8 @@ def confirmation_api(request):
         raise InputError("Your email is already confirmed.")
     if not request.user.email:
         raise InputError("Your account has no email address.")
-    developer.check_confirmation_cooldown(request.user)
-    # Recorded before sending so a failed send still throttles.
-    developer.mark_confirmation_sent(request.user, True)
+    # Reserved (check + record, atomically) before sending so a failed send still throttles.
+    developer.reserve_confirmation_send(request.user)
     if not developer.mocks_enabled():
         send_confirmation_email(request)
     return state_response(request)
