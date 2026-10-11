@@ -274,20 +274,30 @@ def reserve_confirmation_send(user):
     sends the email afterwards, so a failed send still throttles. Raises CooldownError.
     """
     with transaction.atomic():
-        get_user_model().objects.select_for_update().get(pk=user.pk)
+        _lock_account(user)
         check_confirmation_cooldown(user)
         mark_confirmation_sent(user, True)
 
 
+def _lock_account(user):
+    get_user_model().objects.select_for_update().get(pk=user.pk)
+
+
 def mark_confirmation_sent(user, sent):
-    profile = UserProfile(id=user.id)
-    if sent:
-        now = iso(timezone.now())
-        profile.settings[CONFIRMATION_SENT_SETTING] = now
-        profile.settings[CONFIRMATION_LAST_SENT_SETTING] = now
-    else:
-        profile.settings.pop(CONFIRMATION_SENT_SETTING, None)
-    profile.save()
+    """
+    Every write of the confirmation settings holds the account's row lock: UserProfile.save()
+    rewrites the whole profile, so an unlocked cancel could erase a concurrent send's timestamp.
+    """
+    with transaction.atomic():
+        _lock_account(user)
+        profile = UserProfile(id=user.id)
+        if sent:
+            now = iso(timezone.now())
+            profile.settings[CONFIRMATION_SENT_SETTING] = now
+            profile.settings[CONFIRMATION_LAST_SENT_SETTING] = now
+        else:
+            profile.settings.pop(CONFIRMATION_SENT_SETTING, None)
+        profile.save()
 
 
 # --- Projects ----------------------------------------------------------------

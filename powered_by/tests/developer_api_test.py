@@ -428,6 +428,13 @@ class ConfirmationLockTest(DeveloperApiTestCase):
 
         self.assertTrue(any("FOR UPDATE" in q["sql"] and "auth_user" in q["sql"] for q in queries))
 
+    def test_cancelling_a_confirmation_locks_the_account_row(self):
+        # A cancel rewrites the whole profile; unlocked, it could erase a concurrent send's timestamp.
+        with CaptureQueriesContext(connection) as queries:
+            self.call("delete", "confirmation")
+
+        self.assertTrue(any("FOR UPDATE" in q["sql"] and "auth_user" in q["sql"] for q in queries))
+
 
 class ConfirmationRaceTest(TransactionTestCase):
     databases = "__all__"
