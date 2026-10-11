@@ -6,6 +6,8 @@
 # (default auth-service-registry).
 #
 # The role can connect, LISTEN, and SELECT only the columns the auth service loads. Its sessions are read-only.
+# A role provisioned before the deleted_at filter needs one more grant (run in $DB as a superuser):
+#   GRANT SELECT (deleted_at) ON powered_by_project TO auth_service_reader;
 # The password is generated here and written only into the encrypted file; it is never printed.
 # Refuses to run if the role or the output file already exists (a re-run would desync the password).
 #   scripts/provision-cluster-registry.sh   (any cwd; OUT_DIR defaults to the infrastructure-registry worktree)
@@ -34,7 +36,7 @@ printf 'probe: x\n' | sops --encrypt --gcp-kms "$KMS" --input-type yaml --output
 PW=$(openssl rand -hex 24)
 printf "CREATE ROLE %s LOGIN PASSWORD '%s';\nALTER ROLE %s SET default_transaction_read_only = on;\nGRANT CONNECT ON DATABASE %s TO %s;\n" \
   "$ROLE" "$PW" "$ROLE" "$DB" "$ROLE" | pg
-printf "GRANT USAGE ON SCHEMA public TO %s;\nGRANT SELECT (id, tier) ON powered_by_project TO %s;\nGRANT SELECT (id, key, project_id, label, allowed_origins, revoked_at) ON powered_by_apikey TO %s;\n" \
+printf "GRANT USAGE ON SCHEMA public TO %s;\nGRANT SELECT (id, tier, deleted_at) ON powered_by_project TO %s;\nGRANT SELECT (id, key, project_id, label, allowed_origins, revoked_at) ON powered_by_apikey TO %s;\n" \
   "$ROLE" "$ROLE" "$ROLE" | pg -d "$DB"
 echo "ok: role $ROLE, read-only on the registry tables in $DB"
 

@@ -43,7 +43,7 @@ leaves only the periodic reload.
 PG_DSN comes from the cluster Secret `auth-service-registry` (key `AUTH_PG_DSN`): a read-only role
 on `sefaria_auth` that can connect, LISTEN, and SELECT the columns the loader reads.
 `scripts/provision-cluster-registry.sh` creates the role and the SOPS-encrypted Secret file; run it
-after the Django migrations. A new column in the load query needs a matching GRANT.
+after the Django migrations. A new column in the load query needs a matching GRANT; a role provisioned before the `deleted_at` filter needs `GRANT SELECT (deleted_at) ON powered_by_project TO auth_service_reader;`.
 
 ## Checks
 

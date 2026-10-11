@@ -56,3 +56,19 @@ func TestLoadAllSkipsNonArrayOrigins(t *testing.T) {
 		t.Fatalf("the good key must still load: %+v", g)
 	}
 }
+
+// Keys of a soft-deleted project are not loaded, so they are unknown (denied).
+func TestLoadAllSkipsDeletedProjects(t *testing.T) {
+	db, _ := freshSchema(t)
+	exec(t, db, `INSERT INTO powered_by_project(id,deleted_at) VALUES (1,NULL), (2,now())`)
+	exec(t, db, `INSERT INTO powered_by_apikey(key,project_id,label) VALUES
+		('sfr_live0000000000000000000000000001',1,'Live'),
+		('sfr_gone0000000000000000000000000001',2,'Gone')`)
+	keys, err := LoadAll(context.Background(), db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(keys) != 1 || keys[0].Label != "Live" {
+		t.Fatalf("want only the live project's key, got %+v", keys)
+	}
+}
