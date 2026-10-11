@@ -1331,3 +1331,41 @@ class TestRequestBodyTypeChecks:
 
         assert_error(response, 400, "Learning level must be")
         mock_update.assert_not_called()
+
+
+@pytest.mark.django_db
+class TestSubscribeDoesNotRevealExistingSubscriptions:
+    """
+    Subscribe doesn't require login, so anyone can call it with any email
+    address. The response must not tell them what that address was already
+    subscribed to.
+    """
+
+    @mock.patch("api.newsletter_views.subscribe_with_union")
+    @mock.patch("api.newsletter_views.get_cached_newsletter_list")
+    def test_response_lists_only_this_requests_selections(
+        self, mock_get_list, mock_subscribe, client
+    ):
+        mock_get_list.return_value = [
+            {"stringid": "sefaria_news", "id": "1"},
+            {"stringid": "educator_resources", "id": "2"},
+            {"stringid": "parashah_series", "id": "4"},
+        ]
+        # The contact was already on educator_resources and parashah_series.
+        mock_subscribe.return_value = {
+            "contact": {"id": "28529", "email": "test@example.com"},
+            "all_subscriptions": [
+                "educator_resources",
+                "parashah_series",
+                "sefaria_news",
+            ],
+        }
+
+        response = client.post(
+            "/api/newsletter/subscribe",
+            json.dumps(valid_subscribe_body(newsletters={"sefaria_news": True})),
+            content_type="application/json",
+        )
+
+        data = assert_success(response, 200)
+        assert data["subscribedNewsletters"] == ["sefaria_news"]

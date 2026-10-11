@@ -223,7 +223,9 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
         - The service validates newsletter selections against the cached managed newsletter list
         - Uses AC contact lookup/create pattern for managing subscribers
         - Subscriptions are union-based: new selections are added to existing, never removed
-        - Response includes all current subscriptions (existing + newly added)
+        - subscribedNewsletters lists only the newsletters selected in this request,
+          not the contact's existing subscriptions. This endpoint doesn't require
+          login, so it must not reveal what an email address is already subscribed to.
     """
     if request.method != "POST":
         return jsonResponse({"error": "Only POST method is supported"}, status=405)
@@ -254,15 +256,18 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
     logger.info(
         f"Processing subscription for {email} with newsletters: {selected_newsletters}"
     )
-    result = subscribe_with_union(email, first_name, last_name, selected_newsletters)
+    subscribe_with_union(email, first_name, last_name, selected_newsletters)
 
-    # Return success response
+    # Return only what this request selected, not result["all_subscriptions"].
+    # Anyone can call this endpoint with any email address, so returning the
+    # contact's full list would tell them which newsletters that person was
+    # already subscribed to.
     return jsonResponse(
         {
             "success": True,
             "message": "Successfully subscribed to newsletters",
             "email": email,
-            "subscribedNewsletters": result["all_subscriptions"],
+            "subscribedNewsletters": selected_newsletters,
             "learningLevelToken": make_learning_level_token(email),
         },
         status=200,
