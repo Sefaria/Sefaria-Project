@@ -249,6 +249,33 @@ class TestTopics(object):
             t.shouldDisplay = should_display_flag
         assert t.should_display(min_sources=min_sources) is expected
 
+    @pytest.mark.parametrize(('num_sources', 'num_source_sheets', 'min_sources', 'expected'), [
+        (0, 1, 1, True),   # sheet-only topic clears the default threshold
+        (0, 0, 1, False),
+        (2, 1, 3, True),   # text and sheet sources are summed
+        (0, 2, 3, False),
+    ])
+    def test_should_display_sums_text_and_sheet_sources(self, num_sources, num_source_sheets, min_sources, expected):
+        t = Topic()
+        t.numSources = num_sources
+        t.numSourceSheets = num_source_sheets
+        assert t.total_sources == num_sources + num_source_sheets
+        assert t.should_display(min_sources=min_sources) is expected
+
+    @pytest.mark.parametrize(('num_sources', 'num_source_sheets', 'min_sources', 'expected'), [
+        (3, 0, 3, True),
+        (2, 5, 3, False),  # sheets don't help clear a text-only threshold
+        (0, 5, 1, False),
+    ])
+    def test_should_display_textual_only_ignores_sheets(self, num_sources, num_source_sheets, min_sources, expected):
+        t = Topic()
+        t.numSources = num_sources
+        t.numSourceSheets = num_source_sheets
+        assert t.should_display(min_sources=min_sources, textual_only=True) is expected
+
+    def test_total_sources_defaults_to_zero(self):
+        assert Topic().total_sources == 0
+
 
 class TestTopicLinkHelper(object):
 

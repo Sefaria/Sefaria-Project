@@ -1087,7 +1087,7 @@ def choose_existing_topic_for_title(title):
     def compare(t1, t2):
         if is_title_primary(title, t1) == is_title_primary(title, t2):
             # If both or neither match primary title, prefer greater number of sources
-            return getattr(t1, "numSources", 0) - getattr(t2, "numSources", 0)
+            return t1.total_sources - t2.total_sources
         else:
             # Prefer matches to primary title
             return 1 if is_title_primary(title, t1) else -1
@@ -1224,7 +1224,7 @@ def public_tag_list(sort_by="alpha"):
         if title in seen_titles:
             continue
         seen_titles.add(title)
-        results.append({"tag": title, "count": getattr(tag, 'numSources', 0)})
+        results.append({"tag": title, "count": tag.total_sources})
 
     sort_keys =  {
         "alpha": lambda x: x["tag"],
