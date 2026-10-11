@@ -6,7 +6,7 @@
 # (default auth-service-registry).
 #
 # The role can connect, LISTEN, and SELECT only the columns the auth service loads. Its sessions are read-only.
-# A role provisioned before the deleted_at filter needs one more grant (run in $DB as a superuser):
+# A role provisioned before deleted projects were loaded as revoked needs one more grant (run in $DB as a superuser):
 #   GRANT SELECT (deleted_at) ON powered_by_project TO auth_service_reader;
 # The password is generated here and written only into the encrypted file; it is never printed.
 # Refuses to run if the role or the output file already exists (a re-run would desync the password).

@@ -57,8 +57,8 @@ func TestLoadAllSkipsNonArrayOrigins(t *testing.T) {
 	}
 }
 
-// Keys of a soft-deleted project are not loaded, so they are unknown (denied).
-func TestLoadAllSkipsDeletedProjects(t *testing.T) {
+// Keys of a soft-deleted project are still loaded, marked revoked, so they are denied.
+func TestLoadAllMarksDeletedProjectKeysRevoked(t *testing.T) {
 	db, _ := freshSchema(t)
 	exec(t, db, `INSERT INTO powered_by_project(id,deleted_at) VALUES (1,NULL), (2,now())`)
 	exec(t, db, `INSERT INTO powered_by_apikey(key,project_id,label) VALUES
@@ -68,7 +68,48 @@ func TestLoadAllSkipsDeletedProjects(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(keys) != 1 || keys[0].Label != "Live" {
-		t.Fatalf("want only the live project's key, got %+v", keys)
+	if len(keys) != 2 {
+		t.Fatalf("want both keys loaded, got %+v", keys)
+	}
+	r := New()
+	r.Replace(keys)
+	if live, ok := r.Lookup("sfr_live0000000000000000000000000001"); !ok || live.Revoked {
+		t.Fatalf("live key: %+v", live)
+	}
+	if gone, ok := r.Lookup("sfr_gone0000000000000000000000000001"); !ok || !gone.Revoked {
+		t.Fatalf("deleted project's key must load as revoked: %+v", gone)
+	}
+}
+
+// Deleting the only keyed project must not look like an empty load: the reload applies at once and the key is revoked.
+func TestDeletingTheOnlyKeyedProjectRevokesItImmediately(t *testing.T) {
+	db, _ := freshSchema(t)
+	exec(t, db, `INSERT INTO powered_by_project(id) VALUES (1)`)
+	exec(t, db, `INSERT INTO powered_by_apikey(key,project_id,label) VALUES ('sfr_only0000000000000000000000000001',1,'Only')`)
+	r := New()
+	keys, err := LoadAll(context.Background(), db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := r.ReplaceGuarded(keys); err != nil {
+		t.Fatal(err)
+	}
+	if k, _ := r.Lookup("sfr_only0000000000000000000000000001"); k.Revoked {
+		t.Fatalf("key must start live: %+v", k)
+	}
+
+	exec(t, db, `UPDATE powered_by_project SET deleted_at = now() WHERE id = 1`)
+	keys, err = LoadAll(context.Background(), db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(keys) != 1 {
+		t.Fatalf("the reload must not be empty, got %+v", keys)
+	}
+	if err := r.ReplaceGuarded(keys); err != nil {
+		t.Fatalf("the reload must apply immediately: %v", err)
+	}
+	if k, ok := r.Lookup("sfr_only0000000000000000000000000001"); !ok || !k.Revoked {
+		t.Fatalf("key must now be revoked: %+v", k)
 	}
 }
