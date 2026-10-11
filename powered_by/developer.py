@@ -167,10 +167,12 @@ def unclaimed_listings(user, profile):
     Powered by listings submitted with this account's email that no account manages yet.
     """
     dismissed = profile.settings.get(DISMISSED_LISTINGS_SETTING, [])
+    return listings_submitted_by(user).exclude(id__in=dismissed).order_by("-created_at")
+
+
+def listings_submitted_by(user):
     return (Project.objects.filter(owner__isnull=True, deleted_at__isnull=True, creator_email__iexact=user.email)
-            .exclude(submission_source=SubmissionSource.DEVELOPER_SETTINGS)
-            .exclude(id__in=dismissed)
-            .order_by("-created_at"))
+            .exclude(submission_source=SubmissionSource.DEVELOPER_SETTINGS))
 
 
 def developer_state(request):
@@ -459,6 +461,8 @@ def dismiss_listing(user, listing_id):
         listing_id = int(listing_id)
     except ValueError:
         raise LookupError("No such listing.")
+    if not listings_submitted_by(user).filter(id=listing_id).exists():
+        raise LookupError("No such listing.")
     if listing_id not in dismissed:
         profile.settings[DISMISSED_LISTINGS_SETTING] = dismissed + [listing_id]
         profile.save()
@@ -473,7 +477,7 @@ def create_key(user, project_id, label):
     if not label:
         raise InputError("Give the key a name.")
     if len(label) > 100:
-        raise InputError("The key name is too long.")
+        raise InputError("The key name can be at most 100 characters.")
     if project.api_keys.filter(revoked_at__isnull=True).count() >= MAX_KEYS_PER_PROJECT:
         raise InputError("A project can have at most {} keys.".format(MAX_KEYS_PER_PROJECT))
     return ApiKey.objects.create(project=project, label=label)
