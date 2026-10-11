@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
+	"slices"
+	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -54,11 +57,10 @@ func TestReloaderErrorBetweenEmptiesResetsGuard(t *testing.T) {
 	loadErr := errors.New("db down")
 	reloader := NewReloader(func(context.Context) ([]Key, error) {
 		if step.Add(1) == 2 {
-			r.ResetEmptyReloadGuard()
 			return nil, loadErr
 		}
 		return nil, nil
-	}, r.ReplaceGuarded)
+	}, r.ReplaceGuarded, WithLoadErrorHook(r.ResetEmptyReloadGuard))
 	ctx := context.Background()
 	if err := reloader.Reload(ctx); !errors.Is(err, ErrEmptyReload) {
 		t.Fatalf("first empty: %v", err)
@@ -105,25 +107,42 @@ func TestPeriodicReloadGuardsEmpty(t *testing.T) {
 	}
 }
 
+// reloaderWaiters counts goroutines parked on a Mutex inside Reloader.Reload.
+func reloaderWaiters() int {
+	buf := make([]byte, 1<<20)
+	buf = buf[:runtime.Stack(buf, true)]
+	n := 0
+	for _, g := range strings.Split(string(buf), "\n\n") {
+		if strings.Contains(g, "(*Reloader).Reload") && strings.Contains(g, "sync.(*Mutex).Lock") {
+			n++
+		}
+	}
+	return n
+}
+
 func TestReloaderSerializesLoads(t *testing.T) {
 	r := New()
-	var calls, inflight atomic.Int32
-	var overlap atomic.Bool
+	var mu sync.Mutex
+	var events []string
+	log := func(e string) {
+		mu.Lock()
+		events = append(events, e)
+		mu.Unlock()
+	}
+	var calls atomic.Int32
 	firstStarted := make(chan struct{})
-	secondCalling := make(chan struct{})
 	releaseFirst := make(chan struct{})
 	reloader := NewReloader(func(context.Context) ([]Key, error) {
-		n := calls.Add(1)
-		if inflight.Add(1) > 1 {
-			overlap.Store(true)
-		}
-		defer inflight.Add(-1)
-		switch n {
+		switch n := calls.Add(1); n {
 		case 1:
+			log("first-start")
 			close(firstStarted)
 			<-releaseFirst
+			log("first-end")
 			return []Key{{Key: "first"}}, nil
 		case 2:
+			log("second-start")
+			log("second-end")
 			return []Key{{Key: "second"}}, nil
 		default:
 			return nil, fmt.Errorf("unexpected load call %d", n)
@@ -137,23 +156,33 @@ func TestReloaderSerializesLoads(t *testing.T) {
 	secondDone := make(chan error, 1)
 	go func() { firstDone <- reloader.Reload(context.Background()) }()
 	<-firstStarted
-	go func() {
-		close(secondCalling)
-		secondDone <- reloader.Reload(context.Background())
-	}()
-	<-secondCalling
-	for i := 0; i < 200; i++ {
+	go func() { secondDone <- reloader.Reload(context.Background()) }()
+	// Release the first load only once the second Reload is parked on the Reloader lock (or has
+	// wrongly run past it, which the ordering assertion below catches).
+	deadline := time.Now().Add(2 * time.Second)
+	for reloaderWaiters() == 0 && calls.Load() < 2 {
+		if time.Now().After(deadline) {
+			t.Fatal("second Reload never reached the Reloader lock")
+		}
 		runtime.Gosched()
 	}
 	close(releaseFirst)
-	if err := <-firstDone; err != nil {
-		t.Fatal(err)
+	for _, ch := range []chan error{firstDone, secondDone} {
+		select {
+		case err := <-ch:
+			if err != nil {
+				t.Fatal(err)
+			}
+		case <-time.After(2 * time.Second):
+			t.Fatal("reload did not finish")
+		}
 	}
-	if err := <-secondDone; err != nil {
-		t.Fatal(err)
-	}
-	if overlap.Load() {
-		t.Fatal("second load ran while the first load was in flight")
+	want := []string{"first-start", "first-end", "second-start", "second-end"}
+	mu.Lock()
+	got := append([]string(nil), events...)
+	mu.Unlock()
+	if !slices.Equal(got, want) {
+		t.Fatalf("load order = %v, want %v", got, want)
 	}
 	if _, ok := r.Lookup("second"); !ok || r.Len() != 1 {
 		t.Fatalf("final registry did not contain second load: len=%d", r.Len())

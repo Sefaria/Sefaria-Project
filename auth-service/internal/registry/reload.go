@@ -12,10 +12,24 @@ type Reloader struct {
 	mu      sync.Mutex
 	load    func(context.Context) ([]Key, error)
 	replace func([]Key) error
+	onErr   func()
 }
 
-func NewReloader(load func(context.Context) ([]Key, error), replace func([]Key) error) *Reloader {
-	return &Reloader{load: load, replace: replace}
+// ReloaderOption configures a Reloader.
+type ReloaderOption func(*Reloader)
+
+// WithLoadErrorHook runs fn, under the Reloader lock, after every failed load. The service uses it to
+// reset the registry's pending-empty guard so two empty results separated by an error never confirm.
+func WithLoadErrorHook(fn func()) ReloaderOption {
+	return func(r *Reloader) { r.onErr = fn }
+}
+
+func NewReloader(load func(context.Context) ([]Key, error), replace func([]Key) error, opts ...ReloaderOption) *Reloader {
+	r := &Reloader{load: load, replace: replace}
+	for _, o := range opts {
+		o(r)
+	}
+	return r
 }
 
 func (r *Reloader) Reload(ctx context.Context) error {
@@ -23,6 +37,9 @@ func (r *Reloader) Reload(ctx context.Context) error {
 	defer r.mu.Unlock()
 	keys, err := r.load(ctx)
 	if err != nil {
+		if r.onErr != nil {
+			r.onErr()
+		}
 		return err
 	}
 	return r.replace(keys)

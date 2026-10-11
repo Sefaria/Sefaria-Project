@@ -71,8 +71,10 @@ func main() {
 	}
 
 	reg := registry.New()
-	// A pending empty is confirmed only by an empty load at least one reload interval later.
-	reg.SetEmptyReloadGap(interval)
+	// A pending empty is confirmed only by an empty load about one reload interval later. The gap is 90% of
+	// the interval because firstEmptyAt is stamped after a load finishes, so the next tick can land just
+	// under a full interval later; an exact-interval gap would then slip confirmation by a whole extra tick.
+	reg.SetEmptyReloadGap(interval * 9 / 10)
 	var ready atomic.Bool
 	db, err := sql.Open("pgx", os.Getenv("PG_DSN"))
 	if err != nil {
@@ -105,12 +107,11 @@ func main() {
 	reloadLoad := func(ctx context.Context) ([]registry.Key, error) {
 		keys, err := load(ctx)
 		if err != nil {
-			reg.ResetEmptyReloadGuard()
 			reloads.WithLabelValues("error").Inc()
 		}
 		return keys, err
 	}
-	reloader := registry.NewReloader(reloadLoad, replace)
+	reloader := registry.NewReloader(reloadLoad, replace, registry.WithLoadErrorHook(reg.ResetEmptyReloadGuard))
 
 	t0 := time.Now()
 	if keys, err := load(ctx); err != nil {

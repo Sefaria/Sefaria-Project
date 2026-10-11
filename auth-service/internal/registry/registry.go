@@ -74,7 +74,7 @@ func (r *Registry) Replace(keys []Key) {
 
 func (r *Registry) replaceLocked(keys []Key) {
 	r.snap.Store(build(keys))
-	r.loadedAt.Store(time.Now().UnixNano())
+	r.loadedAt.Store(r.now().UnixNano())
 	r.version.Add(1)
 }
 
