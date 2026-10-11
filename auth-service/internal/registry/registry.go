@@ -35,14 +35,26 @@ type Registry struct {
 	snap         atomic.Pointer[snapshot]
 	writeMu      sync.Mutex
 	pendingEmpty bool
+	firstEmptyAt time.Time
+	minGap       time.Duration
+	now          func() time.Time
 	version      atomic.Uint64
 	loadedAt     atomic.Int64
 }
 
 func New() *Registry {
-	r := &Registry{}
+	r := &Registry{now: time.Now}
 	r.snap.Store(&snapshot{byKey: map[string]Key{}})
 	return r
+}
+
+// SetEmptyReloadGap sets the minimum time between the first empty load and the empty load that
+// confirms it. Two empties closer together than this (a NOTIFY reload and a periodic reload) are
+// treated as one observation. Zero means any second consecutive empty confirms.
+func (r *Registry) SetEmptyReloadGap(d time.Duration) {
+	r.writeMu.Lock()
+	r.minGap = d
+	r.writeMu.Unlock()
 }
 
 func build(keys []Key) *snapshot {
@@ -69,10 +81,13 @@ func (r *Registry) replaceLocked(keys []Key) {
 func (r *Registry) ReplaceGuarded(keys []Key) error {
 	r.writeMu.Lock()
 	defer r.writeMu.Unlock()
-	if len(keys) > 0 {
+	if len(keys) > 0 || r.Len() == 0 {
 		r.pendingEmpty = false
-	} else if r.Len() > 0 && !r.pendingEmpty {
+	} else if !r.pendingEmpty {
 		r.pendingEmpty = true
+		r.firstEmptyAt = r.now()
+		return ErrEmptyReload
+	} else if r.now().Sub(r.firstEmptyAt) < r.minGap {
 		return ErrEmptyReload
 	} else {
 		r.pendingEmpty = false

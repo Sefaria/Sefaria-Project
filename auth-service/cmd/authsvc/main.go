@@ -71,6 +71,8 @@ func main() {
 	}
 
 	reg := registry.New()
+	// A pending empty is confirmed only by an empty load at least one reload interval later.
+	reg.SetEmptyReloadGap(interval)
 	var ready atomic.Bool
 	db, err := sql.Open("pgx", os.Getenv("PG_DSN"))
 	if err != nil {

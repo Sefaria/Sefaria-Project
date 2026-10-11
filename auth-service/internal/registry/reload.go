@@ -2,7 +2,6 @@ package registry
 
 import (
 	"context"
-	"errors"
 	"sync"
 	"time"
 )
@@ -34,16 +33,16 @@ func (r *Reloader) Reload(ctx context.Context) error {
 func PeriodicReload(ctx context.Context, every time.Duration, reload func(context.Context) error, onErr func(error)) {
 	t := time.NewTicker(every)
 	defer t.Stop()
+	periodicReload(ctx, t.C, reload, onErr)
+}
+
+func periodicReload(ctx context.Context, tick <-chan time.Time, reload func(context.Context) error, onErr func(error)) {
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-t.C:
+		case <-tick:
 			if err := reload(ctx); err != nil {
-				if errors.Is(err, ErrEmptyReload) {
-					onErr(ErrEmptyReload)
-					continue
-				}
 				onErr(err)
 			}
 		}
