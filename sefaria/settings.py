@@ -348,6 +348,10 @@ CACHES = {
 }
 
 
+# Developer settings test controls (SSO and email mocks, mock Powered by listings). local_settings
+# turns them on where Google refuses the origin and no email is sent, such as branch cauldrons.
+DEVELOPER_SETTINGS_MOCKS = False
+
 # Elasticsearch index names, defaulted here (before local_settings is imported) so that a
 # deployment whose local_settings.py predates one of these constants still boots. Without a
 # default, an omitted name is simply undefined, and `global_settings`
