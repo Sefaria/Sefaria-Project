@@ -17632,7 +17632,7 @@ body.user-is-tabbing .mobileFilterIconButton:focus {
   min-width: 0;
 }
 .devPocKeyHeading { display: flex; justify-content: space-between; align-items: center; gap: var(--devPoc-s2); margin-bottom: var(--devPoc-s1); }
-.devPocKeyHeading strong { font-size: 15px; font-weight: 600; }
+.devPocKeyHeading strong { font-size: 15px; font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
 .devPocKeyValue { display: flex; align-items: center; gap: var(--devPoc-s1); margin-bottom: var(--devPoc-s2); min-width: 0; }
 .devPocKeyValue code { flex: 1; min-width: 0; }
 .devPocIconButton {

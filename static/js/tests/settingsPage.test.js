@@ -318,6 +318,13 @@ describe('"Is this your project?"', () => {
     expect(yourListingDialog()).toBeNull();
   });
 
+  it('can be put off until the next visit with Not now', () => {
+    mountWithListing();
+    act(() => { buttonNamed(yourListingDialog(), 'Not now').click(); });
+    expect(yourListingDialog()).toBeNull();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
   it('no longer asks about websites that are already listed', () => {
     openNewProject();
     typeInto(container.querySelector('#devPocProjectUrl'), 'dafyomicompanion.org');
@@ -512,6 +519,54 @@ describe('keys', () => {
   });
 });
 
+describe('dialog keyboard behaviour', () => {
+  const projectWithKey = () => publicProject({
+    keys: [{ id: 'k1', label: 'Production', value: 'sfr_x', created: null, restrictToWebsite: false }],
+  });
+  const openDeleteKey = () => {
+    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] }, { projectId: 'proj01' });
+    const opener = buttonNamed(container.querySelector('.devPocKey'), 'Delete key');
+    act(() => { opener.focus(); opener.click(); });
+    return { opener, dialog: container.querySelector('[aria-labelledby="devPocConfirmTitle"]') };
+  };
+  const press = (key, init = {}) => act(() => {
+    document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true, ...init }));
+  });
+
+  it("closes on Escape without the key reaching the panel around the page", () => {
+    const outer = jest.fn();
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    act(() => {
+      ReactDOM.render(
+        <div onKeyDown={e => { if (e.key === 'Escape') { outer(); } }}>
+          <SettingsPage tab="developer" projectId="proj01" accountSettings={{ socialProviders: [] }}
+            initialDeveloper={{ ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()] }}
+            setTab={() => {}} setProjectId={() => {}} />
+        </div>,
+        container,
+      );
+    });
+    act(() => { buttonNamed(container.querySelector('.devPocKey'), 'Delete key').click(); });
+    press('Escape');
+    expect(container.querySelector('[aria-labelledby="devPocConfirmTitle"]')).toBeNull();
+    expect(outer).not.toHaveBeenCalled();
+  });
+
+  it('keeps Tab inside the dialog and returns focus to the opener on close', () => {
+    const { opener, dialog } = openDeleteKey();
+    const buttons = Array.from(dialog.querySelectorAll('button'));
+    expect(document.activeElement).toBe(buttons[0]);
+    act(() => { buttons[buttons.length - 1].focus(); });
+    press('Tab');
+    expect(document.activeElement).toBe(buttons[0]);
+    press('Tab', { shiftKey: true });
+    expect(document.activeElement).toBe(buttons[buttons.length - 1]);
+    act(() => { buttonNamed(dialog, 'Cancel').click(); });
+    expect(document.activeElement).toBe(opener);
+  });
+});
+
 describe('agent instructions', () => {
   it('are in the DOM, visually hidden but not hidden from the accessibility tree', () => {
     mount('account');
@@ -577,6 +632,7 @@ describe('confirming the email', () => {
     respondWith({ ...unverified, emailVerified: true, developerEnabled: true });
     await clickAndSettle(buttonNamed(developerPanel(), 'Get started'));
     expect(lastRequest()).toMatchObject({ url: '/api/developer/enable', method: 'POST' });
+    expect(developerPanel().textContent).toContain('Setting up developer settings');
     act(() => { jest.runAllTimers(); });
     expect(developerPanel().textContent).toContain('About you');
     jest.useRealTimers();
@@ -653,7 +709,7 @@ describe('test controls', () => {
     expect(lastRequest()).toMatchObject({
       url: '/api/developer/mock', body: { action: 'start-over', ssoOverride: false, emailVerified: false },
     });
-    expect(container.querySelector('.devPocPanelStatus').textContent).toContain('Email account · email not verified');
+    expect(container.querySelector('.devPocPanelStatus').textContent).toContain('Email account · email not confirmed');
   });
 
   it('add a listing submitted with the account email, which is then offered', async () => {

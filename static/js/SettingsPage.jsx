@@ -161,12 +161,35 @@ const InfoTip = ({fieldId, wide, children}) => {
 const FieldNote = ({fieldId, children}) => <span id={tipId(fieldId)} hidden>{children}</span>;
 
 /* Escape closes, and the given button takes focus when the dialog opens. */
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+/* A modal dialog: focus moves in on open and back to where it was on close, Tab stays inside,
+   and Escape closes it. */
 const useDialogKeys = (focusRef, onEscape) => {
   useEffect(() => {
+    const opener = typeof document !== "undefined" ? document.activeElement : null;
     if (focusRef.current) { focusRef.current.focus(); }
-    const onKeyDown = (e) => { if (e.key === "Escape") { onEscape(); } };
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") { onEscape(); return; }
+      if (e.key !== "Tab" || !focusRef.current) { return; }
+      const dialog = focusRef.current.closest('[role="dialog"]');
+      const focusable = dialog ? Array.from(dialog.querySelectorAll(FOCUSABLE)) : [];
+      if (!focusable.length) { return; }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (!dialog.contains(document.activeElement)) {
+        e.preventDefault(); first.focus();
+      } else if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault(); last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault(); first.focus();
+      }
+    };
     document.addEventListener("keydown", onKeyDown);
-    return () => document.removeEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      if (opener && opener.isConnected && typeof opener.focus === "function") { opener.focus(); }
+    };
   }, []);
 };
 
@@ -193,8 +216,8 @@ const ACCOUNT_SCENARIOS = [
 
 const accountStatus = (state) => {
   const kind = state.ssoConnected ? "Google or Apple account" : "Email account";
-  const email = accountVerified(state) ? "email verified"
-    : state.confirmationSentAt ? "confirmation link sent" : "email not verified";
+  const email = state.emailVerified ? "email confirmed"
+    : state.confirmationSentAt ? "confirmation link sent" : "email not confirmed";
   const dev = !state.developerEnabled ? "developer settings not started"
     : !state.profile ? "at About you" : state.projects.length + " project" + (state.projects.length === 1 ? "" : "s");
   return "Now: " + kind + " · " + email + " · " + dev;
@@ -388,7 +411,7 @@ const AgentInstructions = () => (
       <li>
         If a dialog asks "Is this your project?" about a Powered by Sefaria listing, ask the
         user. "Yes, add it" (claim-listing) adds it as a public project linked to the listing;
-        "No, it's not mine" (not-my-listing) stops the question.
+        "No, it's not mine" (not-my-listing) stops the question; "Not now" (listing-not-now) asks again next visit.
       </li>
       <li>
         Under "Projects", press "Create your first project" or "New project" (new-project).
@@ -887,6 +910,9 @@ const YourListingDialog = ({listing, onYes, onNo, onLater}) => {
           <button type="button" className="button small white" data-agent-action="not-my-listing" onClick={onNo}>
             <InterfaceText text={{en: "No, it's not mine", he: "לא, זה לא שלי"}} />
           </button>
+          <button type="button" className="button small transparent" data-agent-action="listing-not-now" onClick={onLater}>
+            <InterfaceText text={{en: "Not now", he: "לא עכשיו"}} />
+          </button>
         </div>
       </section>
     </div>
@@ -975,37 +1001,41 @@ const PublicPreviewDialog = ({fields, onClose}) => {
 };
 
 
-const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => (
-  <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocNoWebsiteTitle">
-    <section className="devPocDialog">
-      <h2 id="devPocNoWebsiteTitle"><InterfaceText text={{en: "Save without a website?", he: "לשמור בלי אתר?"}} /></h2>
-      <p><InterfaceText text={{en: "A website helps your project in two ways:", he: "אתר עוזר לפרויקט שלכם בשתי דרכים:"}} /></p>
-      <ul className="devPocList">
-        <li><InterfaceText text={{en: "We show it alongside your project on Powered by Sefaria.", he: "נציג אותו לצד הפרויקט ב־Powered by Sefaria."}} /></li>
-        <li>
+const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => {
+  const addRef = useRef(null);
+  useDialogKeys(addRef, onAddWebsite);
+  return (
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocNoWebsiteTitle">
+      <section className="devPocDialog">
+        <h2 id="devPocNoWebsiteTitle"><InterfaceText text={{en: "Save without a website?", he: "לשמור בלי אתר?"}} /></h2>
+        <p><InterfaceText text={{en: "A website helps your project in two ways:", he: "אתר עוזר לפרויקט שלכם בשתי דרכים:"}} /></p>
+        <ul className="devPocList">
+          <li><InterfaceText text={{en: "We show it alongside your project on Powered by Sefaria.", he: "נציג אותו לצד הפרויקט ב־Powered by Sefaria."}} /></li>
+          <li>
+            <InterfaceText text={{
+              en: "You can make your key work only on your site, so a copied key is no use anywhere else.",
+              he: "אפשר להגביל את המפתח כך שיעבוד רק באתר שלכם, ומפתח שהועתק לא יעבוד בשום מקום אחר.",
+            }} />
+          </li>
+        </ul>
+        <p>
           <InterfaceText text={{
-            en: "You can make your key work only on your site, so a copied key is no use anywhere else.",
-            he: "אפשר להגביל את המפתח כך שיעבוד רק באתר שלכם, ומפתח שהועתק לא יעבוד בשום מקום אחר.",
+            en: <React.Fragment>No website yet? That's fine. You can add it later with <strong>Edit project</strong>.</React.Fragment>,
+            he: <React.Fragment>עדיין אין אתר? זה בסדר. אפשר להוסיף אותו מאוחר יותר דרך <strong>עריכת הפרויקט</strong>.</React.Fragment>,
           }} />
-        </li>
-      </ul>
-      <p>
-        <InterfaceText text={{
-          en: <React.Fragment>No website yet? That's fine. You can add it later with <strong>Edit project</strong>.</React.Fragment>,
-          he: <React.Fragment>עדיין אין אתר? זה בסדר. אפשר להוסיף אותו מאוחר יותר דרך <strong>עריכת הפרויקט</strong>.</React.Fragment>,
-        }} />
-      </p>
-      <div className="devPocActions">
-        <button type="button" className="button small white" onClick={onAddWebsite}>
-          <InterfaceText text={{en: "Add a website", he: "הוספת אתר"}} />
-        </button>
-        <button type="button" className="button small blue" data-agent-action="save-without-website" onClick={onSaveAnyway}>
-          <InterfaceText text={{en: "Save without a website", he: "שמירה בלי אתר"}} />
-        </button>
-      </div>
-    </section>
-  </div>
-);
+        </p>
+        <div className="devPocActions">
+          <button type="button" className="button small white" ref={addRef} onClick={onAddWebsite}>
+            <InterfaceText text={{en: "Add a website", he: "הוספת אתר"}} />
+          </button>
+          <button type="button" className="button small blue" data-agent-action="save-without-website" onClick={onSaveAnyway}>
+            <InterfaceText text={{en: "Save without a website", he: "שמירה בלי אתר"}} />
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+};
 
 
 /* One form for creating and editing a project. A missing website asks once before saving,
@@ -1651,7 +1681,7 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
       {connectedMessage ?
         <div className="devPocSuccess" role="status"><p>{connectedMessage}</p></div> : null}
 
-      {!developerOn ?
+      {!developerOn || settingUp ?
         <GetStarted
           verified={accountVerified(state)}
           confirmationSent={!!state.confirmationSentAt}
@@ -2337,7 +2367,11 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
   };
 
   return (
-    <div className={"readerNavMenu settingsPage settingsPage-" + tab} key="settings">
+    <div
+      className={"readerNavMenu settingsPage settingsPage-" + tab}
+      key="settings"
+      onKeyDown={e => { if (e.key === "Escape") { e.stopPropagation(); } }}
+    >
       <div className="content">
         <div className="contentInner">
           <div className="settingsShell">
