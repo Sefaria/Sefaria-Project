@@ -707,6 +707,7 @@
     "newsletter_sign_up_page.select_newsletter": "אנא בחר לפחות ניוזלטר אחד.",
     "newsletter_sign_up_page.select_learning_level": "אנא בחר רמת למידה.",
     "newsletter_sign_up_page.generic_error": "מצטערים, אירעה שגיאה. אנא נסה שוב.",
+    "newsletter_sign_up_page.learning_level_expired": "תוקף הדף פג. כדי לשמור את רמת הלמידה שלך, יש להירשם שוב.",
     "newsletter_sign_up_page.skip_prompt": "או {skip_link} ועבור ישירות לדף הבית",
     "newsletter_sign_up_page.confirm_email_address": "אשר כתובת דוא\"ל",
     "newsletter_sign_up_page.newsletter_options": "אפשרויות ניוזלטר",

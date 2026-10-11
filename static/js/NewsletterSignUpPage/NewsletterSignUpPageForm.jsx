@@ -7,7 +7,7 @@ import NewsletterFormView from "./NewsletterFormView";
 import NewsletterConfirmationView from "./NewsletterConfirmationView";
 import SuccessView from "./SuccessView";
 import { useNewsletterFormInit } from "./useNewsletterFormInit";
-import { subscribeNewsletter, updatePreferences, updateLearningLevel } from "./newsletterApi";
+import { subscribeNewsletter, updatePreferences, updateLearningLevel, SERVER_ERROR_CODE } from "./newsletterApi";
 
 /**
  * NewsletterSignUpPageForm - Main container component
@@ -36,9 +36,15 @@ function buildFieldValidators(formData, formStatus) {
   };
 }
 
+// Server error codes that have their own translated message. Other server errors
+// fall back to the server's own (English) text.
+const ERROR_CODE_MESSAGES = Object.freeze({
+  [SERVER_ERROR_CODE.LEARNING_LEVEL_TOKEN_INVALID]: TEXT_KEYS.LEARNING_LEVEL_EXPIRED,
+});
+
 function errorToMessage(error) {
   // Server messages are plain text (not keys); <InterfaceText> shows them unchanged in both languages.
-  return error.message || TEXT_KEYS.GENERIC_ERROR;
+  return ERROR_CODE_MESSAGES[error.code] || error.message || TEXT_KEYS.GENERIC_ERROR;
 }
 
 function computeSubscriptionDiffs(initial, current) {
@@ -53,6 +59,9 @@ const INITIAL_FORM_STATUS = {
   errorMessage: null,
   isLoggedIn: false,
   userEmail: null,
+  // Returned by subscribe. A logged-out visitor sends it back when saving their
+  // learning level, to show the save comes right after their own sign-up.
+  learningLevelToken: null,
 };
 
 /**
@@ -82,7 +91,13 @@ function formStatusReducer(state, action) {
     case FORM_STATUS_ACTION.SUBMIT_STARTED:
       return { ...state, status: FORM_STATUS.SUBMITTING, errorMessage: null };
     case FORM_STATUS_ACTION.SUBMIT_SUCCEEDED:
-      return { ...state, status: FORM_STATUS.SUCCESS, currentStage: action.nextStage };
+      return {
+        ...state,
+        status: FORM_STATUS.SUCCESS,
+        currentStage: action.nextStage,
+        // Only subscribe returns a token. Other calls return none, so keep the one we have.
+        learningLevelToken: action.learningLevelToken ?? state.learningLevelToken,
+      };
     case FORM_STATUS_ACTION.SUBMIT_FAILED:
       return { ...state, status: FORM_STATUS.ERROR, errorMessage: action.error };
     default:
@@ -250,9 +265,13 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
   const runSubmission = async (apiCall, nextStage) => {
     dispatchFormStatus({ type: FORM_STATUS_ACTION.SUBMIT_STARTED });
     try {
-      await apiCall();
+      const result = await apiCall();
       if (!isMountedRef.current) return;
-      dispatchFormStatus({ type: FORM_STATUS_ACTION.SUBMIT_SUCCEEDED, nextStage });
+      dispatchFormStatus({
+        type: FORM_STATUS_ACTION.SUBMIT_SUCCEEDED,
+        nextStage,
+        learningLevelToken: result?.learningLevelToken,
+      });
     } catch (error) {
       if (!isMountedRef.current) return;
       dispatchFormStatus({ type: FORM_STATUS_ACTION.SUBMIT_FAILED, error: errorToMessage(error) });
@@ -317,7 +336,9 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
       dispatchFormStatus({ type: FORM_STATUS_ACTION.SUBMIT_FAILED, error: TEXT_KEYS.SELECT_LEARNING_LEVEL });
       return;
     }
-    await runSubmission(() => updateLearningLevel(formData.email, formData.learningLevel), STAGE.SUCCESS);
+    // Logged-in users don't need a token: the server knows who they are from their session.
+    const token = formStatus.isLoggedIn ? undefined : formStatus.learningLevelToken;
+    await runSubmission(() => updateLearningLevel({ learningLevel: formData.learningLevel, token }), STAGE.SUCCESS);
   };
 
   const handleSkipLearningLevel = () => {

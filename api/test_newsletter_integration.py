@@ -77,7 +77,7 @@ def _ac_side_effect(contact_memberships, all_lists=None):
         the endpoint, return the right canned payload.
     """
 
-    def side_effect(endpoint, method="GET", data=None):
+    def side_effect(endpoint, method="GET", data=None, timeout=None):
         if "contacts?filters" in endpoint:
             return {"contacts": [{"id": "100", "email": "testuser@sefaria.org"}]}
         elif "contactLists" in endpoint:
@@ -723,7 +723,7 @@ class TestViewThroughServiceSubscribe:
         new_contact_id = "55501"
         new_email = "brand-new-user@example.com"
 
-        def side_effect(endpoint, method="GET", data=None):
+        def side_effect(endpoint, method="GET", data=None, timeout=None):
             if "contacts?filters" in endpoint:
                 # Empty search result → find_or_create_contact takes the create branch
                 return {"contacts": []}

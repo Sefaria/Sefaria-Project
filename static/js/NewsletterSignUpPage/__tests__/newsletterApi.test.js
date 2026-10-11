@@ -19,6 +19,7 @@ const {
   fetchUserSubscriptions,
   getNewsletterLists,
   updateLearningLevel,
+  SERVER_ERROR_CODE,
 } = require('../newsletterApi');
 
 // ============================================================================
@@ -221,7 +222,7 @@ describe('updateLearningLevel', () => {
   it('calls fetch with POST to /api/newsletter/learning-level', async () => {
     global.fetch.mockReturnValue(mockFetchOk({ success: true }));
 
-    await updateLearningLevel('user@example.com', 3);
+    await updateLearningLevel({ learningLevel: 3, token: 'signed-token' });
 
     expect(global.fetch).toHaveBeenCalledWith(
       '/api/newsletter/learning-level',
@@ -229,21 +230,29 @@ describe('updateLearningLevel', () => {
     );
   });
 
-  it('sends email and learningLevel in JSON body', async () => {
+  it('sends learningLevel and token, and never an email', async () => {
     global.fetch.mockReturnValue(mockFetchOk({ success: true }));
 
-    await updateLearningLevel('user@example.com', 3);
+    await updateLearningLevel({ learningLevel: 3, token: 'signed-token' });
 
     const [, options] = global.fetch.mock.calls[0];
-    const body = JSON.parse(options.body);
-    expect(body.email).toBe('user@example.com');
-    expect(body.learningLevel).toBe(3);
+    // The server reads the email from the token (logged out) or the session (logged in).
+    expect(JSON.parse(options.body)).toEqual({ learningLevel: 3, token: 'signed-token' });
+  });
+
+  it('leaves token out of the body when there is none (logged-in users)', async () => {
+    global.fetch.mockReturnValue(mockFetchOk({ success: true }));
+
+    await updateLearningLevel({ learningLevel: 3, token: undefined });
+
+    const [, options] = global.fetch.mock.calls[0];
+    expect(JSON.parse(options.body)).toEqual({ learningLevel: 3 });
   });
 
   it('includes CSRF token in X-CSRFToken header', async () => {
     global.fetch.mockReturnValue(mockFetchOk({ success: true }));
 
-    await updateLearningLevel('user@example.com', 3);
+    await updateLearningLevel({ learningLevel: 3 });
 
     const [, options] = global.fetch.mock.calls[0];
     expect(options.headers['X-CSRFToken']).toBe('test-csrf-token');
@@ -252,6 +261,21 @@ describe('updateLearningLevel', () => {
   it('throws on non-ok response', async () => {
     global.fetch.mockReturnValue(mockFetchFail('Invalid level'));
 
-    await expect(updateLearningLevel('user@example.com', 0)).rejects.toThrow('Invalid level');
+    await expect(updateLearningLevel({ learningLevel: 0 })).rejects.toThrow('Invalid level');
+  });
+
+  it('copies the server error code onto the thrown error', async () => {
+    global.fetch.mockReturnValue(
+      Promise.resolve({
+        ok: false,
+        headers: jsonHeaders,
+        json: () => Promise.resolve({ error: 'This page has expired.', code: SERVER_ERROR_CODE.LEARNING_LEVEL_TOKEN_INVALID }),
+      })
+    );
+
+    await expect(updateLearningLevel({ learningLevel: 2, token: 'old' })).rejects.toMatchObject({
+      message: 'This page has expired.',
+      code: SERVER_ERROR_CODE.LEARNING_LEVEL_TOKEN_INVALID,
+    });
   });
 });

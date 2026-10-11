@@ -15,6 +15,7 @@ parsing, etc.) with `*_impl` mocked, use test_newsletter_api_integration.py.
 """
 
 import pytest
+from types import SimpleNamespace
 from unittest import mock
 from django.core.cache import cache
 from api import newsletter_service
@@ -1181,6 +1182,148 @@ class TestGetContactLearningLevel:
         result = newsletter_service.get_contact_learning_level("28529")
 
         assert result == 2
+
+
+class TestFindContactIdByEmail:
+    """Tests for find_contact_id_by_email (read-only lookup, never creates a contact)"""
+
+    @mock.patch("api.newsletter_service._client.make_request")
+    def test_returns_first_contact_id(self, mock_request):
+        """Returns the ID of the contact AC finds, and passes the timeout through"""
+        mock_request.return_value = {"contacts": [{"id": "28529"}]}
+
+        result = newsletter_service.find_contact_id_by_email("a+b@example.com", timeout=3)
+
+        assert result == "28529"
+        mock_request.assert_called_once_with(
+            "contacts?filters[email]=a%2Bb%40example.com", timeout=3
+        )
+
+    @mock.patch("api.newsletter_service._client.make_request")
+    def test_returns_none_when_not_found(self, mock_request):
+        """Returns None (instead of creating anything) when AC has no such contact"""
+        mock_request.return_value = {"contacts": []}
+
+        assert newsletter_service.find_contact_id_by_email("new@example.com") is None
+        mock_request.assert_called_once()
+
+
+class TestGetLearningLevelForEmail:
+    """Tests for get_learning_level_for_email"""
+
+    @mock.patch("api.newsletter_service.get_contact_learning_level")
+    @mock.patch("api.newsletter_service.find_contact_id_by_email")
+    def test_no_contact_returns_none(self, mock_find, mock_get_level):
+        """No AC contact means no learning level, without reading any fields"""
+        mock_find.return_value = None
+
+        assert newsletter_service.get_learning_level_for_email("new@example.com") is None
+        mock_get_level.assert_not_called()
+
+    @mock.patch("api.newsletter_service.get_contact_learning_level")
+    @mock.patch("api.newsletter_service.find_contact_id_by_email")
+    def test_returns_level_and_passes_timeout(self, mock_find, mock_get_level):
+        """Returns the AC level, using the same timeout for both AC calls"""
+        mock_find.return_value = "28529"
+        mock_get_level.return_value = 3
+
+        result = newsletter_service.get_learning_level_for_email("a@example.com", timeout=3)
+
+        assert result == 3
+        mock_find.assert_called_once_with("a@example.com", timeout=3)
+        mock_get_level.assert_called_once_with("28529", timeout=3)
+
+    @mock.patch("api.newsletter_service.get_contact_learning_level")
+    @mock.patch("api.newsletter_service.find_contact_id_by_email")
+    def test_out_of_range_level_returns_none(self, mock_find, mock_get_level):
+        """A value outside 1-5 in AC is ignored rather than copied"""
+        mock_find.return_value = "28529"
+        mock_get_level.return_value = 9
+
+        assert newsletter_service.get_learning_level_for_email("a@example.com") is None
+
+
+class TestCopyLearningLevelFromAc:
+    """Tests for copy_learning_level_from_ac (run in the background after registration)"""
+
+    @staticmethod
+    def make_profile(learning_level=None, uid=7):
+        # Only the attributes the function reads; it never calls profile.save()
+        return SimpleNamespace(id=uid, email="new@example.com", learning_level=learning_level)
+
+    @mock.patch("api.newsletter_service.db")
+    @mock.patch("api.newsletter_service.get_learning_level_for_email", return_value=4)
+    @mock.patch("api.newsletter_service.UserProfile")
+    def test_copies_level_from_ac(self, mock_profile_cls, mock_get_level, mock_db):
+        mock_profile_cls.return_value = self.make_profile()
+
+        result = newsletter_service.copy_learning_level_from_ac(7)
+
+        assert result == 4
+        mock_profile_cls.assert_called_once_with(id=7)
+        mock_get_level.assert_called_once_with("new@example.com", timeout=None)
+        # Only the one field is written, and only if it's still empty
+        mock_db.profiles.update_one.assert_called_once_with(
+            {"id": 7, "learning_level": None},
+            {"$set": {"learning_level": 4}},
+        )
+
+    @mock.patch("api.newsletter_service.db")
+    @mock.patch("api.newsletter_service.get_learning_level_for_email", return_value=2)
+    @mock.patch("api.newsletter_service.UserProfile")
+    def test_passes_timeout_to_ac(self, mock_profile_cls, mock_get_level, _mock_db):
+        mock_profile_cls.return_value = self.make_profile()
+
+        newsletter_service.copy_learning_level_from_ac(7, timeout=3)
+
+        mock_get_level.assert_called_once_with("new@example.com", timeout=3)
+
+    @mock.patch("api.newsletter_service.db")
+    @mock.patch("api.newsletter_service.get_learning_level_for_email")
+    @mock.patch("api.newsletter_service.UserProfile")
+    def test_keeps_existing_level(self, mock_profile_cls, mock_get_level, mock_db):
+        """A profile that already has a level (e.g. a seed account) keeps it"""
+        mock_profile_cls.return_value = self.make_profile(learning_level=2)
+
+        assert newsletter_service.copy_learning_level_from_ac(7) is None
+
+        mock_get_level.assert_not_called()
+        mock_db.profiles.update_one.assert_not_called()
+
+    @mock.patch("api.newsletter_service.db")
+    @mock.patch("api.newsletter_service.get_learning_level_for_email")
+    @mock.patch("api.newsletter_service.UserProfile")
+    def test_skips_missing_user(self, mock_profile_cls, mock_get_level, mock_db):
+        """If the account was deleted before the task ran, do nothing"""
+        mock_profile_cls.return_value = self.make_profile(uid=None)
+
+        assert newsletter_service.copy_learning_level_from_ac(7) is None
+
+        mock_get_level.assert_not_called()
+        mock_db.profiles.update_one.assert_not_called()
+
+    @mock.patch("api.newsletter_service.db")
+    @mock.patch("api.newsletter_service.get_learning_level_for_email", return_value=None)
+    @mock.patch("api.newsletter_service.UserProfile")
+    def test_no_level_in_ac_writes_nothing(self, mock_profile_cls, _mock_get_level, mock_db):
+        mock_profile_cls.return_value = self.make_profile()
+
+        assert newsletter_service.copy_learning_level_from_ac(7) is None
+
+        mock_db.profiles.update_one.assert_not_called()
+
+    @mock.patch("api.newsletter_service.db")
+    @mock.patch("api.newsletter_service.get_learning_level_for_email")
+    @mock.patch("api.newsletter_service.UserProfile")
+    def test_ac_failure_is_raised(self, mock_profile_cls, mock_get_level, mock_db):
+        """AC errors are passed on, so the Celery task can try again"""
+        mock_profile_cls.return_value = self.make_profile()
+        mock_get_level.side_effect = newsletter_service.ActiveCampaignError("AC down")
+
+        with pytest.raises(newsletter_service.ActiveCampaignError):
+            newsletter_service.copy_learning_level_from_ac(7)
+
+        mock_db.profiles.update_one.assert_not_called()
 
 
 class TestFetchUserSubscriptionsLearningLevel:

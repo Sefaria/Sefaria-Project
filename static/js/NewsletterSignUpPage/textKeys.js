@@ -49,6 +49,7 @@ export const TEXT_KEYS = {
   SELECT_NEWSLETTER: "newsletter_sign_up_page.select_newsletter",
   SELECT_LEARNING_LEVEL: "newsletter_sign_up_page.select_learning_level",
   GENERIC_ERROR: "newsletter_sign_up_page.generic_error",
+  LEARNING_LEVEL_EXPIRED: "newsletter_sign_up_page.learning_level_expired",
   SKIP_PROMPT: "newsletter_sign_up_page.skip_prompt",
   CONFIRM_EMAIL_ADDRESS: "newsletter_sign_up_page.confirm_email_address",
   NEWSLETTER_OPTIONS: "newsletter_sign_up_page.newsletter_options",

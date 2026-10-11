@@ -10,6 +10,13 @@ import Cookies from "js-cookie";
  * - GET  /api/newsletter/lists           Fetch available newsletters
  */
 
+// Error codes the server can send with an error (in the response's `code` field).
+// The values must match the server exactly (api/newsletter_views.py), so they stay
+// strings, but we only ever use them through this map so a typo shows up as undefined.
+export const SERVER_ERROR_CODE = Object.freeze({
+  LEARNING_LEVEL_TOKEN_INVALID: "learning_level_token_invalid",
+});
+
 // TODO: Use Sefaria.apiRequestWithBody in the future by adjusting it
 const parseJsonResponse = async (response) => {
   const contentType = response.headers.get("content-type");
@@ -30,7 +37,9 @@ const parseJsonResponse = async (response) => {
  * @csrf_exempt POST that doesn't) without having to change the helper.
  *
  * On non-OK responses, throws an Error whose message is the server-supplied
- * `error` field if present, otherwise `fallbackError`. On non-JSON responses,
+ * `error` field if present, otherwise `fallbackError`. If the server also sends
+ * a `code` (one of SERVER_ERROR_CODE), it is copied onto the Error so
+ * callers can show a translated message for that case. On non-JSON responses,
  * parseJsonResponse throws a code-tagged Error with an empty message so callers
  * fall through to a generic user-facing message.
  */
@@ -48,7 +57,7 @@ const apiRequest = async (url, { method = "POST", body, csrf, fallbackError } = 
   });
   const result = await parseJsonResponse(response);
   if (!response.ok) {
-    throw new Error(result.error || fallbackError);
+    throw Object.assign(new Error(result.error || fallbackError), { code: result.code });
   }
   return result;
 };
@@ -70,9 +79,12 @@ export const updatePreferences = (newsletters, { marketingOptOut = false } = {})
     fallbackError: "Failed to update preferences",
   });
 
-export const updateLearningLevel = (email, learningLevel) =>
+// Logged-out visitors pass the `learningLevelToken` that subscribeNewsletter returned;
+// the server reads their email from it. Logged-in users pass no token (the server
+// uses their session), and JSON.stringify leaves an undefined token out of the body.
+export const updateLearningLevel = ({ learningLevel, token }) =>
   apiRequest("/api/newsletter/learning-level", {
-    body: { email, learningLevel },
+    body: { learningLevel, token },
     csrf: true,
     fallbackError: "Failed to update learning level",
   });

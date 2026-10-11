@@ -16,7 +16,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import { FORM_STATUS, STAGE } from '../stateSymbols';
-import { TEXT_KEYS } from '../textKeys';
+import { TEXT_KEYS, LEARNING_LEVELS } from '../textKeys';
 
 // ============================================================================
 // Mocks — must be declared before the component import
@@ -59,14 +59,18 @@ jest.mock('../newsletterApi', () => {
     updateLearningLevel: lvl,
     fetchUserSubscriptions: fetch_,
     getNewsletterLists: lists,
+    // The real constant, so the form and these tests use the same error codes
+    SERVER_ERROR_CODE: jest.requireActual('../newsletterApi').SERVER_ERROR_CODE,
   };
 });
 
 const {
   subscribeNewsletter,
   updatePreferences,
+  updateLearningLevel,
   fetchUserSubscriptions,
   getNewsletterLists,
+  SERVER_ERROR_CODE,
 } = require('../newsletterApi');
 
 // --- Child view components: capture props on every render ---
@@ -579,6 +583,75 @@ describe('NewsletterSignUpPageForm', () => {
 
       expect(window.location.href).toBe('/');
       expect(stageChangeSpy).toHaveBeenLastCalledWith(STAGE.CONFIRMATION);
+    });
+  });
+
+  // ---------- Learning level save: token from subscribe ----------
+
+  describe('Learning level save', () => {
+    const firstLevel = LEARNING_LEVELS[0].value;
+
+    const subscribeLoggedOut = async () => {
+      act(() => { lastFormViewProps.onFieldChange('firstName', 'Ada'); });
+      act(() => { lastFormViewProps.onFieldChange('lastName', 'Lovelace'); });
+      act(() => { lastFormViewProps.onFieldChange('email', 'ada@example.com'); });
+      act(() => { lastFormViewProps.onFieldChange('confirmEmail', 'ada@example.com'); });
+      act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
+      await act(async () => { await lastFormViewProps.onSubmit(); });
+    };
+
+    const saveLevel = async (level) => {
+      act(() => { lastConfirmationViewProps.onLevelSelect(level); });
+      await act(async () => { await lastConfirmationViewProps.onSave(); });
+    };
+
+    it('logged out: sends back the token that subscribe returned', async () => {
+      subscribeNewsletter.mockResolvedValueOnce({ success: true, learningLevelToken: 'signed-token' });
+
+      await renderForm();
+      await subscribeLoggedOut();
+      await saveLevel(firstLevel);
+
+      expect(updateLearningLevel).toHaveBeenCalledWith({ learningLevel: firstLevel, token: 'signed-token' });
+    });
+
+    it('logged out: keeps the token after a failed save, so trying again still sends it', async () => {
+      subscribeNewsletter.mockResolvedValueOnce({ success: true, learningLevelToken: 'signed-token' });
+      updateLearningLevel.mockRejectedValueOnce(new Error('Failed to connect to ActiveCampaign API'));
+
+      await renderForm();
+      await subscribeLoggedOut();
+      await saveLevel(firstLevel);
+      await saveLevel(firstLevel);
+
+      expect(updateLearningLevel).toHaveBeenCalledTimes(2);
+      expect(updateLearningLevel).toHaveBeenLastCalledWith({ learningLevel: firstLevel, token: 'signed-token' });
+    });
+
+    it('logged in: sends no token (the server uses the session)', async () => {
+      Sefaria._uid = 1;
+      Sefaria._email = 'user@example.com';
+
+      await renderForm();
+      // No changes, so this goes straight to the confirmation stage without an API call.
+      await act(async () => { lastFormViewProps.onSubmit(); });
+      await saveLevel(firstLevel);
+
+      expect(updateLearningLevel).toHaveBeenCalledWith({ learningLevel: firstLevel, token: undefined });
+    });
+
+    it('shows the translated "expired" message when the server rejects the token', async () => {
+      subscribeNewsletter.mockResolvedValueOnce({ success: true, learningLevelToken: 'old-token' });
+      updateLearningLevel.mockRejectedValueOnce(
+        Object.assign(new Error('This page has expired.'), { code: SERVER_ERROR_CODE.LEARNING_LEVEL_TOKEN_INVALID })
+      );
+
+      await renderForm();
+      await subscribeLoggedOut();
+      await saveLevel(firstLevel);
+
+      expect(lastConfirmationViewProps.formStatus.status).toBe(FORM_STATUS.ERROR);
+      expect(lastConfirmationViewProps.formStatus.errorMessage).toBe(TEXT_KEYS.LEARNING_LEVEL_EXPIRED);
     });
   });
 });

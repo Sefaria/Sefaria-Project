@@ -262,11 +262,10 @@ test.describe("Newsletter Signup - Real Authenticated Flow", () => {
   });
 
   test("should complete full flow: select → confirm → learning level → success", async ({ page }) => {
-    // The learning-level request includes the logged-in user's email, so it only matches
-    // the saved recording when the tests run as the account that made the recording.
-    // We fake this one call here instead, so the test works for any test account and
-    // never saves a learning level on a real profile. We also keep the request body
-    // so we can check it was sent for the right user.
+    // The saved recording's learning-level request is from before the page stopped
+    // sending an email, so it no longer matches. We fake this one call here instead,
+    // which also means the test never saves a learning level on a real profile. We keep
+    // the request body so we can check what the page sent.
     let learningLevelRequestBody = null;
     await page.route("**/api/newsletter/learning-level", (route) => {
       learningLevelRequestBody = route.request().postDataJSON();
@@ -318,8 +317,9 @@ test.describe("Newsletter Signup - Real Authenticated Flow", () => {
     await expectSupplementalContentHidden(page);
     await expectFooterVisible(page);
 
-    // The first option is learning level 1, sent for the logged-in user's email
-    expect(learningLevelRequestBody).toEqual({ email: USER_EMAIL, learningLevel: 1 });
+    // The first option is learning level 1. A logged-in user sends no email and no
+    // token: the server knows who they are from their session.
+    expect(learningLevelRequestBody).toEqual({ learningLevel: 1 });
   });
 
   test("should skip learning level and reach success", async ({ page }) => {

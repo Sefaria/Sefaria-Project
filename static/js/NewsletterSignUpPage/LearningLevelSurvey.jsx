@@ -18,7 +18,8 @@ import { InterfaceTextWithSlots } from "./InterfaceTextWithSlots";
  *   - onSave:         () => void                        fires on form submit
  *   - onSkip:         () => void                        fires when "skip" is clicked
  *   - isSubmitting:   boolean                           disables interactions and shows loading text
- *   - errorMessage:   { en, he } | null                 optional bilingual error to display
+ *   - errorMessage:   string | null                     optional error: a TEXT_KEYS key (translated
+ *                                                       by InterfaceText) or a plain server message
  */
 export default function LearningLevelSurvey({
   learningLevels,
@@ -58,7 +59,7 @@ export default function LearningLevelSurvey({
         >
           <span className="errorIcon">⚠️</span>
           <span>
-            <InterfaceText text={errorMessage} />
+            <InterfaceText>{errorMessage}</InterfaceText>
           </span>
         </div>
       )}

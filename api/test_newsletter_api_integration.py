@@ -11,13 +11,22 @@ full HTTP request/response cycle including Django middleware and authentication.
 """
 
 import json
+import time
 import pytest
 from unittest import mock
 from typing import cast
 from django.conf import settings
+from django.core import signing
 from django.http import HttpResponse
 from django.test import Client
-from api.newsletter_service import ActiveCampaignError, NewsletterListUnavailableError
+from api.newsletter_service import (
+    LEARNING_LEVEL_TOKEN_MAX_AGE,
+    LEARNING_LEVEL_TOKEN_SALT,
+    ActiveCampaignError,
+    NewsletterListUnavailableError,
+    make_learning_level_token,
+    read_learning_level_token,
+)
 from sefaria.system.exceptions import InputError
 
 
@@ -761,6 +770,34 @@ class TestSubscribeNewsletterEndpoint:
         assert data["email"] == "test@example.com"
         assert len(data["subscribedNewsletters"]) == 2
 
+    @mock.patch("api.newsletter_views.subscribe_with_union")
+    @mock.patch("api.newsletter_views.get_cached_newsletter_list")
+    def test_subscribe_returns_learning_level_token(
+        self, mock_get_list, mock_subscribe, client
+    ):
+        """Subscribe returns a token that the learning-level step can use for this email."""
+        mock_get_list.return_value = [{"stringid": "sefaria_news", "id": "1"}]
+        mock_subscribe.return_value = {
+            "contact": {"id": "28529", "email": "test@example.com"},
+            "all_subscriptions": ["sefaria_news"],
+        }
+
+        response = client.post(
+            "/api/newsletter/subscribe",
+            json.dumps(
+                {
+                    "firstName": "John",
+                    "lastName": "Doe",
+                    "email": " test@example.com ",
+                    "newsletters": {"sefaria_news": True},
+                }
+            ),
+            content_type="application/json",
+        )
+
+        data = assert_success(response, 200)
+        assert read_learning_level_token(data["learningLevelToken"]) == "test@example.com"
+
     def test_subscribe_missing_first_name(self, client):
         """Empty first name is rejected with 400."""
         response = client.post(
@@ -942,10 +979,40 @@ class TestSubscribeNewsletterEndpoint:
         data = json.loads(response.content)
         assert "POST" in data["error"]
 
-
 # ============================================================================
 # Update Learning Level Endpoint Tests (POST /api/newsletter/learning-level)
 # ============================================================================
+
+LEARNING_LEVEL_URL = "/api/newsletter/learning-level"
+
+
+def learning_level_result(email, learning_level, user_id=None):
+    """What update_learning_level_impl returns, for use as a mock return value."""
+    return {
+        "email": email,
+        "learning_level": learning_level,
+        "user_id": user_id,
+        "message": "Learning level updated successfully",
+    }
+
+
+def post_learning_level(client, body, **extra):
+    return client.post(
+        LEARNING_LEVEL_URL, json.dumps(body), content_type="application/json", **extra
+    )
+
+
+def expired_learning_level_token(email):
+    """Build a token whose signing time is just past the allowed age."""
+    too_old = time.time() - LEARNING_LEVEL_TOKEN_MAX_AGE - 60
+    with mock.patch("django.core.signing.time.time", return_value=too_old):
+        return make_learning_level_token(email)
+
+
+def tampered_learning_level_token(email):
+    """Change the last character of a real token so its signature no longer matches."""
+    token = make_learning_level_token(email)
+    return token[:-1] + ("A" if token[-1] != "A" else "B")
 
 
 @pytest.mark.django_db
@@ -954,53 +1021,106 @@ class TestUpdateLearningLevelView:
 
     def test_update_learning_level_get_not_allowed(self, client):
         """GET is not a valid method on the learning-level endpoint."""
-        response = client.get("/api/newsletter/learning-level")
+        response = client.get(LEARNING_LEVEL_URL)
 
         assert response.status_code == 405
         data = json.loads(response.content)
         assert "POST" in data["error"]
 
-    @mock.patch("api.newsletter_service.update_learning_level_impl")
-    def test_update_learning_level_logged_out_success(self, mock_update, client):
-        """Logged-out user can update learning level by providing email."""
-        mock_update.return_value = {
-            "email": "newuser@example.com",
-            "learning_level": 3,
-            "user_id": None,
-            "message": "Learning level updated successfully",
-        }
+    # ---------- Logged out: the token from subscribe decides whose level it is ----------
 
-        # Confirms the service-layer contract: with email + level, returns the
-        # expected dict shape with user_id=None for logged-out users.
-        result = mock_update("newuser@example.com", 3)
+    @mock.patch("api.newsletter_views.update_learning_level_impl")
+    def test_logged_out_uses_email_from_token(self, mock_update, client):
+        """The email inside the token is used; an email in the body is ignored."""
+        mock_update.return_value = learning_level_result("newuser@example.com", 3)
 
-        assert result["email"] == "newuser@example.com"
-        assert result["learning_level"] == 3
-        assert result["user_id"] is None
-
-    def test_update_learning_level_logged_out_missing_email(self, client):
-        """Without auth, the email field is required (400 if missing)."""
-        response = client.post(
-            "/api/newsletter/learning-level",
-            json.dumps({"learningLevel": 2}),
-            content_type="application/json",
+        response = post_learning_level(
+            client,
+            {
+                "token": make_learning_level_token("newuser@example.com"),
+                "email": "someone-else@example.com",
+                "learningLevel": 3,
+            },
         )
 
-        assert response.status_code == 400
-        data = json.loads(response.content)
-        assert "Email is required" in data["error"]
+        assert_success(response, 200)
+        mock_update.assert_called_once_with("newuser@example.com", 3)
 
-    def test_update_learning_level_logged_out_invalid_email(self, client):
-        """Malformed non-empty email is rejected before calling ActiveCampaign."""
-        response = client.post(
-            "/api/newsletter/learning-level",
-            json.dumps({"email": "not-an-email", "learningLevel": 2}),
-            content_type="application/json",
+    @mock.patch("api.newsletter_views.update_learning_level_impl")
+    def test_logged_out_never_gets_user_id(self, mock_update, client):
+        """Even when the email has an account, its user ID is not sent back."""
+        mock_update.return_value = learning_level_result(
+            "has-account@example.com", 3, user_id=42
         )
 
-        assert response.status_code == 400
-        data = json.loads(response.content)
-        assert "Invalid email address" in data["error"]
+        response = post_learning_level(
+            client,
+            {"token": make_learning_level_token("has-account@example.com"), "learningLevel": 3},
+        )
+
+        data = assert_success(response, 200)
+        assert "userId" not in data
+
+    @pytest.mark.parametrize(
+        "token",
+        [
+            pytest.param(None, id="missing"),
+            pytest.param("", id="empty"),
+            pytest.param("not-a-real-token", id="junk"),
+            pytest.param(12345, id="not-a-string"),
+            pytest.param(tampered_learning_level_token("a@example.com"), id="tampered"),
+            pytest.param(
+                signing.dumps({"email": "a@example.com"}, salt="some-other-purpose"),
+                id="wrong-salt",
+            ),
+            pytest.param(
+                signing.dumps({"email": "not-an-email"}, salt=LEARNING_LEVEL_TOKEN_SALT),
+                id="bad-email-inside",
+            ),
+        ],
+    )
+    @mock.patch("api.newsletter_views.update_learning_level_impl")
+    def test_logged_out_rejects_bad_token(self, mock_update, client, token):
+        """A missing or untrustworthy token is rejected before anything is saved."""
+        body = {"learningLevel": 2}
+        if token is not None:
+            body["token"] = token
+
+        data = assert_error(post_learning_level(client, body), 400, "expired")
+
+        assert data["code"] == "learning_level_token_invalid"
+        mock_update.assert_not_called()
+
+    @mock.patch("api.newsletter_views.update_learning_level_impl")
+    def test_logged_out_rejects_expired_token(self, mock_update, client):
+        """A token older than the allowed age is rejected."""
+        response = post_learning_level(
+            client,
+            {"token": expired_learning_level_token("a@example.com"), "learningLevel": 2},
+        )
+
+        data = assert_error(response, 400)
+        assert data["code"] == "learning_level_token_invalid"
+        mock_update.assert_not_called()
+
+    # ---------- Logged in: the session decides whose level it is ----------
+
+    @mock.patch("api.newsletter_views.update_learning_level_impl")
+    def test_logged_in_uses_session_email(
+        self, mock_update, logged_in_client, test_user
+    ):
+        """Logged-in users need no token. Their user ID isn't sent back either."""
+        mock_update.return_value = learning_level_result(
+            "testuser@sefaria.org", 4, user_id=test_user.id
+        )
+
+        response = post_learning_level(logged_in_client, {"learningLevel": 4})
+
+        data = assert_success(response, 200)
+        mock_update.assert_called_once_with("testuser@sefaria.org", 4)
+        assert "userId" not in data
+
+    # ---------- CSRF ----------
 
     def test_learning_level_requires_csrf_when_enforced(self):
         """Learning-level mutations require CSRF under real middleware checks."""
@@ -1008,10 +1128,9 @@ class TestUpdateLearningLevelView:
 
         response = cast(
             HttpResponse,
-            client.post(
-                "/api/newsletter/learning-level",
-                json.dumps({"email": "newuser@example.com", "learningLevel": 2}),
-                content_type="application/json",
+            post_learning_level(
+                client,
+                {"token": make_learning_level_token("newuser@example.com"), "learningLevel": 2},
             ),
         )
 
@@ -1022,43 +1141,30 @@ class TestUpdateLearningLevelView:
         client = Client(enforce_csrf_checks=True)
         client.login(email="testuser@sefaria.org", password="testpass123")
 
-        response = cast(
-            HttpResponse,
-            client.post(
-                "/api/newsletter/learning-level",
-                json.dumps({"learningLevel": 2}),
-                content_type="application/json",
-            ),
-        )
+        response = cast(HttpResponse, post_learning_level(client, {"learningLevel": 2}))
 
         assert response.status_code == 403
 
     @mock.patch("api.newsletter_views.update_learning_level_impl")
     def test_learning_level_accepts_valid_csrf(self, mock_update):
         """Logged-out learning-level posts pass with a valid CSRF cookie/header pair."""
-        client, token = csrf_checked_client()
-        mock_update.return_value = {
-            "email": "newuser@example.com",
-            "learning_level": 3,
-            "user_id": None,
-            "message": "Learning level updated successfully",
-        }
+        client, csrf_token = csrf_checked_client()
+        mock_update.return_value = learning_level_result("newuser@example.com", 3)
 
-        response = client.post(
-            "/api/newsletter/learning-level",
-            json.dumps({"email": "newuser@example.com", "learningLevel": 3}),
-            content_type="application/json",
-            HTTP_X_CSRFTOKEN=token,
+        response = post_learning_level(
+            client,
+            {"token": make_learning_level_token("newuser@example.com"), "learningLevel": 3},
+            HTTP_X_CSRFTOKEN=csrf_token,
         )
 
         assert_success(response, 200)
 
+    # ---------- Request validation ----------
+
     def test_update_learning_level_invalid_json(self, client):
         """Malformed JSON in the request body returns 400."""
         response = client.post(
-            "/api/newsletter/learning-level",
-            "invalid json",
-            content_type="application/json",
+            LEARNING_LEVEL_URL, "invalid json", content_type="application/json"
         )
 
         assert response.status_code == 400
@@ -1066,55 +1172,33 @@ class TestUpdateLearningLevelView:
         assert "Invalid JSON" in data["error"]
 
     def test_update_learning_level_invalid_learning_level(self, client):
-        """Learning level outside 1-5 is rejected with 400."""
-        response = client.post(
-            "/api/newsletter/learning-level",
-            json.dumps(
-                {
-                    "email": "test@example.com",
-                    "learningLevel": 10,
-                }
-            ),
-            content_type="application/json",
-        )
+        """A level outside 1-5 is rejected with 400, checked before the token."""
+        response = post_learning_level(client, {"learningLevel": 10})
 
-        assert response.status_code == 400
-        data = json.loads(response.content)
-        assert "Learning level must be" in data["error"]
+        assert_error(response, 400, "Learning level must be")
 
-    @mock.patch("api.newsletter_service.update_learning_level_impl")
+    @mock.patch("api.newsletter_views.update_learning_level_impl")
     def test_update_learning_level_none_is_valid(self, mock_update, client):
         """Learning level can be set to None to clear it (it's optional)."""
-        mock_update.return_value = {
-            "email": "test@example.com",
-            "learning_level": None,
-            "user_id": None,
-            "message": "Learning level updated successfully",
-        }
+        mock_update.return_value = learning_level_result("test@example.com", None)
 
-        # Confirms the service contract: None is an acceptable value (means
-        # "no preference set").
-        result = mock_update("test@example.com", None)
+        response = post_learning_level(
+            client,
+            {"token": make_learning_level_token("test@example.com"), "learningLevel": None},
+        )
 
-        assert result["learning_level"] is None
-        assert result["email"] == "test@example.com"
+        data = assert_success(response, 200)
+        mock_update.assert_called_once_with("test@example.com", None)
+        assert data["learningLevel"] is None
 
     @mock.patch("api.newsletter_views.update_learning_level_impl")
     def test_update_learning_level_ac_error(self, mock_update, client):
         """When the service raises ActiveCampaignError, the view returns 500."""
         mock_update.side_effect = ActiveCampaignError("AC API failed")
 
-        response = client.post(
-            "/api/newsletter/learning-level",
-            json.dumps(
-                {
-                    "email": "test@example.com",
-                    "learningLevel": 2,
-                }
-            ),
-            content_type="application/json",
+        response = post_learning_level(
+            client,
+            {"token": make_learning_level_token("test@example.com"), "learningLevel": 2},
         )
 
-        assert response.status_code == 500
-        data = json.loads(response.content)
-        assert "error" in data
+        assert_error(response, 500)

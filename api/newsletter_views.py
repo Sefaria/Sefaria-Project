@@ -22,7 +22,9 @@ from api.newsletter_service import (
     NewsletterListUnavailableError,
     get_cached_newsletter_list,
     is_newsletter_service_configured,
+    make_learning_level_token,
     normalize_and_validate_email,
+    read_learning_level_token,
     subscribe_with_union,
     fetch_user_subscriptions_impl,
     update_user_preferences_impl,
@@ -152,8 +154,13 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
                 "sefaria_news",
                 "text_updates",
                 "parashah_series"
-            ]
+            ],
+            "learningLevelToken": "<signed token>"
         }
+
+        learningLevelToken: send this back to POST /api/newsletter/learning-level
+        to save a learning level for this email while logged out. It expires after
+        24 hours.
 
     Errors (400 Bad Request):
         {
@@ -216,6 +223,7 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
             "message": "Successfully subscribed to newsletters",
             "email": email,
             "subscribedNewsletters": result["all_subscriptions"],
+            "learningLevelToken": make_learning_level_token(email),
         },
         status=200,
     )
@@ -395,8 +403,12 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
 
 
 # ============================================================================
-# Learning Level Endpoint (Authenticated or Email-Based for Logged-Out Users)
+# Learning Level Endpoint (Authenticated or Token-Based for Logged-Out Users)
 # ============================================================================
+
+# Sent with a 400 when a logged-out caller's token is missing, changed, or expired,
+# so the frontend can show a translated "please sign up again" message.
+LEARNING_LEVEL_TOKEN_INVALID_CODE: str = "learning_level_token_invalid"
 
 
 @csrf_protect
@@ -412,8 +424,9 @@ def update_learning_level(request: HttpRequest) -> HttpResponse:
         - Request body: {learningLevel: 1-5 or null}
 
     For logged-out users:
-        - Email must be provided in request body
-        - Request body: {email: string, learningLevel: 1-5 or null}
+        - Must send the learningLevelToken returned by POST /api/newsletter/subscribe
+        - The email comes from that token; any email in the body is ignored
+        - Request body: {token: string, learningLevel: 1-5 or null}
 
     Learning level is saved to:
         - UserProfile (MongoDB) if user has a Sefaria account
@@ -427,7 +440,7 @@ def update_learning_level(request: HttpRequest) -> HttpResponse:
 
     Request Body (Logged-Out):
         {
-            "email": "user@example.com",
+            "token": "<learningLevelToken from subscribe>",
             "learningLevel": 1-5 or null
         }
 
@@ -436,12 +449,12 @@ def update_learning_level(request: HttpRequest) -> HttpResponse:
             "success": true,
             "message": "Learning level updated successfully",
             "email": "user@example.com",
-            "learningLevel": 3,
-            "userId": 12345 or null  # null if no account exists
+            "learningLevel": 3
         }
 
     Errors (400 Bad Request):
-        - Email missing (for logged-out users)
+        - Token missing, changed, or expired (for logged-out users);
+          the response includes "code": "learning_level_token_invalid"
         - Invalid learning level (not 1-5 or null)
         - Invalid JSON in request body
 
@@ -457,6 +470,8 @@ def update_learning_level(request: HttpRequest) -> HttpResponse:
         - Setting to null clears the learning level
         - Optional for users - can be skipped
         - For logged-out users, creates AC contact even if no account exists
+        - The token only proves the caller went through subscribe first (which is
+          itself public); it does not prove they own the email
     """
     if request.method != "POST":
         return jsonResponse({"error": "Only POST method is supported"}, status=405)
@@ -466,20 +481,6 @@ def update_learning_level(request: HttpRequest) -> HttpResponse:
 
     # Parse request body
     body: dict[str, Any] = json.loads(cast(bytes, request.body))
-
-    # Determine email source based on authentication status
-    if user.is_authenticated:
-        # For authenticated users, use their email from the session
-        email: str = user.email
-    else:
-        # For logged-out users, email must be provided in request
-        email = body.get("email", "").strip()
-
-        if not email:
-            return jsonResponse(
-                {"error": "Email is required for logged-out users."}, status=400
-            )
-        email = normalize_and_validate_email(email)
 
     # Get learning level from request body
     learning_level: int | None = body.get("learningLevel")
@@ -499,18 +500,37 @@ def update_learning_level(request: HttpRequest) -> HttpResponse:
                 status=400,
             )
 
+    # Work out whose learning level this is
+    if user.is_authenticated:
+        # Logged in: use the email from their session
+        email: str = user.email
+    else:
+        # Logged out: the email comes from the token that subscribe gave them, so a
+        # single request can't set the learning level for any email it likes.
+        token_email: str | None = read_learning_level_token(body.get("token"))
+        if token_email is None:
+            return jsonResponse(
+                {
+                    "error": "This page has expired. Please sign up again to save your learning level.",
+                    "code": LEARNING_LEVEL_TOKEN_INVALID_CODE,
+                },
+                status=400,
+            )
+        email = token_email
+
     # Update learning level using service function
     logger.info(f"Processing learning level update for {email}")
     result = update_learning_level_impl(email, learning_level)
 
-    # Return success response
+    # Return success response. The user ID is left out on purpose: the page doesn't
+    # need it, and sending it back would tell the caller which Sefaria account
+    # belongs to this email.
     return jsonResponse(
         {
             "success": True,
             "message": result["message"],
             "email": result["email"],
             "learningLevel": result["learning_level"],
-            "userId": result["user_id"],  # Will be None if no account exists
         },
         status=200,
     )

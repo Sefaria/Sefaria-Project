@@ -31,6 +31,7 @@ from urllib.parse import quote
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from django.core import signing
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email as django_validate_email
@@ -45,6 +46,7 @@ except ImportError:
     ACTIVECAMPAIGN_ACCOUNT_NAME = None
 from sefaria.system.exceptions import InputError
 from sefaria.model.user_profile import UserProfile
+from sefaria.system.database import db
 
 logger: logging.Logger = logging.getLogger(__name__)
 
@@ -195,7 +197,11 @@ class NewsletterClient:
         self._session.mount("https://", HTTPAdapter(max_retries=_retry))
 
     def make_request(
-        self, endpoint: str, method: str = "GET", data: dict[str, Any] | None = None
+        self,
+        endpoint: str,
+        method: str = "GET",
+        data: dict[str, Any] | None = None,
+        timeout: float | None = None,
     ) -> dict[str, Any]:
         """
         Send a request to the ActiveCampaign API and return the parsed JSON.
@@ -208,6 +214,9 @@ class NewsletterClient:
             endpoint: API path (e.g. 'lists', 'contacts/123/contactLists').
             method: HTTP method ('GET', 'POST', 'PUT', etc.). Defaults to 'GET'.
             data: JSON body to send for POST/PUT requests. Pass None for GET.
+            timeout: Seconds to wait for this one request. Defaults to the client's
+                timeout. Pass a smaller number when a slow AC reply must not hold up
+                something more important, like creating a new account.
 
         Returns:
             dict: The parsed JSON response from ActiveCampaign.
@@ -222,7 +231,7 @@ class NewsletterClient:
         kwargs: dict[str, Any] = {
             "method": method,
             "url": url,
-            "timeout": self.timeout,
+            "timeout": timeout if timeout is not None else self.timeout,
         }
         if data is not None:
             kwargs["json"] = data
@@ -742,7 +751,34 @@ def get_contact_list_memberships(
 
 
 @wraps_ac_errors
-def get_contact_learning_level(contact_id: str | int) -> int | None:
+def find_contact_id_by_email(email: str, timeout: float | None = None) -> str | None:
+    """
+    Look up an ActiveCampaign contact ID by email, without creating a contact.
+
+    Use this when you only want to read. To add someone to AC, use
+    find_or_create_contact instead.
+
+    Args:
+        email (str): Email address to look up
+        timeout (float or None): Seconds to wait for AC; None uses the client default
+
+    Returns:
+        str or None: The contact ID, or None if AC has no contact for this email
+
+    Raises:
+        ActiveCampaignError: If API request fails
+    """
+    response: dict[str, Any] = _get_client().make_request(
+        f"contacts?filters[email]={quote(email)}", timeout=timeout
+    )
+    contacts: list[dict[str, Any]] = response.get("contacts", [])
+    return contacts[0]["id"] if contacts else None
+
+
+@wraps_ac_errors
+def get_contact_learning_level(
+    contact_id: str | int, timeout: float | None = None
+) -> int | None:
     """
     Get a contact's learning level from ActiveCampaign custom fields.
 
@@ -750,6 +786,7 @@ def get_contact_learning_level(contact_id: str | int) -> int | None:
 
     Args:
         contact_id (str or int): ActiveCampaign contact ID
+        timeout (float or None): Seconds to wait for AC; None uses the client default
 
     Returns:
         int or None: Learning level (1-5) if set, None if empty/missing
@@ -759,7 +796,7 @@ def get_contact_learning_level(contact_id: str | int) -> int | None:
     """
     field_id: str = get_ac_field_id_by_perstag("LEARNING_LEVEL")
     response: dict[str, Any] = _get_client().make_request(
-        f"contacts/{contact_id}/fieldValues"
+        f"contacts/{contact_id}/fieldValues", timeout=timeout
     )
     field_values: list[dict[str, Any]] = response.get("fieldValues", [])
 
@@ -1090,13 +1127,9 @@ def fetch_user_subscriptions_impl(
             wants_marketing_emails = getattr(profile, "wants_marketing_emails", True)
             profile_learning_level = getattr(profile, "learning_level", None)
 
-    # Find contact by email
-    response: dict[str, Any] = _get_client().make_request(
-        f"contacts?filters[email]={quote(email)}"
-    )
-    contacts: list[dict[str, Any]] = response.get("contacts", [])
+    contact_id: str | None = find_contact_id_by_email(email)
 
-    if not contacts:
+    if contact_id is None:
         # User not in ActiveCampaign yet — fall back to profile value
         logger.info(f"Contact {email} not found in ActiveCampaign")
         return {
@@ -1105,8 +1138,6 @@ def fetch_user_subscriptions_impl(
             "wants_marketing_emails": wants_marketing_emails,
         }
 
-    contact: dict[str, Any] = contacts[0]
-    contact_id: str = contact["id"]
     logger.info(f"Found contact {contact_id} for email {email}")
 
     # Get list memberships (active only for accurate subscription state)
@@ -1499,3 +1530,125 @@ def update_learning_level_impl(
         "user_id": user_id,
         "message": message,
     }
+
+
+# ============================================================================
+# Learning Level Token (ties a logged-out learning-level save to a subscribe)
+# ============================================================================
+
+# The salt keeps these tokens separate from anything else Django signs with the
+# same SECRET_KEY, so a signed value made for another purpose can't be used here.
+LEARNING_LEVEL_TOKEN_SALT: str = "newsletter.learning-level"
+LEARNING_LEVEL_TOKEN_MAX_AGE: int = 60 * 60 * 24  # 24 hours, in seconds
+
+
+def make_learning_level_token(email: str) -> str:
+    """
+    Create a signed token that says "this email just subscribed".
+
+    The subscribe endpoint returns it, and a logged-out visitor sends it back when
+    they save their learning level. Without it, anyone could set the learning level
+    for any email with a single request.
+
+    The token is signed, not encrypted: anyone can read the email inside it, but
+    nobody can change it or make a new one without our SECRET_KEY. It only goes back
+    to the visitor who typed that email, so that's fine.
+    """
+    return signing.dumps({"email": email}, salt=LEARNING_LEVEL_TOKEN_SALT)
+
+
+def read_learning_level_token(token: Any) -> str | None:
+    """
+    Return the email inside a learning-level token, or None if the token can't be trusted.
+
+    None covers every bad case: no token, not a string, changed or made up (bad
+    signature), older than LEARNING_LEVEL_TOKEN_MAX_AGE, or no valid email inside.
+    """
+    if not isinstance(token, str) or not token:
+        return None
+    try:
+        payload: Any = signing.loads(
+            token, salt=LEARNING_LEVEL_TOKEN_SALT, max_age=LEARNING_LEVEL_TOKEN_MAX_AGE
+        )
+    except signing.BadSignature:  # SignatureExpired is a kind of BadSignature
+        return None
+    email: Any = payload.get("email") if isinstance(payload, dict) else None
+    try:
+        return normalize_and_validate_email(email)
+    except InputError:
+        return None
+
+
+# ============================================================================
+# Learning Level at Registration
+# ============================================================================
+
+# Only used when Celery is off and the copy runs during registration (see
+# api/tasks.py). The new user waits for those AC calls, so keep them short. If AC
+# is slow, we skip the copy instead of making the user wait.
+REGISTRATION_AC_TIMEOUT: float = 3
+
+
+def get_learning_level_for_email(
+    email: str, timeout: float | None = None
+) -> int | None:
+    """
+    Read the learning level AC has stored for an email.
+
+    Returns:
+        int or None: The level (1-5), or None if AC has no contact for this email,
+        no learning level for it, or a value outside 1-5.
+
+    Raises:
+        ActiveCampaignError: If AC can't be reached
+    """
+    contact_id: str | None = find_contact_id_by_email(email, timeout=timeout)
+    if contact_id is None:
+        return None
+    learning_level: int | None = get_contact_learning_level(contact_id, timeout=timeout)
+    if learning_level is not None and not 1 <= learning_level <= 5:
+        logger.warning(f"Ignoring out-of-range AC learning level {learning_level} for {email}")
+        return None
+    return learning_level
+
+
+def copy_learning_level_from_ac(uid: int, timeout: float | None = None) -> int | None:
+    """
+    Fill in a new account's learning level from ActiveCampaign.
+
+    People can answer the newsletter learning-level question before they have a
+    Sefaria account. That answer is only stored in AC, so after they register we
+    copy it onto their new profile. This usually runs in a Celery task (see
+    api/tasks.py), so registration never waits for AC.
+
+    Only the learning_level field is written, and only while it's still empty.
+    UserProfile.save() would overwrite the whole profile, which could undo a
+    change the person made in the meantime (or put back an empty level).
+
+    Args:
+        uid (int): The new user's ID
+        timeout (float or None): Seconds to wait for AC; None uses the client default
+
+    Returns:
+        int or None: The level that was copied, or None if nothing was copied
+
+    Raises:
+        ActiveCampaignError: If AC can't be reached (so the task can try again)
+    """
+    profile: UserProfile = UserProfile(id=uid)
+    # Keep a level the profile already has. A "seed" account (created before the
+    # person registered) may already have one saved from the newsletter page.
+    if profile.id is None or profile.learning_level is not None:
+        return None
+
+    learning_level: int | None = get_learning_level_for_email(profile.email, timeout=timeout)
+    if learning_level is None:
+        return None
+
+    # "learning_level": None also matches a profile with no learning_level field yet
+    db.profiles.update_one(
+        {"id": uid, "learning_level": None},
+        {"$set": {"learning_level": learning_level}},
+    )
+    logger.info(f"Copied learning level {learning_level} from AC to user {uid}")
+    return learning_level

@@ -672,12 +672,16 @@ test.describe('Newsletter Signup - Learning Level Flow', () => {
         { stringid: 'sefaria_news', displayName: { en: 'Sefaria News & Resources', he: null }, icon: 'news-and-resources.svg' },
       ] } })
     );
+    // Subscribe returns a token, and the page must send it back when saving the
+    // learning level. The server uses the token to know whose level it is.
     await page.route('**/api/newsletter/subscribe', (route) =>
-      route.fulfill({ json: { success: true } })
+      route.fulfill({ json: { success: true, learningLevelToken: 'stub-token' } })
     );
-    await page.route('**/api/newsletter/learning-level', (route) =>
-      route.fulfill({ json: { success: true } })
-    );
+    let learningLevelRequestBody = null;
+    await page.route('**/api/newsletter/learning-level', (route) => {
+      learningLevelRequestBody = route.request().postDataJSON();
+      route.fulfill({ json: { success: true } });
+    });
 
     await page.goto('/newsletter');
     await page.waitForSelector('#NewsletterInner', { timeout: 10000 });
@@ -707,6 +711,9 @@ test.describe('Newsletter Signup - Learning Level Flow', () => {
     // Success view should appear
     await page.waitForSelector('.successView', { timeout: 10000 });
     await expect(page.locator('.successView')).toContainText('All set!');
+
+    // The save sent the token from subscribe, and no email (the server reads it from the token)
+    expect(learningLevelRequestBody).toEqual({ learningLevel: 1, token: 'stub-token' });
   });
 });
 

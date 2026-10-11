@@ -51,6 +51,7 @@ from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABL
 from sefaria.celery_setup.config import CeleryQueue
 from sefaria.model.user_profile import UserProfile, user_link
 from sso.adapters import import_gravatar
+from api.tasks import dispatch_copy_learning_level_from_ac
 from sefaria.model.collection import CollectionSet, process_sheet_deletion_in_collections
 from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.export import export_all as start_export_all
@@ -214,6 +215,8 @@ def process_register_form(request, auth_method='session'):
 
         import_gravatar(p)
         p.save()  # import_gravatar runs outside the transaction (slow network call) and only mutates p, so it must be saved again here
+        # After the last save: the copy runs in the background and only fills in an empty learning level
+        dispatch_copy_learning_level_from_ac(p)
 
         if auth_method == 'session':
             auth_login(request, user)
