@@ -47,6 +47,8 @@ func TestDecideEnforce(t *testing.T) {
 		{"embed by Origin", Request{Path: "/api/texts/Genesis.1", Origin: "https://embed-one.example.org"}, true, 200, "", "", "embed", "embed"},
 		{"bearer without key defers to Envoy", Request{Path: "/x", Authorization: "Bearer abc.def.ghi"}, true, 200, "", "", "anonymous", "jwt_pending"},
 		{"gated path without key", Request{Path: "/api/knn-search", Method: "POST"}, false, 401, "api_key_required", "", "", "api_key_required"},
+		{"gated preflight without key", Request{Path: "/api/knn-search", Method: "OPTIONS", Origin: "https://embed.example.org"}, true, 200, "", "", "embed", "preflight"},
+		{"OPTIONS without Origin on gated path", Request{Path: "/api/knn-search", Method: "OPTIONS"}, false, 401, "api_key_required", "", "", "api_key_required"},
 		{"gated path with key", Request{Path: "/api/knn-search", Method: "POST", APIKey: alpha}, true, 200, "", "proj_alpha", "developer", "ok"},
 	}
 	for _, c := range cases {
@@ -54,6 +56,24 @@ func TestDecideEnforce(t *testing.T) {
 			d := Decide(reg, enforce, c.r)
 			if d.Allow != c.allow || d.Status != c.status || d.Code != c.code || d.Project != c.project || d.Tier != c.tier || d.Result != c.result {
 				t.Fatalf("got %+v", d)
+			}
+		})
+	}
+}
+
+func TestDecidePreflight(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		r    Request
+		want Decision
+	}{
+		{"preflight", Request{Method: "OPTIONS", Path: "/x", Origin: "https://embed.example.org"}, allow("", TierEmbed, "preflight")},
+		{"key takes precedence", Request{Method: "OPTIONS", Path: "/api/knn-search", Origin: "https://embed.example.org", APIKey: alpha}, allow("proj_alpha", "developer", "ok")},
+		{"other method is not preflight", Request{Method: "GET", Path: "/api/knn-search", Origin: "https://embed.example.org"}, deny(enforce, 401, CodeKeyRequired, "This route requires an x-api-key header.")},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := Decide(reg, enforce, tc.r); got != tc.want {
+				t.Fatalf("got %+v want %+v", got, tc.want)
 			}
 		})
 	}

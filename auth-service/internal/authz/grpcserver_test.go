@@ -10,9 +10,29 @@ import (
 )
 
 func checkReq(path string, headers map[string]string) *authv3.CheckRequest {
+	return checkReqMethod("GET", path, headers)
+}
+
+func checkReqMethod(method, path string, headers map[string]string) *authv3.CheckRequest {
 	return &authv3.CheckRequest{Attributes: &authv3.AttributeContext{Request: &authv3.AttributeContext_Request{
-		Http: &authv3.AttributeContext_HttpRequest{Method: "GET", Path: path, Headers: headers},
+		Http: &authv3.AttributeContext_HttpRequest{Method: method, Path: path, Headers: headers},
 	}}}
+}
+
+func TestGRPCCheckPreflight(t *testing.T) {
+	s := NewGRPCServer(reg, Options{Cfg: enforce}, NopRecorder{})
+	resp, err := s.Check(context.Background(), checkReqMethod("OPTIONS", "/api/knn-search", map[string]string{"origin": "https://embed.example.org"}))
+	if err != nil || resp.Status.Code != int32(codes.OK) {
+		t.Fatalf("err=%v resp=%v", err, resp)
+	}
+	for _, h := range resp.GetOkResponse().Headers {
+		if h.Header.Key == "x-sefaria-tier" && h.Header.Value != "embed" {
+			t.Fatalf("tier=%s", h.Header.Value)
+		}
+		if h.Header.Key == "x-sefaria-auth-result" && h.Header.Value != "preflight" {
+			t.Fatalf("result=%s", h.Header.Value)
+		}
+	}
 }
 
 func TestGRPCCheckAllow(t *testing.T) {
