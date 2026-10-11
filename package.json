@@ -69,6 +69,7 @@
   "dependencies": {
     "@floating-ui/react-dom": "^2.1.6",
     "@playwright/test": "^1.62.1",
+    "@sefaria/analytics": "github:Sefaria/Sefaria-Analytics#4d341c2ff5045d04d009295d7757d94a7e1dc3cf",
     "@sentry/react": "^7.57.0",
     "body-parser": "^1.15.1",
     "buffer": "^6.0.3",

@@ -14,7 +14,7 @@
  *                            still on the search page, so the flow continues.
  *
  * These events call gtag() directly (like templates/registration/register.html)
- * rather than going through analyticsEventTracker.js's data-anl-* attribute
+ * rather than going through @sefaria/analytics' data-anl-* attribute
  * system, because three of the four fire from code (API callbacks, navigation),
  * not from DOM events on elements.
  *
