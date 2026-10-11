@@ -22,6 +22,7 @@ from api.newsletter_service import (
     NewsletterListUnavailableError,
     get_cached_newsletter_list,
     is_newsletter_service_configured,
+    is_valid_learning_level,
     make_learning_level_token,
     normalize_and_validate_email,
     read_learning_level_token,
@@ -38,6 +39,28 @@ P = ParamSpec("P")
 # example, they logged out in another tab), so the page can show a translated
 # "please log in again" message.
 AUTHENTICATION_REQUIRED_CODE: str = "authentication_required"
+
+
+def parse_selected_newsletters(body: dict[str, Any]) -> list[str]:
+    """
+    Return the stringids of the newsletters marked true in body["newsletters"].
+
+    The page always sends an object of true/false values, like
+    {"sefaria_news": true, "educator_newsletter": false}. We check that shape
+    because a value is only ever used for its truthiness, and in Python the
+    string "false" is truthy. Without the check, {"sefaria_news": "false"} would
+    subscribe the person, and a list instead of an object would crash on
+    .items() and show up as a 500.
+
+    Raises:
+        InputError: If newsletters isn't an object of true/false values
+    """
+    newsletters: Any = body.get("newsletters", {})
+    if not isinstance(newsletters, dict) or not all(
+        isinstance(selected, bool) for selected in newsletters.values()
+    ):
+        raise InputError("newsletters must be an object of true/false values.")
+    return [key for key, selected in newsletters.items() if selected]
 
 
 def handle_newsletter_view_errors(
@@ -183,6 +206,10 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
         }
         OR
         {
+            "error": "newsletters must be an object of true/false values."
+        }
+        OR
+        {
             "error": "Invalid email address.",
             "code": "invalid_email"
         }
@@ -206,7 +233,6 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
     first_name: str = body.get("firstName", "").strip()
     last_name: str = body.get("lastName", "").strip()
     email: str = body.get("email", "").strip()
-    newsletters_dict: dict[str, bool] = body.get("newsletters", {})
 
     # Validate required fields
     if not first_name or not last_name or not email:
@@ -216,9 +242,7 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
     email = normalize_and_validate_email(email)
 
     # Extract selected newsletter stringids
-    selected_newsletters: list[str] = [
-        key for key, selected in newsletters_dict.items() if selected
-    ]
+    selected_newsletters: list[str] = parse_selected_newsletters(body)
 
     # Validate at least one newsletter selected
     if not selected_newsletters:
@@ -336,7 +360,8 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
                 "sefaria_news": true,
                 "text_updates": false,
                 "parashah_series": true
-            }
+            },
+            "marketingOptOut": false  // optional; true unsubscribes from ALL lists
         }
 
     Returns (200 OK):
@@ -348,6 +373,15 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
                 "sefaria_news",
                 "parashah_series"
             ]
+        }
+
+    Errors (400 Bad Request):
+        {
+            "error": "newsletters must be an object of true/false values."
+        }
+        OR
+        {
+            "error": "marketingOptOut must be true or false."
         }
 
     Errors (401 Unauthorized):
@@ -382,18 +416,15 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
 
     # Parse request body
     body: dict[str, Any] = json.loads(cast(bytes, request.body))
-    newsletters_dict = body.get("newsletters", {})
-    marketing_opt_out = body.get("marketingOptOut", False)
-    if not isinstance(newsletters_dict, dict) or not isinstance(marketing_opt_out, bool):
-        return jsonResponse(
-            {"error": "newsletters must be an object and marketingOptOut must be a boolean."},
-            status=400,
-        )
 
     # Extract selected newsletter stringids
-    selected_newsletters: list[str] = [
-        key for key, selected in newsletters_dict.items() if selected
-    ]
+    selected_newsletters: list[str] = parse_selected_newsletters(body)
+
+    # Opting out unsubscribes the person from every list, so only a real true
+    # counts. The string "false" is truthy in Python and would otherwise opt them out.
+    marketing_opt_out: Any = body.get("marketingOptOut", False)
+    if not isinstance(marketing_opt_out, bool):
+        raise InputError("marketingOptOut must be true or false.")
 
     email: str = user.email
     first_name: str = user.first_name or "User"
@@ -514,18 +545,11 @@ def update_learning_level(request: HttpRequest) -> HttpResponse:
 
     # Validate learning_level type if provided
     # Allow null/None (optional field), or integer 1-5
-    if learning_level is not None:
-        if (
-            not isinstance(learning_level, int)
-            or learning_level < 1
-            or learning_level > 5
-        ):
-            return jsonResponse(
-                {
-                    "error": "Learning level must be an integer between 1 and 5, or null."
-                },
-                status=400,
-            )
+    if learning_level is not None and not is_valid_learning_level(learning_level):
+        return jsonResponse(
+            {"error": "Learning level must be an integer between 1 and 5, or null."},
+            status=400,
+        )
 
     # Work out whose learning level this is
     if user.is_authenticated:

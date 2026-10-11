@@ -1873,3 +1873,36 @@ class TestUpdateLearningLevelImpl:
 
         with pytest.raises(newsletter_service.ActiveCampaignError):
             newsletter_service.update_learning_level_impl("test@example.com", 1)
+
+
+class TestIsValidLearningLevel:
+    """Tests for is_valid_learning_level(), shared by the view and both service functions"""
+
+    @pytest.mark.parametrize("value", [1, 2, 3, 4, 5])
+    def test_accepts_whole_numbers_one_to_five(self, value):
+        assert newsletter_service.is_valid_learning_level(value) is True
+
+    @pytest.mark.parametrize("value", [0, 6, -1, 3.0, "3", None, [3]])
+    def test_rejects_out_of_range_and_non_integers(self, value):
+        assert newsletter_service.is_valid_learning_level(value) is False
+
+    @pytest.mark.parametrize("value", [True, False])
+    def test_rejects_booleans(self, value):
+        """JSON true/false must not count as a level, even though True == 1 in Python"""
+        assert newsletter_service.is_valid_learning_level(value) is False
+
+    @pytest.mark.parametrize(
+        "service_function",
+        [
+            newsletter_service.update_learning_level_in_ac,
+            newsletter_service.update_learning_level_impl,
+        ],
+    )
+    @mock.patch("api.newsletter_service._client.make_request")
+    def test_service_functions_reject_true_before_calling_ac(
+        self, mock_request, service_function
+    ):
+        with pytest.raises(newsletter_service.InputError, match="Learning level must be"):
+            service_function("test@example.com", True)
+
+        mock_request.assert_not_called()

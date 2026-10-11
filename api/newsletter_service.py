@@ -1390,6 +1390,17 @@ def _update_wants_marketing_emails(
 # ============================================================================
 
 
+def is_valid_learning_level(value: object) -> bool:
+    """
+    True if value is a whole number from 1 to 5.
+
+    JSON true/false arrive as Python True/False, and in Python bool is a kind of
+    int (True == 1). So a plain isinstance(value, int) check would accept
+    `"learningLevel": true` as level 1. We rule out bools first.
+    """
+    return isinstance(value, int) and not isinstance(value, bool) and 1 <= value <= 5
+
+
 @wraps_ac_errors
 def update_learning_level_in_ac(
     email: str, learning_level: int | None
@@ -1419,16 +1430,11 @@ def update_learning_level_in_ac(
 
     # Validate learning_level. InputError is passed through unchanged by the
     # @wraps_ac_errors decorator so callers can distinguish bad input from AC failures.
-    if learning_level is not None:
-        if (
-            not isinstance(learning_level, int)
-            or learning_level < 1
-            or learning_level > 5
-        ):
-            logger.warning(f"Invalid learning level {learning_level} for email {email}")
-            raise InputError(
-                "Learning level must be an integer between 1 and 5, or null/None"
-            )
+    if learning_level is not None and not is_valid_learning_level(learning_level):
+        logger.warning(f"Invalid learning level {learning_level} for email {email}")
+        raise InputError(
+            "Learning level must be an integer between 1 and 5, or null/None"
+        )
 
     logger.info(f"Updating learning level in AC for {email}: {learning_level}")
 
@@ -1488,16 +1494,11 @@ def update_learning_level_impl(
     email = normalize_and_validate_email(email)
 
     # Validate learning_level
-    if learning_level is not None:
-        if (
-            not isinstance(learning_level, int)
-            or learning_level < 1
-            or learning_level > 5
-        ):
-            logger.warning(f"Invalid learning level {learning_level} for {email}")
-            raise InputError(
-                "Learning level must be an integer between 1 and 5, or null/None"
-            )
+    if learning_level is not None and not is_valid_learning_level(learning_level):
+        logger.warning(f"Invalid learning level {learning_level} for {email}")
+        raise InputError(
+            "Learning level must be an integer between 1 and 5, or null/None"
+        )
 
     logger.info(f"Updating learning level for {email}: {learning_level}")
 

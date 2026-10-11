@@ -1209,3 +1209,125 @@ class TestUpdateLearningLevelView:
         )
 
         assert_error(response, 500)
+
+
+# ============================================================================
+# Request Body Type Checks (wrong JSON types get a 400, not a 500 or a wrong action)
+# ============================================================================
+
+# Each of these "newsletters" values used to either crash on .items() (a 500) or,
+# for "false", count as selected because a non-empty string is truthy in Python.
+BAD_NEWSLETTERS_VALUES = [
+    ["sefaria_news"],
+    "sefaria_news",
+    None,
+    {"sefaria_news": "false"},
+    {"sefaria_news": 1},
+]
+
+
+def valid_subscribe_body(**overrides):
+    return {
+        "firstName": "John",
+        "lastName": "Doe",
+        "email": "test@example.com",
+        "newsletters": {"sefaria_news": True},
+        **overrides,
+    }
+
+
+@pytest.mark.django_db
+class TestRequestBodyTypeChecks:
+    """Wrong JSON types are rejected before any ActiveCampaign work happens."""
+
+    @pytest.mark.parametrize("newsletters", BAD_NEWSLETTERS_VALUES)
+    @mock.patch("api.newsletter_views.update_user_preferences_impl")
+    def test_preferences_rejects_bad_newsletters(
+        self, mock_update, logged_in_client, newsletters
+    ):
+        response = logged_in_client.post(
+            "/api/newsletter/preferences",
+            json.dumps({"newsletters": newsletters}),
+            content_type="application/json",
+        )
+
+        data = assert_error(
+            response, 400, "newsletters must be an object of true/false values."
+        )
+        # Not something the person can fix, so no code and the text stays in English
+        assert "code" not in data
+        mock_update.assert_not_called()
+
+    @pytest.mark.parametrize("marketing_opt_out", ["false", "true", 0, 1, None])
+    @mock.patch("api.newsletter_views.update_user_preferences_impl")
+    def test_preferences_rejects_non_boolean_marketing_opt_out(
+        self, mock_update, logged_in_client, marketing_opt_out
+    ):
+        """
+        Opting out unsubscribes from every list, so "false" (truthy in Python) must
+        never reach the service, where it would have meant "opt out".
+        """
+        response = logged_in_client.post(
+            "/api/newsletter/preferences",
+            json.dumps(
+                {
+                    "newsletters": {"sefaria_news": True},
+                    "marketingOptOut": marketing_opt_out,
+                }
+            ),
+            content_type="application/json",
+        )
+
+        assert_error(response, 400, "marketingOptOut must be true or false.")
+        mock_update.assert_not_called()
+
+    @mock.patch("api.newsletter_views.update_user_preferences_impl")
+    @mock.patch("api.newsletter_views.get_cached_newsletter_list")
+    def test_preferences_missing_marketing_opt_out_means_false(
+        self, mock_get_list, mock_update, logged_in_client, mock_newsletters
+    ):
+        mock_get_list.return_value = mock_newsletters
+        mock_update.return_value = {
+            "contact": {"id": "12345", "email": "testuser@sefaria.org"},
+            "subscribed_newsletters": ["sefaria_news"],
+        }
+
+        response = logged_in_client.post(
+            "/api/newsletter/preferences",
+            json.dumps({"newsletters": {"sefaria_news": True}}),
+            content_type="application/json",
+        )
+
+        assert_success(response, 200)
+        assert mock_update.call_args[1]["marketing_opt_out"] is False
+
+    @pytest.mark.parametrize("newsletters", BAD_NEWSLETTERS_VALUES)
+    @mock.patch("api.newsletter_views.subscribe_with_union")
+    def test_subscribe_rejects_bad_newsletters(self, mock_subscribe, client, newsletters):
+        response = client.post(
+            "/api/newsletter/subscribe",
+            json.dumps(valid_subscribe_body(newsletters=newsletters)),
+            content_type="application/json",
+        )
+
+        data = assert_error(
+            response, 400, "newsletters must be an object of true/false values."
+        )
+        assert "code" not in data
+        mock_subscribe.assert_not_called()
+
+    @pytest.mark.parametrize("learning_level", [True, False])
+    @mock.patch("api.newsletter_views.update_learning_level_impl")
+    def test_learning_level_rejects_booleans(
+        self, mock_update, logged_in_client, learning_level
+    ):
+        """
+        In Python True == 1 and bool is a kind of int, so without an explicit
+        check `true` would be saved as a learning level.
+        """
+        response = post_learning_level(
+            logged_in_client, {"learningLevel": learning_level}
+        )
+
+        assert_error(response, 400, "Learning level must be")
+        mock_update.assert_not_called()
