@@ -189,13 +189,24 @@ def developer_state(request):
 
 # --- Profile -----------------------------------------------------------------
 
+FIELD_LABELS = {
+    "developerName": "The name",
+    "description": "The description",
+    "additionalEmail": "The additional email",
+    "name": "The project name",
+    "organization": "The organization",
+    "websiteUrl": "The website",
+}
+
+
 def _text(data, field, max_length=255):
+    label = FIELD_LABELS.get(field, field)
     value = data.get(field, "")
     if not isinstance(value, str):
-        raise InputError("{} must be text.".format(field))
+        raise InputError("{} must be text.".format(label))
     value = value.strip()
     if len(value) > max_length:
-        raise InputError("{} is too long.".format(field))
+        raise InputError("{} can be at most {} characters.".format(label, max_length))
     return value
 
 
