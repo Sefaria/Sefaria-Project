@@ -92,6 +92,11 @@ func Decide(l Lookup, cfg Config, r Request) Decision {
 		}
 		return allow(k.ProjectID, k.Tier, "ok")
 	}
+	// Browser CORS preflights do not carry application credentials. Let Envoy
+	// answer OPTIONS requests with an Origin header before applying path gates.
+	if r.Method == "OPTIONS" && r.Origin != "" {
+		return allow("", TierEmbed, "preflight")
+	}
 	if gated(cfg, r.Path) {
 		return deny(cfg, 401, CodeKeyRequired, "This route requires an x-api-key header.")
 	}
