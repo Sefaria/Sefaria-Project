@@ -3,15 +3,28 @@ import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import { InterfaceText } from './Misc';
 import {
+  CONFIRMATION_SIGNAL_KEY,
+  MAX_DESCRIPTION_LENGTH,
   MAX_KEYS_PER_PROJECT,
   POWERED_BY_LISTINGS,
+  confirmationLink,
+  emailMatchedListing,
   emptyState,
+  outreachState,
+  poweredByListings,
+  projectFromListing,
+  publicListing,
+  readState,
+  makeConfirmationToken,
   makeKey,
+  parseWebsite,
+  removeProject,
   makeProject,
   sampleState,
   ssoConnected,
-  usageSeries,
+  accountVerified,
   websiteHost,
+  withdrawConsent,
   writeState,
 } from './developerPocStore';
 
@@ -22,7 +35,8 @@ import {
 const KEY_SETUP_MS = 4000;
 
 const API_DOCS_URL = "https://developers.sefaria.org/reference/getting-started";
-const POWERED_BY_URL = "https://developers.sefaria.org/docs/powered-by-sefaria";
+const LIBRARY_EXPORT_URL = "https://github.com/Sefaria/Sefaria-Export";
+const CONTACT_EMAIL = "hello@sefaria.org";
 const API_TERMS_URL = "/api-terms";
 
 const maskKey = (value) => {
@@ -31,14 +45,12 @@ const maskKey = (value) => {
 };
 
 const formatDate = (iso) => {
-  if (!iso) { return Sefaria._v({en: "Never", he: "אף פעם"}); }
+  if (!iso) { return ""; }
   try {
     const locale = Sefaria.interfaceLang === "hebrew" ? "he-IL" : "en-GB";
     return new Date(iso).toLocaleDateString(locale, {day: "numeric", month: "short", year: "numeric"});
   } catch (e) { return iso; }
 };
-
-const formatNumber = (n) => n.toLocaleString(Sefaria.interfaceLang === "hebrew" ? "he-IL" : "en-US");
 
 const copyToClipboard = (text, node, onDone) => {
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -103,9 +115,30 @@ const ExternalIcon = () => (
   </svg>
 );
 
-/* An "i" that opens on hover and on keyboard focus, and toggles on tap. */
-const InfoTip = ({label, wide, children}) => {
+const tipId = (fieldId) => fieldId + "Tip";
+
+const keyboardFocused = (node) => {
+  try { return node.matches(":focus-visible"); } catch (e) { return true; }
+};
+
+/* An "i" for pointer users: it opens on hover and toggles on tap, and inside a <label> a tap
+   doesn't tick the label's checkbox. It is not a tab stop. Its text is the field's
+   description (aria-describedby={tipId(fieldId)}) for assistive tech, kept hidden so it
+   stays out of the label, and it opens while the field has keyboard focus. */
+const InfoTip = ({fieldId, wide, children}) => {
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const field = document.getElementById(fieldId);
+    if (!field) { return undefined; }
+    const show = () => { if (keyboardFocused(field)) { setOpen(true); } };
+    const hide = () => setOpen(false);
+    field.addEventListener("focus", show);
+    field.addEventListener("blur", hide);
+    return () => {
+      field.removeEventListener("focus", show);
+      field.removeEventListener("blur", hide);
+    };
+  }, [fieldId]);
   return (
     <span
       className="devPocTip"
@@ -115,17 +148,20 @@ const InfoTip = ({label, wide, children}) => {
       <button
         type="button"
         className="devPocInfoButton"
-        aria-expanded={open}
-        aria-label={label}
-        onFocus={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
-        onClick={() => setOpen(o => !o)}
+        tabIndex={-1}
+        aria-hidden="true"
+        onClick={(e) => { e.preventDefault(); setOpen(o => !o); }}
       >i</button>
       {open ?
-        <span className={"devPocPopover" + (wide ? " devPocPopoverWide" : "")} role="note">{children}</span> : null}
+        <span className={"devPocPopover" + (wide ? " devPocPopoverWide" : "")} aria-hidden="true">{children}</span> : null}
+      <span id={tipId(fieldId)} hidden>{children}</span>
     </span>
   );
 };
+
+/* A field description read only through aria-describedby. Hidden content still counts
+   there, and staying hidden keeps it out of any label it sits in. */
+const FieldNote = ({fieldId, children}) => <span id={tipId(fieldId)} hidden>{children}</span>;
 
 /* Escape closes, and the given button takes focus when the dialog opens. */
 const useDialogKeys = (focusRef, onEscape) => {
@@ -151,7 +187,68 @@ const writePanelOpen = (open) => {
 /* The POC test controls. Deliberately unlike the product: a floating panel pinned to the
    corner of the viewport, in colours the site never uses, and English only. Nothing in it
    is product UI. */
-const PocTestPanel = ({state, realProviders, update, reset, showSimulate}) => {
+/* Starting points for a walkthrough; each one is a fresh account at "Get started". */
+const ACCOUNT_SCENARIOS = [
+  {id: "sso", label: "Google or Apple account", ssoOverride: true},
+  {id: "email", label: "Email account, unconfirmed", ssoOverride: false},
+  {id: "email-sent", label: "Email account, link sent", ssoOverride: false, linkSent: true},
+  {id: "email-confirmed", label: "Email account, confirmed", ssoOverride: false, emailVerified: true},
+];
+
+const scenarioState = (sc) => ({
+  ...emptyState(),
+  ssoOverride: sc.ssoOverride,
+  emailVerified: !!sc.emailVerified,
+  confirmationSentAt: sc.linkSent ? new Date().toISOString() : null,
+  confirmationToken: sc.linkSent ? makeConfirmationToken() : null,
+});
+
+const accountStatus = (state, realProviders) => {
+  const sso = ssoConnected(state, realProviders);
+  const kind = sso ? "Google or Apple account" : "Email account";
+  const email = sso || state.emailVerified ? "email verified"
+    : state.confirmationSentAt ? "confirmation link sent" : "email not verified";
+  const dev = !state.developerEnabled ? "developer settings not started"
+    : !state.profile ? "at About you" : state.projects.length + " project" + (state.projects.length === 1 ? "" : "s");
+  return "Now: " + kind + " · " + email + " · " + dev;
+};
+
+/* Mock Powered by data the walkthrough needs: a listing submitted with this account's email,
+   and the state staff leave behind after a developer answers outreach with "yes". */
+const PocListingControls = ({state, update}) => {
+  const email = accountEmail();
+  const linkable = POWERED_BY_LISTINGS.filter(l => !l.ownedByAnotherAccount);
+  const outreachListingId = state.submitterEmailListingId || linkable[0].id;
+  return (
+    <div className="devPocPanelGroup">
+      <div className="devPocPanelGroupLabel">Powered by listings</div>
+      <label className="devPocPanelChoice devPocPanelSelect">
+        <span>Submitted with {email || "the account email"}:</span>
+        <select
+          data-poc-control="submitter-email-listing"
+          value={state.submitterEmailListingId || ""}
+          onChange={e => update(s => ({...s, submitterEmailListingId: e.target.value || null}))}
+        >
+          <option value="">None</option>
+          {linkable.map(l => <option key={l.id} value={l.id}>{l.name} ({l.url})</option>)}
+        </select>
+      </label>
+      <div className="devPocPanelRow">
+        <button
+          type="button"
+          className="devPocPanelButton"
+          data-poc-control="outreach-yes"
+          onClick={() => update(s => outreachState(s, outreachListingId))}
+        >Staff created it from an outreach reply</button>
+      </div>
+      <p className="devPocPanelNote">
+        The reply confirms the email, and staff add the project linked to that listing.
+      </p>
+    </div>
+  );
+};
+
+const PocTestPanel = ({state, realProviders, update, reset, showSimulate, onOpenMockEmail}) => {
   const [open, setOpen] = useState(false);
 
   useEffect(() => { setOpen(readPanelOpen()); }, []);
@@ -187,37 +284,77 @@ const PocTestPanel = ({state, realProviders, update, reset, showSimulate}) => {
         </div>
 
         <div className="devPocPanelGroup">
-          <div className="devPocPanelGroupLabel">Account state</div>
+          <div className="devPocPanelGroupLabel">Start over as</div>
+          <div className="devPocPanelRow devPocPanelScenarios">
+            {ACCOUNT_SCENARIOS.map(sc => (
+              <button key={sc.id} type="button" className="devPocPanelButton" data-scenario={sc.id} onClick={() => reset(scenarioState(sc))}>
+                {sc.label}
+              </button>
+            ))}
+          </div>
+          <p className="devPocPanelNote">Each clears developer data and starts at "Get started".</p>
+        </div>
+
+        <div className="devPocPanelGroup">
+          <div className="devPocPanelGroupLabel">Account state now</div>
+          <p className="devPocPanelNote devPocPanelStatus" role="status">{accountStatus(state, realProviders)}</p>
           <label className="devPocPanelChoice">
             <input
               type="checkbox"
               className="devPocSwitch"
               checked={connected}
               onChange={e => update(s => ({...s, ssoOverride: e.target.checked}))}
-              aria-label="Simulate SSO connected"
+              aria-label="Simulate Google or Apple connected"
             />
-            <span>Simulate: SSO {connected ? "connected" : "not connected"}</span>
+            <span>Google or Apple {connected ? "connected" : "not connected"}</span>
+          </label>
+          <label className="devPocPanelChoice">
+            <input
+              type="checkbox"
+              className="devPocSwitch"
+              checked={!!state.emailVerified}
+              onChange={e => update(s => ({...s, emailVerified: e.target.checked, confirmationSentAt: null, confirmationToken: null}))}
+              aria-label="Simulate email confirmed"
+            />
+            <span>Email {state.emailVerified ? "confirmed by link" : "not confirmed by link"}</span>
           </label>
           <p className="devPocPanelNote">{realLabel}{pretending ? " (simulated value in use)" : ""}</p>
           {pretending ?
             <div className="devPocPanelRow">
               <button type="button" className="devPocPanelButton" onClick={() => update(s => ({...s, ssoOverride: null}))}>
-                Use real status
+                Use real Google or Apple status
               </button>
             </div> : null}
+          <div className="devPocPanelRow">
+            <button
+              type="button"
+              className="devPocPanelButton"
+              disabled={!state.confirmationSentAt || !state.confirmationToken}
+              data-agent-action="mock-open-email"
+              onClick={onOpenMockEmail}
+            >Open the confirmation email</button>
+          </div>
           <p className="devPocPanelNote">
-            Connecting Google or Apple in this POC is auto-approved: no sign-in happens and no account changes.
+            {state.confirmationSentAt
+              ? "A link was \"sent\". Open the email: its button opens the confirmation page in a new tab, like the real link, and this tab moves on within a few seconds."
+              : "Enabled after \"Email me a confirmation link\"."}
           </p>
         </div>
+
+        <PocListingControls state={state} update={update} />
 
         <div className="devPocPanelGroup">
           <div className="devPocPanelGroupLabel">Mock data</div>
           <div className="devPocPanelRow">
             <button type="button" className="devPocPanelButton" onClick={() => reset(sampleState())}>Reset to sample data</button>
-            <button type="button" className="devPocPanelButton" onClick={() => reset(emptyState())}>Reset to empty</button>
+            <button
+              type="button"
+              className="devPocPanelButton"
+              onClick={() => reset({...emptyState(), ssoOverride: state.ssoOverride, emailVerified: !!state.emailVerified})}
+            >Reset to empty</button>
           </div>
+          <p className="devPocPanelNote">Sample data is a Google account with one project. Reset to empty keeps the account state.</p>
         </div>
-
         {showSimulate ?
           <div className="devPocPanelGroup">
             <div className="devPocPanelGroupLabel">Simulate</div>
@@ -286,8 +423,12 @@ const AgentInstructions = () => (
       </li>
       <li>
         If developer settings are not set up yet, press "Get started" (get-started). An
-        account without a Google or Apple sign-in is asked to connect one first. That changes
-        how the user signs in to Sefaria, so confirm it with the user before continuing.
+        account whose email is not yet confirmed is asked to confirm it first: press "Email
+        me a confirmation link" (send-confirmation). The user then opens the link from their
+        inbox (or you do, if you have access to it), on any device and without signing in.
+        The link opens a "Thank you for confirming your email" page; this page notices within
+        a few seconds and setup continues here. Accounts that sign in with Google or Apple
+        skip this step.
       </li>
       <li>
         Fill in the "About you" form. Name and account email come from the Sefaria account
@@ -297,11 +438,18 @@ const AgentInstructions = () => (
         news box unticked unless the user asks for it. Press "Continue" (save-profile).
       </li>
       <li>
+        If a dialog asks "Is this your project?" about a Powered by Sefaria listing, ask the
+        user. "Yes, add it" (claim-listing) adds it as a public project linked to the listing;
+        "No, it's not mine" (not-my-listing) stops the question.
+      </li>
+      <li>
         Under "Projects", press "Create your first project" or "New project" (new-project).
-        Enter a project name and a short description (both required). Organization, website
-        and "Built with help from AI tools" are optional. Leave visibility Private unless the
-        user wants the project public; choosing Public shows what would be public and asks
-        for confirmation. Press "Create project" (create-project). If there is no website, a
+        Enter a project name and a short description of at most 150 characters (both
+        required). Organization, website and "Built with help from AI tools" are optional.
+        Choose a visibility, which is required: Public or Private. Ask the user which they
+        want; "Show me what will be public" (show-public-preview) lists exactly what a public
+        project shows.
+        Press "Create project" (create-project). If there is no website, a
         dialog asks about it: choose "Save without a website" (save-without-website) or add
         one.
       </li>
@@ -316,23 +464,35 @@ const AgentInstructions = () => (
         the user or put it where they asked, and remind them to keep it private.
       </li>
       <li>
-        Optional: once the project has a website, "Only allow this key on" that site limits
-        the key to web pages on it. Turn it on only for keys used in code that runs in a
-        browser.
+        Optional: once the project has a website, "Only accept requests from" that site is an
+        allowed-origin restriction: Sefaria refuses this key (403 origin_not_allowed) on any
+        request whose Origin header is not that site, including requests with no Origin. Turn it on only for keys used in
+        front-end code that runs in a browser. Leave it off for keys used from a server,
+        script, app or agent, including your own calls.
       </li>
     </ol>
+    <p>
+      If the user needs large amounts of text, or the whole library, the API may not be needed
+      at all: the entire Sefaria library is free to download, with no key, from
+      {" " + LIBRARY_EXPORT_URL}. Suggest it before planning many API calls.
+    </p>
     <p>API documentation: {API_DOCS_URL}</p>
   </div>
 );
 
 
-/* The one way in to developer settings. An account with Google or Apple goes straight in;
-   any other account connects one first, then goes in. Developer settings stay on once
-   they are on. */
-const GetStarted = ({connected, settingUp, highlight, onStart, onConnectSso}) => {
-  const [askSso, setAskSso] = useState(false);
-  const start = () => { if (connected) { onStart(); } else { setAskSso(true); } };
+/* The one way in to developer settings. An account whose email is verified (by Google or
+   Apple sign-in, or by an emailed confirmation link) goes straight in. Any other account
+   confirms its email first with an emailed link, which leaves how it signs in unchanged.
+   Developer settings stay on once they are on. */
+const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, onSendConfirmation,
+                     onCancelConfirmation}) => {
+  const [asking, setAsking] = useState(false);
+  const [resent, setResent] = useState(false);
+  const start = () => { if (verified) { onStart(); } else { setAsking(true); } };
   const cardClass = "devPocCard" + (highlight ? " settingsHighlight" : "");
+  const email = accountEmail();
+  const emailText = email ? <bdi dir="ltr"><strong>{email}</strong></bdi> : null;
 
   if (settingUp) {
     return (
@@ -343,47 +503,51 @@ const GetStarted = ({connected, settingUp, highlight, onStart, onConnectSso}) =>
     );
   }
 
-  if (askSso && !connected) {
-    const email = accountEmail();
+  if (!verified && confirmationSent) {
     return (
-      <div className={"devPocSsoPrompt " + cardClass} role="region" aria-label={Sefaria._v({en: "Sign in with Google or Apple", he: "התחברות עם גוגל או אפל"})}>
-        <h2><InterfaceText text={{en: "Sign in once with Google or Apple", he: "התחברות חד־פעמית עם גוגל או אפל"}} /></h2>
+      <div className={"devPocSsoPrompt " + cardClass} role="region" aria-label={Sefaria._v({en: "Check your email", he: "בדקו את תיבת הדוא״ל"})}>
+        <h2><InterfaceText text={{en: "Check your email", he: "בדקו את תיבת הדוא״ל"}} /></h2>
         <p>
           <InterfaceText text={{
-            en: "Developer settings need a Google or Apple sign-in, so we know the email we use to reach you about your keys is really yours.",
-            he: "הגדרות המפתחים דורשות התחברות עם גוגל או אפל, כדי שנדע שכתובת הדוא״ל שבה ניצור איתך קשר בנוגע למפתחות אכן שלך.",
+            en: <React.Fragment>We sent a confirmation link to {emailText}. Open it on any device, and developer settings continue here. The link works for 3 days.</React.Fragment>,
+            he: <React.Fragment>שלחנו קישור לאישור אל {emailText}. פתחו אותו בכל מכשיר, והגדרות המפתחים ימשיכו כאן. הקישור בתוקף 3 ימים.</React.Fragment>,
           }} />
         </p>
-        <ul className="devPocList">
-          <li>
-            <InterfaceText text={{
-              en: <React.Fragment>
-                You're verifying the Sefaria account you're signed in to now
-                {email ? <React.Fragment> (<strong dir="ltr">{email}</strong>)</React.Fragment> : null}.
-                It doesn't add a second account.
-              </React.Fragment>,
-              he: <React.Fragment>
-                האימות הוא לחשבון ספריא שבו את/ה מחובר/ת עכשיו
-                {email ? <React.Fragment> (<bdi dir="ltr"><strong>{email}</strong></bdi>)</React.Fragment> : null}.
-                לא נוצר חשבון נוסף.
-              </React.Fragment>,
-            }} />
-          </li>
-          <li>
-            <InterfaceText text={{
-              en: "This changes how you sign in: from now on you'll use Google or Apple to sign in to this same account.",
-              he: "זה משנה את דרך ההתחברות: מעכשיו תתחברו לאותו חשבון עם גוגל או אפל.",
-            }} />
-          </li>
-        </ul>
         <div className="devPocActions">
-          <button className="button small blue" type="button" data-agent-action="connect-google" onClick={() => onConnectSso("Google")}>
-            <InterfaceText text={{en: "Continue with Google", he: "המשך עם גוגל"}} />
+          <button className="button small white" type="button" data-agent-action="resend-confirmation" onClick={() => { onSendConfirmation(); setResent(true); }}>
+            <InterfaceText text={{en: "Resend the link", he: "שליחה חוזרת של הקישור"}} />
           </button>
-          <button className="button small blue" type="button" data-agent-action="connect-apple" onClick={() => onConnectSso("Apple")}>
-            <InterfaceText text={{en: "Continue with Apple", he: "המשך עם אפל"}} />
+          <button className="button small transparent" type="button" onClick={() => { onCancelConfirmation(); setAsking(false); setResent(false); }}>
+            <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
           </button>
-          <button className="button small transparent" type="button" onClick={() => setAskSso(false)}>
+        </div>
+        {resent ?
+          <p className="devPocHelp" role="status"><InterfaceText text={{en: "Sent again.", he: "נשלח שוב."}} /></p> : null}
+        <p className="devPocHelp">
+          <InterfaceText text={{
+            en: "Not there? Check your spam folder. Wrong address? Change it in Account settings first.",
+            he: "לא הגיע? בדקו בתיקיית הספאם. הכתובת שגויה? שנו אותה קודם בהגדרות החשבון.",
+          }} />
+        </p>
+      </div>
+    );
+  }
+
+  if (asking && !verified) {
+    return (
+      <div className={"devPocSsoPrompt " + cardClass} role="region" aria-label={Sefaria._v({en: "Confirm your email", he: "אישור כתובת הדוא״ל"})}>
+        <h2><InterfaceText text={{en: "Confirm your email address", he: "אישור כתובת הדוא״ל"}} /></h2>
+        <p>
+          <InterfaceText text={{
+            en: <React.Fragment>We email you about your API keys, so first we check that {email ? emailText : "your account email"} is really yours. It's a one-time step, and you keep signing in the way you do now.</React.Fragment>,
+            he: <React.Fragment>אנחנו שולחים לך הודעות על מפתחות ה־API, ולכן קודם נוודא ש־{email ? emailText : "כתובת הדוא״ל של החשבון"} באמת שלך. זה צעד חד־פעמי, ודרך ההתחברות שלך לא משתנה.</React.Fragment>,
+          }} />
+        </p>
+        <div className="devPocActions">
+          <button className="button small blue" type="button" data-agent-action="send-confirmation" onClick={onSendConfirmation}>
+            <InterfaceText text={{en: "Email me a confirmation link", he: "שלחו לי קישור לאישור"}} />
+          </button>
+          <button className="button small transparent" type="button" onClick={() => setAsking(false)}>
             <InterfaceText text={{en: "Cancel", he: "ביטול"}} />
           </button>
         </div>
@@ -434,58 +598,72 @@ const AboutYouFields = ({fields, set}) => {
   return (
     <React.Fragment>
       <div className="devPocField">
-        <label htmlFor="devPocName"><InterfaceText text={{en: "Name", he: "שם"}} /></label>
+        <label htmlFor="devPocName">
+          <InterfaceText text={{en: "Name", he: "שם"}} />
+        </label>
         {name ?
-          <input id="devPocName" value={name} readOnly aria-readonly="true" className="devPocLocked" dir="auto" /> :
+          <FieldNote fieldId="devPocName">
+            <InterfaceText text={{en: "From your Sefaria account.", he: "מתוך חשבון ספריא שלך."}} />
+          </FieldNote> : null}
+        {name ?
+          <input id="devPocName" value={name} readOnly aria-readonly="true" aria-describedby={tipId("devPocName")} className="devPocLocked" dir="auto" /> :
           <input id="devPocName" value={fields.developerName} onChange={e => set("developerName", e.target.value)} dir="auto" />}
-        {name ?
-          <p className="devPocHelp"><InterfaceText text={{en: "From your Sefaria account.", he: "מתוך חשבון ספריא שלך."}} /></p> : null}
       </div>
       {email ?
         <div className="devPocField">
-          <label htmlFor="devPocEmail"><InterfaceText text={{en: "Email", he: "דוא״ל"}} /></label>
-          <input id="devPocEmail" type="email" value={email} readOnly aria-readonly="true" className="devPocLocked" dir="ltr" />
-          <p className="devPocHelp">
+          <label htmlFor="devPocEmail">
+            <InterfaceText text={{en: "Email", he: "דוא״ל"}} />
+          </label>
+          <FieldNote fieldId="devPocEmail">
             <InterfaceText text={{
               en: "From your Sefaria account. We send project and key emails here.",
               he: "מתוך חשבון ספריא שלך. לכתובת הזו נשלח הודעות על פרויקטים ומפתחות.",
             }} />
-          </p>
+          </FieldNote>
+          <input id="devPocEmail" type="email" value={email} readOnly aria-readonly="true" aria-describedby={tipId("devPocEmail")} className="devPocLocked" dir="ltr" />
         </div> : null}
       <div className="devPocField">
         <label htmlFor="devPocEmail2">
           <InterfaceText text={{en: "Also send project and key emails to", he: "לשלוח הודעות על פרויקטים ומפתחות גם אל"}} /> <OptionalMark />
+          <InfoTip fieldId="devPocEmail2">
+            <InterfaceText text={{
+              en: "Add another address, like a work address or a colleague who looks after the project, and it gets the same emails.",
+              he: "הוסיפו כתובת נוספת, למשל כתובת עבודה או של עמית שמטפל בפרויקט, והיא תקבל את אותן הודעות.",
+            }} />
+          </InfoTip>
         </label>
-        <input id="devPocEmail2" type="email" dir="ltr" value={fields.additionalEmail} onChange={e => set("additionalEmail", e.target.value)} />
-        <p className="devPocHelp">
-          <InterfaceText text={{
-            en: "Add another address, like a work address or a colleague who looks after the project, and it gets the same emails.",
-            he: "הוסיפו כתובת נוספת, למשל כתובת עבודה או של עמית שמטפל בפרויקט, והיא תקבל את אותן הודעות.",
-          }} />
-        </p>
+        <input id="devPocEmail2" type="email" dir="ltr" aria-describedby={tipId("devPocEmail2")} value={fields.additionalEmail} onChange={e => set("additionalEmail", e.target.value)} />
       </div>
       <div className="devPocField">
         <label htmlFor="devPocDescription">
           <InterfaceText text={{en: "Tell us about yourself", he: "ספרו לנו על עצמכם"}} /> <OptionalMark />
+          <InfoTip fieldId="devPocDescription">
+            <InterfaceText text={{en: "It helps us understand who uses the API.", he: "זה עוזר לנו להבין מי משתמש ב־API."}} />
+          </InfoTip>
         </label>
-        <textarea id="devPocDescription" rows={3} dir="auto" value={fields.description} onChange={e => set("description", e.target.value)} />
-        <p className="devPocHelp">
-          <InterfaceText text={{
-            en: "Who you are, where you work or study, what you like to build. It helps us understand who uses the API.",
-            he: "מי אתם, איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות. זה עוזר לנו להבין מי משתמש ב־API.",
-          }} />
-        </p>
+        <textarea
+          id="devPocDescription"
+          aria-describedby={tipId("devPocDescription")}
+          rows={3}
+          dir="auto"
+          placeholder={Sefaria._v({
+            en: "Who you are, where you work or study, what you like to build",
+            he: "מי אתם, איפה אתם עובדים או לומדים, מה אתם אוהבים לבנות",
+          })}
+          value={fields.description}
+          onChange={e => set("description", e.target.value)}
+        />
       </div>
       <label className="devPocChoice">
-        <input type="checkbox" checked={!!fields.notADeveloper} onChange={e => set("notADeveloper", e.target.checked)} />
+        <input type="checkbox" id="devPocNotADeveloper" aria-describedby={tipId("devPocNotADeveloper")} checked={!!fields.notADeveloper} onChange={e => set("notADeveloper", e.target.checked)} />
         <span>
           <InterfaceText text={{en: "I don't write code myself", he: "אני לא כותב/ת קוד בעצמי"}} />
-          <span className="devPocHelp">
+          <InfoTip fieldId="devPocNotADeveloper">
             <InterfaceText text={{
               en: "For example, you build with AI tools, or someone else writes the code.",
               he: "למשל, אתם בונים בעזרת כלי בינה מלאכותית, או שמישהו אחר כותב את הקוד.",
             }} />
-          </span>
+          </InfoTip>
         </span>
       </label>
     </React.Fragment>
@@ -510,21 +688,18 @@ const LegalFields = ({fields, set, accepted}) => (
             en: <React.Fragment>I accept the <TermsLink />, and agree that Sefaria may email me about my API keys and contact me about my projects</React.Fragment>,
             he: <React.Fragment>אני מאשר/ת את <TermsLink />, ומסכים/ה שספריא תשלח לי הודעות דוא״ל על מפתחות ה־API ותיצור איתי קשר בנוגע לפרויקטים שלי</React.Fragment>,
           }} />
-          <span className="devPocHelp">
-            <InterfaceText text={{en: "Required to create projects and keys.", he: "חובה כדי ליצור פרויקטים ומפתחות."}} />
-          </span>
         </span>
       </label>}
     <label className="devPocChoice">
-      <input type="checkbox" checked={!!fields.developerNews} onChange={e => set("developerNews", e.target.checked)} />
+      <input type="checkbox" id="devPocDeveloperNews" aria-describedby={tipId("devPocDeveloperNews")} checked={!!fields.developerNews} onChange={e => set("developerNews", e.target.checked)} />
       <span>
         <InterfaceText text={{en: "Send me Sefaria's developer news and promotional emails", he: "שלחו לי עדכונים למפתחים ודיוור שיווקי מספריא"}} /> <OptionalMark />
-        <span className="devPocHelp">
+        <InfoTip fieldId="devPocDeveloperNews">
           <InterfaceText text={{
             en: "New features, events and ideas for building with Sefaria. You can unsubscribe at any time.",
             he: "תכונות חדשות, אירועים ורעיונות לבנייה עם ספריא. אפשר לבטל את ההרשמה בכל עת.",
           }} />
-        </span>
+        </InfoTip>
       </span>
     </label>
   </section>
@@ -562,12 +737,6 @@ const ProfileOnboarding = ({onSave}) => {
   return (
     <div className="devPocOnboarding devPocCard">
       <h2><InterfaceText text={{en: "About you", he: "קצת עליך"}} /></h2>
-      <p className="devPocHelp devPocLead">
-        <InterfaceText text={{
-          en: "This takes a minute. Next, you'll describe your project and get a key.",
-          he: "זה לוקח דקה. אחר כך תתארו את הפרויקט שלכם ותקבלו מפתח.",
-        }} />
-      </p>
       <form className="devPocForm" onSubmit={finish}>
         <AboutYouFields fields={fields} set={set} />
         <LegalFields fields={fields} set={set} accepted={false} />
@@ -613,179 +782,208 @@ const ProfileForm = ({profile, onSave, onCancel}) => {
 };
 
 
-const ListingPicker = ({listing, onPick, onClear}) => {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const normalized = query.trim().toLowerCase();
-  const results = normalized.length >= 2
-    ? POWERED_BY_LISTINGS.filter(l => (l.name + " " + l.url).toLowerCase().includes(normalized))
-    : [];
+/* A listing's public fields only: what anyone can already see on Powered by Sefaria. */
+const ListingSummary = ({listing}) => (
+  <div className="devPocListingSummary">
+    <strong dir="auto">{listing.name}</strong> <span className="devPocMuted" dir="ltr">({listing.url})</span>
+    <p className="devPocHelp" dir="auto">{listing.description}</p>
+  </div>
+);
 
-  if (listing) {
-    return (
-      <div className="devPocListingSearch devPocListingPending">
-        <p>
-          <span className="devPocBadge devPocBadgePending"><InterfaceText text={{en: "Link requested", he: "התבקש קישור"}} /></span>{" "}
-          <strong dir="auto">{listing.name}</strong> <span className="devPocMuted" dir="ltr">({listing.url})</span>
-        </p>
-        <p className="devPocHelp">
-          <InterfaceText text={{
-            en: "Someone at Sefaria will check it and connect the two. Until then it shows as requested.",
-            he: "צוות ספריא יבדוק את הבקשה ויקשר בין השניים. עד אז היא תופיע כבקשה ממתינה.",
-          }} />
-        </p>
-        <button type="button" className="devPocTextButton" onClick={onClear}>
-          <InterfaceText text={{en: "Cancel request", he: "ביטול הבקשה"}} />
-        </button>
-      </div>
-    );
-  }
-  if (!open) {
-    return (
-      <button type="button" className="devPocTextButton" onClick={() => setOpen(true)}>
-        <InterfaceText text={{en: "Already on Powered by Sefaria? Find your listing", he: "הפרויקט כבר מופיע ב־Powered by Sefaria? חפשו אותו"}} />
-      </button>
-    );
-  }
-  return (
-    <div className="devPocListingSearch">
-      <div className="devPocField">
-        <label htmlFor="devPocListingSearch"><InterfaceText text={{en: "Find your listing", he: "חיפוש הפרויקט שלכם"}} /></label>
-        <input
-          id="devPocListingSearch"
-          type="search"
-          dir="auto"
-          placeholder={Sefaria._v({en: "Project name or website", he: "שם הפרויקט או האתר"})}
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-        />
-        <p className="devPocHelp">
-          <InterfaceText text={{en: "Search by the name or website it's listed under.", he: "חפשו לפי השם או האתר שתחתיהם הוא מופיע."}} />
-        </p>
-      </div>
-      {normalized.length >= 2 && results.length === 0 ?
-        <p className="devPocHelp">
-          <InterfaceText text={{en: "No listings match. Try another name or website.", he: "לא נמצאו תוצאות. נסו שם או אתר אחר."}} />
-        </p> : null}
-      {results.map(l => (
-        <div className="devPocResult" key={l.url}>
-          <div>
-            <strong dir="auto">{l.name}</strong> <span className="devPocMuted" dir="ltr">{l.url}</span>
-            <p className="devPocHelp" dir="auto">{l.description}</p>
-          </div>
-          <button type="button" className="button small white" onClick={() => { onPick(l); setOpen(false); }}>
-            <InterfaceText text={{en: "Request link", he: "בקשת קישור"}} />
-          </button>
-        </div>
-      ))}
-      <p className="devPocHelp">
-        <InterfaceText text={{
-          en: "Sefaria checks each request before connecting it, because anyone can submit a listing.",
-          he: "ספריא בודקת כל בקשה לפני הקישור, כי כל אחד יכול להגיש פרויקט לרשימה.",
-        }} />
-      </p>
-      <button type="button" className="devPocTextButton" onClick={() => setOpen(false)}>
-        <InterfaceText text={{en: "Close search", he: "סגירת החיפוש"}} />
-      </button>
-    </div>
-  );
-};
+const ContactLink = () => <a href={"mailto:" + CONTACT_EMAIL} dir="ltr">{CONTACT_EMAIL}</a>;
+
+const LinkedListingNote = ({listing}) => (
+  <p className="devPocHelp devPocLinked" role="status">
+    <span className="devPocBadge"><InterfaceText text={{en: "Linked", he: "מקושר"}} /></span>{" "}
+    <InterfaceText text={{
+      en: <React.Fragment>This project is the <strong dir="auto">{listing.name}</strong> listing on Powered by Sefaria.</React.Fragment>,
+      he: <React.Fragment>הפרויקט הזה הוא הרישום <strong dir="auto">{listing.name}</strong> ב־Powered by Sefaria.</React.Fragment>,
+    }} />
+  </p>
+);
 
 
-const ProjectFields = ({fields, set, onChoosePublic}) => (
+const ProjectFields = ({fields, set, onChoosePublic, onChoosePrivate, onShowPublic, linkedNote}) => (
   <React.Fragment>
+    {linkedNote}
     <div className="devPocField">
       <label htmlFor="devPocProjectName"><InterfaceText text={{en: "Project name", he: "שם הפרויקט"}} /></label>
       <input id="devPocProjectName" dir="auto" value={fields.name} onChange={e => set("name", e.target.value)} />
     </div>
     <div className="devPocField">
-      <label htmlFor="devPocProjectDescription"><InterfaceText text={{en: "Short description", he: "תיאור קצר"}} /></label>
-      <input id="devPocProjectDescription" dir="auto" value={fields.description} onChange={e => set("description", e.target.value)} />
-      <p className="devPocHelp">
-        <InterfaceText text={{
-          en: "One sentence, for example: a daily study tracker for my community.",
-          he: "משפט אחד, למשל: כלי למעקב אחר לימוד יומי בקהילה שלי.",
-        }} />
-      </p>
+      <label htmlFor="devPocProjectDescription">
+        <InterfaceText text={{en: "Short description", he: "תיאור קצר"}} />
+        <InfoTip fieldId="devPocProjectDescription">
+          <InterfaceText text={{
+            en: "The name and description help you tell your projects apart and tell the Sefaria team what you're building. If you make the project public, they're also what visitors to Powered by Sefaria see.",
+            he: "השם והתיאור עוזרים לכם להבחין בין הפרויקטים שלכם ומספרים לצוות ספריא מה אתם בונים. אם תהפכו את הפרויקט לציבורי, זה גם מה שיראו המבקרים ב־Powered by Sefaria.",
+          }} />
+        </InfoTip>
+      </label>
+      <input
+        id="devPocProjectDescription"
+        dir="auto"
+        maxLength={MAX_DESCRIPTION_LENGTH}
+        aria-describedby={tipId("devPocProjectDescription") + " devPocProjectDescriptionCount"}
+        placeholder={Sefaria._v({
+          en: "One sentence, e.g. a daily study tracker for my community",
+          he: "משפט אחד, למשל: כלי למעקב אחר לימוד יומי בקהילה שלי",
+        })}
+        value={fields.description}
+        onChange={e => set("description", e.target.value)}
+      />
+      <CharacterCount id="devPocProjectDescriptionCount" length={fields.description.length} />
     </div>
     <div className="devPocField">
       <label htmlFor="devPocProjectOrg"><InterfaceText text={{en: "Organization", he: "ארגון"}} /> <OptionalMark /></label>
       <input id="devPocProjectOrg" dir="auto" value={fields.organization} onChange={e => set("organization", e.target.value)} />
     </div>
     <div className="devPocField">
-      <label htmlFor="devPocProjectUrl"><InterfaceText text={{en: "Website", he: "אתר"}} /> <OptionalMark /></label>
+      <label htmlFor="devPocProjectUrl">
+        <InterfaceText text={{en: "Website", he: "אתר"}} /> <OptionalMark />
+        <InfoTip fieldId="devPocProjectUrl" wide>
+          <InterfaceText text={{
+            en: "The address people visit to use your project. We show it with your project on Powered by Sefaria, and you can use it to keep your key from working anywhere else. No website yet? You can add it later.",
+            he: "הכתובת שבה משתמשים בפרויקט שלכם. נציג אותה לצד הפרויקט ב־Powered by Sefaria, ותוכלו להשתמש בה כדי שהמפתח לא יעבוד בשום מקום אחר. עדיין אין אתר? אפשר להוסיף אותו מאוחר יותר.",
+          }} />
+        </InfoTip>
+      </label>
       <input
         id="devPocProjectUrl"
+        aria-describedby={tipId("devPocProjectUrl")}
         dir="ltr"
         placeholder="https://"
         value={fields.websiteUrl}
         onChange={e => set("websiteUrl", e.target.value)}
       />
-      <p className="devPocHelp">
-        <InterfaceText text={{
-          en: "The address people visit to use your project. We show it with your project on Powered by Sefaria, and you can use it to keep your key from working anywhere else. No website yet? You can add it later.",
-          he: "הכתובת שבה משתמשים בפרויקט שלכם. נציג אותה לצד הפרויקט ב־Powered by Sefaria, ותוכלו להשתמש בה כדי שהמפתח לא יעבוד בשום מקום אחר. עדיין אין אתר? אפשר להוסיף אותו מאוחר יותר.",
-        }} />
-      </p>
     </div>
     <label className="devPocChoice">
-      <input type="checkbox" checked={fields.aiAssisted} onChange={e => set("aiAssisted", e.target.checked)} />
+      <input type="checkbox" id="devPocAiAssisted" aria-describedby={tipId("devPocAiAssisted")} checked={fields.aiAssisted} onChange={e => set("aiAssisted", e.target.checked)} />
       <span>
         <InterfaceText text={{en: "Built with help from AI tools", he: "נבנה בעזרת כלי בינה מלאכותית"}} />
-        <span className="devPocHelp">
+        <InfoTip fieldId="devPocAiAssisted">
           <InterfaceText text={{
             en: "Tick this if an AI tool wrote some or all of the code. It helps us learn how people build.",
             he: "סמנו אם כלי בינה מלאכותית כתב חלק מהקוד או את כולו. זה עוזר לנו ללמוד איך אנשים בונים.",
           }} />
-        </span>
+        </InfoTip>
       </span>
     </label>
     <fieldset className="devPocFieldset">
       <legend><InterfaceText text={{en: "Visibility", he: "נראוּת"}} /></legend>
       <label className="devPocChoice">
-        <input type="radio" name="devPocVisibility" checked={fields.visibility === "private"} onChange={() => set("visibility", "private")} />
-        <span>
-          <InterfaceText text={{en: "Private", he: "פרטי"}} />
-          <span className="devPocHelp">
-            <InterfaceText text={{en: "Only you and the Sefaria team can see this project.", he: "רק את/ה וצוות ספריא יכולים לראות את הפרויקט."}} />
-          </span>
-        </span>
-      </label>
-      <label className="devPocChoice">
-        <input type="radio" name="devPocVisibility" checked={fields.visibility === "public"} onChange={onChoosePublic} />
+        <input type="radio" id="devPocVisibilityPublic" aria-describedby={tipId("devPocVisibilityPublic")} name="devPocVisibility" value="public" checked={fields.visibility === "public"} onChange={onChoosePublic} />
         <span>
           <InterfaceText text={{en: "Public", he: "ציבורי"}} />
-          <span className="devPocHelp">
+          <InfoTip fieldId="devPocVisibilityPublic" wide>
             <InterfaceText text={{
               en: "Sefaria may show this project on Powered by Sefaria, our gallery of projects built with Sefaria. We choose what to feature, so it may not appear.",
               he: "ספריא עשויה להציג את הפרויקט ב־Powered by Sefaria, הגלריה של פרויקטים שנבנו עם ספריא. אנחנו בוחרים מה להציג, כך שייתכן שהוא לא יופיע.",
             }} />
-          </span>
+          </InfoTip>
         </span>
       </label>
-      {fields.visibility === "public" ?
-        <div className="devPocListingArea">
-          <ListingPicker
-            listing={fields.listingRequest}
-            onPick={l => set("listingRequest", l)}
-            onClear={() => set("listingRequest", null)}
-          />
-        </div> : null}
+      <label className="devPocChoice">
+        <input type="radio" id="devPocVisibilityPrivate" aria-describedby={tipId("devPocVisibilityPrivate")} name="devPocVisibility" value="private" checked={fields.visibility === "private"} onChange={onChoosePrivate} />
+        <span>
+          <InterfaceText text={{en: "Private", he: "פרטי"}} />
+          <InfoTip fieldId="devPocVisibilityPrivate">
+            <InterfaceText text={{en: "Only you and the Sefaria team can see this project.", he: "רק את/ה וצוות ספריא יכולים לראות את הפרויקט."}} />
+          </InfoTip>
+        </span>
+      </label>
+      <button type="button" className="devPocTextButton" data-agent-action="show-public-preview" onClick={onShowPublic}>
+        <InterfaceText text={{en: "Show me what will be public", he: "הראו לי מה יהיה ציבורי"}} />
+      </button>
     </fieldset>
   </React.Fragment>
 );
 
+const CharacterCount = ({id, length}) => (
+  <p className={"devPocCount" + (length >= MAX_DESCRIPTION_LENGTH ? " devPocCountFull" : "")} id={id} dir="ltr">
+    {length}/{MAX_DESCRIPTION_LENGTH}
+  </p>
+);
 
-/* Asked when a project is switched to Public, not when the form opens, so the extra step
-   never puts anyone off choosing Public in the first place. */
-const PublicPreviewDialog = ({fields, authorName, onConfirm, onCancel}) => {
-  const confirmRef = useRef(null);
-  useDialogKeys(confirmRef, onCancel);
+
+/* A listing submitted with this account's verified email. "Yes" turns it into a public
+   project linked to the listing; nothing is linked without that answer. */
+const YourListingDialog = ({listing, onYes, onNo, onLater}) => {
+  const yesRef = useRef(null);
+  useDialogKeys(yesRef, onLater);
+  return (
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocYourListingTitle">
+      <section className="devPocDialog">
+        <h2 id="devPocYourListingTitle"><InterfaceText text={{en: "Is this your project?", he: "האם זה הפרויקט שלך?"}} /></h2>
+        <p>
+          <InterfaceText text={{
+            en: "This project on Powered by Sefaria was submitted with your email address.",
+            he: "הפרויקט הזה ב־Powered by Sefaria נשלח עם כתובת האימייל שלך.",
+          }} />
+        </p>
+        <ListingSummary listing={listing} />
+        <p>
+          <InterfaceText text={{
+            en: "If it's yours, we'll add it to your projects with these details, so you can create an API key for it. It stays public, like the listing, and you can edit it afterwards.",
+            he: "אם הוא שלך, נוסיף אותו לפרויקטים שלך עם הפרטים האלה, כדי שתוכלו ליצור לו מפתח API. הוא יישאר ציבורי, כמו הרישום, ואפשר לערוך אותו אחר כך.",
+          }} />
+        </p>
+        <div className="devPocActions">
+          <button type="button" className="button small blue" ref={yesRef} data-agent-action="claim-listing" onClick={onYes}>
+            <InterfaceText text={{en: "Yes, add it", he: "כן, להוסיף"}} />
+          </button>
+          <button type="button" className="button small white" data-agent-action="not-my-listing" onClick={onNo}>
+            <InterfaceText text={{en: "No, it's not mine", he: "לא, זה לא שלי"}} />
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+
+/* A public project may already have been published, so neither making it private nor
+   deleting it can promise it disappears everywhere. */
+const PublishedCopiesWarning = () => (
+  <InterfaceText text={{
+    en: <React.Fragment>If it already appeared on a published page, we can't guarantee it's removed everywhere. If that's a problem, email <ContactLink />.</React.Fragment>,
+    he: <React.Fragment>אם הוא כבר הופיע בעמוד שפורסם, איננו יכולים להבטיח שיוסר מכל מקום. אם זו בעיה, כתבו אל <ContactLink />.</React.Fragment>,
+  }} />
+);
+
+const MakePrivateDialog = ({onConfirm, onCancel}) => {
+  const cancelRef = useRef(null);
+  useDialogKeys(cancelRef, onCancel);
+  return (
+    <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocPrivateTitle">
+      <section className="devPocDialog">
+        <h2 id="devPocPrivateTitle"><InterfaceText text={{en: "Make this project private?", he: "להפוך את הפרויקט לפרטי?"}} /></h2>
+        <p>
+          <InterfaceText text={{en: "The project will be marked private.", he: "הפרויקט יסומן כפרטי."}} />{" "}
+          <PublishedCopiesWarning />
+        </p>
+        <div className="devPocActions">
+          <button type="button" className="button small white" ref={cancelRef} onClick={onCancel}>
+            <InterfaceText text={{en: "Keep public", he: "להשאיר ציבורי"}} />
+          </button>
+          <button type="button" className="button small blue" data-agent-action="confirm-private" onClick={onConfirm}>
+            <InterfaceText text={{en: "Make private", he: "להפוך לפרטי"}} />
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+
+/* What a public project shows, for the developer to look at before or after choosing. */
+const PublicPreviewDialog = ({fields, onClose}) => {
+  const closeRef = useRef(null);
+  useDialogKeys(closeRef, onClose);
   const notYet = <span className="devPocMuted"><InterfaceText text={{en: "Not filled in yet", he: "עדיין לא מולא"}} /></span>;
   const rows = [
     {label: {en: "Project name", he: "שם הפרויקט"}, value: fields.name.trim(), dir: "auto"},
     {label: {en: "Description", he: "תיאור"}, value: fields.description.trim(), dir: "auto"},
-    {label: {en: "Made by", he: "נוצר על ידי"}, value: authorName, dir: "auto"},
     {label: {en: "Organization", he: "ארגון"}, value: fields.organization.trim(), dir: "auto", optional: true},
     {label: {en: "Website", he: "אתר"}, value: fields.websiteUrl.trim(), dir: "ltr", optional: true},
   ].filter(row => row.value || !row.optional);
@@ -793,7 +991,7 @@ const PublicPreviewDialog = ({fields, authorName, onConfirm, onCancel}) => {
   return (
     <div className="devPocModalStage devPocConfirmStage" role="dialog" aria-modal="true" aria-labelledby="devPocPublicTitle">
       <section className="devPocDialog">
-        <h2 id="devPocPublicTitle"><InterfaceText text={{en: "Make this project public?", he: "להפוך את הפרויקט לציבורי?"}} /></h2>
+        <h2 id="devPocPublicTitle"><InterfaceText text={{en: "What will be public", he: "מה יהיה ציבורי"}} /></h2>
         <p>
           <InterfaceText text={{
             en: "If Sefaria features it on Powered by Sefaria, anyone will be able to see:",
@@ -810,22 +1008,13 @@ const PublicPreviewDialog = ({fields, authorName, onConfirm, onCancel}) => {
         </dl>
         <p>
           <InterfaceText text={{
-            en: "Your API keys and usage are never shown. You can change these details, or make the project private again, with Edit project.",
-            he: "מפתחות ה־API והשימוש בהם לעולם לא מוצגים. אפשר לשנות את הפרטים האלה, או להחזיר את הפרויקט למצב פרטי, דרך עריכת הפרויקט.",
+            en: "Your name, email address and API keys are never shown. You can change these details, or make the project private again, with Edit project.",
+            he: "השם, כתובת האימייל ומפתחות ה־API שלך לעולם לא מוצגים. אפשר לשנות את הפרטים האלה, או להחזיר את הפרויקט למצב פרטי, דרך עריכת הפרויקט.",
           }} />
         </p>
-        <p>
-          <a className="devPocExternalLink" href={POWERED_BY_URL} target="_blank" rel="noopener noreferrer">
-            <InterfaceText text={{en: "See the projects on Powered by Sefaria", he: "לפרויקטים ב־Powered by Sefaria"}} />
-            <ExternalIcon />
-          </a>
-        </p>
         <div className="devPocActions">
-          <button type="button" className="button small white" onClick={onCancel}>
-            <InterfaceText text={{en: "Keep private", he: "להשאיר פרטי"}} />
-          </button>
-          <button type="button" className="button small blue" ref={confirmRef} data-agent-action="confirm-public" onClick={onConfirm}>
-            <InterfaceText text={{en: "Make public", he: "להפוך לציבורי"}} />
+          <button type="button" className="button small white" ref={closeRef} onClick={onClose}>
+            <InterfaceText text={{en: "Close", he: "סגירה"}} />
           </button>
         </div>
       </section>
@@ -869,23 +1058,44 @@ const NoWebsiteDialog = ({onAddWebsite, onSaveAnyway}) => (
 
 /* One form for creating and editing a project. A missing website asks once before saving,
    and the website field gets focus if the developer goes back to add one. */
-const ProjectForm = ({initial, authorName, submitLabel, onSave, onCancel, onDelete}) => {
+const ProjectForm = ({initial, savedVisibility, submitLabel, onSave, onCancel, onDelete}) => {
   const [fields, setFields] = useState(initial);
   const [error, setError] = useState("");
   const [askWebsite, setAskWebsite] = useState(false);
   const [previewPublic, setPreviewPublic] = useState(false);
+  const [askPrivate, setAskPrivate] = useState(false);
   const formRef = useRef(null);
   const set = (key, value) => { setFields(f => ({...f, [key]: value})); setError(""); };
 
+  const linkedListing = fields.linkedListingId ? POWERED_BY_LISTINGS.find(l => l.id === fields.linkedListingId) : null;
+
   const save = () => onSave({
     ...fields, name: fields.name.trim(), description: fields.description.trim(),
-    organization: fields.organization.trim(), websiteUrl: fields.websiteUrl.trim(),
+    organization: fields.organization.trim(), websiteUrl: parseWebsite(fields.websiteUrl).url,
   });
 
   const submit = (e) => {
     e.preventDefault();
     if (!fields.name.trim()) { setError(Sefaria._v({en: "Enter a project name.", he: "נא להזין שם לפרויקט."})); return; }
     if (!fields.description.trim()) { setError(Sefaria._v({en: "Enter a short description.", he: "נא להזין תיאור קצר."})); return; }
+    if (fields.description.trim().length > MAX_DESCRIPTION_LENGTH) {
+      setError(Sefaria._v({
+        en: "Keep the description to " + MAX_DESCRIPTION_LENGTH + " characters.",
+        he: "התיאור יכול להכיל עד " + MAX_DESCRIPTION_LENGTH + " תווים.",
+      }));
+      return;
+    }
+    if (!parseWebsite(fields.websiteUrl).valid) {
+      setError(Sefaria._v({
+        en: "Enter a website address like example.com, or leave it empty.",
+        he: "נא להזין כתובת אתר כמו example.com, או להשאיר את השדה ריק.",
+      }));
+      return;
+    }
+    if (!fields.visibility) {
+      setError(Sefaria._v({en: "Choose whether the project is public or private.", he: "נא לבחור אם הפרויקט ציבורי או פרטי."}));
+      return;
+    }
     setError("");
     if (!fields.websiteUrl.trim()) { setAskWebsite(true); return; }
     save();
@@ -897,9 +1107,9 @@ const ProjectForm = ({initial, authorName, submitLabel, onSave, onCancel, onDele
     if (input) { input.focus(); }
   };
 
-  const closePreview = (makePublic) => {
-    setPreviewPublic(false);
-    if (makePublic) { set("visibility", "public"); }
+  const choosePrivate = () => {
+    if (fields.visibility === "private") { return; }
+    if (savedVisibility === "public") { setAskPrivate(true); } else { set("visibility", "private"); }
   };
 
   return (
@@ -908,12 +1118,15 @@ const ProjectForm = ({initial, authorName, submitLabel, onSave, onCancel, onDele
         <ProjectFields
           fields={fields}
           set={set}
-          onChoosePublic={() => { if (fields.visibility !== "public") { setPreviewPublic(true); } }}
+          onChoosePublic={() => set("visibility", "public")}
+          onChoosePrivate={choosePrivate}
+          onShowPublic={() => setPreviewPublic(true)}
+          linkedNote={linkedListing ? <LinkedListingNote listing={publicListing(linkedListing)} /> : null}
         />
         <p className="devPocHelp">
           <InterfaceText text={{
-            en: "This project belongs to your Sefaria account and can't be moved to another account.",
-            he: "הפרויקט שייך לחשבון ספריא שלך ואי אפשר להעביר אותו לחשבון אחר.",
+            en: "Projects stay with this Sefaria account and can't be transferred to another account.",
+            he: "פרויקטים נשארים בחשבון ספריא הזה ואי אפשר להעביר אותם לחשבון אחר.",
           }} />
         </p>
         {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
@@ -933,11 +1146,11 @@ const ProjectForm = ({initial, authorName, submitLabel, onSave, onCancel, onDele
       {askWebsite ?
         <NoWebsiteDialog onAddWebsite={addWebsite} onSaveAnyway={() => { setAskWebsite(false); save(); }} /> : null}
       {previewPublic ?
-        <PublicPreviewDialog
-          fields={fields}
-          authorName={authorName}
-          onConfirm={() => closePreview(true)}
-          onCancel={() => closePreview(false)}
+        <PublicPreviewDialog fields={fields} onClose={() => setPreviewPublic(false)} /> : null}
+      {askPrivate ?
+        <MakePrivateDialog
+          onConfirm={() => { setAskPrivate(false); set("visibility", "private"); }}
+          onCancel={() => setAskPrivate(false)}
         /> : null}
     </React.Fragment>
   );
@@ -945,11 +1158,11 @@ const ProjectForm = ({initial, authorName, submitLabel, onSave, onCancel, onDele
 
 const newProjectFields = () => ({
   name: "", description: "", organization: "", websiteUrl: "",
-  visibility: "private", aiAssisted: false, listingRequest: null,
+  visibility: null, aiAssisted: false, linkedListingId: null,
 });
 
 /* The new-project form opens in place at the top of the project list. */
-const NewProjectPanel = ({authorName, onCreate, onCancel}) => {
+const NewProjectPanel = ({onCreate, onCancel}) => {
   const panelRef = useRef(null);
   useEffect(() => {
     const input = panelRef.current && panelRef.current.querySelector("#devPocProjectName");
@@ -963,7 +1176,7 @@ const NewProjectPanel = ({authorName, onCreate, onCancel}) => {
       </p>
       <ProjectForm
         initial={newProjectFields()}
-        authorName={authorName}
+        savedVisibility={null}
         submitLabel={{en: "Create project", he: "יצירת פרויקט"}}
         onSave={onCreate}
         onCancel={onCancel}
@@ -973,8 +1186,16 @@ const NewProjectPanel = ({authorName, onCreate, onCancel}) => {
 };
 
 
+/* An allowed-origin restriction on the key. One visible technical sentence names the exact
+   mechanism (Origin header, 403) so developers and agents can act on it without guessing;
+   the plain-language explanation is a disclosure, because this setting is the one most
+   likely to break a project. */
 const RestrictionToggle = ({project, apiKey, onToggle}) => {
   const host = websiteHost(project.websiteUrl);
+  const [explained, setExplained] = useState(false);
+  const explainerId = "devPocRestrictionHelp-" + apiKey.id;
+  const summaryId = "devPocRestrictionSummary-" + apiKey.id;
+  const origin = <code dir="ltr">https://{host}</code>;
   return (
     <div className="devPocRestriction">
       <div className="devPocRestrictionRow">
@@ -984,34 +1205,65 @@ const RestrictionToggle = ({project, apiKey, onToggle}) => {
             className="devPocSwitch"
             checked={!!apiKey.restrictToWebsite}
             onChange={e => onToggle(e.target.checked)}
+            aria-describedby={summaryId}
             aria-label={Sefaria._v({
-              en: "Only allow " + apiKey.label + " on " + host,
-              he: "לאפשר את " + apiKey.label + " רק ב־" + host,
+              en: "Only accept requests with " + apiKey.label + " from " + host,
+              he: "לקבל בקשות עם " + apiKey.label + " רק מ־" + host,
             })}
           />
           <span>
-            <InterfaceText text={{en: "Only allow this key on", he: "לאפשר את המפתח רק ב־"}} /> <code dir="ltr">{host}</code>
+            <InterfaceText text={{en: "Only accept requests from", he: "לקבל בקשות רק מ־"}} /> <code dir="ltr">{host}</code>
           </span>
         </label>
       </div>
-      <p className="devPocHelp">
+      <p className="devPocHelp devPocRestrictionSummary" id={summaryId}>
         <InterfaceText text={{
-          en: "Turn this on if your key is inside a web page people visit. Then a copied key won't work on anyone else's site.",
-          he: "הפעילו אם המפתח נמצא בתוך דף אינטרנט שאנשים מבקרים בו. כך מפתח שהועתק לא יעבוד באתר של מישהו אחר.",
+          en: <React.Fragment>Allowed origin: Sefaria refuses requests with this key (<code dir="ltr">403 origin_not_allowed</code>) unless their <code dir="ltr">Origin</code> header is {origin}.</React.Fragment>,
+          he: <React.Fragment>מקור מורשה (allowed origin): ספריא דוחה בקשות עם המפתח (<code dir="ltr">403 origin_not_allowed</code>) אלא אם כותרת ה־<code dir="ltr">Origin</code> שלהן היא {origin}.</React.Fragment>,
         }} />
       </p>
-      <p className="devPocHelp">
-        <InterfaceText text={{
-          en: "Leave it off if your key is used anywhere else, or your own project will stop working.",
-          he: "השאירו כבוי אם המפתח משמש בכל מקום אחר, אחרת הפרויקט שלכם יפסיק לעבוד.",
-        }} />
-      </p>
+      <button
+        type="button"
+        className="devPocTextButton devPocExplainerToggle"
+        aria-expanded={explained}
+        aria-controls={explainerId}
+        onClick={() => setExplained(e => !e)}
+      >
+        <InterfaceText text={{en: "What does this mean?", he: "מה זה אומר?"}} />
+      </button>
+      {explained ?
+        <div className="devPocExplainer" id={explainerId}>
+          <p>
+            <InterfaceText text={{
+              en: <React.Fragment>When this is on, the key only works on your website, {origin}. Anywhere else, including a request with no website attached, Sefaria turns it away.</React.Fragment>,
+              he: <React.Fragment>כשההגבלה פעילה, המפתח עובד רק באתר שלכם, {origin}. בכל מקום אחר, כולל בקשה שלא מגיעה מאתר, ספריא דוחה אותו.</React.Fragment>,
+            }} />
+          </p>
+          <p>
+            <InterfaceText text={{
+              en: <React.Fragment><strong>Turn it on</strong> if the key is in front-end code that runs in visitors' browsers, where anyone can read it. A copied key then won't work on another website.</React.Fragment>,
+              he: <React.Fragment><strong>הפעילו</strong> אם המפתח נמצא בקוד צד־לקוח שרץ בדפדפן של המבקרים, שם כל אחד יכול לקרוא אותו. כך מפתח שהועתק לא יעבוד באתר אחר.</React.Fragment>,
+            }} />
+          </p>
+          <p>
+            <InterfaceText text={{
+              en: <React.Fragment><strong>Leave it off</strong> if the key is used from a server, a script, a mobile or desktop app, or an AI agent. Those requests send no browser <code dir="ltr">Origin</code>, so they would be refused and your project would stop working.</React.Fragment>,
+              he: <React.Fragment><strong>השאירו כבוי</strong> אם המפתח משמש משרת, מסקריפט, מאפליקציה לנייד או למחשב, או מסוכן בינה מלאכותית. בקשות כאלה לא שולחות <code dir="ltr">Origin</code> של דפדפן, ולכן ייָדחו והפרויקט שלכם יפסיק לעבוד.</React.Fragment>,
+            }} />
+          </p>
+          <p>
+            <InterfaceText text={{
+              en: <React.Fragment>It stops casual copying, not a determined attacker: outside a browser, the <code dir="ltr">Origin</code> header can be faked.</React.Fragment>,
+              he: <React.Fragment>ההגבלה מונעת העתקה מזדמנת, לא תוקף נחוש: מחוץ לדפדפן אפשר לזייף את כותרת ה־<code dir="ltr">Origin</code>.</React.Fragment>,
+            }} />
+          </p>
+        </div> : null}
     </div>
   );
 };
 
 
-const KeyValue = ({value}) => {
+const KeyValue = ({value, describedBy}) => {
   const [shown, setShown] = useState(false);
   const [copied, setCopied] = useState("");
   const codeRef = useRef(null);
@@ -1036,6 +1288,7 @@ const KeyValue = ({value}) => {
         className="devPocIconButton"
         aria-pressed={shown}
         aria-label={showLabel}
+        aria-describedby={describedBy}
         title={showLabel}
         data-agent-action="show-key"
         onClick={() => setShown(s => !s)}
@@ -1044,6 +1297,7 @@ const KeyValue = ({value}) => {
         type="button"
         className="devPocIconButton"
         aria-label={copyLabel}
+        aria-describedby={describedBy}
         title={copyLabel}
         data-agent-action="copy-key"
         onClick={copy}
@@ -1054,7 +1308,7 @@ const KeyValue = ({value}) => {
 };
 
 
-const KeyRow = ({project, apiKey, isNew, onToggleRestriction, onDelete, onAddWebsite}) => (
+const KeyRow = ({project, apiKey, isNew, describedBy, onToggleRestriction, onDelete, onAddWebsite}) => (
   <article className={"devPocKey" + (isNew ? " devPocKeyNew" : "")}>
     <div className="devPocKeyHeading">
       <strong dir="auto">{apiKey.label}</strong>
@@ -1062,16 +1316,9 @@ const KeyRow = ({project, apiKey, isNew, onToggleRestriction, onDelete, onAddWeb
         <InterfaceText text={{en: "Delete key", he: "מחיקת המפתח"}} />
       </button>
     </div>
-    <KeyValue value={apiKey.value} />
+    <KeyValue value={apiKey.value} describedBy={describedBy} />
     <div className="devPocKeyMeta">
       <span><InterfaceText text={{en: "Created " + formatDate(apiKey.created), he: "נוצר ב־" + formatDate(apiKey.created)}} /></span>
-      <span><InterfaceText text={{en: "Last used " + formatDate(apiKey.lastUsed), he: "שימוש אחרון: " + formatDate(apiKey.lastUsed)}} /></span>
-      <span>
-        <InterfaceText text={{
-          en: formatNumber(apiKey.requests30) + " requests in the last 30 days",
-          he: formatNumber(apiKey.requests30) + " בקשות ב־30 הימים האחרונים",
-        }} />
-      </span>
     </div>
     {isNew ?
       <p className="devPocKeyReady" role="status">
@@ -1111,6 +1358,7 @@ const KeysSection = ({project, update, setConfirm, onAddWebsite}) => {
   useEffect(() => () => { clearTimeout(timer.current); clearTimeout(highlightTimer.current); }, []);
 
   const atLimit = project.keys.length >= MAX_KEYS_PER_PROJECT;
+  const keysNoteField = "devPocKeys-" + project.id;
   const firstKeyPrompt = project.keys.length === 0 && !creating && phase === "idle";
   const startCreating = () => { setCreating(true); setPhase("idle"); setError(""); };
 
@@ -1166,24 +1414,20 @@ const KeysSection = ({project, update, setConfirm, onAddWebsite}) => {
     <section className="devPocSection">
       <div className="devPocHeading">
         <div>
-          <h3><InterfaceText text={{en: "API keys", he: "מפתחות API"}} /></h3>
+          <h3>
+            <InterfaceText text={{en: "API keys", he: "מפתחות API"}} />
+          </h3>
+          <FieldNote fieldId={keysNoteField}>
+            <InterfaceText text={{
+              en: "A key is like a password that lets your project use Sefaria. Paste it wherever your tool asks for a Sefaria API key, and keep it private. Developers: send it in an x-api-key header on every call to Sefaria.",
+              he: "מפתח הוא כמו סיסמה שמאפשרת לפרויקט שלכם להשתמש בספריא. הדביקו אותו בכל מקום שבו הכלי שלכם מבקש מפתח API של ספריא, ושמרו אותו בסוד. למפתחים: שלחו אותו בכותרת x-api-key בכל קריאה לספריא.",
+            }} />
+          </FieldNote>
           <p className="devPocHelp">
             <InterfaceText text={{
               en: project.keys.length + " of " + MAX_KEYS_PER_PROJECT + " keys",
               he: project.keys.length + " מתוך " + MAX_KEYS_PER_PROJECT + " מפתחות",
             }} />
-          </p>
-          <p className="devPocHelp">
-            <InterfaceText text={{
-              en: "A key is like a password that lets your project use Sefaria. Paste it wherever your tool asks for a Sefaria API key, and keep it private.",
-              he: "מפתח הוא כמו סיסמה שמאפשרת לפרויקט שלכם להשתמש בספריא. הדביקו אותו בכל מקום שבו הכלי שלכם מבקש מפתח API של ספריא, ושמרו אותו בסוד.",
-            }} />{" "}
-            <InfoTip label={Sefaria._v({en: "How to send the key", he: "איך שולחים את המפתח"})}>
-              <InterfaceText text={{
-                en: "Send the key in a header called x-api-key, with your key as its value, on every call your project makes to Sefaria.",
-                he: "שלחו את המפתח בכותרת (header) בשם x-api-key, עם המפתח כערך שלה, בכל קריאה שהפרויקט שלכם שולח לספריא.",
-              }} />
-            </InfoTip>
           </p>
         </div>
         {creating || firstKeyPrompt ? null :
@@ -1206,14 +1450,20 @@ const KeysSection = ({project, update, setConfirm, onAddWebsite}) => {
       {creating && phase === "idle" ?
         <form className="devPocForm devPocCreateKey" onSubmit={startCreate}>
           <div className="devPocField">
-            <label htmlFor="devPocKeyLabel"><InterfaceText text={{en: "Key name", he: "שם המפתח"}} /></label>
-            <input id="devPocKeyLabel" dir="auto" value={label} onChange={e => setLabel(e.target.value)} />
-            <p className="devPocHelp">
-              <InterfaceText text={{
-                en: "A name just for you, so you can tell your keys apart. For example: My website.",
-                he: "שם רק בשבילכם, כדי להבחין בין המפתחות. למשל: האתר שלי.",
-              }} />
-            </p>
+            <label htmlFor="devPocKeyLabel">
+              <InterfaceText text={{en: "Key name", he: "שם המפתח"}} />
+              <InfoTip fieldId="devPocKeyLabel">
+                <InterfaceText text={{en: "A name just for you, so you can tell your keys apart.", he: "שם רק בשבילכם, כדי להבחין בין המפתחות."}} />
+              </InfoTip>
+            </label>
+            <input
+              id="devPocKeyLabel"
+              aria-describedby={tipId("devPocKeyLabel")}
+              dir="auto"
+              placeholder={Sefaria._v({en: "e.g. My website", he: "למשל: האתר שלי"})}
+              value={label}
+              onChange={e => setLabel(e.target.value)}
+            />
           </div>
           {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
           <div className="devPocActions">
@@ -1259,6 +1509,7 @@ const KeysSection = ({project, update, setConfirm, onAddWebsite}) => {
                 project={project}
                 apiKey={k}
                 isNew={k.id === newKeyId}
+                describedBy={tipId(keysNoteField)}
                 onToggleRestriction={on => toggleRestriction(k.id, on)}
                 onDelete={() => deleteKey(k)}
                 onAddWebsite={onAddWebsite}
@@ -1272,170 +1523,24 @@ const KeysSection = ({project, update, setConfirm, onAddWebsite}) => {
 
 
 const listingStatus = (project) => {
-  if (project.listingRequest) {
-    const name = project.listingRequest.name;
+  const linked = project.linkedListingId && POWERED_BY_LISTINGS.find(l => l.id === project.linkedListingId);
+  if (linked && project.visibility === "public") {
     return {
-      en: "Link to the " + name + " listing requested. Waiting for Sefaria to confirm.",
-      he: "התבקש קישור לפרויקט " + name + " ברשימה. ממתין לאישור ספריא.",
+      en: "Public: this is the " + linked.name + " listing on Powered by Sefaria.",
+      he: "ציבורי: זה הרישום " + linked.name + " ב־Powered by Sefaria.",
     };
   }
   if (project.visibility === "public") {
     return {en: "Public: Sefaria may show it on Powered by Sefaria.", he: "ציבורי: ספריא עשויה להציג אותו ב־Powered by Sefaria."};
   }
-  return {en: "Private: not shown on Powered by Sefaria.", he: "פרטי: לא מוצג ב־Powered by Sefaria."};
+  if (project.visibility === "private") {
+    return {en: "Private: not shown on Powered by Sefaria.", he: "פרטי: לא מוצג ב־Powered by Sefaria."};
+  }
+  return {en: "Visibility not chosen yet.", he: "עדיין לא נבחרה נראוּת."};
 };
 
 
-const CHART_WIDTH = 320;
-const CHART_HEIGHT = 72;
-
-/* Five tints of --devPoc-blue, dark to light, so up to five keys stay tellable apart. */
-const KEY_COLORS = ["#18345d", "#2f6193", "#5b8dbd", "#93b6d6", "#c5d7e8"];
-
-const DONUT_SIZE = 132;
-const DONUT_OUTER = 62;
-const DONUT_INNER = 38;
-
-const polarPoint = (radius, degrees) => {
-  const radians = (degrees - 90) * Math.PI / 180;
-  const center = DONUT_SIZE / 2;
-  return [center + radius * Math.cos(radians), center + radius * Math.sin(radians)];
-};
-
-const donutSlicePath = (startDeg, endDeg) => {
-  const large = endDeg - startDeg > 180 ? 1 : 0;
-  const [x1, y1] = polarPoint(DONUT_OUTER, startDeg);
-  const [x2, y2] = polarPoint(DONUT_OUTER, endDeg);
-  const [x3, y3] = polarPoint(DONUT_INNER, endDeg);
-  const [x4, y4] = polarPoint(DONUT_INNER, startDeg);
-  return [
-    "M", x1, y1,
-    "A", DONUT_OUTER, DONUT_OUTER, 0, large, 1, x2, y2,
-    "L", x3, y3,
-    "A", DONUT_INNER, DONUT_INNER, 0, large, 0, x4, y4,
-    "Z",
-  ].join(" ");
-};
-
-/* One ring per key. A lone key (or a key holding every request) draws as a full ring,
-   because a 360° arc collapses to nothing. */
-const UsageDonut = ({slices, total}) => {
-  const center = DONUT_SIZE / 2;
-  const ringWidth = DONUT_OUTER - DONUT_INNER;
-  const ringRadius = (DONUT_OUTER + DONUT_INNER) / 2;
-  const drawn = slices.filter(s => s.value > 0);
-  let angle = 0;
-  return (
-    <svg
-      className="devPocDonut"
-      viewBox={"0 0 " + DONUT_SIZE + " " + DONUT_SIZE}
-      role="img"
-      aria-label={Sefaria._v({en: "Requests by key over the last 30 days", he: "בקשות לפי מפתח ב־30 הימים האחרונים"})}
-    >
-      {total === 0 || drawn.length === 0 ?
-        <circle cx={center} cy={center} r={ringRadius} fill="none" stroke="#e3e6e9" strokeWidth={ringWidth} /> :
-        drawn.length === 1 ?
-        <circle cx={center} cy={center} r={ringRadius} fill="none" stroke={drawn[0].color} strokeWidth={ringWidth} /> :
-        drawn.map((slice) => {
-          const sweep = slice.value / total * 360;
-          const path = donutSlicePath(angle, angle + sweep);
-          angle += sweep;
-          return <path key={slice.id} d={path} fill={slice.color} />;
-        })}
-    </svg>
-  );
-};
-
-/* Time runs left to right in both interface languages, like the axis labels under it. */
-const UsageChart = ({series}) => {
-  const max = Math.max(1, ...series);
-  const gap = 2;
-  const barWidth = (CHART_WIDTH - gap * (series.length - 1)) / series.length;
-  return (
-    <svg
-      className="devPocChart"
-      viewBox={"0 0 " + CHART_WIDTH + " " + CHART_HEIGHT}
-      preserveAspectRatio="none"
-      role="img"
-      aria-label={Sefaria._v({en: "Daily requests over the last 30 days", he: "בקשות יומיות ב־30 הימים האחרונים"})}
-    >
-      {series.map((value, i) => {
-        const height = value > 0 ? Math.max(1, Math.round(value / max * CHART_HEIGHT)) : 0;
-        return (
-          <rect
-            key={i}
-            x={i * (barWidth + gap)}
-            y={CHART_HEIGHT - height}
-            width={barWidth}
-            height={height}
-            fill={KEY_COLORS[0]}
-          />
-        );
-      })}
-    </svg>
-  );
-};
-
-
-const UsageSection = ({project}) => {
-  const perKey = project.keys.map(k => ({key: k, series: usageSeries(k.id, k.requests30)}));
-  const total = perKey.reduce((sum, k) => sum + k.key.requests30, 0);
-  const daily = perKey.length
-    ? perKey[0].series.map((_, day) => perKey.reduce((sum, k) => sum + k.series[day], 0))
-    : [];
-  const slices = perKey.map(({key}, i) => ({
-    id: key.id, label: key.label, value: key.requests30, color: KEY_COLORS[i % KEY_COLORS.length],
-  }));
-
-  return (
-    <section className="devPocSection">
-      <div className="devPocHeading">
-        <div><h3><InterfaceText text={{en: "Usage", he: "שימוש"}} /></h3></div>
-      </div>
-      <div className="devPocStats">
-        <div className="devPocStat">
-          <strong>{formatNumber(total)}</strong>
-          <span><InterfaceText text={{en: "Requests in the last 30 days", he: "בקשות ב־30 הימים האחרונים"}} /></span>
-        </div>
-        <div className="devPocStat">
-          <strong>{formatDate(project.usage.lastUsed)}</strong>
-          <span><InterfaceText text={{en: "Last used", he: "שימוש אחרון"}} /></span>
-        </div>
-      </div>
-      <div className="devPocChartBlock">
-        <p className="devPocChartTitle"><InterfaceText text={{en: "Requests per day", he: "בקשות ביום"}} /></p>
-        <div dir="ltr">
-          <UsageChart series={daily} />
-          <div className="devPocChartAxis">
-            <span><InterfaceText text={{en: "30 days ago", he: "לפני 30 יום"}} /></span>
-            <span><InterfaceText text={{en: "Today", he: "היום"}} /></span>
-          </div>
-        </div>
-      </div>
-      <div className="devPocChartBlock">
-        <p className="devPocChartTitle"><InterfaceText text={{en: "Requests by key", he: "בקשות לפי מפתח"}} /></p>
-        <div className="devPocSplit">
-          <UsageDonut slices={slices} total={total} />
-          <ul className="devPocLegend">
-            {slices.map(slice => (
-              <li className="devPocLegendRow" key={slice.id}>
-                <span className="devPocSwatch" style={{background: slice.color}} aria-hidden="true" />
-                <span className="devPocLegendLabel" dir="auto">{slice.label}</span>
-                <span className="devPocLegendValue">{formatNumber(slice.value)}</span>
-                <span className="devPocLegendPercent">
-                  {total ? Math.round(slice.value / total * 100) : 0}%
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </section>
-  );
-};
-
-
-const ProjectCard = ({project, expanded, authorName, update, setConfirm, onToggleExpand, notice}) => {
+const ProjectCard = ({project, expanded, update, setConfirm, onToggleExpand, notice}) => {
   const [editing, setEditing] = useState(false);
   const cardRef = useRef(null);
 
@@ -1452,13 +1557,19 @@ const ProjectCard = ({project, expanded, authorName, update, setConfirm, onToggl
     const hadUrl = !!project.websiteUrl;
     const losingUrl = hadUrl && !fields.websiteUrl.trim();
     const restrictedKeys = project.keys.filter(k => k.restrictToWebsite).map(k => k.label);
+    const withdrawing = project.visibility === "public" && fields.visibility === "private";
     update(s => ({
       ...s,
-      projects: s.projects.map(p => p.id !== project.id ? p : {
-        ...p,
-        ...fields,
-        websiteUrl: fields.websiteUrl.trim(),
-        keys: losingUrl ? p.keys.map(k => ({...k, restrictToWebsite: false})) : p.keys,
+      projects: s.projects.map(p => {
+        if (p.id !== project.id) { return p; }
+        const saved = {
+          ...p,
+          ...fields,
+          websiteUrl: fields.websiteUrl.trim(),
+          keys: losingUrl ? p.keys.map(k => ({...k, restrictToWebsite: false})) : p.keys,
+          consentWithdrawnAt: fields.visibility === "public" ? null : p.consentWithdrawnAt,
+        };
+        return withdrawing ? withdrawConsent(saved) : saved;
       }),
     }));
     setEditing(false);
@@ -1471,20 +1582,19 @@ const ProjectCard = ({project, expanded, authorName, update, setConfirm, onToggl
   };
 
   const keyLabels = project.keys.map(k => k.label).join(", ");
+  const keysText = project.keys.length
+    ? Sefaria._v({
+      en: "These keys stop working right away: " + keyLabels + ". You can't get the project or its keys back.",
+      he: "המפתחות האלה יפסיקו לעבוד מיד: " + keyLabels + ". לא יהיה אפשר לשחזר את הפרויקט או את המפתחות שלו.",
+    })
+    : Sefaria._v({en: "This project has no keys. You can't undo this.", he: "לפרויקט הזה אין מפתחות. אי אפשר לבטל את הפעולה."});
   const deleteProject = () => setConfirm({
     title: Sefaria._v({en: "Delete " + project.name + "?", he: "למחוק את " + project.name + "?"}),
-    body: project.keys.length
-      ? Sefaria._v({
-        en: "These keys stop working right away: " + keyLabels + ". You can't get the project or its keys back.",
-        he: "המפתחות האלה יפסיקו לעבוד מיד: " + keyLabels + ". לא יהיה אפשר לשחזר את הפרויקט או את המפתחות שלו.",
-      })
-      : Sefaria._v({en: "This project has no keys. You can't undo this.", he: "לפרויקט הזה אין מפתחות. אי אפשר לבטל את הפעולה."}),
+    body: project.visibility === "public"
+      ? <React.Fragment>{keysText} <PublishedCopiesWarning /></React.Fragment>
+      : keysText,
     actionLabel: Sefaria._v({en: "Delete project", he: "מחיקת הפרויקט"}),
-    onConfirm: () => update(s => ({
-      ...s,
-      projects: s.projects.filter(p => p.id !== project.id),
-      expandedProjectId: s.expandedProjectId === project.id ? null : s.expandedProjectId,
-    })),
+    onConfirm: () => update(s => removeProject(s, project.id)),
   });
 
   const keyCount = project.keys.length;
@@ -1539,9 +1649,9 @@ const ProjectCard = ({project, expanded, authorName, update, setConfirm, onToggl
                 initial={{
                   name: project.name, description: project.description, organization: project.organization,
                   websiteUrl: project.websiteUrl, visibility: project.visibility, aiAssisted: project.aiAssisted,
-                  listingRequest: project.listingRequest,
+                  linkedListingId: project.linkedListingId || null,
                 }}
-                authorName={authorName}
+                savedVisibility={project.visibility}
                 submitLabel={{en: "Save project", he: "שמירת הפרויקט"}}
                 onSave={saveProject}
                 onCancel={() => setEditing(false)}
@@ -1549,7 +1659,6 @@ const ProjectCard = ({project, expanded, authorName, update, setConfirm, onToggl
               />
             </section> : null}
           <KeysSection project={project} update={update} setConfirm={setConfirm} onAddWebsite={addWebsite} />
-          {project.keys.length ? <UsageSection project={project} /> : null}
         </div> : null}
     </article>
   );
@@ -1579,8 +1688,14 @@ const ConfirmDialog = ({confirm, onClose}) => {
 const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, setConfirm, notice, setNotice,
                        connectedMessage, editingProfile, setEditingProfile, showNewProject,
                        setShowNewProject, onCreateProject, setProjectId, onStart,
-                       onConnectSso, settingUp}) => {
-  const authorName = accountName() || (state.profile ? state.profile.developerName : "");
+                       settingUp}) => {
+  const profileName = accountName() || (state.profile ? state.profile.developerName : "");
+  const [askLaterListingId, setAskLaterListingId] = useState(null);
+  const yourListing = emailMatchedListing(
+    poweredByListings(state, accountEmail()), accountEmail(), accountVerified(state, socialProviders),
+  );
+  const askAboutListing = yourListing && developerOn && state.profile && !showNewProject
+    && !(state.dismissedListingIds || []).includes(yourListing.id) && askLaterListingId !== yourListing.id;
 
   const toggleExpand = (project) => {
     const expandedProjectId = state.expandedProjectId === project.id ? null : project.id;
@@ -1608,6 +1723,12 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
               he: "רשמו את הפרויקטים שלכם ונהלו את מפתחות ה־API שלהם.",
             }} />
           </p>
+          <p className="devPocHelp devPocExportNote">
+            <InterfaceText text={{
+              en: <React.Fragment>Need a lot of text? The whole library is <a href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">free to download</a>, no API key needed.</React.Fragment>,
+              he: <React.Fragment>צריכים הרבה טקסט? את כל הספרייה אפשר <a href={LIBRARY_EXPORT_URL} target="_blank" rel="noopener noreferrer">להוריד בחינם</a>, בלי מפתח API.</React.Fragment>,
+            }} />
+          </p>
         </div>
         <a className="devPocDocsLink" href={API_DOCS_URL} target="_blank" rel="noreferrer">
           <InterfaceText text={{en: "API documentation", he: "תיעוד ה־API"}} />
@@ -1620,11 +1741,15 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
 
       {!developerOn ?
         <GetStarted
-          connected={ssoConnected(state, socialProviders)}
+          verified={accountVerified(state, socialProviders)}
+          confirmationSent={!!state.confirmationSentAt}
           settingUp={settingUp}
           highlight={highlight}
           onStart={onStart}
-          onConnectSso={onConnectSso}
+          onSendConfirmation={() => update(s => ({
+            ...s, confirmationSentAt: new Date().toISOString(), confirmationToken: s.confirmationToken || makeConfirmationToken(),
+          }))}
+          onCancelConfirmation={() => update(s => ({...s, confirmationSentAt: null, confirmationToken: null}))}
         /> :
         !state.profile ?
         <ProfileOnboarding onSave={profile => update(s => ({...s, profile}))} /> :
@@ -1649,7 +1774,7 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
               </React.Fragment> :
               <div className="devPocProfileSummary">
                 <span>
-                  <strong dir="auto">{authorName}</strong>
+                  <strong dir="auto">{profileName}</strong>
                   <span className="devPocHelp">
                     {profileEmails.map((email, i) => (
                       <React.Fragment key={email}>
@@ -1673,7 +1798,7 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
           </div>
 
           {showNewProject ?
-            <NewProjectPanel authorName={authorName} onCreate={onCreateProject} onCancel={() => setShowNewProject(false)} /> :
+            <NewProjectPanel onCreate={onCreateProject} onCancel={() => setShowNewProject(false)} /> :
             state.projects.length === 0 ?
             <div className="devPocEmpty">
               <h2><InterfaceText text={{en: "No projects yet", he: "עדיין אין פרויקטים"}} /></h2>
@@ -1686,12 +1811,6 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
               <div className="devPocActions">
                 {newProjectButton({en: "Create your first project", he: "יצירת הפרויקט הראשון"}, "blue")}
               </div>
-              <p className="devPocHelp">
-                <InterfaceText text={{
-                  en: "A project can be shown on Powered by Sefaria even without a key.",
-                  he: "פרויקט יכול להופיע ב־Powered by Sefaria גם בלי מפתח.",
-                }} />
-              </p>
             </div> : null}
 
           {state.projects.map(p => (
@@ -1699,7 +1818,6 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
               key={p.id}
               project={p}
               expanded={state.expandedProjectId === p.id}
-              authorName={authorName}
               update={update}
               setConfirm={setConfirm}
               notice={setNotice}
@@ -1707,42 +1825,59 @@ const DeveloperTab = ({state, socialProviders, developerOn, highlight, update, s
             />
           ))}
         </React.Fragment>}
+
+      {askAboutListing ?
+        <YourListingDialog
+          listing={publicListing(yourListing)}
+          onYes={() => onCreateProject(projectFromListing(yourListing))}
+          onNo={() => update(s => ({...s, dismissedListingIds: [...(s.dismissedListingIds || []), yourListing.id]}))}
+          onLater={() => setAskLaterListingId(yourListing.id)}
+        /> : null}
     </div>
   );
 };
 
 
-/* The mock provider chooser. It stands in for the Google or Apple sign-in window, and
-   offers the Sefaria account's own email, because that is the account being verified.
-   English only, like the provider windows it imitates. */
-const MockSsoDialog = ({provider, onCancel, onContinue}) => {
-  const continueRef = useRef(null);
+/* The confirmation email as the user would get it, in the interface language, for copy
+   review. Its button is the emailed link, and opens in a new tab as a mail client would. */
+const MockEmailDialog = ({token, onCancel}) => {
+  const confirmRef = useRef(null);
   const email = accountEmail() || "you@example.org";
-  const name = accountName() || email.split("@")[0];
-  const initials = name.split(/\s+/).map(w => w.charAt(0)).join("").slice(0, 2).toUpperCase();
-
-  useDialogKeys(continueRef, onCancel);
-
+  useDialogKeys(confirmRef, onCancel);
   return (
-    <div className="devPocMockSso" role="dialog" aria-modal="true" aria-label="Choose an account" lang="en" dir="ltr">
+    <div className="devPocMockSso" role="dialog" aria-modal="true" aria-label="Confirmation email">
       <div className="devPocMockSsoBackdrop" onClick={onCancel} />
-      <div className="devPocMockSsoDialog">
-        <p className="devPocMockSsoBanner">MOCK &mdash; no real sign-in happens</p>
+      <div className="devPocMockSsoDialog devPocMockEmail">
+        <p className="devPocMockSsoBanner" lang="en" dir="ltr">MOCK &mdash; the email the user receives; no email is sent</p>
         <div className="devPocMockSsoBody">
-          <p className="devPocMockSsoBrand">{provider}</p>
-          <h2>Choose an account</h2>
-          <p className="devPocMockSsoSub">to continue to Sefaria</p>
-          <div className="devPocMockSsoAccount">
-            <span className="devPocMockSsoAvatar" aria-hidden="true">{initials}</span>
-            <span className="devPocMockSsoAccountText">
-              <strong>{name}</strong>
-              <span>{email}</span>
-            </span>
-          </div>
+          <p className="devPocMockEmailMeta" dir="ltr">Sefaria &lt;hello@sefaria.org&gt; → {email}</p>
+          <h2><InterfaceText text={{en: "Confirm your email for Sefaria developer settings", he: "אישור כתובת הדוא״ל להגדרות המפתחים בספריא"}} /></h2>
+          <p>
+            <InterfaceText text={{
+              en: "Someone, hopefully you, asked to set up developer settings on the Sefaria account that uses this address. Confirm it to continue. The link works for 3 days.",
+              he: "מישהו, כנראה את/ה, ביקש להגדיר הגדרות מפתחים בחשבון ספריא שמשתמש בכתובת הזו. אשרו אותה כדי להמשיך. הקישור בתוקף 3 ימים.",
+            }} />
+          </p>
           <div className="devPocMockSsoActions">
-            <button type="button" className="devPocMockSsoCancel" onClick={onCancel}>Cancel</button>
-            <button type="button" className="devPocMockSsoContinue" ref={continueRef} data-agent-action="mock-sso-continue" onClick={onContinue}>Continue</button>
+            <button type="button" className="devPocMockSsoCancel" onClick={onCancel}>Close</button>
+            <a
+              className="devPocMockSsoContinue"
+              href={confirmationLink(token)}
+              target="_blank"
+              rel="noopener"
+              ref={confirmRef}
+              data-agent-action="mock-confirm-email"
+              onClick={onCancel}
+            >
+              <InterfaceText text={{en: "Confirm my email", he: "אישור כתובת הדוא״ל"}} />
+            </a>
           </div>
+          <p className="devPocMockEmailFoot">
+            <InterfaceText text={{
+              en: "Didn't ask for this? Ignore this email and nothing changes.",
+              he: "לא ביקשת? אפשר להתעלם מההודעה, ושום דבר לא ישתנה.",
+            }} />
+          </p>
         </div>
       </div>
     </div>
@@ -2141,6 +2276,7 @@ const SAVE_FAILED = {
   he: "לא הצלחנו לשמור את מצב ה־POC. השינויים נשמרו רק בלשונית הדפדפן הזו.",
 };
 const CONNECTED_MS = 8000;
+const CONFIRMATION_POLL_MS = 3000;
 const SETUP_MS = 1200;
 const ARRIVAL_HIGHLIGHT_MS = 2400;
 
@@ -2159,7 +2295,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
   const [editingProfile, setEditingProfile] = useState(false);
   const [confirm, setConfirm] = useState(null);
   const [notice, setNotice] = useState("");
-  const [mockSso, setMockSso] = useState(null);
+  const [mockEmailOpen, setMockEmailOpen] = useState(false);
   const [connectedMessage, setConnectedMessage] = useState("");
   const [settingUp, setSettingUp] = useState(false);
   const [arrivalHighlight, setArrivalHighlight] = useState(false);
@@ -2190,22 +2326,30 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     writeState(next).catch(() => setNotice(Sefaria._v(SAVE_FAILED)));
     return next;
   };
-  const update = (fn) => setPocState(persist(fn(stateRef.current)));
+  /* A change that lands after the page has gone still saves. */
+  const pageMounted = useRef(true);
+  useEffect(() => () => { pageMounted.current = false; }, []);
+  const update = (fn) => {
+    const next = persist(fn(stateRef.current));
+    if (pageMounted.current) { setPocState(next); }
+  };
+  const [resetCount, setResetCount] = useState(0);
   const reset = (next) => {
     setPocState(persist(next));
+    setResetCount(c => c + 1);
     setShowNewProject(false);
     setEditingProfile(false);
     setConfirm(null);
     setNotice("");
   };
 
-  const developerOn = ssoConnected(pocState, socialProviders) && !!pocState.developerEnabled;
+  const developerOn = accountVerified(pocState, socialProviders) && !!pocState.developerEnabled;
 
   const createProject = (fields) => {
     const project = makeProject(fields);
     update(s => ({...s, projects: [project, ...s.projects], expandedProjectId: project.id}));
-    setProjectId(project.id);
     setShowNewProject(false);
+    setProjectId(project.id);
   };
 
   /* A short loader before developer settings appear, so the change doesn't read as a reload. */
@@ -2225,16 +2369,34 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     setConfirm(null);
   };
 
-  const finishMockSso = () => {
-    const provider = mockSso;
-    const providerHe = provider === "Google" ? "גוגל" : "אפל";
-    setMockSso(null);
-    update(s => ({...s, ssoOverride: true}));
+  /* The confirmation link may be opened anywhere, so a page waiting for it checks the
+     stored state every few seconds, and at once when a tab in this browser signals it. */
+  const awaitingConfirmation = !accountVerified(pocState, socialProviders) && !!pocState.confirmationSentAt
+    && !!pocState.confirmationToken;
+  useEffect(() => {
+    if (!awaitingConfirmation) { return undefined; }
+    let active = true;
+    const check = () => readState().then(server => {
+      if (active && server && server.emailVerified && !stateRef.current.emailVerified) {
+        active = false;
+        emailConfirmed();
+      }
+    }).catch(() => {});
+    const timer = setInterval(check, CONFIRMATION_POLL_MS);
+    const onStorage = (e) => { if (e.key === CONFIRMATION_SIGNAL_KEY) { check(); } };
+    window.addEventListener("storage", onStorage);
+    return () => {
+      active = false;
+      clearInterval(timer);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, [awaitingConfirmation, pocState.confirmationToken]);
+
+  const emailConfirmed = () => {
+    setMockEmailOpen(false);
+    update(s => ({...s, emailVerified: true, confirmationSentAt: null, confirmationToken: null}));
     startDeveloper(() => {
-      setConnectedMessage(Sefaria._v({
-        en: provider + " is connected. From now on, you sign in to this account with " + provider + ".",
-        he: providerHe + " מחובר. מעכשיו ההתחברות לחשבון הזה היא דרך " + providerHe + ".",
-      }));
+      setConnectedMessage(Sefaria._v({en: "Your email is confirmed.", he: "כתובת הדוא״ל שלך אושרה."}));
       clearTimeout(connectedTimer.current);
       connectedTimer.current = setTimeout(() => setConnectedMessage(""), CONNECTED_MS);
     });
@@ -2244,6 +2406,7 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
     account: <AccountTab settings={settings} socialProviders={socialProviders} />,
     developer: (
       <DeveloperTab
+        key={resetCount}
         state={pocState}
         socialProviders={socialProviders}
         developerOn={developerOn}
@@ -2260,7 +2423,6 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
         onCreateProject={createProject}
         setProjectId={setProjectId}
         onStart={() => startDeveloper()}
-        onConnectSso={setMockSso}
         settingUp={settingUp}
       />
     ),
@@ -2283,9 +2445,49 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloperPoc, set
       </div>
       <div className="devPocPage">
         {confirm ? <ConfirmDialog confirm={confirm} onClose={closeConfirm} /> : null}
-        {mockSso ?
-          <MockSsoDialog provider={mockSso} onCancel={() => setMockSso(null)} onContinue={finishMockSso} /> : null}
-        <PocTestPanel state={pocState} realProviders={socialProviders} update={update} reset={reset} showSimulate={true} />
+        {mockEmailOpen ?
+          <MockEmailDialog token={pocState.confirmationToken} onCancel={() => setMockEmailOpen(false)} /> : null}
+        <PocTestPanel
+          state={pocState}
+          realProviders={socialProviders}
+          update={update}
+          reset={reset}
+          showSimulate={true}
+          onOpenMockEmail={() => setMockEmailOpen(true)}
+        />
+      </div>
+    </div>
+  );
+};
+
+
+/* Where the emailed confirmation link lands. It needs no login: confirming is a fact about
+   the account, and the settings page carries on by itself wherever it is open. */
+export const EmailConfirmedPage = () => {
+  useEffect(() => {
+    try { window.localStorage.setItem(CONFIRMATION_SIGNAL_KEY, String(Date.now())); } catch (e) { /* ignore */ }
+  }, []);
+  return (
+    <div className="readerNavMenu settingsPage" key="emailConfirmed">
+      <div className="content">
+        <div className="contentInner">
+          <div className="devPocPage devPocEmailConfirmed">
+            <div className="devPocCard">
+              <h1><InterfaceText text={{en: "Thank you for confirming your email", he: "תודה שאישרת את כתובת הדוא״ל"}} /></h1>
+              <div className="devPocActions">
+                <a className="button small blue" href="/settings/developer" data-agent-action="continue-to-developer-settings">
+                  <InterfaceText text={{en: "Continue to developer settings", he: "המשך להגדרות המפתחים"}} />
+                </a>
+              </div>
+              <p className="devPocHelp">
+                <InterfaceText text={{
+                  en: "You can close this tab. If developer settings are open in another tab, they carry on there.",
+                  he: "אפשר לסגור את הלשונית הזו. אם הגדרות המפתחים פתוחות בלשונית אחרת, הן ימשיכו שם.",
+                }} />
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -6,7 +6,7 @@ import json
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
-from django.test import RequestFactory, TestCase
+from django.test import Client, RequestFactory, TestCase, override_settings
 from django.conf import settings
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from reader.conftest import create_test_user, page_props, purge_test_profiles
@@ -161,3 +161,61 @@ class DeveloperPocStateApiTest(TestCase):
         self.client.logout()
 
         self.assertEqual(self.client.get(self.url).status_code, 302)
+
+
+LOCMEM_CACHES = {
+    "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "devpoc-confirm"},
+    "shared": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "devpoc-confirm-shared"},
+}
+
+
+@override_settings(CACHES=LOCMEM_CACHES)
+class DeveloperPocEmailConfirmationTest(TestCase):
+    """
+    The mock confirmation link works without a login and from any browser.
+    """
+    databases = "__all__"
+    token = "abcdefgh12345678"
+
+    def setUp(self):
+        self.user = create_test_user("devpocconfirm")
+        purge_test_profiles(self.user)
+
+    def tearDown(self):
+        purge_test_profiles(self.user)
+
+    def wait_for_link(self, client):
+        client.force_login(self.user)
+        client.post("/api/developer-poc/state",
+                    json.dumps({"emailVerified": False, "developerEnabled": False,
+                                "confirmationSentAt": "2026-10-06T00:00:00Z", "confirmationToken": self.token}),
+                    content_type="application/json")
+
+    def test_opening_the_link_logged_out_in_another_browser_confirms_the_waiting_session(self):
+        self.wait_for_link(self.client)
+        other_browser = Client()
+
+        response = other_browser.get("/settings/developer/confirm-email/" + self.token)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response["Location"], "/settings/developer/email-confirmed")
+        state = json.loads(self.client.get("/api/developer-poc/state").content)
+        self.assertTrue(state["emailVerified"])
+        self.assertTrue(state["developerEnabled"])
+        self.assertIsNone(state["confirmationToken"])
+
+    def test_a_different_token_confirms_nothing(self):
+        self.wait_for_link(self.client)
+
+        Client().get("/settings/developer/confirm-email/zzzzzzzz99999999")
+
+        self.assertFalse(json.loads(self.client.get("/api/developer-poc/state").content)["emailVerified"])
+
+    def test_a_malformed_token_is_not_found(self):
+        self.assertEqual(Client().get("/settings/developer/confirm-email/NOT-A-TOKEN").status_code, 404)
+
+    def test_the_landing_page_needs_no_login(self):
+        response = Client().get("/settings/developer/email-confirmed")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(page_props(response.content.decode("utf-8"))["initialMenu"], "developerEmailConfirmed")

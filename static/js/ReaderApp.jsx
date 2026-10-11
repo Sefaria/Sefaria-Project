@@ -44,7 +44,7 @@ import { BannerImpressionProbe } from './BannerImpressionProbe';
 import { ChatbotExperimentBanner } from './SiteWideBanner';
 import AuthPage from './auth/AuthPage';
 import { isAuthPath, withNext, nextFromPath, resolveInitialAuthState } from './auth/utils.js';
-import { resumePendingSignUpAttempt } from './auth/signupAnalytics.js';
+import { resumePendingAuthAttempt } from './auth/authAnalytics.js';
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -250,7 +250,7 @@ class ReaderApp extends Component {
       Sefaria.markUserAsNewVisitor();
     }
 
-    resumePendingSignUpAttempt();
+    resumePendingAuthAttempt();
     if (sessionStorage.getItem("sa.reader_app_mounted") === null) {
       sessionStorage.setItem("sa.reader_app_mounted", "true");
       sa_event("reader_app_mounted");
@@ -666,6 +666,16 @@ class ReaderApp extends Component {
             if (state.linkerEditorBook) {
               hist.url += "&book=" + encodeURIComponent(state.linkerEditorBook);
             }
+            break;
+          case "developerEmailConfirmed":
+            hist.title = Sefaria.getPageTitle("Email confirmed");
+            hist.url = "settings/developer/email-confirmed";
+            hist.mode = "developerEmailConfirmed";
+            break;
+          case "poweredByForm":
+            hist.title = Sefaria.getPageTitle("Powered by Sefaria Submission Form");
+            hist.url = "powered-by/form";
+            hist.mode = "poweredByForm";
             break;
           case "user_stats":
             hist.title = Sefaria.getPageTitle("user_stats.torah_tracker");
