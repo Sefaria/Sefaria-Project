@@ -145,6 +145,13 @@ class ProjectTest(DeveloperApiTestCase):
         self.assertEqual(project["visibility"], "private")
         self.assertFalse(project["linkedListing"])
 
+    def test_a_public_project_is_published_and_a_private_one_is_not(self):
+        public = Project.objects.get(id=int(self.create_project(visibility="public")["id"]))
+        private = Project.objects.get(id=int(self.create_project(visibility="private")["id"]))
+
+        self.assertTrue(public.is_published)
+        self.assertFalse(private.is_published)
+
     def test_a_project_needs_a_name_and_a_visibility_and_a_valid_website(self):
         for fields in ({"name": ""}, {"visibility": None}, {"websiteUrl": "not a site"}):
             status, _ = self.call("post", "projects", {"project": {**PROJECT, **fields}})

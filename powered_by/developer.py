@@ -285,7 +285,13 @@ def _apply_fields(project, fields):
 
 
 def _set_visibility(project, visibility):
+    """
+    Public projects are listed on Powered by Sefaria, as rows from the public form are when
+    their submitter consents; staff can still unpublish one.
+    """
     if visibility == "public":
+        if not project.consent_to_display:
+            project.is_published = True
         project.consent_to_display = True
         project.consent_withdrawn_at = None
     elif project.consent_to_display:
@@ -309,6 +315,7 @@ def create_project(user, data):
         owner=user,
         creator=user.get_full_name(),
         creator_email=user.email,
+        is_published=fields["visibility"] == "public",
         consent_to_display=fields["visibility"] == "public",
     )
     _apply_fields(project, fields)

@@ -226,7 +226,7 @@ def new_key_value():
 class ApiKey(models.Model):
     """
     An API key of a project. The auth service loads every key, with its project's tier,
-    and reloads on the NOTIFY sent by the triggers in migration 0003. Keys are never
+    and reloads on the NOTIFY sent by the triggers in migration 0004. Keys are never
     deleted: a revoked key keeps its row so historical logs still resolve.
     """
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

@@ -59,7 +59,7 @@ def drop_triggers(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("powered_by", "0002_developer_settings"),
+        ("powered_by", "0003_developer_settings"),
     ]
 
     operations = [

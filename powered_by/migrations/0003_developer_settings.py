@@ -10,7 +10,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('powered_by', '0001_initial'),
+        ('powered_by', '0002_is_published_default_true'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
