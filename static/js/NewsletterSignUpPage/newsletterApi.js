@@ -11,10 +11,15 @@ import Cookies from "js-cookie";
  */
 
 // Error codes the server can send with an error (in the response's `code` field).
-// The values must match the server exactly (api/newsletter_views.py), so they stay
-// strings, but we only ever use them through this map so a typo shows up as undefined.
+// The server only sends a code for errors the person can fix themselves; other
+// errors stay in English to help with debugging.
+// The values must match the server exactly (api/newsletter_views.py and
+// api/newsletter_service.py), so they stay strings, but we only ever use them
+// through this map so a typo shows up as undefined.
 export const SERVER_ERROR_CODE = Object.freeze({
   LEARNING_LEVEL_TOKEN_INVALID: "learning_level_token_invalid",
+  INVALID_EMAIL: "invalid_email",
+  AUTHENTICATION_REQUIRED: "authentication_required",
 });
 
 // TODO: Use Sefaria.apiRequestWithBody in the future by adjusting it

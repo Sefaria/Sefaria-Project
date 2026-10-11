@@ -310,6 +310,12 @@ describe('NewsletterSignUpPageForm', () => {
       expect(errors).toEqual({});
     });
 
+    it('accepts an email with spaces before and after it (e.g. pasted)', async () => {
+      // Only the email has extra spaces, so this also checks the two still count as matching
+      const errors = await submitWithOverrides({ email: '  ada@example.com ' });
+      expect(errors).toEqual({});
+    });
+
     it('blurring email clears stale confirmEmail mismatch error when emails now match', async () => {
       // Submit with mismatched emails → hasAttemptedSubmit=true, confirmEmail error set
       await submitWithOverrides({ email: 'ada@example.com', confirmEmail: 'different@example.com' });
@@ -421,6 +427,21 @@ describe('NewsletterSignUpPageForm', () => {
       });
     });
 
+    it('sends and shows the email without the spaces around it', async () => {
+      await renderForm();
+
+      act(() => { lastFormViewProps.onFieldChange('firstName', 'Ada'); });
+      act(() => { lastFormViewProps.onFieldChange('lastName', 'Lovelace'); });
+      act(() => { lastFormViewProps.onFieldChange('email', ' ada@example.com  '); });
+      act(() => { lastFormViewProps.onFieldChange('confirmEmail', 'ada@example.com '); });
+      act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
+
+      await act(async () => { lastFormViewProps.onSubmit(); });
+
+      expect(subscribeNewsletter).toHaveBeenCalledWith(expect.objectContaining({ email: 'ada@example.com' }));
+      expect(lastConfirmationViewProps.email).toBe('ada@example.com');
+    });
+
     it('notifies parent when stage changes to CONFIRMATION', async () => {
       await renderForm({ onStageChange: stageChangeSpy });
 
@@ -511,6 +532,43 @@ describe('NewsletterSignUpPageForm', () => {
       await act(async () => { lastFormViewProps.onSubmit(); });
 
       expect(lastFormViewProps.formStatus.errorMessage).toBe(TEXT_KEYS.GENERIC_ERROR);
+    });
+
+    it('shows the translated email message when the server rejects an email our check allowed', async () => {
+      // Our email check accepts Hebrew letters before the @; the server doesn't
+      subscribeNewsletter.mockRejectedValueOnce(
+        Object.assign(new Error('Invalid email address.'), { code: SERVER_ERROR_CODE.INVALID_EMAIL })
+      );
+
+      await renderForm();
+
+      act(() => { lastFormViewProps.onFieldChange('firstName', 'Ada'); });
+      act(() => { lastFormViewProps.onFieldChange('lastName', 'Lovelace'); });
+      act(() => { lastFormViewProps.onFieldChange('email', 'שדג@gmail.com'); });
+      act(() => { lastFormViewProps.onFieldChange('confirmEmail', 'שדג@gmail.com'); });
+      act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
+
+      await act(async () => { lastFormViewProps.onSubmit(); });
+
+      expect(lastFormViewProps.formStatus.status).toBe(FORM_STATUS.ERROR);
+      expect(lastFormViewProps.formStatus.errorMessage).toBe(TEXT_KEYS.VALID_EMAIL);
+    });
+
+    it('logged in: shows the translated "log in again" message when the session has ended', async () => {
+      Sefaria._uid = 1;
+      Sefaria._email = 'user@example.com';
+      updatePreferences.mockRejectedValueOnce(
+        Object.assign(new Error('Authentication required'), { code: SERVER_ERROR_CODE.AUTHENTICATION_REQUIRED })
+      );
+
+      await renderForm();
+      // Change a newsletter so there is something to save
+      act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
+      await act(async () => { lastFormViewProps.onSubmit(); });
+
+      expect(updatePreferences).toHaveBeenCalled();
+      expect(lastFormViewProps.formStatus.status).toBe(FORM_STATUS.ERROR);
+      expect(lastFormViewProps.formStatus.errorMessage).toBe(TEXT_KEYS.SESSION_ENDED);
     });
   });
 

@@ -676,12 +676,19 @@ class TestNormalizeAndValidateEmail:
             "not-an-email",
             "missing-domain@",
             "@missing-local.com",
+            # The page's own check accepts these, so only this one catches them
+            "שדג@gmail.com",
+            "user@example.com.",
             None,
         ],
     )
-    def test_invalid_email_raises_input_error(self, email):
-        with pytest.raises(newsletter_service.InputError):
+    def test_invalid_email_raises_invalid_email_error(self, email):
+        with pytest.raises(newsletter_service.InvalidEmailError) as error:
             newsletter_service.normalize_and_validate_email(email)
+
+        assert error.value.code == "invalid_email"
+        # Still an InputError, so code that catches InputError keeps working
+        assert isinstance(error.value, newsletter_service.InputError)
 
 
 class TestAddContactToList:

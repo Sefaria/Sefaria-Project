@@ -119,18 +119,29 @@ class NewsletterListUnavailableError(ActiveCampaignError):
     pass
 
 
+class InvalidEmailError(InputError):
+    """
+    Raised when an email address isn't valid. The person can fix this by correcting
+    the address, so it carries a code the page uses to show a translated message.
+    The page checks emails too, but its check accepts some addresses this one
+    rejects (for example, Hebrew letters before the @).
+    """
+
+    code: str = "invalid_email"
+
+
 def normalize_and_validate_email(email: str) -> str:
     """
-    Return a trimmed email address or raise InputError before any AC request.
+    Return a trimmed email address or raise InvalidEmailError before any AC request.
     """
     if not isinstance(email, str):
-        raise InputError("Invalid email address.")
+        raise InvalidEmailError("Invalid email address.")
 
     normalized_email = email.strip()
     try:
         django_validate_email(normalized_email)
     except ValidationError:
-        raise InputError("Invalid email address.")
+        raise InvalidEmailError("Invalid email address.")
     return normalized_email
 
 

@@ -34,6 +34,11 @@ from api.newsletter_service import (
 logger: logging.Logger = logging.getLogger(__name__)
 P = ParamSpec("P")
 
+# Sent with a 401 when a logged-in user's session ended while the page was open (for
+# example, they logged out in another tab), so the page can show a translated
+# "please log in again" message.
+AUTHENTICATION_REQUIRED_CODE: str = "authentication_required"
+
 
 def handle_newsletter_view_errors(
     action: str,
@@ -51,7 +56,13 @@ def handle_newsletter_view_errors(
                 )
             except InputError as e:
                 logger.warning(f"Validation error {action}: {e}")
-                return jsonResponse({"error": str(e)}, status=400)
+                body: dict[str, str] = {"error": str(e)}
+                # Errors the person can fix (like InvalidEmailError) carry a code, so
+                # the page can show a translated message instead of this English text
+                code: str | None = getattr(e, "code", None)
+                if code:
+                    body["code"] = code
+                return jsonResponse(body, status=400)
             except NewsletterListUnavailableError as e:
                 logger.warning(f"Newsletter list unavailable {action}: {e}")
                 return jsonResponse({"error": str(e)}, status=503)
@@ -170,6 +181,11 @@ def subscribe_newsletter(request: HttpRequest) -> HttpResponse:
         {
             "error": "Please select at least one newsletter."
         }
+        OR
+        {
+            "error": "Invalid email address.",
+            "code": "invalid_email"
+        }
 
     Errors (500 Internal Server Error):
         {
@@ -256,7 +272,8 @@ def get_user_subscriptions(request: HttpRequest) -> HttpResponse:
 
     Errors (401 Unauthorized):
         {
-            "error": "Authentication required"
+            "error": "Authentication required",
+            "code": "authentication_required"
         }
 
     Errors (500 Internal Server Error):
@@ -277,7 +294,10 @@ def get_user_subscriptions(request: HttpRequest) -> HttpResponse:
 
     # Check authentication
     if not user.is_authenticated:
-        return jsonResponse({"error": "Authentication required"}, status=401)
+        return jsonResponse(
+            {"error": "Authentication required", "code": AUTHENTICATION_REQUIRED_CODE},
+            status=401,
+        )
 
     email: str = user.email
     logger.info(f"Fetching subscriptions for authenticated user: {email}")
@@ -332,7 +352,8 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
 
     Errors (401 Unauthorized):
         {
-            "error": "Authentication required"
+            "error": "Authentication required",
+            "code": "authentication_required"
         }
 
     Errors (500 Internal Server Error):
@@ -354,7 +375,10 @@ def update_user_preferences(request: HttpRequest) -> HttpResponse:
 
     # Check authentication
     if not user.is_authenticated:
-        return jsonResponse({"error": "Authentication required"}, status=401)
+        return jsonResponse(
+            {"error": "Authentication required", "code": AUTHENTICATION_REQUIRED_CODE},
+            status=401,
+        )
 
     # Parse request body
     body: dict[str, Any] = json.loads(cast(bytes, request.body))

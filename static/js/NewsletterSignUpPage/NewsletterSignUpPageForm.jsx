@@ -18,28 +18,41 @@ import { subscribeNewsletter, updatePreferences, updateLearningLevel, SERVER_ERR
  * - Manages form status state (current stage, submission status, errors)
  * - Routes between different views based on current stage
  */
+// People often paste an email with a space before or after it. An email can't contain
+// spaces, so we check and send it without them (the server does the same).
+const trimEmail = (email) => email.trim();
+
 function buildFieldValidators(formData, formStatus) {
   const isLoggedOut = !formStatus.isLoggedIn;
   const hasSelectedNewsletter = Object.values(formData.selectedNewsletters).some(Boolean);
+  const email = trimEmail(formData.email);
+  const confirmEmail = trimEmail(formData.confirmEmail);
 
   return {
     firstName: () => (isLoggedOut && !formData.firstName.trim() ? TEXT_KEYS.ENTER_FIRST_NAME : null),
     lastName: () => (isLoggedOut && !formData.lastName.trim() ? TEXT_KEYS.ENTER_LAST_NAME : null),
     email: () => {
-      if (!formData.email.trim()) return TEXT_KEYS.ENTER_EMAIL;
-      if (!Sefaria.util.isValidEmailAddress(formData.email)) return TEXT_KEYS.VALID_EMAIL;
+      if (!email) return TEXT_KEYS.ENTER_EMAIL;
+      if (!Sefaria.util.isValidEmailAddress(email)) return TEXT_KEYS.VALID_EMAIL;
       return null;
     },
     confirmEmail: () =>
-      isLoggedOut && formData.email !== formData.confirmEmail ? TEXT_KEYS.EMAILS_MISMATCH : null,
+      isLoggedOut && email !== confirmEmail ? TEXT_KEYS.EMAILS_MISMATCH : null,
     newsletters: () => (isLoggedOut && !hasSelectedNewsletter ? TEXT_KEYS.SELECT_NEWSLETTER : null),
   };
 }
 
-// Server error codes that have their own translated message. Other server errors
-// fall back to the server's own (English) text.
+// Server error codes that have their own translated message. Only errors the person
+// can fix get one. Other server errors keep the server's English text on purpose,
+// even in the Hebrew interface, because that text helps with debugging.
 const ERROR_CODE_MESSAGES = Object.freeze({
   [SERVER_ERROR_CODE.LEARNING_LEVEL_TOKEN_INVALID]: TEXT_KEYS.LEARNING_LEVEL_EXPIRED,
+  // Our own email check accepts some addresses the server rejects (for example,
+  // Hebrew letters before the @), so this can still happen after it passes.
+  [SERVER_ERROR_CODE.INVALID_EMAIL]: TEXT_KEYS.VALID_EMAIL,
+  // A logged-in user's session can end while the page is open (for example, they
+  // logged out in another tab).
+  [SERVER_ERROR_CODE.AUTHENTICATION_REQUIRED]: TEXT_KEYS.SESSION_ENDED,
 });
 
 function errorToMessage(error) {
@@ -324,7 +337,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
           subscribeNewsletter({
             firstName: formData.firstName,
             lastName: formData.lastName,
-            email: formData.email,
+            email: trimEmail(formData.email),
             newsletters: formData.selectedNewsletters,
           });
 
@@ -405,7 +418,7 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
     if (formStatus.currentStage === STAGE.CONFIRMATION) {
       return (
         <NewsletterConfirmationView
-          email={formData.email}
+          email={trimEmail(formData.email)}
           selectedNewsletters={formData.selectedNewsletters}
           newsletters={newsletters}
           formStatus={formStatus}

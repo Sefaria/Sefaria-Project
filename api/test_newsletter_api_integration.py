@@ -106,6 +106,8 @@ class TestUpdateUserPreferencesIntegration:
         assert response.status_code == 401
         data = json.loads(response.content)
         assert "authentication required" in data["error"].lower()
+        # The page uses this code to show a translated "please log in again" message
+        assert data["code"] == "authentication_required"
 
     @mock.patch("api.newsletter_views.update_user_preferences_impl")
     @mock.patch("api.newsletter_views.get_cached_newsletter_list")
@@ -269,6 +271,8 @@ class TestUpdateUserPreferencesIntegration:
 
         data = assert_error(response, 400)
         assert "error" in data
+        # The person can't fix this one, so it has no code and stays in English
+        assert "code" not in data
 
     def test_authenticated_preferences_requires_csrf_when_enforced(self, test_user):
         """Authenticated preference mutations require CSRF under real middleware checks."""
@@ -452,7 +456,8 @@ class TestGetUserSubscriptionsIntegration:
         """Unauthenticated request returns 401 Unauthorized."""
         response = client.get("/api/newsletter/subscriptions")
 
-        assert_error(response, 401, "Authentication required")
+        data = assert_error(response, 401, "Authentication required")
+        assert data["code"] == "authentication_required"
 
     @mock.patch("api.newsletter_views.fetch_user_subscriptions_impl")
     @mock.patch("api.newsletter_views.get_cached_newsletter_list")
@@ -854,6 +859,8 @@ class TestSubscribeNewsletterEndpoint:
         assert response.status_code == 400
         data = json.loads(response.content)
         assert "Invalid email address" in data["error"]
+        # The page uses this code to show a translated "enter a valid email" message
+        assert data["code"] == "invalid_email"
 
     def test_subscribe_no_newsletters_selected(self, client):
         """
