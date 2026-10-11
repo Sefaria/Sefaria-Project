@@ -216,8 +216,8 @@ const ACCOUNT_SCENARIOS = [
 
 const accountStatus = (state) => {
   const kind = state.ssoConnected ? "Google or Apple account" : "Email account";
-  const email = accountVerified(state) ? "email verified"
-    : state.confirmationSentAt ? "confirmation link sent" : "email not verified";
+  const email = state.emailVerified ? "email confirmed"
+    : state.confirmationSentAt ? "confirmation link sent" : "email not confirmed";
   const dev = !state.developerEnabled ? "developer settings not started"
     : !state.profile ? "at About you" : state.projects.length + " project" + (state.projects.length === 1 ? "" : "s");
   return "Now: " + kind + " · " + email + " · " + dev;
@@ -411,7 +411,7 @@ const AgentInstructions = () => (
       <li>
         If a dialog asks "Is this your project?" about a Powered by Sefaria listing, ask the
         user. "Yes, add it" (claim-listing) adds it as a public project linked to the listing;
-        "No, it's not mine" (not-my-listing) stops the question.
+        "No, it's not mine" (not-my-listing) stops the question; "Not now" (listing-not-now) asks again next visit.
       </li>
       <li>
         Under "Projects", press "Create your first project" or "New project" (new-project).
@@ -909,6 +909,9 @@ const YourListingDialog = ({listing, onYes, onNo, onLater}) => {
           </button>
           <button type="button" className="button small white" data-agent-action="not-my-listing" onClick={onNo}>
             <InterfaceText text={{en: "No, it's not mine", he: "לא, זה לא שלי"}} />
+          </button>
+          <button type="button" className="button small transparent" data-agent-action="listing-not-now" onClick={onLater}>
+            <InterfaceText text={{en: "Not now", he: "לא עכשיו"}} />
           </button>
         </div>
       </section>
@@ -1678,7 +1681,7 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
       {connectedMessage ?
         <div className="devPocSuccess" role="status"><p>{connectedMessage}</p></div> : null}
 
-      {!developerOn ?
+      {!developerOn || settingUp ?
         <GetStarted
           verified={accountVerified(state)}
           confirmationSent={!!state.confirmationSentAt}

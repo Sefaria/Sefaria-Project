@@ -318,6 +318,13 @@ describe('"Is this your project?"', () => {
     expect(yourListingDialog()).toBeNull();
   });
 
+  it('can be put off until the next visit with Not now', () => {
+    mountWithListing();
+    act(() => { buttonNamed(yourListingDialog(), 'Not now').click(); });
+    expect(yourListingDialog()).toBeNull();
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
   it('no longer asks about websites that are already listed', () => {
     openNewProject();
     typeInto(container.querySelector('#devPocProjectUrl'), 'dafyomicompanion.org');
@@ -625,6 +632,7 @@ describe('confirming the email', () => {
     respondWith({ ...unverified, emailVerified: true, developerEnabled: true });
     await clickAndSettle(buttonNamed(developerPanel(), 'Get started'));
     expect(lastRequest()).toMatchObject({ url: '/api/developer/enable', method: 'POST' });
+    expect(developerPanel().textContent).toContain('Setting up developer settings');
     act(() => { jest.runAllTimers(); });
     expect(developerPanel().textContent).toContain('About you');
     jest.useRealTimers();
@@ -701,7 +709,7 @@ describe('test controls', () => {
     expect(lastRequest()).toMatchObject({
       url: '/api/developer/mock', body: { action: 'start-over', ssoOverride: false, emailVerified: false },
     });
-    expect(container.querySelector('.devPocPanelStatus').textContent).toContain('Email account · email not verified');
+    expect(container.querySelector('.devPocPanelStatus').textContent).toContain('Email account · email not confirmed');
   });
 
   it('add a listing submitted with the account email, which is then offered', async () => {
