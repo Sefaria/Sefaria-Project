@@ -1,8 +1,10 @@
 import secrets
 import string
+import re
 import uuid
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 
 
@@ -223,6 +225,21 @@ def new_key_value():
     return KEY_PREFIX + "".join(secrets.choice(KEY_ALPHABET) for _ in range(KEY_LENGTH))
 
 
+ORIGIN_RE = re.compile(r"^https?://[A-Za-z0-9.-]+(:\d{1,5})?$")
+
+
+def validate_allowed_origins(value):
+    """
+    allowed_origins is a list of origins (scheme://host[:port], no path). The auth service loads
+    it as a list of strings, so anything else must never be stored.
+    """
+    if not isinstance(value, list):
+        raise ValidationError("Allowed origins must be a list.")
+    for origin in value:
+        if not isinstance(origin, str) or not ORIGIN_RE.match(origin):
+            raise ValidationError("%(origin)r is not an origin such as https://example.org.", params={"origin": origin})
+
+
 class ApiKey(models.Model):
     """
     An API key of a project. The auth service loads every key, with its project's tier,
@@ -234,7 +251,7 @@ class ApiKey(models.Model):
     project = models.ForeignKey(Project, on_delete=models.PROTECT, related_name="api_keys")
     label = models.CharField(max_length=100)
     allowed_origins = models.JSONField(
-        default=list, blank=True, db_default=[],
+        default=list, blank=True, db_default=[], validators=[validate_allowed_origins],
         help_text='Origins (e.g. "https://example.org") allowed to call with this key. Empty allows any.',
     )
     created_at = models.DateTimeField(auto_now_add=True)
