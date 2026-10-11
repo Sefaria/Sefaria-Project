@@ -312,6 +312,13 @@ class ListingTest(DeveloperApiTestCase):
         self.assertIsNone(state["yourListing"])
         self.assertEqual(self.call("post", "listings/{}/claim".format(self.listing.id))[0], 404)
 
+    def test_only_a_listing_submitted_with_the_account_email_can_be_dismissed(self):
+        other = Project.objects.create(submission_source=SubmissionSource.FORMSTACK, creator_email="someone@example.org",
+                                       project_name="Other", project_link="https://other.example.org")
+
+        self.assertEqual(self.call("post", "listings/{}/dismiss".format(other.id))[0], 404)
+        self.assertEqual(self.call("post", "listings/999999999/dismiss")[0], 404)
+
     def test_a_listing_owned_by_another_account_is_not_offered(self):
         other = create_test_user("devapiowner")
         Project.objects.filter(id=self.listing.id).update(owner=other)
