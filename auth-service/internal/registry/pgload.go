@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"fmt"
+	"log/slog"
 )
 
 const loadSQL = `
@@ -25,7 +25,9 @@ func LoadAll(ctx context.Context, db *sql.DB) ([]Key, error) {
 			return nil, err
 		}
 		if err := json.Unmarshal([]byte(origins), &k.AllowedOrigins); err != nil {
-			return nil, fmt.Errorf("key %s: allowed_origins is not an array of strings: %w", k.ID, err)
+			// One bad row must not fail the whole load. The key stays unknown, so it is denied (fails closed).
+			slog.Warn("registry: skipping key with malformed allowed_origins", "key_id", k.ID, "err", err)
+			continue
 		}
 		if k.AllowedOrigins == nil {
 			k.AllowedOrigins = []string{}

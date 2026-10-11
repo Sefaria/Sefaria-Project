@@ -36,12 +36,23 @@ func TestLoadAll(t *testing.T) {
 	}
 }
 
-// A malformed origins value fails the whole load, so the caller keeps its last good set instead of dropping a restriction.
-func TestLoadAllRejectsNonArrayOrigins(t *testing.T) {
+// A malformed origins value skips only that key: it is unknown (denied) and the rest of the load still succeeds.
+func TestLoadAllSkipsNonArrayOrigins(t *testing.T) {
 	db, _ := freshSchema(t)
 	exec(t, db, `INSERT INTO powered_by_project(id) VALUES (1)`)
-	exec(t, db, `INSERT INTO powered_by_apikey(key,project_id,label,allowed_origins) VALUES ('sfr_bad00000000000000000000000000001',1,'Bad','"https://x.example.org"')`)
-	if _, err := LoadAll(context.Background(), db); err == nil {
-		t.Fatal("want an error for a non-array allowed_origins")
+	exec(t, db, `INSERT INTO powered_by_apikey(key,project_id,label,allowed_origins) VALUES
+		('sfr_bad00000000000000000000000000001',1,'Bad','"https://x.example.org"'),
+		('sfr_good0000000000000000000000000001',1,'Good','["https://ok.example.org"]')`)
+	keys, err := LoadAll(context.Background(), db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r := New()
+	r.Replace(keys)
+	if _, ok := r.Lookup("sfr_bad00000000000000000000000000001"); ok {
+		t.Fatal("the malformed key must be unknown")
+	}
+	if g, ok := r.Lookup("sfr_good0000000000000000000000000001"); !ok || len(g.AllowedOrigins) != 1 {
+		t.Fatalf("the good key must still load: %+v", g)
 	}
 }
