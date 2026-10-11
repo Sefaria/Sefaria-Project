@@ -32,6 +32,7 @@ It will be easiest to just hardcode the segment numbers that contain the footnot
 import re
 from sefaria.model import *
 import requests
+from sefaria.constants.http import SEFARIA_USER_AGENT
 
 
 def run_on_books(cb, *args, **kwargs):
@@ -210,7 +211,7 @@ def update_from_prod(ref):
     """
     vtitle = ref.version_list()[0]['versionTitle']
     url = 'https://www.sefaria.org/api/texts/{}/he/{}'.format(ref.url(), vtitle)
-    result = requests.get(url, params={'commentary': 0, 'pad': 0})
+    result = requests.get(url, params={'commentary': 0, 'pad': 0}, headers={"User-Agent": SEFARIA_USER_AGENT})
     he = result.json()['he']
     tc = ref.text('he', vtitle)
     tc.text = he

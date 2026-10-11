@@ -18,7 +18,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.chatbot import get_user_id_from_chatbot_user_token
 from sefaria.utils.util import short_to_long_lang_code, get_lang_codes_for_territory
-from sefaria.utils.views_utils import add_query_param, mark_no_applink, AASA_EXCLUDED_PATHS
+from sefaria.utils.views_utils import add_query_param, mark_no_applink, is_aasa_excluded, AASA_EXCLUDED_PATHS
 from sefaria.utils.domains_and_languages import current_domain_lang, get_redirect_domain_for_language, needs_domain_switch, get_cookie_domain, get_hostname_without_port, referer_is_sefaria_domain, redirect_target_is_sefaria_domain
 from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
@@ -133,7 +133,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
             # For crawlers, don't redirect -- just return the pinned language
             no_direct = ("Googlebot", "Bingbot", "Slurp", "DuckDuckBot", "Baiduspider",
                             "YandexBot", "Facebot", "facebookexternalhit", "ia_archiver", "Sogou",
-                            "python-request", "curl", "Wget", "sefaria-node")
+                            "python-request", "curl", "Wget", "sefaria-node", "Sefaria/")
             if any([bot in request.headers.get('user-agent', '') for bot in no_direct]):
                 interface = domain_lang
             else:
@@ -201,7 +201,8 @@ class WebSessionRedirectMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         is_redirect = isinstance(response, (HttpResponseRedirect, HttpResponsePermanentRedirect))
         is_web_session = request.path.startswith(_OAUTH_CALLBACK_PREFIXES) or referer_is_sefaria_domain(request)
-        if is_redirect and is_web_session and redirect_target_is_sefaria_domain(response['Location']):
+        if (is_redirect and is_web_session and redirect_target_is_sefaria_domain(response['Location'])
+                and not is_aasa_excluded(response['Location'])):
             response['Location'] = mark_no_applink(response['Location'])
         return response
 
@@ -526,8 +527,15 @@ class ClearSsoNextCookieMiddleware(MiddlewareMixin):
     get_signup_redirect_url — email login/register/password-reset are all fully custom
     Sefaria views that never touch that adapter machinery. Keep this cookie name in
     sync with sso.adapters.SefariaAccountAdapter.SSO_NEXT_COOKIE.
+
+    Also sets the `sefaria_sso_outcome` cookie here, for the same two paths, when those
+    adapter methods set `request._sefaria_sso_outcome` — they return a plain URL string,
+    not a response, so this is the first point in the request a Set-Cookie can happen.
+    Read by static/js/auth/authAnalytics.js's resumePendingAuthAttempt() on the next
+    page load to report `outcome` for redirect-mode SSO (mobile web).
     """
     SSO_NEXT_COOKIE = 'sefaria_sso_next'
+    SSO_OUTCOME_COOKIE = 'sefaria_sso_outcome'
     SSO_CALLBACK_PATHS = {
         '/api/auth/google/redirect',
         '/accounts/apple/login/callback/finish/',
@@ -538,4 +546,7 @@ class ClearSsoNextCookieMiddleware(MiddlewareMixin):
             # samesite must match the original cookie's (SameSite=None) for browsers to
             # treat this as the same cookie being cleared.
             response.delete_cookie(self.SSO_NEXT_COOKIE, samesite='None')
+            outcome = getattr(request, '_sefaria_sso_outcome', None)
+            if outcome:
+                response.set_cookie(self.SSO_OUTCOME_COOKIE, outcome, max_age=300, samesite='None', secure=True)
         return response
