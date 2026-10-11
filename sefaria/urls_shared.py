@@ -7,6 +7,7 @@ import sourcesheets.views as sheets_views
 import remote_config.views as remote_config_views
 import api.views as api_views
 import api.linker_admin_views as linker_api_views
+import api.lexicon_admin_views as lexicon_api_views
 import sefaria.views as sefaria_views
 import sefaria.gauth.views as gauth_views
 import guides.views as guides_views
@@ -134,6 +135,8 @@ shared_patterns = [
     path('api/words/completion/<path:word>/<path:lexicon>', reader_views.dictionary_completion_api),
     path('api/words/completion/<path:word>', reader_views.dictionary_completion_api),  # Search all dicts
     path('api/words/<path:word>', reader_views.dictionary_api),
+    path('api/lexicon-entry/headword/<path:lexicon>/<path:headword>', lexicon_api_views.LexiconEntryHeadwordView.as_view()),
+    path('api/lexicon-entry/<path:lexicon>/<path:headword>', lexicon_api_views.LexiconEntryView.as_view()),
     re_path(r'^api/notifications/?$', reader_views.notifications_api),
     re_path(r'^api/notifications/read', reader_views.notifications_read_api),
     re_path(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
