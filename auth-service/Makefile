@@ -10,7 +10,7 @@ RENDER   = helm template $(ENV) $(CHART) --set deployEnv=$(ENV) --set gateway.en
 test:
 	go vet ./... && go test -race -count=1 ./...
 build:
-	mkdir -p bin && for b in authsvc keyadmin; do CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags='-s -w' -o bin/$$b ./cmd/$$b; done
+	mkdir -p bin && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags='-s -w' -o bin/authsvc ./cmd/authsvc
 helm-lint:
 	cd .. && ct lint --charts helm-chart/sefaria --validate-maintainers=false
 helm-render:

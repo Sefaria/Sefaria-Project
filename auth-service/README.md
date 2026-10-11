@@ -11,11 +11,12 @@ In:
 
 - `cmd/authsvc`: the ext_authz decision service over gRPC (`:9090`), with `/healthz`, `/readyz`,
   `/metrics` and `/internal/registry` on HTTP (`:8080`). Modes `enforce` and `observe`.
-- `internal/registry`: the Postgres key registry (`schema.sql`), a full load at startup, change
-  push through Postgres `LISTEN/NOTIFY` (coalesced full reloads), and a periodic full reload as the
-  backstop.
-- `cmd/keyadmin`: key and project administration against the registry (create, revoke, rotate,
-  set-tier, set-origins, seed, init-schema). Running services pick changes up via NOTIFY.
+- `internal/registry`: reads the key registry, a full load at startup, change push through Postgres
+  `LISTEN/NOTIFY` (coalesced full reloads), and a periodic full reload as the backstop. The registry
+  is Django's `powered_by_project` and `powered_by_apikey` tables in `sefaria_auth`; Django owns the
+  schema and the NOTIFY triggers (migrations in `powered_by/`) and is the only writer. One project
+  has many keys; tier is per project, allowed origins are per key (empty = unrestricted). The project
+  id becomes `x-sefaria-project`. `testdata/schema.sql` mirrors the tables for the Postgres tests.
 - Helm (`helm-chart/sefaria/templates/authservice/*`, `templates/gateway/securitypolicy.yaml`):
   Deployment, Services, PDB, ServiceMonitor, and a SecurityPolicy with `extAuth` only (no `jwt`),
   all behind `authService.enabled` (default `false`). When enabled, the gateway's ClientTrafficPolicy
@@ -38,6 +39,11 @@ Env vars (cmd/authsvc): HTTP_ADDR=:8080 GRPC_ADDR=:9090 AUTH_MODE=enforce|observ
 GATED_PATHS=/api/knn-search PG_DSN PG_NOTIFY_CHANNEL=sefaria_apikeys RELOAD_INTERVAL=60s
 HELP_URL=https://developers.sefaria.org/help/. An empty PG_NOTIFY_CHANNEL disables the listener and
 leaves only the periodic reload.
+
+PG_DSN comes from the cluster Secret `auth-service-registry` (key `AUTH_PG_DSN`): a read-only role
+on `sefaria_auth` that can connect, LISTEN, and SELECT the columns the loader reads.
+`scripts/provision-cluster-registry.sh` creates the role and the SOPS-encrypted Secret file; run it
+after the Django migrations. A new column in the load query needs a matching GRANT.
 
 ## Checks
 

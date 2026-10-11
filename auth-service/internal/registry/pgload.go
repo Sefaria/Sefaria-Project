@@ -2,29 +2,14 @@ package registry
 
 import (
 	"context"
-	"crypto/rand"
 	"database/sql"
-	"strings"
+	"encoding/json"
+	"fmt"
 )
 
-const KeyPrefix = "sfr_"
-
-const alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-
-func NewKey() string {
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-		panic(err)
-	}
-	for i := range b {
-		b[i] = alphabet[int(b[i])%len(alphabet)]
-	}
-	return KeyPrefix + string(b)
-}
-
 const loadSQL = `
-SELECT k.id::text, k.key, k.project_id, k.label, p.tier, array_to_string(p.allowed_origins, ','), (k.revoked_at IS NOT NULL)
-FROM api_keys k JOIN projects p ON p.id = k.project_id`
+SELECT k.id::text, k.key, p.id::text, k.label, p.tier, k.allowed_origins::text, (k.revoked_at IS NOT NULL)
+FROM powered_by_apikey k JOIN powered_by_project p ON p.id = k.project_id`
 
 func LoadAll(ctx context.Context, db *sql.DB) ([]Key, error) {
 	rows, err := db.QueryContext(ctx, loadSQL)
@@ -39,9 +24,11 @@ func LoadAll(ctx context.Context, db *sql.DB) ([]Key, error) {
 		if err := rows.Scan(&k.ID, &k.Key, &k.ProjectID, &k.Label, &k.Tier, &origins, &k.Revoked); err != nil {
 			return nil, err
 		}
-		k.AllowedOrigins = []string{}
-		if origins != "" {
-			k.AllowedOrigins = strings.Split(origins, ",")
+		if err := json.Unmarshal([]byte(origins), &k.AllowedOrigins); err != nil {
+			return nil, fmt.Errorf("key %s: allowed_origins is not an array of strings: %w", k.ID, err)
+		}
+		if k.AllowedOrigins == nil {
+			k.AllowedOrigins = []string{}
 		}
 		out = append(out, k)
 	}

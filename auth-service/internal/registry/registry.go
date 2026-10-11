@@ -19,14 +19,6 @@ type Key struct {
 
 var ErrEmptyReload = errors.New("registry: refusing to replace a non-empty key set with an empty one")
 
-// ChangeEvent is keyadmin's redacted change log record. Running services never consume it: they
-// reload the full set on NOTIFY.
-type ChangeEvent struct {
-	Op  string    `json:"op"`
-	Key Key       `json:"key"`
-	TS  time.Time `json:"ts"`
-}
-
 type snapshot struct {
 	byKey map[string]Key
 }
