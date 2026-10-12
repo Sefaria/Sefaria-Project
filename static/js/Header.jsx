@@ -239,10 +239,12 @@ const Header = (props) => {
   // When the component is hidden, there are two cases: (1) the ReaderControls component is displayed instead of this component, essentially
   // functioning as the header.  This case occurs when viewing a library text in mode "Text"
   // and (2) there is simply no header at all.  This case occurs when viewing a library text in mode "TextAndConnections".
-  // shouldHideOnMobile is true when the header should be hidden (a) while viewing library texts (b) when the mobile nav menu is not open.
+  // shouldHideOnMobile is true when the header should be hidden (a) in the single panel layout (mobile devices) (b) while viewing library texts
+  // (c) when the mobile nav menu is not open. The multi panel layout keeps space for the header above the panels, so hiding it there
+  // would leave an empty bar on narrow screens.
   // It doesn't check the breakpoint, so it's also used for the CSS class that hides the header on mobile before the client renders.
   const isViewingTextContent = !props.firstPanel?.menuOpen && (props.firstPanel?.mode === "Text" || props.firstPanel?.mode === "TextAndConnections");
-  const shouldHideOnMobile = !props.mobileNavMenuOpen && isViewingTextContent;
+  const shouldHideOnMobile = !props.multiPanel && !props.mobileNavMenuOpen && isViewingTextContent;
   if (isMobile && shouldHideOnMobile) return null;
 
   const hasUnreadNotifications = !!(props.notificationCount);

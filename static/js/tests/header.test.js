@@ -58,18 +58,24 @@ describe("Header in a browser", () => {
     expect(container.querySelector(".mobileNavMenu")).not.toBeNull();
   });
 
-  it("renders nothing on mobile while viewing a text", () => {
-    mount("mobile", { firstPanel: textPanel });
+  it("renders nothing on mobile while viewing a text in the single panel layout", () => {
+    mount("mobile", { firstPanel: textPanel, multiPanel: false });
     expect(container.innerHTML).toBe("");
   });
 
+  it("renders the mobile header on mobile while viewing a text in the multi panel layout", () => {
+    // The multi panel layout keeps space for the header, so hiding it would leave an empty bar.
+    mount("mobile", { firstPanel: textPanel, multiPanel: true });
+    expect(container.querySelector(".headerInner.mobile")).not.toBeNull();
+  });
+
   it("renders the header on mobile while viewing a text when the mobile nav menu is open", () => {
-    mount("mobile", { firstPanel: textPanel, mobileNavMenuOpen: true });
+    mount("mobile", { firstPanel: textPanel, multiPanel: false, mobileNavMenuOpen: true });
     expect(container.querySelector(".headerInner.mobile")).not.toBeNull();
   });
 
   it("renders the header on desktop while viewing a text", () => {
-    mount("desktop", { firstPanel: textPanel });
+    mount("desktop", { firstPanel: textPanel, multiPanel: false });
     expect(container.querySelector(".headerInner.desktopHeaderInner")).not.toBeNull();
   });
 

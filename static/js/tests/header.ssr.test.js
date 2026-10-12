@@ -32,13 +32,17 @@ describe("Header under Node SSR", () => {
     expect(html).toContain("mobileNavMenu");
   });
 
-  it("marks the header to be hidden on mobile while viewing a text", () => {
-    const html = render({ firstPanel: textPanel });
+  it("marks the header to be hidden on mobile while viewing a text in the single panel layout", () => {
+    const html = render({ firstPanel: textPanel, multiPanel: false });
     expect(html).toMatch(/class="header hiddenOnMobile"/);
   });
 
+  it("does not mark the header hidden on mobile in the multi panel layout", () => {
+    expect(render({ firstPanel: textPanel, multiPanel: true })).not.toContain("hiddenOnMobile");
+  });
+
   it("does not mark the header hidden on mobile when the mobile nav menu is open", () => {
-    const html = render({ firstPanel: textPanel, mobileNavMenuOpen: true });
+    const html = render({ firstPanel: textPanel, multiPanel: false, mobileNavMenuOpen: true });
     expect(html).not.toContain("hiddenOnMobile");
   });
 
