@@ -42,7 +42,8 @@ const PROFILE = {
   termsAccepted: true, developerNews: false, notADeveloper: false,
 };
 
-function mount(tab, developer = null, props = {}) {
+/* developer is the server's developer state; null is what the server sends where developer settings are off. */
+function mount(tab, developer = {}, props = {}) {
   container = document.createElement('div');
   document.body.appendChild(container);
   act(() => {
@@ -111,6 +112,14 @@ describe('settings tabs', () => {
     const accountPanel = container.querySelectorAll('.settingsPanel')[0];
     expect(accountPanel.querySelector('#developerSettings')).toBeNull();
     expect(accountPanel.textContent).not.toContain('Get started');
+  });
+
+  it('has no developer tab or agent instructions where developer settings are off', () => {
+    mount('account', null);
+    const links = Array.from(container.querySelectorAll('nav.settingsNav a'));
+    expect(links.map(a => a.getAttribute('href'))).toEqual(['/settings/account']);
+    expect(container.querySelectorAll('.settingsPanel').length).toBe(1);
+    expect(container.querySelector('[data-agent-instructions]')).toBeNull();
   });
 
   it('gates the developer tab behind Get started', () => {

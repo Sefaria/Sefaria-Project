@@ -353,10 +353,10 @@ const SETTINGS_TABS = [
 
 /* Tabs, not links: clicking switches the mounted tab and pushes the matching URL. The
    anchors keep the addresses linkable, so opening one in a new tab still works. */
-const SettingsNav = ({tab, highlightTab, onSelect}) => (
+const SettingsNav = ({tabs, tab, highlightTab, onSelect}) => (
   <nav className="settingsNav" aria-label={Sefaria._v({en: "Settings", he: "הגדרות"})}>
     <div className="settingsNavTitle"><InterfaceText text={{en: "Settings", he: "הגדרות"}} /></div>
-    {SETTINGS_TABS.map(t => (
+    {tabs.map(t => (
       <a
         key={t.tab}
         href={t.url}
@@ -2341,6 +2341,9 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
     }
   }, () => {});
 
+  /* The server sends no developer state where developer settings are off, and then there is no developer tab. */
+  const tabs = SETTINGS_TABS.filter(t => t.tab !== "developer" || initialDeveloper);
+
   const panels = {
     account: <AccountTab settings={settings} socialProviders={socialProviders} />,
     developer: (
@@ -2375,14 +2378,14 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
       <div className="content">
         <div className="contentInner">
           <div className="settingsShell">
-            <SettingsNav tab={tab} highlightTab={arrivalHighlight ? tab : null} onSelect={setTab} />
+            <SettingsNav tabs={tabs} tab={tab} highlightTab={arrivalHighlight ? tab : null} onSelect={setTab} />
             <div className="settingsPanels">
-              {SETTINGS_TABS.map(t => (
+              {tabs.map(t => (
                 <div key={t.tab} className="settingsPanel" hidden={tab !== t.tab}>{panels[t.tab]}</div>
               ))}
             </div>
           </div>
-          <AgentInstructions />
+          {initialDeveloper ? <AgentInstructions /> : null}
         </div>
       </div>
       <div className="devPocPage">
