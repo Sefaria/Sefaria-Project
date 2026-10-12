@@ -1,6 +1,8 @@
 """
 Unit tests for GenCache (sefaria/system/cache.py), run against an in-memory Redis stand-in.
 """
+import uuid
+
 import pytest
 
 from sefaria.system.cache import GenCache
@@ -9,7 +11,7 @@ from sefaria.system.cache import GenCache
 class FakeRedis:
     """
     The subset of redis-py GenCache uses, with decode_responses=True types: get() returns
-    str or None, incr() returns int. Setting `broken` makes every call raise.
+    str or None. Setting `broken` makes every call raise.
     """
 
     def __init__(self):
@@ -21,12 +23,16 @@ class FakeRedis:
             raise ConnectionError("FakeRedis: simulated outage")
         return self.store.get(key)
 
-    def incr(self, key):
+    def set(self, key, value):
         if self.broken:
             raise ConnectionError("FakeRedis: simulated outage")
-        new_value = int(self.store.get(key) or 0) + 1
-        self.store[key] = str(new_value)
-        return new_value
+        self.store[key] = value
+        return True
+
+
+def simulate_peer_bump(redis_client, redis_key):
+    """What another process's bump does to Redis: replace the generation with one nobody holds."""
+    redis_client.store[redis_key] = uuid.uuid4().hex
 
 
 @pytest.fixture
@@ -100,7 +106,7 @@ def test_stale_generation_triggers_refresh(fake_redis, no_sleep):
     gc.register("toc", refresh_fn)
     assert gc.get("toc") == "first"
 
-    fake_redis.incr("gen:toc")  # simulates a peer's invalidate()
+    simulate_peer_bump(fake_redis, "gen:toc")  # simulates a peer's invalidate()
     assert gc.get("toc") == "second"
     assert len(calls) == 2
 
@@ -114,7 +120,7 @@ def test_jitter_only_applied_when_redis_lost_its_keyspace(fake_redis, monkeypatc
     gc.register("toc", refresh_fn)
 
     gc.get("toc")  # first access
-    fake_redis.incr("gen:toc")
+    simulate_peer_bump(fake_redis, "gen:toc")
     gc.get("toc")  # ordinary bump: refreshes in-request without sleeping
     assert len(calls) == 2
     assert sleep_calls == []
@@ -167,7 +173,7 @@ def test_publish_sets_local_value_and_bumps_for_peers(fake_redis, no_sleep):
 
     assert result == "fresh-value"
     assert writer.get("toc") == "fresh-value"  # own next read: no throttle-window wait
-    assert fake_redis.store["gen:toc"] == "1"  # peers see exactly one bump
+    assert fake_redis.store["gen:toc"] is not None  # peers see the bump
 
 
 def test_mark_fresh_bumps_without_refreshing_this_process(fake_redis, no_sleep):
@@ -177,7 +183,7 @@ def test_mark_fresh_bumps_without_refreshing_this_process(fake_redis, no_sleep):
     writer.mark_fresh("index_map")
 
     writer.get("index_map")
-    assert fake_redis.store["gen:index_map"] == "1"
+    assert fake_redis.store["gen:index_map"] is not None
 
 
 def test_publish_then_peer_get_sees_the_bump(fake_redis, no_sleep):
@@ -241,6 +247,85 @@ def test_publish_failure_to_bump_does_not_raise_and_drops_stale_local_gen(fake_r
 
 
 # ---------------------------------------------------------------------------
+# Failed bumps: retried once Redis is reachable again
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("write", ["invalidate", "publish", "mark_fresh"])
+def test_failed_bump_reaches_peer_once_redis_returns_with_keyspace_intact(fake_redis, no_sleep, write):
+    writer = make_gen_cache(fake_redis, throttle=False)
+    writer.register("toc", lambda: "writer-refreshed")
+    writer.register("other", lambda: "other-value")
+    peer = make_gen_cache(fake_redis, throttle=False)
+    peer_refresh, peer_calls = make_counting_refresh_fn(["peer-v1", "peer-v2"])
+    peer.register("toc", peer_refresh)
+
+    simulate_peer_bump(fake_redis, "gen:toc")  # the counter exists, so a restart that kept it is distinguishable from keyspace loss
+    assert peer.get("toc") == "peer-v1"
+
+    fake_redis.broken = True
+    if write == "publish":
+        writer.publish("toc", "fresh")
+    else:
+        getattr(writer, write)("toc")
+    assert peer.get("toc") == "peer-v1"  # Redis down: peer serves its last value
+
+    fake_redis.broken = False  # Redis returns with the old generation still in place
+    writer.get("other")  # the writer's next successful Redis call retries the bump
+
+    assert peer.get("toc") == "peer-v2"
+    assert len(peer_calls) == 2
+
+
+def test_failed_bump_is_retried_by_the_next_successful_bump(fake_redis, no_sleep):
+    writer = make_gen_cache(fake_redis, throttle=False)
+    fake_redis.broken = True
+    writer.invalidate("toc")
+    fake_redis.broken = False
+
+    writer.invalidate("other")
+
+    assert set(fake_redis.store) == {"gen:toc", "gen:other"}
+
+
+def test_failed_retry_stays_pending(fake_redis, no_sleep):
+    writer = make_gen_cache(fake_redis, throttle=False)
+    writer.register("other", lambda: "other-value")
+    fake_redis.broken = True
+    writer.invalidate("toc")
+    writer.get("other")  # Redis still down: nothing to retry with
+
+    fake_redis.broken = False
+    writer.get("other")
+
+    assert "gen:toc" in fake_redis.store
+
+
+# ---------------------------------------------------------------------------
+# Failover that drops the last bump: a regressed generation must not match a newer one
+# ---------------------------------------------------------------------------
+
+def test_generation_rolled_back_by_failover_never_matches_a_later_bump(fake_redis, no_sleep):
+    writer = make_gen_cache(fake_redis, throttle=False)
+    peer = make_gen_cache(fake_redis, throttle=False)
+    peer_refresh, peer_calls = make_counting_refresh_fn([])
+    peer.register("toc", peer_refresh)
+
+    writer.invalidate("toc")
+    before_lost_bump = fake_redis.store["gen:toc"]
+    writer.invalidate("toc")  # the replica never receives this one
+    peer.get("toc")  # peer now holds the generation from the lost bump
+    assert len(peer_calls) == 1
+
+    fake_redis.store["gen:toc"] = before_lost_bump  # failover promotes the lagging replica
+
+    # The peer doesn't check again until after the next bump. With an INCR counter, that bump
+    # would recreate the lost value the peer already holds and the peer would miss it.
+    writer.invalidate("toc")
+    peer.get("toc")
+    assert len(peer_calls) == 2
+
+
+# ---------------------------------------------------------------------------
 # Redis data loss: every tracked key reads back missing
 # ---------------------------------------------------------------------------
 
@@ -250,7 +335,7 @@ def test_redis_keyspace_loss_triggers_rebuild_through_refresh_fn(fake_redis, no_
     refresh_fn, calls = make_counting_refresh_fn(["before-loss", "after-loss"])
     gc.register("toc", refresh_fn)
 
-    fake_redis.incr("gen:toc")
+    simulate_peer_bump(fake_redis, "gen:toc")
     assert gc.get("toc") == "before-loss"
     assert len(calls) == 1
 
@@ -270,7 +355,7 @@ def test_key_prefix_isolates_bump_between_deployments(fake_redis):
 
     cauldron_a.invalidate("index_map")
 
-    assert fake_redis.store == {"cauldron-a:gen:index_map": "1"}
+    assert list(fake_redis.store) == ["cauldron-a:gen:index_map"]
     assert "cauldron-b:gen:index_map" not in fake_redis.store
 
 
@@ -295,4 +380,4 @@ def test_key_prefix_isolates_get_between_deployments(fake_redis, no_sleep):
 def test_no_key_prefix_writes_bare_keys(fake_redis):
     gc = make_gen_cache(fake_redis)
     gc.invalidate("index_map")
-    assert fake_redis.store == {"gen:index_map": "1"}
+    assert list(fake_redis.store) == ["gen:index_map"]

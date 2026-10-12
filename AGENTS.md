@@ -62,7 +62,7 @@ Never call `Version.save()` directly to change text. Use `sefaria.tracker.modify
 
 ### 4. Multi-Server Cache Invalidation
 ```
-Model.save() → notify() → in-process cache update + gen_cache.publish()/mark_fresh()/invalidate() (Redis/Sentinel INCR)
+Model.save() → notify() → in-process cache update + gen_cache.publish()/mark_fresh()/invalidate() (new Redis/Sentinel generation token)
             → other servers' next gen_cache.get() notices the counter changed and refreshes
             → Varnish purge/ban (called directly, no confirmation wait)
             → (optional) Cloudflare purge

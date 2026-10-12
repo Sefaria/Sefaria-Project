@@ -4603,26 +4603,35 @@ class Library(object):
             gen_cache.register(f"books_{lang}", lambda lang=lang: self._refresh_text_titles_json(lang))
             gen_cache.register(f"linker_resolver:{lang}", lambda lang=lang: self.rebuild_linker_resolvers((lang,)))
 
-    def _build_shared_cache_object(self, key):
-        """Builds a shared-cache-backed object from Mongo and stores it locally and in the shared cache."""
+    def _build_shared_cache_object(self, key, fail_open=False):
+        """
+        Builds a shared-cache-backed object from Mongo and stores it locally and in the shared cache.
+        fail_open=True logs a failed shared-cache write instead of raising. Only refreshes pass it:
+        a peer that keeps a stale shared value after a failed write would read it once the bump lands.
+        """
         attr, scache_key, build_fn = self._shared_cache_objects[key]
         value = build_fn()
-        scache.set_shared_cache_elem(scache_key, value)
-        self.set_last_cached_time()
         setattr(self, attr, value)
+        try:
+            scache.set_shared_cache_elem(scache_key, value)
+            self.set_last_cached_time()
+        except Exception:
+            if not fail_open:
+                raise
+            logger.error("Shared cache unreachable writing %s; serving the local build only", scache_key)
         return value
 
     def _refresh_shared_cache_object(self, key):
         """refresh_fn for a shared-cache-backed object: use the shared cache if a peer already filled it."""
         attr, scache_key, _ = self._shared_cache_objects[key]
-        value = scache.get_shared_cache_elem(scache_key)
+        value = scache.get_shared_cache_elem_or_none(scache_key)
         if not value:
-            return self._build_shared_cache_object(key)
+            return self._build_shared_cache_object(key, fail_open=True)
         setattr(self, attr, value)
         return value
 
     def _rebuild_shared_cache_object(self, key):
-        """rebuild=True path: rebuild from Mongo and publish to peers."""
+        """rebuild=True path: rebuild from Mongo and publish to peers. Raises if the shared cache is unreachable."""
         return gen_cache.publish(key, self._build_shared_cache_object(key))
 
     def _refresh_index_maps(self):
@@ -5579,19 +5588,25 @@ class Library(object):
             title_list = toc_titles + secondary_list
         return title_list
 
-    def _build_text_titles_json(self, lang):
+    def _build_text_titles_json(self, lang, fail_open=False):
+        """fail_open: as in _build_shared_cache_object()."""
         title_list = self.build_text_titles_json(lang=lang)
         title_list_json = json.dumps(title_list, ensure_ascii=False)
         self._full_title_list_jsons[lang] = title_list_json
-        scache.set_shared_cache_elem('books_' + lang, title_list)
-        scache.set_shared_cache_elem('books_' + lang + '_json', title_list_json)
-        self.set_last_cached_time()
+        try:
+            scache.set_shared_cache_elem('books_' + lang, title_list)
+            scache.set_shared_cache_elem('books_' + lang + '_json', title_list_json)
+            self.set_last_cached_time()
+        except Exception:
+            if not fail_open:
+                raise
+            logger.error("Shared cache unreachable writing books_%s; serving the local build only", lang)
         return title_list_json
 
     def _refresh_text_titles_json(self, lang):
-        self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_' + lang + '_json')
+        self._full_title_list_jsons[lang] = scache.get_shared_cache_elem_or_none('books_' + lang + '_json')
         if not self._full_title_list_jsons.get(lang):
-            return self._build_text_titles_json(lang)
+            return self._build_text_titles_json(lang, fail_open=True)
         return self._full_title_list_jsons[lang]
 
     def get_text_titles_json(self, lang="en", rebuild=False):
@@ -5607,6 +5622,8 @@ class Library(object):
     def reset_text_titles_cache(self):
         """
         Resets the text titles for all languages by clearing the existing titles from the cache.
+        Raises if the shared cache is unreachable: failing open would leave the stale titles there
+        for peers to read once the retried bump reaches them.
         """
         for lang in self.langs:
             scache.delete_shared_cache_elem('books_' + lang)

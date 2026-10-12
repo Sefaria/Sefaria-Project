@@ -3,6 +3,7 @@ import hashlib
 import random
 import sys
 import time
+import uuid
 from datetime import datetime
 from functools import wraps
 from typing import Callable, Optional, Any, Union
@@ -135,6 +136,15 @@ def get_shared_cache_elem(key):
     return get_cache_elem(key, cache_type=SHARED_DATA_CACHE_ALIAS)
 
 
+def get_shared_cache_elem_or_none(key):
+    """get_shared_cache_elem() for callers that can rebuild on a miss: an unreachable shared cache reads as a miss."""
+    try:
+        return get_shared_cache_elem(key)
+    except Exception:
+        logger.error("Shared cache unreachable reading %s; treating it as a miss", key)
+        return None
+
+
 def set_cache_elem(key: str, value: Any, timeout: Optional[int] = None, cache_type: Optional[str] = None) -> bool:
     """
     Set an element in the cache.
@@ -212,15 +222,21 @@ _UNKNOWN_GEN = object()  # a generation that never matches Redis, forcing a refr
 
 class GenCache:
     """
-    Cross-process cache freshness via one Redis INCR counter per tracked object.
+    Cross-process cache freshness via one Redis generation value per tracked object.
 
     register() a refresh_fn per key at startup. get() serves this process's copy, re-checking
-    the key's counter at most every check_interval_seconds and calling refresh_fn when it has
+    the key's generation at most every check_interval_seconds and calling refresh_fn when it has
     changed. Writers call publish() (with the fresh value) or mark_fresh() (when the object
     lives on its owner, e.g. Library, and was already rebuilt) to update this process and bump
-    the counter for peers, or invalidate() to make every process, this one included, refresh.
+    the generation for peers, or invalidate() to make every process, this one included, refresh.
 
-    Fails open: if Redis is unreachable, get() serves the last value and bumps only log.
+    A bump writes a new random token rather than INCRementing a counter: a Sentinel failover can
+    drop the last write, and a counter that regressed would later climb back to a value peers
+    already hold and be mistaken for current. A token is never reused.
+
+    Fails open: if Redis is unreachable, get() serves the last value, and a bump that fails is
+    retried after this process's next successful Redis call. A process that exits before then
+    (e.g. a one-off script) loses its pending bumps. Errors raised by a refresh_fn propagate.
     """
     def __init__(self, redis_client, check_interval_seconds: float, jitter_max_seconds: float, key_prefix: str = ""):
         self.check_interval_seconds = check_interval_seconds
@@ -229,6 +245,7 @@ class GenCache:
         self._gens = {}            # key -> last-applied generation; absent until first refresh
         self._last_checked = {}    # key -> monotonic time of last check
         self._refreshers = {}      # key -> refresh_fn
+        self._pending_bumps = set()  # keys whose bump failed; retried after the next successful Redis call
         self.redis = redis_client
         # namespaces the counters when several deployments share one Redis (e.g. cauldrons)
         self._key_prefix = f"{key_prefix}:" if key_prefix else ""
@@ -258,6 +275,8 @@ class GenCache:
             if not is_first_access:
                 return self._data.get(key)
             redis_gen = None
+        else:
+            self._retry_pending_bumps()
 
         if is_first_access or self._gens[key] != redis_gen:
             if not is_first_access and redis_gen is None and self._gens[key] is not None:
@@ -268,18 +287,38 @@ class GenCache:
             self._gens[key] = redis_gen
         return self._data.get(key)
 
+    def _write_new_gen(self, key: str) -> str:
+        new_gen = uuid.uuid4().hex
+        self.redis.set(self._redis_key(key), new_gen)
+        return new_gen
+
     def _bump(self, key: str):
+        """Returns the new generation, or None if Redis was unreachable (the bump is then retried later)."""
         try:
-            return self.redis.incr(self._redis_key(key))
+            new_gen = self._write_new_gen(key)
         except Exception:
-            logger.error("GenCache: failed to bump %s; peers stay stale until the next bump", key)
+            logger.error("GenCache: failed to bump %s; will retry after the next successful Redis call", key)
+            self._pending_bumps.add(key)
             return None
+        self._pending_bumps.discard(key)
+        self._retry_pending_bumps()
+        return new_gen
+
+    def _retry_pending_bumps(self):
+        """Re-sends bumps that failed while Redis was unreachable, so peers don't stay stale indefinitely."""
+        for key in list(self._pending_bumps):
+            try:
+                self._write_new_gen(key)
+            except Exception:
+                return  # still unreachable; try again after the next successful call
+            self._pending_bumps.discard(key)
+            logger.info("GenCache: retried bump of %s after Redis came back", key)
 
     def mark_fresh(self, key: str):
         """This process already rebuilt key's object: record it as current and bump for peers."""
         self._last_checked[key] = time.monotonic()
         new_gen = self._bump(key)
-        self._gens[key] = str(new_gen) if new_gen is not None else _UNKNOWN_GEN
+        self._gens[key] = new_gen if new_gen is not None else _UNKNOWN_GEN
 
     def publish(self, key: str, value):
         """mark_fresh() for a key whose value GenCache holds. Returns value."""
@@ -306,7 +345,11 @@ def _build_gen_cache() -> GenCache:
         settings.SENTINEL_HEADLESS_URL, settings.SENTINEL_PASSWORD, settings.REDIS_PORT,
         settings.SENTINEL_TRANSPORT_OPTS, settings.SENTINEL_MASTER_SET,
     )
-    client = get_redis_client(redis_config, sentinel_config, settings.GENCACHE_REDIS_DB_NUM, decode_responses=True)
+    # get() runs inline in requests, so an unresponsive Redis must fail fast rather than hang them
+    client = get_redis_client(
+        redis_config, sentinel_config, settings.GENCACHE_REDIS_DB_NUM, decode_responses=True,
+        socket_timeout=1, socket_connect_timeout=1,
+    )
     return GenCache(
         client, settings.GENCACHE_CHECK_INTERVAL_SECONDS, settings.GENCACHE_JITTER_MAX_SECONDS,
         key_prefix=settings.DEPLOY_ENV,
