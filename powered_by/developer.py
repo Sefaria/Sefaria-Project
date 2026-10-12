@@ -45,6 +45,10 @@ class CooldownError(Exception):
         self.retry_after = retry_after
 
 
+def settings_enabled():
+    return bool(getattr(settings, "DEVELOPER_SETTINGS_ENABLED", False))
+
+
 def mocks_enabled():
     return bool(getattr(settings, "DEVELOPER_SETTINGS_MOCKS", False))
 

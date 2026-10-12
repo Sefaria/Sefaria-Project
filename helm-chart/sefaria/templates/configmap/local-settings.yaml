@@ -33,6 +33,7 @@ data:
   SENTRY_CODE_VERSION: {{ .Values.web.containerImage.tag }}
   FAIL_GRACEFULLY: "{{ .Values.localSettings.FAIL_GRACEFULLY }}"
   DEVELOPER_SETTINGS_MOCKS: "{{ .Values.localSettings.DEVELOPER_SETTINGS_MOCKS }}"
+  DEVELOPER_SETTINGS_ENABLED: "{{ .Values.localSettings.DEVELOPER_SETTINGS_ENABLED }}"
   SEARCH_HOST: {{ .Values.nginx.SEARCH_HOST | quote }}
   SEARCH_PORT: {{ .Values.nginx.SEARCH_PORT | quote }}
   SEARCH_PATH: {{ .Values.nginx.SEARCH_PATH | quote }}

@@ -640,6 +640,8 @@ localSettings:
   FAIL_GRACEFULLY: "True"
   # Developer settings test controls; for branch cauldrons only.
   DEVELOPER_SETTINGS_MOCKS: "False"
+  # The developer tab in settings and its routes; off means they return 404.
+  DEVELOPER_SETTINGS_ENABLED: "False"
   SESSION_COOKIE_SECURE: true
   SESSION_COOKIE_HTTPONLY: true
   SESSION_COOKIE_SAMESITE: "Lax"

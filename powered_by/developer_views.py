@@ -21,6 +21,18 @@ from . import developer
 MAX_BODY_BYTES = 16 * 1024
 
 
+def requires_developer_settings(view):
+    """
+    The view exists only where DEVELOPER_SETTINGS_ENABLED is on; elsewhere it is a 404.
+    """
+    @wraps(view)
+    def wrapper(request, *args, **kwargs):
+        if not developer.settings_enabled():
+            raise Http404
+        return view(request, *args, **kwargs)
+    return wrapper
+
+
 def developer_api(func):
     """
     Logged-in JSON endpoints: parses a JSON body into request.json, and maps input errors to
@@ -59,12 +71,14 @@ def state_response(request, **extra):
     return jsonResponse({**developer.developer_state(request), **extra})
 
 
+@requires_developer_settings
 @require_http_methods(["GET"])
 @developer_api
 def state_api(request):
     return state_response(request)
 
 
+@requires_developer_settings
 @require_http_methods(["POST"])
 @developer_api
 def enable_api(request):
@@ -72,6 +86,7 @@ def enable_api(request):
     return state_response(request)
 
 
+@requires_developer_settings
 @require_http_methods(["POST"])
 @developer_api
 def profile_api(request):
@@ -81,6 +96,7 @@ def profile_api(request):
     return state_response(request)
 
 
+@requires_developer_settings
 @require_http_methods(["POST", "DELETE"])
 @developer_api
 def confirmation_api(request):
@@ -116,17 +132,20 @@ def send_confirmation_email(request):
     )
 
 
+@requires_developer_settings
 def confirm_email(request, key):
     if not developer.confirm_email(request, key):
         raise Http404
     return redirect("/settings/developer/email-confirmed")
 
 
+@requires_developer_settings
 def email_confirmed_page(request):
     return menu_page(request, page="developerEmailConfirmed", title="Email confirmed",
                      desc="Your email is confirmed for Sefaria developer settings.")
 
 
+@requires_developer_settings
 @require_http_methods(["POST"])
 @developer_api
 def projects_api(request):
@@ -135,6 +154,7 @@ def projects_api(request):
     return state_response(request, projectId=str(project.id))
 
 
+@requires_developer_settings
 @require_http_methods(["POST", "DELETE"])
 @developer_api
 def project_api(request, project_id):
@@ -146,6 +166,7 @@ def project_api(request, project_id):
     return state_response(request)
 
 
+@requires_developer_settings
 @require_http_methods(["POST"])
 @developer_api
 def project_keys_api(request, project_id):
@@ -154,6 +175,7 @@ def project_keys_api(request, project_id):
     return state_response(request, keyId=str(api_key.id))
 
 
+@requires_developer_settings
 @require_http_methods(["POST", "DELETE"])
 @developer_api
 def key_api(request, key_id):
@@ -165,6 +187,7 @@ def key_api(request, key_id):
     return state_response(request)
 
 
+@requires_developer_settings
 @require_http_methods(["POST"])
 @developer_api
 def listing_api(request, listing_id, action):

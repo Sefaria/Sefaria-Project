@@ -10,6 +10,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from reader.views import menu_page
 from sefaria.client.util import jsonResponse
 from sefaria.system.decorators import catch_error_as_json
+from .developer_views import requires_developer_settings
 
 
 POWERED_BY_POC_SESSION_KEY = "powered_by_poc_submissions"
@@ -17,6 +18,7 @@ POWERED_BY_POC_MAX_BYTES = 32 * 1024
 POWERED_BY_POC_MAX_SUBMISSIONS = 20
 
 
+@requires_developer_settings
 @ensure_csrf_cookie
 def powered_by_form_page(request):
     return menu_page(
@@ -27,6 +29,7 @@ def powered_by_form_page(request):
     )
 
 
+@requires_developer_settings
 @catch_error_as_json
 def powered_by_poc_submissions_api(request):
     """

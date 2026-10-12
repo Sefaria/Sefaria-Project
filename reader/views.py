@@ -81,7 +81,7 @@ from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, 
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.system.cache import django_cache
 from reader.models import user_has_experiments, UserExperimentSettings, _set_user_experiments
-from powered_by.developer import developer_state
+from powered_by.developer import developer_state, settings_enabled as developer_settings_enabled
 from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.crm.crm_mediator import CrmMediator
@@ -4588,14 +4588,18 @@ def _account_settings_props(request, profile):
 @ensure_csrf_cookie
 def settings_page(request, tab="account", project_id=None):
     """
-    Account and developer settings, as one React page.
+    Account and developer settings, as one React page. Without DEVELOPER_SETTINGS_ENABLED
+    there is no developer tab: its URLs are a 404 and the page gets no developer state.
     """
+    developer_on = developer_settings_enabled()
+    if tab == "developer" and not developer_on:
+        raise Http404
     profile = UserProfile(id=request.user.id)
     props = {
         "initialSettingsTab": tab,
         "initialDeveloperProjectId": project_id,
         "initialAccountSettings": _account_settings_props(request, profile),
-        "initialDeveloper": developer_state(request),
+        "initialDeveloper": developer_state(request) if developer_on else None,
     }
     titles = {
         "account": "Account Settings",

@@ -4,7 +4,7 @@ Tests for serve_static and the settings page.
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 from django.conf import settings
 from sefaria.constants.model import LIBRARY_MODULE, VOICES_MODULE
 from reader.conftest import create_test_user, page_props, purge_test_profiles
@@ -50,10 +50,7 @@ def test_library_sidebar_page_no_redirect(factory, monkeypatch):
     assert response.status_code not in (301, 302)
 
 
-class SettingsPageTest(TestCase):
-    """
-    /settings/account and /settings/developer are one React page, behind a login.
-    """
+class SettingsPageTestCase(TestCase):
     databases = "__all__"
 
     def setUp(self):
@@ -68,6 +65,13 @@ class SettingsPageTest(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         return page_props(response.content.decode("utf-8"))
+
+
+@override_settings(DEVELOPER_SETTINGS_ENABLED=True)
+class SettingsPageTest(SettingsPageTestCase):
+    """
+    /settings/account and /settings/developer are one React page, behind a login.
+    """
 
     def test_account_tab_renders_for_a_logged_in_user(self):
         props = self.props_for("/settings/account")
@@ -95,3 +99,22 @@ class SettingsPageTest(TestCase):
             response = self.client.get(url)
             self.assertEqual(response.status_code, 302)
             self.assertIn("/login", response["Location"])
+
+
+@override_settings(DEVELOPER_SETTINGS_ENABLED=False)
+class SettingsPageWithoutDeveloperSettingsTest(SettingsPageTestCase):
+    """
+    Without DEVELOPER_SETTINGS_ENABLED the settings page is the account tab alone.
+    """
+
+    def test_account_tab_carries_no_developer_state(self):
+        props = self.props_for("/settings/account")
+
+        self.assertEqual(props["initialSettingsTab"], "account")
+        self.assertIn("libraryAssistantEnabled", props["initialAccountSettings"])
+        self.assertIsNone(props["initialDeveloper"])
+
+    def test_developer_tab_is_not_found(self):
+        self.client.force_login(self.user)
+        for url in ("/settings/developer", "/settings/developer/projects/abc123"):
+            self.assertEqual(self.client.get(url).status_code, 404, url)

@@ -10,7 +10,7 @@ from django.views.decorators.http import require_http_methods
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.exceptions import InputError
 from . import developer
-from .developer_views import developer_api, state_response
+from .developer_views import developer_api, requires_developer_settings, state_response
 from .models import Project, SubmissionSource
 
 
@@ -75,6 +75,7 @@ def create_listing(user):
     )
 
 
+@requires_developer_settings
 @require_http_methods(["POST"])
 @developer_api
 def mock_api(request):

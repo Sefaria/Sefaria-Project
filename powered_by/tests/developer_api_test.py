@@ -24,6 +24,7 @@ PROJECT = {"name": "Daf Portal", "description": "A daily page companion.", "orga
            "websiteUrl": "https://dafportal.org/app", "visibility": "private", "aiAssisted": True}
 
 
+@override_settings(DEVELOPER_SETTINGS_ENABLED=True)
 class DeveloperApiTestCase(TestCase):
     databases = "__all__"
 
@@ -360,6 +361,40 @@ class ListingTest(DeveloperApiTestCase):
         self.assertIsNone(self.call("get", "state")[1]["yourListing"])
 
 
+class DeveloperSettingsOffTest(TestCase):
+    """
+    Without DEVELOPER_SETTINGS_ENABLED the developer routes don't exist.
+    """
+    databases = "__all__"
+
+    def setUp(self):
+        self.user = create_test_user("devoff")
+        purge_test_profiles(self.user)
+        self.client.force_login(self.user)
+
+    def tearDown(self):
+        purge_test_profiles(self.user)
+
+    def test_the_developer_api_is_not_found(self):
+        for method, url in (("get", "state"), ("post", "enable"), ("post", "confirmation"), ("post", "projects"),
+                            ("post", "projects/1/keys"), ("delete", "keys/1"), ("post", "listings/1/claim"),
+                            ("post", "mock")):
+            response = self.client.generic(method.upper(), "/api/developer/" + url, "{}", content_type="application/json")
+            self.assertEqual(response.status_code, 404, url)
+
+    def test_the_confirmation_link_and_its_landing_page_are_not_found(self):
+        EmailAddress.objects.create(user=self.user, email=self.user.email, primary=True, verified=False)
+        key = developer.confirmation_for(self.user).key
+
+        self.assertEqual(Client().get("/settings/developer/confirm-email/" + key).status_code, 404)
+        self.assertEqual(Client().get("/settings/developer/email-confirmed").status_code, 404)
+        self.assertFalse(EmailAddress.objects.get(user=self.user).verified)
+
+    def test_the_powered_by_form_is_not_found(self):
+        self.assertEqual(Client().get("/powered-by/form").status_code, 404)
+        self.assertEqual(Client().get("/api/developer-poc/powered-by-submissions").status_code, 404)
+
+
 class MockTest(DeveloperApiTestCase):
 
     def test_the_test_controls_are_off_by_default(self):
@@ -443,6 +478,7 @@ class ConfirmationLockTest(DeveloperApiTestCase):
         self.assertTrue(any("FOR UPDATE" in q["sql"] and "auth_user" in q["sql"] for q in queries))
 
 
+@override_settings(DEVELOPER_SETTINGS_ENABLED=True)
 class ConfirmationRaceTest(TransactionTestCase):
     databases = "__all__"
 
@@ -494,6 +530,7 @@ class ConfirmationRaceTest(TransactionTestCase):
         self.assertEqual(len(mail.outbox), 1)
 
 
+@override_settings(DEVELOPER_SETTINGS_ENABLED=True)
 class KeyCreationRaceTest(TransactionTestCase):
     databases = "__all__"
 

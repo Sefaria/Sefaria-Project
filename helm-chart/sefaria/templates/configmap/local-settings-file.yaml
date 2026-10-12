@@ -189,6 +189,7 @@ data:
     }
     SERVER_EMAIL = os.getenv("SERVER_EMAIL")
     DEVELOPER_SETTINGS_MOCKS = os.getenv("DEVELOPER_SETTINGS_MOCKS", "False").lower() == "true"
+    DEVELOPER_SETTINGS_ENABLED = os.getenv("DEVELOPER_SETTINGS_ENABLED", "False").lower() == "true"
 
     auth_str = f'{os.getenv("ELASTIC_USERNAME")}:{os.getenv("ELASTIC_PASSWORD")}@' if os.getenv("ELASTIC_USERNAME") else ''
     SEARCH_SSL_ENABLE = os.getenv("SEARCH_SSL_ENABLE").lower() == "true"

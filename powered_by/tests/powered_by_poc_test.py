@@ -10,6 +10,11 @@ from powered_by.models import Project
 SUBMISSIONS_URL = "/api/developer-poc/powered-by-submissions"
 
 
+@pytest.fixture(autouse=True)
+def developer_settings_on(settings):
+    settings.DEVELOPER_SETTINGS_ENABLED = True
+
+
 def post_submission(client, submission):
     return client.post(SUBMISSIONS_URL, data=json.dumps(submission), content_type="application/json")
 
