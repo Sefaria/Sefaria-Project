@@ -4604,22 +4604,26 @@ class Library(object):
             gen_cache.register(f"linker_resolver:{lang}", lambda lang=lang: self.rebuild_linker_resolvers((lang,)))
 
     def _build_shared_cache_object(self, key, fail_open=False):
-        """
-        Builds a shared-cache-backed object from Mongo and stores it locally and in the shared cache.
-        fail_open=True logs a failed shared-cache write instead of raising. Only refreshes pass it:
-        a peer that keeps a stale shared value after a failed write would read it once the bump lands.
-        """
+        """Builds a shared-cache-backed object from Mongo and stores it locally and in the shared cache."""
         attr, scache_key, build_fn = self._shared_cache_objects[key]
         value = build_fn()
         setattr(self, attr, value)
+        self._store_in_shared_cache({scache_key: value}, fail_open)
+        return value
+
+    def _store_in_shared_cache(self, items, fail_open):
+        """
+        fail_open logs a failed write instead of raising. Only refreshes may pass it: on a write
+        path, peers would read the stale shared value once the bump reaches them.
+        """
         try:
-            scache.set_shared_cache_elem(scache_key, value)
+            for scache_key, value in items.items():
+                scache.set_shared_cache_elem(scache_key, value)
             self.set_last_cached_time()
         except Exception:
             if not fail_open:
                 raise
-            logger.error("Shared cache unreachable writing %s; serving the local build only", scache_key)
-        return value
+            logger.error("Shared cache unreachable writing %s; serving the local build only", list(items))
 
     def _refresh_shared_cache_object(self, key):
         """refresh_fn for a shared-cache-backed object: use the shared cache if a peer already filled it."""
@@ -5589,18 +5593,10 @@ class Library(object):
         return title_list
 
     def _build_text_titles_json(self, lang, fail_open=False):
-        """fail_open: as in _build_shared_cache_object()."""
         title_list = self.build_text_titles_json(lang=lang)
         title_list_json = json.dumps(title_list, ensure_ascii=False)
         self._full_title_list_jsons[lang] = title_list_json
-        try:
-            scache.set_shared_cache_elem('books_' + lang, title_list)
-            scache.set_shared_cache_elem('books_' + lang + '_json', title_list_json)
-            self.set_last_cached_time()
-        except Exception:
-            if not fail_open:
-                raise
-            logger.error("Shared cache unreachable writing books_%s; serving the local build only", lang)
+        self._store_in_shared_cache({'books_' + lang: title_list, 'books_' + lang + '_json': title_list_json}, fail_open)
         return title_list_json
 
     def _refresh_text_titles_json(self, lang):

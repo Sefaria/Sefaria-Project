@@ -230,9 +230,8 @@ class GenCache:
     lives on its owner, e.g. Library, and was already rebuilt) to update this process and bump
     the generation for peers, or invalidate() to make every process, this one included, refresh.
 
-    A bump writes a new random token rather than INCRementing a counter: a Sentinel failover can
-    drop the last write, and a counter that regressed would later climb back to a value peers
-    already hold and be mistaken for current. A token is never reused.
+    A bump writes a new random token, never a counter: a Sentinel failover can drop the last
+    write, and a counter would then climb back to a value peers already hold.
 
     Fails open: if Redis is unreachable, get() serves the last value, and a bump that fails is
     retried after this process's next successful Redis call. A process that exits before then

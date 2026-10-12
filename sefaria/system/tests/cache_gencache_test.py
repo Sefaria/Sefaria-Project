@@ -259,7 +259,7 @@ def test_failed_bump_reaches_peer_once_redis_returns_with_keyspace_intact(fake_r
     peer_refresh, peer_calls = make_counting_refresh_fn(["peer-v1", "peer-v2"])
     peer.register("toc", peer_refresh)
 
-    simulate_peer_bump(fake_redis, "gen:toc")  # the counter exists, so a restart that kept it is distinguishable from keyspace loss
+    simulate_peer_bump(fake_redis, "gen:toc")  # a generation exists, so this isn't keyspace loss
     assert peer.get("toc") == "peer-v1"
 
     fake_redis.broken = True
@@ -318,8 +318,7 @@ def test_generation_rolled_back_by_failover_never_matches_a_later_bump(fake_redi
 
     fake_redis.store["gen:toc"] = before_lost_bump  # failover promotes the lagging replica
 
-    # The peer doesn't check again until after the next bump. With an INCR counter, that bump
-    # would recreate the lost value the peer already holds and the peer would miss it.
+    # the peer next checks after another bump, which must not reuse the value it holds
     writer.invalidate("toc")
     peer.get("toc")
     assert len(peer_calls) == 2
