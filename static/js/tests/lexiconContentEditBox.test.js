@@ -29,15 +29,43 @@ jest.mock('json-edit-react', () => {
   const React = require('react');  // jest.mock factories are hoisted above imports
   return {
     __esModule: true,
-    JsonEditor: ({ data, setData }) => React.createElement('div', { className: 'fakeJsonEditor' },
+    // Stands in for the library's own immutable set-at-path helper.
+    assign: (data, path, newValue) => {
+      const copy = JSON.parse(JSON.stringify(data));
+      const parent = path.slice(0, -1).reduce((node, key) => node[key], copy);
+      parent[path[path.length - 1]] = newValue;
+      return copy;
+    },
+    JsonEditor: ({ data, setData, customNodeDefinitions }) => React.createElement('div', { className: 'fakeJsonEditor' },
       React.createElement('div', { className: 'fakeJsonEditorData' }, JSON.stringify(data)),
       React.createElement('button', {
         className: 'fakeJsonEditorMutate',
         onClick: () => setData({ ...data, notes: 'edited via fake editor' }),
       }, 'mutate'),
+      // A field open mid-edit: WysiwygValueNode pushes each change through this same callback
+      // (see LexiconWysiwygValue), with no per-field confirm in between.
+      React.createElement('button', {
+        className: 'fakeJsonEditorTypeInField',
+        onClick: () => customNodeDefinitions[0].customNodeProps
+          .commitDraft(['content', 'senses', 0, 'definition'], 'still being typed'),
+      }, 'type in field'),
     ),
   };
 });
+
+// react-simple-wysiwyg (pulled in via LexiconWysiwygValue, used only as a customNodeDefinitions
+// prop value on the (mocked, above) JsonEditor -- never actually rendered here) injects its
+// stylesheet at import time via insertAdjacentElement, which jsdom doesn't support. Stubbing it
+// avoids ever evaluating the real package, same reasoning as the json-edit-react mock above.
+jest.mock('react-simple-wysiwyg', () => new Proxy({}, {
+  // createButton(...) is called at module-load time (LexiconWysiwygValue's BtnSuperscript etc.)
+  // and must itself return a component, not null, or JSX like <BtnSuperscript /> is invalid.
+  get: (_t, prop) => {
+    if (prop === '__esModule') { return true; }
+    if (prop === 'createButton') { return () => (() => null); }
+    return () => null;
+  },
+}));
 
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -64,6 +92,9 @@ function unmount() {
 const editorData = () => JSON.parse(container.querySelector('.fakeJsonEditorData').textContent);
 const mutate = () => act(() => {
   container.querySelector('.fakeJsonEditorMutate').dispatchEvent(new MouseEvent('click', { bubbles: true }));
+});
+const typeInField = () => act(() => {
+  container.querySelector('.fakeJsonEditorTypeInField').dispatchEvent(new MouseEvent('click', { bubbles: true }));
 });
 const saveButton = () => container.querySelector('button.button');
 const clickSave = async () => act(async () => { saveButton().dispatchEvent(new MouseEvent('click', { bubbles: true })); });
@@ -111,8 +142,8 @@ describe('loading the entry', () => {
   });
 
   test('a 404 response shows an error instead of an indefinite spinner', async () => {
-    // Previously: no .catch() on the GET at all, so a rejection here was an unhandled
-    // promise, and the panel stayed on LoadingMessage forever with no explanation.
+    // A rejected GET must not leave the panel on LoadingMessage forever with an unhandled
+    // promise rejection and no explanation.
     Sefaria.apiRequestWithBody.mockResolvedValue(errorResponse('Entry not found.'));
 
     await mount('BDB, שָׁמַר');
@@ -197,6 +228,33 @@ describe('editing and saving', () => {
 
     expect(Sefaria.apiRequestWithBody).toHaveBeenCalledWith(
       ENTRY_URL, null, { content: { content: { senses: [] }, notes: 'edited via fake editor' } }, 'PATCH', false
+    );
+  });
+
+  test('typing in a field updates the draft at that field\'s path, with no per-field confirm', async () => {
+    Sefaria.apiRequestWithBody.mockImplementation((url, params, payload, method) =>
+      Promise.resolve(method === 'GET'
+        ? okResponse({ entry: { headword: 'שָׁמַר', content: { senses: [{ definition: 'stored' }, { definition: 'untouched' }] } }, content_attr_names: ['content'] })
+        : patchResponse()));
+    await mount('BDB, שָׁמַר');
+
+    typeInField();
+
+    expect(editorData()).toEqual({ content: { senses: [{ definition: 'still being typed' }, { definition: 'untouched' }] } });
+  });
+
+  test('Save sends a field that is still open, with no per-field confirm', async () => {
+    Sefaria.apiRequestWithBody.mockImplementation((url, params, payload, method) =>
+      Promise.resolve(method === 'GET'
+        ? okResponse({ entry: { headword: 'שָׁמַר', content: { senses: [{ definition: 'stored' }] } }, content_attr_names: ['content'] })
+        : patchResponse()));
+    await mount('BDB, שָׁמַר');
+    typeInField();
+
+    await clickSave();
+
+    expect(Sefaria.apiRequestWithBody).toHaveBeenCalledWith(
+      ENTRY_URL, null, { content: { content: { senses: [{ definition: 'still being typed' }] } } }, 'PATCH', false
     );
   });
 

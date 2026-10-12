@@ -126,7 +126,7 @@ class Project(models.Model):
         default=False, help_text="Submitter consented to public display.",
     )
     is_published = models.BooleanField(
-        default=False, help_text="Editorial publish gate, controls visibility on the public site.",
+        default=True, help_text="Editorial publish gate, controls visibility on the public site.",
     )
     featured = models.BooleanField(default=False, help_text="Pinned / featured position in the gallery.")
     notes = models.TextField(null=True, blank=True, help_text="Staff notes, anything else.")

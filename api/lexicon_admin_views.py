@@ -1,16 +1,11 @@
-import json
 import unicodedata
 
-from bson import ObjectId
-from bson.errors import InvalidId
-from django.contrib.auth.models import User
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt, csrf_protect
 
 from sefaria.client.util import jsonResponse
-from sefaria.model.lexicon import LexiconEntry, LexiconEntrySet, Lexicon, LexiconEntrySubClassMapping, WordForm, WordFormSet
+from sefaria.model import log_update, diff_strings
+from sefaria.model.lexicon import LexiconEntry, LexiconEntrySet, Lexicon, DictionaryEntry
 from sefaria.model.text import Ref
-from sefaria.system.database import db
 from sefaria.helper.schema import change_lexicon_headword, get_available_lexicon_headword
 from sefaria.system.exceptions import InputError
 from sefaria.system.multiserver.coordinator import server_coordinator
@@ -31,6 +26,28 @@ def _load_lexicon_entry(lexicon, headword):
     if len(matches) > 1:
         raise AmbiguousLexiconEntry()
     return matches[0] if matches else None
+
+
+def _render_entry(entry):
+    """The entry as displayed text, for the history diff. A lexicon with no dictionary subclass
+    of its own (e.g. Halachic Terminology) maps to the base LexiconEntry, which has no rendered
+    form at all -- nothing to diff."""
+    return "\n".join(entry.as_strings(with_headword=False)) if isinstance(entry, DictionaryEntry) else ""
+
+
+def _load_entry_ref(lexicon, headword):
+    """Returns (lexicon record, tref). tref is None for a lookup-only lexicon -- with no Index,
+    its entries have no ref to log against or to cache."""
+    lex = Lexicon().load({"name": lexicon})
+    tref = f"{lex.index_title}, {headword}" if lex and getattr(lex, "index_title", None) else None
+    return lex, tref
+
+
+def _log_entry_change(user_id, lex, tref, old_dict, new_dict, old_text, new_text):
+    diff_html, revert_patch = diff_strings(old_text, new_text)
+    log_update(user_id, LexiconEntry, old_dict, new_dict, ref=tref,
+               diff_html=diff_html, revert_patch=revert_patch,
+               version=getattr(lex, "version_title", None), language=getattr(lex, "version_lang", None))
 
 
 def _not_found():
@@ -65,19 +82,22 @@ class LexiconEntryView(View):
             return _ambiguous()
         if not entry:
             return _not_found()
+        old_dict = entry.contents()
+        old_body = _render_entry(entry)
         try:
             entry.replace_content_attrs(body.get("content", {}))
             entry.save()
         except InputError as e:
             return jsonResponse({"error": str(e)}, status=400)
+        new_body = _render_entry(entry)
+        lex, tref = _load_entry_ref(lexicon, entry.headword)
+        _log_entry_change(request.user.id, lex, tref, old_dict, entry.contents(), old_body, new_body)
         # DictionaryEntryNode embeds the loaded entry inside itself, so a cached Ref for it
         # would otherwise keep serving pre-edit content until the process restarts. This
         # process's own cache is cleared directly; other pods behind the same deployment
         # each carry their own copy of the same cache and only hear about the edit via
         # the multiserver event.
-        lex = Lexicon().load({"name": lexicon})
-        if lex and getattr(lex, "index_title", None):
-            tref = f"{lex.index_title}, {entry.headword}"
+        if tref:
             Ref.remove_ref_from_cache(lex.index_title, tref)
             if MULTISERVER_ENABLED:
                 server_coordinator.publish_event("Ref", "remove_ref_from_cache", [lex.index_title, tref])
@@ -114,6 +134,8 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
             # don't silently 200 as if nothing was asked for.
             return jsonResponse({"error": f"'{new_headword}' collides with this entry's own "
                                            f"current headword after disambiguation; no change made."}, status=409)
+        old_dict = entry.contents()
+        old_headword = entry.headword
         try:
             actual_headword = change_lexicon_headword(lexicon, entry.headword, resolved)
         except ValueError as e:
@@ -134,184 +156,9 @@ class LexiconEntryHeadwordView(StaffRequiredMixin, View):
             return jsonResponse({"error": str(e)}, status=400)
         # actual_headword rather than resolved: entry.save() inside change_lexicon_headword
         # can still transform it (NFC-normalize), so resolved is only the pre-save candidate.
+        # change_lexicon_headword only ever touches this entry's headword field, so patching
+        # that one field onto old_dict avoids a second DB read just to log history.
+        lex, tref = _load_entry_ref(lexicon, actual_headword)
+        _log_entry_change(request.user.id, lex, tref, old_dict, {**old_dict, "headword": actual_headword},
+                          old_headword, actual_headword)
         return jsonResponse({"status": "ok", "headword": actual_headword})
-
-
-# ---- Bulk upload of a whole lexicon (used by scripts/move_draft_lexicon.py) ----
-#
-# Entries and word forms are matched on _id, not headword/form: neither is unique (BDB Augmented
-# Strong has several entries per headword; one form often has a word form per generating script).
-# Copies of the same Mongo dump share _ids, and records created in one environment keep their _id
-# in the other, so later uploads (including headword renames) update instead of duplicating.
-# Nothing is ever deleted here.
-
-
-def _require_staff(request, write):
-    """Runs write(request) for a staff user, logged in or with an API key (same rules as terms_api)."""
-    if not request.user.is_authenticated:
-        key = request.POST.get("apikey")
-        if not key:
-            return jsonResponse({"error": "You must be logged in or use an API key to upload lexicons."}, status=403)
-        apikey = db.apikeys.find_one({"key": key})
-        if not apikey:
-            return jsonResponse({"error": "Unrecognized API key."}, status=403)
-        user = User.objects.filter(id=apikey["uid"]).first()
-        if not (user and user.is_staff):
-            return jsonResponse({"error": "Only Sefaria Moderators can upload lexicons."}, status=403)
-        return write(request)
-    if request.user.is_staff:
-        return csrf_protect(write)(request)
-    return jsonResponse({"error": "Only Sefaria Moderators can upload lexicons."}, status=403)
-
-
-def _load_upload(request, expected_type):
-    """The uploaded JSON: the "json" form field (as move_draft_text.py's APIs take it), else the raw body."""
-    try:
-        data = json.loads(request.POST["json"] if "json" in request.POST else request.body)
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        return None, jsonResponse({"error": "Invalid JSON."}, status=400)
-    if not isinstance(data, expected_type):
-        return None, jsonResponse({"error": f"JSON must be a{'n object' if expected_type is dict else ' list'}."}, status=400)
-    return data, None
-
-
-def _check_fields(record_class, data):
-    # save() silently drops fields the class doesn't list, so refuse them instead of losing data.
-    unknown = sorted(set(data) - set(record_class.required_attrs + record_class.optional_attrs))
-    if unknown:
-        raise InputError(f"Unknown {record_class.__name__} fields: {unknown}")
-
-
-def _pop_id(data):
-    try:
-        return ObjectId(data.pop("_id"))
-    except (KeyError, InvalidId, TypeError):
-        raise InputError("Each record needs a valid _id.")
-
-
-def _is_unchanged(record, data):
-    return {k: v for k, v in record._saveable_attrs().items() if k != record.id_field} == data
-
-
-def _replace_fields(record, data):
-    """Makes an existing record hold exactly `data`: fields missing from `data` are removed, _id is kept."""
-    for attr in record.required_attrs + record.optional_attrs:
-        if attr in vars(record):
-            delattr(record, attr)
-    return record.load_from_dict(data)
-
-
-def _upsert_entry(lexicon, data):
-    oid = _pop_id(data)
-    if data.get("parent_lexicon") != lexicon:
-        raise InputError(f"parent_lexicon must be '{lexicon}'.")
-    entry_class = LexiconEntrySubClassMapping.class_factory(lexicon)
-    _check_fields(entry_class, data)
-    existing = LexiconEntry().load({"_id": oid})
-    if not existing:
-        entry_class(data).save(insert_id=oid)
-        return "created"
-    if existing.parent_lexicon != lexicon:
-        raise InputError(f"This _id belongs to an entry of '{existing.parent_lexicon}'.")
-    if _is_unchanged(existing, data):
-        return "unchanged"
-    _replace_fields(existing, data).save()
-    return "updated"
-
-
-def _upsert_word_form(lexicon, data):
-    oid = _pop_id(data)
-    _check_fields(WordForm, data)
-    lookups = data.get("lookups")
-    if not isinstance(lookups, list) or not lookups or any(l.get("parent_lexicon") != lexicon for l in lookups):
-        raise InputError(f"lookups must be a non-empty list whose parent_lexicon is always '{lexicon}'.")
-    existing = WordForm().load({"_id": oid})
-    if not existing:
-        WordForm(data).save(insert_id=oid)
-        return "created"
-    # A word form can hold lookups into several lexicons. Replace only this lexicon's, in the
-    # position they already had, and keep the rest.
-    merged, placed = [], False
-    for lookup in existing.lookups:
-        if lookup.get("parent_lexicon") != lexicon:
-            merged.append(lookup)
-        elif not placed:
-            merged += lookups
-            placed = True
-    data["lookups"] = merged if placed else merged + lookups
-    if _is_unchanged(existing, data):
-        return "unchanged"
-    _replace_fields(existing, data).save()
-    return "updated"
-
-
-def _upsert_batch(lexicon, upsert_one):
-    def write(request):
-        records, err = _load_upload(request, list)
-        if err:
-            return err
-        lex = Lexicon().load({"name": lexicon})
-        if not lex:
-            return jsonResponse({"error": f"Lexicon '{lexicon}' does not exist. Upload it first."}, status=404)
-        result = {"created": 0, "updated": 0, "unchanged": 0, "errors": 0, "error_details": []}
-        for data in records:
-            try:
-                if not isinstance(data, dict):
-                    raise InputError("Each record must be an object.")
-                result[upsert_one(lexicon, dict(data))] += 1
-            except Exception as e:
-                # Report and move on, so one bad record doesn't sink the rest of the batch.
-                result["errors"] += 1
-                result["error_details"].append({"_id": data.get("_id") if isinstance(data, dict) else None, "error": f"{type(e).__name__}: {e}"})
-        if upsert_one is _upsert_entry and (result["created"] or result["updated"]) and getattr(lex, "index_title", None):
-            # Cached Refs of a dictionary Index embed the entries they point to (see LexiconEntryView.patch).
-            Ref.remove_index_from_cache(lex.index_title)
-            if MULTISERVER_ENABLED:
-                server_coordinator.publish_event("Ref", "remove_index_from_cache", [lex.index_title])
-        return jsonResponse(result)
-    return write
-
-
-@csrf_exempt
-def lexicon_api(request, lexicon):
-    if request.method == "GET":
-        lex = Lexicon().load({"name": lexicon})
-        if not lex:
-            return jsonResponse({"error": f"Lexicon '{lexicon}' does not exist."}, status=404)
-        return jsonResponse({
-            "lexicon": lex.contents(),
-            "entry_count": LexiconEntrySet({"parent_lexicon": lexicon}).count(),
-            "word_form_count": WordFormSet({"lookups.parent_lexicon": lexicon}).count(),
-        })
-    if request.method != "POST":
-        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
-
-    def write(request):
-        data, err = _load_upload(request, dict)
-        if err:
-            return err
-        data.pop("_id", None)  # lexicons are matched on name
-        if data.get("name") != lexicon:
-            return jsonResponse({"error": f"name must be '{lexicon}'."}, status=400)
-        try:
-            _check_fields(Lexicon, data)
-            existing = Lexicon().load({"name": lexicon})
-            (_replace_fields(existing, data) if existing else Lexicon(data)).save()
-        except InputError as e:
-            return jsonResponse({"error": str(e)}, status=400)
-        return jsonResponse({"status": "updated" if existing else "created"})
-    return _require_staff(request, write)
-
-
-@csrf_exempt
-def lexicon_entries_api(request, lexicon):
-    if request.method != "POST":
-        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
-    return _require_staff(request, _upsert_batch(lexicon, _upsert_entry))
-
-
-@csrf_exempt
-def lexicon_word_forms_api(request, lexicon):
-    if request.method != "POST":
-        return jsonResponse({"error": "Unsupported HTTP method."}, status=405)
-    return _require_staff(request, _upsert_batch(lexicon, _upsert_word_form))

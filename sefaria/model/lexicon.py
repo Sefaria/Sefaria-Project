@@ -86,6 +86,7 @@ class Dictionary(Lexicon):
 
 class LexiconEntry(abst.AbstractMongoRecord):
     collection   = 'lexicon_entry'
+    history_noun = 'lexicon_entry'
 
     required_attrs = [
         "headword",
@@ -133,7 +134,14 @@ class LexiconEntry(abst.AbstractMongoRecord):
         'span':['class', 'dir'],
         'i': ['data-commentator', 'data-order', 'class', 'data-label', 'dir'],
         'img': lambda name, value: name == 'src' and value.startswith("data:image/"),
-        'a': ['dir', 'class', 'href', 'data-ref'],
+        # data-scroll-link matches the general text-sanitization allowlist for `a`
+        # (sefaria/constants/model.py) -- TextRange.jsx:464 reads it to scroll within the
+        # same panel instead of opening a new one.
+        'a': ['dir', 'class', 'href', 'data-ref', 'data-scroll-link'],
+        # The standard footnote-marker convention (sefaria/helper/normalization.py,
+        # sefaria/search.py) -- s2.css styles it and ReaderApp.jsx's clipboard-copy cleanup
+        # keys off this exact class.
+        'sup': ['class'],
     }
 
     # is_key_changed('headword') tells _validate() whether headword itself is being set to
@@ -144,9 +152,19 @@ class LexiconEntry(abst.AbstractMongoRecord):
 
     # Attrs the content-replace API (replace_content_attrs) is not allowed to overwrite:
     # headword/parent_lexicon are identity; prev_hw/next_hw are sibling pointers only
-    # change_lexicon_headword maintains; rid is an external xref id; quotes isn't read by
-    # any rendering method.
-    content_patch_excluded_attrs = ["headword", "parent_lexicon", "prev_hw", "next_hw", "rid", "quotes"]
+    # change_lexicon_headword maintains; rid/orig_word/orig_ref/catane_number are external
+    # xref ids (the latter three used only by Rashi-lexicon import scripts to match
+    # WordForms, never rendered); the rest are never read as an entry-level attribute by
+    # any subclass's as_strings()/headword_string()/get_sense() -- a few (number,
+    # plural_form, binyan_form, alternative, morphology) share a name with a key read from
+    # inside `content`/`content['senses']`, which is a different field and stays reachable
+    # through `content` regardless.
+    content_patch_excluded_attrs = [
+        "headword", "parent_lexicon", "prev_hw", "next_hw", "rid", "quotes",
+        "transliteration", "pronunciation", "morphology", "refs", "related_words", "number",
+        "citations", "plural_form", "binyan_form", "alternative",
+        "orig_word", "orig_ref", "catane_number", "strong_number", "strong_numbers", "GK", "TWOT",
+    ]
 
     def load(self, query, proj=None):
         # Resolve the correct dictionary subclass before super().load(), since its
@@ -161,15 +179,14 @@ class LexiconEntry(abst.AbstractMongoRecord):
         return super(LexiconEntry, self).load(query, proj)
 
     def _normalize(self):
-        # Relies on headword/prev_hw/next_hw always being NFC on every write path (this
-        # one, and change_lexicon_headword): re-normalizing an already-NFC value is a
-        # no-op, so nothing that depends on the byte value (Index, WordForm, cascaded refs)
-        # is ever desynced here. Existing non-NFC data needs a backfill first -- see
-        # scripts/lexicon/normalize_lexicon_headwords.py.
-        self.headword = unicodedata.normalize('NFC', self.headword)
-        for attr in ('prev_hw', 'next_hw'):
-            if hasattr(self, attr):
-                setattr(self, attr, unicodedata.normalize('NFC', getattr(self, attr)))
+        # An existing entry only gets headword normalized if it's actually changing this
+        # save -- an unrelated save must leave an untouched, not-yet-backfilled value as is.
+        if self.is_new() or self.is_key_changed('headword'):
+            self.headword = unicodedata.normalize('NFC', self.headword)
+        if self.is_new():
+            for attr in ('prev_hw', 'next_hw'):
+                if hasattr(self, attr):
+                    setattr(self, attr, unicodedata.normalize('NFC', getattr(self, attr)))
         self._prune_empty_attrs()
 
     def _prune_empty_attrs(self):
@@ -509,6 +526,43 @@ class KovetzYesodotEntry(DictionaryEntry):
         return ['<br>'.join(strings)]
 
 
+class BenYehudaDictionaryEntry(DictionaryEntry):
+    """Eliezer Ben-Yehuda's מילון הלשון העברית.
+
+    Each entry is a single vocalized headword with an HTML definition (already
+    carrying inlined footnotes, styled source citations, and internal
+    cross-reference links, produced by the import pipeline). ``content`` is
+    ``{"definition": [<p>…</p>, …]}`` — one HTML paragraph per list element.
+    """
+    required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
+    optional_attrs = DictionaryEntry.optional_attrs + ["page_num"]
+
+    def headword_string(self):
+        return f'<big><strong dir="rtl">{self.headword}</strong></big>'
+
+    def as_strings(self, with_headword=True):
+        """One string per definition paragraph so each becomes its own segment.
+
+        Segment 1 is the bold headword spliced into the first paragraph;
+        any further paragraphs become their own segments. Cross-reference
+        links therefore resolve to segment 1 of their target entry.
+        """
+        paras = self.content.get("definition", []) or []
+        head = self.headword_string() if with_headword else ""
+
+        if not paras:
+            return [head] if head else [""]
+
+        segments = list(paras)
+        if head:
+            first = segments[0]
+            if first.startswith("<p>"):
+                segments[0] = "<p>" + head + " " + first[3:]
+            else:
+                segments[0] = head + " " + first
+        return segments
+
+
 class KrupnikEntry(DictionaryEntry):
     required_attrs = DictionaryEntry.required_attrs + ["content", "rid"]
     optional_attrs = DictionaryEntry.optional_attrs + ['biblical', 'no_binyan_kal', 'emendation', 'used_in', 'equals', 'pos_list']
@@ -669,6 +723,7 @@ class LexiconEntrySubClassMapping(object):
         'BDB Aramaic Dictionary': BDBEntry,
         'Kovetz Yesodot VaChakirot': KovetzYesodotEntry,
         'Krupnik Dictionary': KrupnikEntry,
+        'Ben Yehuda Dictionary': BenYehudaDictionaryEntry,
     }
 
     @classmethod
@@ -699,10 +754,10 @@ class LexiconEntrySet(abst.AbstractMongoSet):
             return not (entry.headword, entry.parent_lexicon) in self._primary_tuples
 
         if self.records is None:
-            self.records = []
-            for rec in self.raw_records:
-                self.records.append(LexiconEntrySubClassMapping.instance_from_record_factory(rec))
-            self.max = len(self.records)
+            # The entry class depends on the document's lexicon, so this set cannot use
+            # `recordClass`. Instantiating through _build_records() rather than looping here
+            # is what keeps with_skip_guard() working — see AbstractMongoSet._build_records.
+            self._build_records(LexiconEntrySubClassMapping.instance_from_record_factory)
             if self._primary_tuples:
                 self.records.sort(key=is_primary)
 
