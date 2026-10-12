@@ -148,6 +148,33 @@ def deep_update(dict1, dict2):
             dict1[k] = v
     return dict1
 
+
+def deep_map(value, leaf_fn=lambda v: v, after=lambda v: v):
+    """
+    Recursively rebuild a dict/list/leaf structure: apply leaf_fn to every non-dict/list
+    value, and after to every freshly-rebuilt dict/list (children are already processed by
+    the time after runs, so after sees the bottom-up result -- container filtering, not
+    just leaf transforms, can hook in here via the after callback).
+    """
+    if isinstance(value, dict):
+        return after({k: deep_map(v, leaf_fn, after) for k, v in value.items()})
+    if isinstance(value, list):
+        return after([deep_map(v, leaf_fn, after) for v in value])
+    return leaf_fn(value)
+
+
+def deep_prune(value, is_empty=lambda v: v in ("", {}, [], None)):
+    """
+    Recursively rebuild a dict/list/leaf structure, dropping any dict/list entry whose
+    (already-pruned) value is empty. Leaves are returned unchanged. Built on deep_map's
+    `after` hook -- pruning only needs post-order container filtering, no leaf transform.
+    """
+    def _drop_empty(container):
+        items = container.items() if isinstance(container, dict) else enumerate(container)
+        kept = [(k, v) for k, v in items if not is_empty(v)]
+        return dict(kept) if isinstance(container, dict) else [v for _, v in kept]
+    return deep_map(value, after=_drop_empty)
+
 '''
 Data structure utils - jagged arrays
 '''

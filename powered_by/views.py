@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 import json
+import re
 
 from django.conf import settings
 from django.core.exceptions import ValidationError as DjangoValidationError
@@ -102,7 +103,18 @@ def _formstack_checkbox_values(value):
 
 
 def _formstack_yes_no(value):
-    return str(value).strip().lower() in ("yes", "true", "1")
+    # Radio options can be long-form ("Yes! I have added the logo..."), so match on the leading word.
+    text = str(value).strip().lower()
+    return text.startswith("yes") or text in ("true", "1")
+
+
+_URL_SCHEME_RE = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://")
+
+
+def _formstack_url(value):
+    """Formstack accepts any text for link fields; assume https:// when no scheme was typed."""
+    value = str(value).strip()
+    return value if _URL_SCHEME_RE.match(value) else f"https://{value}"
 
 
 def translate_formstack_payload(body):
@@ -122,7 +134,7 @@ def translate_formstack_payload(body):
     for field_id, project_field in FORMSTACK_FIELD_MAP.items():
         value = _formstack_field(body, field_id)
         if value:
-            cleaned[project_field] = value
+            cleaned[project_field] = _formstack_url(value) if project_field in URL_FIELDS else value
 
     for field_id, project_field in FORMSTACK_BOOLEAN_FIELD_MAP.items():
         value = _formstack_field(body, field_id)
@@ -303,13 +315,16 @@ def _powered_by_post(request):
 
     cleaned.setdefault("submission_source", SubmissionSource.FORMSTACK)
     cleaned.setdefault("submission_date", timezone.now())
+    # A submitter who explicitly declines display consent is never auto-published.
+    if cleaned.get("consent_to_display") is False:
+        cleaned["is_published"] = False
 
     # No upsert: project_link is a public field (visible via GET), so keying
     # a write off it would let anyone overwrite an existing project's data by
     # POSTing its project_link back with different content. Every POST
-    # inserts a new row instead; is_published defaults to False (model
-    # default) pending staff review, and staff are expected to reconcile any
-    # resulting project_link duplicates on the admin side.
+    # inserts a new row instead; is_published defaults to True (model
+    # default), and staff can unpublish and reconcile any resulting
+    # project_link duplicates on the admin side.
     project = Project.objects.create(**cleaned)
     authenticated = request.user.is_staff
     return jsonResponse({"project": project.contents(authenticated=authenticated)}, status=201)

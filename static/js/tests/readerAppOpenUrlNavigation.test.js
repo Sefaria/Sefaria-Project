@@ -2,10 +2,10 @@
  * ReaderApp.openURL: did this call actually move the page?
  *
  * openURL returns true for three cases where the current page does NOT go anywhere -- it
- * opened a new tab, or the user cancelled an unsaved-changes prompt. The search analytics
- * flow used to be ended on that plain `true`, which meant clicking an external or
- * cross-module link from the search page silently killed reporting for the rest of the
- * visit, even though the search results were still on screen.
+ * opened a new tab, or the user cancelled an unsaved-changes prompt. Ending the search
+ * analytics flow on that plain `true` would mean clicking an external or cross-module link
+ * from the search page silently kills reporting for the rest of the visit, even though the
+ * search results are still on screen.
  *
  * lastOpenURLNavigatedInApp() separates the two meanings. openURL's own return value is
  * deliberately unchanged -- a dozen call sites read it as a plain "handled?" -- so these
@@ -61,6 +61,22 @@ jest.mock("../Misc", () => new Proxy({}, {
 }));
 jest.mock("../ImageCropper", () => new Proxy({}, {
   get: (_t, prop) => (prop === "__esModule" ? true : () => null),
+}));
+// json-edit-react (pulled in via ConnectionsPanel -> LexiconContentEditBox) does DOM feature
+// detection at import time that jsdom doesn't support (insertAdjacentElement); stubbing it
+// avoids ever evaluating the real package, same as the two mocks above.
+jest.mock("json-edit-react", () => new Proxy({}, {
+  get: (_t, prop) => (prop === "__esModule" ? true : () => null),
+}));
+// react-simple-wysiwyg (pulled in via LexiconContentEditBox -> LexiconWysiwygValue) injects its
+// stylesheet at import time via insertAdjacentElement, same jsdom gap as json-edit-react above.
+// createButton(...) is called at module-load time and must itself return a component, not null.
+jest.mock("react-simple-wysiwyg", () => new Proxy({}, {
+  get: (_t, prop) => {
+    if (prop === "__esModule") { return true; }
+    if (prop === "createButton") { return () => (() => null); }
+    return () => null;
+  },
 }));
 
 import Sefaria from '../sefaria/sefaria';
