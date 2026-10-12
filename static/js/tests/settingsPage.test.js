@@ -779,3 +779,45 @@ describe('a confirmation link that cannot confirm', () => {
     expect(buttonNamed(container, 'Send a new link')).toBeUndefined();
   });
 });
+
+describe('after the account email changes', () => {
+  const changedEmail = {
+    developerEnabled: true, ssoConnected: false, emailVerified: false, profile: PROFILE,
+    projects: [publicProject({
+      keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: '2026-09-01T00:00:00Z', restrictToWebsite: false }],
+    })],
+  };
+
+  it('keeps projects and keys on show but offers no new ones', () => {
+    mount('developer', changedEmail, { projectId: 'proj01' });
+    const panel = developerPanel();
+    expect(panel.textContent).toContain('Confirm your new email address');
+    expect(panel.textContent).toContain('Your projects and keys keep working');
+    expect(panel.textContent).toContain('Daf Tracker');
+    expect(panel.textContent).toContain('Production');
+    expect(panel.textContent).not.toContain('Get started');
+    expect(panel.querySelector('[data-agent-action="new-project"]')).toBeNull();
+    expect(panel.querySelector('[data-agent-action="new-key"]')).toBeNull();
+  });
+
+  it('shows no create-first buttons on an empty account', () => {
+    mount('developer', { ...changedEmail, projects: [] });
+    expect(developerPanel().textContent).toContain('No projects yet');
+    expect(developerPanel().querySelector('[data-agent-action="new-project"]')).toBeNull();
+  });
+
+  it('emails a link to the new address', async () => {
+    mount('developer', changedEmail);
+    respondWith({ ...changedEmail, confirmationSentAt: '2026-10-12T00:00:00Z' });
+    await clickAndSettle(buttonNamed(developerPanel(), 'Email me a confirmation link'));
+    expect(lastRequest()).toMatchObject({ url: '/api/developer/confirmation', method: 'POST' });
+    expect(developerPanel().textContent).toContain('We sent a confirmation link to tova@example.org');
+    expect(buttonNamed(developerPanel(), 'Resend the link')).toBeTruthy();
+  });
+
+  it('offers new projects again once the new address is confirmed', () => {
+    mount('developer', { ...changedEmail, emailVerified: true });
+    expect(developerPanel().textContent).not.toContain('Confirm your new email address');
+    expect(developerPanel().querySelector('[data-agent-action="new-project"]')).toBeTruthy();
+  });
+});

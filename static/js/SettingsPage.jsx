@@ -546,6 +546,39 @@ const GetStarted = ({verified, confirmationSent, settingUp, highlight, onStart, 
 };
 
 
+/* The account email changed since it was verified. Projects and keys keep working; new ones
+   wait until the new address is confirmed. */
+const ReconfirmEmail = ({confirmationSent, onSend}) => {
+  const email = accountEmail();
+  const emailText = <bdi dir="ltr"><strong>{email}</strong></bdi>;
+  return (
+    <div className="devPocNotice devPocReconfirm" role="region" aria-label={Sefaria._v({en: "Confirm your new email", he: "אישור כתובת הדוא״ל החדשה"})}>
+      <h2><InterfaceText text={{en: "Confirm your new email address", he: "אישור כתובת הדוא״ל החדשה"}} /></h2>
+      <p>
+        <InterfaceText text={{
+          en: <React.Fragment>Your account email changed to {emailText}. Your projects and keys keep working. To create new projects and keys, confirm the new address.</React.Fragment>,
+          he: <React.Fragment>כתובת הדוא״ל של החשבון שונתה ל־{emailText}. הפרויקטים והמפתחות שלכם ממשיכים לעבוד. כדי ליצור פרויקטים ומפתחות חדשים, אשרו את הכתובת החדשה.</React.Fragment>,
+        }} />
+      </p>
+      {confirmationSent ?
+        <p className="devPocHelp" role="status">
+          <InterfaceText text={{
+            en: <React.Fragment>We sent a confirmation link to {emailText}. It works for 3 days.</React.Fragment>,
+            he: <React.Fragment>שלחנו קישור לאישור אל {emailText}. הקישור בתוקף 3 ימים.</React.Fragment>,
+          }} />
+        </p> : null}
+      <div className="devPocActions">
+        <button className="button small white" type="button" data-agent-action="send-confirmation" onClick={onSend}>
+          <InterfaceText text={confirmationSent ?
+            {en: "Resend the link", he: "שליחה חוזרת של הקישור"} :
+            {en: "Email me a confirmation link", he: "שלחו לי קישור לאישור"}} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+
 const emptyProfile = () => ({
   developerName: "", description: "", additionalEmail: "",
   termsAccepted: false, developerNews: false, notADeveloper: false,
@@ -1327,7 +1360,7 @@ const KeyRow = ({project, apiKey, isNew, describedBy, onToggleRestriction, onDel
 
 const KEY_HIGHLIGHT_MS = 4000;
 
-const KeysSection = ({project, maxKeys, run, setConfirm, onAddWebsite}) => {
+const KeysSection = ({project, maxKeys, canCreate, run, setConfirm, onAddWebsite}) => {
   const [creating, setCreating] = useState(false);   // showing the label form
   const [label, setLabel] = useState("");
   const [phase, setPhase] = useState("idle");        // idle | setting-up | error
@@ -1340,7 +1373,7 @@ const KeysSection = ({project, maxKeys, run, setConfirm, onAddWebsite}) => {
 
   const atLimit = project.keys.length >= maxKeys;
   const keysNoteField = "devPocKeys-" + project.id;
-  const firstKeyPrompt = project.keys.length === 0 && !creating && phase === "idle";
+  const firstKeyPrompt = canCreate && project.keys.length === 0 && !creating && phase === "idle";
   const startCreating = () => { setCreating(true); setPhase("idle"); setError(""); };
 
   /* The spinner stays up for at least KEY_SETUP_MS, about how long auth services take to
@@ -1393,7 +1426,7 @@ const KeysSection = ({project, maxKeys, run, setConfirm, onAddWebsite}) => {
             }} />
           </p>
         </div>
-        {creating || firstKeyPrompt ? null :
+        {creating || firstKeyPrompt || !canCreate ? null :
           <button
             type="button"
             className="button small blue"
@@ -1502,7 +1535,7 @@ const listingStatus = (project) => {
 };
 
 
-const ProjectCard = ({project, expanded, maxKeys, run, setConfirm, onToggleExpand, notice}) => {
+const ProjectCard = ({project, expanded, maxKeys, canCreateKeys, run, setConfirm, onToggleExpand, notice}) => {
   const [editing, setEditing] = useState(false);
   const cardRef = useRef(null);
 
@@ -1607,7 +1640,7 @@ const ProjectCard = ({project, expanded, maxKeys, run, setConfirm, onToggleExpan
                 onDelete={confirmDeleteProject}
               />
             </section> : null}
-          <KeysSection project={project} maxKeys={maxKeys} run={run} setConfirm={setConfirm} onAddWebsite={addWebsite} />
+          <KeysSection project={project} maxKeys={maxKeys} canCreate={canCreateKeys} run={run} setConfirm={setConfirm} onAddWebsite={addWebsite} />
         </div> : null}
     </article>
   );
@@ -1639,6 +1672,7 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
                        setShowNewProject, onCreateProject, expandedProjectId, expandProject, onStart,
                        settingUp}) => {
   const profileName = accountName() || (state.profile ? state.profile.developerName : "");
+  const canCreate = accountVerified(state);
   const [askLaterListingId, setAskLaterListingId] = useState(null);
   const yourListing = state.yourListing;
   const askAboutListing = yourListing && developerOn && state.profile && !showNewProject
@@ -1733,9 +1767,15 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
               </div>}
           </section>
 
+          {canCreate ? null :
+            <ReconfirmEmail
+              confirmationSent={!!state.confirmationSentAt}
+              onSend={() => run(sendConfirmation()).catch(() => {})}
+            />}
+
           <div className="devPocSectionHeading">
             <h2><InterfaceText text={{en: "Projects", he: "פרויקטים"}} /></h2>
-            {state.projects.length && !showNewProject ? newProjectButton({en: "New project", he: "פרויקט חדש"}, "white") : null}
+            {state.projects.length && !showNewProject && canCreate ? newProjectButton({en: "New project", he: "פרויקט חדש"}, "white") : null}
           </div>
 
           {showNewProject ?
@@ -1749,9 +1789,10 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
                   he: "כדי להשתמש ב־API של ספריא, מתחילים ביצירת פרויקט. אחר כך מוסיפים לו מפתח API.",
                 }} />
               </p>
-              <div className="devPocActions">
-                {newProjectButton({en: "Create your first project", he: "יצירת הפרויקט הראשון"}, "blue")}
-              </div>
+              {canCreate ?
+                <div className="devPocActions">
+                  {newProjectButton({en: "Create your first project", he: "יצירת הפרויקט הראשון"}, "blue")}
+                </div> : null}
             </div> : null}
 
           {state.projects.map(p => (
@@ -1760,6 +1801,7 @@ const DeveloperTab = ({state, developerOn, highlight, run, setConfirm, notice, s
               project={p}
               expanded={expandedProjectId === p.id}
               maxKeys={state.maxKeysPerProject}
+              canCreateKeys={canCreate}
               run={run}
               setConfirm={setConfirm}
               notice={setNotice}
@@ -2274,7 +2316,9 @@ const SettingsPage = ({tab, projectId, accountSettings, initialDeveloper, setTab
     setProjectId(id);
   };
 
-  const developerOn = accountVerified(developerState) && !!developerState.developerEnabled;
+  /* Set up once, developer settings stay open: an account whose email changed since keeps its
+     projects and keys, and confirms the new address before creating more. */
+  const developerOn = !!developerState.developerEnabled && (accountVerified(developerState) || !!developerState.profile);
 
   const onCreateProject = (fields) => run(createProject(fields), {quiet: true}).then(data => {
     setShowNewProject(false);
