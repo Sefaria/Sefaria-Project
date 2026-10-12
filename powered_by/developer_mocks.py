@@ -45,7 +45,8 @@ def start_over(request, sso_override, email_verified):
             project.save()
     profile = UserProfile(id=user.id)
     for setting in (developer.ENABLED_SETTING, developer.PROFILE_SETTING,
-                    developer.CONFIRMATION_SENT_SETTING, developer.DISMISSED_LISTINGS_SETTING):
+                    developer.CONFIRMATION_SENT_SETTING, developer.CONFIRMATION_SENT_TO_SETTING,
+                    developer.DISMISSED_LISTINGS_SETTING):
         profile.settings.pop(setting, None)
     profile.save()
     request.session[developer.MOCK_SSO_SESSION_KEY] = sso_override

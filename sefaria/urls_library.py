@@ -57,6 +57,7 @@ urlpatterns = [
     path('api/developer/enable', developer_views.enable_api),
     path('api/developer/profile', developer_views.profile_api),
     path('api/developer/confirmation', developer_views.confirmation_api),
+    path('api/developer/confirmation/new-link', developer_views.new_link_api),
     path('api/developer/projects', developer_views.projects_api),
     path('api/developer/projects/<str:project_id>', developer_views.project_api),
     path('api/developer/projects/<str:project_id>/keys', developer_views.project_keys_api),

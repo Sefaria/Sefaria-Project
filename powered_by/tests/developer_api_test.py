@@ -4,6 +4,7 @@ The developer settings API: verification, profile, projects, keys and Powered by
 import json
 import re
 import threading
+import time
 from datetime import timedelta
 from unittest.mock import patch
 
@@ -17,7 +18,7 @@ from django.utils import timezone
 
 from powered_by import developer
 from powered_by.models import ApiKey, Project, SubmissionSource
-from reader.conftest import create_test_user, purge_test_profiles
+from reader.conftest import create_test_user, page_props, purge_test_profiles
 
 
 PROFILE = {"developerName": "Tova Levi", "description": "Daily study tools.", "termsAccepted": True}
@@ -187,6 +188,173 @@ class SsoVerificationTest(DeveloperApiTestCase):
         self.connect("google", email="someone.else@example.org", email_verified=True)
 
         self.assertFalse(self.call("get", "state")[1]["ssoConnected"])
+
+
+class ConfirmationLinkTest(DeveloperApiTestCase):
+    """
+    Opening an emailed link: expired, already used, or for an address that is no longer the account email.
+    """
+
+    def link_key(self, age=timedelta(0)):
+        sent = time.time() - age.total_seconds()
+        with patch("django.core.signing.time.time", return_value=sent):
+            return developer.confirmation_for(self.user).key
+
+    def open_link(self, key):
+        response = Client().get("/settings/developer/confirm-email/" + key)
+        if response.status_code != 200:
+            return response.status_code, None
+        return 200, page_props(response.content.decode("utf-8"))["initialDeveloperEmailLink"]
+
+    def new_link(self, key):
+        response = Client().post("/api/developer/confirmation/new-link", json.dumps({"key": key}),
+                                 content_type="application/json")
+        return response.status_code
+
+    def test_an_expired_link_offers_a_new_one_and_confirms_nothing(self):
+        key = self.link_key(age=timedelta(days=3, minutes=1))
+
+        status, link = self.open_link(key)
+
+        self.assertEqual(status, 200)
+        self.assertEqual(link, {"status": "expired", "key": key})
+        self.assertFalse(self.call("get", "state")[1]["emailVerified"])
+
+    def test_a_new_link_for_an_expired_one_is_emailed_without_a_login_and_works(self):
+        key = self.link_key(age=timedelta(days=4))
+
+        self.assertEqual(self.new_link(key), 200)
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [self.user.email])
+        link = re.search(r"https?://\S+/settings/developer/confirm-email/\S+", mail.outbox[0].body).group(0)
+        self.assertEqual(Client().get(link).status_code, 302)
+        self.assertTrue(self.call("get", "state")[1]["emailVerified"])
+
+    def test_new_links_share_the_resend_limits(self):
+        key = self.link_key(age=timedelta(days=4))
+
+        self.assertEqual(self.new_link(key), 200)
+        self.assertEqual(self.new_link(key), 429)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_a_used_link_shows_already_confirmed(self):
+        key = self.link_key()
+        self.assertEqual(self.open_link(key)[0], 302)
+
+        status, link = self.open_link(key)
+
+        self.assertEqual(status, 200)
+        self.assertEqual(link["status"], "already-confirmed")
+        self.assertEqual(self.new_link(key), 404)
+
+    def test_a_link_for_an_address_that_is_no_longer_the_account_email_is_rejected(self):
+        key = self.link_key()
+        self.user.email = "tova.new@example.org"
+        self.user.save()
+
+        status, link = self.open_link(key)
+
+        self.assertEqual(status, 200)
+        self.assertEqual(link["status"], "not-account-email")
+        self.assertFalse(EmailAddress.objects.get(user=self.user, email__iexact=link_address(key)).verified)
+        self.assertEqual(self.new_link(key), 404)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_a_link_we_did_not_sign_is_not_found(self):
+        self.assertEqual(self.open_link("not-a-key")[0], 404)
+        self.assertEqual(self.new_link("not-a-key"), 404)
+
+
+def link_address(key):
+    return developer.address_of_link(key).email
+
+
+class ResendLimitTest(DeveloperApiTestCase):
+    """
+    About one confirmation email a minute and five a day.
+    """
+
+    def send_at(self, when):
+        with patch("powered_by.developer.timezone.now", return_value=when):
+            response = self.client.post("/api/developer/confirmation", "", content_type="application/json")
+        return response
+
+    def test_a_sixth_email_in_a_day_is_refused_until_the_first_is_a_day_old(self):
+        start = timezone.now()
+        for i in range(5):
+            self.assertEqual(self.send_at(start + timedelta(minutes=2 * i)).status_code, 200)
+
+        refused = self.send_at(start + timedelta(hours=1))
+
+        self.assertEqual(refused.status_code, 429)
+        self.assertIn("5 links today", json.loads(refused.content)["error"])
+        self.assertEqual(int(refused["Retry-After"]), 23 * 60 * 60 + 1)
+        self.assertEqual(self.send_at(start + timedelta(days=1, seconds=1)).status_code, 200)
+        self.assertEqual(len(mail.outbox), 6)
+
+
+class EmailChangeTest(DeveloperApiTestCase):
+    """
+    Changing the account email resets verification: existing keys keep working and stay manageable,
+    but no new project or key until the new address is confirmed.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.set_up_developer()
+        self.project = self.create_project()
+        state = self.create_key(self.project["id"])
+        self.key_id = state["keyId"]
+        self.user.email = "tova.new@example.org"
+        self.user.username = self.user.email
+        self.user.save()
+
+    def test_the_account_is_no_longer_verified_but_keeps_its_projects_and_keys(self):
+        state = self.call("get", "state")[1]
+
+        self.assertFalse(state["emailVerified"])
+        self.assertTrue(state["developerEnabled"])
+        self.assertEqual([p["id"] for p in state["projects"]], [self.project["id"]])
+        self.assertEqual(len(state["projects"][0]["keys"]), 1)
+        self.assertIsNone(ApiKey.objects.get(id=self.key_id).revoked_at)
+
+    def test_new_projects_keys_and_claims_are_blocked(self):
+        Project.objects.create(submission_source=SubmissionSource.MANUAL, project_name="Listing",
+                               creator_email=self.user.email)
+        listing = Project.objects.get(project_name="Listing")
+
+        self.assertEqual(self.call("post", "projects", {"project": PROJECT})[0], 403)
+        self.assertEqual(self.call("post", "projects/{}/keys".format(self.project["id"]), {"label": "Two"})[0], 403)
+        self.assertEqual(self.call("post", "listings/{}/claim".format(listing.id))[0], 403)
+        self.assertIsNone(Project.objects.get(id=listing.id).owner)
+
+    def test_existing_projects_and_keys_can_still_be_managed(self):
+        self.assertEqual(self.call("post", "projects/" + self.project["id"],
+                                   {"project": {**PROJECT, "name": "Renamed"}})[0], 200)
+        self.assertEqual(self.call("post", "profile", {"profile": PROFILE})[0], 200)
+        self.assertEqual(self.call("delete", "keys/" + self.key_id)[0], 200)
+        self.assertIsNotNone(ApiKey.objects.get(id=self.key_id).revoked_at)
+
+    def test_a_link_sent_to_the_old_address_is_not_pending_for_the_new_one(self):
+        self.user.email = "tova.old@example.org"
+        self.user.save()
+        self.call("post", "confirmation")
+        self.user.email = "tova.new@example.org"
+        self.user.save()
+
+        self.assertIsNone(self.call("get", "state")[1]["confirmationSentAt"])
+
+    def test_confirming_the_new_address_unblocks_new_projects(self):
+        status, state = self.call("post", "confirmation")
+        self.assertEqual(status, 200)
+        self.assertIsNotNone(state["confirmationSentAt"])
+        link = re.search(r"https?://\S+/settings/developer/confirm-email/\S+", mail.outbox[0].body).group(0)
+
+        self.assertEqual(Client().get(link).status_code, 302)
+
+        self.assertTrue(self.call("get", "state")[1]["emailVerified"])
+        self.create_project(name="Second")
 
 
 class ProfileTest(DeveloperApiTestCase):

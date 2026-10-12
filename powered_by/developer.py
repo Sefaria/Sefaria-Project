@@ -2,15 +2,19 @@
 Developer settings: a developer's projects (Powered by Sefaria rows they own) and their API keys,
 the developer profile kept in the user's profile settings, and the email check that gates them.
 
-An account may use developer settings once its email is verified, either by signing in with
-Google or Apple or through the emailed confirmation link (allauth's EmailAddress).
+An account may use developer settings while its current email is verified: Google or Apple
+reported that address as verified, or it was confirmed through the emailed link (allauth's
+EmailAddress). Changing the account email therefore ends verification until the new address is
+confirmed; existing keys keep working, but no new project or key can be created.
 """
 from datetime import datetime, timedelta
 from urllib.parse import urlsplit
 
+from allauth.account import app_settings as account_settings
 from allauth.account.models import EmailAddress, EmailConfirmationHMAC
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.core import signing
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator, validate_email
 from django.db import transaction
@@ -28,9 +32,14 @@ MAX_PROFILE_DESCRIPTION_LENGTH = 300
 ENABLED_SETTING = "developer_enabled"
 PROFILE_SETTING = "developer_profile"
 CONFIRMATION_SENT_SETTING = "developer_confirmation_sent_at"
-# Written on every send and never cleared, so cancelling or confirming cannot reset the cooldown.
-CONFIRMATION_LAST_SENT_SETTING = "developer_confirmation_last_sent_at"
+# The address that pending link went to: a link sent before the account email changed doesn't count.
+CONFIRMATION_SENT_TO_SETTING = "developer_confirmation_sent_to"
+# The times of the sends in the last day. Never cleared by cancelling or confirming, so neither
+# resets the limits.
+CONFIRMATION_SENDS_SETTING = "developer_confirmation_sends"
 CONFIRMATION_COOLDOWN = timedelta(seconds=60)
+CONFIRMATION_DAILY_LIMIT = 5
+CONFIRMATION_LINK_MAX_AGE = timedelta(days=account_settings.EMAIL_CONFIRMATION_EXPIRE_DAYS)
 SSO_PROVIDERS = ("google", "apple")
 DISMISSED_LISTINGS_SETTING = "developer_dismissed_listings"
 
@@ -41,9 +50,18 @@ _url_validator = URLValidator(schemes=["http", "https"])
 
 class CooldownError(Exception):
     """Too soon to send another confirmation email; retry_after is in whole seconds."""
-    def __init__(self, retry_after):
-        super().__init__("Wait a minute before asking for another email.")
+    def __init__(self, retry_after, message="Wait a minute before asking for another email."):
+        super().__init__(message)
         self.retry_after = retry_after
+
+
+class LinkStatus:
+    """What opening an emailed confirmation link did."""
+    CONFIRMED = "confirmed"
+    ALREADY_CONFIRMED = "already-confirmed"
+    EXPIRED = "expired"
+    NOT_ACCOUNT_EMAIL = "not-account-email"
+    INVALID = "invalid"
 
 
 def settings_enabled():
@@ -115,26 +133,68 @@ def account_verified(request):
 def confirmation_for(user):
     address = account_email_address(user)
     if address is None:
-        address = EmailAddress.objects.create(user=user, email=user.email.lower(), primary=True, verified=False)
+        # An account whose email changed still has a primary address row for the old one.
+        has_primary = EmailAddress.objects.filter(user=user, primary=True).exists()
+        address = EmailAddress.objects.create(user=user, email=user.email.lower(), primary=not has_primary,
+                                              verified=False)
     return EmailConfirmationHMAC(address)
+
+
+def address_of_link(key):
+    """The address an emailed link was sent for, however old the link, or None if we didn't sign it."""
+    try:
+        pk = signing.loads(key, salt=account_settings.SALT)
+    except signing.BadSignature:
+        return None
+    return EmailAddress.objects.select_related("user").filter(pk=pk).first()
+
+
+def link_expired(key):
+    try:
+        signing.loads(key, salt=account_settings.SALT, max_age=CONFIRMATION_LINK_MAX_AGE)
+    except signing.SignatureExpired:
+        return True
+    return False
+
+
+def is_account_email(address):
+    return address.email.lower() == (address.user.email or "").lower()
 
 
 def confirm_email(request, key):
     """
     Confirms the address behind an emailed link and turns developer settings on for its
-    account. Returns False for an invalid or expired link. Opening it needs no login.
+    account. Opening it needs no login. Returns a LinkStatus: a link for an address that is no
+    longer the account email is refused, as is one older than the link lifetime.
     """
-    confirmation = EmailConfirmationHMAC.from_key(key)
-    if confirmation is None:
-        return False
-    address = confirmation.confirm(request)
+    address = address_of_link(key)
     if address is None:
-        return False
+        return LinkStatus.INVALID
+    if not is_account_email(address):
+        return LinkStatus.NOT_ACCOUNT_EMAIL
+    if address.verified:
+        return LinkStatus.ALREADY_CONFIRMED
+    if link_expired(key):
+        return LinkStatus.EXPIRED
+    if EmailConfirmationHMAC(address).confirm(request) is None:
+        return LinkStatus.INVALID
     profile = UserProfile(id=address.user_id)
     profile.settings[ENABLED_SETTING] = True
     profile.settings.pop(CONFIRMATION_SENT_SETTING, None)
+    profile.settings.pop(CONFIRMATION_SENT_TO_SETTING, None)
     profile.save()
-    return True
+    return LinkStatus.CONFIRMED
+
+
+def user_for_new_link(key):
+    """
+    The account an expired link was sent to, if a new link may go to it: the link's address is
+    still the account email and isn't confirmed yet. Otherwise LookupError.
+    """
+    address = address_of_link(key)
+    if address is None or not is_account_email(address) or address.verified:
+        raise LookupError("This link can't be renewed.")
+    return address.user
 
 
 # --- State -------------------------------------------------------------------
@@ -197,7 +257,9 @@ def developer_state(request):
     profile = UserProfile(id=user.id)
     verified = account_verified(request)
     listing = unclaimed_listings(user, profile).first() if verified and user.email else None
-    sent_at = None if verified else profile.settings.get(CONFIRMATION_SENT_SETTING)
+    sent_at = None
+    if not verified and profile.settings.get(CONFIRMATION_SENT_TO_SETTING) == (user.email or "").lower():
+        sent_at = profile.settings.get(CONFIRMATION_SENT_SETTING)
     state = {
         "developerEnabled": bool(profile.settings.get(ENABLED_SETTING)),
         "ssoConnected": sso_connected(request),
@@ -277,35 +339,71 @@ def enable(request):
     profile.save()
 
 
+def developer_enabled(user):
+    return bool(UserProfile(id=user.id).settings.get(ENABLED_SETTING))
+
+
 def require_developer(request):
+    """
+    Developer settings were set up. Managing what exists (editing, deleting, revoking) needs only
+    this, so an account whose email changed keeps control of its projects and keys.
+    """
     profile = UserProfile(id=request.user.id)
-    if not (account_verified(request) and profile.settings.get(ENABLED_SETTING) and profile.settings.get(PROFILE_SETTING)):
+    if not (profile.settings.get(ENABLED_SETTING) and profile.settings.get(PROFILE_SETTING)):
         raise PermissionError("Developer settings are not set up for this account.")
     return profile
 
 
-def check_confirmation_cooldown(user):
-    """Raises CooldownError if this account was sent a confirmation email less than a minute ago."""
-    last_sent = UserProfile(id=user.id).settings.get(CONFIRMATION_LAST_SENT_SETTING)
-    if not last_sent:
-        return
-    try:
-        wait = CONFIRMATION_COOLDOWN - (timezone.now() - datetime.fromisoformat(last_sent))
-    except (TypeError, ValueError):
-        return
-    if wait > timedelta(0):
-        raise CooldownError(int(wait.total_seconds()) + 1)
+def require_verified_developer(request):
+    """Developer settings were set up and the current account email is verified: needed to add projects and keys."""
+    profile = require_developer(request)
+    if not account_verified(request):
+        raise PermissionError("Confirm your email address to create projects and keys.")
+    return profile
+
+
+def _recent_sends(profile, now):
+    sends = []
+    for sent in profile.settings.get(CONFIRMATION_SENDS_SETTING, []):
+        try:
+            sent_at = datetime.fromisoformat(sent)
+        except (TypeError, ValueError):
+            continue
+        if now - sent_at < timedelta(days=1):
+            sends.append(sent_at)
+    return sorted(sends)
+
+
+def _seconds(delta):
+    return int(delta.total_seconds()) + 1
+
+
+def check_confirmation_limits(user):
+    """
+    Raises CooldownError if this account was sent a confirmation email less than a minute ago,
+    or already had CONFIRMATION_DAILY_LIMIT in the last day.
+    """
+    now = timezone.now()
+    sends = _recent_sends(UserProfile(id=user.id), now)
+    if sends and now - sends[-1] < CONFIRMATION_COOLDOWN:
+        raise CooldownError(_seconds(CONFIRMATION_COOLDOWN - (now - sends[-1])))
+    if len(sends) >= CONFIRMATION_DAILY_LIMIT:
+        raise CooldownError(
+            _seconds(timedelta(days=1) - (now - sends[-CONFIRMATION_DAILY_LIMIT])),
+            "You've asked for {} links today. Try again tomorrow, or contact hello@sefaria.org.".format(
+                CONFIRMATION_DAILY_LIMIT),
+        )
 
 
 def reserve_confirmation_send(user):
     """
-    Atomically checks the cooldown and records this send, so concurrent requests for one account
+    Atomically checks the limits and records this send, so concurrent requests for one account
     cannot both pass. The account's auth row is locked for the check and the write; the caller
     sends the email afterwards, so a failed send still throttles. Raises CooldownError.
     """
     with transaction.atomic():
         _lock_account(user)
-        check_confirmation_cooldown(user)
+        check_confirmation_limits(user)
         mark_confirmation_sent(user, True)
 
 
@@ -322,11 +420,13 @@ def mark_confirmation_sent(user, sent):
         _lock_account(user)
         profile = UserProfile(id=user.id)
         if sent:
-            now = iso(timezone.now())
-            profile.settings[CONFIRMATION_SENT_SETTING] = now
-            profile.settings[CONFIRMATION_LAST_SENT_SETTING] = now
+            now = timezone.now()
+            profile.settings[CONFIRMATION_SENT_SETTING] = iso(now)
+            profile.settings[CONFIRMATION_SENT_TO_SETTING] = (user.email or "").lower()
+            profile.settings[CONFIRMATION_SENDS_SETTING] = [iso(t) for t in _recent_sends(profile, now)] + [iso(now)]
         else:
             profile.settings.pop(CONFIRMATION_SENT_SETTING, None)
+            profile.settings.pop(CONFIRMATION_SENT_TO_SETTING, None)
         profile.save()
 
 
