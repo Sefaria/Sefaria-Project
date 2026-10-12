@@ -37,6 +37,7 @@ export const enableDeveloper = () => call("POST", "enable");
 export const saveProfile = (profile) => call("POST", "profile", {profile});
 export const sendConfirmation = () => call("POST", "confirmation");
 export const cancelConfirmation = () => call("DELETE", "confirmation");
+export const requestNewLink = (key) => call("POST", "confirmation/new-link", {key});
 export const createProject = (project) => call("POST", "projects", {project});
 export const updateProject = (projectId, project) => call("POST", "projects/" + projectId, {project});
 export const deleteProject = (projectId) => call("DELETE", "projects/" + projectId);

@@ -92,6 +92,7 @@ class ReaderApp extends Component {
         developerProjectId:      props.initialDeveloperProjectId,
         accountSettings:         props.initialAccountSettings,
         developer:               props.initialDeveloper,
+        developerEmailLink:      props.initialDeveloperEmailLink,
       };
     }
 
@@ -185,6 +186,7 @@ class ReaderApp extends Component {
       developerProjectId:      state.developerProjectId      || null,
       accountSettings:         state.accountSettings         || null,
       developer:               state.developer               || null,
+      developerEmailLink:      state.developerEmailLink      || null,
       searchQuery:             state.searchQuery             || null,
       showHighlight:           state.showHighlight           || null,
       searchState:             state.searchState             || new SearchState({ type: SearchState.moduleToSearchType(Sefaria.activeModule)}),
@@ -672,6 +674,11 @@ class ReaderApp extends Component {
             hist.title = Sefaria.getPageTitle("Email confirmed");
             hist.url = "settings/developer/email-confirmed";
             hist.mode = "developerEmailConfirmed";
+            break;
+          case "developerEmailLink":
+            hist.title = Sefaria.getPageTitle("Email confirmation");
+            hist.url = "settings/developer/confirm-email/" + (state.developerEmailLink ? state.developerEmailLink.key : "");
+            hist.mode = "developerEmailLink";
             break;
           case "poweredByForm":
             hist.title = Sefaria.getPageTitle("Powered by Sefaria Submission Form");

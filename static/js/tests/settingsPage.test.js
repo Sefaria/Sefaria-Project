@@ -31,7 +31,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import Sefaria from '../sefaria/sefaria';
-import SettingsPage, { EmailConfirmedPage } from '../SettingsPage.jsx';
+import SettingsPage, { EmailConfirmedPage, EmailLinkPage } from '../SettingsPage.jsx';
 import { parseWebsite } from '../developerSettingsApi';
 
 let container = null;
@@ -738,5 +738,44 @@ describe('test controls', () => {
     const link = container.querySelector('[data-agent-action="mock-confirm-email"]');
     expect(link.getAttribute('href')).toBe('/settings/developer/confirm-email/abc:123');
     expect(link.getAttribute('target')).toBe('_blank');
+  });
+});
+
+
+describe('a confirmation link that cannot confirm', () => {
+  const renderLink = (status) => {
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    act(() => { ReactDOM.render(<EmailLinkPage link={{ status, key: 'abc:123' }} />, container); });
+  };
+
+  it('offers a new link when it has expired', async () => {
+    renderLink('expired');
+    expect(container.querySelector('h1').textContent).toBe('This link has expired');
+    respondWith({ sent: true });
+    await clickAndSettle(buttonNamed(container, 'Send a new link'));
+    expect(lastRequest()).toEqual({ url: '/api/developer/confirmation/new-link', method: 'POST', body: { key: 'abc:123' } });
+    expect(container.textContent).toContain('We sent a new link. Check your email.');
+    expect(buttonNamed(container, 'Send a new link')).toBeUndefined();
+  });
+
+  it('shows the server\'s reason when a new link is refused', async () => {
+    renderLink('expired');
+    global.fetch = jest.fn(() => Promise.resolve({ ok: false, json: () => Promise.resolve({ error: 'Wait a minute before asking for another email.' }) }));
+    await clickAndSettle(buttonNamed(container, 'Send a new link'));
+    expect(container.querySelector('[role="alert"]').textContent).toBe('Wait a minute before asking for another email.');
+  });
+
+  it('says a used link is already confirmed', () => {
+    renderLink('already-confirmed');
+    expect(container.querySelector('h1').textContent).toBe('Already confirmed');
+    expect(container.querySelector('[data-agent-action="continue-to-developer-settings"]')).toBeTruthy();
+  });
+
+  it('rejects a link for an address that is no longer the account email', () => {
+    renderLink('not-account-email');
+    expect(container.querySelector('h1').textContent).toBe('This link is no longer valid');
+    expect(container.textContent).toContain('no longer your account email');
+    expect(buttonNamed(container, 'Send a new link')).toBeUndefined();
   });
 });

@@ -19,6 +19,7 @@ import {
   mockAction,
   parseWebsite,
   readState,
+  requestNewLink,
   saveProfile,
   sendConfirmation,
   setKeyRestriction,
@@ -2424,6 +2425,67 @@ export const EmailConfirmedPage = () => {
                   he: "אפשר לסגור את הלשונית הזו. אם הגדרות המפתחים פתוחות בלשונית אחרת, הן ימשיכו שם.",
                 }} />
               </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+/* Where an emailed confirmation link lands when it can't confirm: it expired, was already
+   used, or was sent to an address that is no longer the account email. Needs no login. */
+export const EmailLinkPage = ({link}) => {
+  const {status, key} = link || {};
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+  const sendNewLink = () => requestNewLink(key).then(() => { setSent(true); setError(""); }, err => setError(
+    err.message || Sefaria._v({en: "We couldn't send a new link. Ask for one in developer settings.", he: "לא הצלחנו לשלוח קישור חדש. בקשו קישור בהגדרות המפתחים."})
+  ));
+  const continueLink = (
+    <a className="button small blue" href="/settings/developer" data-agent-action="continue-to-developer-settings">
+      <InterfaceText text={{en: "Continue to developer settings", he: "המשך להגדרות המפתחים"}} />
+    </a>
+  );
+  const content = {
+    "already-confirmed": {
+      title: {en: "Already confirmed", he: "כבר אושר"},
+      body: {en: "This email address is already confirmed.", he: "כתובת הדוא״ל הזו כבר אושרה."},
+      action: continueLink,
+    },
+    "expired": {
+      title: {en: "This link has expired", he: "תוקף הקישור פג"},
+      body: {en: "Confirmation links work for 3 days.", he: "קישורי אישור בתוקף 3 ימים."},
+      action: sent ? null :
+        <button className="button small blue" type="button" data-agent-action="send-new-link" onClick={sendNewLink}>
+          <InterfaceText text={{en: "Send a new link", he: "שליחת קישור חדש"}} />
+        </button>,
+    },
+    "not-account-email": {
+      title: {en: "This link is no longer valid", he: "הקישור כבר אינו בתוקף"},
+      body: {
+        en: "It was sent to an address that is no longer your account email. Ask for a new link in developer settings.",
+        he: "הוא נשלח לכתובת שכבר אינה כתובת הדוא״ל של החשבון. בקשו קישור חדש בהגדרות המפתחים.",
+      },
+      action: continueLink,
+    },
+  }[status];
+  if (!content) { return null; }
+  return (
+    <div className="readerNavMenu settingsPage" key="emailLink">
+      <div className="content">
+        <div className="contentInner">
+          <div className="devPocPage devPocEmailConfirmed">
+            <div className="devPocCard">
+              <h1><InterfaceText text={content.title} /></h1>
+              <p><InterfaceText text={content.body} /></p>
+              {content.action ? <div className="devPocActions">{content.action}</div> : null}
+              {sent ?
+                <p role="status">
+                  <InterfaceText text={{en: "We sent a new link. Check your email.", he: "שלחנו קישור חדש. בדקו את תיבת הדוא״ל."}} />
+                </p> : null}
+              {error ? <p className="devPocWarning" role="alert">{error}</p> : null}
             </div>
           </div>
         </div>
