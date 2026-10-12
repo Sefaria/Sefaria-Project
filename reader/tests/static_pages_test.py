@@ -118,3 +118,8 @@ class SettingsPageWithoutDeveloperSettingsTest(SettingsPageTestCase):
         self.client.force_login(self.user)
         for url in ("/settings/developer", "/settings/developer/projects/abc123"):
             self.assertEqual(self.client.get(url).status_code, 404, url)
+
+    def test_developer_tab_is_not_found_before_any_login_redirect(self):
+        self.client.logout()
+        for url in ("/settings/developer", "/settings/developer/projects/abc123"):
+            self.assertEqual(self.client.get(url).status_code, 404, url)
