@@ -11,7 +11,11 @@ jest.mock('../sefaria/sefaria', () => ({ __esModule: true, default: {
   interfaceLang: 'english',
   _siteSettings: { HELP_CENTER_URLS: { EN_US: '/help', HE: '/help' } },
 }}));
-jest.mock('../sefaria/util', () => ({ __esModule: true, default: {} }));
+jest.mock('../sefaria/util', () => ({ __esModule: true, default: {
+  handleKeyboardClick: (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); }
+  },
+}}));
 jest.mock('../HeaderAutocomplete', () => ({ HeaderAutocomplete: () => null }));
 jest.mock('../ProfilePic', () => ({ ProfilePic: () => null }));
 jest.mock('../common/Button', () => ({ __esModule: true, default: ({ children }) => children }));
@@ -61,6 +65,17 @@ describe('MobileNavMenu Library Assistant item', () => {
     expect(onOpen.mock.calls[0][0].detail).toEqual({ source: 'mobile_nav_menu' });
     // ReaderApp's in-app link handler skips clicks whose default was prevented
     expect(click.defaultPrevented).toBe(true);
+    document.removeEventListener('chatbot:open', onOpen);
+  });
+
+  it.each([['Space', ' '], ['Enter', 'Enter']])('opens the widget with the %s key, like a button', (_, key) => {
+    const onOpen = jest.fn();
+    document.addEventListener('chatbot:open', onOpen);
+    render({ libraryAssistant: true });
+
+    act(() => { item().dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true, cancelable: true })); });
+
+    expect(onOpen).toHaveBeenCalledTimes(1);
     document.removeEventListener('chatbot:open', onOpen);
   });
 });

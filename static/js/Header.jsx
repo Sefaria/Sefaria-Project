@@ -477,7 +477,8 @@ const MobileNavMenu = ({ onRefClick, showSearch, openTopic, openURL, close, visi
             <InterfaceText>common.topics</InterfaceText>
           </a>
           {libraryAssistant &&
-            <a href="#" role="button" className="libraryAssistantMenuItem" onClick={openLibraryAssistant}>
+            <a href="#" role="button" className="libraryAssistantMenuItem" onClick={openLibraryAssistant}
+               onKeyDown={Util.handleKeyboardClick}>
               <LibraryAssistantStar className="libraryAssistantMenuStar" />
               <InterfaceText>header.library_assistant</InterfaceText>
             </a>
