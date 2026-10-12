@@ -102,4 +102,9 @@ spec:
         - path:
             type: PathPrefix
             value: /
+      {{- with .Values.gateway.catchAllTimeout }}
+      timeouts:
+        request: {{ . }}
+        backendRequest: {{ . }}
+      {{- end }}
 {{- end }}
