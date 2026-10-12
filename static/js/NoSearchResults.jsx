@@ -16,7 +16,14 @@ export const assistantNoResultsPrompt = (query) => Sefaria.interfaceLang === 'he
   ? `חיפשתי "${query}" בספריא ואין תוצאות. אפשר לעזור לי למצוא מקורות, ספרים, מחברים ו/או נושאים רלוונטיים?`
   : `I searched for "${query}" on Sefaria and got no results. Can you help me find relevant sources, books, authors and/or topics?`;
 
-const assistantOnPage = () => !!document.querySelector('lc-chatbot');
+// true: the widget is on the page and working. false: it isn't on the page.
+// null: its element is there but its script hasn't defined it yet (still loading, or failed).
+const assistantState = () => {
+  if (!document.querySelector('lc-chatbot') || !window.customElements) { return false; }
+  return window.customElements.get('lc-chatbot') ? true : null;
+};
+// How long to wait for a loading widget before falling back to the browse button
+const WIDGET_LOAD_TIMEOUT_MS = 3000;
 let appIsRunning = false;
 
 // Keep the assistant's name on one line wherever the text wraps
@@ -39,14 +46,22 @@ function renderCaption() {
 
 function NoSearchResults({ mode, query }) {
   const key = (type) => `search.null.${mode}.${type}`;
-  // Only offer the assistant when its widget is on the page (checked after mount: SSR has no document)
-  // and don't show either version until that's known, so switching tabs never flashes the
-  // browse button. Once the app is running, a new tab can check straight away; only the
-  // server-rendered first page has to wait for the first effect.
-  const [hasAssistant, setHasAssistant] = useState(() => (appIsRunning ? assistantOnPage() : null));
+  // Only offer the assistant when its widget is on the page and working (checked after mount:
+  // SSR has no document), and don't show either version until that's known, so switching tabs
+  // never flashes the browse button. Once the app is running, a new tab can check straight away;
+  // only the server-rendered first page has to wait for the first effect. A widget whose script
+  // fails to load would leave no way forward, so after a short wait the browse button shows.
+  const [hasAssistant, setHasAssistant] = useState(() => (appIsRunning ? assistantState() : null));
   useEffect(() => {
     appIsRunning = true;
-    setHasAssistant(assistantOnPage());
+    const state = assistantState();
+    setHasAssistant(state);
+    if (state !== null) { return; }
+    let cancelled = false;
+    const timeout = new Promise(resolve => setTimeout(() => resolve(false), WIDGET_LOAD_TIMEOUT_MS));
+    Promise.race([window.customElements.whenDefined('lc-chatbot').then(() => true), timeout])
+      .then(defined => { if (!cancelled) { setHasAssistant(defined); } });
+    return () => { cancelled = true; };
   }, []);
   useEffect(() => {
     if (!hasAssistant) { return; }

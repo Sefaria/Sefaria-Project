@@ -13,6 +13,11 @@ import ReactDOM from "react-dom";
 import { act } from "react-dom/test-utils";
 import NoSearchResults from "../NoSearchResults";
 
+// The real widget defines <lc-chatbot> when its script loads (this jsdom has no customElements)
+const widgetLoaded = () => {
+  window.customElements = { get: () => class {}, whenDefined: () => Promise.resolve() };
+};
+
 describe("NoSearchResults", function () {
   let container;
 
@@ -20,6 +25,7 @@ describe("NoSearchResults", function () {
     container = document.createElement("div");
     document.body.appendChild(container);
     document.body.appendChild(document.createElement("lc-chatbot"));
+    widgetLoaded();
   });
   afterEach(() => {
     ReactDOM.unmountComponentAtNode(container);
@@ -59,6 +65,23 @@ describe("NoSearchResults", function () {
       act(() => { ReactDOM.unmountComponentAtNode(container); });
       document.removeEventListener("chatbot:launcher", launcher);
       expect(launcher.mock.calls[0][0].detail).toBeNull();
+    });
+  });
+
+  describe("when the widget's script fails to load", () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      window.customElements = { get: () => undefined, whenDefined: () => new Promise(() => {}) };
+    });
+    afterEach(() => { jest.useRealTimers(); });
+
+    it("shows neither version while it may still load, then the browse button", async function () {
+      render("sources");
+      expect(ctas()).toHaveLength(0);
+      expect(container.querySelector(".noSearchResults-body").style.visibility).toBe("hidden");
+      await act(async () => { jest.advanceTimersByTime(3000); });
+      expect(ctas()).toHaveLength(1);
+      expect(body()).toBe("search.null.sources.body");
     });
   });
 
