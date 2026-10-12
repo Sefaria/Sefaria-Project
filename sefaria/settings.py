@@ -81,7 +81,9 @@ SECRET_KEY = ''
 CHATBOT_USER_ID_SECRET = 'secret'
 SESSION_ID_AUTH_HEADER = 'HTTP_X_SESSION_ID'
 # Secret for admin MCP tokens (see SessionIDAuthMiddleware). Unset disables admin MCP access.
-ADMIN_MCP_TOKEN_SECRET = None
+# Read from the environment here so a deployment's env secret enables it even when its
+# local_settings doesn't define it.
+ADMIN_MCP_TOKEN_SECRET = os.getenv("ADMIN_MCP_TOKEN_SECRET") or None
 ADMIN_MCP_TOKEN_TTL_HOURS = 12
 CHATBOT_USE_LOCAL_SCRIPT = False
 
