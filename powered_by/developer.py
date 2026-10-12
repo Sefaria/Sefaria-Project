@@ -31,6 +31,7 @@ CONFIRMATION_SENT_SETTING = "developer_confirmation_sent_at"
 # Written on every send and never cleared, so cancelling or confirming cannot reset the cooldown.
 CONFIRMATION_LAST_SENT_SETTING = "developer_confirmation_last_sent_at"
 CONFIRMATION_COOLDOWN = timedelta(seconds=60)
+SSO_PROVIDERS = ("google", "apple")
 DISMISSED_LISTINGS_SETTING = "developer_dismissed_listings"
 
 MOCK_SSO_SESSION_KEY = "developer_mock_sso"
@@ -80,10 +81,22 @@ def mock_sso_override(request):
 
 
 def sso_connected(request):
+    """
+    Whether a Google or Apple login of this account vouches for the account email: the provider
+    marked that address verified at the last sign-in. Signing in with an address the provider
+    hasn't verified doesn't count; that account confirms by link instead.
+    """
     override = mock_sso_override(request)
     if override is not None:
         return override
-    return request.user.socialaccount_set.exists()
+    email = (request.user.email or "").lower()
+    if not email:
+        return False
+    for account in request.user.socialaccount_set.filter(provider__in=SSO_PROVIDERS):
+        addresses = account.get_provider(request).extract_email_addresses(account.extra_data or {})
+        if any(a.verified and a.email.lower() == email for a in addresses):
+            return True
+    return False
 
 
 def account_email_address(user):

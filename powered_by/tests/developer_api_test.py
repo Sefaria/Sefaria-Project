@@ -8,6 +8,7 @@ from datetime import timedelta
 from unittest.mock import patch
 
 from allauth.account.models import EmailAddress
+from allauth.socialaccount.models import SocialAccount
 from django.core import mail
 from django.db import connection, connections
 from django.test import Client, TestCase, TransactionTestCase, override_settings
@@ -145,6 +146,47 @@ class VerificationTest(DeveloperApiTestCase):
 
     def test_the_api_needs_a_login(self):
         self.assertEqual(self.call("get", "state", client=Client())[0], 401)
+
+
+class SsoVerificationTest(DeveloperApiTestCase):
+    """
+    A Google or Apple login verifies the account only if the provider marked the account email verified.
+    """
+
+    def connect(self, provider, email=None, **claims):
+        SocialAccount.objects.create(user=self.user, provider=provider, uid=provider + "-1",
+                                     extra_data={"email": email or self.user.email, **claims})
+
+    def test_google_with_a_verified_email_verifies_the_account(self):
+        self.connect("google", email_verified=True)
+
+        state = self.call("get", "state")[1]
+
+        self.assertTrue(state["ssoConnected"])
+        self.assertEqual(self.call("post", "enable")[0], 200)
+
+    def test_apple_with_a_verified_email_verifies_the_account(self):
+        self.connect("apple", email_verified="true")
+
+        self.assertTrue(self.call("get", "state")[1]["ssoConnected"])
+
+    def test_google_with_an_unverified_email_gets_the_link_instead(self):
+        self.connect("google", email_verified=False)
+
+        self.assertFalse(self.call("get", "state")[1]["ssoConnected"])
+        self.assertEqual(self.call("post", "enable")[0], 400)
+        self.assertEqual(self.call("post", "confirmation")[0], 200)
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_apple_with_an_unverified_email_does_not_verify_the_account(self):
+        self.connect("apple", email_verified="false")
+
+        self.assertFalse(self.call("get", "state")[1]["ssoConnected"])
+
+    def test_a_provider_verified_email_that_is_not_the_account_email_does_not_count(self):
+        self.connect("google", email="someone.else@example.org", email_verified=True)
+
+        self.assertFalse(self.call("get", "state")[1]["ssoConnected"])
 
 
 class ProfileTest(DeveloperApiTestCase):
