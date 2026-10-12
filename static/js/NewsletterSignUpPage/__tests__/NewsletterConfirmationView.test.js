@@ -366,6 +366,77 @@ describe("NewsletterConfirmationView - Subscription Display", () => {
     });
   });
 
+  describe("Confirmation email message — follows the primary list, not the first one", () => {
+    // ActiveCampaign only emails new subscribers of the general list, which is the list
+    // marked primary. It is second here on purpose: the order of the lists isn't promised.
+    const NEWSLETTERS_PRIMARY_SECOND = [
+      { key: "educator-resources-english", displayName: { en: "Educator Resources", he: null }, primary: false },
+      { key: "sefaria-news-resources-english", displayName: { en: "Sefaria News & Resources", he: null }, primary: true },
+    ];
+    const CONFIRMATION_SENT = escapeHtml("We've sent a confirmation to");
+    const SUBMISSION_RECEIVED = escapeHtml("We've received your submission.");
+
+    it("says an email was sent when a logged-out user picks the primary list", () => {
+      const html = renderView({
+        isLoggedIn: false,
+        newsletters: NEWSLETTERS_PRIMARY_SECOND,
+        selectedNewsletters: { "sefaria-news-resources-english": true },
+        subscriptionDiffs: null,
+      });
+
+      expect(html).toContain(CONFIRMATION_SENT);
+      expect(html).not.toContain(SUBMISSION_RECEIVED);
+    });
+
+    it("says no email was sent when a logged-out user picks only the first, non-primary list", () => {
+      const html = renderView({
+        isLoggedIn: false,
+        newsletters: NEWSLETTERS_PRIMARY_SECOND,
+        selectedNewsletters: { "educator-resources-english": true },
+        subscriptionDiffs: null,
+      });
+
+      expect(html).toContain(SUBMISSION_RECEIVED);
+      expect(html).not.toContain(CONFIRMATION_SENT);
+    });
+
+    it("says an email was sent when a logged-in user adds the primary list", () => {
+      const html = renderView({
+        isLoggedIn: true,
+        newsletters: NEWSLETTERS_PRIMARY_SECOND,
+        selectedNewsletters: { "sefaria-news-resources-english": true },
+        subscriptionDiffs: { added: ["sefaria-news-resources-english"], removed: [] },
+      });
+
+      expect(html).toContain(CONFIRMATION_SENT);
+      expect(html).not.toContain(SUBMISSION_RECEIVED);
+    });
+
+    it("says no email was sent when a logged-in user adds only the first, non-primary list", () => {
+      const html = renderView({
+        isLoggedIn: true,
+        newsletters: NEWSLETTERS_PRIMARY_SECOND,
+        selectedNewsletters: { "educator-resources-english": true },
+        subscriptionDiffs: { added: ["educator-resources-english"], removed: [] },
+      });
+
+      expect(html).toContain(SUBMISSION_RECEIVED);
+      expect(html).not.toContain(CONFIRMATION_SENT);
+    });
+
+    it("falls back to the first list when no list is marked primary", () => {
+      const html = renderView({
+        isLoggedIn: false,
+        newsletters: NEWSLETTERS_PRIMARY_SECOND.map((nl) => ({ ...nl, primary: false })),
+        selectedNewsletters: { "educator-resources-english": true },
+        subscriptionDiffs: null,
+      });
+
+      expect(html).toContain(CONFIRMATION_SENT);
+      expect(html).not.toContain(SUBMISSION_RECEIVED);
+    });
+  });
+
   describe("Embedded learning-level survey — submitting state", () => {
     // isSubmitting is derived internally from formStatus.status, not a direct prop (see
     // NewsletterConfirmationView.jsx). These guard the Sefaria._bilingual(...) fix: a

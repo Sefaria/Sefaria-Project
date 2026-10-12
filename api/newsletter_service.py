@@ -66,6 +66,7 @@ class NewsletterInfo(TypedDict):
     displayName: DisplayName
     icon: str
     language: str
+    primary: bool
 
 
 class SubscribeResult(TypedDict):
@@ -562,7 +563,8 @@ def get_newsletter_list() -> list[NewsletterInfo]:
                 "stringid": "sefaria_news",         # From AC list object
                 "displayName": {"en": "Sefaria News", "he": null},  # Bilingual display name from personalization variable
                 "icon": "news-and-resources.svg",   # From personalization variable's JSON content
-                "language": "english"               # From personalization variable's JSON content
+                "language": "english",              # From personalization variable's JSON content
+                "primary": True                     # From personalization variable's JSON content; marks the general list
             }
 
     Raises:
@@ -597,6 +599,10 @@ def get_newsletter_list() -> list[NewsletterInfo]:
             ),
             "icon": variable_data["metadata"].get("icon", "news-and-resources.svg"),
             "language": variable_data["metadata"].get("language", "english"),
+            # Marks the general list, the one whose new subscribers get a
+            # confirmation email. The metadata is typed by hand in ActiveCampaign,
+            # so only a real JSON true counts: the string "false" would be truthy.
+            "primary": variable_data["metadata"].get("primary") is True,
         }
         for list_id_str, variable_data in variables_by_id.items()
         if (list_item := lists_by_id.get(list_id_str))

@@ -12,6 +12,7 @@ function mapNewsletterListsResponse(response) {
     key: nl.stringid,
     displayName: nl.displayName,
     icon: nl.icon,
+    primary: !!nl.primary,
   }));
 }
 

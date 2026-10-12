@@ -70,6 +70,11 @@ const submitLoggedOutNewsletterForm = async (page, email) => {
 test.describe('Newsletter Signup - Logged-Out User Flow', () => {
   // Before each test, navigate to the newsletter page
   test.beforeEach(async ({ page, context }) => {
+    // TODO: This recording may need to be updated or recorded again. It was
+    // made before lists could be marked "primary" in ActiveCampaign, so its lists
+    // response has no `primary` field and the confirmation page falls back to the
+    // first list. It also has 7 lists, while ActiveCampaign had 8 in October 2026
+    // (a Hebrew list, ID 4, was added). See support/har-fixture.js to record it.
     await routeWithHarFixture(context, 'newsletter-loggedout');
 
     // Set viewport to test responsive design

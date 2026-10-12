@@ -397,6 +397,31 @@ class TestGetNewsletterList:
 
     @mock.patch("api.newsletter_service.get_all_lists")
     @mock.patch("api.newsletter_service.get_all_personalization_variables")
+    def test_primary_comes_from_metadata(self, mock_variables, mock_lists):
+        """Only a list whose metadata has "primary": true is marked primary."""
+        mock_lists.return_value = [
+            {"id": "1", "stringid": "flagged", "name": "Flagged"},
+            {"id": "2", "stringid": "no_flag", "name": "No Flag"},
+            {"id": "3", "stringid": "flag_false", "name": "Flag False"},
+            {"id": "4", "stringid": "flag_string", "name": "Flag String"},
+        ]
+        mock_variables.return_value = [
+            {"tag": "list_1_meta", "name": "Flagged", "content": '{"primary": true}'},
+            {"tag": "list_2_meta", "name": "No Flag", "content": '{"icon": "news.svg"}'},
+            {"tag": "list_3_meta", "name": "Flag False", "content": '{"primary": false}'},
+            {"tag": "list_4_meta", "name": "Flag String", "content": '{"primary": "false"}'},
+        ]
+        newsletters = newsletter_service.get_newsletter_list()
+
+        assert {nl["stringid"]: nl["primary"] for nl in newsletters} == {
+            "flagged": True,
+            "no_flag": False,
+            "flag_false": False,
+            "flag_string": False,
+        }
+
+    @mock.patch("api.newsletter_service.get_all_lists")
+    @mock.patch("api.newsletter_service.get_all_personalization_variables")
     def test_api_errors_propagate(self, mock_variables, mock_lists):
         """API errors are propagated"""
         mock_lists.side_effect = newsletter_service.ActiveCampaignError("API down")

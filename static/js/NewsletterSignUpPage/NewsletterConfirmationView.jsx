@@ -21,7 +21,9 @@ function keyToDisplayLabel(newsletters, key) {
  * Predicate: will the user actually receive a confirmation email after this submit?
  *
  * ActiveCampaign only sends confirmation emails for NEW subscriptions to the general
- * newsletter (always the first item in the dynamic list, AC list ID 1).
+ * newsletter. The general list is the one marked `"primary": true` in its list_{N}_meta
+ * personalization variable in ActiveCampaign. If no list is marked, fall back to the
+ * first list, which is the general list today but whose order AC doesn't promise.
  *
  * Logic (where G = generalNewsletter exists, L = isLoggedIn, D = subscriptionDiffs exists,
  *              A = newsletter in added list, S = newsletter selected):
@@ -32,7 +34,7 @@ function keyToDisplayLabel(newsletters, key) {
  *   — since logged-out flows imply fresh signups.
  */
 function computeWillReceiveConfirmationEmail({ isLoggedIn, subscriptionDiffs, selectedNewsletters, newsletters }) {
-  const general = newsletters.length > 0 ? newsletters[0] : null;
+  const general = newsletters.find((nl) => nl.primary) ?? newsletters[0];
   if (!general) return false;
   return isLoggedIn && subscriptionDiffs
     ? subscriptionDiffs.added.includes(general.key)
