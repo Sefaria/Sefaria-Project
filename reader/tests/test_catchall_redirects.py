@@ -144,13 +144,25 @@ def test_catchall_preserves_escaped_title_separators(client, monkeypatch, encode
     assert response.content.decode() == tref
 
 
+class LegacySegmentTitleRef:
+    """Stands in for a library title that contains "/en/"."""
+    TITLE = "Book/en/Part"
+
+    def __init__(self, tref):
+        if tref != self.TITLE:
+            raise InputError(f"Could not find title in reference: {tref}")
+
+    def url(self, encode_html=True):
+        return self.TITLE
+
+    @classmethod
+    def instantiate_ref_with_legacy_parse_fallback(cls, tref):
+        return cls(tref)
+
+
 @pytest.mark.django_db
 def test_title_with_legacy_version_route_segments_is_not_redirected(client, monkeypatch):
-    class DummyRef:
-        def url(self, encode_html=False):
-            return "Book/en/Part"
-
-    monkeypatch.setattr("reader.views.Ref.instantiate_ref_with_legacy_parse_fallback", lambda tref: DummyRef())
+    monkeypatch.setattr("reader.views.Ref", LegacySegmentTitleRef)
     monkeypatch.setattr("reader.views.text_panels", lambda request, ref: HttpResponse(ref))
 
     response = client.get("/Book/en/Part")
@@ -161,11 +173,7 @@ def test_title_with_legacy_version_route_segments_is_not_redirected(client, monk
 
 @pytest.mark.django_db
 def test_api_title_with_legacy_version_route_segments_is_not_redirected(client, monkeypatch):
-    class DummyRef:
-        def url(self, encode_html=False):
-            return "Book/en/Part"
-
-    monkeypatch.setattr("reader.views.Ref.instantiate_ref_with_legacy_parse_fallback", lambda tref: DummyRef())
+    monkeypatch.setattr("reader.views.Ref", LegacySegmentTitleRef)
     monkeypatch.setattr("reader.views.texts_api", lambda request, tref: HttpResponse(tref))
 
     response = client.get("/api/texts/Book/en/Part")
@@ -174,9 +182,73 @@ def test_api_title_with_legacy_version_route_segments_is_not_redirected(client, 
     assert response.content.decode() == "Book/en/Part"
 
 
+def test_full_title_tref_rejects_legacy_version_url():
+    from reader.views import _full_title_tref
+
+    # The legacy parser would partially match this as Ref("Genesis").
+    assert _full_title_tref("Genesis.1.1", "en", "Some_Version") is None
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("path, location", [
+    ("/Genesis.1.1/en/Some_Version", "/Genesis.1.1?ven=Some_Version"),
+    ("/api/texts/Genesis.1.1/en/Some_Version", "/api/texts/Genesis.1.1?ven=Some_Version"),
+])
+def test_legacy_version_url_keeps_section_and_version(client, path, location):
+    response = client.get(path)
+
+    assert response.status_code == 301
+    assert response["Location"] == location
+
+
+@pytest.mark.django_db
+def test_catchall_resolves_real_title_with_escaped_slash(client, monkeypatch):
+    tref = ("The_Five_Books_of_Moses,_by_Everett_Fox,_Leviticus,_Part_II;_Ritual_Pollution_and_Purification,"
+            "_The_Day_of_Purgation/Atonement")
+    monkeypatch.setattr("reader.views.text_panels", lambda request, ref: HttpResponse(ref))
+
+    response = client.get("/" + tref.replace("/", "%2F"))
+
+    assert response.status_code == 200
+    assert response.content.decode() == tref
+
+
+@pytest.mark.parametrize("path, page", [
+    ("/activity/Book,_Chapter/Part.1/en/Version/Title", None),
+    ("/activity/Book,_Chapter/Part.1/en/Version/Title/2", "2"),
+])
+def test_activity_route_accepts_title_slashes(path, page):
+    match = resolve(path, urlconf="sefaria.urls_library")
+
+    assert match.func.__name__ == "segment_history"
+    assert match.kwargs["tref"] == "Book,_Chapter/Part.1"
+    assert match.kwargs["lang"] == "en"
+    assert match.kwargs["version"] == "Version/Title"
+    assert match.kwargs.get("page") == page
+
+
+@pytest.mark.django_db
+def test_version_link_uses_query_form_for_title_slashes():
+    from reader.templatetags.sefaria_tags import version_link
+
+    class FakeSectionRef:
+        def url(self):
+            return "Book,_Chapter%2FPart.1"
+
+    class FakeVersion:
+        language = "en"
+        versionTitle = "Version/Title"
+
+        def first_section_ref(self):
+            return FakeSectionRef()
+
+    assert version_link(FakeVersion()) == \
+        '<a href="/Book,_Chapter%2FPart.1?ven=Version%2FTitle">Version/Title</a>'
+
+
 @pytest.mark.parametrize("prefix", ["/api/ref/", "/api/texts/", "/api/v3/texts/"])
 def test_ref_api_routes_accept_title_slashes(prefix):
-    match = resolve(f"{prefix}Book,_Chapter/Part")
+    match = resolve(f"{prefix}Book,_Chapter/Part", urlconf="sefaria.urls_library")
 
     assert match.kwargs["tref"] == "Book,_Chapter/Part"
 

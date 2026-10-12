@@ -26,10 +26,11 @@ describe('title URL encoding', () => {
       .toBe('Unlisted%2FBook%5CPart%3FEdition');
   });
 
-  test('version URL params preserve encoded separators and embedded pipes', () => {
-    const versionTitle = 'Version / Part\\Object?Edition&Notes#1;Alt|Copy';
+  test('version URL params survive query delimiters and stay readable', () => {
+    const versionTitle = 'Version / Part\\Object;Alt|Copy&Notes#1+2, מהדורה: א';
     const encoded = Sefaria.util.encodeVtitle(versionTitle);
-    const param = new URLSearchParams(`ven=family|${encoded}`).get('ven');
+    expect(encoded).toBe('Version_/_Part\\Object%3BAlt|Copy%26Notes%231%2B2,_מהדורה:_א');
+    const param = new URL(`/Book?ven=family|${encoded}`, 'https://www.sefaria.org').searchParams.get('ven');
 
     expect(Sefaria.util.getObjectFromUrlParam(param)).toEqual({
       languageFamilyName: 'family',

@@ -229,9 +229,11 @@ def version_link(v):
 		try:
 			section_ref = v.get_index().nodes.first_leaf().first_section_ref()
 		except:  # Better if we knew how this may fail...
-			return mark_safe('<a href="/{}.1/{}/{}">{}</a>'.format(Ref(v.title).url(), v.language, urllib.parse.quote(v.versionTitle.replace(" ", "_"), safe="_"), v.versionTitle))
+			return mark_safe('<a href="/{}.1?v{}={}">{}</a>'.format(Ref(v.title).url(), v.language, urllib.parse.quote(v.versionTitle.replace(" ", "_"), safe="_"), v.versionTitle))
 
-	link = '<a href="/{}/{}/{}">{}</a>'.format(section_ref.url(), v.language, urllib.parse.quote(v.versionTitle.replace(" ", "_"), safe="_"), v.versionTitle)
+	# Use the query form rather than the legacy /<ref>/<lang>/<version> path: once
+	# an escaped slash in the ref is decoded, that path can no longer be split.
+	link = '<a href="/{}?v{}={}">{}</a>'.format(section_ref.url(), v.language, urllib.parse.quote(v.versionTitle.replace(" ", "_"), safe="_"), v.versionTitle)
 	return mark_safe(link)
 
 

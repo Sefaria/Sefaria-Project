@@ -82,7 +82,8 @@ class Util {
       }
     }
     static encodeVtitle(vtitle) {
-      return encodeURIComponent(vtitle.replace(/\s/g, '_'));
+      // Escape only what would break a query value; keep Hebrew, ',' and ':' readable.
+      return vtitle.replace(/\s/g, '_').replace(/[;&#+]/g, char => ({';': '%3B', '&': '%26', '#': '%23', '+': '%2B'}[char]));
     }
     static _getVersionParams(version) {
       return `${version.languageFamilyName}|${this.encodeVtitle(version.versionTitle)}`;
@@ -100,9 +101,6 @@ class Util {
     static getObjectFromUrlParam(param) {
       const params = param ? param.split('|') : [];
       return {languageFamilyName: params[0], versionTitle: params.slice(1).join('|')};
-    }
-    static decodeVtitle(vtitle) {
-      return vtitle.replace(/_/g, ' ').replace(/%3B/g, ';');
     }
     static localeDate(dateString) {
         // takes dateString (usually generated from Python datetime object) and returns a human readable string depending on interfaceLang
