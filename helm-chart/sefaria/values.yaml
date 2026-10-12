@@ -746,3 +746,18 @@ keda:
         </script>
       </body>
       </html>
+
+# Optional CPU worker for the isolated lexical-search experiment.
+lemmaSearch:
+  enabled: false
+  image: ""  # immutable image tag/digest built from scripts/package_lemma_search.py
+  index: ""  # explicit dedicated lemma-poc- index, never a shared alias
+  esURL: ""
+  allowedHosts: ""
+  resources:
+    requests:
+      cpu: "1"
+      memory: "2Gi"
+    limits:
+      cpu: "2"
+      memory: "4Gi"
