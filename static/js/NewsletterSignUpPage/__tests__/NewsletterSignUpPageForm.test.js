@@ -436,7 +436,7 @@ describe('NewsletterSignUpPageForm', () => {
       act(() => { lastFormViewProps.onFieldChange('confirmEmail', 'ada@example.com '); });
       act(() => { lastFormViewProps.onNewsletterToggle('sefaria_news'); });
 
-      await act(async () => { lastFormViewProps.onSubmit(); });
+      await act(async () => { await lastFormViewProps.onSubmit(); });
 
       expect(subscribeNewsletter).toHaveBeenCalledWith(expect.objectContaining({ email: 'ada@example.com' }));
       expect(lastConfirmationViewProps.email).toBe('ada@example.com');
@@ -748,17 +748,19 @@ describe('Suite 9: getNewsletterLists failure shows service unavailable message'
 });
 
 // ============================================================================
-// Suite 10: fetchUserSubscriptions failure — logged-in form still renders
+// Suite 10: fetchUserSubscriptions failure — logged-in form is not shown
 // ============================================================================
 
-describe('Suite 10: fetchUserSubscriptions failure — form still renders for logged-in users', () => {
+// Saving replaces the user's whole subscription list. If the form showed up
+// empty after a failed load, ticking one newsletter and saving would
+// unsubscribe the user from all the others.
+describe('Suite 10: fetchUserSubscriptions failure — form is not shown for logged-in users', () => {
   let consoleErrorSpy;
 
   beforeEach(() => {
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     Sefaria._uid = 1;
     Sefaria._email = 'user@example.com';
-    fetchUserSubscriptions.mockReturnValueOnce(Promise.reject(new Error('Unauthorized')));
   });
   afterEach(() => {
     consoleErrorSpy.mockRestore();
@@ -766,18 +768,28 @@ describe('Suite 10: fetchUserSubscriptions failure — form still renders for lo
     Sefaria._email = null;
   });
 
-  it('renders the form even when subscriptions API fails', async () => {
+  it('shows the unavailable message instead of the form when the subscriptions request fails', async () => {
+    fetchUserSubscriptions.mockReturnValueOnce(Promise.reject(new Error('Failed to connect to ActiveCampaign API')));
+
     await renderForm();
-    expect(lastFormViewProps.formData).toBeDefined();
+
+    expect(container.querySelector('.newsletterUnavailable').textContent)
+      .toBe("Your newsletter preferences can't be updated right now. Please try again later.");
+    expect(container.querySelector('[data-testid="form-view"]')).toBeNull();
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       'Failed to fetch user subscriptions:',
       expect.any(Error)
     );
   });
 
-  it('selectedNewsletters defaults to empty object on subscriptions failure', async () => {
+  it('shows the unavailable message instead of the form when the response has no subscriptions list', async () => {
+    fetchUserSubscriptions.mockReturnValueOnce(Promise.resolve({ success: true }));
+
     await renderForm();
-    expect(lastFormViewProps.formData.selectedNewsletters).toEqual({});
+
+    expect(container.querySelector('.newsletterUnavailable').textContent)
+      .toBe("Your newsletter preferences can't be updated right now. Please try again later.");
+    expect(container.querySelector('[data-testid="form-view"]')).toBeNull();
   });
 });
 

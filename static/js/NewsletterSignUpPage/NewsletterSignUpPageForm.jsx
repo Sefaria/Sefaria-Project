@@ -395,7 +395,9 @@ export default function NewsletterSignUpPageForm({ onStageChange }) {
       if (serviceUnavailable) {
         return (
           <div className="newsletterUnavailable">
-            <InterfaceText>{TEXT_KEYS.NEWSLETTER_UNAVAILABLE}</InterfaceText>
+            <InterfaceText>
+              {formStatus.isLoggedIn ? TEXT_KEYS.PREFERENCES_UNAVAILABLE : TEXT_KEYS.NEWSLETTER_UNAVAILABLE}
+            </InterfaceText>
           </div>
         );
       }

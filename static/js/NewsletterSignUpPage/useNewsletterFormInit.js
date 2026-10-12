@@ -75,17 +75,26 @@ export function useNewsletterFormInit() {
         fetchUserSubscriptions()
           .then((response) => {
             if (!isMounted) return;
-            if (response.success && response.subscribedNewsletters) {
-              const data = buildFormDataFromSubscriptionResponse(response);
-              baselineRef.current = {
-                subscriptions: { ...data.selectedNewsletters },
-                wantsMarketing: data.wantsMarketingEmails,
-              };
-              setInitialSubscriptionData(data);
+            if (!(response.success && response.subscribedNewsletters)) {
+              // Without the user's real subscriptions there is nothing safe to
+              // start from. Saving replaces the user's whole list, so a form that
+              // starts empty would unsubscribe them from everything they didn't
+              // tick again. Show the unavailable message instead of the form.
+              setServiceUnavailable(true);
+              return;
             }
+            const data = buildFormDataFromSubscriptionResponse(response);
+            baselineRef.current = {
+              subscriptions: { ...data.selectedNewsletters },
+              wantsMarketing: data.wantsMarketingEmails,
+            };
+            setInitialSubscriptionData(data);
           })
           .catch((error) => {
             console.error("Failed to fetch user subscriptions:", error);
+            if (!isMounted) return;
+            // Same reason as above: no real subscriptions means no safe form.
+            setServiceUnavailable(true);
           }),
       );
     }
