@@ -1,0 +1,89 @@
+# Local API-keys stack. Run it through up.sh, which renders the Envoy and nginx configs into $STACK_RUN_DIR first.
+# Every published port binds to 127.0.0.1. Ports and hostnames: e2e-tests/api-keys/CONTRACT.md.
+name: sefaria-apikeys-stack
+
+services:
+  pg:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sefaria_auth
+    ports: ["127.0.0.1:55432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d sefaria_auth"]
+      interval: 2s
+      retries: 30
+
+  authsvc:
+    image: sefaria-apikeys-stack-authsvc:local
+    build:
+      context: ../../..
+      dockerfile: build/auth-service/Dockerfile
+      target: runtime
+    # The same env as helm-chart/sefaria/templates/authservice/deployment.yaml, with the chart's defaults.
+    environment:
+      HTTP_ADDR: ":8080"
+      GRPC_ADDR: ":9090"
+      AUTH_MODE: ${AUTH_MODE:-enforce}
+      GATED_PATHS: ${GATED_PATHS:-/api/knn-search}
+      HELP_URL: ${HELP_URL:-https://developers.sefaria.org/help/}
+      RELOAD_INTERVAL: ${RELOAD_INTERVAL:-60s}
+      PG_NOTIFY_CHANNEL: ${PG_NOTIFY_CHANNEL-sefaria_apikeys}
+      PG_DSN: ${PG_DSN:-postgres://auth_service_reader:reader@pg:5432/sefaria_auth?sslmode=disable}
+    ports: ["127.0.0.1:18080:8080", "127.0.0.1:19090:9090"]
+    read_only: true
+    depends_on:
+      pg: { condition: service_healthy }
+
+  echo:
+    image: ealen/echo-server:0.9.2
+    environment: { PORT: "8080" }
+
+  nginx:
+    image: opentracing/nginx-opentracing:nginx-1.23.3
+    # The chart's entrypoint (templates/configmap/nginx.yaml), with instrumentation off.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        export ELASTIC_AUTH_HEADER=$$(echo -n "$$ELASTIC_USERNAME:$$ELASTIC_PASSWORD" | base64) &&
+        envsubst '$${ENV_NAME},$${VARNISH_HOST},$${SEARCH_HOST},$${SEARCH_PORT},$${SEARCH_PATH},$${SEARCH_SSL_ENABLE},$${RELEASE_TAG},$${STRAPI_LOCATION},$${ELASTIC_AUTH_HEADER}'
+        < /conf/nginx.template.conf > /nginx.conf &&
+        exec nginx -c /nginx.conf -g 'daemon off;'
+    environment:
+      ENV_NAME: local-apikeys
+      VARNISH_HOST: host.docker.internal
+      SEARCH_HOST: echo
+      SEARCH_PORT: "9200"
+      SEARCH_PATH: ""
+      SEARCH_SSL_ENABLE: "false"
+      RELEASE_TAG: local
+      STRAPI_LOCATION: http://strapi.invalid
+      ELASTIC_USERNAME: ""
+      ELASTIC_PASSWORD: ""
+    volumes:
+      - ${STACK_RUN_DIR:?run through up.sh}/nginx.template.conf:/conf/nginx.template.conf:ro
+      - ../../../static:/app/static:ro
+    ports: ["127.0.0.1:18088:80"]
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    depends_on: [echo]
+
+  envoy:
+    image: envoyproxy/envoy:v1.39.1
+    command: ["envoy", "-c", "/etc/envoy/envoy.yaml", "--log-level", "warn"]
+    volumes:
+      - ${STACK_RUN_DIR:?run through up.sh}/envoy.yaml:/etc/envoy/envoy.yaml:ro
+    ports:
+      - "127.0.0.1:10080:10080"
+      - "127.0.0.1:10081:10081"
+      - "127.0.0.1:19000:19000"
+    extra_hosts: ["host.docker.internal:host-gateway"]
+    depends_on: [authsvc, echo, nginx]
+
+  mailpit:
+    image: axllent/mailpit:v1.27.11
+    ports: ["127.0.0.1:18025:8025", "127.0.0.1:11025:1025"]
+
+volumes:
+  pgdata:
