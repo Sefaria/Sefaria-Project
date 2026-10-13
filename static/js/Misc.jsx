@@ -25,6 +25,7 @@ import {SourceEditor} from "./SourceEditor";
 import {EditTextInfo} from "./BookPage";
 import ReactMarkdown from 'react-markdown';
 import TrackG4 from "./sefaria/trackG4";
+import { liftLauncherAbove } from './sefaria/launcherOffset';
 import ReaderDisplayOptionsMenu from "./ReaderDisplayOptionsMenu";
 import {
   DropdownLanguageToggle,
@@ -2817,12 +2818,21 @@ ReaderMessage.propTypes = {
 
 
 
+// While the banner shows, the Library Assistant's floating button sits above it (phones and
+// tablets, where the banner spans the bottom of the screen; see s2.css)
 class CookiesNotification extends Component {
   constructor(props) {
     super(props);
     const showNotification = /*!Sefaria._debug && */Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
 
     this.state = {showNotification: showNotification};
+    this.bannerRef = React.createRef();
+  }
+  componentDidMount() {
+    this.releaseLauncher = liftLauncherAbove(this.bannerRef.current);
+  }
+  componentWillUnmount() {
+    this.releaseLauncher?.();
   }
   setCookie() {
     // Use the getCookieDomain function to get the appropriate cookie domain
@@ -2835,13 +2845,14 @@ class CookiesNotification extends Component {
     }
     
     $.cookie("cookiesNotificationAccepted", 1, cookieOptions);
+    this.releaseLauncher?.();
     this.setState({showNotification: false});
   }
   render() {
     if (!this.state.showNotification) { return null; }
     const privacyPolicyLink = Sefaria.util.fullURL("/privacy-policy", Sefaria.LIBRARY_MODULE);
     return (
-      <div className="cookiesNotification">
+      <div className="cookiesNotification" ref={this.bannerRef}>
 
           <span className="int-en">
             <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
