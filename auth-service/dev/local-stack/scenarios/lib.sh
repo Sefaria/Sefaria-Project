@@ -184,7 +184,7 @@ probe_count() {
   awk -v s="$2" -v a="${3:-0}" -v b="${4:-9e12}" '$2 == s && $1 >= a && $1 <= b {n++} END {print n + 0}' "$D11_DIR/probe/$1.log"
 }
 # probe_last NAME STATUS -> timestamp of the last request with that status, or 0
-probe_last() { awk -v s="$2" '$2 == s {t = $1} END {print t + 0}' "$D11_DIR/probe/$1.log"; }
+probe_last() { awk -v s="$2" '$2 == s {t = $1} END {printf "%.3f\n", t + 0}' "$D11_DIR/probe/$1.log"; }
 probe_first_after() { awk -v s="$2" -v a="$3" '$2 == s && $1 >= a {print $1; exit}' "$D11_DIR/probe/$1.log"; }
 probe_total() { wc -l <"$D11_DIR/probe/$1.log" | tr -d ' '; }
 fsub() { python3 -c "print('%.1f' % ($1 - $2))"; }

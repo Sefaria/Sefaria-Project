@@ -49,6 +49,9 @@ def main():
     cfg = rc.envoy_config("default")
     clusters = {c["name"]: c for c in cfg["static_resources"]["clusters"]}
     hc = with_endpoints(clusters["authsvc"], hosts)
+    # Without this Envoy checks an idle cluster only every 60 s, so a freshly started Envoy would keep a
+    # not-ready auth service in rotation for up to a minute; k8s readiness has no such lag.
+    hc["health_checks"][0]["no_traffic_interval"] = hc["health_checks"][0]["interval"]
     nohc = copy.deepcopy(hc)
     nohc["name"] = nohc["load_assignment"]["cluster_name"] = "authsvc_nohc"
     nohc.pop("health_checks")
