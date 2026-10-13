@@ -21,7 +21,10 @@ const APIKEYS_ENABLED = APIKEYS_TARGET !== undefined && manifestExists();
 const APIKEYS_USE = APIKEYS_TARGET === 'local'
   ? {
     baseURL: baseURLFor('local'),
-    launchOptions: { args: ['--host-resolver-rules=MAP *.gateway.test 127.0.0.1'] },
+    // Chromium refuses 10080 as an unsafe port unless it is allowed explicitly.
+    launchOptions: {
+      args: ['--host-resolver-rules=MAP *.gateway.test 127.0.0.1', '--explicitly-allowed-ports=10080,10081'],
+    },
   }
   : {
     baseURL: baseURLFor('cauldron'),

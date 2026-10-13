@@ -41,6 +41,8 @@ Import `test` and `expect` from `./fixtures` (or `../fixtures`).
 
 ## Rules that keep results honest
 
+- Chromium treats 10080 as an unsafe port (`net::ERR_UNSAFE_PORT`); the project's launch args allow 10080 and
+  10081. A spec that launches its own browser must pass `--explicitly-allowed-ports=10080,10081` too.
 - Browser pages use `*.gateway.test` through a resolver launch arg. Node-side calls go to `127.0.0.1` with an
   explicit `Host`. Never send `localhost` or `127.0.0.1` as the Host in a header, CORS or cookie test:
   `CORSDebugMiddleware` would add permissive CORS headers.
