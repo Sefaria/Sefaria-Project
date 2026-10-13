@@ -37,7 +37,8 @@ import { escapeRegExp } from '../support/assistantStrings';
 const LIBRARY = MODULE_URLS.EN.LIBRARY;
 const TEXT_PAGE = `${LIBRARY}/Genesis.1`;
 const SHABBAT_23B = `${LIBRARY}/Shabbat.23b`;
-const HOMEPAGE_URL = new RegExp(`^${escapeRegExp(LIBRARY)}/?$`);
+// The library home `/` always redirects to `/texts` (reader/views.py `home`).
+const HOMEPAGE_URL = new RegExp(`^${escapeRegExp(LIBRARY)}/texts/?$`);
 
 const PHONE = { width: 393, height: 852 };
 const PHONE_TAGS = { tag: ['@e2e', '@phone'] };

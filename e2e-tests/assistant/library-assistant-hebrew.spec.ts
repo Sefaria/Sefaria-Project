@@ -112,9 +112,10 @@ test.describe('Library Assistant — Hebrew', () => {
   // Header More-options menu (UX-057 → UX-060)
   test('UX-057 (HE): More-options menu opens with the expected items', { tag: '@sanity' }, async () => {
     // The "Settings" item only renders for Django-staff accounts. The expected
-    // Hebrew texts (4, or 5 with Settings) come from the POM label set, keyed on
+    // Hebrew texts (5, or 6 with Settings) come from the POM label set, keyed on
     // BROWSER_SETTINGS.heLAUser.isModerator — keep that flag in sync with the account.
-    await pm.onLibraryAssistant().ensureOpen();
+    // The menu's dock item names the opposite mode, so start floating.
+    await pm.onLibraryAssistant().ensureFloating();
     await pm.onLibraryAssistant().openHeaderMenu();
     await pm.onLibraryAssistant().expectMenuVisible();
     await pm.onLibraryAssistant().expectMenuItemTexts(

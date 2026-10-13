@@ -73,7 +73,7 @@ After `waitForReady()` you are free to interact through the page object.
 
 All locators pierce the open shadow root. Use role/label over CSS when possible.
 
-> **Labels are language-specific** (the deployed component is i18n'd). Don't hardcode label strings in tests — go through the page object, which resolves them from `LA_LABELS[this.language]`. The authoritative, **live-verified** English/Hebrew strings are in §11. The table below lists the *structural* locators (role/CSS) that don't change between languages; the accessible **name** for the role-based ones comes from §11.
+> **Labels are language-specific** (the deployed component is i18n'd). Don't hardcode label strings in tests — go through the page object, which looks them up by translation key (§11). The authoritative, **live-verified** English/Hebrew strings are in §11. The table below lists the *structural* locators (role/CSS) that don't change between languages; the accessible **name** for the role-based ones comes from §11.
 
 | Element | Locator shape | Notes |
 | --- | --- | --- |
@@ -83,7 +83,7 @@ All locators pierce the open shadow root. Use role/label over CSS when possible.
 | Close button (X) | `getByRole('button', { name: <close> })` | header |
 | Dock / Undock | `getByRole('button', { name: <dock> / <undock> })` | dock visible floating, undock visible docked |
 | More options (ellipsis) | `getByRole('button', { name: <moreOptions> })` | opens `role="menu"` dropdown |
-| Menu items | `getByRole('menuitem')` | 4 base items, +`Settings` first for staff (see §11) |
+| Menu items | `getByRole('menuitem')` | 5 base items, +`Settings` first for staff (see §11) |
 | Prompt textarea | `getByLabel(<promptInput>)` | `maxlength="10000"` (the UX-021 test-plan figure of "500 chars" is wrong — the DOM is authoritative) |
 | Send button | `getByRole('button', { name: <send> })` | disabled when textarea is empty |
 | User message bubble | `page.locator('.message.user')` | use `.last()` for the most recent |
@@ -237,7 +237,7 @@ If the host is missing entirely: the user isn't whitelisted for LA, or storage s
 | --- | --- |
 | [library-assistant.spec.ts](library-assistant.spec.ts) | **English** spec: 15 behavioral tests (UX-001, 003, 004, 013, 014, 022, 023, 024, 026, 027, 036, 057, 058, 059 *(fixme)*, 060) + 4 visibility-boundary tests (LA-NEG-001 → 004) |
 | [library-assistant-hebrew.spec.ts](library-assistant-hebrew.spec.ts) | **Hebrew** spec mirroring the English one (UX-… `(HE)` + LA-NEG-HE-001/003/004). Runs in parallel; see §12 |
-| [../pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts) | Page object — all LA interactions; language-parameterized via `LA_LABELS[this.language]` (§11) |
+| [../pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts) | Page object — all LA interactions; labels looked up by translation key (§11) |
 | [../pages/pageManager.ts](../pages/pageManager.ts) | Registers `pm.onLibraryAssistant()` |
 | [../globals.ts](../globals.ts) | `testLAUser` / `testHeLAUser`, `AUTH_PATHS.enLAUserFile` / `heLAUserFile`, `BROWSER_SETTINGS.enLAUser` / `heLAUser` |
 | [../.env](../.env) | `PLAYWRIGHT_LA_USER_*` (English) and `PLAYWRIGHT_LA_USER_HE_*` (Hebrew) credentials |
@@ -264,30 +264,26 @@ When tackling any of these, first check whether the page object already covers t
 
 ---
 
-## 11. Bilingual label reference (verified against the LIVE component)
+## 11. Bilingual label reference (looked up by translation key)
 
-The deployed component runs a `svelte-i18n` build (`interface-lang="en"` / `"he"`) and renders every label from a catalog. The strings below were captured from the **live deployed shadow DOM** in each language (not read from source — the source `he.json` differs from prod in several places, e.g. source `שלח`/`סגור` vs deployed `שליחה`/`סגירה`). They live in `LA_LABELS` in [../pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts); the POM picks the set from `this.language`, so specs never hardcode a label.
+The component runs a `svelte-i18n` build (`interface-lang="en"` / `"he"`) and renders every label from a catalog. The page object does **not** type the words out: `labelsFor()` in [../pages/libraryAssistantPage.ts](../pages/libraryAssistantPage.ts) reads each label by key from ai-chatbot's `src/i18n/locales/{en,he}.json` through [../support/assistantStrings.ts](../support/assistantStrings.ts). So a Weblate copy edit doesn't break the suite, and the suite needs `AI_CHATBOT_REPO_PATH` (default `../ai-chatbot`) checked out at the ai-chatbot version the site under test runs. The lookup happens on first use, so specs that never touch the LA don't need the checkout.
 
-| Element | English (live) | Hebrew (live) |
+| Element | Key | English today |
 | --- | --- | --- |
-| Trigger button (`aria-label`) | `Open Library Assistant` | `פתיחת עוזר הספרייה` |
-| Trigger pill text | `LIBRARY ASSISTANT` | `עוזר הספרייה` |
-| Dialog (`aria-label`) | `Chat window` | `חלון שיחה` |
-| Close (`title`/`aria`) | `Close` | `סגירה` |
-| Dock (floating→docked) | `Dock Assistant` | `הצמדת עוזר הספרייה` |
-| Undock (docked→floating) | `Undock Assistant` | `חזרה למצב צף` |
-| More options | `More options` | `אפשרויות נוספות` |
-| Prompt input (`aria`) | `Prompt input` | `שדה טקסט` |
-| Input placeholder | `What are you learning today?` | `מה נלמד היום?` |
-| Send (`aria`) | `Send` | `שליחה` |
-| Menu items (in order) | `Restart chat` / `Give feedback` / `Help` / `Opt out in Settings` | `התחלת שיחה מחדש` / `שליחת משוב` / `עזרה` / `כיבוי בהגדרת` |
-| Settings menu item (moderator-only) | `Settings` | `הגדרות` |
-| Restart menu item (`aria`) | `Restart convo` | `התחלת שיחה מחדש` |
-| Thinking indicator text | `Thinking` | `Thinking` *(English in both — the Hebrew string is not yet wired in prod; `expectThinkingVisible()` is intentionally language-invariant)* |
+| Trigger button (`aria-label`) | `assistant.header.openAssistant` | `Open Library Assistant` |
+| Dialog (`aria-label`) | `assistant.header.chatWindow` | `Chat window` |
+| Close (`title`/`aria`) | `assistant.header.close.tooltip` | `Close` |
+| Dock header button (floating→docked) | `assistant.header.dock.tooltip` | `Maximize & move to sidebar` |
+| Undock header button (docked→floating) | `assistant.header.undock.tooltip` | `Minimize & detach from sidebar` |
+| More options | `assistant.header.moreOptions` | `More options` |
+| Prompt input (`aria`) | `assistant.input.aria` | `Prompt input` |
+| Send (`aria`) | `assistant.input.send.tooltip` | `Send` |
+| Menu items, panel floating (in order) | `assistant.history.header.new.tooltip`, `assistant.menu.dock`, `assistant.menu.feedback`, `assistant.menu.help`, `assistant.menu.optout` | `New chat` / `Maximize & move to sidebar` / `Give feedback` / `Help` / `Disable in settings` |
+| Settings menu item (moderator-only) | `assistant.menu.settings` | `Settings` |
+| Restart menu item (`aria`) | `assistant.menu.restart.aria` | `Restart convo` |
+| Thinking indicator text | — | `Thinking` *(English in both languages; `expectThinkingVisible()` is intentionally language-invariant)* |
 
-> ⚠️ The pre-i18n English labels (`Close assistant`, `Send message`, `Dock assistant to side`, `Restart conversation`, `Opt-out in Settings`) are **gone** from prod. If you see them anywhere, they're stale — use the table above.
-
-**Menu & moderator status.** The `Settings` item renders only for Django-**staff** accounts (the chatbot's `is-moderator` branch) — so the menu is **4 items** for a normal account, **5** (Settings first) for staff. `expectedMenuTexts(isModerator)` builds the right list; pass `BROWSER_SETTINGS.<profile>.isModerator`. `enLAUser` is staff (`true`); `heLAUser` tracks the real `qa+automationLAHebrew` account — flip its `isModerator` flag in [../globals.ts](../globals.ts) if that account's staff status changes.
+**Menu & moderator status.** The `Settings` item renders only for Django-**staff** accounts (the chatbot's `is-moderator` branch) — so the menu is **5 items** for a normal account, **6** (Settings first) for staff. The dock item names the *other* mode (`assistant.menu.dock` while floating, `assistant.menu.undock` while docked), so call `ensureFloating()` before checking the list. `expectedMenuTexts(isModerator)` builds the floating-mode list; pass `BROWSER_SETTINGS.<profile>.isModerator`. `enLAUser` is staff (`true`); `heLAUser` tracks the real `qa+automationLAHebrew` account — flip its `isModerator` flag in [../globals.ts](../globals.ts) if that account's staff status changes.
 
 ---
 
