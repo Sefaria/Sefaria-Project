@@ -459,6 +459,21 @@ class TestGetUserSubscriptionsIntegration:
         data = assert_error(response, 401, "Authentication required")
         assert data["code"] == "authentication_required"
 
+    def test_returns_503_when_not_configured(self, logged_in_client, monkeypatch):
+        """Returns 503 with a stable error key when AC credentials are absent, like /lists does."""
+        from api import newsletter_service
+
+        # No client is what the service has when the credentials aren't set. This
+        # endpoint has no up-front check, so the 503 has to come from the error
+        # requires_ac_client raises.
+        monkeypatch.setattr(newsletter_service, "_client", None)
+
+        response = logged_in_client.get("/api/newsletter/subscriptions")
+
+        assert response.status_code == 503
+        data = json.loads(response.content)
+        assert data["error"] == "newsletter_service_not_configured"
+
     @mock.patch("api.newsletter_views.fetch_user_subscriptions_impl")
     @mock.patch("api.newsletter_views.get_cached_newsletter_list")
     def test_authenticated_user_with_subscriptions(

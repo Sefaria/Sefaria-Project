@@ -21,6 +21,7 @@ from api.newsletter_service import (
     ActiveCampaignError,
     NewsletterInfo,
     NewsletterListUnavailableError,
+    NewsletterServiceNotConfiguredError,
     get_cached_newsletter_list,
     is_newsletter_service_configured,
     is_valid_learning_level,
@@ -99,6 +100,11 @@ def handle_newsletter_view_errors(
             except NewsletterListUnavailableError as e:
                 logger.warning(f"Newsletter list unavailable {action.value}: {e}")
                 return jsonResponse({"error": str(e)}, status=503)
+            except NewsletterServiceNotConfiguredError as e:
+                # Must come before ActiveCampaignError, which it subclasses. The
+                # message names the missing settings, so it only goes in the log.
+                logger.warning(f"Newsletter service not configured {action.value}: {e}")
+                return jsonResponse({"error": "newsletter_service_not_configured"}, status=503)
             except ActiveCampaignError as e:
                 logger.warning(f"ActiveCampaign error {action.value}: {e}")
                 return jsonResponse({"error": str(e)}, status=500)

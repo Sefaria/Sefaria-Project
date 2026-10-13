@@ -121,6 +121,16 @@ class NewsletterListUnavailableError(ActiveCampaignError):
     pass
 
 
+class NewsletterServiceNotConfiguredError(ActiveCampaignError):
+    """
+    Raised when the ActiveCampaign credentials aren't set (common in local dev and CI).
+    The views answer 503 for it instead of the 500 a real AC failure gets. It's a
+    subclass so code that already catches ActiveCampaignError still catches it.
+    """
+
+    pass
+
+
 class InvalidEmailError(InputError):
     """
     Raised when an email address isn't valid. The person can fix this by correcting
@@ -318,12 +328,12 @@ _client: NewsletterClient | None = (
 
 
 def requires_ac_client(func):
-    """Decorator: raises ActiveCampaignError if AC credentials are not configured."""
+    """Decorator: raises NewsletterServiceNotConfiguredError if AC credentials are not configured."""
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         if _client is None:
-            raise ActiveCampaignError(
+            raise NewsletterServiceNotConfiguredError(
                 "Newsletter service not configured: "
                 "ACTIVECAMPAIGN_API_TOKEN and ACTIVECAMPAIGN_ACCOUNT_NAME must be set"
             )
