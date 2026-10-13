@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { Browser, BrowserContext, Page, expect } from '@playwright/test';
 import { t } from '../globals';
-import { AUTH_STATUS_FILE, authFile, baseURLFor, TargetName } from './env';
+import { AUTH_STATUS_FILE, authFile, baseURLFor, loadManifest, TargetName } from './env';
 
 /**
  * Logging in seeded accounts and opening contexts as them.
@@ -52,7 +52,11 @@ export async function logIn(page: Page, baseURL: string, email: string, password
   await page.goto(`${baseURL}/login?next=%2Fsettings%2Faccount`, { waitUntil: 'domcontentloaded', timeout: t(60000) });
   const continueWithEmail = page.getByRole('button', { name: /Continue with Email|המשך עם דוא״ל/ }).first();
   const emailField = page.locator('input[name="email"]').first();
-  await expect(continueWithEmail.or(emailField)).toBeVisible({ timeout: t(30000) });
+  try {
+    await expect(continueWithEmail.or(emailField)).toBeVisible({ timeout: t(30000) });
+  } catch {
+    throw new Error(`The login form did not render within 30 s at ${page.url()} (server slow, restarting, or an error page).`);
+  }
   if (await continueWithEmail.isVisible()) await continueWithEmail.click();
   await emailField.fill(email);
   await page.locator('input[name="password"]').first().fill(password);
@@ -73,21 +77,29 @@ export async function logIn(page: Page, baseURL: string, email: string, password
   }
 }
 
-export type AuthStatus = Record<string, { ok: boolean; reason?: string; at: string }>;
+export type AuthStatus = { runId: string; accounts: Record<string, { ok: boolean; reason?: string; at: string }> };
 
-export function readAuthStatus(): AuthStatus {
+export function readAuthStatus(): AuthStatus | undefined {
   try {
     return JSON.parse(fs.readFileSync(AUTH_STATUS_FILE, 'utf-8'));
   } catch {
-    return {};
+    return undefined;
   }
 }
 
 /** Path of a logged-in storage state, or a clear error naming why the setup could not make it. */
 export function storageStateFor(suite: string, role: string): string {
   const file = authFile(suite, role);
+  const recorded = readAuthStatus();
+  const runId = loadManifest().runId;
+  if (recorded && recorded.runId !== runId) {
+    throw new Error(
+      `Sessions were captured for seed run ${recorded.runId}, but the manifest is now ${runId}: the fixtures were ` +
+      `re-seeded after apikeys-setup ran, which recreates the accounts and ends their sessions. Rerun the setup.`
+    );
+  }
   if (fs.existsSync(file)) return file;
-  const status = readAuthStatus()[`${suite}.${role}`];
+  const status = recorded?.accounts[`${suite}.${role}`];
   throw new Error(
     status && !status.ok
       ? `No session for ${suite}.${role}: login failed in apikeys-setup (${status.reason}).`

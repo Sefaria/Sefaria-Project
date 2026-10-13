@@ -28,8 +28,14 @@ setup('log in every seeded api-keys account', async ({ browser }, testInfo) => {
   fs.mkdirSync(AUTH_DIR, { recursive: true });
 
   const password = readPassword();
-  const status: AuthStatus = {};
+  const status: AuthStatus['accounts'] = {};
   const lang = (role: string) => (/hebrew/i.test(role) ? 'hebrew' : 'english') as 'hebrew' | 'english';
+
+  // A slow first page load on a development server is not a login failure: one retry.
+  const logInWithRetry = async (account: typeof manifest.accounts[number]) => {
+    await logInOne(account);
+    if (!status[accountKey(account)]?.ok) await logInOne(account);
+  };
 
   const logInOne = async (account: typeof manifest.accounts[number]) => {
     const key = accountKey(account);
@@ -43,7 +49,7 @@ setup('log in every seeded api-keys account', async ({ browser }, testInfo) => {
       fs.writeFileSync(authFile(account.suite, account.role), JSON.stringify(state, null, 2));
       status[key] = { ok: true, at: new Date().toISOString() };
     } catch (e: any) {
-      const reason = maskSecrets(String(e?.message || e).split('\n')[0]);
+      const reason = maskSecrets(String(e?.message || e).replace(/\x1b\[[0-9;]*m/g, '').split('\n')[0]);
       status[key] = { ok: false, reason, at: new Date().toISOString() };
       testInfo.annotations.push({ type: 'login-failed', description: `${key}: ${reason}` });
     } finally {
@@ -53,11 +59,11 @@ setup('log in every seeded api-keys account', async ({ browser }, testInfo) => {
 
   const queue = manifest.accounts.filter(a => a.suite !== 'stack');
   const lanes = Array.from({ length: workersFor(target) }, async () => {
-    for (let next = queue.shift(); next; next = queue.shift()) await logInOne(next);
+    for (let next = queue.shift(); next; next = queue.shift()) await logInWithRetry(next);
   });
   await Promise.all(lanes);
 
-  fs.writeFileSync(AUTH_STATUS_FILE, JSON.stringify(status, null, 2));
+  fs.writeFileSync(AUTH_STATUS_FILE, JSON.stringify({ runId: manifest.runId, accounts: status } as AuthStatus, null, 2));
   const ok = Object.values(status).filter(s => s.ok).length;
   const failed = Object.entries(status).filter(([, s]) => !s.ok).map(([k]) => k);
   console.log(`[apikeys-setup] ${target} ${manifest.runId}: ${ok} logged in, ${failed.length} failed${failed.length ? ` (${failed.join(', ')})` : ''}`);
