@@ -1,14 +1,32 @@
 import { defineConfig, devices } from '@playwright/test';
 import { t } from './e2e-tests/globals';
+import {
+  baseURLFor, manifestExists, requestedTarget, workersFor, RESULTS_DIR,
+} from './e2e-tests/api-keys/env';
 
 // load environment variables from .env file in the e2e-tests directory
 if (!process.env.CI) {
   const env = require('dotenv').config({ path: './e2e-tests/.env' }).parsed;
+  // The file supplies defaults; anything already in the environment wins.
   process.env = {
-    ...process.env,
     ...env,
+    ...process.env,
   };
 }
+
+// The api-keys suites (e2e-tests/api-keys) exist as projects only when a target is named and the
+// fixture manifest is present, so neither CI nor a plain local run ever picks them up.
+const APIKEYS_TARGET = requestedTarget();
+const APIKEYS_ENABLED = APIKEYS_TARGET !== undefined && manifestExists();
+const APIKEYS_USE = APIKEYS_TARGET === 'local'
+  ? {
+    baseURL: baseURLFor('local'),
+    launchOptions: { args: ['--host-resolver-rules=MAP *.gateway.test 127.0.0.1'] },
+  }
+  : {
+    baseURL: baseURLFor('cauldron'),
+    ignoreHTTPSErrors: true,
+  };
 
 // Extract domain from SANDBOX_URL
 const SANDBOX_DOMAIN = process.env.SANDBOX_URL?.replace(/^https?:\/\//, '').replace(/^www\./, '')
@@ -50,7 +68,7 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 2,
   /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 1 : (APIKEYS_ENABLED ? workersFor(APIKEYS_TARGET!) : undefined),
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: process.env.CI
     ? [['github']]
@@ -147,7 +165,7 @@ export default defineConfig({
       // Mobile @sanity tests need the mobile viewport/config — exclude them here
       // so this desktop project doesn't run them at a desktop viewport (they'd
       // fail). They run under the mobile-sanity project in the mobile config.
-      testIgnore: '**/mobile web/**',
+      testIgnore: ['**/mobile web/**', '**/api-keys/**'],
       use: {
         ...devices['Desktop Chrome'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -216,6 +234,34 @@ export default defineConfig({
         baseURL: MODULE_URLS.EN.LIBRARY,
       },
     },
+    // API keys gateway and developer settings suites. Opt-in: --project=apikeys with
+    // APIKEYS_TARGET set and a seeded manifest. See e2e-tests/api-keys/README.md.
+    ...(APIKEYS_ENABLED ? [
+      {
+        name: 'apikeys-setup',
+        testDir: './e2e-tests/api-keys',
+        testMatch: /auth\.setup\.ts/,
+        outputDir: `${RESULTS_DIR}/setup`,
+        retries: 0,
+        use: { ...devices['Desktop Chrome'], ...APIKEYS_USE, trace: 'off' as const },
+      },
+      {
+        name: 'apikeys',
+        testDir: './e2e-tests/api-keys',
+        testMatch: /.*\.spec\.ts/,
+        dependencies: ['apikeys-setup'],
+        outputDir: `${RESULTS_DIR}/${APIKEYS_TARGET}`,
+        timeout: t(90000),
+        expect: { timeout: t(15000) },
+        retries: APIKEYS_TARGET === 'cauldron' ? 1 : 0,
+        use: {
+          ...devices['Desktop Chrome'],
+          ...APIKEYS_USE,
+          // Traces record request headers, which would put key values on disk.
+          trace: process.env.APIKEYS_TRACE ? 'retain-on-failure' as const : 'off' as const,
+        },
+      },
+    ] : []),
     // Cross-Module integration tests (auth persistence + redirects across Library/Voices)
     {
       name: 'chrome-cross-module',
@@ -260,7 +306,7 @@ export default defineConfig({
       // Mobile @sanity tests need the mobile viewport/config — exclude them here
       // so this desktop project doesn't run them at a desktop viewport (they'd
       // fail). They run under the mobile-sanity project in the mobile config.
-      testIgnore: '**/mobile web/**',
+      testIgnore: ['**/mobile web/**', '**/api-keys/**'],
       use: {
         ...devices['Desktop Firefox'],
         baseURL: MODULE_URLS.EN.LIBRARY,
@@ -365,7 +411,7 @@ export default defineConfig({
       // Mobile @sanity tests need the mobile viewport/config — exclude them here
       // so this desktop project doesn't run them at a desktop viewport (they'd
       // fail). They run under the mobile-sanity project in the mobile config.
-      testIgnore: '**/mobile web/**',
+      testIgnore: ['**/mobile web/**', '**/api-keys/**'],
       use: {
         ...devices['Desktop Safari'],
         baseURL: MODULE_URLS.EN.LIBRARY,
