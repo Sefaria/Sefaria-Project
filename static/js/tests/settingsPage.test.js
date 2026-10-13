@@ -1,5 +1,6 @@
 /**
- * SettingsPage: the settings tabs and the developer settings POC.
+ * SettingsPage: the settings tabs and developer settings, against the in-browser mock of the
+ * developer API (developerSettingsMock.js).
  *
  * No React Testing Library in this repo -- react-dom directly, same pattern as
  * static/js/tests/searchResultCardAuxClick.test.js.
@@ -31,18 +32,48 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { act } from 'react-dom/test-utils';
 import Sefaria from '../sefaria/sefaria';
-import SettingsPage, { EmailConfirmedPage } from '../SettingsPage.jsx';
-import { parseWebsite } from '../developerPocStore';
+import SettingsPage, { EmailConfirmedPage, EmailLinkPage } from '../SettingsPage.jsx';
+import { parseWebsite } from '../developerSettingsApi';
+import { developerState, emptyBlob, PREVIOUS_ACCOUNT_EMAIL } from '../developerSettingsMock';
 
 let container = null;
 
-const DEVELOPER_ON = { developerEnabled: true, ssoOverride: true };
+const EMAIL = 'tova@example.org';
+const CONTEXT = { email: EMAIL, realProviders: [] };
 const PROFILE = {
   developerName: 'Tova Levi', description: '', additionalEmail: '',
   termsAccepted: true, developerNews: false, notADeveloper: false,
 };
 
-function mount(tab, developerPoc = null, props = {}) {
+/* Mock data, as the session keeps it. */
+const blob = (fields = {}) => ({ ...emptyBlob(), ...fields });
+const DEVELOPER_ON = { developerEnabled: true, ssoOverride: true };
+const SET_UP = { ...DEVELOPER_ON, profile: PROFILE };
+
+const project = (extra = {}) => ({
+  id: 'proj01', name: 'Daf Tracker', description: 'A tracker', visibility: 'public', organization: '',
+  websiteUrl: 'https://daftracker.org', aiAssisted: false, consentWithdrawnAt: null, listingId: null,
+  createdAt: '2026-09-01T00:00:00Z', keys: [], ...extra,
+});
+const key = (extra = {}) => ({
+  id: 'k1', label: 'Production', value: 'sfr_test_x', created: '2026-09-01T00:00:00Z', restrictToWebsite: false, ...extra,
+});
+
+/* The session endpoint the mock keeps its data in: GET answers what POST stored. */
+let session = null;
+const serveSession = (initial) => {
+  session = initial;
+  global.fetch = jest.fn((url, options = {}) => {
+    if (url !== '/api/developer-poc/state') { return Promise.reject(new Error('Unexpected request to ' + url)); }
+    if (options.method === 'POST') { session = JSON.parse(options.body); }
+    return Promise.resolve({ ok: true, json: () => Promise.resolve(session) });
+  });
+};
+const sessionWrites = () => global.fetch.mock.calls.filter(([, options = {}]) => options.method === 'POST');
+
+/* Mounts the page on mock data: the session holds it, and the page starts from its state. */
+function mount(tab, data = blob(), props = {}) {
+  serveSession(data);
   container = document.createElement('div');
   document.body.appendChild(container);
   act(() => {
@@ -50,8 +81,8 @@ function mount(tab, developerPoc = null, props = {}) {
       <SettingsPage
         tab={tab}
         projectId={null}
-        accountSettings={{ socialProviders: [], email: 'tova@example.org' }}
-        initialDeveloperPoc={developerPoc}
+        accountSettings={{ socialProviders: [], email: EMAIL }}
+        initialDeveloper={data === null ? null : developerState(data, CONTEXT)}
         setTab={() => {}}
         setProjectId={() => {}}
         {...props}
@@ -69,14 +100,15 @@ const typeInto = (input, value) => {
   });
 };
 
-const lastSavedState = () => JSON.parse(global.fetch.mock.calls[global.fetch.mock.calls.length - 1][1].body);
+const flush = async () => { for (let i = 0; i < 30; i++) { await Promise.resolve(); } };
+const clickAndSettle = async (element) => { await act(async () => { element.click(); await flush(); }); };
 
 const developerPanel = () => container.querySelectorAll('.settingsPanel')[1];
 const buttonNamed = (root, name) => Array.from(root.querySelectorAll('button')).find(b => b.textContent.trim() === name);
 
 beforeEach(() => {
   Sefaria.interfaceLang = 'english';
-  global.fetch = jest.fn(() => Promise.resolve({ ok: true }));
+  serveSession(null);
   window.scrollTo = jest.fn();
 });
 
@@ -102,6 +134,14 @@ describe('settings tabs', () => {
     expect(accountPanel.textContent).not.toContain('Get started');
   });
 
+  it('has no developer tab or agent instructions without a developer state', () => {
+    mount('account', null);
+    const links = Array.from(container.querySelectorAll('nav.settingsNav a'));
+    expect(links.map(a => a.getAttribute('href'))).toEqual(['/settings/account']);
+    expect(container.querySelectorAll('.settingsPanel').length).toBe(1);
+    expect(container.querySelector('[data-agent-instructions]')).toBeNull();
+  });
+
   it('gates the developer tab behind Get started', () => {
     mount('developer');
     expect(buttonNamed(developerPanel(), 'Get started')).toBeTruthy();
@@ -111,18 +151,18 @@ describe('settings tabs', () => {
 
 describe('developer onboarding', () => {
   it('shows the account name and email locked', () => {
-    mount('developer', DEVELOPER_ON);
+    mount('developer', blob(DEVELOPER_ON));
     const name = container.querySelector('#devPocName');
     const email = container.querySelector('#devPocEmail');
     expect(name.value).toBe('Tova Levi');
     expect(name.readOnly).toBe(true);
-    expect(email.value).toBe('tova@example.org');
+    expect(email.value).toBe(EMAIL);
     expect(email.readOnly).toBe(true);
     expect(container.querySelector('#devPocEmail2').readOnly).toBe(false);
   });
 
   it('has no info tips on the locked fields, but describes them to assistive tech', () => {
-    mount('developer', DEVELOPER_ON);
+    mount('developer', blob(DEVELOPER_ON));
     ['#devPocName', '#devPocEmail'].forEach(selector => {
       const input = container.querySelector(selector);
       expect(input.closest('.devPocField').querySelector('.devPocInfoButton')).toBeNull();
@@ -131,7 +171,7 @@ describe('developer onboarding', () => {
   });
 
   it('keeps info tips out of the tab order, with their text on the field', () => {
-    mount('developer', DEVELOPER_ON);
+    mount('developer', blob(DEVELOPER_ON));
     const buttons = Array.from(container.querySelectorAll('.devPocInfoButton'));
     expect(buttons.length).toBeGreaterThan(0);
     buttons.forEach(b => {
@@ -150,7 +190,7 @@ describe('developer onboarding', () => {
   });
 
   it("doesn't change the copy when the user doesn't write code", () => {
-    mount('developer', DEVELOPER_ON);
+    mount('developer', blob(DEVELOPER_ON));
     const before = developerPanel().textContent;
     const checkbox = Array.from(container.querySelectorAll('.devPocChoice'))
       .find(label => label.textContent.includes("I don't write code myself")).querySelector('input');
@@ -160,8 +200,8 @@ describe('developer onboarding', () => {
   });
 });
 
-const openNewProject = (state = {}, props = {}) => {
-  mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], ...state }, props);
+const openNewProject = (fields = {}, props = {}) => {
+  mount('developer', blob({ ...SET_UP, nextId: 7, ...fields }), props);
   act(() => { container.querySelector('[data-agent-action="new-project"]').click(); });
   typeInto(container.querySelector('#devPocProjectName'), 'Daf Tracker');
 };
@@ -232,13 +272,13 @@ describe('project website', () => {
     });
   });
 
-  it('saves a bare domain as an https address', () => {
+  it('saves a bare domain as an https address', async () => {
     openNewProject();
     typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
     typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
     act(() => { visibilityRadio('private').click(); });
-    submitProject();
-    expect(lastSavedState().projects[0].websiteUrl).toBe('https://daftracker.org');
+    await clickAndSettle(container.querySelector('[data-agent-action="create-project"]'));
+    expect(session.projects[0].websiteUrl).toBe('https://daftracker.org');
   });
 
   it("won't save a website without a dot", () => {
@@ -254,10 +294,16 @@ describe('project website', () => {
 
 const yourListingDialog = () => container.querySelector('[aria-labelledby="devPocYourListingTitle"]');
 
+const LISTING = {
+  id: '42', name: 'Mishnah Yomit Tracker', url: 'https://mishnahtracker.app',
+  description: 'Track your daily two mishnayot and share progress with a study group.',
+  submitterEmail: EMAIL, projectId: null, deleted: false, createdAt: '2026-09-01T00:00:00Z',
+};
+
 describe('"Is this your project?"', () => {
-  const mountWithListing = (state = {}) => mount('developer', {
-    ...DEVELOPER_ON, profile: PROFILE, projects: [], submitterEmailListingId: 'pb03', ...state,
-  });
+  const mountWithListing = (fields = {}, props = {}) => mount('developer', blob({
+    ...SET_UP, listings: [LISTING], nextId: 43, ...fields,
+  }), props);
 
   it('asks about a listing submitted with the account email, showing only its public fields', () => {
     mountWithListing();
@@ -265,38 +311,47 @@ describe('"Is this your project?"', () => {
     expect(dialog.textContent).toContain('Is this your project?');
     expect(dialog.textContent).toContain('Mishnah Yomit Tracker');
     expect(dialog.textContent).toContain('mishnahtracker.app');
-    expect(dialog.textContent).not.toContain('tova@example.org');
+    expect(dialog.textContent).not.toContain(EMAIL);
   });
 
   it('asks nothing when no listing has the account email', () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [] });
+    mountWithListing({ listings: [{ ...LISTING, submitterEmail: 'someone@else.org' }] });
     expect(yourListingDialog()).toBeNull();
   });
 
-  it('asks nothing before the email is verified', () => {
-    mountWithListing({ ssoOverride: false, emailVerified: false });
+  it('asks nothing before developer settings are set up', () => {
+    mountWithListing({ profile: null });
     expect(yourListingDialog()).toBeNull();
   });
 
-  it('creates a public project from the listing, linked to it', () => {
-    mountWithListing();
-    act(() => { buttonNamed(yourListingDialog(), 'Yes, add it').click(); });
-    const saved = lastSavedState().projects[0];
-    expect(saved.name).toBe('Mishnah Yomit Tracker');
-    expect(saved.description).toBe('Track your daily two mishnayot and share progress with a study group.');
-    expect(saved.websiteUrl).toBe('https://mishnahtracker.app');
-    expect(saved.visibility).toBe('public');
-    expect(saved.linkedListingId).toBe('pb03');
+  it('asks nothing while the account email is unconfirmed', () => {
+    mountWithListing({ ssoOverride: false });
+    expect(yourListingDialog()).toBeNull();
+  });
+
+  it('claims the listing and opens it as a project', async () => {
+    const setProjectId = jest.fn();
+    mountWithListing({}, { setProjectId });
+    await clickAndSettle(buttonNamed(yourListingDialog(), 'Yes, add it'));
+    expect(session.projects[0]).toMatchObject({ id: '43', name: LISTING.name, visibility: 'public', listingId: '42' });
+    expect(setProjectId).toHaveBeenLastCalledWith('43');
     expect(yourListingDialog()).toBeNull();
     expect(container.querySelector('[data-agent-action="new-key"]')).toBeTruthy();
+    expect(developerPanel().textContent).toContain('this is the Mishnah Yomit Tracker listing');
   });
 
-  it('stops asking once the developer says it is not theirs', () => {
+  it('stops asking once the developer says it is not theirs', async () => {
     mountWithListing();
-    act(() => { buttonNamed(yourListingDialog(), "No, it's not mine").click(); });
+    await clickAndSettle(buttonNamed(yourListingDialog(), "No, it's not mine"));
+    expect(session.dismissedListingIds).toEqual(['42']);
     expect(yourListingDialog()).toBeNull();
-    expect(lastSavedState().dismissedListingIds).toEqual(['pb03']);
-    expect(lastSavedState().projects).toEqual([]);
+  });
+
+  it('can be put off until the next visit with Not now', () => {
+    mountWithListing();
+    act(() => { buttonNamed(yourListingDialog(), 'Not now').click(); });
+    expect(yourListingDialog()).toBeNull();
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('no longer asks about websites that are already listed', () => {
@@ -308,43 +363,43 @@ describe('"Is this your project?"', () => {
 });
 
 describe('saving a project', () => {
-  const fillProject = (visibility) => {
+  const fillProject = async (visibility) => {
     typeInto(container.querySelector('#devPocProjectDescription'), 'A tracker');
     typeInto(container.querySelector('#devPocProjectUrl'), 'daftracker.org');
     act(() => { visibilityRadio(visibility).click(); });
-    submitProject();
+    await clickAndSettle(container.querySelector('[data-agent-action="create-project"]'));
   };
 
-  it('stays on the project list after saving a public project', () => {
+  it('opens the new project, ready for a key', async () => {
     const setProjectId = jest.fn();
     openNewProject({}, { setProjectId });
-    fillProject('public');
-    const saved = lastSavedState().projects[0];
-    expect(saved.visibility).toBe('public');
-    expect(setProjectId).toHaveBeenLastCalledWith(saved.id);
-    expect(container.querySelector('.pbfForm')).toBeNull();
+    await fillProject('public');
+    expect(session.projects[0]).toMatchObject({ id: '7', visibility: 'public' });
+    expect(setProjectId).toHaveBeenLastCalledWith('7');
+    expect(container.querySelector('.devPocNewProject')).toBeNull();
     expect(container.querySelector('[data-agent-action="new-key"]')).toBeTruthy();
   });
 
-  it('stays on the project list after saving a private project', () => {
-    const setProjectId = jest.fn();
-    openNewProject({}, { setProjectId });
-    fillProject('private');
-    expect(setProjectId).toHaveBeenLastCalledWith(lastSavedState().projects[0].id);
-    expect(container.querySelector('.pbfForm')).toBeNull();
+  it('keeps the form open with the server error when saving fails', async () => {
+    openNewProject();
+    typeInto(container.querySelector('#devPocProjectName'), 'x'.repeat(256));
+    await fillProject('private');
+    expect(container.querySelector('.devPocNewProject')).toBeTruthy();
+    expect(container.querySelector('[role="alert"]').textContent).toContain('The project name can be at most 255 characters.');
+    expect(session.projects).toEqual([]);
   });
-});
 
-const publicProject = (extra = {}) => ({
-  id: 'proj01', name: 'Daf Tracker', description: 'A tracker', visibility: 'public', organization: '',
-  websiteUrl: 'https://daftracker.org', aiAssisted: false, linkedListingId: null,
-  consentWithdrawnAt: null, keys: [], ...extra,
+  it('shows a general error when the save fails without a reason', async () => {
+    openNewProject({ failNext: 'any' });
+    await fillProject('private');
+    expect(container.querySelector('[role="alert"]').textContent).toContain("Something went wrong and your change wasn't saved");
+    expect(session.failNext).toBeNull();
+  });
 });
 
 describe('making a public project private', () => {
   const editPublicProject = () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [publicProject()],
-      expandedProjectId: 'proj01' });
+    mount('developer', blob({ ...SET_UP, projects: [project()] }), { projectId: 'proj01' });
     act(() => { buttonNamed(container, 'Edit project').click(); });
     act(() => { visibilityRadio('private').click(); });
     return container.querySelector('[aria-labelledby="devPocPrivateTitle"]');
@@ -365,13 +420,13 @@ describe('making a public project private', () => {
     expect(visibilityRadio('public').checked).toBe(true);
   });
 
-  it('withdraws consent once saved', () => {
+  it('saves the project as private, withdrawing its consent', async () => {
     const dialog = editPublicProject();
     act(() => { buttonNamed(dialog, 'Make private').click(); });
-    act(() => { container.querySelector('[data-agent-action="save-project"]').click(); });
-    const saved = lastSavedState().projects[0];
-    expect(saved.visibility).toBe('private');
-    expect(saved.consentWithdrawnAt).toBeTruthy();
+    await clickAndSettle(container.querySelector('[data-agent-action="save-project"]'));
+    expect(session.projects[0].visibility).toBe('private');
+    expect(session.projects[0].consentWithdrawnAt).toBeTruthy();
+    expect(developerPanel().textContent).toContain('Private: not shown on Powered by Sefaria.');
     expect(developerPanel().textContent).not.toContain('taken down');
   });
 
@@ -384,26 +439,22 @@ describe('making a public project private', () => {
 });
 
 describe('deleting a project', () => {
-  const withKey = (extra) => publicProject({
-    keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: null, restrictToWebsite: false }],
-    ...extra,
-  });
+  const withKey = (extra) => project({ keys: [key({ created: null })], ...extra });
   const deleteFromEditor = (projects) => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects, expandedProjectId: 'proj01' });
+    mount('developer', blob({ ...SET_UP, projects }), { projectId: 'proj01' });
     act(() => { buttonNamed(container, 'Edit project').click(); });
     act(() => { buttonNamed(container, 'Delete project').click(); });
     return container.querySelector('[aria-labelledby="devPocConfirmTitle"]');
   };
-  const other = { ...publicProject({ id: 'proj02', name: 'Other' }) };
+  const other = project({ id: 'proj02', name: 'Other' });
 
-  it('removes the project and its keys from the store', () => {
+  it('deletes the project, naming the keys that stop working', async () => {
     const dialog = deleteFromEditor([withKey(), other]);
     expect(dialog.textContent).toContain('These keys stop working right away: Production');
-    act(() => { buttonNamed(dialog, 'Delete project').click(); });
-    const saved = lastSavedState();
-    expect(saved.projects.map(p => p.id)).toEqual(['proj02']);
-    expect(JSON.stringify(saved)).not.toContain('sfr_test_x');
-    expect(saved.expandedProjectId).toBeNull();
+    await clickAndSettle(buttonNamed(dialog, 'Delete project'));
+    expect(session.projects.map(p => p.id)).toEqual(['proj02']);
+    expect(developerPanel().textContent).not.toContain('Daf Tracker');
+    expect(developerPanel().textContent).toContain('Other');
   });
 
   it('warns about published copies only for a public project', () => {
@@ -415,12 +466,10 @@ describe('deleting a project', () => {
 });
 
 describe('key cards', () => {
-  const projectWithKey = () => publicProject({
-    keys: [{ id: 'k1', label: 'Production', value: 'sfr_test_x', created: '2026-09-01T00:00:00Z', restrictToWebsite: false }],
-  });
+  const projectWithKey = () => project({ keys: [key()] });
 
   it('leads the website restriction with the allowed-origin rule, explained on request', () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()], expandedProjectId: 'proj01' });
+    mount('developer', blob({ ...SET_UP, projects: [projectWithKey()] }), { projectId: 'proj01' });
     const restriction = container.querySelector('.devPocRestriction');
     const summary = restriction.querySelector('.devPocRestrictionSummary');
     expect(summary.textContent).toContain('Allowed origin');
@@ -432,12 +481,112 @@ describe('key cards', () => {
   });
 
   it('show when a key was created, with no usage information', () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [projectWithKey()], expandedProjectId: 'proj01' });
+    mount('developer', blob({ ...SET_UP, projects: [projectWithKey()] }), { projectId: 'proj01' });
     const meta = container.querySelector('.devPocKeyMeta').textContent;
     expect(meta).toContain('Created');
     const body = container.querySelector('.devPocProjectBody').textContent;
     expect(body).not.toContain('Last used');
     expect(body).not.toMatch(/requests in the last|requests per day|requests by key/i);
+  });
+});
+
+describe('keys', () => {
+  const mountProject = (p, fields = {}) => mount('developer', blob({ ...SET_UP, projects: [p], ...fields }), { projectId: 'proj01' });
+  const startKey = () => {
+    act(() => { container.querySelector('[data-agent-action="new-key"]').click(); });
+    typeInto(container.querySelector('#devPocKeyLabel'), 'Production');
+  };
+
+  it('creates a key and shows it once the setup wait is over', async () => {
+    jest.useFakeTimers();
+    mountProject(project());
+    startKey();
+    await act(async () => { container.querySelector('[data-agent-action="create-key"]').click(); await flush(); });
+    expect(session.projects[0].keys.map(k => k.label)).toEqual(['Production']);
+    expect(session.projects[0].keys[0].value).toMatch(/^sfr_test_/);
+    expect(developerPanel().textContent).toContain('Setting up your key');
+    await act(async () => { jest.advanceTimersByTime(4000); await flush(); });
+    expect(developerPanel().textContent).toContain('Ready to use');
+    jest.useRealTimers();
+  });
+
+  it('says so when the key could not be created', async () => {
+    jest.useFakeTimers();
+    mountProject(project(), { failNext: 'key' });
+    startKey();
+    await act(async () => { container.querySelector('[data-agent-action="create-key"]').click(); await flush(); });
+    await act(async () => { jest.advanceTimersByTime(4000); await flush(); });
+    expect(developerPanel().textContent).toContain("We couldn't create your key.");
+    expect(session.projects[0].keys).toEqual([]);
+    expect(session.failNext).toBeNull();
+    jest.useRealTimers();
+  });
+
+  it('stops at five keys a project', () => {
+    mountProject(project({ keys: [1, 2, 3, 4, 5].map(n => key({ id: 'k' + n, label: 'Key ' + n })) }));
+    expect(developerPanel().textContent).toContain('You have 5 keys, the most a project can have.');
+    expect(container.querySelector('[data-agent-action="new-key"]').disabled).toBe(true);
+  });
+
+  it('restricts a key to the website', async () => {
+    mountProject(project({ keys: [key()] }));
+    await clickAndSettle(container.querySelector('.devPocRestriction input'));
+    expect(session.projects[0].keys[0].restrictToWebsite).toBe(true);
+    expect(container.querySelector('.devPocRestriction input').checked).toBe(true);
+  });
+
+  it('deletes a key after confirming', async () => {
+    mountProject(project({ keys: [key()] }));
+    act(() => { buttonNamed(container.querySelector('.devPocKey'), 'Delete key').click(); });
+    await clickAndSettle(buttonNamed(container.querySelector('[aria-labelledby="devPocConfirmTitle"]'), 'Delete key'));
+    expect(session.projects[0].keys).toEqual([]);
+    expect(container.querySelector('.devPocKey')).toBeNull();
+  });
+});
+
+describe('dialog keyboard behaviour', () => {
+  const projectWithKey = () => project({ keys: [key({ value: 'sfr_x', created: null })] });
+  const openDeleteKey = () => {
+    mount('developer', blob({ ...SET_UP, projects: [projectWithKey()] }), { projectId: 'proj01' });
+    const opener = buttonNamed(container.querySelector('.devPocKey'), 'Delete key');
+    act(() => { opener.focus(); opener.click(); });
+    return { opener, dialog: container.querySelector('[aria-labelledby="devPocConfirmTitle"]') };
+  };
+  const press = (k, init = {}) => act(() => {
+    document.activeElement.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true, ...init }));
+  });
+
+  it("closes on Escape without the key reaching the panel around the page", () => {
+    const outer = jest.fn();
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    act(() => {
+      ReactDOM.render(
+        <div onKeyDown={e => { if (e.key === 'Escape') { outer(); } }}>
+          <SettingsPage tab="developer" projectId="proj01" accountSettings={{ socialProviders: [] }}
+            initialDeveloper={developerState(blob({ ...SET_UP, projects: [projectWithKey()] }), CONTEXT)}
+            setTab={() => {}} setProjectId={() => {}} />
+        </div>,
+        container,
+      );
+    });
+    act(() => { buttonNamed(container.querySelector('.devPocKey'), 'Delete key').click(); });
+    press('Escape');
+    expect(container.querySelector('[aria-labelledby="devPocConfirmTitle"]')).toBeNull();
+    expect(outer).not.toHaveBeenCalled();
+  });
+
+  it('keeps Tab inside the dialog and returns focus to the opener on close', () => {
+    const { opener, dialog } = openDeleteKey();
+    const buttons = Array.from(dialog.querySelectorAll('button'));
+    expect(document.activeElement).toBe(buttons[0]);
+    act(() => { buttons[buttons.length - 1].focus(); });
+    press('Tab');
+    expect(document.activeElement).toBe(buttons[0]);
+    press('Tab', { shiftKey: true });
+    expect(document.activeElement).toBe(buttons[buttons.length - 1]);
+    act(() => { buttonNamed(dialog, 'Cancel').click(); });
+    expect(document.activeElement).toBe(opener);
   });
 });
 
@@ -463,7 +612,7 @@ describe('agent instructions', () => {
 describe('Hebrew interface', () => {
   it('renders the developer tab in Hebrew', () => {
     Sefaria.interfaceLang = 'hebrew';
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [] });
+    mount('developer', blob(SET_UP));
     expect(developerPanel().textContent).toContain('הגדרות מפתחים');
     expect(developerPanel().textContent).toContain('עדיין אין פרויקטים');
     expect(developerPanel().textContent).not.toContain('No projects yet');
@@ -471,98 +620,107 @@ describe('Hebrew interface', () => {
 
   it('asks "Is this your project?" in Hebrew', () => {
     Sefaria.interfaceLang = 'hebrew';
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [], submitterEmailListingId: 'pb03' });
+    mount('developer', blob({ ...SET_UP, listings: [LISTING] }));
     expect(yourListingDialog().textContent).toContain('האם זה הפרויקט שלך?');
+  });
+
+  it('asks to confirm a changed email in Hebrew', () => {
+    Sefaria.interfaceLang = 'hebrew';
+    mount('developer', blob({ ...SET_UP, ssoOverride: false, verifiedEmail: PREVIOUS_ACCOUNT_EMAIL }));
+    expect(developerPanel().textContent).toContain('אישור כתובת הדוא״ל החדשה');
   });
 });
 
 describe('confirming the email', () => {
-  const unverified = { developerEnabled: false, ssoOverride: false };
+  const unverified = { ssoOverride: false };
 
   it('offers only the emailed link, never a change of sign-in method', () => {
-    mount('developer', unverified);
+    mount('developer', blob(unverified));
     act(() => { buttonNamed(developerPanel(), 'Get started').click(); });
     expect(buttonNamed(developerPanel(), 'Email me a confirmation link')).toBeTruthy();
     expect(developerPanel().textContent).not.toContain('Google');
     expect(developerPanel().textContent).not.toContain('Apple');
     expect(developerPanel().textContent).toContain('you keep signing in the way you do now');
-
-    act(() => { buttonNamed(developerPanel(), 'Email me a confirmation link').click(); });
-    expect(developerPanel().textContent).not.toContain('Google');
   });
 
-  it('shows the check-your-email step once the link is sent', () => {
-    mount('developer', unverified);
+  it('sends the link, then shows the check-your-email step', async () => {
+    mount('developer', blob(unverified));
     act(() => { buttonNamed(developerPanel(), 'Get started').click(); });
-    act(() => { buttonNamed(developerPanel(), 'Email me a confirmation link').click(); });
+    await clickAndSettle(buttonNamed(developerPanel(), 'Email me a confirmation link'));
+    expect(session.confirmationSentTo).toBe(EMAIL);
+    expect(session.confirmationToken).toMatch(/^[a-z0-9]{16}$/);
     expect(developerPanel().textContent).toContain('Check your email');
-    expect(developerPanel().textContent).toContain('tova@example.org');
+    expect(developerPanel().textContent).toContain(EMAIL);
     expect(buttonNamed(developerPanel(), 'Resend the link')).toBeTruthy();
   });
 
-  it('lets an account with a confirmed email straight in', () => {
-    jest.useFakeTimers();
-    mount('developer', { ...unverified, emailVerified: true });
+  it('refuses a resend within a minute', async () => {
+    mount('developer', blob(unverified));
     act(() => { buttonNamed(developerPanel(), 'Get started').click(); });
+    await clickAndSettle(buttonNamed(developerPanel(), 'Email me a confirmation link'));
+    await clickAndSettle(buttonNamed(developerPanel(), 'Resend the link'));
+    expect(session.confirmationSends.length).toBe(1);
+  });
+
+  it('lets an account with a confirmed email straight in', async () => {
+    jest.useFakeTimers();
+    mount('developer', blob({ ...unverified, verifiedEmail: EMAIL }));
+    await clickAndSettle(buttonNamed(developerPanel(), 'Get started'));
+    expect(session.developerEnabled).toBe(true);
+    expect(developerPanel().textContent).toContain('Setting up developer settings');
     act(() => { jest.runAllTimers(); });
     expect(developerPanel().textContent).toContain('About you');
     jest.useRealTimers();
   });
+
+  it('saves the profile and moves on to projects', async () => {
+    mount('developer', blob(DEVELOPER_ON));
+    act(() => { container.querySelector('.devPocLegal input[type="checkbox"]').click(); });
+    await clickAndSettle(container.querySelector('[data-agent-action="save-profile"]'));
+    expect(session.profile.termsAccepted).toBe(true);
+    expect(developerPanel().textContent).toContain('No projects yet');
+  });
 });
 
 describe('the confirmation link', () => {
-  const unverified = { developerEnabled: false, ssoOverride: false };
-  const flush = async () => { for (let i = 0; i < 5; i++) { await Promise.resolve(); } };
-  const serverSays = (state) => {
-    global.fetch = jest.fn((url, options) => (options && options.method === 'POST')
-      ? Promise.resolve({ ok: true })
-      : Promise.resolve({ ok: true, json: () => Promise.resolve(state) }));
+  const linkSent = {
+    ssoOverride: false, confirmationSentAt: '2026-10-11T00:00:00Z', confirmationSentTo: EMAIL, confirmationToken: 'abcdefgh12345678',
   };
-  const sendLink = () => {
-    mount('developer', unverified);
-    act(() => { buttonNamed(developerPanel(), 'Get started').click(); });
-    act(() => { buttonNamed(developerPanel(), 'Email me a confirmation link').click(); });
-  };
-
-  it('opens its own page in a new tab from the mock email', () => {
-    sendLink();
-    const token = lastSavedState().confirmationToken;
-    expect(token).toMatch(/^[a-z0-9]{16}$/);
-    act(() => { container.querySelector('[data-agent-action="mock-open-email"]').click(); });
-    const link = container.querySelector('[data-agent-action="mock-confirm-email"]');
-    expect(link.getAttribute('href')).toBe('/settings/developer/confirm-email/' + token);
-    expect(link.getAttribute('target')).toBe('_blank');
-  });
+  /* What the server does when the emailed link is opened, in any browser. */
+  const openLink = () => { session = { ...session, emailVerified: true, confirmationSentAt: null, confirmationToken: null, developerEnabled: true }; };
 
   it('is noticed by the waiting tab within a few seconds', async () => {
     jest.useFakeTimers();
-    sendLink();
-    serverSays({ emailVerified: false });
+    mount('developer', blob(linkSent));
     await act(async () => { jest.advanceTimersByTime(3000); await flush(); });
     expect(developerPanel().textContent).toContain('Check your email');
 
-    serverSays({ emailVerified: true });
+    openLink();
     await act(async () => { jest.advanceTimersByTime(3000); await flush(); });
     act(() => { jest.runOnlyPendingTimers(); });
     expect(developerPanel().textContent).toContain('Your email is confirmed.');
     expect(developerPanel().textContent).toContain('About you');
-    expect(lastSavedState().emailVerified).toBe(true);
     jest.useRealTimers();
   });
 
   it('is checked at once when another tab in this browser signals it', async () => {
-    sendLink();
-    serverSays({ emailVerified: true });
+    mount('developer', blob(linkSent));
+    openLink();
     await act(async () => {
-      window.dispatchEvent(new StorageEvent('storage', { key: 'sefariaDeveloperPocEmailConfirmed', newValue: '1' }));
+      window.dispatchEvent(new StorageEvent('storage', { key: 'sefariaDeveloperEmailConfirmed', newValue: '1' }));
       await flush();
     });
-    expect(global.fetch.mock.calls.some(([url, options]) => url === '/api/developer-poc/state' && !options.method)).toBe(true);
+    expect(global.fetch).toHaveBeenCalled();
     expect(developerPanel().textContent).toContain('Setting up developer settings');
   });
 
+  it("doesn't confirm an address that is no longer the account email", () => {
+    const state = developerState(blob({ ...linkSent, confirmationSentTo: PREVIOUS_ACCOUNT_EMAIL, emailVerified: true }), CONTEXT);
+    expect(state.emailVerified).toBe(false);
+  });
+
   it('lands on a thank-you page that signals other tabs', () => {
-    window.localStorage.removeItem('sefariaDeveloperPocEmailConfirmed');
+    window.localStorage.removeItem('sefariaDeveloperEmailConfirmed');
     container = document.createElement('div');
     document.body.appendChild(container);
     act(() => { ReactDOM.render(<EmailConfirmedPage />, container); });
@@ -571,34 +729,129 @@ describe('the confirmation link', () => {
     const next = container.querySelector('[data-agent-action="continue-to-developer-settings"]');
     expect(next.textContent).toBe('Continue to developer settings');
     expect(next.getAttribute('href')).toBe('/settings/developer');
-    expect(window.localStorage.getItem('sefariaDeveloperPocEmailConfirmed')).toBeTruthy();
+    expect(window.localStorage.getItem('sefariaDeveloperEmailConfirmed')).toBeTruthy();
   });
 });
 
-describe('POC test panel', () => {
-  it('starts over as an email account with the link already sent', () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE });
-    act(() => { container.querySelector('[data-scenario="email-sent"]').click(); });
-    expect(developerPanel().textContent).toContain('Check your email');
-    expect(container.querySelector('.devPocPanelStatus').textContent).toContain('Email account · confirmation link sent');
+describe('test controls', () => {
+  it('are hidden without mock data in the state', () => {
+    serveSession(null);
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    act(() => {
+      ReactDOM.render(
+        <SettingsPage tab="developer" projectId={null} accountSettings={{ socialProviders: [] }}
+          initialDeveloper={{ developerEnabled: true, ssoConnected: true, profile: PROFILE }}
+          setTab={() => {}} setProjectId={() => {}} />,
+        container,
+      );
+    });
+    expect(container.querySelector('.devPocPanel')).toBeNull();
   });
 
-  it("gives a listing the account email as its submitter email", () => {
-    mount('developer', { ...DEVELOPER_ON, profile: PROFILE, projects: [] });
-    expect(yourListingDialog()).toBeNull();
-    typeInto(container.querySelector('[data-poc-control="submitter-email-listing"]'), 'pb07');
-    expect(lastSavedState().submitterEmailListingId).toBe('pb07');
-    expect(yourListingDialog().textContent).toContain('Rambam Daily Audio');
+  it('start over as the chosen account', async () => {
+    mount('developer', blob({ ...SET_UP, projects: [project()] }));
+    await clickAndSettle(container.querySelector('[data-scenario="email"]'));
+    expect(session).toMatchObject({ developerEnabled: false, profile: null, projects: [], ssoOverride: false, verifiedEmail: null });
+    expect(container.querySelector('.devPocPanelStatus').textContent).toContain('Email account · email not confirmed');
   });
 
-  it('shows what staff leave after an outreach reply: email confirmed, project linked', () => {
-    mount('developer', { developerEnabled: false, ssoOverride: false, profile: PROFILE, projects: [] });
-    act(() => { container.querySelector('[data-poc-control="outreach-yes"]').click(); });
-    const saved = lastSavedState();
-    expect(saved.emailVerified).toBe(true);
-    expect(saved.developerEnabled).toBe(true);
-    expect(saved.projects[0].linkedListingId).toBe('pb01');
-    expect(yourListingDialog()).toBeNull();
-    expect(developerPanel().textContent).toContain('Daf Yomi Companion');
+  it('add a listing submitted with the account email, which is then offered', async () => {
+    mount('developer', blob(SET_UP));
+    await clickAndSettle(container.querySelector('[data-poc-control="create-listing"]'));
+    expect(session.listings[0]).toMatchObject({ name: 'Daf Yomi Companion', submitterEmail: EMAIL });
+    expect(yourListingDialog().textContent).toContain('Daf Yomi Companion');
+  });
+
+  it('open the mock email, whose button is the real confirmation link', () => {
+    mount('developer', blob({
+      ssoOverride: false, confirmationSentAt: '2026-10-11T00:00:00Z', confirmationSentTo: EMAIL, confirmationToken: 'abcdefgh12345678',
+    }));
+    act(() => { container.querySelector('[data-agent-action="mock-open-email"]').click(); });
+    const link = container.querySelector('[data-agent-action="mock-confirm-email"]');
+    expect(link.getAttribute('href')).toBe('/settings/developer/confirm-email/abcdefgh12345678');
+    expect(link.getAttribute('target')).toBe('_blank');
+  });
+});
+
+
+describe('a confirmation link that cannot confirm', () => {
+  const renderLink = (status, data = blob({ ssoOverride: false })) => {
+    serveSession(data);
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    act(() => { ReactDOM.render(<EmailLinkPage link={{ status, key: 'mock' }} />, container); });
+  };
+
+  it('offers a new link when it has expired', async () => {
+    renderLink('expired');
+    expect(container.querySelector('h1').textContent).toBe('This link has expired');
+    await clickAndSettle(buttonNamed(container, 'Send a new link'));
+    expect(session.confirmationSentTo).toBe(EMAIL);
+    expect(container.textContent).toContain('We sent a new link. Check your email.');
+    expect(buttonNamed(container, 'Send a new link')).toBeUndefined();
+  });
+
+  it("shows the server's reason when a new link is refused", async () => {
+    renderLink('expired', blob({ ssoOverride: false, confirmationSends: [new Date().toISOString()] }));
+    await clickAndSettle(buttonNamed(container, 'Send a new link'));
+    expect(container.querySelector('[role="alert"]').textContent).toBe('Wait a minute before asking for another email.');
+  });
+
+  it("won't renew a link once the email is confirmed", async () => {
+    renderLink('expired', blob({ ssoOverride: false, verifiedEmail: EMAIL }));
+    await clickAndSettle(buttonNamed(container, 'Send a new link'));
+    expect(container.querySelector('[role="alert"]').textContent).toBe("This link can't be renewed.");
+  });
+
+  it('says a used link is already confirmed', () => {
+    renderLink('already-confirmed');
+    expect(container.querySelector('h1').textContent).toBe('Already confirmed');
+    expect(container.querySelector('[data-agent-action="continue-to-developer-settings"]')).toBeTruthy();
+  });
+
+  it('rejects a link for an address that is no longer the account email', () => {
+    renderLink('not-account-email');
+    expect(container.querySelector('h1').textContent).toBe('This link is no longer valid');
+    expect(container.textContent).toContain('no longer your account email');
+    expect(buttonNamed(container, 'Send a new link')).toBeUndefined();
+  });
+});
+
+describe('after the account email changes', () => {
+  const changedEmail = {
+    ...SET_UP, ssoOverride: false, verifiedEmail: PREVIOUS_ACCOUNT_EMAIL, projects: [project({ keys: [key()] })],
+  };
+
+  it('keeps projects and keys on show but offers no new ones', () => {
+    mount('developer', blob(changedEmail), { projectId: 'proj01' });
+    const panel = developerPanel();
+    expect(panel.textContent).toContain('Confirm your new email address');
+    expect(panel.textContent).toContain('Your projects and keys keep working');
+    expect(panel.textContent).toContain('Daf Tracker');
+    expect(panel.textContent).toContain('Production');
+    expect(panel.textContent).not.toContain('Get started');
+    expect(panel.querySelector('[data-agent-action="new-project"]')).toBeNull();
+    expect(panel.querySelector('[data-agent-action="new-key"]')).toBeNull();
+  });
+
+  it('shows no create-first buttons on an empty account', () => {
+    mount('developer', blob({ ...changedEmail, projects: [] }));
+    expect(developerPanel().textContent).toContain('No projects yet');
+    expect(developerPanel().querySelector('[data-agent-action="new-project"]')).toBeNull();
+  });
+
+  it('emails a link to the new address', async () => {
+    mount('developer', blob(changedEmail));
+    await clickAndSettle(buttonNamed(developerPanel(), 'Email me a confirmation link'));
+    expect(session.confirmationSentTo).toBe(EMAIL);
+    expect(developerPanel().textContent).toContain('We sent a confirmation link to tova@example.org');
+    expect(buttonNamed(developerPanel(), 'Resend the link')).toBeTruthy();
+  });
+
+  it('offers new projects again once the new address is confirmed', () => {
+    mount('developer', blob({ ...changedEmail, verifiedEmail: EMAIL }));
+    expect(developerPanel().textContent).not.toContain('Confirm your new email address');
+    expect(developerPanel().querySelector('[data-agent-action="new-project"]')).toBeTruthy();
   });
 });
