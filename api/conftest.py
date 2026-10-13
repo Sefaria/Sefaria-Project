@@ -12,8 +12,46 @@ User row, but the row is undone before the next test starts.
 """
 
 import pytest
+from requests.adapters import BaseAdapter
 from django.test import Client
 from django.contrib.auth.models import User
+
+
+@pytest.fixture(autouse=True)
+def newsletter_client(monkeypatch):
+    """
+    Give every test an ActiveCampaign client with fake credentials that can't reach the network.
+
+    The real client is built when api.newsletter_service is imported, from whatever
+    credentials the machine has. Without this fixture the tests depended on them: with
+    no token the client is None, so mocking `_client.make_request` fails and the views
+    answer 503. With a real token, a test that forgot to mock would send real requests
+    to the real ActiveCampaign account.
+
+    Tests still mock `_client.make_request` for the replies they need. A call that
+    isn't mocked fails instead of going out.
+    """
+    from api import newsletter_service
+
+    fake_client = newsletter_service.NewsletterClient("test-token", "test-account")
+    # Refuse at the adapter, the last step before the network, so tests that mock
+    # a higher layer (make_request, or requests.Session.request) still work.
+    fake_client._session.mount("https://", RefuseNetworkAdapter())
+    monkeypatch.setattr(newsletter_service, "_client", fake_client)
+    return fake_client
+
+
+class RefuseNetworkAdapter(BaseAdapter):
+    """A requests adapter that fails every request instead of sending it."""
+
+    def send(self, request, stream=False, timeout=None, verify=True, cert=None, proxies=None):
+        raise RuntimeError(
+            f"Tests must not call the real ActiveCampaign API ({request.method} {request.url}). "
+            "Mock _client.make_request."
+        )
+
+    def close(self):
+        pass
 
 
 @pytest.fixture

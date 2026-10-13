@@ -31,19 +31,12 @@ from urllib.parse import quote
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
+from django.conf import settings
 from django.core import signing
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email as django_validate_email
 
-try:
-    from sefaria.local_settings import (
-        ACTIVECAMPAIGN_API_TOKEN,
-        ACTIVECAMPAIGN_ACCOUNT_NAME,
-    )
-except ImportError:
-    ACTIVECAMPAIGN_API_TOKEN = None
-    ACTIVECAMPAIGN_ACCOUNT_NAME = None
 from sefaria.system.exceptions import InputError
 from sefaria.model.user_profile import UserProfile
 from sefaria.system.database import db
@@ -52,6 +45,14 @@ logger: logging.Logger = logging.getLogger(__name__)
 
 NEWSLETTER_LIST_CACHE_KEY: str = "newsletter_list_from_ac"
 NEWSLETTER_LIST_CACHE_TTL: int = 60 * 60  # 1 hour
+
+# Read from Django settings, not from sefaria.local_settings directly. settings.py
+# picks the right file for each environment (local_settings_ci.py in CI, the example
+# file when there is no local_settings.py), and a direct import skips that choice.
+# getattr keeps an older local_settings.py without these names working; the
+# newsletter service is then just turned off.
+ACTIVECAMPAIGN_API_TOKEN: str | None = getattr(settings, "ACTIVECAMPAIGN_API_TOKEN", None)
+ACTIVECAMPAIGN_ACCOUNT_NAME: str | None = getattr(settings, "ACTIVECAMPAIGN_ACCOUNT_NAME", None)
 
 type DisplayName = dict[str, str | None]
 
@@ -305,6 +306,10 @@ class NewsletterClient:
 #   construction time. It only opens them on the first .request() call. After
 #   gunicorn forks worker processes, each worker opens its own connections
 #   lazily, so we never share live sockets across processes.
+#
+# In pytest, the newsletter_client fixture in api/conftest.py replaces this with a
+# fake client that refuses network calls, so the tests don't depend on the
+# machine's credentials.
 _client: NewsletterClient | None = (
     NewsletterClient(ACTIVECAMPAIGN_API_TOKEN, ACTIVECAMPAIGN_ACCOUNT_NAME)
     if ACTIVECAMPAIGN_API_TOKEN and ACTIVECAMPAIGN_ACCOUNT_NAME
@@ -1230,9 +1235,8 @@ def update_user_preferences_impl(
     - Opt-out (marketing_opt_out=True): Unsubscribes from ALL lists (managed + unmanaged).
       Sets wants_marketing_emails=False in MongoDB UserProfile.
 
-    The UserProfile is looked up by email inside _update_wants_marketing_emails,
-    so this function does not need the Django user object — the email already
-    pins us to one account.
+    The UserProfile is looked up by email (_load_user_profile), so this function
+    does not need the Django user object — the email already pins us to one account.
 
     Args:
         email (str): User's email address
@@ -1249,6 +1253,8 @@ def update_user_preferences_impl(
         }
 
     Raises:
+        InputError: If the email or a selected stringid isn't valid. Both are
+            checked before anything is written to AC.
         ActiveCampaignError: If any step fails
     """
     email = normalize_and_validate_email(email)
@@ -1261,6 +1267,18 @@ def update_user_preferences_impl(
     # Returns None if no Sefaria account exists for `email` — that's fine; the
     # AC mutations below still run, only the profile save becomes a no-op.
     profile: UserProfile | None = _load_user_profile(email)
+
+    # Check the selections before writing anything to AC, so a request with an
+    # unknown stringid doesn't create or rename a contact before it fails.
+    # map_stringids_to_list_ids raises InputError if any stringid isn't valid, so
+    # this validates and maps in one pass. Opting out ignores the selections.
+    new_list_ids: set[str] = set()
+    if not marketing_opt_out:
+        valid_newsletters = _resolve_valid_newsletters(valid_newsletters)
+        new_list_ids = set(
+            map_stringids_to_list_ids(selected_stringids, valid_newsletters)
+        )
+        logger.info(f"Mapped selections to AC list IDs: {new_list_ids}")
 
     # Find or create contact
     contact: dict[str, Any] = find_or_create_contact(email, first_name, last_name)
@@ -1294,15 +1312,7 @@ def update_user_preferences_impl(
     else:
         # === NORMAL BRANCH: REPLACE within managed lists only ===
         logger.info(f"Normal preference update for {email}")
-        valid_newsletters = _resolve_valid_newsletters(valid_newsletters)
-
-        # Map stringids to AC list IDs. map_stringids_to_list_ids raises
-        # InputError if any stringid isn't valid, so this validates
-        # and maps in one pass.
-        new_list_ids: set[str] = set(
-            map_stringids_to_list_ids(selected_stringids, valid_newsletters)
-        )
-        logger.info(f"Mapped selections to AC list IDs: {new_list_ids}")
+        assert valid_newsletters is not None  # resolved above, before the contact write
 
         # Get managed list IDs (only diff against these)
         managed_list_ids: set[str] = set(nl["id"] for nl in valid_newsletters)
